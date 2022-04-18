@@ -285,10 +285,8 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
         params_.particles, states_.particles, tid);
     celeritas::SimTrackView sim(states_.sim, tid);
 
-    const auto& interaction = states_.interactions[tid];
-
     // Tally the number of steps if the track was killed
-    if (celeritas::action_killed(interaction.action))
+    if (sim.status() == celeritas::TrackStatus::killed)
     {
         // TODO: Add an ndarray-type class?
         auto get = [this](size_type i, size_type j) -> size_type& {

@@ -35,7 +35,7 @@ class RelativisticBremModel final : public Model
 
   public:
     // Construct from model ID and other necessary data
-    RelativisticBremModel(ModelId               id,
+    RelativisticBremModel(ActionId              id,
                           const ParticleParams& particles,
                           const MaterialParams& materials,
                           bool                  enable_lpm);
@@ -50,7 +50,7 @@ class RelativisticBremModel final : public Model
     void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
-    ModelId model_id() const final;
+    ActionId action_id() const final;
 
     //! Name of the model, for user interaction
     std::string label() const final { return "Relativistic Bremsstrahlung"; }

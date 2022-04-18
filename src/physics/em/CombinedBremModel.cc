@@ -27,7 +27,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-CombinedBremModel::CombinedBremModel(ModelId               id,
+CombinedBremModel::CombinedBremModel(ActionId              id,
                                      const ParticleParams& particles,
                                      const MaterialParams& materials,
                                      ReadData              sb_table,
@@ -45,7 +45,7 @@ CombinedBremModel::CombinedBremModel(ModelId               id,
         id, particles, materials, enable_lpm);
 
     detail::CombinedBremData<Ownership::value, MemSpace::host> host_ref;
-    host_ref.ids.model          = id;
+    host_ref.ids.action         = id;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
     host_ref.rb_data            = rb_model_->host_ref();
 
@@ -91,9 +91,9 @@ void CombinedBremModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId CombinedBremModel::model_id() const
+ActionId CombinedBremModel::action_id() const
 {
-    return this->host_ref().rb_data.ids.model;
+    return this->host_ref().rb_data.ids.action;
 }
 
 //---------------------------------------------------------------------------//

@@ -134,7 +134,7 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Perform interaction: should emit a single particle (an electron)
     Interaction interaction = interact(rng);
-    CELER_ASSERT(interaction);
+    CELER_ASSERT(interaction.action != Interaction::Action::failed);
 
     // Deposit energy from the secondary (effectively, an infinite energy
     // cutoff)

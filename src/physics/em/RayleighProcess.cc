@@ -33,10 +33,10 @@ RayleighProcess::RayleighProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto RayleighProcess::build_models(ModelIdGenerator next_id) const -> VecModel
+auto RayleighProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    return {
-        std::make_shared<RayleighModel>(next_id(), *particles_, *materials_)};
+    return {std::make_shared<RayleighModel>(
+        *start_id++, *particles_, *materials_)};
 }
 
 //---------------------------------------------------------------------------//

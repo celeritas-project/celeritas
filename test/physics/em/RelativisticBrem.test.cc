@@ -80,12 +80,12 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
         // Construct RelativisticBremModel and save the host data reference
         model_ = std::make_shared<RelativisticBremModel>(
-            ModelId{0}, particles, *this->material_params(), false);
+            ActionId{0}, particles, *this->material_params(), false);
         data_ = model_->host_ref();
 
         // Construct RelativisticBremModel and save the host data reference
         model_lpm_ = std::make_shared<RelativisticBremModel>(
-            ModelId{0}, particles, *this->material_params(), true);
+            ActionId{0}, particles, *this->material_params(), true);
         data_lpm_ = model_lpm_->host_ref();
 
         // Set cutoffs: photon energy thresholds and range cut for Pb
@@ -100,8 +100,6 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check secondaries (bremsstrahlung photon)
         ASSERT_EQ(1, interaction.secondaries.size());
 
@@ -243,7 +241,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

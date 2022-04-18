@@ -62,9 +62,14 @@ template<MemSpace M>
 CELER_FUNCTION void
 ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 {
-    // Construct the state accessors
+    SimTrackView sim(states_.sim, tid);
+    if (sim.status() == TrackStatus::inactive)
+    {
+        // Do not create secondaries from stale data on inactive tracks
+        return;
+    }
+
     GeoTrackView     geo(params_.geometry, states_.geometry, tid);
-    SimTrackView     sim(states_.sim, tid);
     PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, tid);
 
     // Offset in the vector of track initializers
@@ -76,10 +81,9 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 
     // Save the parent ID since it will be overwritten if a secondary is
     // initialized in this slot
-    const TrackId parent_id(sim.track_id());
+    const TrackId parent_id{sim.track_id()};
 
-    Interaction& result = states_.interactions[tid];
-    for (const auto& secondary : result.secondaries)
+    for (const auto& secondary : phys.secondaries())
     {
         if (secondary)
         {
@@ -100,13 +104,13 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             init.sim.parent_id        = parent_id;
             init.sim.event_id         = sim.event_id();
             init.sim.num_steps        = 0;
-            init.sim.alive            = true;
+            init.sim.status           = TrackStatus::alive;
             init.geo.pos              = geo.pos();
             init.geo.dir              = secondary.direction;
             init.particle.particle_id = secondary.particle_id;
             init.particle.energy      = secondary.energy;
 
-            if (!initialized && !sim.alive())
+            if (!initialized && sim.status() != TrackStatus::alive)
             {
                 ParticleTrackView particle(
                     params_.particles, states_.particles, tid);
@@ -118,8 +122,10 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
                 sim = init.sim;
                 geo = GeoTrackView::DetailedInitializer{geo, init.geo.dir};
                 particle    = init.particle;
-                phys        = {};
                 initialized = true;
+
+                // TODO: make it easier to determine what states need to be
+                // reset: the physics MFP, for example, is OK to preserve
             }
             else
             {
@@ -140,15 +146,12 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         }
     }
 
-    // Reset the physics state if a discrete interaction occurred
-    if (phys.model_id())
+    if (!initialized && sim.status() == TrackStatus::killed)
     {
-        phys = {};
+        // Track is no longer used as part of transport
+        sim.status(TrackStatus::inactive);
     }
-
-    // Clear the interaction
-    result = initialized ? Interaction::from_spawned()
-                         : Interaction::from_processed();
+    CELER_ENSURE(sim.status() != TrackStatus::killed);
 }
 
 //---------------------------------------------------------------------------//

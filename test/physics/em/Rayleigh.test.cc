@@ -72,18 +72,16 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Construct RayleighModel and save the host data reference
         model_ = std::make_shared<RayleighModel>(
-            ModelId{0}, particles, *this->material_params());
+            ActionId{0}, particles, *this->material_params());
         model_ref_ = model_->host_ref();
     }
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check change to parent track - coherent scattering
         EXPECT_EQ(this->particle_track().energy().value(),
                   interaction.energy.value());
-        EXPECT_EQ(celeritas::Action::scattered, interaction.action);
+        EXPECT_EQ(Action::scattered, interaction.action);
     }
 
   protected:

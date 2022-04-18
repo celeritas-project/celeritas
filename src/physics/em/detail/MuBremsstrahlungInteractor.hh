@@ -149,7 +149,6 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.action    = Action::scattered;
     result.energy    = units::MevEnergy{particle_.energy().value() - epsilon};
     result.direction = inc_direction;
     result.secondaries = {secondaries, 1};

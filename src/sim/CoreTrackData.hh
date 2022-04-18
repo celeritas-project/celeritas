@@ -11,7 +11,6 @@
 #include "geometry/GeoData.hh"
 #include "geometry/GeoMaterialData.hh"
 #include "physics/base/CutoffData.hh"
-#include "physics/base/Interaction.hh"
 #include "physics/base/ParticleData.hh"
 #include "physics/base/PhysicsData.hh"
 #include "physics/base/Secondary.hh"
@@ -25,16 +24,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Parameters for controlling state sizes etc.
+ * Memspace-independent core variables.
  */
-struct ControlOptions
+struct CoreScalars
 {
-    real_type secondary_stack_factor = 3; // Secondary storage per state size
+    real_type secondary_stack_factor = 3; //!< Secondary storage per state size
+    ActionId  boundary_action;
 
-    //! True if all options are valid
+    //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return secondary_stack_factor > 0;
+        return secondary_stack_factor > 0 && boundary_action;
     }
 };
 
@@ -54,13 +54,13 @@ struct CoreParamsData
     AtomicRelaxParamsData<W, M> relaxation; // TODO: move into physics?
     RngParamsData<W, M>         rng;
 
-    ControlOptions control;
+    CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && control;
+               && physics && scalars;
     }
 
     //! Assign from another set of data
@@ -76,6 +76,7 @@ struct CoreParamsData
         physics    = other.physics;
         relaxation = other.relaxation;
         rng        = other.rng;
+        scalars    = other.scalars;
         return *this;
     }
 };
@@ -83,6 +84,8 @@ struct CoreParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Thread-local state data.
+ *
+ * TODO: standardize variable names
  */
 template<Ownership W, MemSpace M>
 struct CoreStateData
@@ -94,17 +97,14 @@ struct CoreStateData
     MaterialStateData<W, M>    materials;
     ParticleStateData<W, M>    particles;
     PhysicsStateData<W, M>     physics;
-    AtomicRelaxStateData<W, M> relaxation;
     RngStateData<W, M>         rng;
     SimStateData<W, M>         sim;
 
+    // TODO: move to physics?
+    AtomicRelaxStateData<W, M> relaxation;
+
     // Stacks
     StackAllocatorData<Secondary, W, M> secondaries;
-
-    // Raw data
-    Items<real_type>   step_length;       // TODO: step limiter
-    Items<real_type>   energy_deposition; // TODO: move to physics?
-    Items<Interaction> interactions;      // TODO: to be removed
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
@@ -113,8 +113,7 @@ struct CoreStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && materials && particles && physics && rng && sim
-               && secondaries && !step_length.empty()
-               && !energy_deposition.empty() && !interactions.empty();
+               && secondaries;
     }
 
     //! Assign from another set of data
@@ -127,12 +126,9 @@ struct CoreStateData
         particles         = other.particles;
         physics           = other.physics;
         rng               = other.rng;
-        relaxation        = other.relaxation;
         sim               = other.sim;
+        relaxation        = other.relaxation;
         secondaries       = other.secondaries;
-        step_length       = other.step_length;
-        energy_deposition = other.energy_deposition;
-        interactions      = other.interactions;
         return *this;
     }
 };
@@ -149,8 +145,7 @@ using CoreStateHostRef = CoreStateData<Ownership::reference, MemSpace::host>;
 /*!
  * Reference to core parameters and states.
  *
- * This replaces \c ModelInteractRef and may be replaced by something else
- * (more comprehensive data management class).
+ * This is passed via \c ExplicitActionInterface::execute to launch kernels.
  */
 template<MemSpace M>
 struct CoreRef
@@ -187,18 +182,8 @@ resize(CoreStateData<Ownership::value, M>*                               data,
     resize(&data->sim, size);
 
     auto sec_size
-        = static_cast<size_type>(size * params.control.secondary_stack_factor);
+        = static_cast<size_type>(size * params.scalars.secondary_stack_factor);
     resize(&data->secondaries, sec_size);
-
-    resize(&data->step_length, size);
-    resize(&data->energy_deposition, size);
-
-    // Initialize empty interactions
-    StateCollection<Interaction, Ownership::value, MemSpace::host> interactions;
-    std::vector<Interaction> initial_state(size, Interaction{});
-    make_builder(&interactions)
-        .insert_back(initial_state.begin(), initial_state.end());
-    data->interactions = interactions;
 }
 
 //---------------------------------------------------------------------------//

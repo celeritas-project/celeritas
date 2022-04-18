@@ -17,11 +17,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
+MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
                                              const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.model   = id;
+    interface_.ids.action   = id;
     interface_.ids.gamma   = particles.find(pdg::gamma());
     interface_.ids.mu_minus = particles.find(pdg::mu_minus());
     interface_.ids.mu_plus  = particles.find(pdg::mu_plus());
@@ -75,9 +75,9 @@ void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId MuBremsstrahlungModel::model_id() const
+ActionId MuBremsstrahlungModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

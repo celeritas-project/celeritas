@@ -42,7 +42,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
-    kn_data_.ids.model    = ModelId{0}; // Unused but needed for error check
+    kn_data_.ids.action   = ActionId{0}; // Unused but needed for error check
     kn_data_.ids.electron = pparams_->find(pdg::electron());
     kn_data_.ids.gamma    = pparams_->find(pdg::gamma());
     kn_data_.inv_electron_mass
@@ -96,8 +96,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Construct initialization
     InitialData initial;
-    initial.particle = ParticleTrackState{kn_data_.ids.gamma,
-                                          units::MevEnergy{args.energy}};
+    initial.particle = ParticleTrackInitializer{kn_data_.ids.gamma,
+                                                units::MevEnergy{args.energy}};
 
     StateHostRef state;
     state.particle    = track_states;
@@ -170,7 +170,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Perform interactions - emits a single particle
             Interaction interaction = interact(rng);
-            CELER_ASSERT(interaction);
+            CELER_ASSERT(interaction.action != Interaction::Action::failed);
             CELER_ASSERT(interaction.secondaries.size() == 1);
 
             // Deposit energy from the secondary (all local)

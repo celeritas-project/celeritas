@@ -11,6 +11,7 @@
 #include "base/Types.hh"
 #include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,7 @@ namespace detail
  */
 struct MuBremsstrahlungIds
 {
-    ModelId    model;
+    ActionId   action;
     ParticleId gamma;
     ParticleId mu_minus;
     ParticleId mu_plus;
@@ -30,7 +31,7 @@ struct MuBremsstrahlungIds
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && gamma && mu_minus && mu_plus;
+        return action && gamma && mu_minus && mu_plus;
     }
 };
 

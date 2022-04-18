@@ -56,17 +56,17 @@ TEST_F(PhysicsParamsTest, accessors)
         model_names.push_back(p.model(model_id).label());
     }
     const std::string expected_model_names[]
-        = {"MockModel(0, p=0, emin=1e-06, emax=100)",
-           "MockModel(1, p=1, emin=1, emax=100)",
-           "MockModel(2, p=0, emin=1e-06, emax=100)",
-           "MockModel(3, p=1, emin=0.001, emax=1)",
-           "MockModel(4, p=1, emin=1, emax=10)",
-           "MockModel(5, p=1, emin=10, emax=100)",
-           "MockModel(6, p=2, emin=0.001, emax=1)",
-           "MockModel(7, p=2, emin=1, emax=100)",
-           "MockModel(8, p=1, emin=0.001, emax=10)",
-           "MockModel(9, p=2, emin=0.001, emax=10)",
-           "MockModel(10, p=3, emin=1e-05, emax=10)"};
+        = {"MockModel(5, p=0, emin=1e-06, emax=100)",
+           "MockModel(6, p=1, emin=1, emax=100)",
+           "MockModel(7, p=0, emin=1e-06, emax=100)",
+           "MockModel(8, p=1, emin=0.001, emax=1)",
+           "MockModel(9, p=1, emin=1, emax=10)",
+           "MockModel(10, p=1, emin=10, emax=100)",
+           "MockModel(11, p=2, emin=0.001, emax=1)",
+           "MockModel(12, p=2, emin=1, emax=100)",
+           "MockModel(13, p=1, emin=0.001, emax=10)",
+           "MockModel(14, p=2, emin=0.001, emax=10)",
+           "MockModel(15, p=3, emin=1e-05, emax=10)"};
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
     // Test host-accessible process map
@@ -189,6 +189,37 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
         EXPECT_DOUBLE_EQ(10.0, gamma_cref.per_process_xs(ParticleProcessId{1}));
         EXPECT_DOUBLE_EQ(100.0, celer.per_process_xs(ParticleProcessId{0}));
     }
+
+    // Energy deposition
+    {
+        using Energy = PhysicsTrackView::Energy;
+        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+        gamma.deposit_energy(Energy(2.5));
+        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        // Allow zero-energy deposition
+        EXPECT_NO_THROW(gamma.deposit_energy(zero_quantity()));
+        EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
+        gamma.reset_energy_deposition();
+        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+    }
+
+    // Secondaries
+    {
+        EXPECT_EQ(0, gamma_cref.secondaries().size());
+        std::vector<Secondary> temp(3);
+        gamma.secondaries(make_span(temp));
+        auto actual = gamma_cref.secondaries();
+        EXPECT_EQ(3, actual.size());
+        EXPECT_EQ(temp.data(), actual.data());
+    }
+
+    // Model/action ID conversion
+    for (ModelId m : range(ModelId{this->physics()->num_models()}))
+    {
+        ActionId a = gamma_cref.model_to_action(m);
+        EXPECT_EQ(m.unchecked_get(),
+                  gamma_cref.action_to_model(a).unchecked_get());
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, processes)
@@ -303,8 +334,9 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scaling_min_range);
-    EXPECT_SOFT_EQ(0.2, params_ref.scaling_fraction);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter,
+                   params_ref.scalars.scaling_min_range);
+    EXPECT_SOFT_EQ(0.2, params_ref.scalars.scaling_fraction);
     std::vector<real_type> range;
     std::vector<real_type> step;
 
@@ -319,26 +351,22 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
         auto id = phys.value_grid(ValueGridType::range, ppid);
         ASSERT_TRUE(id);
         auto calc_range = phys.make_calculator<RangeCalculator>(id);
-        for (real_type energy : {0.0, 0.01, 1.0, 1e2})
+        for (real_type energy : {0.01, 1.0, 1e2})
         {
             range.push_back(calc_range(MevEnergy{energy}));
             step.push_back(phys.range_to_step(range.back()));
         }
     }
 
-    const double expected_range[] = {0.,
-                                     0.01666666666667,
+    const double expected_range[] = {0.01666666666667,
                                      1.666666666667,
                                      166.6666666667,
-                                     0.,
                                      0.01428571428571,
                                      1.428571428571,
                                      142.8571428571};
-    const double expected_step[]  = {0.,
-                                    0.01666666666667,
+    const double expected_step[]  = {0.01666666666667,
                                     0.4885333333333,
                                     33.49328533333,
-                                    0.,
                                     0.01428571428571,
                                     0.4401142857143,
                                     28.73137257143};
@@ -367,7 +395,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
         auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
         EXPECT_TRUE(phys.use_integral_xs(ppid));
-        EXPECT_SOFT_EQ(0.8, phys.energy_fraction());
+        EXPECT_SOFT_EQ(0.8, phys.scalars().energy_fraction);
         EXPECT_SOFT_EQ(0.1, phys.energy_max_xs(ppid));
         auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
         ASSERT_TRUE(id);
@@ -541,13 +569,13 @@ TEST_F(PHYS_DEVICE_TEST, all)
 class EPlusAnnihilationTest : public PhysicsTestBase
 {
   public:
-    SPConstMaterials build_materials() const override;
-    SPConstParticles build_particles() const override;
-    SPConstPhysics   build_physics() const override;
+    SPMaterials build_materials() const override;
+    SPParticles build_particles() const override;
+    SPPhysics   build_physics() const override;
 };
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_materials() const -> SPConstMaterials
+auto EPlusAnnihilationTest::build_materials() const -> SPMaterials
 {
     using namespace celeritas::units;
     using namespace celeritas::constants;
@@ -564,7 +592,7 @@ auto EPlusAnnihilationTest::build_materials() const -> SPConstMaterials
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
+auto EPlusAnnihilationTest::build_particles() const -> SPParticles
 {
     using namespace celeritas::units;
     namespace pdg = celeritas::pdg;
@@ -582,13 +610,14 @@ auto EPlusAnnihilationTest::build_particles() const -> SPConstParticles
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_physics() const -> SPConstPhysics
+auto EPlusAnnihilationTest::build_physics() const -> SPPhysics
 {
     PhysicsParams::Input physics_inp;
     physics_inp.materials                  = this->materials();
     physics_inp.particles                  = this->particles();
     physics_inp.options                    = this->build_physics_options();
     physics_inp.options.enable_fluctuation = false;
+    physics_inp.action_manager             = this->action_manager().get();
 
     physics_inp.processes.push_back(
         std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));

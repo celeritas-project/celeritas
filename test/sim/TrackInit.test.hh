@@ -38,7 +38,8 @@ struct Interactor
     CELER_FUNCTION Interaction operator()()
     {
         Interaction result;
-        result.action = Action::unchanged;
+        result.action    = Interaction::Action::unchanged;
+        result.direction = {0, 0, 1};
 
         // Kill the particle
         if (!alive)

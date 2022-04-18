@@ -184,7 +184,6 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     const real_type inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction     result;
-    result.action      = Action::scattered;
     result.energy      = units::MevEnergy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
     result.direction   = inc_exiting_direction;

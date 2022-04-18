@@ -24,9 +24,9 @@ namespace celeritas
  * model ID above the corresponding value.
  *
  * \code
-    GridIdFinder<MevEnergy, ModelId> find_model(energy, values);
+    GridIdFinder<MevEnergy, ActionId> find_model(energy, values);
 
-    ModelId applicable_model = find_model(particle.energy());
+    ActionId applicable_model = find_model(particle.energy());
    \endcode
  */
 template<class KeyQuantity, class ValueId>

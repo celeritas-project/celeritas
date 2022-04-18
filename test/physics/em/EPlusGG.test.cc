@@ -77,12 +77,9 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check change to parent track
+        EXPECT_EQ(Action::absorbed, interaction.action);
         EXPECT_EQ(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(0, celeritas::norm(interaction.direction));
-        EXPECT_EQ(celeritas::Action::absorbed, interaction.action);
 
         // Check secondaries (two photons)
         ASSERT_EQ(2, interaction.secondaries.size());
@@ -173,7 +170,7 @@ TEST_F(EPlusGGInteractorTest, basic)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

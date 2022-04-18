@@ -34,7 +34,7 @@ class RayleighModel final : public Model
 
   public:
     // Construct from model ID and other necessary data
-    RayleighModel(ModelId               id,
+    RayleighModel(ActionId              id,
                   const ParticleParams& particles,
                   const MaterialParams& materials);
 
@@ -48,7 +48,7 @@ class RayleighModel final : public Model
     void interact(const DeviceInteractRef&) const final;
 
     // ID of the model
-    ModelId model_id() const final;
+    ActionId action_id() const final;
 
     //! Name of the model, for user interaction
     std::string label() const final { return "Rayleigh Scattering"; }

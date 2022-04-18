@@ -55,7 +55,6 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
         // SCOPED_TRACE(interaction);
 
         // Check change to parent track
@@ -63,7 +62,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
-        EXPECT_EQ(celeritas::Action::scattered, interaction.action);
+        EXPECT_EQ(Action::scattered, interaction.action);
 
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());
@@ -156,7 +155,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

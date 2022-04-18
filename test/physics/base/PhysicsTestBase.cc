@@ -10,24 +10,31 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/material/MaterialParams.hh"
+#include "sim/ActionManager.hh"
 
 using namespace celeritas;
 
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
+PhysicsTestBase::~PhysicsTestBase() = default;
+
+//---------------------------------------------------------------------------//
 void PhysicsTestBase::SetUp()
 {
+    actions_ = std::make_shared<ActionManager>();
+
     materials_ = this->build_materials();
     CELER_ASSERT(materials_);
     particles_ = this->build_particles();
     CELER_ASSERT(particles_);
     physics_ = this->build_physics();
     CELER_ASSERT(physics_);
+    model_to_action_ = this->physics()->host_ref().scalars.model_to_action;
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_materials() const -> SPConstMaterials
+auto PhysicsTestBase::build_materials() const -> SPMaterials
 {
     using namespace celeritas::units;
     MaterialParams::Input inp;
@@ -52,7 +59,7 @@ auto PhysicsTestBase::build_materials() const -> SPConstMaterials
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_particles() const -> SPConstParticles
+auto PhysicsTestBase::build_particles() const -> SPParticles
 {
     using namespace celeritas::units;
     namespace pdg = celeritas::pdg;
@@ -84,13 +91,14 @@ auto PhysicsTestBase::build_physics_options() const -> PhysicsOptions
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_physics() const -> SPConstPhysics
+auto PhysicsTestBase::build_physics() const -> SPPhysics
 {
     using Barn = MockProcess::BarnMicroXs;
     PhysicsParams::Input physics_inp;
-    physics_inp.materials = this->materials();
-    physics_inp.particles = this->particles();
-    physics_inp.options   = this->build_physics_options();
+    physics_inp.materials      = this->materials();
+    physics_inp.particles      = this->particles();
+    physics_inp.options        = this->build_physics_options();
+    physics_inp.action_manager = actions_.get();
 
     // Add a few processes
     MockProcess::Input inp;
@@ -170,6 +178,15 @@ auto PhysicsTestBase::make_applicability(const char* name,
     result.lower    = MevEnergy{lo_energy};
     result.upper    = MevEnergy{hi_energy};
     return result;
+}
+
+//---------------------------------------------------------------------------//
+auto PhysicsTestBase::make_model_callback() const -> ModelCallback
+{
+    return [this](ActionId id) {
+        CELER_ASSERT(id);
+        interactions_.push_back(ModelId{id.unchecked_get() - model_to_action_});
+    };
 }
 
 //---------------------------------------------------------------------------//

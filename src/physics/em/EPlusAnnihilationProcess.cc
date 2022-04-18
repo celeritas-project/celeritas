@@ -32,10 +32,10 @@ EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles)
 /*!
  * Construct the models associated with this process.
  */
-auto EPlusAnnihilationProcess::build_models(ModelIdGenerator next_id) const
+auto EPlusAnnihilationProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    return {std::make_shared<EPlusGGModel>(next_id(), *particles_)};
+    return {std::make_shared<EPlusGGModel>(*start_id++, *particles_)};
 }
 
 //---------------------------------------------------------------------------//

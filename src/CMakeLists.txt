@@ -56,6 +56,12 @@ macro(celeritas_gen_interactor class func)
     --class ${class}  --func ${func}
   )
 endmacro()
+macro(celeritas_gen_action basedir class func)
+  celeritas_gen(_gen_sources
+    "gen-action.py" "${basedir}/generated/${class}"
+    --class ${class} --func ${func}
+  )
+endmacro()
 macro(celeritas_gen_trackinit class)
   celeritas_gen(_gen_sources
     "gen-trackinit.py" "sim/generated/${class}"
@@ -73,6 +79,11 @@ celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
 celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
+
+celeritas_gen_action("physics/base" "AlongStepAction" "along_step")
+celeritas_gen_action("physics/base" "DiscreteSelectAction" "discrete_select")
+celeritas_gen_action("physics/base" "PreStepAction" "pre_step")
+celeritas_gen_action("geometry" "BoundaryAction" "boundary")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
@@ -150,6 +161,8 @@ list(APPEND SOURCES
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   random/detail/CuHipRngStateInit.cc
+  sim/ActionInterface.cc
+  sim/ActionManager.cc
   sim/TrackInitParams.cc
   sim/detail/TrackInitAlgorithms.cc
 )

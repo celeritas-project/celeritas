@@ -21,9 +21,10 @@ inline void to_json(nlohmann::json& j, const TransporterTiming& v)
                        {"total", v.total},
                        {"initialize_tracks", v.initialize_tracks},
                        {"pre_step", v.pre_step},
-                       {"along_and_post_step", v.along_and_post_step},
+                       {"along_step", v.along_step},
+                       {"discrete_select", v.discrete_select},
+                       {"cross_boundary", v.launch_models},
                        {"launch_models", v.launch_models},
-                       {"process_interactions", v.process_interactions},
                        {"extend_from_secondaries", v.extend_from_secondaries}};
 }
 

@@ -23,11 +23,27 @@
 #include "physics/grid/ValueGridInserter.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialParams.hh"
+#include "sim/ActionManager.hh"
 
 #include "ParticleParams.hh"
+#include "generated/AlongStepAction.hh"
+#include "generated/DiscreteSelectAction.hh"
+#include "generated/PreStepAction.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+class ImplicitPhysicsAction final : public ImplicitActionInterface,
+                                    public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with processes and helper classes.
@@ -40,9 +56,61 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
                              [](const SPConstProcess& p) { return bool(p); }));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
+    CELER_EXPECT(inp.action_manager);
 
-    // Emit models for associated proceses
-    models_ = this->build_models();
+    // Create actions (order matters due to accessors in PhysicsParamsScalars)
+    {
+        using std::make_shared;
+        auto& action_mgr = *inp.action_manager;
+        // TODO: add scoped range
+        // auto  get_action_range = action_mgr.scoped_range("physics");
+
+        auto pre_step_action = make_shared<generated::PreStepAction>(
+            action_mgr.next_id(), "pre-step", "beginning of step physics");
+        inp.action_manager->insert(pre_step_action);
+        pre_step_action_ = std::move(pre_step_action);
+
+        // TODO: this is coupled to geometry and field, so find a better place
+        // for this
+        auto along_step_action = make_shared<generated::AlongStepAction>(
+            action_mgr.next_id(),
+            "along-step",
+            "propagation, multiple scattering, and energy loss");
+        inp.action_manager->insert(along_step_action);
+        along_step_action_ = std::move(along_step_action);
+
+        auto range_action = make_shared<ImplicitPhysicsAction>(
+            action_mgr.next_id(),
+            "eloss-range",
+            "range limitation due to energy loss");
+        action_mgr.insert(range_action);
+        range_action_ = std::move(range_action);
+
+        auto discrete_action = make_shared<generated::DiscreteSelectAction>(
+            action_mgr.next_id(),
+            "physics-discrete-select",
+            "discrete interaction");
+        inp.action_manager->insert(discrete_action);
+        discrete_action_ = std::move(discrete_action);
+
+        auto integral_action = make_shared<ImplicitPhysicsAction>(
+            action_mgr.next_id(),
+            "physics-integral-rejected",
+            "rejection by integral cross section");
+        inp.action_manager->insert(integral_action);
+        integral_rejection_action_ = std::move(integral_action);
+
+        // Emit models for associated proceses
+        models_ = this->build_models(inp.action_manager);
+
+        // Place "failure" *after* all the model IDs
+        auto failure_action = make_shared<ImplicitPhysicsAction>(
+            action_mgr.next_id(),
+            "physics-failure",
+            "interaction sampling failure");
+        inp.action_manager->insert(failure_action);
+        failure_action_ = std::move(failure_action);
+    }
 
     // Construct data
     HostValue host_data;
@@ -51,6 +119,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
     this->build_ids(*inp.particles, &host_data);
     this->build_xs(inp.options, *inp.materials, &host_data);
 
+    // TODO: move to diagnostic output
     CELER_LOG(debug)
         << "Constructed physics sizes:"
         << "\n  reals: " << host_data.reals.size()
@@ -63,6 +132,15 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         << "\n  process_groups: " << host_data.process_groups.size();
 
     data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
+
+    CELER_ENSURE(range_action_->action_id()
+                 == host_ref().scalars.range_action());
+    CELER_ENSURE(discrete_action_->action_id()
+                 == host_ref().scalars.discrete_action());
+    CELER_ENSURE(integral_rejection_action_->action_id()
+                 == host_ref().scalars.integral_rejection_action());
+    CELER_ENSURE(failure_action_->action_id()
+                 == host_ref().scalars.failure_action());
 }
 
 //---------------------------------------------------------------------------//
@@ -79,22 +157,23 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto PhysicsParams::build_models() const -> VecModel
+auto PhysicsParams::build_models(ActionManager* mgr) const -> VecModel
 {
     VecModel models;
 
     // Construct models, assigning each model ID
-    ModelIdGenerator next_model_id;
     for (auto process_idx : range<ProcessId::size_type>(processes_.size()))
     {
-        auto new_models = processes_[process_idx]->build_models(next_model_id);
+        auto id_iter    = Process::ActionIdIter{mgr->next_id()};
+        auto new_models = processes_[process_idx]->build_models(id_iter);
         CELER_ASSERT(!new_models.empty());
         for (SPConstModel& model : new_models)
         {
             CELER_ASSERT(model);
-            ModelId model_id = next_model_id();
-            CELER_ASSERT(model->model_id() == model_id);
+            CELER_ASSERT(model->action_id() == *id_iter++);
 
+            // Add model to action manager
+            mgr->insert(model);
             // Save model and the process that it belongs to
             models.push_back({std::move(model), ProcessId{process_idx}});
         }
@@ -122,11 +201,11 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
                    << " (should be be within 0 <= limit <= 1)");
-    data->scaling_min_range  = opts.min_range;
-    data->scaling_fraction   = opts.max_step_over_range;
-    data->energy_fraction    = opts.min_eprime_over_e;
-    data->linear_loss_limit  = opts.linear_loss_limit;
-    data->enable_fluctuation = opts.enable_fluctuation;
+    data->scalars.scaling_min_range  = opts.min_range;
+    data->scalars.scaling_fraction   = opts.max_step_over_range;
+    data->scalars.energy_fraction    = opts.min_eprime_over_e;
+    data->scalars.linear_loss_limit  = opts.linear_loss_limit;
+    data->scalars.enable_fluctuation = opts.enable_fluctuation;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,6 +222,9 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     // Note: use map to keep ProcessId sorted
     std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
         particles.size());
+
+    // Offset from the index in the list of models to a model's ActionId
+    data->scalars.model_to_action = this->model(ModelId{0}).action_id().get();
 
     // Construct particle -> process -> model map
     for (auto model_idx : range(this->num_models()))
@@ -175,6 +257,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     process_groups.reserve(particle_models.size());
 
     // Loop over particle IDs, set ProcessGroup
+    ProcessId::size_type max_particle_processes = 0;
     for (auto particle_idx : range(particles.size()))
     {
         auto& process_to_models = particle_models[particle_idx];
@@ -184,8 +267,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 << "No processes are defined for particle '"
                 << particles.id_to_label(ParticleId{particle_idx}) << '\'';
         }
-        data->max_particle_processes = std::max<ProcessId::size_type>(
-            data->max_particle_processes, process_to_models.size());
+        max_particle_processes = std::max<ProcessId::size_type>(
+            max_particle_processes, process_to_models.size());
 
         std::vector<ProcessId>  temp_processes;
         std::vector<ModelGroup> temp_model_datas;
@@ -246,6 +329,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         CELER_ASSERT(process_to_models.empty() || pdata);
         process_groups.push_back(pdata);
     }
+    data->scalars.max_particle_processes = max_particle_processes;
+    data->scalars.num_models             = this->num_models();
 
     // Assign hardwired models that do on-the-fly xs calculation
     for (auto model_idx : range(this->num_models()))
@@ -438,10 +523,14 @@ void PhysicsParams::build_xs(const Options&        opts,
                                  temp_grid_ids[vgt].end(),
                                  [](ValueGridId id) { return bool(id); }))
                 {
-                    // Skip this table type since it's not present for any
-                    // material for this particle process
-                    CELER_LOG(debug) << "No " << to_cstring(ValueGridType(vgt))
-                                     << " for process " << proc.label();
+                    if (vgt == ValueGridType::macro_xs)
+                    {
+                        // Skip this table type since it's not present for any
+                        // material for this particle process
+                        CELER_LOG(debug)
+                            << "No " << to_cstring(ValueGridType(vgt))
+                            << " for process " << proc.label();
+                    }
                     continue;
                 }
 

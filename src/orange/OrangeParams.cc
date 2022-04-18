@@ -163,7 +163,7 @@ OrangeParams::OrangeParams(Input input)
     CELER_EXPECT(input.surface_labels.size() == input.surfaces.size());
     CELER_EXPECT(input.volume_labels.size() == input.volumes.size());
 
-    // Construct meatada
+    // Construct metadata
     surf_labels_ = std::move(input.surface_labels);
     vol_labels_  = std::move(input.volume_labels);
     for (auto sid : range(SurfaceId(surf_labels_.size())))

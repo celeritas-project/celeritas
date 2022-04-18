@@ -155,7 +155,9 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the true path length using the Urban multiple scattering model
- * as well as the geometry path length for a given proposed physics step. The
+ * as well as the geometry path length for a given proposed physics step.
+ *
+ * The
  * model is selected for the candidate process governing the step if the true
  * path length is smaller than the current physics step length. However, the
  * geometry path length will be used for the further step length competition

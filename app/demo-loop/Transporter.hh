@@ -14,14 +14,17 @@
 
 #include "base/Assert.hh"
 #include "base/CollectionStateStore.hh"
+#include "base/Range.hh"
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
 #include "random/RngParams.hh"
 #include "sim/CoreTrackData.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class ActionManager;
 class AtomicRelaxationParams;
 class CutoffParams;
 class GeoMaterialParams;
@@ -48,6 +51,9 @@ struct TransporterInput
     {
         return celeritas::numeric_limits<size_type>::max();
     }
+
+    // Action manager
+    std::shared_ptr<ActionManager> actions;
 
     // Geometry and materials
     std::shared_ptr<const GeoParams>         geometry;
@@ -93,9 +99,10 @@ struct TransporterTiming
     // Finer-grained timing information within a step
     real_type initialize_tracks{};
     real_type pre_step{};
-    real_type along_and_post_step{};
+    real_type along_step{};
+    real_type discrete_select{};
+    real_type cross_boundary{};
     real_type launch_models{};
-    real_type process_interactions{};
     real_type extend_from_secondaries{};
 };
 
@@ -165,6 +172,13 @@ class Transporter : public TransporterBase
     TransporterInput                          input_;
     CoreParamsData<Ownership::const_reference, M> params_;
     CollectionStateStore<CoreStateData, M>        states_;
+
+    // TODO: convert to a vector of actions in order to take, after updating
+    // the rest of the code to use actions as well
+    ActionId pre_step_action_;
+    ActionId along_step_action_;
+    ActionId boundary_action_;
+    ActionId discrete_select_action_;
 };
 
 //---------------------------------------------------------------------------//
