@@ -10,10 +10,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <iomanip>
 #include <string>
 #include <type_traits>
 
 #include "base/CollectionStateStore.hh"
+#include "base/detail/ReprImpl.hh"
 #include "random/XorwowRngParams.hh"
 #include "random/detail/GenerateCanonical32.hh"
 
@@ -64,6 +66,27 @@ struct RngTally
     }
 };
 
+template<class T>
+struct HexRepr
+{
+    T value;
+};
+
+template<class T>
+std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
+{
+    celeritas::detail::ScopedStreamFormat save_fmt(&os);
+
+    os << std::hexfloat << h.value;
+    return os;
+}
+
+template<class T>
+HexRepr<T> hex_repr(T value)
+{
+    return HexRepr<T>{value};
+}
+
 //---------------------------------------------------------------------------//
 // Test 32-bit canonical sequence
 // NOTE: hexadecimal floating point literals are a feature of C++17, so we have
@@ -93,31 +116,42 @@ TEST(GenerateCanonical32, flt)
 
 TEST(GenerateCanonical32, dbl)
 {
+    // Upper/[xor|lower] bits
     // clang-format off
-    SequenceEngine rng({0x00000000u, 0x00000000u,
+    SequenceEngine rng({0x00000000u, 0x00000000u, // 0
                         0x00000000u, 0x00000001u,
-                        0x7fffffffu, 0x001fffffu,
-                        0x80000000u, 0x00000000u,
-                        0x80000000u, 0x00000001u,
+                        0x00000001u, 0x00000000u,
+                        0x80000000u, 0x00000000u, // 0.5
                         0xffffffffu, 0xffffffffu,
                         0xffffffffu, 0x001ffffeu,
                         0xffffffffu, 0x001fffffu,});
     // clang-format on
 
     GenerateCanonical32<double> generate_canonical;
-    EXPECT_DOUBLE_EQ(0.0, generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(std::stod("0x0.00000000000008p0"),
-                     generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(nextafter(0.5, 0.0), generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(0.5, generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(nextafter(0.5, 1.0), generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(std::stod("0x1.fffff001fffff8p-1"),
-                     generate_canonical(rng));
-    EXPECT_DOUBLE_EQ(std::stod("0x0.fffffffffffff7p0"),
-                     generate_canonical(rng));
-    auto last = generate_canonical(rng);
-    EXPECT_LT(last, 1.0);
-    EXPECT_DOUBLE_EQ(nextafter(1.0, 0.0), last);
+
+    auto actual = generate_canonical(rng);
+    ASSERT_TRUE((std::is_same<double, decltype(actual)>::value));
+    EXPECT_EQ(0.0, actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_EQ(std::stod("0x0.00000000000008p0"), actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_EQ(std::stod("0x1p-32"), actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_EQ(0.5, actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_EQ(std::stod("0x1.fffff001fffffp-1"), actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_EQ(std::stod("0x1.ffffffffffffep-1"), actual) << hex_repr(actual);
+
+    actual = generate_canonical(rng);
+    EXPECT_LT(actual, 1.0);
+    EXPECT_EQ(std::stod("0x1.fffffffffffffp-1"), actual) << hex_repr(actual);
+    EXPECT_EQ(nextafter(1.0, 0.0), actual) << hex_repr(nextafter(1.0, 0.0));
 }
 
 TEST(GenerateCanonical32, moments)
@@ -202,11 +236,12 @@ TEST_F(XorwowRngEngineTest, moments)
     for (unsigned int i = 0; i < num_seeds; ++i)
     {
         XorwowRngEngine rng(states.ref(), ThreadId{i});
-        for (unsigned int i = 0; i < num_samples; ++i)
+        for (unsigned int j = 0; j < num_samples; ++j)
         {
             tally(celeritas::generate_canonical(rng));
         }
     }
+    tally.check(num_samples * num_seeds, 1e-3);
 }
 
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
