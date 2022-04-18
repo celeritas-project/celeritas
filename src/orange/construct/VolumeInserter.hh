@@ -33,13 +33,13 @@ class VolumeInserter
   public:
     //!@{
     //! Type aliases
-    using SurfaceData = SurfaceData<Ownership::const_reference, MemSpace::host>;
+    using SurfData = SurfaceData<Ownership::const_reference, MemSpace::host>;
     using Data = VolumeData<Ownership::value, MemSpace::host>;
     //!@}
 
   public:
     // Construct from input surface data and targeted volume data
-    VolumeInserter(const SurfaceData& surfaces, Data* volumes);
+    VolumeInserter(const SurfData& surfaces, Data* volumes);
 
     // Append a volume
     VolumeId operator()(const VolumeInput& vol_def);
@@ -48,7 +48,7 @@ class VolumeInserter
     int max_logic_depth() const { return max_logic_depth_; }
 
   private:
-    const SurfaceData& surface_data_;
+    const SurfData& surface_data_;
     Data* volume_data_{nullptr};
     int   max_logic_depth_{0};
 };

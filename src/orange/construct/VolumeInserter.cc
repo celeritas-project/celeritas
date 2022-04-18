@@ -89,9 +89,8 @@ struct NumIntersectionGetter
 /*!
  * Construct with a reference to empty volume data.
  */
-VolumeInserter::VolumeInserter(const SurfaceData& surfaces, Data* volumes)
-    : surface_data_{surfaces}
-    , volume_data_(volumes)
+VolumeInserter::VolumeInserter(const SurfData& surfaces, Data* volumes)
+    : surface_data_{surfaces}, volume_data_(volumes)
 {
     CELER_EXPECT(volume_data_ && volume_data_->defs.empty());
 }
