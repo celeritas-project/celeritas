@@ -15,10 +15,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The Helix Stepper
+ * The Helix (Test) Stepper.
  *
  * The analytical solution for the motion of a charged particle in a uniform
- * magnetic field.
+ * magnetic field along the z-direction.
  */
 template<class EquationT>
 class HelixStepper
@@ -44,14 +44,27 @@ class HelixStepper
     // Equation of the motion
     const EquationT& equation_;
 
+    //// HELPER TYPES ////
+    enum class Helicity : bool
+    {
+        positive,
+        negative
+    };
+
     //// HELPER FUNCTIONS ////
 
     // Analytical solution for a given step along a helix trajectory
     CELER_FUNCTION OdeState move(real_type       step,
                                  real_type       radius,
-                                 real_type       helicity,
+                                 int             helicity,
                                  const OdeState& beg_state,
                                  const OdeState& rhs);
+
+    // Convert Helicity to int
+    CELER_FUNCTION int to_sign(Helicity h)
+    {
+        return static_cast<int>(h) * 2 - 1;
+    }
 
     //// COMMON PROPERTIES ////
 
@@ -83,19 +96,19 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
     OdeState rhs = equation_(beg_state);
 
     // Calculate the radius of the helix
-    real_type radius
-        = sqrt(ipow<2>(norm(beg_state.mom)) - ipow<2>(beg_state.mom[2]))
-          / norm(rhs.mom);
+    real_type radius = std::sqrt(dot_product(beg_state.mom, beg_state.mom)
+                                 - ipow<2>(beg_state.mom[2]))
+                       / norm(rhs.mom);
 
     // Set the helicity: 1(-1) for negative(positive) charge with Bz > 0
-    real_type helicity = (rhs.mom[0] / rhs.pos[1] < 0) ? 1 : -1;
+    int helicity = this->to_sign(Helicity(rhs.mom[0] / rhs.pos[1] < 0));
 
     // State after the half step
     result.mid_state
-        = move(real_type(0.5) * step, radius, helicity, beg_state, rhs);
+        = this->move(real_type(0.5) * step, radius, helicity, beg_state, rhs);
 
     // State after the full step
-    result.end_state = move(step, radius, helicity, beg_state, rhs);
+    result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
     // Solution are exact, but assign a tolerance for numerical treatments
     for (auto i : range(3))
@@ -109,6 +122,8 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Integration for a given step length on a helix.
+ *
  * Equations of a charged particle motion in a uniform magnetic field,
  * \f$B(0, 0, B_z)\f$ along the curved trajectory \f$ds = v dt\f$ are
  * \f[
@@ -116,11 +131,11 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
  *  d^2 y/ds^2 = -q/p (dx/ds) B_z
  *  d^2 z/ds^2 =  0
  * \f]
- * where \q and \p are the charge and the absolute momentum of the particle,
- * respectively. Since the motion in the perpendicular plane with respected to
- * the to the magnetic field is circular with a constant \f$p_{\perp}\f$, the
- * final ODE state of the perpendicular motion on the circle for a given step
- * length \s is
+ * where \em q and \em p are the charge and the absolute momentum of the
+ * particle, respectively. Since the motion in the perpendicular plane with
+ * respected to the to the magnetic field is circular with a constant
+ * \f$p_{\perp}\f$, the final ODE state of the perpendicular motion on the
+ * circle for a given step length \em s is
  * \f[
  *  (x, y) = M(\phi) (x_0, y_0)^T
  *  (px, py) = M(\phi) (px_0, py_0)^T
@@ -132,7 +147,7 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
 template<class E>
 CELER_FUNCTION OdeState HelixStepper<E>::move(real_type       step,
                                               real_type       radius,
-                                              real_type       helicity,
+                                              int             helicity,
                                               const OdeState& beg_state,
                                               const OdeState& rhs)
 {
