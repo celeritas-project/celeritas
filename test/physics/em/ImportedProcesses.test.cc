@@ -94,7 +94,7 @@ TEST_F(ImportedProcessesTest, e_ionization)
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
     ASSERT_TRUE(models.front());
-    EXPECT_EQ("Moller/Bhabha scattering", models.front()->label());
+    EXPECT_EQ("ioni-moller-bhabha", models.front()->label());
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
