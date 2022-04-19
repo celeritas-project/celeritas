@@ -119,6 +119,22 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
     this->build_ids(*inp.particles, &host_data);
     this->build_xs(inp.options, *inp.materials, &host_data);
 
+    // Add step limiter if being used (TODO: remove this hack from physics)
+    if (inp.options.fixed_step_limiter > 0)
+    {
+        using std::make_shared;
+        auto& action_mgr = *inp.action_manager;
+
+        auto fixed_step_action = make_shared<ImplicitPhysicsAction>(
+            action_mgr.next_id(),
+            "physics-fixed-step",
+            "fixed step limiter for charged particles");
+        inp.action_manager->insert(fixed_step_action);
+        host_data.scalars.fixed_step_limiter = inp.options.fixed_step_limiter;
+        host_data.scalars.fixed_step_action  = fixed_step_action->action_id();
+        fixed_step_action_                   = std::move(fixed_step_action);
+    }
+
     // TODO: move to diagnostic output
     CELER_LOG(debug)
         << "Constructed physics sizes:"

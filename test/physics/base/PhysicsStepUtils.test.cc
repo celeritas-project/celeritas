@@ -39,14 +39,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
 
     PhysicsOptions build_physics_options() const override
     {
-        PhysicsOptions opts;
-        if (/* DISABLES CODE */ (false))
-        {
-            // Don't scale the range -- use exactly the analytic values our
-            // model has.
-            opts.min_range = inf;
-        }
-        return opts;
+        return PhysicsOptions{};
     }
 
     void SetUp() override
@@ -111,6 +104,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         const auto& scalars = this->physics()->host_ref().scalars;
         range_action        = scalars.range_action();
         discrete_action     = scalars.discrete_action();
+        EXPECT_FALSE(scalars.fixed_step_action);
     }
 
     // Test a variety of energies and multiple material IDs
@@ -353,5 +347,64 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         const real_type expected_acceptance_rate[]
             = {0.9204, 0.9999, 0.4972, 1};
         EXPECT_VEC_EQ(expected_acceptance_rate, acceptance_rate);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+class StepLimiterTest : public PhysicsStepUtilsTest
+{
+    PhysicsOptions build_physics_options() const override
+    {
+        PhysicsOptions opts;
+
+        opts.min_range          = inf; // Use analytic range instead of scaled
+        opts.fixed_step_limiter = 1e-3;
+        return opts;
+    }
+};
+
+TEST_F(StepLimiterTest, calc_physics_step_limit)
+{
+    MaterialTrackView material(
+        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+    ParticleTrackView particle(
+        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+
+    ActionId range_action;
+    ActionId discrete_action;
+    ActionId fixed_step_action;
+    {
+        const auto& scalars = this->physics()->host_ref().scalars;
+        range_action        = scalars.range_action();
+        discrete_action     = scalars.discrete_action();
+        fixed_step_action   = scalars.fixed_step_action;
+    }
+
+    {
+        // Gammas should not be limited since they have no energy loss
+        // processes
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+        phys.interaction_mfp(1);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
+    }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-3});
+
+        // Small energy: still range action
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.00016666666666666663, step.step);
+
+        particle.energy(MevEnergy{1e-1});
+        step = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(fixed_step_action, step.action);
+        EXPECT_SOFT_EQ(0.001, step.step);
     }
 }

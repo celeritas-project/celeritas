@@ -209,7 +209,11 @@ struct PhysicsParamsScalars
     real_type scaling_fraction{};   //!< alpha [unitless]
     real_type energy_fraction{};    //!< xi [unitless]
     real_type linear_loss_limit{};  //!< For scaled range calculation
+    real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
     bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
+
+    // When fixed step limiter is used, this is the corresponding action ID
+    ActionId fixed_step_action{};
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -217,7 +221,9 @@ struct PhysicsParamsScalars
         return max_particle_processes > 0 && model_to_action >= 3
                && num_models > 0 && scaling_min_range > 0
                && scaling_fraction > 0 && energy_fraction > 0
-               && linear_loss_limit > 0;
+               && linear_loss_limit > 0
+               && ((fixed_step_limiter > 0)
+                   == static_cast<bool>(fixed_step_action));
     }
 
     //! Stop early due to range limitation
