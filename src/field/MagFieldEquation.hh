@@ -28,6 +28,12 @@ template<class FieldT>
 class MagFieldEquation
 {
   public:
+    //!@{
+    //! Type aliases
+    using field_type = FieldT;
+    //!@}
+
+  public:
     // Construct with a magnetic field
     inline CELER_FUNCTION
     MagFieldEquation(const FieldT& field, units::ElementaryCharge q);
@@ -36,7 +42,7 @@ class MagFieldEquation
     inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
-    const FieldT&           field_;
+    const field_type&       field_;
     units::ElementaryCharge charge_;
     real_type               coeffi_;
 };

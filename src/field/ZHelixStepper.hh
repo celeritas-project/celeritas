@@ -10,6 +10,7 @@
 #include "base/Types.hh"
 
 #include "Types.hh"
+#include "UniformZMagField.hh"
 
 namespace celeritas
 {
@@ -32,7 +33,13 @@ class ZHelixStepper
   public:
     // Construct with the equation of motion
     CELER_FUNCTION
-    ZHelixStepper(const EquationT& eq) : equation_(eq) {}
+    ZHelixStepper(const EquationT& eq) : equation_(eq)
+    {
+        static_assert(
+            std::is_same<typename EquationT::field_type, UniformZMagField>::value,
+            "ZHelix stepper only works with uniform magnetic fields along "
+            "`z`");
+    }
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)

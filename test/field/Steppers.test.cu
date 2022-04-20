@@ -19,6 +19,7 @@
 #include "field/RungeKuttaStepper.hh"
 #include "field/Types.hh"
 #include "field/UniformMagField.hh"
+#include "field/UniformZMagField.hh"
 #include "field/ZHelixStepper.hh"
 #include "physics/base/Units.hh"
 
@@ -33,8 +34,9 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 // HELP FUNCTIONS
 //---------------------------------------------------------------------------//
-template<template<class> class TStepper>
+template<class TField, template<class> class TStepper>
 __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
+                                   const TField&                   field,
                                    real_type*                      pos_x,
                                    real_type*                      pos_z,
                                    real_type*                      mom_y,
@@ -46,9 +48,7 @@ __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
         return;
 
     // Construct a TStepper for testing
-    UniformMagField field({0, 0, param.field_value});
-
-    using RKTraits = detail::MagTestTraits<UniformMagField, TStepper>;
+    using RKTraits = detail::MagTestTraits<TField, TStepper>;
     typename RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     typename RKTraits::Stepper_t  rk4(equation);
 
@@ -89,7 +89,10 @@ __global__ void helix_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    gpu_stepper<RungeKuttaStepper>(param, pos_x, pos_z, mom_y, mom_z, error);
+    UniformZMagField field(param.field_value);
+
+    gpu_stepper<UniformZMagField, ZHelixStepper>(
+        param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,7 +103,10 @@ __global__ void rk4_test_kernel(FieldTestParams param,
                                 real_type*      mom_z,
                                 real_type*      error)
 {
-    gpu_stepper<RungeKuttaStepper>(param, pos_x, pos_z, mom_y, mom_z, error);
+    UniformMagField field({0, 0, param.field_value});
+
+    gpu_stepper<UniformMagField, RungeKuttaStepper>(
+        param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,7 +117,10 @@ __global__ void dp547_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    gpu_stepper<DormandPrinceStepper>(param, pos_x, pos_z, mom_y, mom_z, error);
+    UniformMagField field({0, 0, param.field_value});
+
+    gpu_stepper<UniformMagField, DormandPrinceStepper>(
+        param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
 //---------------------------------------------------------------------------//
@@ -146,7 +155,7 @@ copy_to_cpu(dvec pos_x, dvec pos_z, dvec mom_y, dvec mom_z, dvec error)
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-//! Run the Helix stepper on device and return results
+//! Run the ZHelix stepper on device and return results
 StepperTestOutput helix_test(FieldTestParams test_param)
 {
     // Output data for kernel

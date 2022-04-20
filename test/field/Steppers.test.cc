@@ -16,6 +16,7 @@
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
+#include "field/UniformZMagField.hh"
 #include "field/ZHelixStepper.hh"
 #include "physics/base/Units.hh"
 
@@ -64,14 +65,11 @@ class SteppersTest : public Test
         param.epsilon     = 1.0e-5;             //! tolerance error
     }
 
-    template<template<class> class TStepper>
-    void run_stepper()
+    template<class TField, template<class> class TStepper>
+    void run_stepper(const TField& field)
     {
         // Construct a stepper for testing
-        UniformMagField field({0, 0, param.field_value});
-
-        using Traits =
-            typename detail::MagTestTraits<UniformMagField, TStepper>;
+        using Traits = typename detail::MagTestTraits<TField, TStepper>;
 
         typename Traits::Equation_t equation(field,
                                              units::ElementaryCharge{-1});
@@ -138,22 +136,31 @@ class SteppersTest : public Test
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, host_helix)
 {
-    // Test the analytical Helix stepper
-    this->template run_stepper<ZHelixStepper>();
+    // Construct a uniform magnetic field along Z axis
+    UniformZMagField field(param.field_value);
+
+    // Test the analytical ZHelix stepper
+    this->template run_stepper<UniformZMagField, ZHelixStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, host_classical_rk4)
 {
+    // Construct a uniform magnetic field
+    UniformMagField field({0, 0, param.field_value});
+
     // Test the classical 4th order Runge-Kutta stepper
-    this->template run_stepper<RungeKuttaStepper>();
+    this->template run_stepper<UniformMagField, RungeKuttaStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, host_dormand_prince_547)
 {
+    // Construct a uniform magnetic field
+    UniformMagField field({0, 0, param.field_value});
+
     // Test the Dormand-Prince 547(M) stepper
-    this->template run_stepper<DormandPrinceStepper>();
+    this->template run_stepper<UniformMagField, DormandPrinceStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
@@ -161,7 +168,7 @@ TEST_F(SteppersTest, host_dormand_prince_547)
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_helix))
 {
-    // Run the Helix kernel
+    // Run the ZHelix kernel
     auto output = helix_test(param);
 
     // Check stepper results
@@ -187,5 +194,4 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_dormand_prince_547))
     // Check stepper results
     check_result(output);
 }
-
 //---------------------------------------------------------------------------//
