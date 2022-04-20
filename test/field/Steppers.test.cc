@@ -13,10 +13,10 @@
 #include "base/Types.hh"
 #include "base/Units.hh"
 #include "field/DormandPrinceStepper.hh"
-#include "field/HelixStepper.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
+#include "field/ZHelixStepper.hh"
 #include "physics/base/Units.hh"
 
 #include "FieldTestParams.hh"
@@ -139,7 +139,7 @@ class SteppersTest : public Test
 TEST_F(SteppersTest, host_helix)
 {
     // Test the analytical Helix stepper
-    this->template run_stepper<HelixStepper>();
+    this->template run_stepper<ZHelixStepper>();
 }
 
 //---------------------------------------------------------------------------//

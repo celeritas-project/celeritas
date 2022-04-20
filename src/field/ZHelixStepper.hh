@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file HelixStepper.hh
+//! \file ZHelixStepper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace celeritas
  * magnetic field along the z-direction.
  */
 template<class EquationT>
-class HelixStepper
+class ZHelixStepper
 {
   public:
     //!@{
@@ -32,7 +32,7 @@ class HelixStepper
   public:
     // Construct with the equation of motion
     CELER_FUNCTION
-    HelixStepper(const EquationT& eq) : equation_(eq) {}
+    ZHelixStepper(const EquationT& eq) : equation_(eq) {}
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
@@ -81,7 +81,7 @@ class HelixStepper
  */
 template<class E>
 CELER_FUNCTION auto
-HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
+ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
     -> Result
 {
     Result result;
@@ -107,8 +107,8 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
     // Solution are exact, but assign a tolerance for numerical treatments
     for (auto i : range(3))
     {
-        result.err_state.pos[i] += HelixStepper::tolerance();
-        result.err_state.mom[i] += HelixStepper::tolerance();
+        result.err_state.pos[i] += ZHelixStepper::tolerance();
+        result.err_state.mom[i] += ZHelixStepper::tolerance();
     }
 
     return result;
@@ -139,11 +139,11 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
  * The solution for the parallel direction along the field is trivial.
  */
 template<class E>
-CELER_FUNCTION OdeState HelixStepper<E>::move(real_type       step,
-                                              real_type       radius,
-                                              Helicity        helicity,
-                                              const OdeState& beg_state,
-                                              const OdeState& rhs)
+CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
+                                               real_type       radius,
+                                               Helicity        helicity,
+                                               const OdeState& beg_state,
+                                               const OdeState& rhs)
 {
     OdeState end_state;
 
