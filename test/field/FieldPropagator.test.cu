@@ -12,12 +12,12 @@
 #include "base/device_runtime_api.h"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "field/DormandPrinceStepper.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/FieldPropagator.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
-#include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -61,7 +61,7 @@ __global__ void fp_test_kernel(const int                       size,
 
     // Construct the RK stepper adnd propagator in a field
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
     RKTraits::Driver_t     driver(field_params, &rk4);
@@ -118,7 +118,7 @@ __global__ void bc_test_kernel(const int                       size,
 
     // Construct the RK stepper and propagator in a field
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
     RKTraits::Driver_t     driver(field_params, &rk4);

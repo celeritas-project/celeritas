@@ -22,7 +22,7 @@ namespace celeritas_test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Output results
-struct SteppersTestOutput
+struct StepperTestOutput
 {
     using real_type = celeritas::real_type;
 
@@ -35,16 +35,22 @@ struct SteppersTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SteppersTestOutput rk4_test(FieldTestParams test_param);
-SteppersTestOutput dp547_test(FieldTestParams test_param);
+StepperTestOutput helix_test(FieldTestParams test_param);
+StepperTestOutput rk4_test(FieldTestParams test_param);
+StepperTestOutput dp547_test(FieldTestParams test_param);
 
 #if !CELER_USE_DEVICE
-inline SteppersTestOutput rk4_test(FieldTestParams)
+inline StepperTestOutput helix_test(FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline SteppersTestOutput dp547_test(FieldTestParams)
+inline StepperTestOutput rk4_test(FieldTestParams)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline StepperTestOutput dp547_test(FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
