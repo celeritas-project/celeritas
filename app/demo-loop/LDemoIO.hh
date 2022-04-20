@@ -48,6 +48,10 @@ struct LDemoArgs
     bool         use_device{};
     bool         sync{};
 
+    // Optional fixed-size step limiter for charged particles
+    // (non-positive for unused)
+    real_type step_limiter{};
+
     // Options for physics
     bool rayleigh{true};
     bool eloss_fluctuation{true};

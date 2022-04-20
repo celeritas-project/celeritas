@@ -117,6 +117,14 @@ calc_physics_step_limit(const MaterialTrackView& material,
                 limit.step   = eloss_step;
                 limit.action = physics.scalars().range_action();
             }
+
+            // Limit charged particle step size
+            real_type fixed_limit = physics.scalars().fixed_step_limiter;
+            if (fixed_limit > 0 && fixed_limit < limit.step)
+            {
+                limit.step   = fixed_limit;
+                limit.action = physics.scalars().fixed_step_action;
+            }
         }
     }
 

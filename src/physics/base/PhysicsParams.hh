@@ -89,6 +89,7 @@ class PhysicsParams
         real_type min_range           = 1 * units::millimeter;
         real_type max_step_over_range = 0.2;
         real_type min_eprime_over_e   = 0.8;
+        real_type fixed_step_limiter  = 0;
         real_type linear_loss_limit   = 0.01;
         bool      use_integral_xs     = true;
         bool      enable_fluctuation  = true;
@@ -157,6 +158,7 @@ class PhysicsParams
     SPAction discrete_action_;
     SPAction integral_rejection_action_;
     SPAction failure_action_;
+    SPAction fixed_step_action_;
 
     // Host metadata/access
     VecProcess processes_;
