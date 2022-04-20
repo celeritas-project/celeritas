@@ -56,15 +56,9 @@ class HelixStepper
     // Analytical solution for a given step along a helix trajectory
     CELER_FUNCTION OdeState move(real_type       step,
                                  real_type       radius,
-                                 int             helicity,
+                                 Helicity        helicity,
                                  const OdeState& beg_state,
                                  const OdeState& rhs);
-
-    // Convert Helicity to int
-    CELER_FUNCTION int to_sign(Helicity h)
-    {
-        return static_cast<int>(h) * 2 - 1;
-    }
 
     //// COMMON PROPERTIES ////
 
@@ -101,7 +95,7 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
                        / norm(rhs.mom);
 
     // Set the helicity: 1(-1) for negative(positive) charge with Bz > 0
-    int helicity = this->to_sign(Helicity(rhs.mom[0] / rhs.pos[1] < 0));
+    Helicity helicity = Helicity(rhs.mom[0] / rhs.pos[1] > 0);
 
     // State after the half step
     result.mid_state
@@ -147,20 +141,21 @@ HelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
 template<class E>
 CELER_FUNCTION OdeState HelixStepper<E>::move(real_type       step,
                                               real_type       radius,
-                                              int             helicity,
+                                              Helicity        helicity,
                                               const OdeState& beg_state,
                                               const OdeState& rhs)
 {
     OdeState end_state;
 
     // Solution for position and momentum after moving delta_phi on the helix
-    real_type delta_phi = helicity * (step / radius);
-    real_type sin_phi   = std::sin(delta_phi);
-    real_type cos_phi   = std::cos(delta_phi);
+    real_type del_phi = (helicity == Helicity::positive) ? step / radius
+                                                         : -step / radius;
+    real_type sin_phi = std::sin(del_phi);
+    real_type cos_phi = std::cos(del_phi);
 
     end_state.pos = {(beg_state.pos[0] * cos_phi - beg_state.pos[1] * sin_phi),
                      (beg_state.pos[0] * sin_phi + beg_state.pos[1] * cos_phi),
-                     beg_state.pos[2] + helicity * step * rhs.pos[2]};
+                     beg_state.pos[2] + del_phi * radius * rhs.pos[2]};
 
     end_state.mom = {rhs.pos[0] * cos_phi - rhs.pos[1] * sin_phi,
                      rhs.pos[0] * sin_phi + rhs.pos[1] * cos_phi,
