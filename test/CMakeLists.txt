@@ -335,4 +335,5 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 celeritas_setup_tests(SERIAL PREFIX sim)
 
 celeritas_add_test(sim/ActionManager.test.cc)
+celeritas_add_test(sim/OutputManager.test.cc)
 celeritas_device_test(sim/TrackInit ${_needs_cuda})
