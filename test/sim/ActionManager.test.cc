@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "sim/ActionManager.hh"
 
+#include "sim/ActionManagerOutput.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -100,6 +102,21 @@ TEST_F(ActionManagerTest, accessors)
     // Access an action
     EXPECT_EQ("explicit action test", mgr.action(expl_id).description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
+}
+
+TEST_F(ActionManagerTest, output)
+{
+    // Create output handler from a shared pointer (with a null deleter)
+    ActionManagerOutput out(std::shared_ptr<const ActionManager>(
+        &mgr, [](const ActionManager*) {}));
+    EXPECT_EQ("actions", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(
+            R"json([{"label":"impl1"},{"description":"explicit action test","label":"explicit"},{"description":"the second implicit action","label":"impl2"}])json",
+            to_string(out));
+    }
 }
 
 TEST_F(ActionManagerTest, invocation)

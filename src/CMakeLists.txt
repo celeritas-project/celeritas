@@ -162,6 +162,7 @@ list(APPEND SOURCES
   random/detail/CuHipRngStateInit.cc
   sim/ActionInterface.cc
   sim/ActionManager.cc
+  sim/ActionManagerOutput.cc
   sim/OutputInterface.cc
   sim/OutputManager.cc
   sim/TrackInitParams.cc
