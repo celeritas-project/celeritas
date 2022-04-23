@@ -34,7 +34,7 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.positron,
                    << "missing electron and/or positron particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     interface_.electron_mass_c_sq
         = particles.get(interface_.ids.electron).mass().value(); // [MeV]
@@ -70,12 +70,12 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void MollerBhabhaModel::interact(const DeviceInteractRef& data) const
+void MollerBhabhaModel::execute(CoreDeviceRef const& data) const
 {
     generated::moller_bhabha_interact(interface_, data);
 }
 
-void MollerBhabhaModel::interact(const HostInteractRef& data) const
+void MollerBhabhaModel::execute(CoreHostRef const& data) const
 {
     generated::moller_bhabha_interact(interface_, data);
 }

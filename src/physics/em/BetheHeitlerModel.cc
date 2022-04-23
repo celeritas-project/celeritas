@@ -31,7 +31,7 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
     CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
     interface_.electron_mass
         = particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);
@@ -56,12 +56,12 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::interact(const DeviceInteractRef& data) const
+void BetheHeitlerModel::execute(CoreDeviceRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
 
-void BetheHeitlerModel::interact(const HostInteractRef& data) const
+void BetheHeitlerModel::execute(CoreHostRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }

@@ -44,7 +44,7 @@ struct XorwowRngParamsData
 };
 
 //---------------------------------------------------------------------------//
-//! Individual RNG state. TODO: unpack into aligned coalesced data
+//! Individual RNG state
 struct XorwowState
 {
     using uint_t = unsigned int;

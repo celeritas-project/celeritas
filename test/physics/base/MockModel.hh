@@ -35,10 +35,11 @@ class MockModel final : public celeritas::Model
   public:
     MockModel(ActionId id, Applicability applic, ModelCallback cb);
     SetApplicability applicability() const final;
-    void             interact(const HostInteractRef&) const final;
-    void             interact(const DeviceInteractRef&) const final;
+    void             execute(CoreHostRef const&) const final;
+    void             execute(CoreDeviceRef const&) const final;
     ActionId         action_id() const final { return id_; }
     std::string      label() const final;
+    std::string      description() const final;
 
   private:
     ActionId      id_;

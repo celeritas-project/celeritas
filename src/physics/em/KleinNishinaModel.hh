@@ -28,16 +28,22 @@ class KleinNishinaModel final : public Model
     SetApplicability applicability() const final;
 
     //! Apply the interaction kernel to host data
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel to device data
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "scat-klein-nishina"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Klein-Nishina"; }
+    std::string description() const final
+    {
+        return "Klein-Nishina Compton scattering";
+    }
 
   private:
     detail::KleinNishinaData interface_;

@@ -78,7 +78,7 @@ struct CuHipRngParamsData<W, MemSpace::host>
 {
     //// DATA ////
 
-    unsigned int seed = 12345; // TODO: replace with std::seed_seq etc
+    unsigned int seed = 12345;
 
     //// METHODS ////
 

@@ -50,7 +50,7 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
     CELER_VALIDATE(host_data.ids,
                    << "missing electron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     // Save particle properties
     host_data.inv_electron_mass
@@ -91,12 +91,12 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::interact(const DeviceInteractRef& data) const
+void LivermorePEModel::execute(CoreDeviceRef const& data) const
 {
     generated::livermore_pe_interact(this->device_ref(), data);
 }
 
-void LivermorePEModel::interact(const HostInteractRef& data) const
+void LivermorePEModel::execute(CoreHostRef const& data) const
 {
     generated::livermore_pe_interact(this->host_ref(), data);
 }

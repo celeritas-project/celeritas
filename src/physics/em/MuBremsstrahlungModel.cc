@@ -29,7 +29,7 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
     CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
                        && interface_.ids.mu_plus,
                    << "missing muon and/or gamma particles (required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     interface_.electron_mass
         = particles.get(particles.find(pdg::electron())).mass();
@@ -60,12 +60,12 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::interact(const DeviceInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreDeviceRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
-void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreHostRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }

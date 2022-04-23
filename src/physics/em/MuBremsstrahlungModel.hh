@@ -28,16 +28,19 @@ class MuBremsstrahlungModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on host
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel on device
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "brems-muon"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Muon Bremsstrahlung"; }
+    std::string description() const final { return "Muon bremsstrahlung"; }
 
   private:
     detail::MuBremsstrahlungData interface_;

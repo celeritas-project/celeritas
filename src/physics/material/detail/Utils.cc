@@ -37,8 +37,6 @@ real_type calc_coulomb_correction(int atomic_number)
     CELER_EXPECT(atomic_number > 0);
     using constants::alpha_fine_structure;
 
-    const real_type alphazsq = ipow<2>(alpha_fine_structure * atomic_number);
-
     static const double zeta[] = {2.0205690315959429e-01,
                                   3.6927755143369927e-02,
                                   8.3492773819228271e-03,
@@ -55,8 +53,10 @@ real_type calc_coulomb_correction(int atomic_number)
                                   1.8626597235130491e-09,
                                   4.6566290650337837e-10,
                                   1.1641550172700519e-10};
-    real_type           fz     = 1 / (1 + alphazsq);
-    real_type           azpow  = 1;
+
+    const real_type alphazsq = ipow<2>(alpha_fine_structure * atomic_number);
+    real_type       fz       = 1 / (1 + alphazsq);
+    real_type       azpow    = 1;
     for (double zeta_i : zeta)
     {
         fz += azpow * zeta_i;

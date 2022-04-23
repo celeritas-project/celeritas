@@ -42,16 +42,19 @@ class RayleighModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel to host data
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel to device data
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
     ActionId action_id() const final;
 
+    //! Short name for the interaction kernel
+    std::string label() const final { return "scat-rayleigh"; }
+
     //! Name of the model, for user interaction
-    std::string label() const final { return "Rayleigh Scattering"; }
+    std::string description() const final { return "Rayleigh scattering"; }
 
     //! Access Rayleigh data on the host
     const HostRef& host_ref() const { return mirror_.host(); }

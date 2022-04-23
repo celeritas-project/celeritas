@@ -41,7 +41,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId              id,
     host_ref.ids.gamma    = particles.find(pdg::gamma());
 
     CELER_VALIDATE(host_ref.ids,
-                   << "missing IDs (required for " << this->label() << ")");
+                   << "missing IDs (required for " << this->description()
+                   << ")");
 
     // Save particle properties
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
@@ -79,12 +80,12 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RelativisticBremModel::interact(const DeviceInteractRef& data) const
+void RelativisticBremModel::execute(CoreDeviceRef const& data) const
 {
     generated::relativistic_brem_interact(this->device_ref(), data);
 }
 
-void RelativisticBremModel::interact(const HostInteractRef& data) const
+void RelativisticBremModel::execute(CoreHostRef const& data) const
 {
     generated::relativistic_brem_interact(this->host_ref(), data);
 }

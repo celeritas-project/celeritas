@@ -76,12 +76,12 @@ auto CombinedBremModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void CombinedBremModel::interact(const DeviceInteractRef& data) const
+void CombinedBremModel::execute(CoreDeviceRef const& data) const
 {
     generated::combined_brem_interact(this->device_ref(), data);
 }
 
-void CombinedBremModel::interact(const HostInteractRef& data) const
+void CombinedBremModel::execute(CoreHostRef const& data) const
 {
     generated::combined_brem_interact(this->host_ref(), data);
 }
