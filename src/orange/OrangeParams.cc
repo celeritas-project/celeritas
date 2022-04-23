@@ -24,6 +24,7 @@
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/construct/VolumeInput.hh"
 #include "orange/construct/VolumeInserter.hh"
+#include "orange/universes/detail/LogicStack.hh"
 
 #include "Data.hh"
 #include "Types.hh"
@@ -90,12 +91,22 @@ OrangeParams::Input input_from_json(std::string filename)
 
     {
         // Insert volumes
-        VolumeInserter insert(&input.volumes);
+        auto           surface_ref = make_const_ref(input.surfaces);
+        VolumeInserter insert(surface_ref, &input.volumes);
         for (const auto& vol_inp : uni["cells"])
         {
             insert(vol_inp.get<VolumeInput>());
         }
         uni["cell_names"].get_to(input.volume_labels);
+
+        CELER_VALIDATE(static_cast<size_type>(insert.max_logic_depth())
+                           < detail::LogicStack::max_stack_depth(),
+                       << "input geometry has at least one volume with a "
+                          "logic depth of"
+                       << insert.max_logic_depth()
+                       << " (surfaces are nested too deeply); but the logic "
+                          "stack is limited to a depth of "
+                       << detail::LogicStack::max_stack_depth());
     }
 
     // Add connectivity
@@ -194,15 +205,25 @@ OrangeParams::OrangeParams(Input input)
     // improve error checking in state
     size_type max_faces         = 1;
     size_type max_intersections = 1;
+    bool      simple_safety     = true;
     for (auto vol_id : range(VolumeId{host_data.volumes.size()}))
     {
         const VolumeRecord& def = host_data.volumes.defs[vol_id];
         max_faces = std::max<size_type>(max_faces, def.faces.size());
         max_intersections
             = std::max<size_type>(max_intersections, def.max_intersections);
+        simple_safety &= (def.flags & VolumeRecord::simple_safety);
     }
     host_data.scalars.max_faces         = max_faces;
     host_data.scalars.max_intersections = max_intersections;
+
+    if (!simple_safety)
+    {
+        CELER_LOG(warning) << "Geometry contains surfaces that are "
+                              "incompatible with the current ORANGE simple "
+                              "safety algorithm: multiple scattering may "
+                              "result in arbitrarily small steps";
+    }
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);

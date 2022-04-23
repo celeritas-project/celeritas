@@ -18,6 +18,8 @@
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 #include "orange/construct/VolumeInput.hh"
+#include "orange/surfaces/SurfaceAction.hh"
+#include "orange/surfaces/Surfaces.hh"
 
 namespace celeritas
 {
@@ -56,6 +58,30 @@ int calc_max_depth(Span<const logic_int> logic)
     }
     return max_depth;
 }
+
+//---------------------------------------------------------------------------//
+//! Return a surface's "simple" flag
+struct SimpleSafetyGetter
+{
+    template<class S>
+    constexpr bool operator()(const S&) const noexcept
+    {
+        return S::simple_safety();
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Return the number of intersections for a surface
+struct NumIntersectionGetter
+{
+    template<class S>
+    constexpr size_type operator()(const S&) const noexcept
+    {
+        using Intersections = typename S::Intersections;
+        return Intersections{}.size();
+    }
+};
+
 //---------------------------------------------------------------------------//
 } // namespace
 
@@ -63,7 +89,8 @@ int calc_max_depth(Span<const logic_int> logic)
 /*!
  * Construct with a reference to empty volume data.
  */
-VolumeInserter::VolumeInserter(Data* volumes) : volume_data_(volumes)
+VolumeInserter::VolumeInserter(const SurfData& surfaces, Data* volumes)
+    : surface_data_{surfaces}, volume_data_(volumes)
 {
     CELER_EXPECT(volume_data_ && volume_data_->defs.empty());
 }
@@ -72,12 +99,14 @@ VolumeInserter::VolumeInserter(Data* volumes) : volume_data_(volumes)
 /*!
  * Insert a volume.
  *
- * TODO: add consistancy checks with number of surfaces?
+ * TODO: build surface connectivity
  */
 VolumeId VolumeInserter::operator()(const VolumeInput& input)
 {
     CELER_EXPECT(input);
     CELER_EXPECT(std::is_sorted(input.faces.begin(), input.faces.end()));
+    CELER_EXPECT(input.faces.empty()
+                 || input.faces.back() < surface_data_.size());
 
     VolumeId::size_type new_id = volume_data_->defs.size();
 
@@ -88,6 +117,23 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
                    << ": operators do not balance");
     max_logic_depth_ = std::max(max_logic_depth_, this_max_depth);
 
+    // Mark as 'simple safety' if all the surfaces are simple
+    bool      simple_safety     = true;
+    logic_int max_intersections = 0;
+
+    Surfaces surfaces{surface_data_};
+    auto     get_simple_safety
+        = make_surface_action(surfaces, SimpleSafetyGetter{});
+    auto get_num_intersections
+        = make_surface_action(surfaces, NumIntersectionGetter{});
+
+    for (SurfaceId sid : input.faces)
+    {
+        CELER_ASSERT(sid < surfaces.num_surfaces());
+        simple_safety = simple_safety && get_simple_safety(sid);
+        max_intersections += get_num_intersections(sid);
+    }
+
     auto defs  = make_builder(&volume_data_->defs);
     auto faces = make_builder(&volume_data_->faces);
     auto logic = make_builder(&volume_data_->logic);
@@ -95,10 +141,17 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     VolumeRecord output;
     output.faces = faces.insert_back(input.faces.begin(), input.faces.end());
     output.logic = logic.insert_back(input.logic.begin(), input.logic.end());
-    output.max_intersections = input.max_intersections;
+    output.max_intersections = max_intersections;
     output.flags             = input.flags;
+    if (simple_safety)
+    {
+        output.flags |= VolumeRecord::Flags::simple_safety;
+    }
     defs.push_back(output);
 
+    // NOTE: input max intersections are checked but might be removed later
+    CELER_ENSURE(output.max_intersections == input.max_intersections
+                 || input.max_intersections == 0);
     CELER_ENSURE(defs.size() == new_id + 1);
     return VolumeId{new_id};
 }

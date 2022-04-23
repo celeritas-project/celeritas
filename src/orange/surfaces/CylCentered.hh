@@ -51,6 +51,9 @@ class CylCentered
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
 
+    //! Safety is intersection along surface normal
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
+
   public:
     //// CONSTRUCTORS ////
 

@@ -60,6 +60,10 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection intersect(const LocalState& state,
                                                  real_type max_dist) const;
 
+    // Calculate closest distance to a surface in any direction
+    inline CELER_FUNCTION real_type safety(const Real3& pos,
+                                           VolumeId     vol) const;
+
   private:
     //// DATA ////
     const ParamsRef& params_;
@@ -215,6 +219,43 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate nearest distance to a surface in any direction.
+ *
+ * The safety calculation uses a very limited method for calculating the safety
+ * distance: it's the nearest distance to any surface, for a certain subset of
+ * surfaces.  Other surface types will return a safety distance of zero.
+ * Complex surfaces might return the distance to internal surfaces that do not
+ * represent the edge of a cell. Such distances are conservative but will
+ * necessarily slow down the simulation.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
+                                                   VolumeId     volid) const
+{
+    CELER_EXPECT(volid);
+
+    VolumeView vol{params_.volumes, volid};
+    if (!(vol.flags() & VolumeRecord::simple_safety))
+    {
+        // Has a tricky surface: we can't use the simple algorithm to calculate
+        // the safety, so return a conservative estimate.
+        return 0;
+    }
+
+    // Calculate minimim distance to all local faces
+    real_type result      = numeric_limits<real_type>::infinity();
+    auto      calc_safety = make_surface_action(Surfaces{params_.surfaces},
+                                           detail::CalcSafetyDistance{pos});
+    for (SurfaceId surface : vol.faces())
+    {
+        result = celeritas::min(result, calc_safety(surface));
+    }
+
+    CELER_ENSURE(result >= 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -261,7 +302,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
     // Resize temporaries based on volume properties
     VolumeView vol{params_.volumes, state.volume};
     CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
-    const bool is_simple = !(vol.flags() & VolumeView::internal_surfaces);
+    const bool is_simple = !(vol.flags() & VolumeRecord::internal_surfaces);
 
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume
@@ -288,14 +329,13 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         // no "nearby" distances depending on F)
         return {};
     }
-    else if (vol.flags() == 0)
+    else if (is_simple)
     {
         // No special conditions: closest distance is next boundary
         return this->simple_intersect(state, vol, num_isect);
     }
     else
     {
-        CELER_ASSERT(!is_simple);
         // Internal surfaces: find closest surface that puts us outside
         return this->complex_intersect(state, vol, num_isect);
     }

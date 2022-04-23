@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "celeritas_config.h"
+#include "base/CollectionBuilder.hh"
 #include "orange/construct/VolumeInput.hh"
 
 #include "celeritas_test.hh"
@@ -28,6 +29,36 @@ class VolumeInserterTest : public celeritas::Test
 {
   protected:
     VolumeData<Ownership::value, MemSpace::host> volume_data_;
+    SurfaceData<Ownership::value, MemSpace::host>           surface_data_;
+    SurfaceData<Ownership::const_reference, MemSpace::host> surface_ref_;
+
+    void SetUp() override
+    {
+        // Build enough fake surfaces for the five volumes problem
+        auto types   = make_builder(&surface_data_.types);
+        auto offsets = make_builder(&surface_data_.offsets);
+        auto reals   = make_builder(&surface_data_.reals);
+
+        for (auto st : {SurfaceType::sc,
+                        SurfaceType::px,
+                        SurfaceType::px,
+                        SurfaceType::py,
+                        SurfaceType::py,
+                        SurfaceType::pz,
+                        SurfaceType::pz,
+                        SurfaceType::sc,
+                        SurfaceType::px,
+                        SurfaceType::px,
+                        SurfaceType::py,
+                        SurfaceType::sc})
+        {
+            types.push_back(st);
+            offsets.push_back(OpaqueId<real_type>(surface_data_.reals.size()));
+            reals.push_back(0);
+        }
+
+        surface_ref_ = make_const_ref(surface_data_);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -36,7 +67,7 @@ class VolumeInserterTest : public celeritas::Test
 
 TEST_F(VolumeInserterTest, manual)
 {
-    VolumeInserter insert(&volume_data_);
+    VolumeInserter insert(surface_ref_, &volume_data_);
 
     {
         // Empty volume
@@ -75,7 +106,7 @@ TEST_F(VolumeInserterTest, manual)
 
 TEST_F(VolumeInserterTest, from_json)
 {
-    VolumeInserter insert(&volume_data_);
+    VolumeInserter insert(surface_ref_, &volume_data_);
     std::ifstream  infile(
         this->test_data_path("orange", "five-volumes.org.json"));
 
