@@ -185,11 +185,12 @@ TEST_F(TwoVolumeTest, simple_track)
     geo.find_next_step();
     geo.move_internal({2, 2, 0});
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    geo.set_dir({0, 1, 0});
+    EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, geo.find_safety(geo.pos()));
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
-    EXPECT_SOFT_EQ(1.3284271247461905, geo.find_safety(geo.pos()));
 
     next = geo.find_next_step();
-    EXPECT_SOFT_EQ(1.3284271247461896, next.distance);
+    EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
     geo.cross_boundary();
