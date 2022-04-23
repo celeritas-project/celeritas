@@ -135,18 +135,7 @@ PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
         fixed_step_action_                   = std::move(fixed_step_action);
     }
 
-    // TODO: move to diagnostic output
-    CELER_LOG(debug)
-        << "Constructed physics sizes:"
-        << "\n  reals: " << host_data.reals.size()
-        << "\n  model_ids: " << host_data.model_ids.size()
-        << "\n  value_grids: " << host_data.value_grids.size()
-        << "\n  value_grid_ids: " << host_data.value_grid_ids.size()
-        << "\n  process_ids: " << host_data.process_ids.size()
-        << "\n  value_tables: " << host_data.value_tables.size()
-        << "\n  model_groups: " << host_data.model_groups.size()
-        << "\n  process_groups: " << host_data.process_groups.size();
-
+    // Copy data to device
     data_ = CollectionMirror<PhysicsParamsData>{std::move(host_data)};
 
     CELER_ENSURE(range_action_->action_id()

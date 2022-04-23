@@ -129,6 +129,7 @@ list(APPEND SOURCES
   physics/base/ImportedProcessAdapter.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
+  physics/base/PhysicsParamsOutput.cc
   physics/base/Process.cc
   physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc

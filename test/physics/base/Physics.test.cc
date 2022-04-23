@@ -11,6 +11,7 @@
 #include "base/Range.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
+#include "physics/base/PhysicsParamsOutput.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "physics/em/EPlusAnnihilationProcess.hh"
 #include "physics/grid/RangeCalculator.hh"
@@ -106,6 +107,19 @@ TEST_F(PhysicsParamsTest, accessors)
                                                 "anti-celeriton:meows",
                                                 "electron:barks"};
     EXPECT_VEC_EQ(expected_process_map, process_map);
+}
+
+TEST_F(PhysicsParamsTest, output)
+{
+    PhysicsParamsOutput out(this->physics());
+    EXPECT_EQ("physics", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(
+            R"json({"models":[{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":0},{"label":"mock-model-7","process":1},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":2},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":3},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":4},{"label":"mock-model-15","process":5}],"options":{"enable_fluctuation":true,"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":124,"value_grid_ids":42,"value_grids":42,"value_tables":32}})json",
+            to_string(out));
+    }
 }
 
 //---------------------------------------------------------------------------//
