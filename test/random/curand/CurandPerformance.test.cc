@@ -7,9 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "CurandPerformance.test.hh"
 
+#if CELERITAS_USE_CUDA
+#    include <curand_kernel.h>
+#endif
+
 #include "base/Range.hh"
 #include "random/DiagnosticRngEngine.hh"
-#include "random/RngData.hh"
 #include "random/distributions/GenerateCanonical.hh"
 
 #include "celeritas_test.hh"

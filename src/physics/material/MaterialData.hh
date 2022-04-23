@@ -23,9 +23,7 @@ namespace celeritas
  * Fundamental, invariant properties of an element.
  *
  * Add elemental properties as needed if they apply to more than one physics
- * model. TODO:
- * - atomic shell
- * - isotopic components
+ * model. (When nuclear physics is implemented, add isotopes.)
  *
  * Note that more than one "element def" can exist for a single atomic number:
  * there might be different enrichments of an element in the problem.

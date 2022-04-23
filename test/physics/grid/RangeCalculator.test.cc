@@ -42,6 +42,12 @@ TEST_F(RangeCalculatorTest, all)
 {
     RangeCalculator calc_range(this->data(), this->values());
 
+    // "stopped" particle case should not calculate range
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_range(Energy{0}), celeritas::DebugError);
+    }
+
     // Values below should be scaled below emin
     EXPECT_SOFT_EQ(.5 * std::sqrt(1. / 10.), calc_range(Energy{1}));
     EXPECT_SOFT_EQ(.5 * std::sqrt(2. / 10.), calc_range(Energy{2}));

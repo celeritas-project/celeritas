@@ -161,7 +161,6 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.action      = Action::scattered;
     result.energy      = Energy{epsilon * inc_energy_.value()};
     result.direction   = inc_direction_;
     result.secondaries = {electron_secondary, 1};

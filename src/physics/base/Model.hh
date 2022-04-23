@@ -11,14 +11,13 @@
 #include <string>
 
 #include "base/Types.hh"
+#include "sim/ActionInterface.hh"
 
 #include "Applicability.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
-template<MemSpace M>
-struct CoreRef;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,8 +27,8 @@ struct CoreRef;
  * such as Compton scattering that is valid for one or more particle types in a
  * given range (or ranges) of energy.
  *
- * Each Model subclass is constructed with a unique ModelId by a Process, which
- * is effectively a group of Models. Once constructed, it is essentially
+ * Each Model subclass is constructed with a unique ActionId by a Process,
+ * which is effectively a group of Models. Once constructed, it is essentially
  * immutable.
  *
  * The model assumes a few responsibilities:
@@ -45,34 +44,17 @@ struct CoreRef;
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
  */
-class Model
+class Model : public ExplicitActionInterface
 {
   public:
     //@{
     //! Type aliases
     using SetApplicability  = std::set<Applicability>;
-    using HostInteractRef   = CoreRef<MemSpace::host>;
-    using DeviceInteractRef = CoreRef<MemSpace::device>;
     //@}
 
   public:
-    // Virtual destructor for polymorphic deletion
-    virtual ~Model();
-
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
-
-    //! Apply the interaction kernel to host data
-    virtual void interact(const HostInteractRef&) const = 0;
-
-    //! Apply the interaction kernel to device data
-    virtual void interact(const DeviceInteractRef&) const = 0;
-
-    //! ID of the model (should be stored by constructor)
-    virtual ModelId model_id() const = 0;
-
-    //! Name of the model, for user interaction
-    virtual std::string label() const = 0;
 };
 
 //---------------------------------------------------------------------------//

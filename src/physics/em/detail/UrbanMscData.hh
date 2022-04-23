@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Array.hh"
 #include "base/Collection.hh"
 #include "base/Macros.hh"
+#include "physics/base/Types.hh"
+#include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -88,14 +92,14 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscIds
 {
-    ModelId model;
+    ActionId   action;
     ParticleId electron;
     ParticleId positron;
 
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && positron;
+        return action && electron && positron;
     }
 };
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <vector>
 
+#include "celeritas_config.h"
 #include "base/DeviceVector.hh"
 #include "base/StackAllocator.hh"
 #include "physics/base/Interaction.hh"
@@ -37,7 +38,8 @@ struct Interactor
     CELER_FUNCTION Interaction operator()()
     {
         Interaction result;
-        result.action = Action::unchanged;
+        result.action    = Interaction::Action::unchanged;
+        result.direction = {0, 0, 1};
 
         // Kill the particle
         if (!alive)
@@ -108,6 +110,13 @@ using SecondaryAllocatorData
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
 void interact(CoreStateDeviceRef states, ITTestInputData input);
+
+#if !CELER_USE_DEVICE
+inline void interact(CoreStateDeviceRef, ITTestInputData)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

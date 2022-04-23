@@ -8,7 +8,9 @@
 #include "Transporter.hh"
 
 #include <csignal>
+#include <memory>
 
+#include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Stopwatch.hh"
 #include "base/VectorUtils.hh"
@@ -16,24 +18,21 @@
 #include "comm/ScopedSignalHandler.hh"
 #include "geometry/GeoMaterialParams.hh"
 #include "geometry/GeoParams.hh"
+#include "geometry/generated/BoundaryAction.hh"
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/em/AtomicRelaxationParams.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
+#include "sim/ActionManager.hh"
 #include "sim/TrackInitParams.hh"
 #include "sim/TrackInitUtils.hh"
 
-#include "LDemoLauncher.hh"
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"
 #include "diagnostic/TrackDiagnostic.hh"
-#include "generated/AlongAndPostStepKernel.hh"
-#include "generated/CleanupKernel.hh"
-#include "generated/PreStepKernel.hh"
-#include "generated/ProcessInteractionsKernel.hh"
 
 using namespace demo_loop;
 
@@ -73,15 +72,17 @@ decltype(auto) get_ref(const P& params)
 
 template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
-build_params_refs(const TransporterInput& p)
+build_params_refs(const TransporterInput& p, ActionId boundary_action)
 {
+    CELER_EXPECT(boundary_action);
     CoreParamsData<Ownership::const_reference, M> ref;
-    ref.control.secondary_stack_factor = p.secondary_stack_factor;
+    ref.scalars.boundary_action        = boundary_action;
+    ref.scalars.secondary_stack_factor = p.secondary_stack_factor;
     ref.geometry                       = get_ref<M>(*p.geometry);
-    ref.materials                      = get_ref<M>(*p.materials);
     ref.geo_mats                       = get_ref<M>(*p.geo_mats);
-    ref.cutoffs                        = get_ref<M>(*p.cutoffs);
+    ref.materials                      = get_ref<M>(*p.materials);
     ref.particles                      = get_ref<M>(*p.particles);
+    ref.cutoffs                        = get_ref<M>(*p.cutoffs);
     ref.physics                        = get_ref<M>(*p.physics);
     ref.rng                            = get_ref<M>(*p.rng);
     if (p.relaxation)
@@ -96,10 +97,12 @@ build_params_refs(const TransporterInput& p)
 struct ParamsShim
 {
     const TransporterInput& p;
+    ActionId                boundary_action;
 
     CoreParamsData<Ownership::const_reference, MemSpace::host> host_ref() const
     {
-        return build_params_refs<MemSpace::host>(p);
+        CELER_ASSERT(boundary_action);
+        return build_params_refs<MemSpace::host>(p, boundary_action);
     }
 };
 
@@ -155,29 +158,6 @@ void accum_time<MemSpace::host>(const TransporterInput&,
 
 //!@}
 //---------------------------------------------------------------------------//
-/*!
- * Launch interaction kernels for all applicable models.
- *
- * For now, just launch *all* the models.
- */
-template<MemSpace M>
-void launch_models(TransporterInput const& host_params, CoreRef<M> const& data)
-{
-    // Loop over physics models IDs and invoke `interact`
-    for (auto model_id : range(ModelId{host_params.physics->num_models()}))
-    {
-        ProcessId      pid  = host_params.physics->process_id(model_id);
-        const Process& proc = host_params.physics->process(pid);
-        if (proc.type() != ProcessType::electromagnetic_msc)
-        {
-            // Do not launch interact if the process is electromagnetic_msc
-            const Model& model = host_params.physics->model(model_id);
-            model.interact(data);
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -192,10 +172,29 @@ template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
 {
     CELER_EXPECT(input_);
-    params_ = build_params_refs<M>(input_);
+
+    // Add geometry action
+    boundary_action_ = input_.actions->next_id();
+    input_.actions->insert(
+        std::make_shared<celeritas::generated::BoundaryAction>(
+            boundary_action_, "Geometry boundary"));
+
+    // Build params
+    params_ = build_params_refs<M>(input_, boundary_action_);
     CELER_ASSERT(params_);
-    states_ = CollectionStateStore<CoreStateData, M>(ParamsShim{input_},
-                                                     input_.max_num_tracks);
+
+    // TODO: add physics params accessors instead of looking these up as
+    // strings
+    pre_step_action_   = input_.actions->find_action("pre-step");
+    along_step_action_ = input_.actions->find_action("along-step");
+    discrete_select_action_
+        = input_.actions->find_action("physics-discrete-select");
+    CELER_ASSERT(pre_step_action_ && along_step_action_
+                 && discrete_select_action_);
+
+    // Create states
+    states_ = CollectionStateStore<CoreStateData, M>(
+        ParamsShim{input_, boundary_action_}, input_.max_num_tracks);
 }
 
 //---------------------------------------------------------------------------//
@@ -232,6 +231,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     CoreRef<M> core_ref;
     core_ref.params = params_;
     core_ref.states = states_.ref();
+    const ActionManager& actions = *input_.actions;
 
     ScopedSignalHandler interrupted(SIGINT);
     CELER_LOG(status) << "Transporting";
@@ -254,25 +254,33 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         result.active.push_back(input_.max_num_tracks
                                 - track_init_states.vacancies.size());
 
-        // Sample mean free path and calculate step limits
+        // Reset track data, sample mean free path, and calculate step limits
         get_time = {};
-        demo_loop::generated::pre_step(core_ref);
+        actions.invoke<M>(pre_step_action_, core_ref);
         accum_time<M>(input_, get_time, &result.time.pre_step);
 
         // Move, calculate dE/dx, and select model for discrete interaction
         get_time = {};
-        demo_loop::generated::along_and_post_step(core_ref);
-        accum_time<M>(input_, get_time, &result.time.along_and_post_step);
+        actions.invoke<M>(along_step_action_, core_ref);
+        accum_time<M>(input_, get_time, &result.time.along_step);
+
+        // Cross boundary
+        get_time = {};
+        actions.invoke<M>(boundary_action_, core_ref);
+        accum_time<M>(input_, get_time, &result.time.cross_boundary);
+
+        // Determine discrete processes
+        get_time = {};
+        actions.invoke<M>(discrete_select_action_, core_ref);
+        accum_time<M>(input_, get_time, &result.time.discrete_select);
 
         // Launch the interaction kernels for all applicable models
         get_time = {};
-        launch_models(input_, core_ref);
+        for (ActionId action : input_.physics->model_actions())
+        {
+            actions.invoke<M>(action, core_ref);
+        }
         accum_time<M>(input_, get_time, &result.time.launch_models);
-
-        // Postprocess interaction results
-        get_time = {};
-        demo_loop::generated::process_interactions(core_ref);
-        accum_time<M>(input_, get_time, &result.time.process_interactions);
 
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)
@@ -284,9 +292,6 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         get_time = {};
         extend_from_secondaries(core_ref, &track_init_states);
         accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
-
-        // Clear secondaries
-        demo_loop::generated::cleanup(core_ref);
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();

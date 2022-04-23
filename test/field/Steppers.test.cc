@@ -16,6 +16,8 @@
 #include "field/MagFieldEquation.hh"
 #include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
+#include "field/UniformZMagField.hh"
+#include "field/ZHelixStepper.hh"
 #include "physics/base/Units.hh"
 
 #include "FieldTestParams.hh"
@@ -40,10 +42,16 @@ class SteppersTest : public Test
           an electron in a uniform magnetic field along the z-direction with
           initial velocity (v0), position (pos_0) and direction (dir_0).
 
-          B     = {0.0, 0.0, 1.0*units::tesla};
-          v_0   = 0.999*units::c_light
-          pos_0 = {radius, 0.0, 0.0}
+          B     = {0.0, 0.0, 1.0 * units::tesla}
+          v_0   = 0.999 * constants::c_light
           dir_0 = {0.0, 0.96, 0.28}
+
+          gamma = 1.0/sqrt(1-ipow<2>(v0/constants::c_light))
+          radius = constants::electron_mass*gamma *v0/(constants::e_electron*B)
+          mass = constants::electron_mass*ipow<2>(constants::c_light)/MeV
+
+          pos_0 = {radius, 0.0, 0.0}
+          mom_0 = mass * sqrt(ipow<2>(gamma) - 1) * dir_0
         */
 
         param.field_value = 1.0 * units::tesla; //! field value along z [tesla]
@@ -57,138 +65,133 @@ class SteppersTest : public Test
         param.epsilon     = 1.0e-5;             //! tolerance error
     }
 
-  protected:
+    template<class TField, template<class> class TStepper>
+    void run_stepper(const TField& field)
+    {
+        // Construct a stepper for testing
+        using Traits = typename detail::MagTestTraits<TField, TStepper>;
+
+        typename Traits::Equation_t equation(field,
+                                             units::ElementaryCharge{-1});
+        typename Traits::Stepper_t  stepper(equation);
+
+        // Test parameters and the sub-step size
+        real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
+
+        // Only test every 128 states to reduce debug runtime
+        for (unsigned int i : celeritas::range(param.nstates).step(128u))
+        {
+            // Initial state and the epected state after revolutions
+            OdeState y;
+            y.pos = {param.radius, 0.0, i * 1.0e-6};
+            y.pos = {param.radius, 0.0, 0};
+            y.mom = {0.0, param.momentum_y, param.momentum_z};
+
+            OdeState expected_y = y;
+
+            // Try the stepper by hstep for (num_revolutions * num_steps) times
+            real_type total_err2 = 0;
+            for (int nr : range(param.revolutions))
+            {
+                // Travel hstep for num_steps times in the field
+                expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
+                expected_y.pos[2] = param.delta_z * (nr + 1);
+                for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
+                {
+                    StepperResult result = stepper(hstep, y);
+                    y                    = result.end_state;
+
+                    total_err2 += detail::truncation_error(
+                        hstep, 0.001, y, result.err_state);
+                }
+                // Check the state after each revolution and the total error
+                EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
+                EXPECT_VEC_NEAR(expected_y.mom, y.mom, sqrt(total_err2));
+                EXPECT_LT(total_err2, param.epsilon);
+            }
+        }
+    }
+
+    void check_result(StepperTestOutput output)
+    {
+        // Check gpu stepper results
+        real_type zstep = param.delta_z * param.revolutions;
+        for (auto i : celeritas::range(output.pos_x.size()))
+        {
+            real_type error = std::sqrt(output.error[i]);
+            EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
+            EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
+            EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
+            EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
+            EXPECT_LT(output.error[i], param.epsilon);
+        }
+    }
+
     // Test parameters
     FieldTestParams param;
 };
 
 //---------------------------------------------------------------------------//
-// TESTS
+// HOST TESTS
 //---------------------------------------------------------------------------//
-
-TEST_F(SteppersTest, host_classical_rk4)
+TEST_F(SteppersTest, host_helix)
 {
-    // Construct the Runge-Kutta stepper
-    UniformMagField field({0, 0, param.field_value});
+    // Construct a uniform magnetic field along Z axis
+    UniformZMagField field(param.field_value);
 
-    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-
-    // Test parameters and the sub-step size
-    real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
-
-    // Only test every 128 states to reduce debug runtime
-    for (unsigned int i : celeritas::range(param.nstates).step(128u))
-    {
-        // Initial state and the epected state after revolutions
-        OdeState y;
-        y.pos = {param.radius, 0.0, i * 1.0e-6};
-        y.mom = {0.0, param.momentum_y, param.momentum_z};
-
-        OdeState expected_y = y;
-
-        // Try the stepper by hstep for (num_revolutions * num_steps) times
-        real_type total_err2 = 0;
-        for (int nr : range(param.revolutions))
-        {
-            // Travel hstep for num_steps times in the field
-            expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
-            for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
-            {
-                StepperResult result = rk4(hstep, y);
-                y                    = result.end_state;
-                total_err2 += detail::truncation_error(
-                    hstep, 0.001, y, result.err_state);
-            }
-            // Check the state after each revolution and the total error
-            EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
-            EXPECT_VEC_NEAR(expected_y.mom, y.mom, sqrt(total_err2));
-            EXPECT_LT(total_err2, param.epsilon);
-        }
-    }
+    // Test the analytical ZHelix stepper
+    this->template run_stepper<UniformZMagField, ZHelixStepper>(field);
 }
 
-TEST_F(SteppersTest, host_dormand_prince_547)
+//---------------------------------------------------------------------------//
+TEST_F(SteppersTest, host_classical_rk4)
 {
-    // Construct the Runge-Kutta stepper
+    // Construct a uniform magnetic field
     UniformMagField field({0, 0, param.field_value});
 
-    using RKTraits
-        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  dp547(equation);
+    // Test the classical 4th order Runge-Kutta stepper
+    this->template run_stepper<UniformMagField, RungeKuttaStepper>(field);
+}
 
-    // Test parameters and the sub-step size
-    real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
+//---------------------------------------------------------------------------//
+TEST_F(SteppersTest, host_dormand_prince_547)
+{
+    // Construct a uniform magnetic field
+    UniformMagField field({0, 0, param.field_value});
 
-    // Only test every 128 states to reduce debug runtime
-    for (unsigned int i : celeritas::range(param.nstates).step(128u))
-    {
-        // Initial state and the epected state after revolutions
-        OdeState y;
-        y.pos = {param.radius, 0.0, i * 1.0e-6};
-        y.mom = {0.0, param.momentum_y, param.momentum_z};
+    // Test the Dormand-Prince 547(M) stepper
+    this->template run_stepper<UniformMagField, DormandPrinceStepper>(field);
+}
 
-        OdeState expected_y = y;
+//---------------------------------------------------------------------------//
+// DEVICE TESTS
+//---------------------------------------------------------------------------//
+TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_helix))
+{
+    // Run the ZHelix kernel
+    auto output = helix_test(param);
 
-        // Try the stepper by hstep for (num_revolutions * num_steps) times
-        real_type total_err2 = 0;
-        for (int nr : range(param.revolutions))
-        {
-            // Travel hstep for num_steps times in the field
-            expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
-            for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
-            {
-                StepperResult result = dp547(hstep, y);
-                y                    = result.end_state;
-                total_err2 += detail::truncation_error(
-                    hstep, 0.001, y, result.err_state);
-            }
-            // Check the state after each revolution and the total error
-            EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
-            EXPECT_VEC_NEAR(expected_y.mom, y.mom, sqrt(total_err2));
-            EXPECT_LT(total_err2, param.epsilon);
-        }
-    }
+    // Check stepper results
+    check_result(output);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_classical_rk4))
 {
-    // Run the classical RungeKutta kernel
+    // Run the classical Runge-Kutta kernel
     auto output = rk4_test(param);
 
     // Check stepper results
-    real_type zstep = param.delta_z * param.revolutions;
-    for (auto i : celeritas::range(output.pos_x.size()))
-    {
-        real_type error = std::sqrt(output.error[i]);
-        EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
-        EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
-        EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
-        EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
-        EXPECT_LT(output.error[i], param.epsilon);
-    }
+    check_result(output);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_dormand_prince_547))
 {
-    // Run the classical RungeKutta kernel
+    // Run the Dormand-Prince 547(M) kernel
     auto output = dp547_test(param);
 
     // Check stepper results
-    real_type zstep = param.delta_z * param.revolutions;
-    for (auto i : celeritas::range(output.pos_x.size()))
-    {
-        real_type error = std::sqrt(output.error[i]);
-        EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
-        EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1.0e-6, error);
-        EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
-        EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
-        EXPECT_LT(output.error[i], param.epsilon);
-    }
+    check_result(output);
 }
-
 //---------------------------------------------------------------------------//

@@ -31,7 +31,7 @@ class EPlusAnnihilationProcess final : public Process
     explicit EPlusAnnihilationProcess(SPConstParticles particles);
 
     // Construct the models associated with this process
-    VecModel build_models(ModelIdGenerator next_id) const final;
+    VecModel build_models(ActionIdIter start_id) const final;
 
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;

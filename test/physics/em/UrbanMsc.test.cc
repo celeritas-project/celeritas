@@ -27,6 +27,7 @@
 #include "physics/em/detail/UrbanMscStepLimit.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "random/DiagnosticRngEngine.hh"
+#include "sim/ActionManager.hh"
 #include "sim/SimData.hh"
 #include "sim/SimTrackView.hh"
 
@@ -64,6 +65,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
   protected:
     using RandomEngine = celeritas_test::DiagnosticRngEngine<std::mt19937>;
 
+    using SPActionManager  = std::shared_ptr<ActionManager>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstPhysics   = std::shared_ptr<const PhysicsParams>;
@@ -100,6 +102,10 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
             particle_params_, processes_data_));
         input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
             particle_params_, material_params_, processes_data_));
+
+        // Add action manager
+        actions_             = std::make_shared<ActionManager>();
+        input.action_manager = actions_.get();
 
         physics_params_ = std::make_shared<PhysicsParams>(std::move(input));
 
@@ -163,6 +169,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
 
     SPConstMaterials material_params_;
     SPConstParticles particle_params_;
+    SPActionManager  actions_;
     SPConstPhysics   physics_params_;
     SPConstImported  processes_data_;
 
@@ -190,7 +197,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     // Create the model
     std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ModelId{0}, *particle_params_, *material_params_);
+        ActionId{0}, *particle_params_, *material_params_);
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
     const detail::UrbanMscMaterialData& msc_
@@ -243,7 +250,12 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     for (unsigned int i : celeritas::range(nsamples))
     {
-        SimTrackState state = {TrackId{i}, TrackId{i}, EventId{1}, i % 2, true};
+        SimTrackState state = {TrackId{i},
+                               TrackId{i},
+                               EventId{1},
+                               i % 2,
+                               TrackStatus::alive,
+                               StepLimit{}};
         sim_state_data.push_back(state);
     }
     const SimStateRef& states = make_ref(states_ref);

@@ -22,22 +22,28 @@ class EPlusGGModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    EPlusGGModel(ModelId id, const ParticleParams& particles);
+    EPlusGGModel(ActionId id, const ParticleParams& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on host
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel on device
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
-    ModelId model_id() const final;
+    ActionId action_id() const final;
+
+    //! Short name for the interaction kernel
+    std::string label() const final { return "annihil-2-gamma"; }
 
     //! Name of the model, for user interaction
-    std::string label() const final { return "Positron annihilation (2g)"; }
+    std::string description() const final
+    {
+        return "Positron annihilation yielding two gammas";
+    }
 
     // Access data on device
     detail::EPlusGGData device_ref() const { return interface_; }

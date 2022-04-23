@@ -33,6 +33,7 @@
 #include "physics/em/RayleighProcess.hh"
 #include "physics/material/MaterialParams.hh"
 #include "random/RngParams.hh"
+#include "sim/ActionManager.hh"
 
 using namespace celeritas;
 
@@ -112,6 +113,10 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["energy_diag"] = v.energy_diag;
     }
+    if (v.step_limiter > 0)
+    {
+        j["step_limiter"] = v.step_limiter;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
@@ -119,12 +124,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
     j.at("hepmc3_filename").get_to(v.hepmc3_filename);
-    j.at("rayleigh").get_to(v.rayleigh);
-    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
-    j.at("brem_combined").get_to(v.brem_combined);
-    j.at("brem_lpm").get_to(v.brem_lpm);
-    j.at("conv_lpm").get_to(v.conv_lpm);
-    j.at("enable_msc").get_to(v.enable_msc);
+
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
     if (j.contains("max_steps"))
@@ -136,6 +136,17 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
     j.at("sync").get_to(v.sync);
+    if (j.contains("step_limiter"))
+    {
+        j.at("step_limiter").get_to(v.step_limiter);
+    }
+
+    j.at("rayleigh").get_to(v.rayleigh);
+    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
+    j.at("brem_combined").get_to(v.brem_combined);
+    j.at("brem_lpm").get_to(v.brem_lpm);
+    j.at("conv_lpm").get_to(v.conv_lpm);
+    j.at("enable_msc").get_to(v.enable_msc);
 
     if (j.contains("energy_diag"))
     {
@@ -167,6 +178,11 @@ TransporterInput load_input(const LDemoArgs& args)
         CELER_VALIDATE(false,
                        << "invalid physics filename '" << args.physics_filename
                        << "' (expected gdml or root)");
+    }
+
+    // Create action manager
+    {
+        result.actions = std::make_shared<ActionManager>();
     }
 
     // Load geometry
@@ -228,6 +244,8 @@ TransporterInput load_input(const LDemoArgs& args)
         input.particles                  = result.particles;
         input.materials                  = result.materials;
         input.options.enable_fluctuation = args.eloss_fluctuation;
+        input.options.fixed_step_limiter = args.step_limiter;
+        input.action_manager             = result.actions.get();
 
         BremsstrahlungProcess::Options brem_options;
         brem_options.combined_model = args.brem_combined;

@@ -17,11 +17,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
+MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
                                              const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.model   = id;
+    interface_.ids.action   = id;
     interface_.ids.gamma   = particles.find(pdg::gamma());
     interface_.ids.mu_minus = particles.find(pdg::mu_minus());
     interface_.ids.mu_plus  = particles.find(pdg::mu_plus());
@@ -29,7 +29,7 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ModelId               id,
     CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
                        && interface_.ids.mu_plus,
                    << "missing muon and/or gamma particles (required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     interface_.electron_mass
         = particles.get(particles.find(pdg::electron())).mass();
@@ -60,12 +60,12 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void MuBremsstrahlungModel::interact(const DeviceInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreDeviceRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
 
-void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
+void MuBremsstrahlungModel::execute(CoreHostRef const& data) const
 {
     generated::mu_bremsstrahlung_interact(interface_, data);
 }
@@ -75,9 +75,9 @@ void MuBremsstrahlungModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId MuBremsstrahlungModel::model_id() const
+ActionId MuBremsstrahlungModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RelativisticBremModel::RelativisticBremModel(ModelId               id,
+RelativisticBremModel::RelativisticBremModel(ActionId              id,
                                              const ParticleParams& particles,
                                              const MaterialParams& materials,
                                              bool                  enable_lpm)
@@ -35,13 +35,14 @@ RelativisticBremModel::RelativisticBremModel(ModelId               id,
 
     HostValue host_ref;
 
-    host_ref.ids.model    = id;
+    host_ref.ids.action   = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     host_ref.ids.gamma    = particles.find(pdg::gamma());
 
     CELER_VALIDATE(host_ref.ids,
-                   << "missing IDs (required for " << this->label() << ")");
+                   << "missing IDs (required for " << this->description()
+                   << ")");
 
     // Save particle properties
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
@@ -79,12 +80,12 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void RelativisticBremModel::interact(const DeviceInteractRef& data) const
+void RelativisticBremModel::execute(CoreDeviceRef const& data) const
 {
     generated::relativistic_brem_interact(this->device_ref(), data);
 }
 
-void RelativisticBremModel::interact(const HostInteractRef& data) const
+void RelativisticBremModel::execute(CoreHostRef const& data) const
 {
     generated::relativistic_brem_interact(this->host_ref(), data);
 }
@@ -94,9 +95,9 @@ void RelativisticBremModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId RelativisticBremModel::model_id() const
+ActionId RelativisticBremModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

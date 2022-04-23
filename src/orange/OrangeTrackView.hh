@@ -208,6 +208,17 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the track is outside the valid geometry region.
+ */
+CELER_FUNCTION bool OrangeTrackView::is_outside() const
+{
+    // Zeroth volume in outermost universe is always the exterior by
+    // construction in ORANGE
+    return states_.vol[thread_] == VolumeId{0};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the distance to the next geometric boundary.
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
@@ -382,17 +393,6 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
     CELER_EXPECT(is_soft_unit_vector(newdir));
     states_.dir[thread_] = newdir;
     this->clear_next_step();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the track is outside the valid geometry region.
- */
-CELER_FUNCTION bool OrangeTrackView::is_outside() const
-{
-    // Zeroth volume in outermost universe is always the exterior by
-    // construction in ORANGE
-    return states_.vol[thread_] == VolumeId{0};
 }
 
 //---------------------------------------------------------------------------//

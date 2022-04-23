@@ -89,7 +89,6 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(
 {
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
-    result.action = Action::scattered;
     result.energy
         = units::MevEnergy{inc_energy_.value() - gamma_energy.value()};
     result.secondaries         = {secondaries, 1};

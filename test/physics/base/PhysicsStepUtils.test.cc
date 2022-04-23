@@ -39,14 +39,7 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
 
     PhysicsOptions build_physics_options() const override
     {
-        PhysicsOptions opts;
-        if (/* DISABLES CODE */ (false))
-        {
-            // Don't scale the range -- use exactly the analytic values our
-            // model has.
-            opts.min_range = inf;
-        }
-        return opts;
+        return PhysicsOptions{};
     }
 
     void SetUp() override
@@ -98,41 +91,54 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
+TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
 {
     MaterialTrackView material(
         this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_ref(), par_state.ref(), ThreadId{0});
 
+    ActionId range_action;
+    ActionId discrete_action;
+    {
+        const auto& scalars = this->physics()->host_ref().scalars;
+        range_action        = scalars.range_action();
+        discrete_action     = scalars.discrete_action();
+        EXPECT_FALSE(scalars.fixed_step_action);
+    }
+
     // Test a variety of energies and multiple material IDs
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1. / 3.e-4, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
     }
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1.e-4 / 9.e-3, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1.e-4 / 9.e-3, step.step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
-        step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.48853333333333326, step);
+        step = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.48853333333333326, step.step);
     }
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.0016666666666666663, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.0016666666666666663, step.step);
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -141,14 +147,16 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
                                                  "anti-celeriton",
                                                  MevEnergy{1e-2});
         phys.interaction_mfp(1e-6);
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1.e-6 / 9.e-1, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1.e-6 / 9.e-1, step.step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
-        step = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1.4285714285714282e-5, step);
+        step = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(1.4285714285714282e-5, step.step);
     }
     {
         PhysicsTrackView phys = this->init_track(&material,
@@ -156,9 +164,10 @@ TEST_F(PhysicsStepUtilsTest, calc_tabulated_physics_step)
                                                  &particle,
                                                  "anti-celeriton",
                                                  MevEnergy{10});
-        real_type        step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.014285714285714284, step);
+        StepLimit        step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.014285714285714284, step.step);
     }
 }
 
@@ -221,7 +230,7 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
-        const real_type step = particle.energy().value() / eloss_rate;
+        real_type step = particle.energy().value() / eloss_rate;
         EXPECT_SOFT_EQ(1e-3,
                        celeritas::calc_energy_loss(
                            cutoffs, material, particle, phys, step, this->rng())
@@ -229,42 +238,37 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
     }
 }
 
-TEST_F(PhysicsStepUtilsTest, select_process_and_model)
+TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
 {
     MaterialTrackView material(
         this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particles()->host_ref(), par_state.ref(), ThreadId{0});
 
-    unsigned int num_samples = 0;
+    const auto model_offset
+        = this->physics()->host_ref().scalars.model_to_action;
 
     // Test a variety of energy ranges and multiple material IDs
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(1. / 3.e-4, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
 
         // Testing cheat.
         PhysicsTrackView::PhysicsStateRef state_shortcut(phys_state.ref());
         state_shortcut.state[ThreadId{0}].interaction_mfp = 0;
 
-        auto result = select_process_and_model(particle, phys, this->rng());
-        EXPECT_EQ(result.ppid.get(), 0);
-        EXPECT_EQ(result.model.get(), 0);
-        ++num_samples;
+        auto action = select_discrete_interaction(particle, phys, this->rng());
+        EXPECT_EQ(action.unchecked_get(), 0 + model_offset);
 
-        result = select_process_and_model(particle, phys, this->rng());
-        EXPECT_EQ(result.ppid.get(), 1);
-        EXPECT_EQ(result.model.get(), 2);
-        ++num_samples;
+        action = select_discrete_interaction(particle, phys, this->rng());
+        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
 
-        result = select_process_and_model(particle, phys, this->rng());
-        EXPECT_EQ(result.ppid.get(), 1);
-        EXPECT_EQ(result.model.get(), 2);
-        ++num_samples;
+        action = select_discrete_interaction(particle, phys, this->rng());
+        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
     }
 
     {
@@ -272,9 +276,9 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
 
-        real_type step
-            = celeritas::calc_tabulated_physics_step(material, particle, phys);
-        EXPECT_SOFT_EQ(0.48853333333333326, step);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_SOFT_EQ(0.48853333333333326, step.step);
 
         // Testing cheat.
         PhysicsTrackView::PhysicsStateRef state_shortcut(phys_state.ref());
@@ -284,38 +288,29 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         // random number generator and by the energy of particle.
         // The number of tries is picked so that each process is selected at
         // least once.
-        using restype = std::pair<unsigned int, unsigned int>;
-        std::vector<restype> expected({{1, 5},
-                                       {2, 8},
-                                       {2, 8},
-                                       {2, 8},
-                                       {2, 8},
-                                       {2, 8},
-                                       {0, 1},
-                                       {1, 5},
-                                       {2, 8},
-                                       {2, 8},
-                                       {1, 5},
-                                       {1, 5},
-                                       {2, 8}});
-        std::vector<restype> results; // Could add:
-                                      // result.reserve(expected.size());
-        for (auto i : range(expected.size()))
+        std::vector<ActionId::size_type> models(13, -1);
+        for (auto i : range(models.size()))
         {
-            (void)i;
-            auto result = select_process_and_model(particle, phys, this->rng());
-            results.emplace_back(result.ppid.get(), result.model.get());
-            ++num_samples;
+            auto action_id
+                = select_discrete_interaction(particle, phys, this->rng());
+            models[i] = action_id.unchecked_get() - model_offset;
         }
-        EXPECT_VEC_EQ(results, expected);
+
+        static const ActionId::size_type expected_models[]
+            = {5, 8, 8, 8, 8, 8, 1, 5, 8, 8, 5, 5, 8};
+        EXPECT_VEC_EQ(expected_models, models);
         EXPECT_EQ(56, this->rng().count());
     }
+
     {
         // Test the integral approach
         unsigned int           num_samples   = 10000;
         std::vector<real_type> inc_energy    = {0.01, 0.01, 0.1, 10};
         std::vector<real_type> scaled_energy = {0.001, 0.00999, 0.001, 8};
         std::vector<real_type> acceptance_rate;
+
+        auto reject_action
+            = this->physics()->host_ref().scalars.integral_rejection_action();
 
         for (auto i : range(inc_energy.size()))
         {
@@ -339,10 +334,12 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
             unsigned int count = 0;
             for (unsigned int j = 0; j < num_samples; ++j)
             {
-                phys.interaction_mfp(0);
+                phys.reset_interaction_mfp();
                 phys.macro_xs(xs_max);
 
-                if (select_process_and_model(particle, phys, this->rng()))
+                auto action
+                    = select_discrete_interaction(particle, phys, this->rng());
+                if (action != reject_action)
                     ++count;
             }
             acceptance_rate.push_back(real_type(count) / num_samples);
@@ -350,5 +347,64 @@ TEST_F(PhysicsStepUtilsTest, select_process_and_model)
         const real_type expected_acceptance_rate[]
             = {0.9204, 0.9999, 0.4972, 1};
         EXPECT_VEC_EQ(expected_acceptance_rate, acceptance_rate);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+class StepLimiterTest : public PhysicsStepUtilsTest
+{
+    PhysicsOptions build_physics_options() const override
+    {
+        PhysicsOptions opts;
+
+        opts.min_range          = inf; // Use analytic range instead of scaled
+        opts.fixed_step_limiter = 1e-3;
+        return opts;
+    }
+};
+
+TEST_F(StepLimiterTest, calc_physics_step_limit)
+{
+    MaterialTrackView material(
+        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+    ParticleTrackView particle(
+        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+
+    ActionId range_action;
+    ActionId discrete_action;
+    ActionId fixed_step_action;
+    {
+        const auto& scalars = this->physics()->host_ref().scalars;
+        range_action        = scalars.range_action();
+        discrete_action     = scalars.discrete_action();
+        fixed_step_action   = scalars.fixed_step_action;
+    }
+
+    {
+        // Gammas should not be limited since they have no energy loss
+        // processes
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
+        phys.interaction_mfp(1);
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
+    }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-3});
+
+        // Small energy: still range action
+        StepLimit step
+            = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.00016666666666666663, step.step);
+
+        particle.energy(MevEnergy{1e-1});
+        step = celeritas::calc_physics_step_limit(material, particle, phys);
+        EXPECT_EQ(fixed_step_action, step.action);
+        EXPECT_SOFT_EQ(0.001, step.step);
     }
 }

@@ -28,7 +28,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
+SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
                                        const ParticleParams& particles,
                                        const MaterialParams& materials,
                                        ReadData              load_sb_table)
@@ -39,14 +39,14 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
     detail::SeltzerBergerData<Ownership::value, MemSpace::host> host_data;
 
     // Save IDs
-    host_data.ids.model    = id;
+    host_data.ids.action   = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
     host_data.ids.gamma    = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
                    << "missing electron, positron, and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     // Save particle properties
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
@@ -79,8 +79,8 @@ SeltzerBergerModel::SeltzerBergerModel(ModelId               id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    // TODO: Do we need to load applicabilities, e.g. lower and upper, from
-    // tables?
+    // TODO: bounds need to be adjusted based on BremsstrahlungProcess data and
+    // SB table data
 
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
@@ -98,12 +98,12 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void SeltzerBergerModel::interact(const DeviceInteractRef& data) const
+void SeltzerBergerModel::execute(CoreDeviceRef const& data) const
 {
     generated::seltzer_berger_interact(this->device_ref(), data);
 }
 
-void SeltzerBergerModel::interact(const HostInteractRef& data) const
+void SeltzerBergerModel::execute(CoreHostRef const& data) const
 {
     generated::seltzer_berger_interact(this->host_ref(), data);
 }
@@ -112,9 +112,9 @@ void SeltzerBergerModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId SeltzerBergerModel::model_id() const
+ActionId SeltzerBergerModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//
@@ -140,8 +140,9 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
 
     detail::SBElementTableData table;
 
-    // TODO: we could probably use a single x and y grid for all elements.
-    // Only Z = 100 has different energy grids.
+    // TODO: hash the energy grid for reuse, because only Z = 100 has a
+    // different energy grid.
+
     // Incident charged particle log energy grid
     table.grid.x = reals.insert_back(imported.x.begin(), imported.x.end());
 

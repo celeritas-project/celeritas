@@ -121,7 +121,6 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.action = Action::scattered;
     result.energy = inc_energy_;
 
     SampleInput input = this->evaluate_weight_and_prob();
@@ -167,6 +166,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
     result.direction
         = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
+    CELER_ENSURE(result.action == Interaction::Action::scattered);
     return result;
 }
 

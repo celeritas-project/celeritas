@@ -311,10 +311,12 @@ celeritas_device_test(random/RngEngine)
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(random/curand/CurandPerformance.test.cc GPU
     SOURCES random/curand/CurandPerformance.test.cu
+    LINK_LIBRARIES CUDA::cudart
     ${_disable_if_debug}
   )
 endif()
 celeritas_add_test(random/Selector.test.cc)
+celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
 
 celeritas_add_test(random/distributions/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distributions/ExponentialDistribution.test.cc)
@@ -331,9 +333,6 @@ celeritas_add_test(random/distributions/UniformRealDistribution.test.cc)
 # Sim
 
 celeritas_setup_tests(SERIAL PREFIX sim)
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  celeritas_add_test(sim/TrackInit.test.cc GPU
-    SOURCES sim/TrackInit.test.cu
-  )
-endif()
 
+celeritas_add_test(sim/ActionManager.test.cc)
+celeritas_device_test(sim/TrackInit ${_needs_cuda})

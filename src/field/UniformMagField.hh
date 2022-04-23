@@ -14,12 +14,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evaluate magnetic field based on a parameterized function
+ * A uniform magnetic field
  */
 class UniformMagField
 {
   public:
-    // Construct the reader and locate the data using the environment variable
+    // Construct with a uniform magnetic field vector
     CELER_FUNCTION
     explicit UniformMagField(Real3 value) : value_(value) {}
 

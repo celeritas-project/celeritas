@@ -33,11 +33,11 @@ MultipleScatteringProcess::MultipleScatteringProcess(
 /*!
  * Construct the models associated with this process.
  */
-auto MultipleScatteringProcess::build_models(ModelIdGenerator next_id) const
+auto MultipleScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    return {
-        std::make_shared<UrbanMscModel>(next_id(), *particles_, *materials_)};
+    return {std::make_shared<UrbanMscModel>(
+        *start_id++, *particles_, *materials_)};
 }
 
 //---------------------------------------------------------------------------//

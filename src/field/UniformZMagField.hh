@@ -3,33 +3,36 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngStateInit.cc
+//! \file UniformZMagField.hh
 //---------------------------------------------------------------------------//
-#include "random/detail/RngStateInit.hh"
+#pragma once
 
-#include "base/Span.hh"
-#include "random/RngData.hh"
-#include "random/RngEngine.hh"
+#include "base/Array.hh"
+#include "base/Macros.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the RNG states from seeds randomly generated on host.
+ * A uniform magnetic field along Z axis
  */
-void rng_state_init(
-    const RngStateData<Ownership::reference, MemSpace::host>&      rng,
-    const RngInitData<Ownership::const_reference, MemSpace::host>& seeds)
+class UniformZMagField
 {
-    for (auto tid : range(ThreadId{seeds.size()}))
+  public:
+    // Construct with a scalar magnetic field value
+    CELER_FUNCTION
+    explicit UniformZMagField(real_type value) : value_({0, 0, value}) {}
+
+    // Return a constant magnetic field value along Z axis
+    CELER_FUNCTION
+    Real3 operator()(CELER_MAYBE_UNUSED const Real3& pos) const
     {
-        RngEngine engine(rng, tid);
-        engine = seeds.seeds[tid];
+        return value_;
     }
-}
+
+  private:
+    Real3 value_;
+};
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

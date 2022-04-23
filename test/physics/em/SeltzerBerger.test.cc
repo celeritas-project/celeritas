@@ -102,7 +102,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Construct SeltzerBergerModel and set host data
-        model_ = std::make_shared<SeltzerBergerModel>(ModelId{0},
+        model_ = std::make_shared<SeltzerBergerModel>(ActionId{0},
                                                       *this->particle_params(),
                                                       *this->material_params(),
                                                       read_element_data);
@@ -135,7 +135,14 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
+        if (interaction.action == Action::unchanged)
+        {
+            // If incident energy is below cutoff, the interaction is rejected
+            return;
+        }
+
+        EXPECT_EQ(Action::scattered, interaction.action);
+        EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
     }
 
   protected:
@@ -295,8 +302,8 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
     const double expected_xs_zero[] = {1.98829818915769, 4.40320232447369,
         12.18911946078, 13.93366489719, 13.85758694967, 13.3353235437};
     const double expected_avg_exit_frac[] = {0.949115932248866,
-        0.497486662164049, 0.082127972143285, 0.0645177016233406, 
-        0.0774717918229646, 0.0891340819129683, 0.0639090949553034, 
+        0.497486662164049, 0.082127972143285, 0.0645177016233406,
+        0.0774717918229646, 0.0891340819129683, 0.0639090949553034,
         0.0642877319142647};
     const double expected_avg_engine_samples[] = {4.0791015625, 4.06005859375,
 	5.134765625, 4.65625, 4.43017578125, 4.35693359375, 9.3681640625,
@@ -370,7 +377,7 @@ TEST_F(SeltzerBergerTest, basic)
     {
         Interaction result = interact(rng_engine);
         EXPECT_EQ(0, result.secondaries.size());
-        EXPECT_EQ(celeritas::Action::failed, result.action);
+        EXPECT_EQ(Action::failed, result.action);
     }
 }
 

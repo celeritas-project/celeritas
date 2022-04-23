@@ -26,18 +26,19 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-UrbanMscModel::UrbanMscModel(ModelId               id,
+UrbanMscModel::UrbanMscModel(ActionId              id,
                              const ParticleParams& particles,
                              const MaterialParams& materials)
 {
     CELER_EXPECT(id);
     HostValue host_ref;
 
-    host_ref.ids.model    = id;
+    host_ref.ids.action   = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     CELER_VALIDATE(host_ref.ids.electron && host_ref.ids.positron,
-                   << "missing e-/e+ (required for " << this->label() << ")");
+                   << "missing e-/e+ (required for " << this->description()
+                   << ")");
 
     // Save electron mass
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
@@ -71,25 +72,19 @@ auto UrbanMscModel::applicability() const -> SetApplicability
 //---------------------------------------------------------------------------//
 //!@{
 /*!
- * Apply the interaction kernel.
+ * No discrete interaction: it's integrated into along_step.
  */
-void UrbanMscModel::interact(const DeviceInteractRef&) const
-{
-    CELER_NOT_IMPLEMENTED("host interactions: do not apply for msc");
-}
+void UrbanMscModel::execute(CoreDeviceRef const&) const {}
 
-void UrbanMscModel::interact(const HostInteractRef&) const
-{
-    CELER_NOT_IMPLEMENTED("device interactions: do not apply for msc");
-}
+void UrbanMscModel::execute(CoreHostRef const&) const {}
 //!@}
 //---------------------------------------------------------------------------//
 /*!
  * Get the model ID for this model.
  */
-ModelId UrbanMscModel::model_id() const
+ActionId UrbanMscModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

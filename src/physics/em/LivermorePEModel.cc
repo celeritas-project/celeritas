@@ -33,7 +33,7 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-LivermorePEModel::LivermorePEModel(ModelId               id,
+LivermorePEModel::LivermorePEModel(ActionId              id,
                                    const ParticleParams& particles,
                                    const MaterialParams& materials,
                                    ReadData              load_data)
@@ -44,13 +44,13 @@ LivermorePEModel::LivermorePEModel(ModelId               id,
     detail::LivermorePEData<Ownership::value, MemSpace::host> host_data;
 
     // Save IDs
-    host_data.ids.model    = id;
+    host_data.ids.action   = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.gamma    = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
                    << "missing electron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
 
     // Save particle properties
     host_data.inv_electron_mass
@@ -91,12 +91,12 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void LivermorePEModel::interact(const DeviceInteractRef& data) const
+void LivermorePEModel::execute(CoreDeviceRef const& data) const
 {
     generated::livermore_pe_interact(this->device_ref(), data);
 }
 
-void LivermorePEModel::interact(const HostInteractRef& data) const
+void LivermorePEModel::execute(CoreHostRef const& data) const
 {
     generated::livermore_pe_interact(this->host_ref(), data);
 }
@@ -106,9 +106,9 @@ void LivermorePEModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId LivermorePEModel::model_id() const
+ActionId LivermorePEModel::action_id() const
 {
-    return this->host_ref().ids.model;
+    return this->host_ref().ids.action;
 }
 
 //---------------------------------------------------------------------------//

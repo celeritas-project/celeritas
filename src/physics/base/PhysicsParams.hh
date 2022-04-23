@@ -11,8 +11,10 @@
 #include <vector>
 
 #include "base/CollectionMirror.hh"
+#include "base/Range.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
+#include "sim/ActionInterface.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"
@@ -21,6 +23,7 @@
 
 namespace celeritas
 {
+class ActionManager;
 class MaterialParams;
 class ParticleParams;
 
@@ -32,9 +35,6 @@ class ParticleParams;
  * models. It constructs data and mappings of data:
  * - particle type and process to tabulated values of cross sections etc,
  * - particle type to applicable processes
- *
- * During construction it constructs models and their corresponding list of
- * \c ModelId values, as well as the tables of cross section data.
  *
  * Input options are:
  * - \c min_range: below this value, there is no extra transformation from
@@ -53,6 +53,18 @@ class ParticleParams;
  *   longer valid. Use MC integration to sample the discrete interaction length
  *   with the correct probability.
  * - \c enable_fluctuation: enable simulation of energy loss fluctuations.
+ *
+ * During construction it constructs models and their corresponding list of
+ * \c ActionId values, as well as the tables of cross section data. Besides the
+ * individual interaction kernels, the physics parameters manage additional
+ * actions:
+ * - "pre-step": calculate physics step limits
+ * - "along-step": propagate, apply energy loss, multiple scatter
+ * - "range": limit step by energy loss
+ * - "discrete-select": sample a process for a discrete interaction, or reject
+ *   due to integral cross sectionl
+ * - "integral-rejected": do not apply a discrete interaction
+ * - "failure": model failed to allocate secondaries
  */
 class PhysicsParams
 {
@@ -68,6 +80,7 @@ class PhysicsParams
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::device>;
+    using ActionIdRange = Range<ActionId>;
     //!@}
 
     //! Global physics configuration options
@@ -76,6 +89,7 @@ class PhysicsParams
         real_type min_range           = 1 * units::millimeter;
         real_type max_step_over_range = 0.2;
         real_type min_eprime_over_e   = 0.8;
+        real_type fixed_step_limiter  = 0;
         real_type linear_loss_limit   = 0.01;
         bool      use_integral_xs     = true;
         bool      enable_fluctuation  = true;
@@ -87,6 +101,7 @@ class PhysicsParams
         SPConstParticles particles;
         SPConstMaterials materials;
         VecProcess       processes;
+        ActionManager*   action_manager = nullptr;
 
         Options options;
     };
@@ -118,6 +133,9 @@ class PhysicsParams
     // Get the process for the given model
     inline ProcessId process_id(ModelId id) const;
 
+    // Get the action IDs for all models
+    inline ActionIdRange model_actions() const;
+
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
 
@@ -129,8 +147,18 @@ class PhysicsParams
 
   private:
     using SPConstModel = std::shared_ptr<const Model>;
+    using SPAction     = std::shared_ptr<ConcreteAction>;
     using VecModel     = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue    = PhysicsParamsData<Ownership::value, MemSpace::host>;
+
+    // Kernels/actions
+    SPAction pre_step_action_;
+    SPAction along_step_action_;
+    SPAction range_action_;
+    SPAction discrete_action_;
+    SPAction integral_rejection_action_;
+    SPAction failure_action_;
+    SPAction fixed_step_action_;
 
     // Host metadata/access
     VecProcess processes_;
@@ -140,7 +168,7 @@ class PhysicsParams
     CollectionMirror<PhysicsParamsData> data_;
 
   private:
-    VecModel build_models() const;
+    VecModel build_models(ActionManager*) const;
     void     build_options(const Options& opts, HostValue* data) const;
     void     build_ids(const ParticleParams& particles, HostValue* data) const;
     void     build_xs(const Options&        opts,
@@ -169,7 +197,7 @@ auto PhysicsParams::num_particles() const -> ParticleId::size_type
  */
 auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 {
-    return this->host_ref().max_particle_processes;
+    return this->host_ref().scalars.max_particle_processes;
 }
 
 //---------------------------------------------------------------------------//
@@ -200,6 +228,16 @@ ProcessId PhysicsParams::process_id(ModelId id) const
 {
     CELER_EXPECT(id < this->num_models());
     return models_[id.get()].second;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action kernel IDs for all models.
+ */
+auto PhysicsParams::model_actions() const -> ActionIdRange
+{
+    auto offset = host_ref().scalars.model_to_action;
+    return {ActionId{offset}, ActionId{offset + this->num_models()}};
 }
 
 //---------------------------------------------------------------------------//

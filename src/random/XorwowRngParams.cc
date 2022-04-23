@@ -1,29 +1,25 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ModelIdGenerator.hh
+//! \file XorwowRngParams.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include "Types.hh"
+#include "XorwowRngParams.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for constructing model IDs.
+ * Construct with a low-entropy seed.
  */
-class ModelIdGenerator
+XorwowRngParams::XorwowRngParams(unsigned int seed)
 {
-  public:
-    //! Get the next model ID
-    ModelId operator()() { return ModelId{id_++}; }
-
-  private:
-    ModelId::size_type id_{0};
-};
+    XorwowRngParamsData<Ownership::value, MemSpace::host> host_data;
+    host_data.seed = {seed};
+    CELER_ASSERT(host_data);
+    data_ = CollectionMirror<XorwowRngParamsData>{std::move(host_data)};
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

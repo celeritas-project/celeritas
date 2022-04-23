@@ -33,36 +33,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION real_type
-calc_tabulated_physics_step(const MaterialTrackView& material,
-                            const ParticleTrackView& particle,
-                            PhysicsTrackView&        physics);
-
-template<class Engine>
-inline CELER_FUNCTION ParticleTrackView::Energy
-                      calc_energy_loss(const CutoffView&        cutoffs,
-                                       const MaterialTrackView& material,
-                                       const ParticleTrackView& particle,
-                                       const PhysicsTrackView&  physics,
-                                       real_type                step_length,
-                                       Engine&                  rng);
-
-struct ProcessIdModelId
-{
-    ParticleProcessId ppid;
-    ModelId           model;
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return ppid && model; }
-};
-
-template<class Engine>
-inline CELER_FUNCTION ProcessIdModelId select_process_and_model(
-    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng);
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -87,20 +57,22 @@ CELER_FUNCTION EnergyLossHelper::Energy
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
  */
-inline CELER_FUNCTION real_type
-calc_tabulated_physics_step(const MaterialTrackView& material,
-                            const ParticleTrackView& particle,
-                            PhysicsTrackView&        physics)
+inline CELER_FUNCTION StepLimit
+calc_physics_step_limit(const MaterialTrackView& material,
+                        const ParticleTrackView& particle,
+                        PhysicsTrackView&        physics)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
-    const real_type inf = numeric_limits<real_type>::infinity();
-    using VGT           = ValueGridType;
+    using VGT = ValueGridType;
+
+    // TODO: for particles with decay, macro XS calculation will incorporate
+    // decay probability, dividing decay constant by speed to become 1/cm to
+    // compete with interactions
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.
     real_type total_macro_xs = 0;
-    real_type min_range      = inf;
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         real_type process_xs = 0;
@@ -122,27 +94,41 @@ calc_tabulated_physics_step(const MaterialTrackView& material,
             total_macro_xs += process_xs;
         }
         physics.per_process_xs(ppid) = process_xs;
-
-        if (auto grid_id = physics.value_grid(VGT::range, ppid))
-        {
-            auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
-            real_type process_range = calc_range(particle.energy());
-            min_range               = min(min_range, process_range);
-        }
     }
     physics.macro_xs(total_macro_xs);
 
-    if (min_range != inf)
+    // Determine limits from discrete interactions
+    StepLimit limit;
+    limit.step   = 0;
+    limit.action = physics.scalars().discrete_action();
+    if (!particle.is_stopped())
     {
-        // One or more range limiters applied: scale range limit according to
-        // user options.
-        // NOTE: if min_range doesn't change, and ends up being the limit for
-        // the whole step, then the energy by definition goes to zero.
-        min_range = physics.range_to_step(min_range);
+        limit.step = physics.interaction_mfp() / total_macro_xs;
+
+        if (auto ppid = physics.eloss_ppid())
+        {
+            auto grid_id    = physics.value_grid(VGT::range, ppid);
+            auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
+            real_type range = calc_range(particle.energy());
+            // TODO: save range ?
+            real_type eloss_step = physics.range_to_step(range);
+            if (eloss_step <= limit.step)
+            {
+                limit.step   = eloss_step;
+                limit.action = physics.scalars().range_action();
+            }
+
+            // Limit charged particle step size
+            real_type fixed_limit = physics.scalars().fixed_step_limiter;
+            if (fixed_limit > 0 && fixed_limit < limit.step)
+            {
+                limit.step   = fixed_limit;
+                limit.action = physics.scalars().fixed_step_action;
+            }
+        }
     }
 
-    // Update step length with discrete interaction
-    return min(min_range, physics.interaction_mfp() / total_macro_xs);
+    return limit;
 }
 
 //---------------------------------------------------------------------------//
@@ -233,7 +219,7 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = step * calc_eloss_rate(Energy{pre_step_energy});
     }
 
-    if (eloss >= pre_step_energy * physics.linear_loss_limit())
+    if (eloss >= pre_step_energy * physics.scalars().linear_loss_limit)
     {
         // Enough energy is lost over this step that the dE/dx linear
         // approximation is probably wrong. Use the definition of the range as
@@ -247,10 +233,9 @@ CELER_FUNCTION ParticleTrackView::Energy
         real_type range = calc_range(Energy{pre_step_energy});
         if (step == range)
         {
-            // TODO: eloss should be pre_step_energy if and only if the range
-            // was the  step limiter (step == range). When we refactor to have
-            // generic range limiters, this exception should no longer be
-            // needed.
+            // TODO: eloss should be pre_step_energy at this point only if the
+            // range was the step limiter (step == range), and if the
+            // range-to-step conversion was 1.
             return Energy{pre_step_energy};
         }
         CELER_ASSERT(range > step);
@@ -265,7 +250,8 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
     }
 
-    if (physics.add_fluctuation() && eloss > 0 && eloss < pre_step_energy)
+    if (physics.scalars().enable_fluctuation && eloss > 0
+        && eloss < pre_step_energy)
     {
         EnergyLossHelper loss_helper(physics.fluctuation(),
                                      cutoffs,
@@ -299,7 +285,7 @@ CELER_FUNCTION ParticleTrackView::Energy
  * Choose the physics model for a track's pending interaction.
  *
  * - If the interaction MFP is zero, the particle is undergoing a discrete
- *   interaction. Otherwise, the result is a false ModelId.
+ *   interaction. Otherwise, the result is a false ActionId.
  * - Sample from the previously calculated per-process cross section/decay to
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the
@@ -311,8 +297,10 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ProcessIdModelId select_process_and_model(
-    const ParticleTrackView& particle, PhysicsTrackView& physics, Engine& rng)
+CELER_FUNCTION ActionId
+select_discrete_interaction(const ParticleTrackView& particle,
+                            const PhysicsTrackView&  physics,
+                            Engine&                  rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
@@ -343,21 +331,19 @@ CELER_FUNCTION ProcessIdModelId select_process_and_model(
         // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
         // to be larger than the estimate of the maximum cross section over the
         // step \f$ \sigma_{\max} \f$.
-        if (generate_canonical(rng) > xs / physics.per_process_xs(ppid))
+        if (generate_canonical(rng) * physics.per_process_xs(ppid) > xs)
         {
             // No interaction occurs; reset the physics state and continue
             // tracking
-            physics = {};
-            return {};
+            return physics.scalars().integral_rejection_action();
         }
     }
 
     // Select the model and return; See doc above for details.
     auto find_model = physics.make_model_finder(ppid);
     auto model_id   = find_model(particle.energy());
-
     CELER_ENSURE(model_id);
-    return ProcessIdModelId{ppid, model_id};
+    return physics.model_to_action(model_id);
 }
 
 //---------------------------------------------------------------------------//

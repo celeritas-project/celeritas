@@ -11,9 +11,9 @@
 #include "base/Constants.hh"
 #include "base/Range.hh"
 #include "base/Types.hh"
+#include "field/DormandPrinceStepper.hh"
 #include "field/FieldParamsData.hh"
 #include "field/MagFieldEquation.hh"
-#include "field/RungeKuttaStepper.hh"
 #include "field/Types.hh"
 #include "field/UniformMagField.hh"
 
@@ -62,7 +62,8 @@ TEST_F(FieldDriverTest, field_driver_host)
 {
     // Construct FieldDriver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits
+        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);
@@ -113,7 +114,8 @@ TEST_F(FieldDriverTest, accurate_advance_host)
 {
     // Construct FieldDriver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits = detail::MagTestTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits
+        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);

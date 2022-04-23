@@ -11,11 +11,12 @@
 #include <string>
 #include <vector>
 
+#include "base/Range.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridData.hh"
+#include "sim/Types.hh"
 
 #include "Applicability.hh"
-#include "ModelIdGenerator.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -62,6 +63,7 @@ class Process
     using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
     using VecModel           = std::vector<SPConstModel>;
     using StepLimitBuilders  = ValueGridArray<UPConstGridBuilder>;
+    using ActionIdIter       = RangeIter<ActionId>;
     //!@}
 
   public:
@@ -69,7 +71,7 @@ class Process
     virtual ~Process();
 
     //! Construct the models associated with this process
-    virtual VecModel build_models(ModelIdGenerator next_id) const = 0;
+    virtual VecModel build_models(ActionIdIter start_id) const = 0;
 
     //! Get the interaction cross sections for the given energy range
     virtual StepLimitBuilders step_limits(Applicability range) const = 0;

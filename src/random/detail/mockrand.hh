@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Assert.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -19,14 +21,28 @@ struct MockRandState
 
 //---------------------------------------------------------------------------//
 //!@{
-//! Random functions.
-void         mockrand_init(unsigned long long seed,
-                           unsigned long long sequence,
-                           unsigned long long offset,
-                           MockRandState*     state);
-unsigned int mockrand(MockRandState* state);
-float        mockrand_uniform(MockRandState* state);
-double       mockrand_uniform_double(MockRandState* state);
+//! Random functions with cuRAND-like interface.
+inline void mockrand_init(unsigned long long,
+                          unsigned long long,
+                          unsigned long long,
+                          MockRandState*)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline unsigned int mockrand(MockRandState*)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+inline float mockrand_uniform(MockRandState*)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline double mockrand_uniform_double(MockRandState*)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
 //!@}
 
 //---------------------------------------------------------------------------//

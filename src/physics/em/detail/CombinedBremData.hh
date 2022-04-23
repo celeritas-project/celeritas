@@ -28,7 +28,7 @@ struct CombinedBremData
     // Hack for having an "ids" field: same as model in rb_data
     struct
     {
-        ModelId model;
+        ActionId action;
     } ids;
 
     // Differential cross section data for SeltzerBerger
@@ -40,7 +40,7 @@ struct CombinedBremData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.model && sb_differential_xs && rb_data;
+        return ids.action && sb_differential_xs && rb_data;
     }
 
     //! Assign from another set of data
@@ -48,7 +48,7 @@ struct CombinedBremData
     CombinedBremData& operator=(const CombinedBremData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        ids.model          = other.ids.model;
+        ids.action         = other.ids.action;
         sb_differential_xs = other.sb_differential_xs;
         rb_data            = other.rb_data;
         return *this;

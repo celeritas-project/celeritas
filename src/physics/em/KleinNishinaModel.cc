@@ -17,18 +17,18 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-KleinNishinaModel::KleinNishinaModel(ModelId               id,
+KleinNishinaModel::KleinNishinaModel(ActionId              id,
                                      const ParticleParams& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.model    = id;
+    interface_.ids.action   = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.gamma    = particles.find(pdg::gamma());
 
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
     interface_.inv_electron_mass
         = 1 / particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);
@@ -53,12 +53,12 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void KleinNishinaModel::interact(const DeviceInteractRef& data) const
+void KleinNishinaModel::execute(CoreDeviceRef const& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }
 
-void KleinNishinaModel::interact(const HostInteractRef& data) const
+void KleinNishinaModel::execute(CoreHostRef const& data) const
 {
     generated::klein_nishina_interact(interface_, data);
 }
@@ -67,9 +67,9 @@ void KleinNishinaModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId KleinNishinaModel::model_id() const
+ActionId KleinNishinaModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //!@}

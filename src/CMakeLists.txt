@@ -11,6 +11,23 @@ set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
+# Define a numeric table of options for the default runtime RNG.
+# Start counter from 1 because undefined macros have the implicit value of 0 in
+# the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
+# when HIP is in use) will implicitly be zero.
+set(CELERITAS_RNG_MACROS)
+set(_rng_counter 1)
+foreach(_rng IN LISTS CELERITAS_RNG_OPTIONS)
+  list(APPEND CELERITAS_RNG_MACROS
+    "#define CELERITAS_RNG_${_rng} ${_rng_counter}"
+  )
+  math(EXPR _rng_counter "${_rng_counter} + 1")
+endforeach()
+
+string(JOIN "\n" CELERITAS_RNG_MACROS
+  ${CELERITAS_RNG_MACROS}
+  "#define CELERITAS_RNG CELERITAS_RNG_${CELERITAS_RNG}"
+)
 configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
@@ -39,6 +56,12 @@ macro(celeritas_gen_interactor class func)
     --class ${class}  --func ${func}
   )
 endmacro()
+macro(celeritas_gen_action basedir class func)
+  celeritas_gen(_gen_sources
+    "gen-action.py" "${basedir}/generated/${class}"
+    --class ${class} --func ${func}
+  )
+endmacro()
 macro(celeritas_gen_trackinit class)
   celeritas_gen(_gen_sources
     "gen-trackinit.py" "sim/generated/${class}"
@@ -56,6 +79,11 @@ celeritas_gen_interactor("MuBremsstrahlung" "mu_bremsstrahlung")
 celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
+
+celeritas_gen_action("physics/base" "AlongStepAction" "along_step")
+celeritas_gen_action("physics/base" "DiscreteSelectAction" "discrete_select")
+celeritas_gen_action("physics/base" "PreStepAction" "pre_step")
+celeritas_gen_action("geometry" "BoundaryAction" "boundary")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
@@ -99,7 +127,6 @@ list(APPEND SOURCES
   io/SeltzerBergerReader.cc
   physics/base/CutoffParams.cc
   physics/base/ImportedProcessAdapter.cc
-  physics/base/Model.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
   physics/base/Process.cc
@@ -129,7 +156,12 @@ list(APPEND SOURCES
   physics/grid/ValueGridInterface.cc
   physics/material/MaterialParams.cc
   physics/material/detail/Utils.cc
-  random/detail/RngStateInit.cc
+  random/CuHipRngData.cc
+  random/XorwowRngData.cc
+  random/XorwowRngParams.cc
+  random/detail/CuHipRngStateInit.cc
+  sim/ActionInterface.cc
+  sim/ActionManager.cc
   sim/TrackInitParams.cc
   sim/detail/TrackInitAlgorithms.cc
 )
@@ -140,23 +172,21 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
   set(DEVICE_SOURCES
     base/detail/Filler.cu
-    random/detail/RngStateInit.cu
+    random/detail/CuHipRngStateInit.cu
     sim/detail/TrackInitAlgorithms.cu
   )
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # TODO: CUDA RNG is included by host code
-  list(APPEND PUBLIC_DEPS CUDA::cudart)
+  if(CELERITAS_RNG STREQUAL "CURAND")
+    list(APPEND PUBLIC_DEPS CUDA::cudart)
+  else()
+    list(APPEND PRIVATE_DEPS CUDA::cudart)
+  endif()
 elseif(CELERITAS_USE_HIP)
   set_source_files_properties(
     ${DEVICE_SOURCES}
     PROPERTIES LANGUAGE HIP
-  )
-else()
-  list(APPEND SOURCES
-    random/detail/mockrand.cc
-    random/detail/RngStateInit.nocuda.cc
   )
 endif()
 
@@ -227,12 +257,14 @@ celeritas_target_include_directories(celeritas
 )
 
 if(CELERITAS_USE_HIP)
-  # TODO: host code includes RNG; super hacky workaround
+  # This is a hacky workaround for not having the equivalent of CUDAToolkit: it
+  # works on Crusher as of ROCm 5.1.0
+  set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
   target_include_directories(celeritas
     SYSTEM PUBLIC
-      "$ENV{ROCM_PATH}/hiprand/include"
-      "$ENV{ROCM_PATH}/rocrand/include"
-      "$ENV{ROCM_PATH}/hip/include"
+      "${ROCM_PATH}/hiprand/include"
+      "${ROCM_PATH}/rocrand/include"
+      "${ROCM_PATH}/hip/include"
   )
 endif()
 
@@ -250,7 +282,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
   COMPONENT development
   FILES_MATCHING PATTERN "*.hh"
-  # TODO: ignore .cuda.hh when cuda disabled; etc
 )
 
 #----------------------------------------------------------------------------#

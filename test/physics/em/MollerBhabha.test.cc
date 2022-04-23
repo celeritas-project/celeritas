@@ -17,7 +17,6 @@
 #include "../InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
 
-using celeritas::Action;
 using celeritas::CutoffView;
 using celeritas::dot_product;
 using celeritas::normalize_direction;
@@ -86,14 +85,12 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
 
     void sanity_check(const Interaction& interaction) const
     {
-        ASSERT_TRUE(interaction);
-
         // Check change to parent track
         EXPECT_GT(this->particle_track().energy().value(),
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
-        EXPECT_EQ(celeritas::Action::scattered, interaction.action);
+        EXPECT_EQ(Action::scattered, interaction.action);
 
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());

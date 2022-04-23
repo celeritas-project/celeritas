@@ -12,12 +12,12 @@
 #include "base/device_runtime_api.h"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
+#include "field/DormandPrinceStepper.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/FieldPropagator.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
-#include "field/RungeKuttaStepper.hh"
 #include "field/UniformMagField.hh"
 #include "geometry/GeoTrackView.hh"
 #include "physics/base/ParticleTrackView.hh"
@@ -33,18 +33,18 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void fp_test_kernel(const int                  size,
-                               const GeoParamsCRefDevice  shared,
-                               const GeoStateRefDevice    state,
-                               const GeoTrackInitializer* start,
-                               const ParticleParamsRef    particle_params,
-                               ParticleStateRef           particle_states,
-                               FieldParamsData            field_params,
-                               FieldTestParams            test,
-                               const ParticleTrackState*  init_track,
-                               double*                    pos,
-                               double*                    dir,
-                               double*                    step)
+__global__ void fp_test_kernel(const int                       size,
+                               const GeoParamsCRefDevice       shared,
+                               const GeoStateRefDevice         state,
+                               const GeoTrackInitializer*      start,
+                               const ParticleParamsRef         particle_params,
+                               ParticleStateRef                particle_states,
+                               FieldParamsData                 field_params,
+                               FieldTestParams                 test,
+                               const ParticleTrackInitializer* init_track,
+                               double*                         pos,
+                               double*                         dir,
+                               double*                         step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -61,7 +61,7 @@ __global__ void fp_test_kernel(const int                  size,
 
     // Construct the RK stepper adnd propagator in a field
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
     RKTraits::Driver_t     driver(field_params, &rk4);
@@ -90,18 +90,18 @@ __global__ void fp_test_kernel(const int                  size,
     dir[tid.get()]  = geo_track.dir()[1];
 }
 
-__global__ void bc_test_kernel(const int                  size,
-                               const GeoParamsCRefDevice  shared,
-                               const GeoStateRefDevice    state,
-                               const GeoTrackInitializer* start,
-                               ParticleParamsRef          particle_params,
-                               ParticleStateRef           particle_states,
-                               FieldParamsData            field_params,
-                               FieldTestParams            test,
-                               const ParticleTrackState*  init_track,
-                               double*                    pos,
-                               double*                    dir,
-                               double*                    step)
+__global__ void bc_test_kernel(const int                       size,
+                               const GeoParamsCRefDevice       shared,
+                               const GeoStateRefDevice         state,
+                               const GeoTrackInitializer*      start,
+                               ParticleParamsRef               particle_params,
+                               ParticleStateRef                particle_states,
+                               FieldParamsData                 field_params,
+                               FieldTestParams                 test,
+                               const ParticleTrackInitializer* init_track,
+                               double*                         pos,
+                               double*                         dir,
+                               double*                         step)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -118,7 +118,7 @@ __global__ void bc_test_kernel(const int                  size,
 
     // Construct the RK stepper and propagator in a field
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, RungeKuttaStepper>;
+    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t    rk4(equation);
     RKTraits::Driver_t     driver(field_params, &rk4);
@@ -187,7 +187,7 @@ FPTestOutput fp_test(FPTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
                                                       input.init_geo.end());
-    thrust::device_vector<ParticleTrackState>  in_track = input.init_track;
+    thrust::device_vector<ParticleTrackInitializer> in_track = input.init_track;
 
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);
@@ -238,7 +238,7 @@ FPTestOutput bc_test(FPTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> in_geo(input.init_geo.begin(),
                                                       input.init_geo.end());
-    thrust::device_vector<ParticleTrackState>  in_track = input.init_track;
+    thrust::device_vector<ParticleTrackInitializer> in_track = input.init_track;
 
     // Output data for kernel
     thrust::device_vector<double> step(input.init_geo.size(), -1.0);

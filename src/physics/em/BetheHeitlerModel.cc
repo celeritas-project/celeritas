@@ -17,12 +17,12 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
+BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
                                      const ParticleParams& particles,
                                      bool                  enable_lpm)
 {
     CELER_EXPECT(id);
-    interface_.ids.model    = id;
+    interface_.ids.action   = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
     interface_.ids.gamma    = particles.find(pdg::gamma());
@@ -31,7 +31,7 @@ BetheHeitlerModel::BetheHeitlerModel(ModelId               id,
     CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "
                       "(required for "
-                   << this->label() << ")");
+                   << this->description() << ")");
     interface_.electron_mass
         = particles.get(interface_.ids.electron).mass().value();
     CELER_ENSURE(interface_);
@@ -56,12 +56,12 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 /*!
  * Apply the interaction kernel.
  */
-void BetheHeitlerModel::interact(const DeviceInteractRef& data) const
+void BetheHeitlerModel::execute(CoreDeviceRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
 
-void BetheHeitlerModel::interact(const HostInteractRef& data) const
+void BetheHeitlerModel::execute(CoreHostRef const& data) const
 {
     generated::bethe_heitler_interact(interface_, data);
 }
@@ -70,9 +70,9 @@ void BetheHeitlerModel::interact(const HostInteractRef& data) const
 /*!
  * Get the model ID for this model.
  */
-ModelId BetheHeitlerModel::model_id() const
+ActionId BetheHeitlerModel::action_id() const
 {
-    return interface_.ids.model;
+    return interface_.ids.action;
 }
 
 //---------------------------------------------------------------------------//

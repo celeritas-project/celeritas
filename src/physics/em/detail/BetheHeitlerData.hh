@@ -22,7 +22,7 @@ namespace detail
 struct BetheHeitlerIds
 {
     //! Model ID
-    ModelId model;
+    ActionId action;
     //! ID of an electron
     ParticleId electron;
     //! ID of an positron
@@ -33,7 +33,7 @@ struct BetheHeitlerIds
     //! Check whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return model && electron && positron && gamma;
+        return action && electron && positron && gamma;
     }
 };
 

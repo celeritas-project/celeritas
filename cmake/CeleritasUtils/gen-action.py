@@ -4,7 +4,7 @@
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
-Tool to generate demo loop kernel implementations on the fly.
+Tool to generate simpled "Action"-based kernel implementations automatically.
 """
 
 import os.path
@@ -13,7 +13,7 @@ from launchbounds import make_launch_bounds
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,69 +23,81 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
+#include "sim/ActionInterface.hh"
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "sim/CoreTrackData.hh"
 
-namespace demo_loop
+namespace celeritas
 {{
 namespace generated
 {{
-void {func}(celeritas::CoreHostRef const&);
+//---------------------------------------------------------------------------//
+class {clsname} final : public ExplicitActionInterface, public ConcreteAction
+{{
+public:
+  // Construct with ID and label
+  using ConcreteAction::ConcreteAction;
 
-void {func}(celeritas::CoreDeviceRef const&);
+  // Launch kernel with host data
+  void execute(CoreHostRef const&) const final;
+
+  // Launch kernel with device data
+  void execute(CoreDeviceRef const&) const final;
+}};
 
 #if !CELER_USE_DEVICE
-inline void {func}(celeritas::CoreDeviceRef const&)
+inline void {clsname}::execute(CoreDeviceRef const&) const
 {{
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }}
 #endif
 
+//---------------------------------------------------------------------------//
 }} // namespace generated
-}} // namespace demo_loop
+}} // namespace celeritas
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
+#include "{clsname}.hh"
+
 #include "base/Assert.hh"
 #include "base/Types.hh"
 #include "sim/TrackLauncher.hh"
-#include "../LDemoLauncher.hh"
+#include "../detail/{clsname}Impl.hh"
 
-using namespace celeritas;
-
-namespace demo_loop
+namespace celeritas
 {{
 namespace generated
 {{
-void {func}(CoreHostRef const& data)
+void {clsname}::execute(CoreHostRef const& data) const
 {{
     CELER_EXPECT(data);
 
-    auto launch = make_track_launcher(data, {func}_track);
+    auto launch = make_track_launcher(data, detail::{func}_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < {threads}; ++i)
+    for (size_type i = 0; i < data.states.size(); ++i)
     {{
         launch(ThreadId{{i}});
     }}
 }}
 
 }} // namespace generated
-}} // namespace demo_loop
+}} // namespace celeritas
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
+#include "{clsname}.hh"
+
 #include "base/device_runtime_api.h"
 #include "base/Assert.hh"
 #include "base/Types.hh"
 #include "base/KernelParamCalculator.device.hh"
 #include "comm/Device.hh"
 #include "sim/TrackLauncher.hh"
-#include "../LDemoLauncher.hh"
+#include "../detail/{clsname}Impl.hh"
 
-using namespace celeritas;
-
-namespace demo_loop
+namespace celeritas
 {{
 namespace generated
 {{
@@ -95,25 +107,25 @@ __global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
 )
 {{
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < {threads}))
+    if (!(tid < data.states.size()))
         return;
 
-    auto launch = make_track_launcher(data, {func}_track);
+    auto launch = make_track_launcher(data, detail::{func}_track);
     launch(tid);
 }}
 }} // namespace
 
-void {func}(const CoreDeviceRef& data)
+void {clsname}::execute(const CoreDeviceRef& data) const
 {{
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL({func},
                         celeritas::device().default_block_size(),
-                        {threads},
+                        data.states.size(),
                         data);
 }}
 
 }} // namespace generated
-}} // namespace demo_loop
+}} // namespace celeritas
 """
 
 TEMPLATES = {
@@ -145,12 +157,11 @@ def main():
         '--basename',
         help='File name (without extension) of output')
     parser.add_argument(
+        '--class', dest='clsname',
+        help='CamelCase name of the class prefix')
+    parser.add_argument(
         '--func',
         help='snake_case name of the function')
-    parser.add_argument(
-        '--threads',
-        default='data.states.size()',
-        help='String describing the number of threads')
 
     kwargs = vars(parser.parse_args())
     for ext in ['hh', 'cc', 'cu']:

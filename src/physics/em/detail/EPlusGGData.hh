@@ -9,7 +9,9 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -26,7 +28,7 @@ struct EPlusGGData
     struct
     {
         //! Model ID
-        ModelId model;
+        ActionId action;
         //! ID of an positron
         ParticleId positron;
         //! ID of a gamma
@@ -39,7 +41,7 @@ struct EPlusGGData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.model && ids.positron && ids.gamma && electron_mass > 0;
+        return ids.action && ids.positron && ids.gamma && electron_mass > 0;
     }
 };
 

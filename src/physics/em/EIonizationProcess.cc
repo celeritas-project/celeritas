@@ -34,10 +34,9 @@ EIonizationProcess::EIonizationProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto EIonizationProcess::build_models(ModelIdGenerator next_id) const
-    -> VecModel
+auto EIonizationProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    return {std::make_shared<MollerBhabhaModel>(next_id(), *particles_)};
+    return {std::make_shared<MollerBhabhaModel>(*start_id++, *particles_)};
 }
 
 //---------------------------------------------------------------------------//

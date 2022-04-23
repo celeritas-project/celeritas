@@ -58,7 +58,7 @@ class SequenceEngine
     // Get the next random number in the sequence; throw if past the end
     inline result_type operator()();
 
-    size_type count() const { return iter_ - values_.begin(); }
+    size_type count() const { return i_; }
     size_type max_count() const { return values_.size(); }
 
     //!@{
@@ -68,8 +68,8 @@ class SequenceEngine
     //!@}
 
   private:
-    VecResult                 values_;
-    VecResult::const_iterator iter_;
+    VecResult values_;
+    size_type i_;
 };
 
 //---------------------------------------------------------------------------//
@@ -155,7 +155,7 @@ SequenceEngine SequenceEngine::from_reals(std::initializer_list<double> values)
  * Construct from a sequence of integers (the sequence to reproduce).
  */
 SequenceEngine::SequenceEngine(VecResult values)
-    : values_(std::move(values)), iter_(values_.cbegin())
+    : values_(std::move(values)), i_{0}
 {
     CELER_EXPECT(!values_.empty());
 }
@@ -170,8 +170,7 @@ SequenceEngine::SequenceEngine(VecResult values)
  */
 auto SequenceEngine::operator()() -> result_type
 {
-    CELER_EXPECT(iter_ != values_.cend());
-    if (CELER_UNLIKELY(iter_ == values_.cend()))
+    if (CELER_UNLIKELY(i_ == values_.size()))
     {
         // Always throw a debug error rather than letting the test crash
         celeritas::throw_debug_error(celeritas::DebugErrorType::precondition,
@@ -179,7 +178,7 @@ auto SequenceEngine::operator()() -> result_type
                                      __FILE__,
                                      __LINE__);
     }
-    return *iter_++;
+    return values_[i_++];
 }
 
 //---------------------------------------------------------------------------//

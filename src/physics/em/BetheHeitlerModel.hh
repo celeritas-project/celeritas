@@ -22,7 +22,7 @@ class BetheHeitlerModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    BetheHeitlerModel(ModelId               id,
+    BetheHeitlerModel(ActionId              id,
                       const ParticleParams& particles,
                       bool                  enable_lpm);
 
@@ -30,16 +30,22 @@ class BetheHeitlerModel final : public Model
     SetApplicability applicability() const final;
 
     // Apply the interaction kernel on host
-    void interact(const HostInteractRef&) const final;
+    void execute(CoreHostRef const&) const final;
 
     // Apply the interaction kernel on device
-    void interact(const DeviceInteractRef&) const final;
+    void execute(CoreDeviceRef const&) const final;
 
     // ID of the model
-    ModelId model_id() const final;
+    ActionId action_id() const final;
+
+    //! Short name for the interaction kernel
+    std::string label() const final { return "conv-bethe-heitler"; }
 
     //! Name of the model, for user interaction
-    std::string label() const final { return "Bethe-Heitler"; }
+    std::string description() const final
+    {
+        return "Bethe-Heitler gamma conversion";
+    }
 
   private:
     detail::BetheHeitlerData interface_;

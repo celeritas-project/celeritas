@@ -10,6 +10,8 @@
 #include <functional>
 
 #include "physics/base/Model.hh"
+#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas_test
 {
@@ -26,20 +28,21 @@ class MockModel final : public celeritas::Model
     //!@{
     //! Type aliases
     using Applicability = celeritas::Applicability;
-    using ModelId       = celeritas::ModelId;
-    using ModelCallback = std::function<void(ModelId)>;
+    using ActionId      = celeritas::ActionId;
+    using ModelCallback = std::function<void(ActionId)>;
     //!@}
 
   public:
-    MockModel(ModelId id, Applicability applic, ModelCallback cb);
+    MockModel(ActionId id, Applicability applic, ModelCallback cb);
     SetApplicability applicability() const final;
-    void             interact(const HostInteractRef&) const final;
-    void             interact(const DeviceInteractRef&) const final;
-    ModelId          model_id() const final { return id_; }
+    void             execute(CoreHostRef const&) const final;
+    void             execute(CoreDeviceRef const&) const final;
+    ActionId         action_id() const final { return id_; }
     std::string      label() const final;
+    std::string      description() const final;
 
   private:
-    ModelId       id_;
+    ActionId      id_;
     Applicability applic_;
     ModelCallback cb_;
 };

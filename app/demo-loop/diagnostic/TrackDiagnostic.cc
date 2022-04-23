@@ -29,7 +29,7 @@ size_type reduce_alive(const CoreStateHostRef& states)
     size_type result = 0;
     for (auto i : range(states.size()))
     {
-        if (sim_states[i].alive)
+        if (sim_states[i].status == celeritas::TrackStatus::alive)
             result += 1;
     }
     return result;
