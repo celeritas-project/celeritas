@@ -5,7 +5,7 @@
 #----------------------------------------------------------------------------#
 
 #----------------------------------------------------------------------------#
-# CONFIGURE FILE
+# CONFIGURE FILES
 #----------------------------------------------------------------------------#
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
@@ -29,8 +29,25 @@ string(JOIN "\n" CELERITAS_RNG_MACROS
   "#define CELERITAS_RNG CELERITAS_RNG_${CELERITAS_RNG}"
 )
 configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
+
+#----------------------------------------------------------------------------#
+
+# TODO: add build flags
+set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+foreach(_var CELERITAS_RNG CELERITAS_BUILD_TYPE)
+  string(TOLOWER "${_var}" _lower)
+  list(APPEND CELERITAS_CMAKE_STRINGS
+    "static const char ${_lower}[] = \"${${_var}}\";"
+  )
+endforeach()
+configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
+
+#----------------------------------------------------------------------------#
+
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
@@ -105,6 +122,7 @@ list(APPEND SOURCES
   base/TypeDemangler.cc
   base/VectorUtils.cc
   base/detail/ReprImpl.cc
+  comm/BuildOutput.cc
   comm/Communicator.cc
   comm/Device.cc
   comm/Environment.cc
