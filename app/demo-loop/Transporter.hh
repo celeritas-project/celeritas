@@ -95,6 +95,7 @@ struct TransporterTiming
 
     VecReal   steps;   //!< Real time per step
     real_type total{}; //!< Total simulation time
+    real_type setup{}; //!< One-time initialization cost
 
     // Finer-grained timing information within a step
     real_type initialize_tracks{};

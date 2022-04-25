@@ -39,17 +39,21 @@ class OutputInterfaceAdapter final : public OutputInterface
     static inline SPThis
     from_const_ref(Category cat, std::string label, const T& obj);
 
+    // Construct by capturing an object
+    static inline SPThis
+    from_rvalue_ref(Category cat, std::string label, T&& obj);
+
     // Construct from category, label, and shared pointer
     inline OutputInterfaceAdapter(Category cat, std::string label, SPConstT obj);
 
     //! Category of data to write
     Category category() const final { return cat_; }
 
-    //! label of the entry inside the category.
-    std::string label() const { return label_; }
+    //! Label of the entry inside the category.
+    std::string label() const final { return label_; }
 
     //! Write output to the given JSON object
-    void output(JsonPimpl* jp) { to_json(jp->obj, *obj_); }
+    void output(JsonPimpl* jp) const final { to_json(jp->obj, *obj_); }
 
   private:
     Category    cat_;
@@ -75,9 +79,9 @@ class OutputInterfaceAdapter final : public OutputInterface
  * \endcode
  */
 template<class T>
-auto OutputInterfaceAdapter::from_const_ref(Category    cat,
-                                            std::string label,
-                                            const T&    obj) -> SPThis
+auto OutputInterfaceAdapter<T>::from_const_ref(Category    cat,
+                                               std::string label,
+                                               const T&    obj) -> SPThis
 {
     auto null_deleter = [](const T*) {};
 
@@ -87,12 +91,25 @@ auto OutputInterfaceAdapter::from_const_ref(Category    cat,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct by capturing an object.
+ */
+template<class T>
+auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category    cat,
+                                                std::string label,
+                                                T&&         obj) -> SPThis
+{
+    return std::make_shared<OutputInterfaceAdapter<T>>(
+        cat, std::move(label), std::make_shared<T>(std::move(obj)));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from category, label, and shared pointer.
  */
 template<class T>
-OutputInterfaceAdapter::OutputInterfaceAdapter(Category    cat,
-                                               std::string label,
-                                               SPConstT    obj)
+OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category    cat,
+                                                  std::string label,
+                                                  SPConstT    obj)
     : cat_(cat), label_(std::move(label)), obj_(std::move(obj))
 {
     CELER_EXPECT(cat != Category::size_);
