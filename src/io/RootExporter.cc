@@ -53,7 +53,7 @@ void RootExporter::operator()(const ImportData& import_data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Hardcoded ROOT TTree name, consistent with \e app/geant-exporter.
+ * Hardcoded ROOT TTree name, consistent with \e app/celer-export-geant.
  */
 const char* RootExporter::tree_name()
 {
@@ -62,7 +62,7 @@ const char* RootExporter::tree_name()
 
 //---------------------------------------------------------------------------//
 /*!
- * Hardcoded ROOT TBranch name, consistent with \e app/geant-exporter.
+ * Hardcoded ROOT TBranch name, consistent with \e app/celer-export-geant.
  */
 const char* RootExporter::branch_name()
 {

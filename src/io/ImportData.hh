@@ -19,6 +19,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Enumerator for all possible EM parameters.
+ */
+enum class ImportEmParameter
+{
+    energy_loss_fluct,
+    lpm,
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Import all the needed data from external sources (currently Geant4).
  *
  * All the data imported to Celeritas is stored in this single entity. Any
@@ -42,22 +52,35 @@ namespace celeritas
  * \sa ImportProcess
  * \sa ImportVolume
  * \sa RootImporter
- * \sa geant-exporter
+ * \sa app/celer-export-geant
  */
 struct ImportData
 {
+    //!@{
+    //! Type aliases
+    // EM parameters map
+    using ImportEmParamsMap = std::map<ImportEmParameter, double>;
+    //!@}
+
     std::vector<ImportParticle> particles;
     std::vector<ImportElement>  elements;
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess>  processes;
     std::vector<ImportVolume>   volumes;
+    ImportEmParamsMap           em_params;
 
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
-               && !volumes.empty();
+               && !volumes.empty() && !em_params.empty();
     }
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+const char* to_cstring(ImportEmParameter value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

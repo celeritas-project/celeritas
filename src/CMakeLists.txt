@@ -120,6 +120,7 @@ list(APPEND SOURCES
   orange/construct/VolumeInserter.cc
   orange/surfaces/SurfaceIO.cc
   io/ImportProcess.cc
+  io/ImportData.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/AtomicRelaxationReader.cc

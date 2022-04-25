@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <G4EmParameters.hh>
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
 #include <G4ParticleTable.hh>
@@ -366,6 +367,24 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::ImportEmParamsMap .
+ */
+ImportData::ImportEmParamsMap store_em_parameters()
+{
+    ImportData::ImportEmParamsMap import_em_params;
+    const auto&                   g4_em_params = *G4EmParameters::Instance();
+
+    import_em_params.insert({ImportEmParameter::energy_loss_fluct,
+                             g4_em_params.LossFluctuation()});
+    import_em_params.insert({ImportEmParameter::lpm, g4_em_params.LPM()});
+
+    CELER_LOG(debug) << "Loaded " << import_em_params.size()
+                     << " EM parameters";
+    return import_em_params;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -399,6 +418,7 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.materials = store_materials();
     import_data.processes = store_processes();
     import_data.volumes   = store_volumes(world_);
+    import_data.em_params = store_em_parameters();
 
     CELER_ENSURE(import_data);
     return import_data;

@@ -31,6 +31,7 @@ class BremsstrahlungProcess : public Process
     //!@}
 
     // Options for the Bremsstrahlung process
+    // TODO: update options based on ImportData
     struct Options
     {
         bool combined_model{true}; //!> Use a unified relativistic/SB

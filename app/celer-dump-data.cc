@@ -308,6 +308,7 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
         print_process(proc, data.materials, data.elements, particles);
     }
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Print volume properties.
@@ -339,6 +340,28 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
         // clang-format on
     }
     cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print EM parameters.
+ */
+void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
+{
+    CELER_LOG(info) << "Loaded " << em_params_map.size() << " EM parameters";
+
+    cout << R"gfm(
+# EM parameters
+
+| EM parameter      | Value |
+| ----------------- | ----- |
+)gfm";
+
+    for (const auto& key : em_params_map)
+    {
+        cout << "| " << setw(17) << to_cstring(key.first) << " | " << setw(5)
+             << key.second << " |\n";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -382,6 +405,7 @@ int main(int argc, char* argv[])
     print_materials(data.materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
     print_volumes(data.volumes, data.materials);
+    print_em_params(data.em_params);
 
     return EXIT_SUCCESS;
 }
