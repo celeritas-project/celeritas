@@ -7,13 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "base/ArrayUtils.hh"
 #include "base/Range.hh"
-#include "field/detail/FieldMapData.hh"
-#include "field/detail/MagFieldMap.hh"
+#include "field/DormandPrinceStepper.hh"
+#include "field/FieldDriver.hh"
+#include "field/FieldParamsData.hh"
+#include "field/MagFieldEquation.hh"
+#include "field/MagFieldTraits.hh"
 
+#include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"
 #include "celeritas_test.hh"
 #include "detail/CMSFieldMapReader.hh"
 #include "detail/CMSMapField.hh"
+#include "detail/FieldMapData.hh"
+#include "detail/MagFieldMap.hh"
 
 using celeritas::detail::CMSMapField;
 using celeritas::detail::MagFieldMap;
@@ -25,11 +31,22 @@ using namespace celeritas_test;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UserMapFieldTest : public Test
+class UserMapFieldTest : public FieldPropagatorTestBase
 {
+  public:
+    using Initializer_t = ParticleTrackView::Initializer_t;
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+
   protected:
     void SetUp() override
     {
+        FieldPropagatorTestBase::SetUp();
+        geo_state_ = GeoStateStore(*this->geometry(), 1);
+
+        // Scale the test radius with the approximated center value of the
+        // test field map (3.8 units::tesla)
+        test.radius /= 3.8;
+
         // Construct MagFieldMap and save a reference to the host data
         std::string test_file
             = celeritas::Test::test_data_path("field", "cmsFieldMap.tiny");
@@ -62,16 +79,18 @@ class UserMapFieldTest : public Test
                                       {16.6149, 16.6149, 3757.2}};
 
   protected:
-    UserFieldTestParams                  test_param_;
-    std::shared_ptr<MagFieldMap>         map_;
-    celeritas::detail::FieldMapRef       ref_;
+    // Test parameters and input
+    GeoStateStore                  geo_state_;
+    UserFieldTestParams            test_param_;
+    std::shared_ptr<MagFieldMap>   map_;
+    celeritas::detail::FieldMapRef ref_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(UserMapFieldTest, host_map_field)
+TEST_F(UserMapFieldTest, host_umf_value)
 {
     // Create the magnetic field with a mapped field
     CMSMapField field(this->ref_);
@@ -87,26 +106,204 @@ TEST_F(UserMapFieldTest, host_map_field)
     }
 }
 
+TEST_F(UserMapFieldTest, host_umf_propagator)
+{
+    // Construct GeoTrackView and ParticleTrackView
+    GeoTrackView geo_track = GeoTrackView(
+        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
+    ParticleTrackView particle_track(
+        particle_params->host_ref(), state_ref, ThreadId(0));
+
+    // Construct FieldDriver with a user CMSMapField
+    CMSMapField field(this->ref_);
+
+    using MFTraits = MagFieldTraits<CMSMapField, DormandPrinceStepper>;
+    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t  stepper(equation);
+    MFTraits::Driver_t   driver(field_params, &stepper);
+
+    // Test parameters and the sub-step size
+    double step = (2.0 * constants::pi * test.radius) / test.nsteps;
+
+    particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
+    OdeState beg_state;
+    beg_state.mom                   = {0, test.momentum_y, 0};
+    real_type expected_total_length = 2 * constants::pi * test.radius
+                                      * test.revolutions;
+
+    for (unsigned int i : celeritas::range(test.nstates).step(128u))
+    {
+        // Initial state and the expected state after each revolution
+        geo_track     = {{test.radius, -10, i * 1.0e-6}, {0, 1, 0}};
+        beg_state.pos = {test.radius, -10, i * 1.0e-6};
+
+        // Check GeoTrackView
+        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
+
+        // Construct FieldPropagator
+        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+
+        real_type                           total_length = 0;
+        MFTraits::Propagator_t::result_type result;
+
+        for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
+        {
+            for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
+            {
+                result = propagate(step);
+                EXPECT_FALSE(result.boundary);
+                EXPECT_DOUBLE_EQ(step, result.distance);
+                total_length += result.distance;
+            }
+        }
+
+        // Check input after num_revolutions
+        EXPECT_SOFT_NEAR(total_length, expected_total_length, test.epsilon);
+    }
+}
+
+TEST_F(UserMapFieldTest, host_umf_geolimited)
+{
+    // Construct GeoTrackView and ParticleTrackView
+    GeoTrackView geo_track = GeoTrackView(
+        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
+    ParticleTrackView particle_track(
+        particle_params->host_ref(), state_ref, ThreadId(0));
+
+    // Construct FieldDriver with a user CMSMapField
+    CMSMapField field(this->ref_);
+    using MFTraits = MagFieldTraits<CMSMapField, DormandPrinceStepper>;
+    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t  stepper(equation);
+    MFTraits::Driver_t   driver(field_params, &stepper);
+
+    static const real_type expected_y[] = {0.5, 0.5, -0.5, -0.5};
+    const int num_boundary = sizeof(expected_y) / sizeof(real_type);
+
+    // Test parameters and the sub-step size
+    double step = (2.0 * constants::pi * test.radius) / test.nsteps;
+
+    for (auto i : celeritas::range(test.nstates).step(128u))
+    {
+        // Initialize GeoTrackView and ParticleTrackView
+        geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
+        particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
+
+        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
+
+        // Construct FieldPropagator
+        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+
+        int                                 icross       = 0;
+        real_type                           total_length = 0;
+        MFTraits::Propagator_t::result_type result;
+
+        for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
+        {
+            for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
+            {
+                result = propagate(step);
+                total_length += result.distance;
+
+                if (result.boundary)
+                {
+                    icross++;
+                    int j = (icross - 1) % num_boundary;
+                    EXPECT_DOUBLE_EQ(expected_y[j], geo_track.pos()[1]);
+                    geo_track.cross_boundary();
+                }
+            }
+        }
+
+        // Check stepper results with boundary crossings
+        EXPECT_SOFT_NEAR(61.557571992378342, total_length, test.epsilon);
+    }
+}
+
 //---------------------------------------------------------------------------//
 // DEVICE TESTS
 //---------------------------------------------------------------------------//
-
+#define UserMapFieldDeviceTest TEST_IF_CELER_DEVICE(UserMapFieldDeviceTest)
 class UserMapFieldDeviceTest : public UserMapFieldTest
 {
   public:
-    celeritas::detail::FieldMapDeviceRef device_ref_;
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
 };
 
-TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_map_field))
+TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_value))
 {
     // Run kernel for the magnetic field with a mapped field
-    this->device_ref_ = this->map_->device_ref();
-
-    auto output = fieldmap_test(this->test_param_, this->device_ref_);
+    auto output = fieldmap_test(this->test_param_, this->map_->device_ref());
 
     for (unsigned int i : celeritas::range(this->test_param_.nsamples))
     {
         Real3 value{output.value_x[i], output.value_y[i], output.value_z[i]};
         EXPECT_VEC_NEAR(this->expected_by_map[i], value, 1.0e-6);
+    }
+}
+
+TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_propagator))
+{
+    // Set up test input
+    FPTestInput input;
+    for (unsigned int i : celeritas::range(test.nstates))
+    {
+        input.init_geo.push_back({{test.radius, -10, i * 1.0e-6}, {0, 1, 0}});
+        input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
+    }
+    input.geo_params = this->geometry()->device_ref();
+    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
+    input.geo_states = device_states.ref();
+
+    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
+        *particle_params, input.init_track.size());
+
+    input.particle_params = particle_params->device_ref();
+    input.particle_states = pstates.ref();
+
+    input.field_params = this->field_params;
+    input.test         = this->test;
+
+    // Run kernel
+    auto step = map_fp_test(input, this->map_->device_ref());
+
+    // Check stepper results
+    real_type step_length = 2 * constants::pi * test.radius * test.revolutions;
+    for (unsigned int i = 0; i < step.size(); ++i)
+    {
+        EXPECT_SOFT_NEAR(step[i], step_length, test.epsilon);
+    }
+}
+
+TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_geolimited))
+{
+    // Set up test input
+    FPTestInput input;
+    for (unsigned int i : celeritas::range(test.nstates))
+    {
+        input.init_geo.push_back({{test.radius, 0, i * 1.0e-6}, {0, 1, 0}});
+        input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
+    }
+
+    input.geo_params = this->geometry()->device_ref();
+    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
+    input.geo_states = device_states.ref();
+
+    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
+        *particle_params, input.init_track.size());
+
+    input.particle_params = particle_params->device_ref();
+    input.particle_states = pstates.ref();
+
+    input.field_params = this->field_params;
+    input.test         = this->test;
+
+    // Run kernel
+    auto step = map_bc_test(input, this->map_->device_ref());
+
+    // Check stepper results
+    for (unsigned int i = 0; i < step.size(); ++i)
+    {
+        EXPECT_SOFT_NEAR(step[i], 61.557571977595295, test.epsilon);
     }
 }
