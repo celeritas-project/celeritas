@@ -55,8 +55,8 @@ UserFieldTestVector par_fp_test(FPTestInput input);
 
 UserFieldTestVector par_bc_test(FPTestInput input);
 
-UserFieldTestOutput fieldmap_test(UserFieldTestParams test_param,
-                                  celeritas::detail::FieldMapDeviceRef data);
+UserFieldTestOutput
+fieldmap_test(UserFieldTestParams test_param, FieldMapDeviceRef data);
 
 UserFieldTestVector map_fp_test(FPTestInput input, FieldMapDeviceRef data);
 
@@ -76,16 +76,17 @@ inline UserFieldTestVector par_bc_test(FPTestInput)
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 inline UserFieldTestOutput
-fieldmap_test(UserFieldTestParams,
-              CELER_MAYBE_UNUSED celeritas::detail::FieldMapDeviceRef data)
+fieldmap_test(UserFieldTestParams, CELER_MAYBE_UNUSED FieldMapDeviceRef data)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
-inline UserFieldTestVector map_fp_test(FPTestInput, FieldMapDeviceRef data)
+inline UserFieldTestVector
+map_fp_test(FPTestInput, CELER_MAYBE_UNUSED FieldMapDeviceRef data)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
-inline UserFieldTestVector map_bc_test(FPTestInput, FieldMapDeviceRef data)
+inline UserFieldTestVector
+map_bc_test(FPTestInput, CELER_MAYBE_UNUSED FieldMapDeviceRef data)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
