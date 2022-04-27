@@ -90,12 +90,15 @@ TEST(ConstantsTest, derivative)
 TEST(ConstantsTest, clhep)
 {
     EXPECT_SOFT_NEAR(a0_bohr, CLHEP::Bohr_radius / CLHEP::cm, 1e-7);
-    EXPECT_SOFT_NEAR(alpha_fine_structure, CLHEP::fine_structure_const, 1e-7);
-    // EXPECT_SOFT_NEAR(atomic_mass, CLHEP::amu, 1e-7);
-    // EXPECT_SOFT_NEAR(eps_electric, CLHEP::epsilon0, 1e-7);
+    EXPECT_SOFT_NEAR(alpha_fine_structure, CLHEP::fine_structure_const, 1e-9);
+    EXPECT_SOFT_NEAR(atomic_mass, CLHEP::amu / CLHEP::gram, 1e-7);
+    EXPECT_SOFT_NEAR(
+        eps_electric, CLHEP::epsilon0 / (CLHEP::gram * CLHEP::cm), 1e-7);
     EXPECT_SOFT_NEAR(h_planck, CLHEP::h_Planck, 1e-7);
     EXPECT_SOFT_NEAR(k_boltzmann, CLHEP::k_Boltzmann, 1e-7);
-    // EXPECT_SOFT_NEAR(mu_magnetic, CLHEP::mu0, 1e-7);
+    EXPECT_SOFT_NEAR(mu_magnetic * ampere * ampere / newton,
+                     CLHEP::mu0 * CLHEP::ampere * CLHEP::ampere / CLHEP::newton,
+                     1e-7);
     EXPECT_SOFT_NEAR(na_avogadro, CLHEP::Avogadro, 1e-7);
     EXPECT_SOFT_NEAR(
         r_electron, CLHEP::classic_electr_radius / CLHEP::cm, 1e-7);
