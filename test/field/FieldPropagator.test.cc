@@ -7,95 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "field/FieldPropagator.hh"
 
-#include "base/CollectionStateStore.hh"
 #include "field/DormandPrinceStepper.hh"
 #include "field/FieldDriver.hh"
 #include "field/FieldParamsData.hh"
 #include "field/MagFieldEquation.hh"
 #include "field/MagFieldTraits.hh"
 #include "field/UniformMagField.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
-#include "geometry/GeoTestBase.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
 
 #include "FieldPropagator.test.hh"
-#include "FieldTestParams.hh"
-#include "celeritas_test.hh"
-
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::units::MevEnergy;
-
-//---------------------------------------------------------------------------//
-/*!
- * Test harness.
- *
- * The test geometry is 1-cm thick slabs normal to y, with 1-cm gaps in
- * between. We fire off electrons (TODO: also test positrons!) that end up
- * running circles around the z axis (along which the magnetic field points).
- */
-class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
-{
-  public:
-    const char* dirname() const override { return "field"; }
-    const char* filebase() const override { return "field-test"; }
-
-    void SetUp() override
-    {
-        using namespace celeritas::units;
-        namespace pdg = celeritas::pdg;
-
-        // Create particle defs
-        constexpr auto        stable = ParticleRecord::stable_decay_constant();
-        ParticleParams::Input defs;
-        defs.push_back({"electron",
-                        pdg::electron(),
-                        MevMass{0.5109989461},
-                        ElementaryCharge{-1},
-                        stable});
-        defs.push_back({"positron",
-                        pdg::positron(),
-                        MevMass{0.5109989461},
-                        ElementaryCharge{1},
-                        stable});
-
-        particle_params = std::make_shared<ParticleParams>(std::move(defs));
-
-        // Construct views
-        resize(&state_value, particle_params->host_ref(), 1);
-        state_ref = state_value;
-
-        // Set values of FieldParamsData;
-        field_params.delta_intersection = 1.0e-4 * units::millimeter;
-
-        // Input parameters of an electron in a uniform magnetic field
-        test.nstates     = 128;
-        test.nsteps      = 100;
-        test.revolutions = 10;
-        test.field_value = 1.0 * units::tesla;
-        test.radius      = 3.8085386036;
-        test.delta_z     = 6.7003310629;
-        test.energy      = 10.9181415106;
-        test.momentum_y  = 11.4177114158018;
-        test.momentum_z  = 0.0;
-        test.epsilon     = 1.0e-5;
-    }
-
-  protected:
-    std::shared_ptr<ParticleParams>                         particle_params;
-    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
-    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
-
-    FieldParamsData field_params;
-
-    // Test parameters
-    FieldTestParams test;
-};
+#include "FieldPropagatorTestBase.hh"
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
@@ -125,12 +45,12 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     ParticleTrackView particle_track(
         particle_params->host_ref(), state_ref, ThreadId(0));
 
-    // Construct FieldPropagator
+    // Construct FieldDriver with UniformMagField
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, &rk4);
+    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t  stepper(equation);
+    MFTraits::Driver_t   driver(field_params, &stepper);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -151,10 +71,10 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         real_type                           total_length = 0;
-        RKTraits::Propagator_t::result_type result;
+        MFTraits::Propagator_t::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
@@ -184,12 +104,12 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     ParticleTrackView particle_track(
         particle_params->host_ref(), state_ref, ThreadId(0));
 
-    // Construct FieldDriver
+    // Construct FieldDriver with UniformMagField
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, &rk4);
+    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t  stepper(equation);
+    MFTraits::Driver_t   driver(field_params, &stepper);
 
     // clang-format off
     static const real_type expected_y[]
@@ -210,11 +130,11 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        RKTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;
-        RKTraits::Propagator_t::result_type result;
+        MFTraits::Propagator_t::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
