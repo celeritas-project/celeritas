@@ -369,3 +369,26 @@ TEST_F(RootImporterTest, volumes)
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_solids, solids);
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, em_params)
+{
+    const auto em_params = data_.em_params;
+    EXPECT_EQ(2, em_params.size());
+
+    std::vector<std::string> enum_string;
+    std::vector<double>      value;
+
+    for (const auto& key : em_params)
+    {
+        enum_string.push_back(to_cstring(key.first));
+        value.push_back(key.second);
+    }
+
+    static const std::string expected_enum_string[]
+        = {"energy_loss_fluct", "lpm"};
+    static const double expected_value[] = {1, 1};
+
+    EXPECT_VEC_EQ(expected_enum_string, enum_string);
+    EXPECT_VEC_EQ(expected_value, value);
+}
