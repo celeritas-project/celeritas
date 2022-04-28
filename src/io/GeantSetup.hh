@@ -20,6 +20,21 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct GeantSetupOptions
+{
+    //! Selection of physics processes
+    enum class PhysicsList
+    {
+        em_basic,    //!< Celeritas demo loop
+        em_standard, //!< G4EmStandardPhysics
+        ftfp_bert,   //!< Full physics
+    };
+
+    PhysicsList physics{PhysicsList::em_standard};
+    int         em_bins_per_decade{7};
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct a Geant 4 run manager and populate internal Geant4 physics.
  *
@@ -29,17 +44,14 @@ namespace celeritas
 class GeantSetup
 {
   public:
-    //! Selection of physics processes
-    enum class PhysicsList
-    {
-        em_basic,    //!< Celeritas demo loop
-        em_standard, //!< G4EmStandardPhysics
-        ftfp_bert,   //!< Full physics
-    };
+    //!@{
+    //! Type aliases
+    using Options = GeantSetupOptions;
+    //!@}
 
   public:
     // Construct from a GDML file and physics options
-    GeantSetup(const std::string& gdml_filename, PhysicsList physics);
+    GeantSetup(const std::string& gdml_filename, Options options);
 
     // Default constructor
     GeantSetup() = default;

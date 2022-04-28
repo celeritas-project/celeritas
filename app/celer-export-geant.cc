@@ -47,11 +47,13 @@ int main(int argc, char* argv[])
     std::string gdml_input_filename  = argv[1];
     std::string root_output_filename = argv[2];
 
-    // Initailize geant4 with basic EM physics from GDML path
+    GeantSetupOptions options;
+    options.physics = GeantSetupOptions::PhysicsList::em_basic;
+
+    // Initialize geant4 with basic EM physics from GDML path
     try
     {
-        GeantImporter import(GeantSetup(gdml_input_filename,
-                                        GeantSetup::PhysicsList::em_basic));
+        GeantImporter import(GeantSetup(gdml_input_filename, options));
         RootExporter  export_root(root_output_filename.c_str());
 
         // Read data from geant, write to ROOT

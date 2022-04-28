@@ -169,9 +169,11 @@ TransporterInput load_input(const LDemoArgs& args)
     }
     else if (ends_with(args.physics_filename, ".gdml"))
     {
+        GeantSetupOptions options;
+        options.physics = GeantSetupOptions::PhysicsList::em_basic;
         // Load imported_data directly from Geant4
-        imported_data = GeantImporter(GeantSetup(
-            args.physics_filename, GeantSetup::PhysicsList::em_basic))();
+        imported_data
+            = GeantImporter(GeantSetup(args.physics_filename, options))();
     }
     else
     {
