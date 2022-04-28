@@ -12,12 +12,19 @@ if ! hash cloc ; then
   exit 1
 fi
 
+function comment() {
+printf "\e[2;37;40m%s:\e[0m\n" "$1" >&2
+}
 function run_cloc() {
-  cloc --git HEAD --fullpath --force-lang=CUDA,hip $@
+  cloc --git HEAD --force-lang=CUDA,hip $@
 }
 
 cd $SOURCE_DIR
-echo "Source/utility code:"
-run_cloc --not-match-d='/generated/'  --not-match-d='/test/' $@
-echo "Test code:"
-run_cloc --match-d='/test/' $@
+comment "Library code"
+run_cloc --exclude-dir=app,generated,test $@
+comment "Auto-generated code"
+run_cloc --match-d='generated' $@
+comment "App code"
+run_cloc --fullpath --match-d='/app/' $@
+comment "Test code"
+run_cloc --fullpath --match-d='/test/' $@
