@@ -20,15 +20,20 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Selection of physics processes
+enum class GeantSetupPhysicsList
+{
+    em_basic,    //!< Celeritas demo loop
+    em_standard, //!< G4EmStandardPhysics
+    ftfp_bert,   //!< Full physics
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Construction options for geant
 struct GeantSetupOptions
 {
-    //! Selection of physics processes
-    enum class PhysicsList
-    {
-        em_basic,    //!< Celeritas demo loop
-        em_standard, //!< G4EmStandardPhysics
-        ftfp_bert,   //!< Full physics
-    };
+    using PhysicsList = GeantSetupPhysicsList;
 
     PhysicsList physics{PhysicsList::em_standard};
     int         em_bins_per_decade{7};

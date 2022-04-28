@@ -65,7 +65,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     std::unique_ptr<G4VUserPhysicsList> physics_list;
 
-    using PL = Options::PhysicsList;
+    using PL = GeantSetupPhysicsList;
     switch (options.physics)
     {
         case PL::em_basic:
@@ -83,6 +83,8 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
             // Full Physics
             physics_list = std::make_unique<FTFP_BERT>();
             break;
+        default:
+            CELER_VALIDATE(false, << "invalid physics list");
     }
 
     {
