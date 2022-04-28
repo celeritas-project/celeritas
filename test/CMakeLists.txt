@@ -87,10 +87,13 @@ if(NOT CELERITAS_USE_Geant4)
 else()
   # Optional dependence on low-energy EM data
   set(_ds G4EMLOW)
-  set(_optional_geant4
+  set(_optional_geant4_env
      ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
   )
-  set(_needs_geant4 ${_optional_geant4})
+  set(_optional_geant4_link
+    LINK_LIBRARIES ${Geant4_LIBRARIES}
+  )
+  set(_needs_geant4 ${_optional_geant4_env})
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -107,7 +110,7 @@ celeritas_setup_tests(SERIAL PREFIX base)
 celeritas_add_test(base/Algorithms.test.cc)
 celeritas_add_test(base/Array.test.cc)
 celeritas_add_test(base/ArrayUtils.test.cc)
-celeritas_add_test(base/Constants.test.cc)
+celeritas_add_test(base/Constants.test.cc ${_optional_geant4_link})
 celeritas_add_test(base/Copier.test.cc GPU)
 celeritas_add_test(base/DeviceAllocation.test.cc GPU)
 celeritas_add_test(base/DeviceVector.test.cc GPU)
@@ -295,11 +298,11 @@ celeritas_add_test(physics/em/SeltzerBerger.test.cc)
 celeritas_add_test(physics/em/TsaiUrbanDistribution.test.cc)
 
 celeritas_add_test(physics/em/ImportedProcesses.test.cc ${_needs_root}
-  ${_optional_geant4}
+  ${_optional_geant4_env}
   LINK_LIBRARIES Celeritas::IO)
 
 celeritas_add_test(physics/em/UrbanMsc.test.cc ${_needs_root}
-  ${_optional_geant4}
+  ${_optional_geant4_env}
   LINK_LIBRARIES Celeritas::IO)
 
 #-----------------------------------------------------------------------------#
