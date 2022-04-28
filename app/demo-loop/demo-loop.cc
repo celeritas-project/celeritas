@@ -16,6 +16,7 @@
 
 #include "celeritas_version.h"
 #include "base/Stopwatch.hh"
+#include "comm/BuildOutput.hh"
 #include "comm/Communicator.hh"
 #include "comm/Device.hh"
 #include "comm/DeviceIO.json.hh"
@@ -25,6 +26,9 @@
 #include "comm/KernelDiagnosticsIO.json.hh"
 #include "comm/Logger.hh"
 #include "comm/ScopedMpiInit.hh"
+#include "physics/base/PhysicsParamsOutput.hh"
+#include "sim/OutputInterfaceAdapter.hh"
+#include "sim/OutputManager.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -34,33 +38,18 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using namespace demo_loop;
-using celeritas::TransporterBase;
+using namespace celeritas;
 
 namespace
 {
 //---------------------------------------------------------------------------//
-nlohmann::json get_system_json()
-{
-    return {
-        {"version", std::string(celeritas_version)},
-        {"device", celeritas::device()},
-        {"kernels", celeritas::kernel_diagnostics()},
-        {"environ", celeritas::environment()},
-    };
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
  */
-void run(std::istream& is)
+void run(std::istream* is, OutputManager* output)
 {
-    using celeritas::Stopwatch;
-    using celeritas::TrackInitParams;
-    using celeritas::TransporterResult;
-
     // Read input options
-    auto inp = nlohmann::json::parse(is);
+    auto inp = nlohmann::json::parse(*is);
 
     if (inp.contains("cuda_stack_size"))
     {
@@ -75,6 +64,10 @@ void run(std::istream& is)
     // For now, only do a single run
     auto run_args = inp.get<LDemoArgs>();
     CELER_EXPECT(run_args);
+    output->insert(std::make_shared<OutputInterfaceAdapter<LDemoArgs>>(
+        OutputInterface::Category::input,
+        "*",
+        std::make_shared<LDemoArgs>(run_args)));
 
     // Start timer for overall execution
     Stopwatch get_setup_time;
@@ -83,19 +76,21 @@ void run(std::istream& is)
     auto         transport_ptr = build_transporter(run_args);
     const double setup_time    = get_setup_time();
 
+    {
+        // Save diagnostic information
+        const auto& tinp = transport_ptr->input();
+        output->insert(std::make_shared<PhysicsParamsOutput>(tinp.physics));
+    }
+
     // Run all the primaries
     auto primaries = load_primaries(transport_ptr->input().particles, run_args);
     auto result    = (*transport_ptr)(*primaries);
 
-    CELER_LOG(status) << "Saving output";
-    // Save output
-    nlohmann::json outp = {
-        {"input", run_args},
-        {"result", result},
-        {"system", get_system_json()},
-    };
-    outp["result"]["time"]["setup"] = setup_time;
-    cout << outp.dump() << endl;
+    result.time.setup = setup_time;
+    // TODO: convert individual results into OutputInterface so we don't have
+    // to use this ugly "global" hack
+    output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(
+        OutputInterface::Category::result, "*", std::move(result)));
 }
 } // namespace
 
@@ -105,9 +100,6 @@ void run(std::istream& is)
  */
 int main(int argc, char* argv[])
 {
-    using celeritas::Communicator;
-    using celeritas::ScopedMpiInit;
-
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
     Communicator comm
@@ -152,20 +144,34 @@ int main(int argc, char* argv[])
         instream = &infile;
     }
 
+    // Set up output
+    OutputManager output;
+    output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
+        OutputInterface::Category::system, "device", celeritas::device()));
+    output.insert(OutputInterfaceAdapter<KernelDiagnostics>::from_const_ref(
+        OutputInterface::Category::system,
+        "kernels",
+        celeritas::kernel_diagnostics()));
+    output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+        OutputInterface::Category::system, "environ", celeritas::environment()));
+    output.insert(std::make_shared<BuildOutput>());
+
+    int return_code = EXIT_SUCCESS;
     try
     {
-        run(*instream);
+        run(instream, &output);
     }
     catch (const std::exception& e)
     {
         CELER_LOG(critical)
             << "While running input at  " << filename << ": " << e.what();
-
-        // Write system properties even though results aren't available
-        cout << nlohmann::json{{"system", get_system_json()}}.dump() << endl;
-
-        return EXIT_FAILURE;
+        return_code = EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    // Write system properties and (if available) results
+    CELER_LOG(status) << "Saving output";
+    output.output(&cout);
+    cout << endl;
+
+    return return_code;
 }
