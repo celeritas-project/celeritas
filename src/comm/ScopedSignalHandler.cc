@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ScopedSignalHandler.hh"
 
+#include <algorithm>
 #include <csignal>
 
 #include "base/Assert.hh"
@@ -43,17 +44,17 @@ extern "C" void celer_set_signal(int signal)
 }
 
 //---------------------------------------------------------------------------//
-//! Clear the bit corresponding to a signal
-void celer_clr_signal(int signal)
+//! Clear the bit(s) corresponding to one or more signals
+void celer_clr_signal(int mask)
 {
-    celer_signal_bits &= ~(1 << signal);
+    celer_signal_bits &= ~mask;
 }
 
 //---------------------------------------------------------------------------//
-//! Return whether the bit corresponding to a signal is set
-bool celer_chk_signal(int signal)
+//! Return whether the bit corresponding to any of the given signalsis set
+bool celer_chk_signal(int mask)
 {
-    return celer_signal_bits & (1 << signal);
+    return celer_signal_bits & mask;
 }
 
 //---------------------------------------------------------------------------//
@@ -73,11 +74,35 @@ bool ScopedSignalHandler::allow_signals()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether signal handling is enabled.
+ */
+int ScopedSignalHandler::raise(signal_type sig)
+{
+    celer_set_signal(sig);
+    return 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Handle the given signal type.
  */
 ScopedSignalHandler::ScopedSignalHandler(signal_type sig)
+    : ScopedSignalHandler({sig})
 {
-    CELER_EXPECT(sig >= 0);
+    CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Handle the given signal type.
+ */
+ScopedSignalHandler::ScopedSignalHandler(
+    std::initializer_list<signal_type> signals)
+{
+    CELER_EXPECT(signals.begin() != signals.end());
+    CELER_EXPECT(std::all_of(signals.begin(),
+                             signals.end(),
+                             [](signal_type sig) { return sig >= 0; }));
 
     if (!ScopedSignalHandler::allow_signals())
     {
@@ -86,30 +111,40 @@ ScopedSignalHandler::ScopedSignalHandler(signal_type sig)
         return;
     }
 
-    CELER_VALIDATE(!celer_chk_signal(sig),
-                   << "unhandled signal " << sig
-                   << " when creating new signal handler");
+    for (signal_type sig : signals)
+    {
+        mask_ |= (1 << sig);
 
-    // Register signal
-    signal_      = sig;
-    prev_handle_ = std::signal(signal_, celer_set_signal);
+        CELER_VALIDATE(!celer_chk_signal(mask_),
+                       << "unhandled signal " << sig
+                       << "existed when creating new signal handler");
 
-    CELER_ENSURE(prev_handle_ != SIG_ERR);
+        // Register signal
+        HandlerPtr prev_handle = std::signal(sig, celer_set_signal);
+        CELER_ASSERT(prev_handle != SIG_ERR);
+        handles_.push_back({sig, prev_handle});
+    }
+
+    CELER_ENSURE(handles_.size() == signals.size());
+    CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Release the given signal.
+ *
+ * This destructor is not thread-safe; it could have a race condition if
+ * a signal is sent while our signal bit is being cleared.
  */
 ScopedSignalHandler::~ScopedSignalHandler()
 {
-    if (signal_ >= 0)
+    for (const auto& sig_handle : handles_)
     {
-        // Clear signal bit
-        celer_clr_signal(signal_);
         // Restore signal handler
-        std::signal(signal_, prev_handle_);
+        std::signal(sig_handle.first, sig_handle.second);
     }
+    // Clear signal bits
+    celer_clr_signal(mask_);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,8 +175,8 @@ ScopedSignalHandler::operator=(ScopedSignalHandler&& other) noexcept
 void ScopedSignalHandler::swap(ScopedSignalHandler& other) noexcept
 {
     using std::swap;
-    swap(signal_, other.signal_);
-    swap(prev_handle_, other.prev_handle_);
+    swap(mask_, other.mask_);
+    swap(handles_, other.handles_);
 }
 
 //---------------------------------------------------------------------------//
@@ -150,7 +185,7 @@ void ScopedSignalHandler::swap(ScopedSignalHandler& other) noexcept
  */
 bool ScopedSignalHandler::check_signal() const
 {
-    return celer_chk_signal(signal_);
+    return celer_chk_signal(mask_);
 }
 
 //---------------------------------------------------------------------------//

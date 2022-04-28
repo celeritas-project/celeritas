@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <initializer_list>
+#include <utility>
+#include <vector>
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -62,11 +66,17 @@ class ScopedSignalHandler
     // Whether signals are enabled
     static bool allow_signals();
 
+    // Raise a signal visible only to ScopedSignalHandler (for testing)
+    static int raise(signal_type sig);
+
     //! Default to not handling any signals.
     ScopedSignalHandler() = default;
 
     // Handle the given signal type, asserting if it's already been raised
     explicit ScopedSignalHandler(signal_type);
+
+    // Handle the given signal types
+    explicit ScopedSignalHandler(std::initializer_list<signal_type>);
 
     // Release the given signal
     ~ScopedSignalHandler();
@@ -75,7 +85,7 @@ class ScopedSignalHandler
     inline bool operator()() const;
 
     //! True if handling a signal
-    explicit operator bool() const { return signal_ >= 0; }
+    explicit operator bool() const { return mask_ != 0; }
 
     // Move construct and assign to capture/release signal handling
     ScopedSignalHandler(const ScopedSignalHandler&) = delete;
@@ -86,9 +96,11 @@ class ScopedSignalHandler
 
   private:
     using HandlerPtr = void (*)(int);
+    using PairSigHandle = std::pair<signal_type, HandlerPtr>;
+    using VecSH         = std::vector<PairSigHandle>;
 
-    signal_type signal_{-1};
-    HandlerPtr  prev_handle_{nullptr};
+    signal_type mask_{0};
+    VecSH       handles_;
 
     bool check_signal() const;
 };
