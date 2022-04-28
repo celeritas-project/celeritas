@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
         return_code = EXIT_FAILURE;
     }
 
-    // Write system properties even though results aren't available
+    // Write system properties and (if available) results
     CELER_LOG(status) << "Saving output";
     output.output(&cout);
     cout << endl;

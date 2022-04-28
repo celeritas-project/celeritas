@@ -37,8 +37,8 @@ set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 foreach(_var CELERITAS_RNG CELERITAS_BUILD_TYPE)
   string(TOLOWER "${_var}" _lower)
-  list(APPEND CELERITAS_CMAKE_STRINGS
-    "static const char ${_lower}[] = \"${${_var}}\";"
+  string(APPEND CELERITAS_CMAKE_STRINGS
+    "static const char ${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
 configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)

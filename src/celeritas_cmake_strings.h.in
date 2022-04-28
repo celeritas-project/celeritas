@@ -10,5 +10,4 @@
 #define celeritas_cmake_strings_h
 
 @CELERITAS_CMAKE_STRINGS@
-
 #endif /* celeritas_cmake_strings_h */
