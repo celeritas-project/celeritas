@@ -84,7 +84,6 @@ class SteppersTest : public Test
             // Initial state and the epected state after revolutions
             OdeState y;
             y.pos = {param.radius, 0.0, i * 1.0e-6};
-            y.pos = {param.radius, 0.0, 0};
             y.mom = {0.0, param.momentum_y, param.momentum_z};
 
             OdeState expected_y = y;
@@ -95,7 +94,6 @@ class SteppersTest : public Test
             {
                 // Travel hstep for num_steps times in the field
                 expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
-                expected_y.pos[2] = param.delta_z * (nr + 1);
                 for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
                 {
                     StepperResult result = stepper(hstep, y);
