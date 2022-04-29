@@ -20,8 +20,8 @@ namespace constants
  *
  * Mathematical, numerical, and physical constants. Some of the physical
  * constants listed here are *exact* numerical values: see the International
- * System of Units, 9th ed., for definition of constants and how they relate to
- * the different units.
+ * System of Units, 9th ed. (2019), for definition of constants and how they
+ * relate to the different units.
  *
  * Celeritas            | CLHEP                   | Notes
  * -------------------- | ---------------------   | ------------
