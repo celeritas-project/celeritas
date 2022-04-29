@@ -74,7 +74,10 @@ bool ScopedSignalHandler::allow_signals()
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether signal handling is enabled.
+ * Raise a signal visible only to ScopedSignalHandler (for testing).
+ *
+ * This function always returns zero, indicating "success", to conform to the
+ * C++ standard library function.
  */
 int ScopedSignalHandler::raise(signal_type sig)
 {
