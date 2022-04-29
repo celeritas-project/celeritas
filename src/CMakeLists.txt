@@ -363,8 +363,13 @@ if(CELERITAS_USE_Geant4)
     ${Geant4_LIBRARIES}
   )
 endif()
+if(CELERITAS_USE_JSON)
+  list(APPEND _IO_SOURCES
+    io/GeantSetupOptionsIO.json.cc
+  )
+endif()
 
-if(NOT CELERITAS_USE_Geant4 AND NOT CELERITAS_USE_ROOT)
+if(NOT _IO_SOURCES)
   # No sources to compile: header only
   set(_IO_LIBTYPE INTERFACE)
   set(_IO_PRIVATE_DEPS)

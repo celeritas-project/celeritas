@@ -16,7 +16,7 @@
 #include "geometry/GeoParams.hh"
 #include "io/EventReader.hh"
 #include "io/GeantImporter.hh"
-#include "io/GeantSetup.hh"
+#include "io/GeantSetupOptionsIO.json.hh"
 #include "io/ImportData.hh"
 #include "io/RootImporter.hh"
 #include "physics/base/CutoffParams.hh"
@@ -117,6 +117,10 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["step_limiter"] = v.step_limiter;
     }
+    if (ends_with(v.geometry_filename, ".gdml"))
+    {
+        j["geant_options"] = v.geant_options;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
@@ -152,6 +156,11 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     {
         j.at("energy_diag").get_to(v.energy_diag);
     }
+
+    if (j.contains("geant_options"))
+    {
+        j.at("geant_options").get_to(v.geant_options);
+    }
 }
 //!@}
 
@@ -170,8 +179,8 @@ TransporterInput load_input(const LDemoArgs& args)
     else if (ends_with(args.physics_filename, ".gdml"))
     {
         // Load imported_data directly from Geant4
-        imported_data = GeantImporter(GeantSetup(
-            args.physics_filename, GeantSetup::PhysicsList::em_basic))();
+        imported_data = GeantImporter(
+            GeantSetup(args.physics_filename, args.geant_options))();
     }
     else
     {

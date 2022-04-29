@@ -81,6 +81,9 @@ endif()
 if(CELERITAS_DEBUG)
   set(_disable_if_debug DISABLE)
 endif()
+if(NOT CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_JSON)
+  set(_needs_geo DISABLE)
+endif()
 
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
@@ -151,15 +154,16 @@ celeritas_setup_tests(SERIAL PREFIX field)
 
 celeritas_device_test(field/Steppers)
 celeritas_device_test(field/FieldDriver)
-celeritas_device_test(field/FieldPropagator)
+celeritas_device_test(field/FieldPropagator ${_needs_geo})
 
 ### User field ###
 
-celeritas_device_test(field/UserParamField)
+celeritas_device_test(field/UserParamField ${_needs_geo})
 celeritas_device_test(field/UserMapField
   SOURCES
     field/detail/MagFieldMap.cc
     field/detail/CMSFieldMapReader.cc
+  ${_needs_geo}
 )
 
 #-----------------------------------------------------------------------------#
@@ -179,9 +183,9 @@ celeritas_setup_tests(SERIAL PREFIX geometry)
 
 celeritas_add_test(geometry/BoundingBox.test.cc)
 
-celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root}
+celeritas_add_test(geometry/GeoMaterial.test.cc ${_needs_root} ${_needs_geo}
   LINK_LIBRARIES Celeritas::IO)
-celeritas_add_test(geometry/LinearPropagator.test.cc)
+celeritas_add_test(geometry/LinearPropagator.test.cc ${_needs_geo})
 
 #-----------------------------------------------------------------------------#
 # ORANGE geometry

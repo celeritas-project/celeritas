@@ -13,6 +13,7 @@
 
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
+#include "io/GeantSetup.hh"
 #include "sim/TrackInitParams.hh"
 
 #include "Transporter.hh"
@@ -62,6 +63,9 @@ struct LDemoArgs
 
     // Diagnostic input
     celeritas::EnergyDiagInput energy_diag;
+
+    // Optional setup options if loading directly from Geant4
+    celeritas::GeantSetupOptions geant_options;
 
     //! Whether the run arguments are valid
     explicit operator bool() const
