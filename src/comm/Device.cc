@@ -10,7 +10,8 @@
 #include <cstdlib>
 #include <iostream>
 
-#ifdef _OPENMP
+#include "celeritas_config.h"
+#if CELERITAS_USE_OPENMP
 #    include <omp.h>
 #endif
 
@@ -85,7 +86,7 @@ Device& global_device()
         }
     }
 
-#if CELER_USE_DEVICE && defined(_OPENMP)
+#if CELER_USE_DEVICE && CELERITAS_USE_OPENMP
     if (omp_get_num_threads() > 1)
     {
         CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");

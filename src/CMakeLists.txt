@@ -9,6 +9,7 @@
 #----------------------------------------------------------------------------#
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 # Define a numeric table of options for the default runtime RNG.
