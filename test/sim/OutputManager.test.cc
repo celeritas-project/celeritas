@@ -33,6 +33,7 @@ class TestInterface final : public celeritas::OutputInterface
         json->obj = value_;
 #else
         (void)sizeof(json);
+        (void)sizeof(value_);
 #endif
     }
 
