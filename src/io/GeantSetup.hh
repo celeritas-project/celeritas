@@ -92,7 +92,7 @@ const G4VPhysicalVolume* GeantSetup::world() const
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline GeantSetup::GeantSetup(const std::string&, PhysicsList)
+inline GeantSetup::GeantSetup(const std::string&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
