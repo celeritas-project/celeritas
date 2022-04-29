@@ -41,9 +41,8 @@
       "displayName": "Summit release mode",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_OpenMP":    {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_VecGeom":    {"type": "BOOL",   "value": "OFF"}
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -51,16 +50,6 @@
       "displayName": "Summit release mode",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-      }
-    },
-    {
-      "name": "ndebug-serial",
-      "displayName": "Summit release without openmp",
-      "inherits": [".ndebug", ".base"],
-      "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
-        "BUILD_SHARED_LIBS": {"type": "BOOL",   "value": "OFF"}
       }
     }
   ],
