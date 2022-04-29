@@ -20,7 +20,7 @@ namespace
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to a surface type.
+ * Get a string corresponding to the physics list value.
  */
 const char* to_cstring(GeantSetupPhysicsList value)
 {
