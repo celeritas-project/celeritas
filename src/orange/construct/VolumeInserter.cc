@@ -10,16 +10,17 @@
 #include <algorithm>
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/OpaqueId.hh"
-#include "base/Span.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 #include "orange/construct/VolumeInput.hh"
 #include "orange/surfaces/SurfaceAction.hh"
 #include "orange/surfaces/Surfaces.hh"
+
+#include "base/Assert.hh"
+#include "base/Collection.hh"
+#include "base/CollectionBuilder.hh"
+#include "base/OpaqueId.hh"
+#include "base/Span.hh"
 
 namespace celeritas
 {

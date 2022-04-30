@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-
 #include "../Data.hh"
 #include "../Types.hh"
+#include "base/Span.hh"
 
 namespace celeritas
 {
