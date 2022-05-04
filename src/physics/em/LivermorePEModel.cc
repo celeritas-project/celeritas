@@ -22,7 +22,7 @@
 #include "physics/base/PDGNumber.hh"
 #include "physics/grid/XsGridData.hh"
 #include "physics/material/ElementView.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "detail/LivermorePEData.hh"
 #include "generated/LivermorePEInteract.hh"

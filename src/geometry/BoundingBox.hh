@@ -13,6 +13,7 @@
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

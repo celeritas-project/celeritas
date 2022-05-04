@@ -12,6 +12,7 @@
 #include "base/StackAllocatorData.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/UniformGridData.hh"
+#include "sim/Types.hh"
 
 #ifndef CELER_DEVICE_COMPILE
 #    include "base/CollectionBuilder.hh"

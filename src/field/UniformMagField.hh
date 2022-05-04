@@ -9,6 +9,7 @@
 
 #include "base/Array.hh"
 #include "base/Macros.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

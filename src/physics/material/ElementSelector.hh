@@ -13,9 +13,9 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "random/distributions/GenerateCanonical.hh"
+#include "sim/Types.hh"
 
 #include "MaterialView.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

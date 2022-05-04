@@ -13,7 +13,7 @@
 #include "physics/em/detail/BetheHeitlerInteractor.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialTrackView.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

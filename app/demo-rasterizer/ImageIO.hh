@@ -12,6 +12,7 @@
 #include "base/Array.hh"
 #include "base/Assert.hh"
 #include "base/Types.hh"
+#include "sim/Types.hh"
 
 namespace demo_rasterizer
 {

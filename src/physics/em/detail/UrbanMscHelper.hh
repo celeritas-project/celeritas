@@ -17,7 +17,7 @@
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"
 #include "physics/grid/RangeCalculator.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "UrbanMscData.hh"
 

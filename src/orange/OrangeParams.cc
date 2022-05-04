@@ -25,6 +25,7 @@
 #include "orange/construct/VolumeInput.hh"
 #include "orange/construct/VolumeInserter.hh"
 #include "orange/universes/detail/LogicStack.hh"
+#include "sim/Types.hh"
 
 #include "Data.hh"
 #include "Types.hh"

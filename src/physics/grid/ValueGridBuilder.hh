@@ -13,7 +13,7 @@
 #include "base/Collection.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

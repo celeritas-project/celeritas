@@ -14,12 +14,11 @@
 #include "base/Types.hh"
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
-#include "physics/material/Types.hh"
 #include "random/Selector.hh"
 #include "random/distributions/GenerateCanonical.hh"
 #include "random/distributions/IsotropicDistribution.hh"
+#include "sim/Types.hh"
 
 #include "RayleighData.hh"
 

@@ -13,7 +13,7 @@
 #include "base/Types.hh"
 #include "field/FieldParamsData.hh"
 #include "geometry/GeoData.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 #include "physics/base/ParticleData.hh"
 
 #include "FieldTestParams.hh"

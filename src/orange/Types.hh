@@ -9,8 +9,10 @@
 
 #include <utility>
 
+#include "base/Array.hh"
 #include "base/NumericLimits.hh"
 #include "base/OpaqueId.hh"
+#include "base/Types.hh"
 
 namespace celeritas
 {
@@ -21,14 +23,31 @@ namespace celeritas
 //! Integer type for volume CSG tree representation
 using logic_int = unsigned short int;
 
-//! Identifier for a surface in a universe
-using SurfaceId = OpaqueId<struct Surface>;
-
 //! Identifier for a face local to a particular volume (internal use only)
 using FaceId = OpaqueId<struct Face>;
 
+//! Identifier for a surface in a universe
+using SurfaceId = OpaqueId<struct Surface>;
+
+//! Identifier for a geometry volume
+using VolumeId = OpaqueId<struct Volume>;
+
+using Real3 = Array<real_type, 3>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for cartesian axes.
+ */
+enum class Axis
+{
+    x,    //!< X axis/I index coordinate
+    y,    //!< Y axis/J index coordinate
+    z,    //!< Z axis/K index coordinate
+    size_ //!< Sentinel value for looping over axes
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Whether a position is logically "inside" or "outside" a surface.
@@ -139,6 +158,31 @@ enum OperatorToken : logic_int
 } // namespace logic
 
 //---------------------------------------------------------------------------//
+// STRUCTS
+//---------------------------------------------------------------------------//
+/*!
+ * Data required to initialize a geometry state.
+ */
+struct GeoTrackInitializer
+{
+    Real3 pos;
+    Real3 dir;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Result of a propagation step.
+ *
+ * The boundary flag means that the geometry is step limiting, but the surface
+ * crossing must be called externally.
+ */
+struct Propagation
+{
+    real_type distance{0}; //!< Distance traveled
+    bool boundary{false};  //!< True if hit a boundary before given distance
+};
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
@@ -227,6 +271,12 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
+//! Get the lowercase name of the axis.
+inline constexpr char to_char(Axis ax)
+{
+    return "xyz\a"[static_cast<int>(ax)];
+}
+
 //! Get a printable character corresponding to a sense.
 inline static constexpr char to_char(Sense s)
 {

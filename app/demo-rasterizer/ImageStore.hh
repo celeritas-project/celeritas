@@ -13,6 +13,7 @@
 #include "base/DeviceVector.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
+#include "sim/Types.hh"
 
 #include "ImageData.hh"
 #include "ImageIO.hh"

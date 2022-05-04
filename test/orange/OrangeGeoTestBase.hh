@@ -18,6 +18,7 @@
 #include "base/Span.hh"
 #include "orange/Data.hh"
 #include "orange/OrangeParams.hh"
+#include "sim/Types.hh"
 
 // Test dependencies
 #include "gtest/Test.hh"

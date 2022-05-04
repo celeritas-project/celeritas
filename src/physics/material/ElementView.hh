@@ -9,9 +9,9 @@
 
 #include "base/Macros.hh"
 #include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 #include "MaterialData.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

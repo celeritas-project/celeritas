@@ -15,7 +15,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Traits for operations on Real3 vectors
+//! Traits for operations on real vectors
 template<class T>
 struct RealVecTraits;
 

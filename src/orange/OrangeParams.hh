@@ -14,7 +14,7 @@
 #include "base/CollectionMirror.hh"
 #include "base/Types.hh"
 #include "geometry/BoundingBox.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 
 #include "Data.hh"
 #include "Types.hh"

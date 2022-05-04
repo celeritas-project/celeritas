@@ -10,7 +10,6 @@
 #include <functional>
 
 #include "physics/base/Model.hh"
-#include "physics/base/Types.hh"
 #include "sim/Types.hh"
 
 namespace celeritas_test

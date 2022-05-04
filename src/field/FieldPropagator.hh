@@ -11,7 +11,7 @@
 #include "base/NumericLimits.hh"
 #include "base/Types.hh"
 #include "geometry/GeoTrackView.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 #include "physics/base/ParticleTrackView.hh"
 
 #include "Types.hh"

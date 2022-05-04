@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "orange/Types.hh"
+
 #include "GeoTrackView.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

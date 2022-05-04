@@ -14,6 +14,7 @@
 #include "base/Macros.hh"
 #include "base/Types.hh"
 #include "base/Units.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

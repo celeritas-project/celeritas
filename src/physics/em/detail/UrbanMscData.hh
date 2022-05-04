@@ -10,7 +10,6 @@
 #include "base/Array.hh"
 #include "base/Collection.hh"
 #include "base/Macros.hh"
-#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "sim/Types.hh"
 

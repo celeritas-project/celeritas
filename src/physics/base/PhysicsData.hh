@@ -17,12 +17,10 @@
 #include "physics/em/detail/UrbanMscData.hh"
 #include "physics/grid/ValueGridData.hh"
 #include "physics/grid/XsGridData.hh"
-#include "physics/material/Types.hh"
 #include "sim/Types.hh"
 
 #include "Interaction.hh"
 #include "Secondary.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

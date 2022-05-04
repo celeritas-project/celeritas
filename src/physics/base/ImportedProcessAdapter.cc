@@ -19,7 +19,7 @@
 #include "physics/base/ParticleParams.hh"
 #include "physics/grid/ValueGridBuilder.hh"
 #include "physics/grid/ValueGridData.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

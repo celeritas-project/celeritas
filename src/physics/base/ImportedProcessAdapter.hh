@@ -19,7 +19,7 @@
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportProcess.hh"
 #include "physics/base/Applicability.hh"
-#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 #include "PDGNumber.hh"
 #include "Process.hh"

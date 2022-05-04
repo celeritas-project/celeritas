@@ -15,9 +15,9 @@
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/material/Types.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/ReciprocalDistribution.hh"
+#include "sim/Types.hh"
 
 #include "PhysicsConstants.hh"
 #include "RBDiffXsCalculator.hh"

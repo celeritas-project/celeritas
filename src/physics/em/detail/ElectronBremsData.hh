@@ -8,7 +8,7 @@
 #pragma once
 
 #include "base/Macros.hh"
-#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

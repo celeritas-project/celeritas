@@ -22,9 +22,9 @@
 #include "io/ImportData.hh"
 #include "io/ImportElement.hh"
 #include "io/ImportMaterial.hh"
+#include "sim/Types.hh"
 
 #include "MaterialData.hh"
-#include "Types.hh"
 #include "detail/Utils.hh"
 
 namespace celeritas

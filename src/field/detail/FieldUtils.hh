@@ -14,6 +14,7 @@
 #include "base/ArrayUtils.hh"
 #include "base/Assert.hh"
 #include "field/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

@@ -17,8 +17,8 @@
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialData.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/Types.hh"
 #include "physics/material/detail/Utils.hh"
+#include "sim/Types.hh"
 
 #include "celeritas_test.hh"
 

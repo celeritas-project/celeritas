@@ -17,7 +17,6 @@
 #include "sim/Types.hh"
 
 #include "Applicability.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

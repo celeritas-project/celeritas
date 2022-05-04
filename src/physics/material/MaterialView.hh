@@ -9,10 +9,10 @@
 
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "sim/Types.hh"
 
 #include "ElementView.hh"
 #include "MaterialData.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

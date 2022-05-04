@@ -12,11 +12,10 @@
 #include "base/Span.hh"
 #include "base/Types.hh"
 #include "physics/base/PhysicsData.hh"
-#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/RangeCalculator.hh"
 #include "physics/grid/XsCalculator.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 // Kernel functions
 #include "base/Algorithms.hh"

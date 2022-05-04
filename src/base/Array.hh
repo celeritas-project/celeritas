@@ -116,8 +116,5 @@ CFIF_ bool operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! Fixed-size array for R3 calculations
-using Real3 = Array<real_type, 3>;
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas

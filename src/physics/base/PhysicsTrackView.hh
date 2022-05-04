@@ -18,12 +18,11 @@
 #include "physics/grid/GridIdFinder.hh"
 #include "physics/grid/XsCalculator.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "Interaction.hh"
 #include "PhysicsData.hh"
 #include "Secondary.hh"
-#include "Types.hh"
 #if CELERITAS_DEBUG
 #    include "base/NumericLimits.hh"
 #endif

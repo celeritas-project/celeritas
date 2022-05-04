@@ -11,8 +11,7 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Types.hh"
 #include "physics/base/Units.hh"
-
-#include "Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

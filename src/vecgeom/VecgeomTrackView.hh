@@ -18,7 +18,7 @@
 #include "base/Macros.hh"
 #include "base/NumericLimits.hh"
 #include "base/SoftEqual.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 #include "detail/BVHNavigator.hh"

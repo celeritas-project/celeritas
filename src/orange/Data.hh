@@ -10,7 +10,7 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/OpaqueId.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 #include "sim/Types.hh"
 
 #include "Types.hh"

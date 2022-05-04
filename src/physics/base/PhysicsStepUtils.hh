@@ -22,11 +22,11 @@
 #include "random/Selector.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/GenerateCanonical.hh"
+#include "sim/Types.hh"
 
 #include "CutoffView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsTrackView.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

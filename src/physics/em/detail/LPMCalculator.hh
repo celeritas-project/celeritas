@@ -17,7 +17,7 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "PhysicsConstants.hh"
 

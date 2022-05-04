@@ -19,8 +19,8 @@
 #include "base/Range.hh"
 #include "comm/Logger.hh"
 #include "geometry/GeoMaterialData.hh"
-#include "geometry/Types.hh"
 #include "orange/OrangeParams.hh"
+#include "orange/Types.hh"
 
 namespace celeritas
 {

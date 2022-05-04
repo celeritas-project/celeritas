@@ -17,7 +17,7 @@
 #include "base/Macros.hh"
 #include "base/Span.hh"
 #include "base/Types.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
 #include "physics/grid/NonuniformGrid.hh"
 #include "sim/CoreTrackData.hh"
 #include "sim/SimTrackView.hh"

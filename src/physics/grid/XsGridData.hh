@@ -9,8 +9,8 @@
 
 #include "base/Collection.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 #include "UniformGridData.hh"
 

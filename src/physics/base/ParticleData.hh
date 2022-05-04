@@ -10,8 +10,8 @@
 #include "base/Collection.hh"
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
+#include "sim/Types.hh"
 
-#include "Types.hh"
 #include "Units.hh"
 
 namespace celeritas

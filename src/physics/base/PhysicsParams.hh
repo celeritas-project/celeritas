@@ -15,11 +15,11 @@
 #include "base/Types.hh"
 #include "base/Units.hh"
 #include "sim/ActionInterface.hh"
+#include "sim/Types.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"
 #include "Process.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

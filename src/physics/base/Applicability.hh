@@ -13,9 +13,8 @@
 #include "base/Assert.hh"
 #include "base/OpaqueId.hh"
 #include "base/Types.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
-#include "Types.hh"
 #include "Units.hh"
 
 namespace celeritas

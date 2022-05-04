@@ -8,8 +8,8 @@
 #pragma once
 
 #include "base/Collection.hh"
-#include "geometry/Types.hh"
-#include "physics/material/Types.hh"
+#include "orange/Types.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {

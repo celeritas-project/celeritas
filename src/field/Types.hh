@@ -10,6 +10,7 @@
 #include "base/Array.hh"
 #include "base/ArrayUtils.hh"
 #include "physics/base/Units.hh"
+#include "sim/Types.hh"
 
 namespace celeritas
 {
@@ -22,6 +23,7 @@ namespace celeritas
 struct OdeState
 {
     using MomentumUnits = units::MevMomentum;
+    using Real3         = Array<real_type, 3>;
 
     Real3 pos{0, 0, 0}; //!< Particle position
     Real3 mom{0, 0, 0}; //!< Particle momentum

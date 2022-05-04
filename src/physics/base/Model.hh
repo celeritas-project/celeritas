@@ -12,9 +12,9 @@
 
 #include "base/Types.hh"
 #include "sim/ActionInterface.hh"
+#include "sim/Types.hh"
 
 #include "Applicability.hh"
-#include "Types.hh"
 
 namespace celeritas
 {

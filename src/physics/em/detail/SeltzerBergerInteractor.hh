@@ -15,11 +15,10 @@
 #include "physics/base/Interaction.hh"
 #include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Secondary.hh"
-#include "physics/base/Types.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/ElementView.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "BremFinalStateHelper.hh"
 #include "PhysicsConstants.hh"

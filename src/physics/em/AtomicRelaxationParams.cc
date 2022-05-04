@@ -27,10 +27,9 @@
 #include "physics/base/CutoffParams.hh"
 #include "physics/base/PDGNumber.hh"
 #include "physics/base/ParticleParams.hh"
-#include "physics/base/Types.hh"
 #include "physics/em/AtomicRelaxationData.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "detail/Utils.hh"
 

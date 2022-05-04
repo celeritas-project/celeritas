@@ -16,9 +16,9 @@
 #include "physics/base/Units.hh"
 #include "physics/grid/PolyEvaluator.hh"
 #include "physics/material/MaterialView.hh"
-#include "physics/material/Types.hh"
 #include "random/distributions/BernoulliDistribution.hh"
 #include "random/distributions/UniformRealDistribution.hh"
+#include "sim/Types.hh"
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"

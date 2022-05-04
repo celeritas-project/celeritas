@@ -157,7 +157,7 @@ template<class C1, class C2>
 struct UnitDivide
 {
     //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION auto value() -> decltype(auto)
     {
         return C1::value() / C2::value();
     }
@@ -168,7 +168,7 @@ template<class C1, class C2>
 struct UnitProduct
 {
     //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION real_type value()
+    static CELER_CONSTEXPR_FUNCTION auto value() -> decltype(auto)
     {
         return C1::value() * C2::value();
     }

@@ -14,7 +14,7 @@
 #include "base/Types.hh"
 #include "geometry/GeoParams.hh"
 #include "physics/material/MaterialParams.hh"
-#include "physics/material/Types.hh"
+#include "sim/Types.hh"
 
 #include "GeoMaterialData.hh"
 

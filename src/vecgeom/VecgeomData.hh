@@ -12,7 +12,8 @@
 #include "base/CollectionBuilder.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "geometry/Types.hh"
+#include "orange/Types.hh"
+#include "sim/Types.hh"
 
 #include "detail/VecgeomNavCollection.hh"
 #include "detail/VecgeomTraits.hh"

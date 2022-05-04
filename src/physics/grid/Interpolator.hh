@@ -13,7 +13,7 @@
 #include "base/Assert.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
-#include "physics/base/Types.hh"
+#include "sim/Types.hh"
 
 #include "detail/InterpolatorTraits.hh"
 
