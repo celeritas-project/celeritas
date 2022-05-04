@@ -10,9 +10,6 @@
 #include <memory>
 #include <vector>
 
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Primary.hh"
-
 namespace HepMC3
 {
 class Reader;
@@ -20,6 +17,9 @@ class Reader;
 
 namespace celeritas
 {
+class ParticleParams;
+struct Primary;
+
 //---------------------------------------------------------------------------//
 /*!
  * Read an event record file using the HepMC3 event record library and create

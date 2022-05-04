@@ -103,7 +103,7 @@ along_step_track(celeritas::CoreTrackView const& track)
             &geo,
             phys,
             mat.make_material_view(),
-            sim,
+            sim.num_steps() == 0,
             step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);

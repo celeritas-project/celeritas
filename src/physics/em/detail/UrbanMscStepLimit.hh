@@ -22,7 +22,6 @@
 #include "physics/material/Types.hh"
 #include "random/Selector.hh"
 #include "random/distributions/NormalDistribution.hh"
-#include "sim/SimTrackView.hh"
 
 #include "UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
@@ -57,7 +56,7 @@ class UrbanMscStepLimit
                                             GeoTrackView*            geometry,
                                             const PhysicsTrackView&  physics,
                                             const MaterialView&      material,
-                                            const SimTrackView&      sim,
+                                            bool      is_first_step,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
@@ -127,7 +126,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      GeoTrackView*            geometry,
                                      const PhysicsTrackView&  physics,
                                      const MaterialView&      material,
-                                     const SimTrackView&      sim,
+                                     bool                     is_first_step,
                                      real_type                phys_step)
     : shared_(shared)
     , inc_energy_(particle.energy())
@@ -136,7 +135,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared_.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
-    , on_boundary_(sim.num_steps() == 0 || safety_ == 0)
+    , on_boundary_(is_first_step || safety_ == 0)
     , phys_step_(phys_step)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
