@@ -113,78 +113,80 @@ list(APPEND SOURCES ${_gen_sources})
 # Main library
 list(APPEND SOURCES
   corecel/Assert.cc
-  corecel/io/ColorUtils.cc
   corecel/data/Copier.cc
   corecel/data/DeviceAllocation.cc
-  corecel/io/ScopedTimeAndRedirect.cc
-  corecel/io/StringUtils.cc
-  corecel/sys/KernelDiagnostics.cc
-  corecel/io/ScopedStreamRedirect.cc
-  corecel/sys/TypeDemangler.cc
-  corecel/math/VectorUtils.cc
-  corecel/io/detail/ReprImpl.cc
   corecel/io/BuildOutput.cc
-  celeritas/ext/MpiCommunicator.cc
-  corecel/sys/Device.cc
-  corecel/sys/Environment.cc
+  corecel/io/ColorUtils.cc
   corecel/io/Logger.cc
   corecel/io/LoggerTypes.cc
-  celeritas/ext/ScopedMpiInit.cc
-  corecel/sys/ScopedSignalHandler.cc
+  corecel/io/OutputInterface.cc
+  corecel/io/OutputManager.cc
+  corecel/io/ScopedStreamRedirect.cc
+  corecel/io/ScopedTimeAndRedirect.cc
+  corecel/io/StringUtils.cc
   corecel/io/detail/LoggerMessage.cc
-  celeritas/geo/GeoMaterialParams.cc
+  corecel/io/detail/ReprImpl.cc
+  corecel/math/VectorUtils.cc
+  corecel/sys/Device.cc
+  corecel/sys/Environment.cc
+  corecel/sys/KernelDiagnostics.cc
+  corecel/sys/ScopedSignalHandler.cc
+  corecel/sys/TypeDemangler.cc
+
   orange/OrangeParams.cc
   orange/Types.cc
   orange/construct/SurfaceInserter.cc
   orange/construct/VolumeInserter.cc
   orange/surf/SurfaceIO.cc
-  celeritas/io/ImportProcess.cc
+
+  celeritas/em/AtomicRelaxationParams.cc
+  celeritas/em/detail/Utils.cc
+  celeritas/em/model/BetheHeitlerModel.cc
+  celeritas/em/model/CombinedBremModel.cc
+  celeritas/em/model/EPlusGGModel.cc
+  celeritas/em/model/KleinNishinaModel.cc
+  celeritas/em/model/LivermorePEModel.cc
+  celeritas/em/model/MollerBhabhaModel.cc
+  celeritas/em/model/MuBremsstrahlungModel.cc
+  celeritas/em/model/RayleighModel.cc
+  celeritas/em/model/RelativisticBremModel.cc
+  celeritas/em/model/SeltzerBergerModel.cc
+  celeritas/em/model/UrbanMscModel.cc
+  celeritas/em/process/BremsstrahlungProcess.cc
+  celeritas/em/process/ComptonProcess.cc
+  celeritas/em/process/EIonizationProcess.cc
+  celeritas/em/process/EPlusAnnihilationProcess.cc
+  celeritas/em/process/GammaConversionProcess.cc
+  celeritas/em/process/MultipleScatteringProcess.cc
+  celeritas/em/process/PhotoelectricProcess.cc
+  celeritas/em/process/RayleighProcess.cc
+  celeritas/ext/MpiCommunicator.cc
+  celeritas/ext/ScopedMpiInit.cc
+  celeritas/geo/GeoMaterialParams.cc
+  celeritas/global/ActionInterface.cc
+  celeritas/global/ActionManager.cc
+  celeritas/global/ActionManagerOutput.cc
+  celeritas/grid/ValueGridBuilder.cc
+  celeritas/grid/ValueGridInserter.cc
+  celeritas/grid/ValueGridInterface.cc
+  celeritas/io/AtomicRelaxationReader.cc
   celeritas/io/ImportPhysicsTable.cc
   celeritas/io/ImportPhysicsVector.cc
-  celeritas/io/AtomicRelaxationReader.cc
+  celeritas/io/ImportProcess.cc
   celeritas/io/LivermorePEReader.cc
   celeritas/io/SeltzerBergerReader.cc
+  celeritas/mat/MaterialParams.cc
+  celeritas/mat/detail/Utils.cc
   celeritas/phys/CutoffParams.cc
   celeritas/phys/ImportedProcessAdapter.cc
   celeritas/phys/ParticleParams.cc
   celeritas/phys/PhysicsParams.cc
   celeritas/phys/PhysicsParamsOutput.cc
   celeritas/phys/Process.cc
-  celeritas/em/AtomicRelaxationParams.cc
-  celeritas/em/model/BetheHeitlerModel.cc
-  celeritas/em/process/BremsstrahlungProcess.cc
-  celeritas/em/model/CombinedBremModel.cc
-  celeritas/em/process/ComptonProcess.cc
-  celeritas/em/process/PhotoelectricProcess.cc
-  celeritas/em/model/LivermorePEModel.cc
-  celeritas/em/process/EIonizationProcess.cc
-  celeritas/em/process/EPlusAnnihilationProcess.cc
-  celeritas/em/model/EPlusGGModel.cc
-  celeritas/em/process/GammaConversionProcess.cc
-  celeritas/em/model/KleinNishinaModel.cc
-  celeritas/em/model/MollerBhabhaModel.cc
-  celeritas/em/model/MuBremsstrahlungModel.cc
-  celeritas/em/process/MultipleScatteringProcess.cc
-  celeritas/em/model/RayleighModel.cc
-  celeritas/em/process/RayleighProcess.cc
-  celeritas/em/model/RelativisticBremModel.cc
-  celeritas/em/model/SeltzerBergerModel.cc
-  celeritas/em/model/UrbanMscModel.cc
-  celeritas/em/detail/Utils.cc
-  celeritas/grid/ValueGridBuilder.cc
-  celeritas/grid/ValueGridInserter.cc
-  celeritas/grid/ValueGridInterface.cc
-  celeritas/mat/MaterialParams.cc
-  celeritas/mat/detail/Utils.cc
   celeritas/random/CuHipRngData.cc
   celeritas/random/XorwowRngData.cc
   celeritas/random/XorwowRngParams.cc
   celeritas/random/detail/CuHipRngStateInit.cc
-  celeritas/global/ActionInterface.cc
-  celeritas/global/ActionManager.cc
-  celeritas/global/ActionManagerOutput.cc
-  corecel/io/OutputInterface.cc
-  corecel/io/OutputManager.cc
   celeritas/track/TrackInitParams.cc
   celeritas/track/detail/TrackInitAlgorithms.cc
 )
@@ -319,6 +321,7 @@ if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
 
   root_generate_dictionary(CeleritasRootInterface
+    celeritas/io/ImportData.hh
     celeritas/io/ImportElement.hh
     celeritas/io/ImportMaterial.hh
     celeritas/io/ImportParticle.hh
@@ -326,7 +329,6 @@ if(CELERITAS_USE_ROOT)
     celeritas/io/ImportPhysicsVector.hh
     celeritas/io/ImportProcess.hh
     celeritas/io/ImportVolume.hh
-    celeritas/io/ImportData.hh
     MODULE celeritas_io
     LINKDEF
       celeritas/ext/RootInterfaceLinkDef.h
