@@ -29,6 +29,7 @@
 #include "io/ImportPhysicsTable.hh"
 #include "io/ImportPhysicsVector.hh"
 #include "io/ImportProcess.hh"
+#include "physics/base/PDGNumber.hh"
 
 #include "GeantVersion.hh"
 

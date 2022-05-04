@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/Primary.hh"

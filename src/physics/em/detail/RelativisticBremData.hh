@@ -12,6 +12,7 @@
 #include "base/Macros.hh"
 #include "base/Quantity.hh"
 #include "base/Types.hh"
+#include "physics/base/Units.hh"
 
 #include "ElectronBremsData.hh"
 

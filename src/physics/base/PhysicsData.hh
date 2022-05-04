@@ -20,6 +20,8 @@
 #include "physics/material/Types.hh"
 #include "sim/Types.hh"
 
+#include "Interaction.hh"
+#include "Secondary.hh"
 #include "Types.hh"
 
 namespace celeritas

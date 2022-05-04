@@ -10,8 +10,10 @@
 #include <string>
 #include <unordered_map>
 
+#include "base/Atomics.hh"
 #include "base/CollectionBuilder.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/ParticleTrackView.hh"
 #include "physics/base/PhysicsParams.hh"
 #include "physics/base/PhysicsTrackView.hh"
 #include "sim/SimTrackView.hh"

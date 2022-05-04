@@ -29,6 +29,7 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "sim/CoreTrackData.hh"
 #include "../detail/{class}Data.hh"
 
 namespace celeritas
