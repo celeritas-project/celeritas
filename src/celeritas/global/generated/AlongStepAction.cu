@@ -14,7 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "celeritas/global/detail/AlongStepActionImpl.hh"
+#include "../detail/AlongStepActionImpl.hh"
 
 namespace celeritas
 {

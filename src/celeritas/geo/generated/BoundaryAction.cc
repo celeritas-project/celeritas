@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "celeritas/geo/detail/BoundaryActionImpl.hh"
+#include "../detail/BoundaryActionImpl.hh"
 
 namespace celeritas
 {

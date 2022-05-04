@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "celeritas/phys/detail/DiscreteSelectActionImpl.hh"
+#include "../detail/DiscreteSelectActionImpl.hh"
 
 namespace celeritas
 {

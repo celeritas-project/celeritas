@@ -23,9 +23,9 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas/global/ActionInterface.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas

@@ -4,7 +4,7 @@
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
-Tool to generate sim/InitTrackUtils implementations on the fly.
+Tool to generate celeritas/track/InitTrackUtils implementations on the fly.
 """
 
 import os.path
@@ -26,7 +26,7 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "sim/detail/{clsname}Launcher.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh"
 {extra_includes}
 #include "celeritas/track/TrackInitData.hh"
 
@@ -51,7 +51,7 @@ inline {devicefunc_decl_noargs}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "sim/detail/{clsname}Launcher.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh"
 
 #include "corecel/Types.hh"
 
@@ -74,7 +74,7 @@ namespace generated
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
-#include "sim/detail/{clsname}Launcher.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh"
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/KernelParamCalculator.device.hh"
@@ -172,7 +172,6 @@ KernelDefinition = namedtuple('KernelDefinition', [
 "num_threads",
 "includes"])
 
-
 TEMPLATES = {
     'hh': HH_TEMPLATE,
     'cc': CC_TEMPLATE,
@@ -192,28 +191,28 @@ DEFS = {
             Param("size_type", "num_vacancies"),
         ])),
         "num_vacancies",
-        ["sim/CoreTrackData.hh"]),
+        ["celeritas/global/CoreTrackData.hh"]),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
             Param("Core{Memspace}Ref", "core_data"),
             Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "core_data.states.size()",
-        ["sim/CoreTrackData.hh"]),
+        ["celeritas/global/CoreTrackData.hh"]),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
             Param("Span<const Primary>", "primaries"),
             Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "primaries.size()",
-        ["base/Span.hh", "physics/base/Primary.hh"]),
+        ["corecel/cont/Span.hh", "celeritas/phys/Primary.hh"]),
     "ProcessSecondaries": KernelDefinition(
         Function("process_secondaries", ParamList([
             Param("Core{Memspace}Ref", "core_data"),
             Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "core_data.states.size()",
-        ["sim/CoreTrackData.hh"]),
+        ["celeritas/global/CoreTrackData.hh"]),
 }
 
 def transformed_param_types(params, apply, **kwargs):

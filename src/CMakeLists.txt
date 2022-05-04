@@ -70,19 +70,19 @@ list(APPEND SOURCES
 set(_gen_sources)
 macro(celeritas_gen_interactor class func)
   celeritas_gen(_gen_sources
-    "gen-interactor.py" "physics/em/generated/${class}Interact"
+    "gen-interactor.py" "celeritas/em/generated/${class}Interact"
     --class ${class}  --func ${func}
   )
 endmacro()
 macro(celeritas_gen_action basedir class func)
   celeritas_gen(_gen_sources
-    "gen-action.py" "${basedir}/generated/${class}"
+    "gen-action.py" "celeritas/${basedir}/generated/${class}"
     --class ${class} --func ${func}
   )
 endmacro()
 macro(celeritas_gen_trackinit class)
   celeritas_gen(_gen_sources
-    "gen-trackinit.py" "sim/generated/${class}"
+    "gen-trackinit.py" "celeritas/track/generated/${class}"
     --class ${class}
   )
 endmacro()
@@ -98,10 +98,10 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("physics/base" "AlongStepAction" "along_step")
-celeritas_gen_action("physics/base" "DiscreteSelectAction" "discrete_select")
-celeritas_gen_action("physics/base" "PreStepAction" "pre_step")
-celeritas_gen_action("geometry" "BoundaryAction" "boundary")
+celeritas_gen_action("global" "AlongStepAction" "along_step")
+celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select")
+celeritas_gen_action("phys" "PreStepAction" "pre_step")
+celeritas_gen_action("geo" "BoundaryAction" "boundary")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")

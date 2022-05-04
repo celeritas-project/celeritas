@@ -30,7 +30,7 @@ HH_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "../detail/{class}Data.hh"
+#include "celeritas/em/data/{class}Data.hh"
 
 namespace celeritas
 {{
@@ -58,11 +58,12 @@ inline void {func}_interact(
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "../detail/{class}Launcher.hh"
+#include "{class}Interact.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/em/launcher/{class}Launcher.hh"
 
 namespace celeritas
 {{
@@ -92,15 +93,15 @@ void {func}_interact(
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
-#include "corecel/device_runtime_api.h"
+#include "{class}Interact.hh"
 
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/em/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
-
-#include "../detail/{class}Launcher.hh"
 
 namespace celeritas
 {{
