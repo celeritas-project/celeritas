@@ -147,8 +147,8 @@ Device::Device(int id) : id_(id)
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    name_             = props.name;
-    total_global_mem_ = props.totalGlobalMem;
+    name_               = props.name;
+    total_global_mem_   = props.totalGlobalMem;
     max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
     threads_per_warp_   = props.warpSize;
 #    if CELERITAS_USE_HIP

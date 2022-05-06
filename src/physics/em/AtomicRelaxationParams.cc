@@ -72,7 +72,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
         auto material = inp.materials->get(mat_id);
         for (auto comp_id : range(ElementComponentId{material.num_elements()}))
         {
-            auto el_idx             = material.element_id(comp_id).get();
+            auto el_idx = material.element_id(comp_id).get();
             electron_cutoff[el_idx]
                 = min(electron_cutoff[el_idx],
                       cutoffs.energy(host_data.ids.electron));

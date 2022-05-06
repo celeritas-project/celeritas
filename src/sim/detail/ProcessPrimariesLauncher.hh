@@ -40,8 +40,8 @@ class ProcessPrimariesLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    Span<const Primary>          primaries_;
-    const TrackInitStateRef&     data_;
+    Span<const Primary>      primaries_;
+    const TrackInitStateRef& data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -135,8 +135,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<CombinedBremModel>       model_;
-    celeritas::detail::CombinedBremRef       data_;
+    std::shared_ptr<CombinedBremModel> model_;
+    celeritas::detail::CombinedBremRef data_;
 };
 
 //---------------------------------------------------------------------------//

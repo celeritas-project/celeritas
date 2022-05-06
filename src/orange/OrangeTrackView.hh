@@ -101,8 +101,8 @@ class OrangeTrackView
     const StateRef&  states_;
     ThreadId         thread_;
 
-    real_type          next_step_{0};   //!< Temporary next step
-    detail::OnSurface  next_surface_{}; //!< Temporary next surface
+    real_type         next_step_{0};   //!< Temporary next step
+    detail::OnSurface next_surface_{}; //!< Temporary next surface
 
     //// HELPER FUNCTIONS ////
 

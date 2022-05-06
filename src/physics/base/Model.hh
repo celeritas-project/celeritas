@@ -49,7 +49,7 @@ class Model : public ExplicitActionInterface
   public:
     //@{
     //! Type aliases
-    using SetApplicability  = std::set<Applicability>;
+    using SetApplicability = std::set<Applicability>;
     //@}
 
   public:

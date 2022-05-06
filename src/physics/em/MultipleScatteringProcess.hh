@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Process.hh"
-
 #include "physics/base/ImportedProcessAdapter.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Process.hh"
 #include "physics/material/MaterialParams.hh"
 
 namespace celeritas

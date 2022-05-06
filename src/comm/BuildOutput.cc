@@ -9,9 +9,9 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
-#include "celeritas_cmake_strings.h"
-
 #include "sim/JsonPimpl.hh"
+
+#include "celeritas_cmake_strings.h"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -47,7 +47,7 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
         cfg["CELERITAS_RNG"]        = celeritas_rng;
 
-        obj["config"]               = std::move(cfg);
+        obj["config"] = std::move(cfg);
     }
 
     j->obj = std::move(obj);

@@ -25,7 +25,7 @@ template<MemSpace M>
 class Diagnostic
 {
   public:
-    using EventId           = celeritas::EventId;
+    using EventId  = celeritas::EventId;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
 

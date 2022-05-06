@@ -85,8 +85,8 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<RayleighModel>       model_;
-    celeritas::detail::RayleighRef       model_ref_;
+    std::shared_ptr<RayleighModel> model_;
+    celeritas::detail::RayleighRef model_ref_;
 };
 
 //---------------------------------------------------------------------------//

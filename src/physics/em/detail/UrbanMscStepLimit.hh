@@ -142,7 +142,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     CELER_EXPECT(phys_step > 0);
 
     // Mean slowing-down distance from current energy to zero
-    range_  = helper_.range();
+    range_ = helper_.range();
     // Mean free path for MSC at current energy
     lambda_ = helper_.msc_mfp(inc_energy_);
 
@@ -296,8 +296,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
         result.geom_path = 1 / (result.alpha * w);
         if (true_path < range_)
         {
-            result.geom_path
-                *= (1 - fastpow(1 - true_path / range_, w));
+            result.geom_path *= (1 - fastpow(1 - true_path / range_, w));
         }
     }
     else

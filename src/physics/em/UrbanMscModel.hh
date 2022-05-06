@@ -9,6 +9,7 @@
 
 #include "base/CollectionMirror.hh"
 #include "physics/base/Model.hh"
+
 #include "detail/UrbanMscData.hh"
 
 namespace celeritas

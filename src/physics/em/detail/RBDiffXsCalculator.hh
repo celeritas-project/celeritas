@@ -200,7 +200,7 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
     real_type     epsilon = total_energy_ / gamma_energy;
     LPMCalculator calc_lpm_functions(
         material_, element_, dielectric_suppression_, Energy{gamma_energy});
-    auto          lpm = calc_lpm_functions(epsilon);
+    auto lpm = calc_lpm_functions(epsilon);
 
     real_type y     = gamma_energy / total_energy_;
     real_type onemy = 1 - y;

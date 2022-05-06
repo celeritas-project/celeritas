@@ -36,10 +36,10 @@ class EnergyDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Types
-    using real_type    = celeritas::real_type;
-    using Axis         = celeritas::Axis;
-    using Items        = celeritas::Collection<real_type, Ownership::value, M>;
-    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
+    using real_type = celeritas::real_type;
+    using Axis      = celeritas::Axis;
+    using Items     = celeritas::Collection<real_type, Ownership::value, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
     //!@}
 
@@ -96,10 +96,10 @@ class EnergyDiagnosticLauncher
   public:
     //!@{
     //! Type aliases
-    using real_type    = celeritas::real_type;
-    using ThreadId     = celeritas::ThreadId;
-    using Pointers     = EnergyBinPointers<M>;
-    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
+    using real_type = celeritas::real_type;
+    using ThreadId  = celeritas::ThreadId;
+    using Pointers  = EnergyBinPointers<M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -111,8 +111,8 @@ class EnergyDiagnosticLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const StateRef&     states_;
-    const Pointers&     pointers_;
+    const StateRef& states_;
+    const Pointers& pointers_;
 };
 
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
@@ -159,9 +159,9 @@ void EnergyDiagnostic<M>::mid_step(const StateRef& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
-    pointers.axis           = axis_;
-    pointers.bounds         = bounds_;
-    pointers.edep           = energy_per_bin_;
+    pointers.axis   = axis_;
+    pointers.bounds = bounds_;
+    pointers.edep   = energy_per_bin_;
 
     // Invoke kernel for binning energies
     demo_loop::bin_energy(states, pointers);

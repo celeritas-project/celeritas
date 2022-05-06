@@ -170,7 +170,7 @@ class Transporter : public TransporterBase
     const TransporterInput& input() const final { return input_; }
 
   private:
-    TransporterInput                          input_;
+    TransporterInput                              input_;
     CoreParamsData<Ownership::const_reference, M> params_;
     CollectionStateStore<CoreStateData, M>        states_;
 

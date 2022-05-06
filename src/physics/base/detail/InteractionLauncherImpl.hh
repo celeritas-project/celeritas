@@ -33,8 +33,8 @@ struct InteractionLauncherImpl
     //// DATA ////
 
     CoreRefNative const& core_data;
-    D const&         model_data;
-    F                call_with_track;
+    D const&             model_data;
+    F                    call_with_track;
 
     //// METHODS ////
 
@@ -59,7 +59,7 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
     if (sim.step_limit().action != model_data.ids.action)
         return;
 
-    Interaction result  = this->call_with_track(model_data, track);
+    Interaction result = this->call_with_track(model_data, track);
 
     auto phys = track.make_physics_view();
     if (result.changed())

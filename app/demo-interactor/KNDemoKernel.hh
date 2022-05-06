@@ -31,7 +31,7 @@ using celeritas::Ownership;
 struct DeviceGridParams
 {
     unsigned int threads_per_block = 256; //!< Threads per block
-    bool         sync       = false; //!< Call synchronize after every kernel
+    bool         sync = false; //!< Call synchronize after every kernel
 };
 
 template<Ownership W, MemSpace M>

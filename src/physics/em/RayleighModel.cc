@@ -37,7 +37,7 @@ RayleighModel::RayleighModel(ActionId              id,
     HostValue host_ref;
 
     host_ref.ids.action = id;
-    host_ref.ids.gamma = particles.find(pdg::gamma());
+    host_ref.ids.gamma  = particles.find(pdg::gamma());
     CELER_VALIDATE(host_ref.ids.gamma,
                    << "missing gamma particles (required for "
                    << this->description() << ")");

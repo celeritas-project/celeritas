@@ -22,7 +22,7 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;
-    interface_.ids.gamma   = particles.find(pdg::gamma());
+    interface_.ids.gamma    = particles.find(pdg::gamma());
     interface_.ids.mu_minus = particles.find(pdg::mu_minus());
     interface_.ids.mu_plus  = particles.find(pdg::mu_plus());
 

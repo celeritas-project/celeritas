@@ -26,7 +26,7 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
     interface_.ids.gamma    = particles.find(pdg::gamma());
-    interface_.enable_lpm  = enable_lpm;
+    interface_.enable_lpm   = enable_lpm;
 
     CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "

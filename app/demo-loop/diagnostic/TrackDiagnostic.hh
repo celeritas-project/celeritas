@@ -41,8 +41,8 @@ template<MemSpace M>
 class TrackDiagnostic : public Diagnostic<M>
 {
   public:
-    using size_type         = celeritas::size_type;
-    using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
+    using size_type = celeritas::size_type;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
 
     TrackDiagnostic() : Diagnostic<M>() {}

@@ -68,8 +68,8 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
 
   private:
-    const VolumeRef&     params_;
-    const VolumeRecord   def_;
+    const VolumeRef&   params_;
+    const VolumeRecord def_;
 };
 
 //---------------------------------------------------------------------------//

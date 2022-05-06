@@ -140,13 +140,13 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 
     MaterialData data;
 
-    data.zeff    = zeff;
+    data.zeff = zeff;
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
     const double z16 = std::pow(zeff, 1.0 / 6.0);
     double       fz  = PolyQuad(0.990395, -0.168386, 0.093286)(z16);
-    data.coeffth1 = fz * (1 - 8.7780e-2 / zeff);
-    data.coeffth2 = fz * (4.0780e-2 + 1.7315e-4 * zeff);
+    data.coeffth1    = fz * (1 - 8.7780e-2 / zeff);
+    data.coeffth2    = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
     double z13 = ipow<2>(z16);

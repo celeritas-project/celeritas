@@ -45,7 +45,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 
     {
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        constexpr bool                validate_xml_schema = false;
+        constexpr bool        validate_xml_schema = false;
         vgdml::Frontend::Load(filename, validate_xml_schema);
     }
 

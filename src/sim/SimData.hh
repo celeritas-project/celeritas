@@ -27,10 +27,10 @@ namespace celeritas
  */
 struct SimTrackState
 {
-    TrackId   track_id;      //!< Unique ID for this track
-    TrackId   parent_id;     //!< ID of parent that created it
-    EventId   event_id;      //!< ID of originating event
-    size_type num_steps{0};  //!< Total number of steps taken
+    TrackId   track_id;     //!< Unique ID for this track
+    TrackId   parent_id;    //!< ID of parent that created it
+    EventId   event_id;     //!< ID of originating event
+    size_type num_steps{0}; //!< Total number of steps taken
 
     TrackStatus status{TrackStatus::inactive};
     StepLimit   step_limit;

@@ -75,8 +75,8 @@ struct RayleighData
     {
         CELER_EXPECT(other);
         ids.action = other.ids.action;
-        ids.gamma = other.ids.gamma;
-        params   = other.params;
+        ids.gamma  = other.ids.gamma;
+        params     = other.params;
         return *this;
     }
 };

@@ -93,12 +93,12 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    GeoStateData<W, M>         geometry;
-    MaterialStateData<W, M>    materials;
-    ParticleStateData<W, M>    particles;
-    PhysicsStateData<W, M>     physics;
-    RngStateData<W, M>         rng;
-    SimStateData<W, M>         sim;
+    GeoStateData<W, M>      geometry;
+    MaterialStateData<W, M> materials;
+    ParticleStateData<W, M> particles;
+    PhysicsStateData<W, M>  physics;
+    RngStateData<W, M>      rng;
+    SimStateData<W, M>      sim;
 
     // TODO: move to physics?
     AtomicRelaxStateData<W, M> relaxation;
@@ -121,14 +121,14 @@ struct CoreStateData
     CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry          = other.geometry;
-        materials         = other.materials;
-        particles         = other.particles;
-        physics           = other.physics;
-        rng               = other.rng;
-        sim               = other.sim;
-        relaxation        = other.relaxation;
-        secondaries       = other.secondaries;
+        geometry    = other.geometry;
+        materials   = other.materials;
+        particles   = other.particles;
+        physics     = other.physics;
+        rng         = other.rng;
+        sim         = other.sim;
+        relaxation  = other.relaxation;
+        secondaries = other.secondaries;
         return *this;
     }
 };

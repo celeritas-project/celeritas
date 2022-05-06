@@ -99,9 +99,9 @@ class ParticleProcessLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef&     params_;
-    const StateRef&      states_;
-    ItemsRef&            counts_;
+    const ParamsRef& params_;
+    const StateRef&  states_;
+    ItemsRef&        counts_;
 };
 
 void count_particle_process(

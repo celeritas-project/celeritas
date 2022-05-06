@@ -95,7 +95,7 @@ class ScopedSignalHandler
     void                 swap(ScopedSignalHandler& other) noexcept;
 
   private:
-    using HandlerPtr = void (*)(int);
+    using HandlerPtr    = void (*)(int);
     using PairSigHandle = std::pair<signal_type, HandlerPtr>;
     using VecSH         = std::vector<PairSigHandle>;
 

@@ -26,7 +26,7 @@ struct KernelProperties
 {
     std::string  name;
     unsigned int threads_per_block = 0;
-    unsigned int device_id  = 0;
+    unsigned int device_id         = 0;
 
     int         num_regs  = 0; //!< Number of 32-bit registers per thread
     std::size_t const_mem = 0; //!< Amount of constant memory (per thread) [b]
@@ -162,17 +162,17 @@ inline auto KernelDiagnostics::insert(F*           func,
         // First time this kernel was added
         value_type diag;
 
-        const Device& device = celeritas::device();
-        diag.device_id       = device.device_id();
-        diag.name            = name;
+        const Device& device   = celeritas::device();
+        diag.device_id         = device.device_id();
+        diag.name              = name;
         diag.threads_per_block = threads_per_block;
 
         CELER_DEVICE_PREFIX(FuncAttributes) attr;
         CELER_DEVICE_CALL_PREFIX(
             FuncGetAttributes(&attr, reinterpret_cast<const void*>(func)));
-        diag.num_regs  = attr.numRegs;
-        diag.const_mem = attr.constSizeBytes;
-        diag.local_mem = attr.localSizeBytes;
+        diag.num_regs              = attr.numRegs;
+        diag.const_mem             = attr.constSizeBytes;
+        diag.local_mem             = attr.localSizeBytes;
         diag.max_threads_per_block = attr.maxThreadsPerBlock;
 
         // Get maximum number of active blocks per SM

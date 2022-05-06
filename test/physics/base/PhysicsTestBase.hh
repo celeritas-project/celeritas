@@ -10,6 +10,7 @@
 #include <random>
 
 #include "physics/base/PhysicsParams.hh"
+
 #include "MockProcess.hh"
 #include "gtest/Test.hh"
 
@@ -44,15 +45,15 @@ class PhysicsTestBase : public celeritas::Test
     //!@{
     //! Type aliases
 
-    using SPMaterials      = std::shared_ptr<celeritas::MaterialParams>;
-    using SPParticles      = std::shared_ptr<celeritas::ParticleParams>;
-    using SPPhysics        = std::shared_ptr<celeritas::PhysicsParams>;
-    using SPActionManager  = std::shared_ptr<celeritas::ActionManager>;
-    using PhysicsOptions   = celeritas::PhysicsParams::Options;
-    using Applicability    = celeritas::Applicability;
-    using ActionId         = celeritas::ActionId;
-    using ModelCallback    = std::function<void(ActionId)>;
-    using ModelId          = celeritas::ModelId;
+    using SPMaterials     = std::shared_ptr<celeritas::MaterialParams>;
+    using SPParticles     = std::shared_ptr<celeritas::ParticleParams>;
+    using SPPhysics       = std::shared_ptr<celeritas::PhysicsParams>;
+    using SPActionManager = std::shared_ptr<celeritas::ActionManager>;
+    using PhysicsOptions  = celeritas::PhysicsParams::Options;
+    using Applicability   = celeritas::Applicability;
+    using ActionId        = celeritas::ActionId;
+    using ModelCallback   = std::function<void(ActionId)>;
+    using ModelId         = celeritas::ModelId;
     //!@}
 
   protected:

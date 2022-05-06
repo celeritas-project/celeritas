@@ -112,10 +112,10 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<RelativisticBremModel>       model_;
-    celeritas::detail::RelativisticBremRef       data_;
-    std::shared_ptr<RelativisticBremModel>       model_lpm_;
-    celeritas::detail::RelativisticBremRef       data_lpm_;
+    std::shared_ptr<RelativisticBremModel> model_;
+    celeritas::detail::RelativisticBremRef data_;
+    std::shared_ptr<RelativisticBremModel> model_lpm_;
+    celeritas::detail::RelativisticBremRef data_lpm_;
 };
 
 //---------------------------------------------------------------------------//

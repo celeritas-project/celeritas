@@ -26,8 +26,8 @@ class Sphere
   public:
     //@{
     //! Type aliases
-    using Intersections  = Array<real_type, 2>;
-    using Storage        = Span<const real_type, 4>;
+    using Intersections = Array<real_type, 2>;
+    using Storage       = Span<const real_type, 4>;
     //@}
 
     //// CLASS ATTRIBUTES ////

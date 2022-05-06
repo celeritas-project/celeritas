@@ -37,10 +37,10 @@ interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
             // Allow the particle to interact and create secondaries
             StackAllocator<Secondary> allocate_secondaries(states.secondaries);
 
-            Interactor                interact(allocate_secondaries,
+            Interactor interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
-            auto                      result = interact();
+            auto       result = interact();
 
             // Save secondaries
             states.physics.state[thread_id].secondaries = result.secondaries;

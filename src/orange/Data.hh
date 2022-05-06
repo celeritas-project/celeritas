@@ -113,7 +113,7 @@ struct VolumeData
 
     //// DATA ////
 
-    Items<VolumeRecord> defs;
+    Items<VolumeRecord>                       defs;
     Collection<Connectivity, W, M, SurfaceId> connectivity;
 
     // Storage

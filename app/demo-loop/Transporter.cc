@@ -229,8 +229,8 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
 
     // Create data manager
     CoreRef<M> core_ref;
-    core_ref.params = params_;
-    core_ref.states = states_.ref();
+    core_ref.params              = params_;
+    core_ref.states              = states_.ref();
     const ActionManager& actions = *input_.actions;
 
     // Abort cleanly for interrupt and user-defined signals

@@ -40,7 +40,7 @@ class ScopedTimeAndRedirect
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;
     std::unique_ptr<ScopedStreamRedirect> stderr_;
-    std::string label_;
+    std::string                           label_;
     ScopedTimeLog                         scoped_time_;
 };
 

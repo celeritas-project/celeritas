@@ -120,8 +120,8 @@ class StepLauncher
   public:
     //!@{
     //! Type aliases
-    using size_type     = celeritas::size_type;
-    using ThreadId      = celeritas::ThreadId;
+    using size_type = celeritas::size_type;
+    using ThreadId  = celeritas::ThreadId;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}

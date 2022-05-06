@@ -36,9 +36,9 @@ class UrbanMscScatter
   public:
     //!@{
     //! Type aliases
-    using Energy          = units::MevEnergy;
-    using MscParameters   = detail::UrbanMscParameters;
-    using MaterialData    = detail::UrbanMscMaterialData;
+    using Energy        = units::MevEnergy;
+    using MscParameters = detail::UrbanMscParameters;
+    using MaterialData  = detail::UrbanMscMaterialData;
     //!@}
 
   public:
@@ -249,7 +249,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
  * for large $\theta$, if \f$b \approx 1\f$ and \f$d\f$ is not far from 2.
  */
 template<class Engine>
-CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
+CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
@@ -329,7 +329,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             c = real_type(2.001);
         }
 
-        real_type ea  = std::exp(-xsi);
+        real_type ea = std::exp(-xsi);
         // Mean of cos\theta computed from the distribution g_1(cos\theta)
         real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
 
@@ -521,7 +521,7 @@ CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
                                                           real_type phi) const
 {
     // Sample a unit direction of the displacement
-    constexpr real_type cbeta  = 2.160;
+    constexpr real_type cbeta = 2.160;
     // cbeta1 = 1 - std::exp(-cbeta * constants::pi);
     constexpr real_type cbeta1 = 0.9988703417569197;
 

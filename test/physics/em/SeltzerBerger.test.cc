@@ -146,8 +146,8 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<SeltzerBergerModel>       model_;
-    celeritas::detail::SeltzerBergerRef       data_;
+    std::shared_ptr<SeltzerBergerModel> model_;
+    celeritas::detail::SeltzerBergerRef data_;
 };
 
 //---------------------------------------------------------------------------//

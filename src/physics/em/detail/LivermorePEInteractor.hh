@@ -278,7 +278,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 
         for (; shell_id < shell_end; ++shell_id)
         {
-            const auto& param = shells[shell_id].param[pidx];
+            const auto&                 param = shells[shell_id].param[pidx];
             PolyEvaluator<real_type, 5> eval_poly(
                 param[0], param[1], param[2], param[3], param[4], param[5]);
 

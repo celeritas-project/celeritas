@@ -41,9 +41,7 @@ namespace detail
 /*!
  * Construct empty.
  */
-GeantPhysicsList::GeantPhysicsList() : G4VUserPhysicsList()
-{
-}
+GeantPhysicsList::GeantPhysicsList() : G4VUserPhysicsList() {}
 
 //---------------------------------------------------------------------------//
 /*!

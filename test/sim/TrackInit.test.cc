@@ -101,7 +101,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         core_data.params.cutoffs = cutoffs->device_ref();
 
         // Set up shared RNG data
-        rng        = std::make_shared<RngParams>(12345);
+        rng                  = std::make_shared<RngParams>(12345);
         core_data.params.rng = rng->device_ref();
 
         // Add dummy physics data
@@ -203,16 +203,16 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         return result;
     }
 
-    std::shared_ptr<GeoMaterialParams>            geo_mats;
-    std::shared_ptr<ParticleParams>               particles;
-    std::shared_ptr<MaterialParams>               materials;
-    std::shared_ptr<CutoffParams>                 cutoffs;
-    std::shared_ptr<RngParams>                    rng;
-    std::shared_ptr<TrackInitParams>              track_inits;
-    CollectionMirror<PhysicsParamsData>           physics;
+    std::shared_ptr<GeoMaterialParams>                geo_mats;
+    std::shared_ptr<ParticleParams>                   particles;
+    std::shared_ptr<MaterialParams>                   materials;
+    std::shared_ptr<CutoffParams>                     cutoffs;
+    std::shared_ptr<RngParams>                        rng;
+    std::shared_ptr<TrackInitParams>                  track_inits;
+    CollectionMirror<PhysicsParamsData>               physics;
     CoreStateData<Ownership::value, MemSpace::device> device_states;
     CoreDeviceRef                                     core_data;
-    TrackInitDeviceValue                          track_init_states;
+    TrackInitDeviceValue                              track_init_states;
 };
 
 //---------------------------------------------------------------------------//
