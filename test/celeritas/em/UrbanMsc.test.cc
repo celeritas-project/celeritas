@@ -59,7 +59,6 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
 {
   public:
-    const char* dirname() const override { return "io"; }
     const char* filebase() const override { return "four-steel-slabs"; }
 
   protected:
@@ -82,7 +81,7 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
     void SetUp() override
     {
         RootImporter import_from_root(
-            this->test_data_path("io", "four-steel-slabs.root").c_str());
+            this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
         auto data = import_from_root();
 
         particle_params_ = ParticleParams::from_import(data);

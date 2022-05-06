@@ -73,7 +73,7 @@ class EventReaderTest : public celeritas::Test,
 
 TEST_P(EventReaderTest, read_all_formats)
 {
-    filename_ = this->test_data_path("io", GetParam());
+    filename_ = this->test_data_path("celeritas", GetParam());
 
     // Determine the event record format and open the file
     EventReader read_event(filename_.c_str(), particle_params_);

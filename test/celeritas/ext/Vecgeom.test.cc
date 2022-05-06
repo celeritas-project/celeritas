@@ -48,7 +48,6 @@ class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
     };
 
   public:
-    const char* dirname() const override { return "vecgeom"; }
     const char* fileext() const override { return ".gdml"; }
 
     //! Construct host state (and load geometry) during steup

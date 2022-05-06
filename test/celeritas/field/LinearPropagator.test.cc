@@ -29,7 +29,6 @@ class LinearPropagatorTest
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    const char* dirname() const override { return "geometry"; }
     const char* filebase() const override { return "simple-cms"; }
 
     void SetUp() override { state = StateStore(*this->geometry(), 1); }

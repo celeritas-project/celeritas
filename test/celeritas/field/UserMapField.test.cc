@@ -49,7 +49,7 @@ class UserMapFieldTest : public FieldPropagatorTestBase
 
         // Construct MagFieldMap and save a reference to the host data
         std::string test_file
-            = celeritas::Test::test_data_path("field", "cmsFieldMap.tiny");
+            = celeritas::Test::test_data_path("celeritas", "cmsFieldMap.tiny");
 
         detail::FieldMapParameters params;
         params.delta_grid = units::meter;

@@ -35,9 +35,6 @@ class GeoTestBase : public celeritas::Test
     //!@}
 
   public:
-    //! Default parent directory of test data
-    virtual const char* dirname() const = 0;
-
     //! Daughter class must set up a geometry name
     virtual const char* filebase() const = 0;
 
@@ -105,7 +102,7 @@ auto GeoTestBase<GP>::geometry() const -> const SPConstGeo&
         // ${SOURCE}/test/${dirname}/data/${filebase}${fileext}
         auto        filename  = filebase + this->fileext();
         std::string test_file = celeritas::Test::test_data_path(
-            this->dirname(), filename.c_str());
+            "celeritas", filename.c_str());
 
         // MUST reset geometry before trying to build a new one
         // since VecGeom is all full of globals

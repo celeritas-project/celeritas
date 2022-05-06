@@ -6,7 +6,7 @@
 //! \file TestConfig.cc
 //---------------------------------------------------------------------------//
 
-#include "gtest/detail/TestConfig.hh"
+#include "detail/TestConfig.hh"
 
 namespace celeritas
 {

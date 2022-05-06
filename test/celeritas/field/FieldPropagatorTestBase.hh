@@ -35,7 +35,6 @@ using celeritas::units::MevEnergy;
 class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
 {
   public:
-    const char* dirname() const override { return "field"; }
     const char* filebase() const override { return "field-test"; }
 
     void SetUp() override

@@ -25,14 +25,13 @@ using namespace celeritas;
 
 class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
 {
-    const char* dirname() const override { return "geometry"; }
     const char* filebase() const override { return "simple-cms"; }
 
     void SetUp() override
     {
         // Load ROOT file
         std::string root_file
-            = this->test_data_path("geometry", "simple-cms.root");
+            = this->test_data_path("celeritas", "simple-cms.root");
         auto data = RootImporter(root_file.c_str())();
 
         // Set up shared material data

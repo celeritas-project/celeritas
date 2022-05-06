@@ -98,7 +98,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         this->set_material("Cu");
 
         // Set up Seltzer-Berger cross section data
-        std::string         data_path = this->test_data_path("physics/em", "");
+        std::string         data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Construct SeltzerBergerModel and set host data

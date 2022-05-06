@@ -59,7 +59,6 @@ ITTestInputData ITTestInput::device_ref()
 class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
 {
   protected:
-    const char* dirname() const override { return "sim"; }
     const char* filebase() const override { return "two-boxes"; }
 
     void SetUp() override
