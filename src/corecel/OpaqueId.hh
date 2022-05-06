@@ -16,10 +16,6 @@
 
 namespace celeritas
 {
-// Forward declare meaningless struct to avoid conflict with globally
-// namespaced PTL::Thread class when defining ThreadId type.
-struct Thread;
-
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array.
@@ -119,13 +115,6 @@ inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
     CELER_EXPECT(other);
     return self.unchecked_get() - other.unchecked_get();
 }
-
-//---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
-
-//! Index of the current CUDA thread, using an imaginary class named Thread.
-using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

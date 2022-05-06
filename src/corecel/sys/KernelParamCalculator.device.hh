@@ -17,6 +17,7 @@
 
 #include "Device.hh"
 #include "KernelDiagnostics.hh"
+#include "ThreadId.hh"
 
 /*!
  * \def CELER_LAUNCH_KERNEL
