@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "orange/Types.hh"
 
 #include "detail/QuadraticSolver.hh"

@@ -9,13 +9,14 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/distribution/UrbanMscScatter.hh"
+#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsStepUtils.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/distribution/UrbanMscScatter.hh"
-#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
+
 #include "../CoreTrackData.hh"
 #include "../CoreTrackView.hh"
 

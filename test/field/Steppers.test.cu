@@ -9,10 +9,11 @@
 
 #include <thrust/device_vector.h>
 
-#include "celeritas/Constants.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
@@ -21,7 +22,6 @@
 #include "celeritas/field/UniformMagField.hh"
 #include "celeritas/field/UniformZMagField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
-#include "celeritas/Quantities.hh"
 
 #include "detail/MagTestTraits.hh"
 

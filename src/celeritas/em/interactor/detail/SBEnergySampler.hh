@@ -10,19 +10,19 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/MaterialView.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/Types.hh"
-
-#include "PhysicsConstants.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/distribution/SBEnergyDistHelper.hh"
 #include "celeritas/em/distribution/SBEnergyDistribution.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+
+#include "PhysicsConstants.hh"
 #include "SBPositronXsCorrector.hh"
-#include "celeritas/em/data/SeltzerBergerData.hh"
 
 namespace celeritas
 {

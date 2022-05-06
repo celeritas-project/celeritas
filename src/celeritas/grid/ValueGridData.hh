@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/EnumArray.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 
 namespace celeritas
 {

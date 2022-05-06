@@ -8,9 +8,9 @@
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
-#include "CoreTrackData.hh"
-
 #include "celeritas/track/detail/TrackLauncherImpl.hh"
+
+#include "CoreTrackData.hh"
 
 namespace celeritas
 {

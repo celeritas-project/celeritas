@@ -9,15 +9,15 @@
 
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
-#include "geometry/GeoTestBase.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
+#include "geometry/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

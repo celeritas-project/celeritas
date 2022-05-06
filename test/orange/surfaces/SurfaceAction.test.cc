@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "orange/Data.hh"
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/surf/SurfaceIO.hh"

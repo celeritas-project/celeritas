@@ -15,12 +15,12 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
-#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelDiagnostics.hh"
 #include "corecel/sys/KernelDiagnosticsIO.json.hh"
-#include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

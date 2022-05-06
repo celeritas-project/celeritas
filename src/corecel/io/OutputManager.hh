@@ -12,8 +12,9 @@
 #include <memory>
 #include <string>
 
-#include "OutputInterface.hh"
 #include "corecel/cont/EnumArray.hh"
+
+#include "OutputInterface.hh"
 
 namespace celeritas
 {

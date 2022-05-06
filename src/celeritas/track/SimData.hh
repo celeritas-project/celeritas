@@ -9,13 +9,12 @@
 
 #include <vector>
 
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/Secondary.hh"
-
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {

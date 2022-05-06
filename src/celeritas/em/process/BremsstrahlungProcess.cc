@@ -10,12 +10,11 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
-#include "celeritas/phys/PDGNumber.hh"
-
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

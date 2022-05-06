@@ -9,12 +9,13 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
-#include "corecel/cont/Array.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/Assert.hh"
-#include "../Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Types.hh"
+
+#include "../Types.hh"
 
 namespace celeritas
 {

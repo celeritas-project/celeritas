@@ -7,19 +7,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/PhysicsTrackView.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/Types.hh"
-
-#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
 
 namespace celeritas
 {

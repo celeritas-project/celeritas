@@ -8,9 +8,9 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
 
 namespace celeritas
 {

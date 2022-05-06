@@ -9,24 +9,24 @@
 
 #include <cmath>
 
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
-#include "corecel/Macros.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/data/StackAllocator.hh"
-#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "detail/BhabhaEnergyDistribution.hh"
-#include "celeritas/em/data/MollerBhabhaData.hh"
-#include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 
 namespace celeritas
 {

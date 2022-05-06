@@ -6,16 +6,16 @@
 //! \file physics/base/Physics.test.hh
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/Types.hh"
-#include "celeritas/phys/PhysicsData.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/phys/PhysicsData.hh"
 
 // Kernel functions
 #include "corecel/math/Algorithms.hh"

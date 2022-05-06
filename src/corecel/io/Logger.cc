@@ -11,12 +11,13 @@
 #include <iostream>
 #include <sstream>
 
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "corecel/sys/Environment.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
 #include "corecel/Assert.hh"
-#include "ColorUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/Environment.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+
+#include "ColorUtils.hh"
 
 namespace
 {

@@ -9,16 +9,16 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

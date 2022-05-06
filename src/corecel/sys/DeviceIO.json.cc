@@ -8,6 +8,7 @@
 #include "DeviceIO.json.hh"
 
 #include "celeritas_config.h"
+
 #include "Device.hh"
 
 namespace celeritas

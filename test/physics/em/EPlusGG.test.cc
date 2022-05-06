@@ -5,11 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/EPlusGG.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
 #include "celeritas/em/interactor/EPlusGGInteractor.hh"
+#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 
 #include "../InteractionIO.hh"

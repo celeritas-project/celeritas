@@ -9,14 +9,14 @@
 
 #include <cmath>
 
-#include "celeritas/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 namespace celeritas
 {

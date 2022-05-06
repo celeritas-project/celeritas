@@ -10,16 +10,16 @@
 #include <vector>
 
 #include "celeritas_config.h"
-#include "corecel/math/Atomics.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/Types.hh"
+#include "corecel/math/Atomics.hh"
 #include "orange/Types.hh"
-#include "celeritas/grid/NonuniformGrid.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/grid/NonuniformGrid.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "Diagnostic.hh"

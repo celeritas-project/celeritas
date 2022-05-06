@@ -8,10 +8,9 @@
 #pragma once
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/phys/Model.hh"
-#include "celeritas/mat/MaterialParams.hh"
-
 #include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/Model.hh"
 
 namespace celeritas
 {

@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "DeviceAllocation.hh"
 
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/device_runtime_api.h"
 
 namespace celeritas
 {

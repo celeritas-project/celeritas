@@ -14,9 +14,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/Logger.hh"
-
+#include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas

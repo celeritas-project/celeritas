@@ -10,6 +10,7 @@
 #include <random>
 
 #include "corecel/data/CollectionBuilder.hh"
+
 #include "detail/CuHipRngStateInit.hh"
 
 namespace celeritas

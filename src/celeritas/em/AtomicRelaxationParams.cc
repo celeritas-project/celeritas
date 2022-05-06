@@ -14,23 +14,23 @@
 #include <unordered_map>
 #include <vector>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/OpaqueId.hh"
-#include "corecel/math/Quantity.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "data/AtomicRelaxationData.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/Types.hh"
 
+#include "data/AtomicRelaxationData.hh"
 #include "detail/Utils.hh"
 
 namespace celeritas

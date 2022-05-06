@@ -11,9 +11,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "orange/Types.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "orange/Types.hh"
 #include "celeritas/phys/ParticleData.hh"
 
 #include "FieldTestParams.hh"

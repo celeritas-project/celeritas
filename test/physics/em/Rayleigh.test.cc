@@ -5,14 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/Rayleigh.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/model/RayleighModel.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/interactor/RayleighInteractor.hh"
+#include "celeritas/em/model/RayleighModel.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/Types.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

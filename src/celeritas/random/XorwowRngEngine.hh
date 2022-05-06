@@ -10,10 +10,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "distribution/GenerateCanonical.hh"
 
 #include "XorwowRngData.hh"
 #include "detail/GenerateCanonical32.hh"
+#include "distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

@@ -7,15 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/Types.hh"
-#include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/Secondary.hh"
 #include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/RngData.hh"
 
 #include "DetectorData.hh"

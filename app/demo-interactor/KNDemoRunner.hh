@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/em/data/KleinNishinaData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "KNDemoIO.hh"
 #include "KNDemoKernel.hh"

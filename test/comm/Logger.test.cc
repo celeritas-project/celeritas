@@ -11,9 +11,9 @@
 #include <thread>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
-#include "corecel/sys/Environment.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"

@@ -8,9 +8,9 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "orange/Data.hh"
 #include "orange/Types.hh"
 
-#include "orange/Data.hh"
 #include "VolumeInput.hh"
 
 namespace celeritas

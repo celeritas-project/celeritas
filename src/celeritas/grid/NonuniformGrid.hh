@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 
 namespace celeritas
 {

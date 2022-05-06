@@ -5,10 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/ImportedProcesses.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
-#include "celeritas/phys/Model.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -17,6 +13,10 @@
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/Model.hh"
 
 #include "celeritas_test.hh"
 

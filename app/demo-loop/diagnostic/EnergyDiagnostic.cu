@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "EnergyDiagnostic.hh"
 
+#include "corecel/Macros.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/Macros.hh"
 
 using namespace celeritas;
 

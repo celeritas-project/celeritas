@@ -12,8 +12,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {

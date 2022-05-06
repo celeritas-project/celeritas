@@ -10,12 +10,11 @@
 #include <functional>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/mat/MaterialParams.hh"
-
-#include "celeritas/em/data/LivermorePEData.hh"
 
 namespace celeritas
 {

@@ -11,22 +11,22 @@
 #include <map>
 #include <tuple>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/math/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/VectorUtils.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/generated/AlongStepAction.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/global/ActionManager.hh"
 
 #include "ParticleParams.hh"
-#include "celeritas/global/generated/AlongStepAction.hh"
 #include "generated/DiscreteSelectAction.hh"
 #include "generated/PreStepAction.hh"
 

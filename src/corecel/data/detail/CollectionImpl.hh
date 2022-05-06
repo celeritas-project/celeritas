@@ -10,10 +10,11 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+
 #include "../Copier.hh"
 #include "../DeviceVector.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/Types.hh"
 
 namespace celeritas
 {

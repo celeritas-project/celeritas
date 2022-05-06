@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file orange/Orange.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/Constants.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
+#include "celeritas/Constants.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "celeritas_test.hh"

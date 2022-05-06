@@ -8,9 +8,9 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include "../PhysicsStepUtils.hh"
 

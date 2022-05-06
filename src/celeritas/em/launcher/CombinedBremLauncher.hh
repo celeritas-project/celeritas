@@ -8,10 +8,9 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/CombinedBremData.hh"
 #include "celeritas/em/interactor/CombinedBremInteractor.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

@@ -11,10 +11,10 @@
 #include <random>
 
 // Source includes
-#include "corecel/math/ArrayUtils.hh"
-#include "celeritas/Constants.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Constants.hh"
 
 // Test includes
 #include "orange/OrangeGeoTestBase.hh"

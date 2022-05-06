@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+
 #include "Units.hh"
 
 namespace celeritas

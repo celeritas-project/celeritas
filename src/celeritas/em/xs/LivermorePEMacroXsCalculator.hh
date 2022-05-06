@@ -9,10 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
-#include "LivermorePEMicroXsCalculator.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/mat/MaterialView.hh"
+
+#include "LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
 {

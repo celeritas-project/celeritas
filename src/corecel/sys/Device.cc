@@ -15,12 +15,13 @@
 #    include <omp.h>
 #endif
 
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "Environment.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/Assert.hh"
-#include "Stopwatch.hh"
 #include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+
+#include "Environment.hh"
+#include "Stopwatch.hh"
 
 namespace celeritas
 {

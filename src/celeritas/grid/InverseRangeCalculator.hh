@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/Quantity.hh"
 
 #include "Interpolator.hh"

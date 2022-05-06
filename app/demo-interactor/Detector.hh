@@ -9,8 +9,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
-#include "corecel/data/StackAllocator.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/StackAllocator.hh"
 #include "celeritas/grid/UniformGrid.hh"
 
 #include "DetectorData.hh"

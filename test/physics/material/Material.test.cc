@@ -11,9 +11,9 @@
 #include <limits>
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"

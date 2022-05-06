@@ -9,9 +9,9 @@
 
 #include <cmath>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "celeritas/Constants.hh"
-#include "corecel/Types.hh"
 
 #include "UniformRealDistribution.hh"
 

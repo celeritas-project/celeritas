@@ -10,11 +10,11 @@
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderFactory.h>
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
-#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

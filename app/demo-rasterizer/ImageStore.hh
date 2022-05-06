@@ -9,10 +9,10 @@
 
 #include <vector>
 
-#include "corecel/cont/Array.hh"
-#include "corecel/data/DeviceVector.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "celeritas/Types.hh"
 
 #include "ImageData.hh"

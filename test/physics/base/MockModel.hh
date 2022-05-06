@@ -9,8 +9,8 @@
 
 #include <functional>
 
-#include "celeritas/phys/Model.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/Model.hh"
 
 namespace celeritas_test
 {

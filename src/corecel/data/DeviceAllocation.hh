@@ -11,8 +11,9 @@
 #include <memory>
 #include <utility>
 
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+
 #include "detail/InitializedValue.hh"
 
 namespace celeritas

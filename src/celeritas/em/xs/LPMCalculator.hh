@@ -9,17 +9,16 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
-#include "celeritas/Constants.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
-#include "celeritas/Types.hh"
-
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

@@ -5,8 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file field/UserMapField.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"

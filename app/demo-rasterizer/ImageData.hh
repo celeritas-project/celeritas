@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 
 namespace demo_rasterizer
 {

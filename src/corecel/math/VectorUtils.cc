@@ -8,8 +8,8 @@
 #include "VectorUtils.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {

@@ -11,11 +11,11 @@
 #include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/em/data/CombinedBremData.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"
-#include "celeritas/em/data/CombinedBremData.hh"
 
 namespace celeritas
 {

@@ -8,9 +8,10 @@
 
 #include "Steppers.test.hh"
 
-#include "celeritas/Constants.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
@@ -18,7 +19,6 @@
 #include "celeritas/field/UniformMagField.hh"
 #include "celeritas/field/UniformZMagField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
-#include "celeritas/Quantities.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"

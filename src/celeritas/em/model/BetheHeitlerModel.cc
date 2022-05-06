@@ -8,8 +8,8 @@
 #include "BetheHeitlerModel.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/em/generated/BetheHeitlerInteract.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

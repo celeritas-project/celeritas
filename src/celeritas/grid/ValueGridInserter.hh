@@ -9,10 +9,10 @@
 
 #include <vector>
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/Types.hh"
 
 #include "XsGridData.hh"
 

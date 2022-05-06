@@ -12,9 +12,9 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonPimpl.hh"
 
 #include "ActionManager.hh"
-#include "corecel/io/JsonPimpl.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif

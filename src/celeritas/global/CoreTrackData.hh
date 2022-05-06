@@ -8,16 +8,15 @@
 #pragma once
 
 #include "corecel/data/StackAllocatorData.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
+#include "celeritas/mat/MaterialData.hh"
 #include "celeritas/phys/CutoffData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/em/data/AtomicRelaxationData.hh"
-#include "celeritas/mat/MaterialData.hh"
 #include "celeritas/random/RngData.hh"
-
 #include "celeritas/track/SimData.hh"
 
 namespace celeritas

@@ -9,11 +9,12 @@
 
 #include <cstddef>
 
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/device_runtime_api.h"
+
 #include "Device.hh"
 #include "KernelDiagnostics.hh"
 

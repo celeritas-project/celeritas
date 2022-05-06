@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/data/StackAllocatorData.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/UniformGridData.hh"
 
 #ifndef CELER_DEVICE_COMPILE
 #    include "corecel/data/CollectionBuilder.hh"

@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/SoftEqual.hh"
+
 #include "distribution/GenerateCanonical.hh"
 
 namespace celeritas

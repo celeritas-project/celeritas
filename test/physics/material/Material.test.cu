@@ -10,9 +10,9 @@
 #include <thrust/device_vector.h>
 
 #include "corecel/device_runtime_api.h"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 
 using thrust::raw_pointer_cast;

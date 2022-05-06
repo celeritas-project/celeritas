@@ -11,9 +11,10 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/global/TrackLauncher.hh"
+
 #include "../detail/AlongStepActionImpl.hh"
 
 namespace celeritas
@@ -22,8 +23,7 @@ namespace generated
 {
 namespace
 {
-__global__ void along_step_kernel(CoreDeviceRef const data
-)
+__global__ void along_step_kernel(CoreDeviceRef const data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < data.states.size()))

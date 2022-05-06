@@ -6,21 +6,21 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/grid/PolyEvaluator.hh"
-#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-#include "celeritas/Types.hh"
 
-#include "celeritas/em/data/UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
 
 namespace celeritas

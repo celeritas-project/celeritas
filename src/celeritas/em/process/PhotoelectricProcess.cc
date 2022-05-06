@@ -10,12 +10,11 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
-
-#include "celeritas/em/model/LivermorePEModel.hh"
 
 namespace celeritas
 {

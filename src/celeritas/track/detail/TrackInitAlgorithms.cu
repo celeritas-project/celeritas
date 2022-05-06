@@ -11,8 +11,8 @@
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
-#include "corecel/data/Copier.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/Copier.hh"
 
 #include "Utils.hh"
 

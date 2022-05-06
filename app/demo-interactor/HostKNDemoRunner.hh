@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/em/data/KleinNishinaData.hh"
 
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"

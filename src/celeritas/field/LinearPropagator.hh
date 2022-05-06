@@ -8,7 +8,6 @@
 #pragma once
 
 #include "orange/Types.hh"
-
 #include "celeritas/geo/GeoTrackView.hh"
 
 namespace celeritas

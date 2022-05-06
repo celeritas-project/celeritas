@@ -5,12 +5,11 @@
 //---------------------------------------------------------------------------//
 //! \file field/UserParamField.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"
-#include "field/FieldPropagator.test.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 
@@ -18,6 +17,7 @@
 #include "UserField.test.hh"
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
+#include "field/FieldPropagator.test.hh"
 
 using celeritas::detail::CMSParameterizedField;
 

@@ -11,8 +11,8 @@
 #include <string>
 
 #include "corecel/Types.hh"
-#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 #include "Applicability.hh"
 

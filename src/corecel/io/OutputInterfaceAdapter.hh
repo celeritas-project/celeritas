@@ -10,9 +10,10 @@
 #include <memory>
 #include <string>
 
+#include "corecel/Assert.hh"
+
 #include "JsonPimpl.hh"
 #include "OutputInterface.hh"
-#include "corecel/Assert.hh"
 
 namespace celeritas
 {

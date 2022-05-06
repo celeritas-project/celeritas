@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "EnergyLossHelper.hh"
 #include "EnergyLossDeltaDistribution.hh"
 #include "EnergyLossGammaDistribution.hh"
 #include "EnergyLossGaussianDistribution.hh"
+#include "EnergyLossHelper.hh"
 #include "EnergyLossUrbanDistribution.hh"
 
 namespace celeritas

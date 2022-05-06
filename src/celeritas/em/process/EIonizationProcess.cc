@@ -8,10 +8,9 @@
 #include "EIonizationProcess.hh"
 
 #include "corecel/Assert.hh"
+#include "celeritas/em/model/MollerBhabhaModel.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
-
-#include "celeritas/em/model/MollerBhabhaModel.hh"
 
 namespace celeritas
 {

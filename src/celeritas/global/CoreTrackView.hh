@@ -8,13 +8,13 @@
 #pragma once
 
 #include "corecel/data/StackAllocator.hh"
+#include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
-#include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
 

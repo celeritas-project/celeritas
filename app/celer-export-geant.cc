@@ -9,12 +9,12 @@
 
 #include <iostream>
 
-#include "celeritas/ext/MpiCommunicator.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
 
 using namespace celeritas;
 using std::cout;

@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/Types.hh"
 
 namespace celeritas

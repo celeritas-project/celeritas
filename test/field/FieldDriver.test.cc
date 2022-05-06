@@ -8,9 +8,9 @@
 
 #include "celeritas/field/FieldDriver.hh"
 
-#include "celeritas/Constants.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/field/MagFieldEquation.hh"

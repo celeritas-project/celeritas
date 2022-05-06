@@ -7,15 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "Physics.test.hh"
 
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
-#include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/grid/XsCalculator.hh"
 
 #include "PhysicsTestBase.hh"
 #include "celeritas_test.hh"

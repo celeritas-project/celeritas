@@ -13,17 +13,17 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "geometry/GeoTestBase.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/random/RngParams.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
 #include "celeritas_test.hh"
+#include "geometry/GeoTestBase.hh"
 
 namespace celeritas_test
 {

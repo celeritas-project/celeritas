@@ -5,15 +5,15 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/BetheHeitler.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
 #include "celeritas/em/model/BetheHeitlerModel.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/Types.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

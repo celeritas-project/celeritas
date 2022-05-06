@@ -9,12 +9,12 @@
 
 #include "corecel/math/Atomics.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/global/CoreTrackData.hh"
+
 #include "../SimTrackView.hh"
 #include "../TrackInitData.hh"
-
 #include "Utils.hh"
 
 namespace celeritas

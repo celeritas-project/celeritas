@@ -5,13 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/CutoffView.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/phys/CutoffView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

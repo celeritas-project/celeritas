@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/phys/Model.hh"
-
 #include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/phys/Model.hh"
 
 namespace celeritas
 {

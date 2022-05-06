@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "RDemoRunner.hh"
 
+#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/ColorUtils.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/sys/Stopwatch.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/geo/GeoParams.hh"
 
 #include "ImageTrackView.hh"

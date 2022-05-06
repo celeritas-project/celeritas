@@ -9,8 +9,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Array.hh"
 #include "corecel/Assert.hh"
+
+#include "Array.hh"
 
 namespace celeritas
 {

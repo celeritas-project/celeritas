@@ -10,17 +10,17 @@
 #include <algorithm>
 #include <vector>
 
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
-#include "VolumeInput.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/OpaqueId.hh"
-#include "corecel/cont/Span.hh"
+#include "VolumeInput.hh"
 
 namespace celeritas
 {

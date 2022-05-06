@@ -11,6 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+
 #include "../data/AtomicRelaxationData.hh"
 
 namespace celeritas

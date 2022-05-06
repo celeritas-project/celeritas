@@ -7,32 +7,32 @@
 //---------------------------------------------------------------------------//
 #include <random>
 
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/em/distribution/UrbanMscScatter.hh"
+#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
+#include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/em/process/EIonizationProcess.hh"
+#include "celeritas/em/process/MultipleScatteringProcess.hh"
+#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "geometry/GeoTestBase.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/global/ActionManager.hh"
+#include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/em/process/EIonizationProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/em/distribution/UrbanMscScatter.hh"
-#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
-#include "celeritas/grid/RangeCalculator.hh"
-#include "random/DiagnosticRngEngine.hh"
-#include "celeritas/global/ActionManager.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "celeritas_test.hh"
+#include "geometry/GeoTestBase.hh"
 #include "gtest/Test.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

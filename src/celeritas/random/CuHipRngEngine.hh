@@ -9,9 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
-#include "distribution/GenerateCanonical.hh"
 
 #include "CuHipRngData.hh"
+#include "distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

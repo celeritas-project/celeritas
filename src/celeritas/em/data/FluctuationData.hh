@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas

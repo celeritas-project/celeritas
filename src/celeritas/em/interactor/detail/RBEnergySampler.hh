@@ -10,18 +10,18 @@
 #include <cmath>
 
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/xs/RBDiffXsCalculator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
-#include "celeritas/Types.hh"
 
 #include "PhysicsConstants.hh"
-#include "celeritas/em/xs/RBDiffXsCalculator.hh"
-#include "celeritas/em/data/RelativisticBremData.hh"
 
 namespace celeritas
 {

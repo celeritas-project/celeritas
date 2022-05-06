@@ -10,11 +10,11 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "orange/Types.hh"
 
 #include "VolumeInput.hh"
-#include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {

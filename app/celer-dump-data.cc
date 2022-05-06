@@ -9,13 +9,13 @@
 #include <iomanip>
 #include <iostream>
 
-#include "corecel/io/Join.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 using namespace celeritas;

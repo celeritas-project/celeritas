@@ -10,17 +10,16 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "celeritas/em/generated/SeltzerBergerInteract.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
 #include "celeritas/mat/MaterialParams.hh"
-
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
-#include "celeritas/em/generated/SeltzerBergerInteract.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

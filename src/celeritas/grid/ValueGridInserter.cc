@@ -8,6 +8,7 @@
 #include "ValueGridInserter.hh"
 
 #include "corecel/Assert.hh"
+
 #include "XsGridData.hh"
 
 namespace celeritas

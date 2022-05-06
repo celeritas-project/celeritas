@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

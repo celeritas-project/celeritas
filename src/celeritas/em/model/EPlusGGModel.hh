@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
-
-#include "celeritas/em/data/EPlusGGData.hh"
 
 namespace celeritas
 {

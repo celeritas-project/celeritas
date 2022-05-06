@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsTestBase.hh"
 
+#include "celeritas/global/ActionManager.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/global/ActionManager.hh"
 
 using namespace celeritas;
 

@@ -12,23 +12,23 @@
 #include <initializer_list>
 
 #include "celeritas_config.h"
-#include "corecel/cont/Array.hh"
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/io/Logger.hh"
+#include "celeritas/Types.hh"
+
+#include "Data.hh"
+#include "Types.hh"
 #include "construct/SurfaceInput.hh"
 #include "construct/SurfaceInserter.hh"
 #include "construct/VolumeInput.hh"
 #include "construct/VolumeInserter.hh"
 #include "univ/detail/LogicStack.hh"
-#include "celeritas/Types.hh"
-
-#include "Data.hh"
-#include "Types.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>

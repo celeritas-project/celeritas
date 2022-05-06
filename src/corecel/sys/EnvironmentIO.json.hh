@@ -9,8 +9,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Environment.hh"
 #include "corecel/Assert.hh"
+
+#include "Environment.hh"
 
 namespace celeritas
 {

@@ -12,9 +12,9 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
-#include "celeritas/Types.hh"
 
 #include "Applicability.hh"
 

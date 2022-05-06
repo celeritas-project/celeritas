@@ -12,9 +12,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "random/SequenceEngine.hh"
 
 #include "celeritas_test.hh"
+#include "random/SequenceEngine.hh"
 
 using namespace celeritas;
 using MaterialParamsRef = MaterialParams::HostRef;

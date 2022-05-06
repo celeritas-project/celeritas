@@ -10,9 +10,9 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/data/Collection.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas

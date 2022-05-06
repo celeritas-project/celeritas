@@ -11,12 +11,12 @@
 #include <vector>
 
 #include "corecel/data/CollectionMirror.hh"
-#include "ParticleParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "CutoffData.hh"
 #include "CutoffView.hh"
+#include "ParticleParams.hh"
 
 namespace celeritas
 {

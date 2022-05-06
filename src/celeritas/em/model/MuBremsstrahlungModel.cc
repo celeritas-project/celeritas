@@ -8,8 +8,8 @@
 #include "MuBremsstrahlungModel.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

@@ -9,10 +9,10 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "FieldParamsData.hh"
 #include "MagFieldEquation.hh"

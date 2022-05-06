@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+
 #include "detail/AlgorithmsImpl.hh"
 
 namespace celeritas

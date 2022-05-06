@@ -8,8 +8,8 @@
 #include "Collection.test.hh"
 
 #include "corecel/device_runtime_api.h"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 using celeritas::ItemId;
 using celeritas::ItemRange;

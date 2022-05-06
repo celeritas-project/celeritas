@@ -12,11 +12,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -10,6 +10,7 @@
 #include <new>
 
 #include "corecel/math/Atomics.hh"
+
 #include "StackAllocatorData.hh"
 
 namespace celeritas

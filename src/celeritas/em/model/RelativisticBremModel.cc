@@ -9,16 +9,16 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Constants.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/generated/RelativisticBremInteract.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

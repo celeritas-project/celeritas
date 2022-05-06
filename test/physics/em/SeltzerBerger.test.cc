@@ -5,19 +5,19 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/cont/Range.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
-#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/process/BremsstrahlungProcess.hh"
-#include "celeritas/em/model/SeltzerBergerModel.hh"
 #include "celeritas/em/distribution/SBEnergyDistribution.hh"
-#include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
 #include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
+#include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/em/model/SeltzerBergerModel.hh"
+#include "celeritas/em/process/BremsstrahlungProcess.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

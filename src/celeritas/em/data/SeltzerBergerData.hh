@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/TwodGridData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/TwodGridData.hh"
 
 #include "ElectronBremsData.hh"
 

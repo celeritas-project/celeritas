@@ -10,10 +10,10 @@
 #include <functional>
 #include <vector>
 
-#include "celeritas/phys/Model.hh"
-#include "celeritas/phys/Process.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/Process.hh"
 
 namespace celeritas_test
 {

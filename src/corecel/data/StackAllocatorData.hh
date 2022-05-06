@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+
 #include "Collection.hh"
 #include "CollectionAlgorithms.hh"
 #include "CollectionBuilder.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 
 namespace celeritas
 {

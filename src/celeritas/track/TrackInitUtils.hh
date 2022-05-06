@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Copier.hh"
-
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackData.hh"
+
 #include "TrackInitData.hh"
 #include "detail/TrackInitAlgorithms.hh"
 #include "generated/InitTracks.hh"

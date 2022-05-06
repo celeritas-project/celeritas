@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 namespace demo_interactor

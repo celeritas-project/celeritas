@@ -7,10 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/OpaqueId.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/OpaqueId.hh"
-#include "Types.hh"
 #include "celeritas/Types.hh"
 
 #include "Types.hh"

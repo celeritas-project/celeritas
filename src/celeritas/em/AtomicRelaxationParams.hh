@@ -9,10 +9,10 @@
 
 #include <functional>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/Types.hh"
-#include "celeritas/io/ImportAtomicRelaxation.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/io/ImportAtomicRelaxation.hh"
 
 #include "data/AtomicRelaxationData.hh"
 

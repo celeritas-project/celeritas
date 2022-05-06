@@ -9,17 +9,17 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
-#include "celeritas/Constants.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 #include "LPMCalculator.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
-#include "celeritas/em/data/RelativisticBremData.hh"
 
 namespace celeritas
 {

@@ -9,12 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/mat/ElementSelector.hh"
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/interactor/LivermorePEInteractor.hh"
 #include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/ElementSelector.hh"
 
 namespace celeritas
 {

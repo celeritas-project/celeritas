@@ -11,8 +11,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/track/TrackInitParams.hh"
 

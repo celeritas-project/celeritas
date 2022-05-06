@@ -7,23 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/ArrayUtils.hh"
-#include "celeritas/Constants.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/MuBremsstrahlungData.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "celeritas/em/data/MuBremsstrahlungData.hh"
 
 namespace celeritas
 {

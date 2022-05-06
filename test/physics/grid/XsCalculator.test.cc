@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <cmath>
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"

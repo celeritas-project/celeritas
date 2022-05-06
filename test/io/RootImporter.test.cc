@@ -9,13 +9,13 @@
 
 #include <algorithm>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/mat/MaterialView.hh"
 
 #include "celeritas_test.hh"
 

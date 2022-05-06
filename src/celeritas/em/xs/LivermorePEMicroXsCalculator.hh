@@ -7,16 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/GenericXsCalculator.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
-#include "celeritas/Types.hh"
-
-#include "celeritas/em/data/LivermorePEData.hh"
 
 namespace celeritas
 {

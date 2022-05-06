@@ -8,13 +8,12 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/MiniStack.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/CutoffView.hh"
+#include "corecel/cont/MiniStack.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/IsotropicDistribution.hh"
-
 #include "celeritas/em/data/AtomicRelaxationData.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
 {

@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas

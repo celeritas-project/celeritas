@@ -9,8 +9,9 @@
 
 #include <type_traits>
 
-#include "DeviceAllocation.hh"
 #include "corecel/cont/Span.hh"
+
+#include "DeviceAllocation.hh"
 #include "detail/InitializedValue.hh"
 
 namespace celeritas

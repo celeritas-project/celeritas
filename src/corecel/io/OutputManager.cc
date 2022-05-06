@@ -12,9 +12,10 @@
 #    include <nlohmann/json.hpp>
 #endif
 
-#include "JsonPimpl.hh"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+
+#include "JsonPimpl.hh"
 #include "Logger.hh"
 
 namespace celeritas

@@ -8,8 +8,8 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/phys/Secondary.hh"
 
 #include "SimData.hh"

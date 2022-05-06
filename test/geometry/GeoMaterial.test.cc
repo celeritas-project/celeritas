@@ -6,13 +6,13 @@
 //! \file geometry/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"

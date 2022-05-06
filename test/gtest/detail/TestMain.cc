@@ -12,11 +12,11 @@
 #include "celeritas_config.h"
 #include "celeritas_version.h"
 #include "corecel/io/ColorUtils.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelDiagnostics.hh"
-#include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/MpiOperations.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 

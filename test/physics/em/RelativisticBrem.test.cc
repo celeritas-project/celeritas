@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/RelativisticBrem.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/Units.hh"
-#include "celeritas/phys/CutoffView.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/em/interactor/RelativisticBremInteractor.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/xs/RBDiffXsCalculator.hh"
-#include "celeritas/em/interactor/RelativisticBremInteractor.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

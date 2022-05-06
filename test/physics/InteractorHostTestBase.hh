@@ -11,27 +11,26 @@
 #include <random>
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/mat/MaterialData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffData.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/mat/MaterialData.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/Types.hh"
 
 // Test helpers
-#include "random/DiagnosticRngEngine.hh"
-
 #include "gtest/Test.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 namespace celeritas
 {

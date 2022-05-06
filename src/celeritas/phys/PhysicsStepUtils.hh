@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
-#include "corecel/math/NumericLimits.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/distribution/EnergyLossDistribution.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
@@ -22,7 +23,6 @@
 #include "celeritas/random/Selector.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
-#include "celeritas/Types.hh"
 
 #include "CutoffView.hh"
 #include "ParticleTrackView.hh"

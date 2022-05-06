@@ -10,9 +10,8 @@
 #include <memory>
 #include <utility>
 
-#include "celeritas/grid/ValueGridBuilder.hh"
-
 #include "celeritas/em/model/EPlusGGModel.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 
 namespace celeritas
 {

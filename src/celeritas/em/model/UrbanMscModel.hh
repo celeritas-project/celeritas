@@ -8,9 +8,8 @@
 #pragma once
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/phys/Model.hh"
-
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/phys/Model.hh"
 
 namespace celeritas
 {

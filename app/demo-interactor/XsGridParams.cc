@@ -12,10 +12,10 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/UniformGrid.hh"
 #include "celeritas/grid/UniformGridData.hh"

@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 

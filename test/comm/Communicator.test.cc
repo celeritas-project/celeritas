@@ -5,9 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file comm/Communicator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/ext/MpiCommunicator.hh"
-
 #include "corecel/cont/Span.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/MpiOperations.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 

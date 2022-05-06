@@ -10,8 +10,8 @@
 #include <cassert>
 #include <limits>
 
-#include "corecel/Assert.hh"
 #include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
 
 namespace
 {

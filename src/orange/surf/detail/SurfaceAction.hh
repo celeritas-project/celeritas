@@ -9,8 +9,8 @@
 
 #include <utility>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/Types.hh"
 
 #include "../CylCentered.hh"

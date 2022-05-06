@@ -5,8 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/KleinNishina.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 

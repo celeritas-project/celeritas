@@ -13,13 +13,13 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionStateStore.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/random/RngParams.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/random/RngParams.hh"
 
 namespace celeritas
 {

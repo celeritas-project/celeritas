@@ -14,10 +14,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/sys/Stopwatch.hh"
-
-#include "corecel/sys/Environment.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/Stopwatch.hh"
 
 namespace celeritas
 {

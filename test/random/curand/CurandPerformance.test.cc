@@ -12,10 +12,10 @@
 #endif
 
 #include "corecel/cont/Range.hh"
-#include "random/DiagnosticRngEngine.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "celeritas_test.hh"
+#include "random/DiagnosticRngEngine.hh"
 
 using namespace celeritas_test;
 

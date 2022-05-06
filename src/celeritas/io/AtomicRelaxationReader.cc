@@ -9,9 +9,9 @@
 
 #include <fstream>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

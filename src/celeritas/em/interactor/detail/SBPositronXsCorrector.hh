@@ -9,12 +9,11 @@
 
 #include <cmath>
 
-#include "celeritas/Constants.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
-
 #include "celeritas/em/distribution/SBEnergyDistHelper.hh"
+#include "celeritas/mat/ElementView.hh"
 
 namespace celeritas
 {

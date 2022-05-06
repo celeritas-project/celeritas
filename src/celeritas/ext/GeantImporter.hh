@@ -10,9 +10,9 @@
 #include <memory>
 
 #include "celeritas_config.h"
+#include "celeritas/io/ImportData.hh"
 
 #include "GeantSetup.hh"
-#include "celeritas/io/ImportData.hh"
 
 // Geant4 forward declaration
 class G4VPhysicalVolume;

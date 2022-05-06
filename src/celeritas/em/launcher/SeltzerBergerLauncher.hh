@@ -9,10 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

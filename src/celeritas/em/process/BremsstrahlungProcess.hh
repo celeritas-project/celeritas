@@ -9,10 +9,10 @@
 
 #include <memory>
 
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
-#include "celeritas/mat/MaterialParams.hh"
 
 namespace celeritas
 {

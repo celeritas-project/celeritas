@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 

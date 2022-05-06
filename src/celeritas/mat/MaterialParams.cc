@@ -11,18 +11,18 @@
 #include <cmath>
 #include <utility>
 
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Constants.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/Quantity.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/io/Logger.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
-#include "celeritas/Types.hh"
 
 #include "MaterialData.hh"
 #include "detail/Utils.hh"

@@ -10,13 +10,13 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/Types.hh"
-#include "GeoParams.hh"
-#include "celeritas/mat/MaterialParams.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 #include "GeoMaterialData.hh"
+#include "GeoParams.hh"
 
 namespace celeritas
 {

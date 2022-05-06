@@ -8,8 +8,8 @@
 #include "KleinNishinaModel.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/em/generated/KleinNishinaInteract.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

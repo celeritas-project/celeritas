@@ -9,8 +9,8 @@
 
 #include <cstring>
 
-#include "corecel/Macros.hh"
 #include "corecel/device_runtime_api.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

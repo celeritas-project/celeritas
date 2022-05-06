@@ -9,16 +9,16 @@
 
 #include <utility>
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportMaterial.hh"
-#include "CutoffData.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "CutoffData.hh"
 #include "ParticleParams.hh"
 
 namespace celeritas

@@ -9,11 +9,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/Types.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "MaterialView.hh"
 

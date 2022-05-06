@@ -10,8 +10,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "corecel/math/Atomics.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Atomics.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsParams.hh"

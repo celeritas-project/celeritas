@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "KernelDiagnosticsIO.json.hh"
 
-#include "KernelDiagnostics.hh"
 #include "corecel/cont/Range.hh"
+
+#include "KernelDiagnostics.hh"
 
 namespace celeritas
 {

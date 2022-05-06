@@ -14,9 +14,10 @@
 #include <vector>
 
 #include "corecel/cont/Array.hh"
-#include "corecel/data/Collection.hh"
-#include "Join.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+
+#include "Join.hh"
 #include "detail/ReprImpl.hh"
 
 namespace celeritas

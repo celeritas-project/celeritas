@@ -9,10 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/interactor/RelativisticBremInteractor.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

@@ -8,17 +8,17 @@
 #include "celeritas/phys/CutoffParams.hh"
 
 #include "corecel/cont/Range.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/detail/Utils.hh"
-#include "celeritas/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "celeritas_test.hh"
 

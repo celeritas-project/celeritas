@@ -10,12 +10,11 @@
 #include <functional>
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/io/ImportSBTable.hh"
-#include "celeritas/phys/Model.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
-
 #include "celeritas/em/data/SeltzerBergerData.hh"
+#include "celeritas/io/ImportSBTable.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/phys/Model.hh"
 
 namespace celeritas
 {

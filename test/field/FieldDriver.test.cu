@@ -10,11 +10,11 @@
 #include <thrust/device_vector.h>
 
 #include "corecel/device_runtime_api.h"
-#include "celeritas/Constants.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"

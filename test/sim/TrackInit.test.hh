@@ -10,9 +10,9 @@
 #include "celeritas_config.h"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/track/SimTrackView.hh"
 #include "celeritas/track/TrackInitData.hh"
 

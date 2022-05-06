@@ -9,9 +9,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
 namespace demo_rasterizer

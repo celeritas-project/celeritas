@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "detail/SurfaceAction.hh"
 

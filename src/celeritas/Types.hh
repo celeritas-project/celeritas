@@ -8,9 +8,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "orange/Types.hh"
 
 namespace celeritas

@@ -10,8 +10,9 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
-#include "NumericLimits.hh"
 #include "corecel/Types.hh"
+
+#include "NumericLimits.hh"
 
 namespace celeritas
 {

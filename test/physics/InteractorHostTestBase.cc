@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "InteractorHostTestBase.hh"
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/mat/MaterialTrackView.hh"
 
 #include "gtest/detail/Macros.hh"
 

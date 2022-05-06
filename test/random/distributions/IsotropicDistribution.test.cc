@@ -9,8 +9,8 @@
 
 #include <random>
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

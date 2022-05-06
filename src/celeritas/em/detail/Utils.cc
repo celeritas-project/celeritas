@@ -9,8 +9,8 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 
 namespace celeritas
 {

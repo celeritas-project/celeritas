@@ -5,16 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file physics/em/CombinedBrem.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/cont/Range.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
-#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/interactor/CombinedBremInteractor.hh"
+#include "celeritas/em/model/CombinedBremModel.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

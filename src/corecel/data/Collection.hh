@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/Types.hh"
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas

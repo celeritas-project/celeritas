@@ -9,9 +9,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
-#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

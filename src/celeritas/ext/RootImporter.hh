@@ -9,8 +9,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-
 #include "celeritas/io/ImportData.hh"
+
 #include "detail/TFileUniquePtr.hh"
 
 namespace celeritas

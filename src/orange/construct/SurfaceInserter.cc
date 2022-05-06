@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceInserter.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "orange/surf/SurfaceAction.hh"
 
 #include "SurfaceInput.hh"
-#include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {

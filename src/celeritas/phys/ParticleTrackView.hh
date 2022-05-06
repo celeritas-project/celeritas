@@ -9,15 +9,14 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 
 #include "ParticleData.hh"
 #include "ParticleView.hh"
-#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

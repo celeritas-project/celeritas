@@ -11,11 +11,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/Types.hh"
-#include "BoundingBox.hh"
-#include "Types.hh"
+#include "corecel/data/CollectionMirror.hh"
 
+#include "BoundingBox.hh"
 #include "Data.hh"
 #include "Types.hh"
 

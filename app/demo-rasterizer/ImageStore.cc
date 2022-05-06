@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ImageStore.hh"
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 
 using celeritas::range;
 

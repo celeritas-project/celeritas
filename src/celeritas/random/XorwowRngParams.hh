@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/CollectionMirror.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
 
 #include "XorwowRngData.hh"
 

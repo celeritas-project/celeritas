@@ -10,10 +10,11 @@
 #include <algorithm>
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
-#include "celeritas/Constants.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Constants.hh"
+
 #include "../MaterialData.hh"
 
 namespace celeritas

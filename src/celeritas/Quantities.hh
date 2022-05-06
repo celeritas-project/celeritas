@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Constants.hh"
 #include "corecel/math/Quantity.hh"
+
+#include "Constants.hh"
 #include "Units.hh"
 
 namespace celeritas

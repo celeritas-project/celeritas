@@ -8,19 +8,18 @@
 #include "RayleighModel.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/detail/RangeImpl.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/RayleighData.hh"
+#include "celeritas/em/generated/RayleighInteract.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
-#include "celeritas/Types.hh"
-
-#include "celeritas/em/data/RayleighData.hh"
-#include "celeritas/em/generated/RayleighInteract.hh"
 
 namespace celeritas
 {

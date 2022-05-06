@@ -9,8 +9,8 @@
 
 #include <algorithm>
 
-#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 #include "MockModel.hh"
 

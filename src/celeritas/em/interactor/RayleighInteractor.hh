@@ -7,20 +7,19 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/random/Selector.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
-#include "celeritas/Types.hh"
-
-#include "celeritas/em/data/RayleighData.hh"
 
 namespace celeritas
 {

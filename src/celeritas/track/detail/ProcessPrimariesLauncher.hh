@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/cont/Span.hh"
+
 #include "../TrackInitData.hh"
 
 namespace celeritas

@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "orange/Types.hh"
 #include "celeritas/Types.hh"
 

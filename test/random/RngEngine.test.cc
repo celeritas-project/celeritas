@@ -14,8 +14,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 

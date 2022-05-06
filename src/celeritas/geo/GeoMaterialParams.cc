@@ -13,14 +13,15 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "GeoMaterialData.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
+
+#include "GeoMaterialData.hh"
 
 namespace celeritas
 {

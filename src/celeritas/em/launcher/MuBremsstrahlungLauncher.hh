@@ -9,10 +9,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackView.hh"
-
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
 #include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

@@ -10,19 +10,8 @@
 #include <algorithm>
 #include <string>
 
-#include "corecel/io/StringUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/io/EventReader.hh"
-#include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/PhysicsParams.hh"
+#include "corecel/io/StringUtils.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -31,9 +20,20 @@
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/random/RngParams.hh"
+#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/io/EventReader.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
 

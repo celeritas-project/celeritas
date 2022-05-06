@@ -7,18 +7,18 @@
 //---------------------------------------------------------------------------//
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "geometry/GeoTestBase.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/Quantities.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
+#include "geometry/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

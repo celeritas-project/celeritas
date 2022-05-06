@@ -9,10 +9,10 @@
 
 #include <cmath>
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
 #include "detail/InterpolatorTraits.hh"

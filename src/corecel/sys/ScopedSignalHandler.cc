@@ -10,9 +10,10 @@
 #include <algorithm>
 #include <csignal>
 
-#include "Environment.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+
+#include "Environment.hh"
 
 namespace
 {

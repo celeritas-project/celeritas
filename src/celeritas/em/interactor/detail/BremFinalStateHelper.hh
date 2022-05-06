@@ -7,11 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/phys/Secondary.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
-
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

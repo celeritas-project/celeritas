@@ -9,8 +9,8 @@
 
 #include <VecGeom/base/Vector3D.h>
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 
 namespace celeritas

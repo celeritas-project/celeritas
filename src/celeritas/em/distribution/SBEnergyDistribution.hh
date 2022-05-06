@@ -9,11 +9,11 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/grid/TwodSubgridCalculator.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 #include "SBEnergyDistHelper.hh"
-#include "celeritas/em/data/SeltzerBergerData.hh"
 
 namespace celeritas
 {

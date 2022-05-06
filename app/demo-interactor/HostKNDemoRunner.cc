@@ -10,16 +10,16 @@
 #include <iostream>
 #include <random>
 
-#include "corecel/math/ArrayUtils.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/Secondary.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include "Detector.hh"

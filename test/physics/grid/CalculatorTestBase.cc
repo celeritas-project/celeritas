@@ -10,8 +10,8 @@
 #include <cmath>
 #include <vector>
 
-#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/Interpolator.hh"
 

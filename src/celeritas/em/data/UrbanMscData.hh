@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 

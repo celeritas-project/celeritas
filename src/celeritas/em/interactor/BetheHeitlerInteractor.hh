@@ -7,24 +7,23 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
-#include "corecel/Macros.hh"
-#include "corecel/data/StackAllocator.hh"
-#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
+#include "celeritas/em/xs/LPMCalculator.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "celeritas/em/data/BetheHeitlerData.hh"
-#include "celeritas/em/xs/LPMCalculator.hh"
-#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {

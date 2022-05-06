@@ -10,8 +10,8 @@
 #include <cstddef>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {

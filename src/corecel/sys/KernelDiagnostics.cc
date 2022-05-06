@@ -11,8 +11,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
-#include "Device.hh"
 #include "corecel/io/Logger.hh"
+
+#include "Device.hh"
 
 namespace celeritas
 {

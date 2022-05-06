@@ -9,13 +9,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/generated/MollerBhabhaInteract.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/Quantities.hh"
-
-#include "celeritas/em/data/MollerBhabhaData.hh"
-#include "celeritas/em/generated/MollerBhabhaInteract.hh"
 
 namespace celeritas
 {

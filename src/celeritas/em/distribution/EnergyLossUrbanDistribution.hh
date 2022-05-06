@@ -9,15 +9,15 @@
 
 #include <cmath>
 
-#include "corecel/math/Algorithms.hh"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "EnergyLossHelper.hh"
-#include "celeritas/em/data/FluctuationData.hh"
 #include "EnergyLossGaussianDistribution.hh"
+#include "EnergyLossHelper.hh"
 
 namespace celeritas
 {

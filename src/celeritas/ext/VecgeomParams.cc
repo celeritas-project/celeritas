@@ -20,12 +20,12 @@
 #    include <cuda_runtime_api.h>
 #endif
 
-#include "corecel/io/Join.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/io/Logger.hh"
 
 #include "VecgeomData.hh"
 

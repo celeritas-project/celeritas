@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/Assert.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/data/StackAllocator.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 
 #include "Detector.hh"

@@ -12,9 +12,9 @@
 #include <thrust/host_vector.h>
 
 #include "corecel/device_runtime_api.h"
-#include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 using thrust::raw_pointer_cast;
 

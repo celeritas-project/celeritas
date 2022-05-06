@@ -8,8 +8,9 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "ColorUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
+
+#include "ColorUtils.hh"
 #include "Logger.hh"
 
 namespace celeritas

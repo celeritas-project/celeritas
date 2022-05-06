@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "EnergyDiagnostic.hh"
 
-#include "corecel/math/Atomics.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Atomics.hh"
 
 using namespace celeritas;
 

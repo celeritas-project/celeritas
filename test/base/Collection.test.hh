@@ -6,9 +6,9 @@
 //! \file base/Collection.test.hh
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Collection.hh"
 
 namespace celeritas_test
 {

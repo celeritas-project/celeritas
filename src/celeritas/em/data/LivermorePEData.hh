@@ -8,11 +8,11 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/grid/XsGridData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/XsGridData.hh"
 
 namespace celeritas
 {

@@ -10,12 +10,12 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/data/CollectionMirror.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/Types.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"

@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/Span.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
-#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {

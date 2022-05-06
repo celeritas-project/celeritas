@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Constants.hh"
 
 namespace celeritas
 {
