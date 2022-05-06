@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device(celeritas::Device::from_round_robin(comm));
+    celeritas::activate_device(celeritas::make_device(comm));
 
     std::string   filename = args[1];
     std::ifstream infile;

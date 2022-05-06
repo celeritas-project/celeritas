@@ -17,9 +17,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class MpiCommunicator;
-
-//---------------------------------------------------------------------------//
 /*!
  * Manage attributes of the GPU.
  *
@@ -52,9 +49,6 @@ class Device
   public:
     // Number of devices available on the local compute node
     static int num_devices();
-
-    // Construct in round-robin fashion from an MPI communicator
-    static Device from_round_robin(const MpiCommunicator& comm);
 
     //// CONSTRUCTORS ////
 

@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/MpiOperations.hh
+//! \brief MPI parallel functionality
 //---------------------------------------------------------------------------//
 #pragma once
 

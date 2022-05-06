@@ -18,7 +18,6 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
 
 #include "Environment.hh"
 #include "Stopwatch.hh"
@@ -99,7 +98,7 @@ Device& global_device()
 } // namespace
 
 //---------------------------------------------------------------------------//
-// DEVICE FUNCTIONS
+// MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of available devices.
@@ -112,22 +111,6 @@ int Device::num_devices()
 {
     static const int result = determine_num_devices();
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize device in a round-robin fashion from a communicator.
- */
-Device Device::from_round_robin(const MpiCommunicator& comm)
-{
-    int num_devices = Device::num_devices();
-    if (num_devices == 0)
-    {
-        // Null device
-        return {};
-    }
-
-    return Device(comm.rank() % num_devices);
 }
 
 //---------------------------------------------------------------------------//
