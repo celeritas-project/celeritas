@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoKernel.cu
+//! \file demo-interactor/KNDemoKernel.cu
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
-#include "base/ArrayUtils.hh"
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/StackAllocator.hh"
-#include "comm/Device.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "random/RngEngine.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/em/interactor/KleinNishinaInteractor.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/random/RngEngine.hh"
 
 #include "Detector.hh"
 #include "KernelUtils.hh"

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LogicStack.test.cc
+//! \file orange/universes/detail/LogicStack.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/universes/detail/LogicStack.hh"
+#include "orange/univ/detail/LogicStack.hh"
 
 #include "celeritas_test.hh"
 

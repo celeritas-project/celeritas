@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Orange.test.cc
+//! \file orange/Orange.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Constants.hh"
+#include "celeritas/Constants.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 

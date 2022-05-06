@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TsaiUrbanDistribution.test.cc
+//! \file physics/em/TsaiUrbanDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/em/detail/TsaiUrbanDistribution.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 
 #include <random>
 
-#include "base/Constants.hh"
-#include "base/Units.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Units.hh"
 
 #include "celeritas_test.hh"
 

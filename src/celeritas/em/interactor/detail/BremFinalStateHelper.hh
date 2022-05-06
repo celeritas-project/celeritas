@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremFinalStateHelper.hh
+//! \file celeritas/em/interactor/detail/BremFinalStateHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "TsaiUrbanDistribution.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Device.cc
+//! \file corecel/sys/Device.cc
 //---------------------------------------------------------------------------//
 #include "Device.hh"
 
@@ -15,12 +15,12 @@
 #    include <omp.h>
 #endif
 
-#include "Communicator.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 #include "Environment.hh"
-#include "Logger.hh"
-#include "base/Assert.hh"
-#include "base/Stopwatch.hh"
-#include "base/device_runtime_api.h"
+#include "corecel/io/Logger.hh"
+#include "corecel/Assert.hh"
+#include "Stopwatch.hh"
+#include "corecel/device_runtime_api.h"
 
 namespace celeritas
 {

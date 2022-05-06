@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NonMasterResultPrinter.cc
+//! \file gtest/detail/NonMasterResultPrinter.cc
 //---------------------------------------------------------------------------//
 #include "NonMasterResultPrinter.hh"
 
 #include <iostream>
 #include <sstream>
 
-#include "base/ColorUtils.hh"
+#include "corecel/io/ColorUtils.hh"
 
 namespace celeritas
 {

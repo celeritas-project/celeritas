@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CollectionStateStore.hh
+//! \file corecel/data/CollectionStateStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Assert.hh"
-#include "OpaqueId.hh"
-#include "Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

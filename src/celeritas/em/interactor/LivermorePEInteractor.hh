@@ -3,27 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEInteractor.hh
+//! \file celeritas/em/interactor/LivermorePEInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/AtomicRelaxationHelper.hh"
-#include "physics/grid/GenericXsCalculator.hh"
-#include "physics/grid/PolyEvaluator.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "AtomicRelaxationHelper.hh"
+#include "celeritas/grid/GenericXsCalculator.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "LivermorePEData.hh"
-#include "LivermorePEMicroXsCalculator.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
 {

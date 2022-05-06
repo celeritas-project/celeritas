@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantLoggerAdapter.cc
+//! \file celeritas/ext/detail/GeantLoggerAdapter.cc
 //---------------------------------------------------------------------------//
 #include "GeantLoggerAdapter.hh"
 
 #include <cctype>
 #include <G4strstreambuf.hh>
 
-#include "comm/Logger.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

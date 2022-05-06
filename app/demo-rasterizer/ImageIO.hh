@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImageIO.hh
+//! \file demo-rasterizer/ImageIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "base/Array.hh"
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace demo_rasterizer
 {

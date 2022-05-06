@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TwodGridCalculator.hh
+//! \file celeritas/grid/TwodGridCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Collection.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
 
 #include "TwodGridData.hh"
 #include "TwodSubgridCalculator.hh"

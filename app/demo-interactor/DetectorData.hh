@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DetectorData.hh
+//! \file demo-interactor/DetectorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/OpaqueId.hh"
-#include "base/StackAllocatorData.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/UniformGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/data/StackAllocatorData.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/UniformGridData.hh"
+#include "celeritas/Types.hh"
 
 #ifndef CELER_DEVICE_COMPILE
-#    include "base/CollectionBuilder.hh"
+#    include "corecel/data/CollectionBuilder.hh"
 #endif
 
 namespace demo_interactor

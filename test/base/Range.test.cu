@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Range.test.cu
+//! \file base/Range.test.cu
 //---------------------------------------------------------------------------//
 #include "Range.test.hh"
 
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/Range.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Device.hh"
 
 using celeritas::range;
 

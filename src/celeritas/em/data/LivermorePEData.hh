@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEData.hh
+//! \file celeritas/em/data/LivermorePEData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/XsGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomTraits.hh
+//! \file celeritas/ext/detail/VecgeomTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <VecGeom/volumes/PlacedVolume.h>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

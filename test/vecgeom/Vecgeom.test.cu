@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Vecgeom.test.cu
+//! \file vecgeom/Vecgeom.test.cu
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "base/KernelParamCalculator.device.hh"
-#include "vecgeom/VecgeomTrackView.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/ext/VecgeomTrackView.hh"
 
 using thrust::raw_pointer_cast;
 using namespace celeritas;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file AtomicRelaxationParams.cc
+//! \file celeritas/em/AtomicRelaxationParams.cc
 //---------------------------------------------------------------------------//
 #include "AtomicRelaxationParams.hh"
 
@@ -14,22 +14,22 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/OpaqueId.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "base/ScopedTimeLog.hh"
-#include "base/SoftEqual.hh"
-#include "comm/Logger.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/AtomicRelaxationData.hh"
-#include "physics/material/MaterialParams.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "data/AtomicRelaxationData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/Types.hh"
 
 #include "detail/Utils.hh"
 

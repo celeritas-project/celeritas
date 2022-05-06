@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NumericLimits.hh
+//! \file corecel/math/NumericLimits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cfloat>
 #include <climits>
 
-#include "Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

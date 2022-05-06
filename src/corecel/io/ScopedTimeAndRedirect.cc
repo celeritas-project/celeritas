@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedTimeAndRedirect.cc
+//! \file corecel/io/ScopedTimeAndRedirect.cc
 //---------------------------------------------------------------------------//
 #include "ScopedTimeAndRedirect.hh"
 
 #include <iostream>
 
-#include "base/ColorUtils.hh"
-#include "comm/Logger.hh"
+#include "ColorUtils.hh"
+#include "Logger.hh"
 
 namespace celeritas
 {

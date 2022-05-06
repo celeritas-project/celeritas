@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CombinedBremData.hh
+//! \file celeritas/em/data/CombinedBremData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 #include "RelativisticBremData.hh"
 #include "SeltzerBergerData.hh"

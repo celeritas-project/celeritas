@@ -1,9 +1,9 @@
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/detail/ProcessPrimariesLauncher.hh"
-#include "base/Span.hh"
-#include "physics/base/Primary.hh"
-#include "sim/TrackInitData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/track/detail/ProcessPrimariesLauncher.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {

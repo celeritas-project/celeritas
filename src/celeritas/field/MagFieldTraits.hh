@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagFieldTraits.hh
+//! \file celeritas/field/MagFieldTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "field/FieldDriver.hh"
-#include "field/FieldPropagator.hh"
-#include "field/MagFieldEquation.hh"
+#include "FieldDriver.hh"
+#include "FieldPropagator.hh"
+#include "MagFieldEquation.hh"
 
 namespace celeritas
 {

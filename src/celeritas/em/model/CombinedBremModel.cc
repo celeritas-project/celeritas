@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CombinedBremModel.cc
+//! \file celeritas/em/model/CombinedBremModel.cc
 //---------------------------------------------------------------------------//
 #include "CombinedBremModel.hh"
 
 #include <memory>
 #include <utility>
 
-#include "base/Assert.hh"
-#include "base/Quantity.hh"
-#include "physics/base/Applicability.hh"
-#include "physics/em/RelativisticBremModel.hh"
-#include "physics/em/SeltzerBergerModel.hh"
-#include "physics/em/detail/CombinedBremData.hh"
-#include "physics/em/detail/PhysicsConstants.hh"
-#include "physics/em/detail/RelativisticBremData.hh"
-#include "physics/em/detail/SeltzerBergerData.hh"
-#include "physics/em/generated/CombinedBremInteract.hh"
+#include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "RelativisticBremModel.hh"
+#include "SeltzerBergerModel.hh"
+#include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
+#include "celeritas/em/generated/CombinedBremInteract.hh"
 
 namespace celeritas
 {

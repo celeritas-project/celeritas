@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossFluctuation.test.cc
+//! \file physics/em/EnergyLossFluctuation.test.cc
 //---------------------------------------------------------------------------//
-#include "base/CollectionStateStore.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/EnergyLossHelper.hh"
-#include "physics/em/detail/EnergyLossDeltaDistribution.hh"
-#include "physics/em/detail/EnergyLossGammaDistribution.hh"
-#include "physics/em/detail/EnergyLossGaussianDistribution.hh"
-#include "physics/em/detail/EnergyLossUrbanDistribution.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/em/distribution/EnergyLossHelper.hh"
+#include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
+#include "celeritas/em/distribution/EnergyLossGammaDistribution.hh"
+#include "celeritas/em/distribution/EnergyLossGaussianDistribution.hh"
+#include "celeritas/em/distribution/EnergyLossUrbanDistribution.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "random/DiagnosticRngEngine.hh"
 
 #include "celeritas_test.hh"

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryIO.hh
+//! \file physics/SecondaryIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <iosfwd>
 
-#include "physics/base/Secondary.hh"
+#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {

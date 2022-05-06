@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LoggerTypes.cc
+//! \file corecel/io/LoggerTypes.cc
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

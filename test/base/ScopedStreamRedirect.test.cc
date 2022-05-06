@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedStreamRedirect.test.cc
+//! \file base/ScopedStreamRedirect.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 
 #include "celeritas_test.hh"
 

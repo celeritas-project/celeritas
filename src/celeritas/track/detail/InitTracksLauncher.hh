@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InitTracksLauncher.hh
+//! \file celeritas/track/detail/InitTracksLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geometry/GeoMaterialView.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
-#include "sim/TrackInitData.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "../SimTrackView.hh"
+#include "../TrackInitData.hh"
 
 #include "Utils.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include "base/ArrayIO.hh"
+#    include "corecel/cont/ArrayIO.hh"
 #endif
 
 namespace celeritas

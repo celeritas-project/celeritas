@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CuHipRngStateInit.cc
+//! \file celeritas/random/detail/CuHipRngStateInit.cc
 //---------------------------------------------------------------------------//
-#include "random/detail/CuHipRngStateInit.hh"
+#include "CuHipRngStateInit.hh"
 
-#include "base/Span.hh"
-#include "random/CuHipRngData.hh"
-#include "random/CuHipRngEngine.hh"
+#include "corecel/cont/Span.hh"
+#include "../CuHipRngData.hh"
+#include "../CuHipRngEngine.hh"
 
 namespace celeritas
 {

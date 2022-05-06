@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEModel.hh
+//! \file celeritas/em/model/LivermorePEModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <functional>
 
-#include "base/CollectionMirror.hh"
-#include "io/ImportLivermorePE.hh"
-#include "physics/base/Model.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/io/ImportLivermorePE.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
-#include "detail/LivermorePEData.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
 
 namespace celeritas
 {

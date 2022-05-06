@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BoundingBox.test.cc
+//! \file geometry/BoundingBox.test.cc
 //---------------------------------------------------------------------------//
-#include "geometry/BoundingBox.hh"
+#include "orange/BoundingBox.hh"
 
 #include "celeritas_test.hh"
 

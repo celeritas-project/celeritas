@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabha.test.cc
+//! \file physics/em/MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/detail/MollerBhabhaInteractor.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

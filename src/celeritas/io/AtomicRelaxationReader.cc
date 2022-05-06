@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file AtomicRelaxationReader.cc
+//! \file celeritas/io/AtomicRelaxationReader.cc
 //---------------------------------------------------------------------------//
 #include "AtomicRelaxationReader.hh"
 
 #include <fstream>
 
-#include "base/SoftEqual.hh"
-#include "comm/Environment.hh"
-#include "comm/Logger.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

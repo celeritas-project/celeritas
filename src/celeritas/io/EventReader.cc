@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EventReader.cc
+//! \file celeritas/io/EventReader.cc
 //---------------------------------------------------------------------------//
 #include "EventReader.hh"
 
 #include <HepMC3/GenEvent.h>
 #include <HepMC3/ReaderFactory.h>
 
-#include "base/ArrayUtils.hh"
-#include "comm/Logger.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Primary.hh"
-#include "physics/base/Units.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

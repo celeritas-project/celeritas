@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Test.cc
+//! \file gtest/Test.cc
 //---------------------------------------------------------------------------//
 #include "Test.hh"
 
@@ -11,7 +11,7 @@
 #include <cctype>
 #include <fstream>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 #include "detail/TestConfig.hh"
 

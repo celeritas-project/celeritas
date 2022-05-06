@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BoundaryActionLauncher.hh
+//! \file celeritas/geo/detail/BoundaryActionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "sim/CoreTrackView.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

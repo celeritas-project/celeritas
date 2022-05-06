@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.test.cu
+//! \file random/RngEngine.test.cu
 //---------------------------------------------------------------------------//
 
-#include "random/RngEngine.hh"
+#include "celeritas/random/RngEngine.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
 
 #include "RngEngine.test.hh"
 

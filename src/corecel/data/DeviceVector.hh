@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceVector.hh
+//! \file corecel/data/DeviceVector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
 #include "DeviceAllocation.hh"
-#include "Span.hh"
+#include "corecel/cont/Span.hh"
 #include "detail/InitializedValue.hh"
 
 namespace celeritas

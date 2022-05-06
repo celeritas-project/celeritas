@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.device.hh
+//! \file corecel/sys/KernelParamCalculator.device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
 
-#include "Assert.hh"
-#include "Macros.hh"
-#include "OpaqueId.hh"
-#include "Types.hh"
-#include "base/device_runtime_api.h"
-#include "comm/Device.hh"
-#include "comm/KernelDiagnostics.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+#include "corecel/device_runtime_api.h"
+#include "Device.hh"
+#include "KernelDiagnostics.hh"
 
 /*!
  * \def CELER_LAUNCH_KERNEL

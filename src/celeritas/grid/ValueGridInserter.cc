@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ValueGridInserter.cc
+//! \file celeritas/grid/ValueGridInserter.cc
 //---------------------------------------------------------------------------//
 #include "ValueGridInserter.hh"
 
-#include "base/Assert.hh"
-#include "physics/grid/XsGridData.hh"
+#include "corecel/Assert.hh"
+#include "XsGridData.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InteractorHostTestBase.hh
+//! \file physics/InteractorHostTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,22 +11,22 @@
 #include <random>
 #include <vector>
 
-#include "base/Array.hh"
-#include "base/ArrayIO.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/Span.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffData.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/MaterialData.hh"
-#include "physics/material/MaterialParams.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffData.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/MaterialData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/Types.hh"
 
 // Test helpers
 #include "random/DiagnosticRngEngine.hh"

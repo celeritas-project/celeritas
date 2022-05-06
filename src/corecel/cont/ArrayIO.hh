@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ArrayIO.hh
+//! \file corecel/cont/ArrayIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

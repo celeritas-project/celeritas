@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsTestBase.cc
+//! \file physics/base/PhysicsTestBase.cc
 //---------------------------------------------------------------------------//
 #include "PhysicsTestBase.hh"
 
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/material/MaterialParams.hh"
-#include "sim/ActionManager.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/global/ActionManager.hh"
 
 using namespace celeritas;
 

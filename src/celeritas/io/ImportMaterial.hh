@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportMaterial.hh
+//! \file celeritas/io/ImportMaterial.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 #include "ImportElement.hh"
 

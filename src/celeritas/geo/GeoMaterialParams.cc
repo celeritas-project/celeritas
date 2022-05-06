@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoMaterialParams.cc
+//! \file celeritas/geo/GeoMaterialParams.cc
 //---------------------------------------------------------------------------//
 #include "GeoMaterialParams.hh"
 
@@ -12,13 +12,13 @@
 #include <unordered_map>
 #include <utility>
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Join.hh"
-#include "base/OpaqueId.hh"
-#include "base/Range.hh"
-#include "comm/Logger.hh"
-#include "geometry/GeoMaterialData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
+#include "GeoMaterialData.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
 

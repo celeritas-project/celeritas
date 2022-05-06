@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MockProcess.cc
+//! \file physics/base/MockProcess.cc
 //---------------------------------------------------------------------------//
 #include "MockProcess.hh"
 
 #include <algorithm>
 
-#include "physics/material/MaterialView.hh"
-#include "sim/ActionManager.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/global/ActionManager.hh"
 
 #include "MockModel.hh"
 

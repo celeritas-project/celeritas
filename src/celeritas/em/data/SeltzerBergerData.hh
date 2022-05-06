@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerData.hh
+//! \file celeritas/em/data/SeltzerBergerData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/TwodGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/TwodGridData.hh"
+#include "celeritas/Types.hh"
 
 #include "ElectronBremsData.hh"
 

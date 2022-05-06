@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XsCalculator.hh
+//! \file celeritas/grid/XsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Quantity.hh"
+#include "corecel/math/Quantity.hh"
 
 #include "Interpolator.hh"
 #include "UniformGrid.hh"

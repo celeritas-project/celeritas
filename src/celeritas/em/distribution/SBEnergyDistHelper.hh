@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SBEnergyDistHelper.hh
+//! \file celeritas/em/distribution/SBEnergyDistHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/TwodGridCalculator.hh"
-#include "physics/grid/TwodSubgridCalculator.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/TwodGridCalculator.hh"
+#include "celeritas/grid/TwodSubgridCalculator.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
-#include "SeltzerBergerData.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 
 namespace celeritas
 {

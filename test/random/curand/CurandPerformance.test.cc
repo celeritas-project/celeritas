@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CurandPerformance.test.cc
+//! \file random/curand/CurandPerformance.test.cc
 //---------------------------------------------------------------------------//
 #include "CurandPerformance.test.hh"
 
@@ -11,9 +11,9 @@
 #    include <curand_kernel.h>
 #endif
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 #include "random/DiagnosticRngEngine.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "celeritas_test.hh"
 

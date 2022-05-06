@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Communicator.test.cc
+//! \file comm/Communicator.test.cc
 //---------------------------------------------------------------------------//
-#include "comm/Communicator.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
 
-#include "base/Span.hh"
-#include "comm/Operations.hh"
-#include "comm/ScopedMpiInit.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/ext/MpiOperations.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"
 

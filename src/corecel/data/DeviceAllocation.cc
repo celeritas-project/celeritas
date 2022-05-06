@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceAllocation.cc
+//! \file corecel/data/DeviceAllocation.cc
 //---------------------------------------------------------------------------//
 #include "DeviceAllocation.hh"
 
-#include "Assert.hh"
-#include "Macros.hh"
-#include "Types.hh"
-#include "comm/Device.hh"
-#include "device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/device_runtime_api.h"
 
 namespace celeritas
 {

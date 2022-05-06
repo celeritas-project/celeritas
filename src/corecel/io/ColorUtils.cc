@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ColorUtils.cc
+//! \file corecel/io/ColorUtils.cc
 //---------------------------------------------------------------------------//
 #include "ColorUtils.hh"
 
@@ -11,7 +11,7 @@
 #include <string>
 #include <unistd.h>
 
-#include "comm/Environment.hh"
+#include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file celeritas/em/detail/Utils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <unordered_map>
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/em/AtomicRelaxationData.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "../data/AtomicRelaxationData.hh"
 
 namespace celeritas
 {

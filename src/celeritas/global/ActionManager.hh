@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionManager.hh
+//! \file celeritas/global/ActionManager.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,11 +12,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/Range.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
 
 #include "ActionInterface.hh"
-#include "Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

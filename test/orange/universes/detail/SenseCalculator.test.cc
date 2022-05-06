@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SenseCalculator.test.cc
+//! \file orange/universes/detail/SenseCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/universes/detail/SenseCalculator.hh"
+#include "orange/univ/detail/SenseCalculator.hh"
 
-#include "orange/surfaces/Surfaces.hh"
-#include "orange/universes/VolumeView.hh"
+#include "orange/surf/Surfaces.hh"
+#include "orange/univ/VolumeView.hh"
 
 // Test includes
 #include "orange/OrangeGeoTestBase.hh"

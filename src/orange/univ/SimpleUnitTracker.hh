@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimpleUnitTracker.hh
+//! \file orange/univ/SimpleUnitTracker.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
 #include "orange/Data.hh"
-#include "orange/surfaces/Surfaces.hh"
+#include "orange/surf/Surfaces.hh"
 
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"

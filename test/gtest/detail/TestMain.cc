@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TestMain.cc
+//! \file gtest/detail/TestMain.cc
 //---------------------------------------------------------------------------//
 #include "TestMain.hh"
 
@@ -11,14 +11,14 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
-#include "base/ColorUtils.hh"
-#include "comm/Communicator.hh"
-#include "comm/Device.hh"
-#include "comm/Environment.hh"
-#include "comm/KernelDiagnostics.hh"
-#include "comm/Logger.hh"
-#include "comm/Operations.hh"
-#include "comm/ScopedMpiInit.hh"
+#include "corecel/io/ColorUtils.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelDiagnostics.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiOperations.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"

@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighProcess.hh
+//! \file celeritas/em/process/RayleighProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "physics/base/ImportedProcessAdapter.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Process.hh"
-#include "physics/material/MaterialParams.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Process.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 namespace celeritas
 {

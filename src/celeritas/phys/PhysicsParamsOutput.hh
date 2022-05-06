@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsParamsOutput.hh
+//! \file celeritas/phys/PhysicsParamsOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 #include <memory>
 
-#include "sim/OutputInterface.hh"
+#include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
 {

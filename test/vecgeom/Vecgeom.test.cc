@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Vecgeom.test.cc
+//! \file vecgeom/Vecgeom.test.cc
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
-#include "base/ArrayIO.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/NumericLimits.hh"
-#include "base/Repr.hh"
-#include "comm/Device.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/io/Repr.hh"
+#include "corecel/sys/Device.hh"
 #include "geometry/GeoTestBase.hh"
-#include "vecgeom/VecgeomData.hh"
-#include "vecgeom/VecgeomParams.hh"
-#include "vecgeom/VecgeomTrackView.hh"
+#include "celeritas/ext/VecgeomData.hh"
+#include "celeritas/ext/VecgeomParams.hh"
+#include "celeritas/ext/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
 

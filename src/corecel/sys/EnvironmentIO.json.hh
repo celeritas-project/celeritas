@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnvironmentIO.json.hh
+//! \file corecel/sys/EnvironmentIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
 #include "Environment.hh"
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

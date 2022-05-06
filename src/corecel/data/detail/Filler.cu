@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Filler.cu
+//! \file corecel/data/detail/Filler.cu
 //---------------------------------------------------------------------------//
 #include "Filler.hh"
 
@@ -12,7 +12,7 @@
 #include <thrust/execution_policy.h>
 #include <thrust/fill.h>
 
-#include "base/device_runtime_api.h"
+#include "corecel/device_runtime_api.h"
 
 namespace celeritas
 {

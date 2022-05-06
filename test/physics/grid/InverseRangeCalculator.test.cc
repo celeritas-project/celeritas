@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InverseRangeCalculator.test.cc
+//! \file physics/grid/InverseRangeCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/InverseRangeCalculator.hh"
+#include "celeritas/grid/InverseRangeCalculator.hh"
 
-#include "base/SoftEqual.hh"
+#include "corecel/math/SoftEqual.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"

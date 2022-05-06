@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MaterialView.hh
+//! \file celeritas/mat/MaterialView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 #include "ElementView.hh"
 #include "MaterialData.hh"

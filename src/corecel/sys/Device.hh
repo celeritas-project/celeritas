@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Device.hh
+//! \file corecel/sys/Device.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include <map>
 #include <string>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

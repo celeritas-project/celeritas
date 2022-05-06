@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Assert.cc
+//! \file corecel/Assert.cc
 //---------------------------------------------------------------------------//
 #include "Assert.hh"
 
@@ -13,8 +13,8 @@
 
 #include <sstream>
 
-#include "ColorUtils.hh"
-#include "comm/Environment.hh"
+#include "io/ColorUtils.hh"
+#include "sys/Environment.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StringUtils.hh
+//! \file corecel/io/StringUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

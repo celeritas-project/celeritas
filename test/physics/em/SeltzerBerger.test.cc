@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBerger.test.cc
+//! \file physics/em/SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "io/SeltzerBergerReader.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/BremsstrahlungProcess.hh"
-#include "physics/em/SeltzerBergerModel.hh"
-#include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/detail/SBPositronXsCorrector.hh"
-#include "physics/em/detail/SeltzerBergerInteractor.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/process/BremsstrahlungProcess.hh"
+#include "celeritas/em/model/SeltzerBergerModel.hh"
+#include "celeritas/em/distribution/SBEnergyDistribution.hh"
+#include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

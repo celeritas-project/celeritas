@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoMaterialData.hh
+//! \file celeritas/geo/GeoMaterialData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
+#include "corecel/data/Collection.hh"
 #include "orange/Types.hh"
-#include "sim/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

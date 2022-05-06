@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleData.hh
+//! \file celeritas/phys/ParticleData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Macros.hh"
-#include "sim/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 
-#include "Units.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

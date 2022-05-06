@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerModel.hh
+//! \file celeritas/em/model/SeltzerBergerModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <functional>
 
-#include "base/CollectionMirror.hh"
-#include "io/ImportSBTable.hh"
-#include "physics/base/Model.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/io/ImportSBTable.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
 
-#include "detail/SeltzerBergerData.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 
 namespace celeritas
 {

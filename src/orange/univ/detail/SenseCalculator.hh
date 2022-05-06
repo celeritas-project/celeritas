@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SenseCalculator.hh
+//! \file orange/univ/detail/SenseCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "base/Span.hh"
-#include "orange/surfaces/SurfaceAction.hh"
-#include "orange/surfaces/Surfaces.hh"
-#include "orange/universes/VolumeView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/Surfaces.hh"
+#include "../VolumeView.hh"
 
 #include "SurfaceFunctors.hh"
 

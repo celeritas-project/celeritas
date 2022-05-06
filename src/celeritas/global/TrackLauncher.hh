@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackLauncher.hh
+//! \file celeritas/global/TrackLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "sim/CoreTrackData.hh"
+#include "corecel/math/Algorithms.hh"
+#include "CoreTrackData.hh"
 
-#include "detail/TrackLauncherImpl.hh"
+#include "celeritas/track/detail/TrackLauncherImpl.hh"
 
 namespace celeritas
 {

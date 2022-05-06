@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

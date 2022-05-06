@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyDiagnostic.hh
+//! \file demo-loop/diagnostic/EnergyDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Atomics.hh"
-#include "base/CollectionAlgorithms.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/CollectionMirror.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
+#include "corecel/math/Atomics.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
-#include "physics/grid/NonuniformGrid.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
+#include "celeritas/grid/NonuniformGrid.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 

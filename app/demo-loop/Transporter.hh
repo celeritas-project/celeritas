@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Transporter.hh
+//! \file demo-loop/Transporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,14 +12,14 @@
 #include <utility>
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "geometry/GeoParams.hh"
-#include "random/RngParams.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

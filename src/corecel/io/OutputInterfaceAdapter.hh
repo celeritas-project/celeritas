@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OutputInterfaceAdapter.hh
+//! \file corecel/io/OutputInterfaceAdapter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 
 #include "JsonPimpl.hh"
 #include "OutputInterface.hh"
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

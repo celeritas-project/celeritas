@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaModel.cc
+//! \file celeritas/em/model/KleinNishinaModel.cc
 //---------------------------------------------------------------------------//
 #include "KleinNishinaModel.hh"
 
-#include "base/Assert.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/em/generated/KleinNishinaInteract.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/em/generated/KleinNishinaInteract.hh"
 
 namespace celeritas
 {

@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RootExporter.hh
+//! \file celeritas/ext/RootExporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 #include "detail/TFileUniquePtr.hh"
 

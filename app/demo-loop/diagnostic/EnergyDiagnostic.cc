@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyDiagnostic.cc
+//! \file demo-loop/diagnostic/EnergyDiagnostic.cc
 //---------------------------------------------------------------------------//
 #include "EnergyDiagnostic.hh"
 
-#include "base/Atomics.hh"
-#include "base/Range.hh"
+#include "corecel/math/Atomics.hh"
+#include "corecel/cont/Range.hh"
 
 using namespace celeritas;
 

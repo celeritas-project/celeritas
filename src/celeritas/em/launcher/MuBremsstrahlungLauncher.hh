@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungLauncher.hh
+//! \file celeritas/em/launcher/MuBremsstrahlungLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "MuBremsstrahlungData.hh"
-#include "MuBremsstrahlungInteractor.hh"
+#include "celeritas/em/data/MuBremsstrahlungData.hh"
+#include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
 
 namespace celeritas
 {

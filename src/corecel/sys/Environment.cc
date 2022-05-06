@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Environment.cc
+//! \file corecel/sys/Environment.cc
 //---------------------------------------------------------------------------//
 #include "Environment.hh"
 
@@ -12,7 +12,7 @@
 #include <mutex>
 #include <thread>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

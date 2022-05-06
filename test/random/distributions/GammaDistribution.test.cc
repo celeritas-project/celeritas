@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GammaDistribution.test.cc
+//! \file random/distributions/GammaDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/GammaDistribution.hh"
+#include "celeritas/random/distribution/GammaDistribution.hh"
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

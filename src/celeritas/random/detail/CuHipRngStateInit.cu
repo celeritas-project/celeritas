@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CuHipRngStateInit.cu
+//! \file celeritas/random/detail/CuHipRngStateInit.cu
 //---------------------------------------------------------------------------//
 #include "CuHipRngStateInit.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
-#include "random/CuHipRngEngine.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
+#include "../CuHipRngEngine.hh"
 
 namespace celeritas
 {

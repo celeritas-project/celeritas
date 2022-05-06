@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PlaneAligned.test.cc
+//! \file orange/surfaces/PlaneAligned.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/PlaneAligned.hh"
+#include "orange/surf/PlaneAligned.hh"
 
 #include <algorithm>
 #include <cmath>
 #include <vector>
 
-#include "base/Algorithms.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "celeritas_test.hh"
 

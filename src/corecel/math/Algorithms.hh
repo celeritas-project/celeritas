@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Algorithms.hh
+//! \file corecel/math/Algorithms.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 #include <type_traits>
 
-#include "Assert.hh"
-#include "Macros.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "detail/AlgorithmsImpl.hh"
 
 namespace celeritas

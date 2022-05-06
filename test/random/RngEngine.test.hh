@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.test.hh
+//! \file random/RngEngine.test.hh
 //---------------------------------------------------------------------------//
 
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "random/RngData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/random/RngData.hh"
 
 namespace celeritas_test
 {

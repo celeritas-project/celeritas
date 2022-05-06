@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RangeCalculator.test.cc
+//! \file physics/grid/RangeCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/RangeCalculator.hh"
+#include "celeritas/grid/RangeCalculator.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"

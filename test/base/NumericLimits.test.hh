@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NumericLimits.test.hh
+//! \file base/NumericLimits.test.hh
 //---------------------------------------------------------------------------//
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas_test
 {

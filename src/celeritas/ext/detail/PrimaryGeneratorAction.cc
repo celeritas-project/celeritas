@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PrimaryGeneratorAction.cc
+//! \file celeritas/ext/detail/PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
 #include <G4ParticleTable.hh>
 #include <G4SystemOfUnits.hh>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

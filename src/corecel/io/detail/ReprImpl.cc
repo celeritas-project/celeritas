@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ReprImpl.cc
+//! \file corecel/io/detail/ReprImpl.cc
 //---------------------------------------------------------------------------//
 #include "ReprImpl.hh"
 
 #include <cstdio>
 #include <cstring>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

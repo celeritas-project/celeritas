@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremModel.cc
+//! \file celeritas/em/model/RelativisticBremModel.cc
 //---------------------------------------------------------------------------//
 #include "RelativisticBremModel.hh"
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Constants.hh"
-#include "base/Range.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/PhysicsConstants.hh"
-#include "physics/em/detail/RelativisticBremData.hh"
-#include "physics/em/generated/RelativisticBremInteract.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/generated/RelativisticBremInteract.hh"
 
 namespace celeritas
 {

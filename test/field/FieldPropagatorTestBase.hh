@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldPropagatorTestBase.hh
+//! \file field/FieldPropagatorTestBase.hh
 //---------------------------------------------------------------------------//
 
-#include "base/CollectionStateStore.hh"
-#include "field/FieldParamsData.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "geometry/GeoTestBase.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"

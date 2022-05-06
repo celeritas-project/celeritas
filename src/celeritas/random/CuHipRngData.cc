@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CuHipRngData.cc
+//! \file celeritas/random/CuHipRngData.cc
 //---------------------------------------------------------------------------//
 #include "CuHipRngData.hh"
 
 #include <random>
 
-#include "base/CollectionBuilder.hh"
-#include "random/detail/CuHipRngStateInit.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "detail/CuHipRngStateInit.hh"
 
 namespace celeritas
 {

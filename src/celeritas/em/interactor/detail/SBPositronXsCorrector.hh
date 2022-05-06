@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SBPositronXsCorrector.hh
+//! \file celeritas/em/interactor/detail/SBPositronXsCorrector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Constants.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
 
-#include "SBEnergyDistHelper.hh"
+#include "celeritas/em/distribution/SBEnergyDistHelper.hh"
 
 namespace celeritas
 {

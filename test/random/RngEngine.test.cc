@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RngEngine.test.cc
+//! \file random/RngEngine.test.cc
 //---------------------------------------------------------------------------//
 #include "RngEngine.test.hh"
 
@@ -13,11 +13,11 @@
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/Types.hh"
-#include "random/RngParams.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/Types.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "SequenceEngine.hh"

@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighInteractor.hh
+//! \file celeritas/em/interactor/RayleighInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
-#include "random/Selector.hh"
-#include "random/distributions/GenerateCanonical.hh"
-#include "random/distributions/IsotropicDistribution.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/Selector.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/Types.hh"
 
-#include "RayleighData.hh"
+#include "celeritas/em/data/RayleighData.hh"
 
 namespace celeritas
 {

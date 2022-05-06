@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BremsstrahlungProcess.cc
+//! \file celeritas/em/process/BremsstrahlungProcess.cc
 //---------------------------------------------------------------------------//
 #include "BremsstrahlungProcess.hh"
 
 #include <utility>
 
-#include "base/Assert.hh"
-#include "io/SeltzerBergerReader.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
-#include "CombinedBremModel.hh"
-#include "RelativisticBremModel.hh"
-#include "SeltzerBergerModel.hh"
+#include "celeritas/em/model/CombinedBremModel.hh"
+#include "celeritas/em/model/RelativisticBremModel.hh"
+#include "celeritas/em/model/SeltzerBergerModel.hh"
 
 namespace celeritas
 {

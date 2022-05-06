@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceAllocation.hh
+//! \file corecel/data/DeviceAllocation.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,8 +11,8 @@
 #include <memory>
 #include <utility>
 
-#include "Span.hh"
-#include "Types.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
 #include "detail/InitializedValue.hh"
 
 namespace celeritas

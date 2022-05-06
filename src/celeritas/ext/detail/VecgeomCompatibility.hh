@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomCompatibility.hh
+//! \file celeritas/ext/detail/VecgeomCompatibility.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <VecGeom/base/Vector3D.h>
 
-#include "base/Array.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {

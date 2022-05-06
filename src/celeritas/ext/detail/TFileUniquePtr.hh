@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TFileUniquePtr.hh
+//! \file celeritas/ext/detail/TFileUniquePtr.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 // Forward-declare ROOT
 class TFile;

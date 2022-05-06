@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomNavCollection.hh
+//! \file celeritas/ext/detail/VecgeomNavCollection.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,10 +12,10 @@
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavStatePool.h>
 
-#include "base/Assert.hh"
-#include "base/OpaqueId.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

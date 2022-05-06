@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UserParamField.test.cc
+//! \file field/UserParamField.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "field/DormandPrinceStepper.hh"
-#include "field/FieldDriver.hh"
-#include "field/FieldParamsData.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldDriver.hh"
+#include "celeritas/field/FieldParamsData.hh"
 #include "field/FieldPropagator.test.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/MagFieldTraits.hh"
+#include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MagFieldTraits.hh"
 
 #include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"

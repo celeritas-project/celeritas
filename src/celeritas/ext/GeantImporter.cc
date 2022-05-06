@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantImporter.cc
+//! \file celeritas/ext/GeantImporter.cc
 //---------------------------------------------------------------------------//
 #include "GeantImporter.hh"
 
@@ -24,13 +24,13 @@
 #include <G4SystemOfUnits.hh>
 #include <G4Transportation.hh>
 
-#include "base/Range.hh"
-#include "comm/Logger.hh"
-#include "io/ImportData.hh"
-#include "io/ImportParticle.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/ImportPhysicsVector.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportParticle.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"

@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionManagerOutput.cc
+//! \file celeritas/global/ActionManagerOutput.cc
 //---------------------------------------------------------------------------//
 #include "ActionManagerOutput.hh"
 
 #include <utility>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/Range.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 
 #include "ActionManager.hh"
-#include "JsonPimpl.hh"
+#include "corecel/io/JsonPimpl.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif

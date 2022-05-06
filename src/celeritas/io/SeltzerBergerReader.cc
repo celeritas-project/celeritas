@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerReader.cc
+//! \file celeritas/io/SeltzerBergerReader.cc
 //---------------------------------------------------------------------------//
 #include "SeltzerBergerReader.hh"
 
 #include <fstream>
 
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "comm/Environment.hh"
-#include "comm/Logger.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

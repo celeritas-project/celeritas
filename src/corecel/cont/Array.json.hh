@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Array.json.hh
+//! \file corecel/cont/Array.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
 #include "Array.hh"
-#include "Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

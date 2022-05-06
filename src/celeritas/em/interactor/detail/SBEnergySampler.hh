@@ -3,26 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SBEnergySampler.hh
+//! \file celeritas/em/interactor/detail/SBEnergySampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/Types.hh"
 
 #include "PhysicsConstants.hh"
-#include "SBEnergyDistHelper.hh"
-#include "SBEnergyDistribution.hh"
+#include "celeritas/em/distribution/SBEnergyDistHelper.hh"
+#include "celeritas/em/distribution/SBEnergyDistribution.hh"
 #include "SBPositronXsCorrector.hh"
-#include "SeltzerBergerData.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 
 namespace celeritas
 {

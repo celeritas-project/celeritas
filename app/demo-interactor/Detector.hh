@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Detector.hh
+//! \file demo-interactor/Detector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/OpaqueId.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/grid/UniformGrid.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/grid/UniformGrid.hh"
 
 #include "DetectorData.hh"
 

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitUtils.hh
+//! \file celeritas/track/TrackInitUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Copier.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Copier.hh"
 
-#include "CoreTrackData.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "TrackInitData.hh"
 #include "detail/TrackInitAlgorithms.hh"
 #include "generated/InitTracks.hh"

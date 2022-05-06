@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoRunner.cc
+//! \file demo-interactor/KNDemoRunner.cc
 //---------------------------------------------------------------------------//
 #include "KNDemoRunner.hh"
 
-#include "base/Range.hh"
-#include "base/Stopwatch.hh"
-#include "physics/base/Units.hh"
-#include "random/RngParams.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
 

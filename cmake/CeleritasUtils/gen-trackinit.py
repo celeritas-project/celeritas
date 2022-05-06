@@ -24,11 +24,11 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = """\
-#include "base/Assert.hh"
-#include "base/Macros.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "sim/detail/{clsname}Launcher.hh"
 {extra_includes}
-#include "sim/TrackInitData.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {{
@@ -53,7 +53,7 @@ inline {devicefunc_decl_noargs}
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "sim/detail/{clsname}Launcher.hh"
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {{
@@ -76,9 +76,9 @@ namespace generated
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "sim/detail/{clsname}Launcher.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas
 {{

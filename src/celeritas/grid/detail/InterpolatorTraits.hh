@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InterpolatorTraits.hh
+//! \file celeritas/grid/detail/InterpolatorTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SphereCentered.test.cc
+//! \file orange/surfaces/SphereCentered.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/SphereCentered.hh"
+#include "orange/surf/SphereCentered.hh"
 
-#include "base/Constants.hh"
+#include "celeritas/Constants.hh"
 
 #include "celeritas_test.hh"
 

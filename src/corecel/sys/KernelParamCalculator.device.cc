@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelParamCalculator.device.cc
+//! \file corecel/sys/KernelParamCalculator.device.cc
 //---------------------------------------------------------------------------//
 #include "KernelParamCalculator.device.hh"
 
 #include <cassert>
 #include <limits>
 
-#include "Assert.hh"
-#include "base/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/device_runtime_api.h"
 
 namespace
 {

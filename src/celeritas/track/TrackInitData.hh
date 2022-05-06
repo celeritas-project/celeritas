@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitData.hh
+//! \file celeritas/track/TrackInitData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Types.hh"
-#include "comm/Device.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Device.hh"
 #include "orange/Types.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/Primary.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/Primary.hh"
 
 #include "SimData.hh"
-#include "Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

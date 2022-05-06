@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportProcessConverter.hh
+//! \file celeritas/ext/detail/ImportProcessConverter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "io/ImportElement.hh"
-#include "io/ImportMaterial.hh"
-#include "io/ImportProcess.hh"
+#include "celeritas/io/ImportElement.hh"
+#include "celeritas/io/ImportMaterial.hh"
+#include "celeritas/io/ImportProcess.hh"
 
 using celeritas::ImportElement;
 using celeritas::ImportMaterial;

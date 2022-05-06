@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerModel.cc
+//! \file celeritas/em/model/SeltzerBergerModel.cc
 //---------------------------------------------------------------------------//
 #include "SeltzerBergerModel.hh"
 
 #include <algorithm>
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
-#include "base/ScopedTimeLog.hh"
-#include "comm/Logger.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/SBPositronXsCorrector.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
-#include "detail/PhysicsConstants.hh"
-#include "generated/SeltzerBergerInteract.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/generated/SeltzerBergerInteract.hh"
 
 namespace celeritas
 {

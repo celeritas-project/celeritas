@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CollectionImpl.hh
+//! \file corecel/data/detail/CollectionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/Copier.hh"
-#include "base/DeviceVector.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "../Copier.hh"
+#include "../DeviceVector.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

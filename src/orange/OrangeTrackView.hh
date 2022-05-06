@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeTrackView.hh
+//! \file orange/OrangeTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Macros.hh"
-#include "orange/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Macros.hh"
+#include "Types.hh"
+#include "celeritas/Types.hh"
 
 #include "Data.hh"
-#include "universes/SimpleUnitTracker.hh"
-#include "universes/detail/Types.hh"
+#include "univ/SimpleUnitTracker.hh"
+#include "univ/detail/Types.hh"
 
 namespace celeritas
 {

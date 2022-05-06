@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceAllocation.test.cc
+//! \file base/DeviceAllocation.test.cc
 //---------------------------------------------------------------------------//
-#include "base/DeviceAllocation.hh"
+#include "corecel/data/DeviceAllocation.hh"
 
 #include <algorithm>
 
-#include "base/Span.hh"
+#include "corecel/cont/Span.hh"
 
 #include "celeritas_test.hh"
 

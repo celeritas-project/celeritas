@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishina.test.cc
+//! \file physics/em/KleinNishina.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/detail/KleinNishinaInteractor.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

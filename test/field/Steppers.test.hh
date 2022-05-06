@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Steppers.test.hh
+//! \file field/Steppers.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 #include "FieldTestParams.hh"
 

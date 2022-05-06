@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsConstants.hh
+//! \file celeritas/em/interactor/detail/PhysicsConstants.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

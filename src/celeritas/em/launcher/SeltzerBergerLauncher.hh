@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerLauncher.hh
+//! \file celeritas/em/launcher/SeltzerBergerLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "SeltzerBergerData.hh"
-#include "SeltzerBergerInteractor.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
+#include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
 
 namespace celeritas
 {

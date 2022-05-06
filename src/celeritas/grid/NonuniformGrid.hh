@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NonuniformGrid.hh
+//! \file celeritas/grid/NonuniformGrid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

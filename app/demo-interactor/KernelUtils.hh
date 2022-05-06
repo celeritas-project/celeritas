@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelUtils.hh
+//! \file demo-interactor/KernelUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/ArrayUtils.hh"
-#include "base/Macros.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "random/distributions/ExponentialDistribution.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 namespace demo_interactor
 {

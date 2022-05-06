@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UserMapField.test.cu
+//! \file field/UserMapField.test.cu
 //---------------------------------------------------------------------------//
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/Constants.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "comm/Device.hh"
-#include "field/DormandPrinceStepper.hh"
-#include "field/FieldDriver.hh"
-#include "field/FieldParamsData.hh"
-#include "field/FieldPropagator.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/MagFieldTraits.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleTrackView.hh"
+#include "corecel/device_runtime_api.h"
+#include "celeritas/Constants.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldDriver.hh"
+#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldPropagator.hh"
+#include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MagFieldTraits.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldPropagator.test.hh"
 #include "FieldTestParams.hh"

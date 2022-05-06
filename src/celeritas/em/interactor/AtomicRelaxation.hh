@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file AtomicRelaxation.hh
+//! \file celeritas/em/interactor/AtomicRelaxation.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/MiniStack.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Units.hh"
-#include "random/distributions/IsotropicDistribution.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/MiniStack.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
-#include "AtomicRelaxationData.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
 
 namespace celeritas
 {

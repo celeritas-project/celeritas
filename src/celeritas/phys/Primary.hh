@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Primary.hh
+//! \file celeritas/phys/Primary.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 #include "ParticleData.hh"
 

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ElementSelector.test.cc
+//! \file physics/material/ElementSelector.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/material/ElementSelector.hh"
+#include "celeritas/mat/ElementSelector.hh"
 
 #include <memory>
 #include <random>
 
-#include "base/Range.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "random/SequenceEngine.hh"
 
 #include "celeritas_test.hh"

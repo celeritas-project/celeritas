@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremLauncher.hh
+//! \file celeritas/em/launcher/RelativisticBremLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "RelativisticBremData.hh"
-#include "RelativisticBremInteractor.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/interactor/RelativisticBremInteractor.hh"
 
 namespace celeritas
 {

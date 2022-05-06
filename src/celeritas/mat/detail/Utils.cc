@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.cc
+//! \file celeritas/mat/detail/Utils.cc
 //---------------------------------------------------------------------------//
 #include "Utils.hh"
 
 #include <algorithm>
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Constants.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "physics/material/MaterialData.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "../MaterialData.hh"
 
 namespace celeritas
 {

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportElement.hh
+//! \file celeritas/io/ImportElement.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include <vector>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

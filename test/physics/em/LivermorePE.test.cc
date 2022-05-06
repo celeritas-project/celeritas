@@ -3,29 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePE.test.cc
+//! \file physics/em/LivermorePE.test.cc
 //---------------------------------------------------------------------------//
 #include <cmath>
 #include <fstream>
 #include <map>
 
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "comm/Device.hh"
-#include "io/AtomicRelaxationReader.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/LivermorePEReader.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/AtomicRelaxationParams.hh"
-#include "physics/em/LivermorePEMacroXsCalculator.hh"
-#include "physics/em/LivermorePEModel.hh"
-#include "physics/em/PhotoelectricProcess.hh"
-#include "physics/em/detail/LivermorePEInteractor.hh"
-#include "physics/em/detail/Utils.hh"
-#include "physics/grid/ValueGridBuilder.hh"
-#include "physics/grid/ValueGridInserter.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/io/AtomicRelaxationReader.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/LivermorePEReader.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/AtomicRelaxationParams.hh"
+#include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
+#include "celeritas/em/model/LivermorePEModel.hh"
+#include "celeritas/em/process/PhotoelectricProcess.hh"
+#include "celeritas/em/interactor/LivermorePEInteractor.hh"
+#include "celeritas/em/detail/Utils.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridInserter.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

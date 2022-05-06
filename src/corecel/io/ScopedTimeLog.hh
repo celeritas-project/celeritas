@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedTimeLog.hh
+//! \file corecel/io/ScopedTimeLog.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/ColorUtils.hh"
-#include "base/Stopwatch.hh"
-#include "comm/Logger.hh"
+#include "corecel/Assert.hh"
+#include "ColorUtils.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "Logger.hh"
 
 namespace celeritas
 {

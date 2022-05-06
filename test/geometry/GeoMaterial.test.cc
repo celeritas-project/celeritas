@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoMaterial.test.cc
+//! \file geometry/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
-#include "base/CollectionStateStore.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoMaterialParams.hh"
-#include "geometry/GeoMaterialView.hh"
-#include "geometry/GeoParams.hh"
-#include "geometry/GeoTrackView.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/ext/RootImporter.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"

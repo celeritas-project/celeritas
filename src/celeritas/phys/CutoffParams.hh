@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CutoffParams.hh
+//! \file celeritas/phys/CutoffParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <map>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "ParticleParams.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 #include "CutoffData.hh"
 #include "CutoffView.hh"

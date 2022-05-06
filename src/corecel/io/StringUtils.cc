@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StringUtils.cc
+//! \file corecel/io/StringUtils.cc
 //---------------------------------------------------------------------------//
 #include "StringUtils.hh"
 

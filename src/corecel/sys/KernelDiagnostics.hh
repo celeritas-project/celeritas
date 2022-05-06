@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelDiagnostics.hh
+//! \file corecel/sys/KernelDiagnostics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,8 +15,8 @@
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/OpaqueId.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {

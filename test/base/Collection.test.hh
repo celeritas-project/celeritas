@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Collection.test.hh
+//! \file base/Collection.test.hh
 //---------------------------------------------------------------------------//
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas_test
 {

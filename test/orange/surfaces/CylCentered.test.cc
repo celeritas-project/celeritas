@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CylCentered.test.cc
+//! \file orange/surfaces/CylCentered.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/CylCentered.hh"
+#include "orange/surf/CylCentered.hh"
 
 #include <algorithm>
 #include <cmath>
 #include <vector>
 
-#include "base/Algorithms.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,26 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanMscStepLimit.hh
+//! \file celeritas/em/distribution/UrbanMscStepLimit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/PolyEvaluator.hh"
-#include "random/Selector.hh"
-#include "random/distributions/NormalDistribution.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/random/Selector.hh"
+#include "celeritas/random/distribution/NormalDistribution.hh"
+#include "celeritas/Types.hh"
 
-#include "UrbanMscData.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 #include "UrbanMscHelper.hh"
 
 namespace celeritas

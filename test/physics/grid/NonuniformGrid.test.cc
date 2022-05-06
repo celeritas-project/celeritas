@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NonuniformGrid.test.cc
+//! \file physics/grid/NonuniformGrid.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/NonuniformGrid.hh"
+#include "celeritas/grid/NonuniformGrid.hh"
 
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGG.test.cc
+//! \file physics/em/EPlusGG.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/EPlusGGMacroXsCalculator.hh"
-#include "physics/em/detail/EPlusGGInteractor.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/interactor/EPlusGGInteractor.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

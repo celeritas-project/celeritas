@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremData.hh
+//! \file celeritas/em/data/RelativisticBremData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 
 #include "ElectronBremsData.hh"
 

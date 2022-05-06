@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RootImporter.test.cc
+//! \file io/RootImporter.test.cc
 //---------------------------------------------------------------------------//
-#include "io/RootImporter.hh"
+#include "celeritas/ext/RootImporter.hh"
 
 #include <algorithm>
 
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "io/ImportData.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 #include "celeritas_test.hh"
 

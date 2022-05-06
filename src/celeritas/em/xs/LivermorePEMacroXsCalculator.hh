@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEMacroXsCalculator.hh
+//! \file celeritas/em/xs/LivermorePEMacroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "physics/em/detail/LivermorePEMicroXsCalculator.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "LivermorePEMicroXsCalculator.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas
 {

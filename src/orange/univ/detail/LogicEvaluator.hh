@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LogicEvaluator.hh
+//! \file orange/univ/detail/LogicEvaluator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Span.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/Types.hh"
 
 #include "LogicStack.hh"

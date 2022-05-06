@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaLauncher.hh
+//! \file celeritas/em/launcher/MollerBhabhaLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "MollerBhabhaData.hh"
-#include "MollerBhabhaInteractor.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
 
 namespace celeritas
 {

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnumArray.hh
+//! \file corecel/cont/EnumArray.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

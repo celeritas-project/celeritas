@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file IsotropicDistribution.test.cc
+//! \file random/distributions/IsotropicDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include <random>
 
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

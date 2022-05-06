@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CalculatorTestBase.hh
+//! \file physics/grid/CalculatorTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "physics/grid/XsGridData.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/grid/XsGridData.hh"
 
 #include "gtest/Test.hh"
 

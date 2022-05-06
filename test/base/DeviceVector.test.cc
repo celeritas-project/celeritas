@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceVector.test.cc
+//! \file base/DeviceVector.test.cc
 //---------------------------------------------------------------------------//
-#include "base/DeviceVector.hh"
+#include "corecel/data/DeviceVector.hh"
 
 #include "celeritas_test.hh"
 

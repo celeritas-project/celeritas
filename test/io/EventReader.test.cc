@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EventReader.test.cc
+//! \file io/EventReader.test.cc
 //---------------------------------------------------------------------------//
-#include "io/EventReader.hh"
+#include "celeritas/io/EventReader.hh"
 
-#include "base/Range.hh"
-#include "base/Span.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Primary.hh"
-#include "physics/base/Units.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

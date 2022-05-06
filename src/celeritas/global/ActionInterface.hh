@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInterface.hh
+//! \file celeritas/global/ActionInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 
-#include "Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

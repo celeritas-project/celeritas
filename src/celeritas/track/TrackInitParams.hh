@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitParams.hh
+//! \file celeritas/track/TrackInitParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Types.hh"
-#include "physics/base/Primary.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/Primary.hh"
 
 #include "TrackInitData.hh"
 

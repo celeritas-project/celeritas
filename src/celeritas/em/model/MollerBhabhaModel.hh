@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaModel.hh
+//! \file celeritas/em/model/MollerBhabhaModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
+#include "celeritas/phys/Model.hh"
 
-#include "detail/MollerBhabhaData.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
 
 namespace celeritas
 {

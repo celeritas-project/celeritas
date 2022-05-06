@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file AlongStepActionImpl.hh
+//! \file celeritas/global/detail/AlongStepActionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "geometry/LinearPropagator.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsStepUtils.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/em/detail/UrbanMscData.hh"
-#include "physics/em/detail/UrbanMscScatter.hh"
-#include "physics/em/detail/UrbanMscStepLimit.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/field/LinearPropagator.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsStepUtils.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/distribution/UrbanMscScatter.hh"
+#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
+#include "../CoreTrackData.hh"
+#include "../CoreTrackView.hh"
 
 namespace celeritas
 {

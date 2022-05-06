@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EventReader.nohepmc.cc
+//! \file celeritas/io/EventReader.nohepmc.cc
 //---------------------------------------------------------------------------//
 #include "EventReader.hh"
 
-#include "base/Assert.hh"
-#include "physics/base/Primary.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {

@@ -9,14 +9,14 @@
 #include <iomanip>
 #include <iostream>
 
-#include "base/Join.hh"
-#include "base/Range.hh"
-#include "comm/Communicator.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/ParticleParams.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 using namespace celeritas;
 using std::cout;

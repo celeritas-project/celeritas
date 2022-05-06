@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Copier.test.cc
+//! \file base/Copier.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Copier.hh"
+#include "corecel/data/Copier.hh"
 
 #include <vector>
 
-#include "base/DeviceVector.hh"
+#include "corecel/data/DeviceVector.hh"
 
 #include "celeritas_test.hh"
 

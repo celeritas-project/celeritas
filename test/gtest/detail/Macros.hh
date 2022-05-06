@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Macros.hh
+//! \file gtest/detail/Macros.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,9 @@
 #include <gtest/gtest.h>
 
 #include "celeritas_config.h"
-#include "base/Macros.hh"
-#include "base/Repr.hh"
-#include "base/SoftEqual.hh"
+#include "corecel/Macros.hh"
+#include "corecel/io/Repr.hh"
+#include "corecel/math/SoftEqual.hh"
 
 //---------------------------------------------------------------------------//
 // MACROS

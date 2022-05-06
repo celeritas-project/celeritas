@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Array.hh
+//! \file corecel/cont/Array.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Macros.hh"
-#include "Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

@@ -3,26 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsStepUtils.hh
+//! \file celeritas/phys/PhysicsStepUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/NumericLimits.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "physics/em/EnergyLossDistribution.hh"
-#include "physics/grid/EnergyLossCalculator.hh"
-#include "physics/grid/InverseRangeCalculator.hh"
-#include "physics/grid/RangeCalculator.hh"
-#include "physics/grid/ValueGridData.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/Selector.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/em/distribution/EnergyLossDistribution.hh"
+#include "celeritas/grid/EnergyLossCalculator.hh"
+#include "celeritas/grid/InverseRangeCalculator.hh"
+#include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/random/Selector.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/Types.hh"
 
 #include "CutoffView.hh"
 #include "ParticleTrackView.hh"

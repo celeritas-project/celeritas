@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungModel.hh
+//! \file celeritas/em/model/MuBremsstrahlungModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-#include "physics/base/ParticleParams.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
-#include "detail/MuBremsstrahlungData.hh"
+#include "celeritas/em/data/MuBremsstrahlungData.hh"
 
 namespace celeritas
 {

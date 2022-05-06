@@ -3,25 +3,25 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RBEnergySampler.hh
+//! \file celeritas/em/interactor/detail/RBEnergySampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
+#include "celeritas/Types.hh"
 
 #include "PhysicsConstants.hh"
-#include "RBDiffXsCalculator.hh"
-#include "RelativisticBremData.hh"
+#include "celeritas/em/xs/RBDiffXsCalculator.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
 
 namespace celeritas
 {

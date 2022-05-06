@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Environment.test.cc
+//! \file comm/Environment.test.cc
 //---------------------------------------------------------------------------//
-#include "comm/Environment.hh"
+#include "corecel/sys/Environment.hh"
 
 #include <vector>
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_JSON
-#    include "comm/EnvironmentIO.json.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
 #endif
 
 #include "celeritas_test.hh"

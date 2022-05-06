@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Vecgeom.test.hh
+//! \file vecgeom/Vecgeom.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Assert.hh"
-#include "vecgeom/VecgeomData.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/ext/VecgeomData.hh"
 
 namespace celeritas_test
 {

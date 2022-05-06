@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantImporter.hh
+//! \file celeritas/ext/GeantImporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "celeritas_config.h"
 
 #include "GeantSetup.hh"
-#include "ImportData.hh"
+#include "celeritas/io/ImportData.hh"
 
 // Geant4 forward declaration
 class G4VPhysicalVolume;

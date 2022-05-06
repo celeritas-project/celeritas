@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file orange/univ/detail/Utils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/NumericLimits.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "../VolumeView.hh"
 #include "Types.hh"

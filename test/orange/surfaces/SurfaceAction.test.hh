@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceAction.test.hh
+//! \file orange/surfaces/SurfaceAction.test.hh
 //---------------------------------------------------------------------------//
 #include <vector>
 
-#include "base/CollectionBuilder.hh"
-#include "base/Macros.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/Macros.hh"
 #include "orange/Data.hh"
-#include "orange/surfaces/SurfaceAction.hh"
-#include "orange/surfaces/Surfaces.hh"
+#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/Surfaces.hh"
 
 namespace celeritas_test
 {

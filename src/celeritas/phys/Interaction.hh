@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Interaction.hh
+//! \file celeritas/phys/Interaction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
-#include "base/Array.hh"
-#include "base/ArrayUtils.hh"
-#include "base/SoftEqual.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "Secondary.hh"
 #if CELERITAS_DEBUG
-#    include "base/NumericLimits.hh"
+#    include "corecel/math/NumericLimits.hh"
 #endif
 
 namespace celeritas

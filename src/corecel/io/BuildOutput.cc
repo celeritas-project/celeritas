@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BuildOutput.cc
+//! \file corecel/io/BuildOutput.cc
 //---------------------------------------------------------------------------//
 #include "BuildOutput.hh"
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
-#include "sim/JsonPimpl.hh"
+#include "JsonPimpl.hh"
 
 #include "celeritas_cmake_strings.h"
 #if CELERITAS_USE_JSON

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.hh
+//! \file corecel/data/StackAllocator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <new>
 
-#include "Atomics.hh"
+#include "corecel/math/Atomics.hh"
 #include "StackAllocatorData.hh"
 
 namespace celeritas

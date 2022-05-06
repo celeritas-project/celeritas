@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InteractionIO.hh
+//! \file physics/InteractionIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <iosfwd>
 
-#include "physics/base/Interaction.hh"
+#include "celeritas/phys/Interaction.hh"
 
 namespace celeritas
 {

@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEReader.cc
+//! \file celeritas/io/LivermorePEReader.cc
 //---------------------------------------------------------------------------//
 #include "LivermorePEReader.hh"
 
 #include <fstream>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "comm/Environment.hh"
-#include "comm/Logger.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoData.hh
+//! \file celeritas/geo/GeoData.hh
 //! \brief Select geometry implementation at configure time
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_VECGEOM
-#    include "vecgeom/VecgeomData.hh"
+#    include "celeritas/ext/VecgeomData.hh"
 #else
 #    include "orange/Data.hh"
 #endif

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Selector.hh
+//! \file celeritas/random/Selector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
-#include "base/Range.hh"
-#include "base/SoftEqual.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "distribution/GenerateCanonical.hh"
 
 namespace celeritas
 {

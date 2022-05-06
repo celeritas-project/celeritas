@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportProcessConverter.cc
+//! \file celeritas/ext/detail/ImportProcessConverter.cc
 //---------------------------------------------------------------------------//
 #include "ImportProcessConverter.hh"
 
@@ -21,15 +21,15 @@
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
 
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "base/TypeDemangler.hh"
-#include "base/Types.hh"
-#include "comm/Logger.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/ImportPhysicsVector.hh"
-#include "io/ImportProcess.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/TypeDemangler.hh"
+#include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantVersion.hh"
 

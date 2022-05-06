@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomParams.cc
+//! \file celeritas/ext/VecgeomParams.cc
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
@@ -20,12 +20,12 @@
 #    include <cuda_runtime_api.h>
 #endif
 
-#include "base/Join.hh"
-#include "base/Range.hh"
-#include "base/ScopedTimeAndRedirect.hh"
-#include "base/StringUtils.hh"
-#include "comm/Device.hh"
-#include "comm/Logger.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
+#include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/io/Logger.hh"
 
 #include "VecgeomData.hh"
 

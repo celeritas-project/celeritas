@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePELauncher.hh
+//! \file celeritas/em/launcher/LivermorePELauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "physics/material/ElementSelector.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/mat/ElementSelector.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "LivermorePEData.hh"
-#include "LivermorePEInteractor.hh"
-#include "LivermorePEMicroXsCalculator.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/em/interactor/LivermorePEInteractor.hh"
+#include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 
 namespace celeritas
 {

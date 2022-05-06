@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XorwowRngData.cc
+//! \file celeritas/random/XorwowRngData.cc
 //---------------------------------------------------------------------------//
 #include "XorwowRngData.hh"
 
 #include <random>
 
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 namespace celeritas
 {

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocatorData.hh
+//! \file corecel/data/StackAllocatorData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "Collection.hh"
 #include "CollectionAlgorithms.hh"
 #include "CollectionBuilder.hh"
-#include "Macros.hh"
-#include "Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

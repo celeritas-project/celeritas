@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsTestBase.hh
+//! \file physics/base/PhysicsTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <random>
 
-#include "physics/base/PhysicsParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 
 #include "MockProcess.hh"
 #include "gtest/Test.hh"

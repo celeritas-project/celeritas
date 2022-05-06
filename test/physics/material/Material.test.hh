@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Material.test.hh
+//! \file physics/material/Material.test.hh
 //---------------------------------------------------------------------------//
 
 #include <vector>
 
-#include "physics/material/MaterialData.hh"
+#include "celeritas/mat/MaterialData.hh"
 
 namespace celeritas_test
 {

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file IsotropicDistribution.hh
+//! \file celeritas/random/distribution/IsotropicDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Array.hh"
-#include "base/Constants.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Types.hh"
 
 #include "UniformRealDistribution.hh"
 

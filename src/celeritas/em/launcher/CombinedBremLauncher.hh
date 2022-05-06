@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CombinedBremLauncher.hh
+//! \file celeritas/em/launcher/CombinedBremLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "CombinedBremData.hh"
-#include "CombinedBremInteractor.hh"
+#include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/em/interactor/CombinedBremInteractor.hh"
 
 namespace celeritas
 {

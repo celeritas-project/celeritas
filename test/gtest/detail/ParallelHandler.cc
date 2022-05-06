@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParallelHandler.cc
+//! \file gtest/detail/ParallelHandler.cc
 //---------------------------------------------------------------------------//
 #include "ParallelHandler.hh"
 
-#include "base/ColorUtils.hh"
-#include "comm/Communicator.hh"
-#include "comm/Operations.hh"
+#include "corecel/io/ColorUtils.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/MpiOperations.hh"
 
 namespace celeritas
 {

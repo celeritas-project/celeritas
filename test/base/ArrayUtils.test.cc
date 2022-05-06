@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ArrayUtils.test.cc
+//! \file base/ArrayUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
+#include "corecel/math/ArrayUtils.hh"
 
-#include "base/ArrayIO.hh"
-#include "base/Constants.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "celeritas/Constants.hh"
 
 #include "celeritas_test.hh"
 

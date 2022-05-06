@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MaterialParams.cc
+//! \file celeritas/mat/MaterialParams.cc
 //---------------------------------------------------------------------------//
 #include "MaterialParams.hh"
 
@@ -11,18 +11,18 @@
 #include <cmath>
 #include <utility>
 
-#include "base/CollectionBuilder.hh"
-#include "base/Constants.hh"
-#include "base/NumericLimits.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "base/SoftEqual.hh"
-#include "base/Span.hh"
-#include "comm/Logger.hh"
-#include "io/ImportData.hh"
-#include "io/ImportElement.hh"
-#include "io/ImportMaterial.hh"
-#include "sim/Types.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportElement.hh"
+#include "celeritas/io/ImportMaterial.hh"
+#include "celeritas/Types.hh"
 
 #include "MaterialData.hh"
 #include "detail/Utils.hh"

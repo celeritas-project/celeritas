@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportedProcesses.test.cc
+//! \file physics/em/ImportedProcesses.test.cc
 //---------------------------------------------------------------------------//
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/ImportedProcessAdapter.hh"
-#include "physics/base/Model.hh"
-#include "physics/em/BremsstrahlungProcess.hh"
-#include "physics/em/ComptonProcess.hh"
-#include "physics/em/EIonizationProcess.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
-#include "physics/em/GammaConversionProcess.hh"
-#include "physics/em/MultipleScatteringProcess.hh"
-#include "physics/em/PhotoelectricProcess.hh"
-#include "physics/em/RayleighProcess.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/em/process/BremsstrahlungProcess.hh"
+#include "celeritas/em/process/ComptonProcess.hh"
+#include "celeritas/em/process/EIonizationProcess.hh"
+#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/MultipleScatteringProcess.hh"
+#include "celeritas/em/process/PhotoelectricProcess.hh"
+#include "celeritas/em/process/RayleighProcess.hh"
 
 #include "celeritas_test.hh"
 

@@ -12,7 +12,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

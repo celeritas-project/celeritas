@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheHeitlerLauncher.hh
+//! \file celeritas/em/launcher/BetheHeitlerLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "BetheHeitlerData.hh"
-#include "BetheHeitlerInteractor.hh"
+#include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
 
 namespace celeritas
 {

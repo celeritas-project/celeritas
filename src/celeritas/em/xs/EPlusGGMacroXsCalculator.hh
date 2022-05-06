@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGMacroXsCalculator.hh
+//! \file celeritas/em/xs/EPlusGGMacroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "celeritas/mat/MaterialView.hh"
 
-#include "detail/EPlusGGData.hh"
+#include "celeritas/em/data/EPlusGGData.hh"
 
 namespace celeritas
 {

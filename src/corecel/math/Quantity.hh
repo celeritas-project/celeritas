@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Quantity.hh
+//! \file corecel/math/Quantity.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
-#include "Macros.hh"
+#include "corecel/Macros.hh"
 #include "NumericLimits.hh"
-#include "Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

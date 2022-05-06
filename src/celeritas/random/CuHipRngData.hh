@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CuHipRngData.hh
+//! \file celeritas/random/CuHipRngData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <random>
 
-#include "base/device_runtime_api.h"
+#include "corecel/device_runtime_api.h"
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "comm/Device.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Device.hh"
 
 /*!
  * \def CELER_RNG_PREFIX

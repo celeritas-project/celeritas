@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungInteractor.test.cc
+//! \file physics/em/MuBremsstrahlung.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/detail/MuBremsstrahlungInteractor.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/interactor/MuBremsstrahlungInteractor.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

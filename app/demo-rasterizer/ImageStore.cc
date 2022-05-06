@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImageStore.cc
+//! \file demo-rasterizer/ImageStore.cc
 //---------------------------------------------------------------------------//
 #include "ImageStore.hh"
 
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
 
 using celeritas::range;
 

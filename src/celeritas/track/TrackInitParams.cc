@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitParams.cc
+//! \file celeritas/track/TrackInitParams.cc
 //---------------------------------------------------------------------------//
 #include "TrackInitParams.hh"
 
-#include "base/CollectionBuilder.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 namespace celeritas
 {

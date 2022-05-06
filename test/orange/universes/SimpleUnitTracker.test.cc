@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimpleUnitTracker.test.cc
+//! \file orange/universes/SimpleUnitTracker.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/universes/SimpleUnitTracker.hh"
+#include "orange/univ/SimpleUnitTracker.hh"
 
 #include <algorithm>
 #include <random>
 
 // Source includes
-#include "base/ArrayUtils.hh"
-#include "base/Constants.hh"
-#include "base/Repr.hh"
-#include "base/Stopwatch.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/io/Repr.hh"
+#include "corecel/sys/Stopwatch.hh"
 
 // Test includes
 #include "orange/OrangeGeoTestBase.hh"
-#include "random/distributions/IsotropicDistribution.hh"
-#include "random/distributions/UniformBoxDistribution.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"

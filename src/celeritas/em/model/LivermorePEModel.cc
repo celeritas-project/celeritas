@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEModel.cc
+//! \file celeritas/em/model/LivermorePEModel.cc
 //---------------------------------------------------------------------------//
 #include "LivermorePEModel.hh"
 
@@ -11,21 +11,21 @@
 #include <utility>
 #include <vector>
 
-#include "base/Array.hh"
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "base/ScopedTimeLog.hh"
-#include "comm/Logger.hh"
-#include "physics/base/Applicability.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/grid/XsGridData.hh"
-#include "physics/material/ElementView.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/Types.hh"
 
-#include "detail/LivermorePEData.hh"
-#include "generated/LivermorePEInteract.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/em/generated/LivermorePEInteract.hh"
 
 namespace celeritas
 {

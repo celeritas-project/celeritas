@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LivermorePEMicroXsCalculator.hh
+//! \file celeritas/em/xs/LivermorePEMicroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/GenericXsCalculator.hh"
-#include "physics/grid/PolyEvaluator.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/GenericXsCalculator.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/Types.hh"
 
-#include "LivermorePEData.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
 
 namespace celeritas
 {

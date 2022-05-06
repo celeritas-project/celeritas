@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InteractorHostTestBase.cc
+//! \file physics/InteractorHostTestBase.cc
 //---------------------------------------------------------------------------//
 #include "InteractorHostTestBase.hh"
 
-#include "base/ArrayUtils.hh"
-#include "base/StackAllocator.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 #include "gtest/detail/Macros.hh"
 

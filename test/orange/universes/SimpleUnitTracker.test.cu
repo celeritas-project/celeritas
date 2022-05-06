@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimpleUnitTracker.test.cu
+//! \file orange/universes/SimpleUnitTracker.test.cu
 //---------------------------------------------------------------------------//
 #include "SimpleUnitTracker.test.hh"
 
-#include "base/KernelParamCalculator.device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 namespace celeritas_test
 {

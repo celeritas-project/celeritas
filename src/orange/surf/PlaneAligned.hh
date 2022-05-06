@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PlaneAligned.hh
+//! \file orange/surf/PlaneAligned.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/Types.hh"
 
 namespace celeritas

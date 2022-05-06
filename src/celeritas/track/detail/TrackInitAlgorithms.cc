@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitAlgorithms.cc
+//! \file celeritas/track/detail/TrackInitAlgorithms.cc
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 

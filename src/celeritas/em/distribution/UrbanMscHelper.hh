@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanMscHelper.hh
+//! \file celeritas/em/distribution/UrbanMscHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/EnergyLossCalculator.hh"
-#include "physics/grid/InverseRangeCalculator.hh"
-#include "physics/grid/RangeCalculator.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/EnergyLossCalculator.hh"
+#include "celeritas/grid/InverseRangeCalculator.hh"
+#include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/Types.hh"
 
-#include "UrbanMscData.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 
 namespace celeritas
 {

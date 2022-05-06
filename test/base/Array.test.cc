@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Array.test.cc
+//! \file base/Array.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Array.hh"
+#include "corecel/cont/Array.hh"
 
-#include "base/EnumArray.hh"
+#include "corecel/cont/EnumArray.hh"
 
 #include "celeritas_test.hh"
 

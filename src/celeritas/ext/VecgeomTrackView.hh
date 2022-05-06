@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomTrackView.hh
+//! \file celeritas/ext/VecgeomTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,11 +13,11 @@
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Macros.hh"
-#include "base/NumericLimits.hh"
-#include "base/SoftEqual.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"

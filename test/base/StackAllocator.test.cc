@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.test.cc
+//! \file base/StackAllocator.test.cc
 //---------------------------------------------------------------------------//
-#include "base/StackAllocator.hh"
+#include "corecel/data/StackAllocator.hh"
 
 #include <cstdint>
 
-#include "base/CollectionStateStore.hh"
+#include "corecel/data/CollectionStateStore.hh"
 
 #include "StackAllocator.test.hh"
 #include "celeritas_test.hh"

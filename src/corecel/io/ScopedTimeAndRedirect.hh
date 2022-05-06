@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedTimeAndRedirect.hh
+//! \file corecel/io/ScopedTimeAndRedirect.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "base/ScopedStreamRedirect.hh"
-#include "base/ScopedTimeLog.hh"
+#include "ScopedStreamRedirect.hh"
+#include "ScopedTimeLog.hh"
 
 namespace celeritas
 {

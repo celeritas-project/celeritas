@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomNavCollection.cc
+//! \file celeritas/ext/detail/VecgeomNavCollection.cc
 //---------------------------------------------------------------------------//
 #include "VecgeomNavCollection.hh"
 
 #include <VecGeom/navigation/NavStatePool.h>
 
-#include "base/CollectionBuilder.hh"
-#include "comm/Device.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas
 {

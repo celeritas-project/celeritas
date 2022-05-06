@@ -3,31 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Transporter.cc
+//! \file demo-loop/Transporter.cc
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
 #include <csignal>
 #include <memory>
 
-#include "base/device_runtime_api.h"
-#include "base/Assert.hh"
-#include "base/Stopwatch.hh"
-#include "base/VectorUtils.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedSignalHandler.hh"
-#include "geometry/GeoMaterialParams.hh"
-#include "geometry/GeoParams.hh"
-#include "geometry/generated/BoundaryAction.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/em/AtomicRelaxationParams.hh"
-#include "physics/material/MaterialParams.hh"
-#include "random/RngParams.hh"
-#include "sim/ActionManager.hh"
-#include "sim/TrackInitParams.hh"
-#include "sim/TrackInitUtils.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "corecel/math/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedSignalHandler.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/em/AtomicRelaxationParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/global/ActionManager.hh"
+#include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/track/TrackInitUtils.hh"
 
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"

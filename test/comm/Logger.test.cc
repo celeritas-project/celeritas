@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Logger.test.cc
+//! \file comm/Logger.test.cc
 //---------------------------------------------------------------------------//
-#include "comm/Logger.hh"
+#include "corecel/io/Logger.hh"
 
 #include <iomanip>
 #include <thread>
 
-#include "base/Range.hh"
-#include "base/Stopwatch.hh"
-#include "comm/Communicator.hh"
-#include "comm/Environment.hh"
-#include "comm/ScopedMpiInit.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/Environment.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"
 

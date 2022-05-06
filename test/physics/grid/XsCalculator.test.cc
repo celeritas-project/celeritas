@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XsCalculator.test.cc
+//! \file physics/grid/XsCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/XsCalculator.hh"
+#include "celeritas/grid/XsCalculator.hh"
 
 #include <algorithm>
 #include <cmath>
 
-#include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
 
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"

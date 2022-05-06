@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParams.hh
+//! \file celeritas/phys/ParticleParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
+#include "corecel/data/CollectionMirror.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleData.hh"

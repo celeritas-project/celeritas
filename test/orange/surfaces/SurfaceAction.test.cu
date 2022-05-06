@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceAction.test.cu
+//! \file orange/surfaces/SurfaceAction.test.cu
 //---------------------------------------------------------------------------//
 #include "SurfaceAction.test.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas_test
 {

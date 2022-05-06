@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighLauncher.hh
+//! \file celeritas/em/launcher/RayleighLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "RayleighData.hh"
-#include "RayleighInteractor.hh"
+#include "celeritas/em/data/RayleighData.hh"
+#include "celeritas/em/interactor/RayleighInteractor.hh"
 
 namespace celeritas
 {

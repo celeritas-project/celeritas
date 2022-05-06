@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleParams.cc
+//! \file celeritas/phys/ParticleParams.cc
 //---------------------------------------------------------------------------//
 #include "ParticleParams.hh"
 
 #include <algorithm>
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "io/ImportData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/io/ImportData.hh"
 
 namespace celeritas
 {

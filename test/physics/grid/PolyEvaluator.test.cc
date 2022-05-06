@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PolyEvaluator.test.cc
+//! \file physics/grid/PolyEvaluator.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/PolyEvaluator.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
 
 #include <type_traits>
 

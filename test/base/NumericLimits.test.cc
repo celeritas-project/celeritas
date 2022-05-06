@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NumericLimits.test.cc
+//! \file base/NumericLimits.test.cc
 //---------------------------------------------------------------------------//
-#include "base/NumericLimits.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include <cmath>
 #include <limits>

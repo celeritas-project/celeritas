@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Logger.cc
+//! \file corecel/io/Logger.cc
 //---------------------------------------------------------------------------//
 #include "Logger.hh"
 
@@ -11,12 +11,12 @@
 #include <iostream>
 #include <sstream>
 
-#include "Communicator.hh"
-#include "Environment.hh"
-#include "ScopedMpiInit.hh"
-#include "base/Assert.hh"
-#include "base/ColorUtils.hh"
-#include "base/Range.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/Environment.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "corecel/Assert.hh"
+#include "ColorUtils.hh"
+#include "corecel/cont/Range.hh"
 
 namespace
 {

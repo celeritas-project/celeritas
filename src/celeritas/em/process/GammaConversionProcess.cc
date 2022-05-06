@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GammaConversionProcess.cc
+//! \file celeritas/em/process/GammaConversionProcess.cc
 //---------------------------------------------------------------------------//
 #include "GammaConversionProcess.hh"
 
 #include <utility>
 
-#include "base/Assert.hh"
-#include "io/ImportProcess.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
-#include "BetheHeitlerModel.hh"
+#include "celeritas/em/model/BetheHeitlerModel.hh"
 
 namespace celeritas
 {

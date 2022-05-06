@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerReader.test.cc
+//! \file io/SeltzerBergerReader.test.cc
 //---------------------------------------------------------------------------//
-#include "io/SeltzerBergerReader.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 
 #include "celeritas_test.hh"
 

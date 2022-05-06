@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldDriver.test.cc
+//! \file field/FieldDriver.test.cc
 //---------------------------------------------------------------------------//
 
-#include "field/FieldDriver.hh"
+#include "celeritas/field/FieldDriver.hh"
 
-#include "base/Constants.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "field/DormandPrinceStepper.hh"
-#include "field/FieldParamsData.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/Types.hh"
-#include "field/UniformMagField.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/Types.hh"
+#include "celeritas/field/UniformMagField.hh"
 
 #include "FieldDriver.test.hh"
 #include "celeritas_test.hh"

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Process.hh
+//! \file celeritas/phys/Process.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +11,10 @@
 #include <string>
 #include <vector>
 
-#include "base/Range.hh"
-#include "physics/grid/ValueGridBuilder.hh"
-#include "physics/grid/ValueGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/Types.hh"
 
 #include "Applicability.hh"
 

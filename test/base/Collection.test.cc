@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Collection.test.cc
+//! \file base/Collection.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Collection.hh"
+#include "corecel/data/Collection.hh"
 
 #include <cstdint>
 #include <type_traits>
 
-#include "base/CollectionAlgorithms.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/CollectionMirror.hh"
-#include "base/DeviceVector.hh"
-#include "comm/Device.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/sys/Device.hh"
 
 #include "Collection.test.hh"
 #include "celeritas_test.hh"

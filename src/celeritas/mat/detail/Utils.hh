@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Utils.hh
+//! \file celeritas/mat/detail/Utils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

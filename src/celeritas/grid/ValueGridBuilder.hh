@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ValueGridBuilder.hh
+//! \file celeritas/grid/ValueGridBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <vector>
 
-#include "base/Collection.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

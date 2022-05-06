@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Particle.test.cc
+//! \file physics/base/Particle.test.cc
 //---------------------------------------------------------------------------//
 #include "Particle.test.hh"
 
 #include "celeritas_config.h"
-#include "base/Array.hh"
-#include "base/CollectionStateStore.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhotoelectricProcess.cc
+//! \file celeritas/em/process/PhotoelectricProcess.cc
 //---------------------------------------------------------------------------//
 #include "PhotoelectricProcess.hh"
 
 #include <utility>
 
-#include "base/Assert.hh"
-#include "io/ImportLivermorePE.hh"
-#include "io/ImportProcess.hh"
-#include "io/LivermorePEReader.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/io/ImportLivermorePE.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/LivermorePEReader.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
-#include "LivermorePEModel.hh"
+#include "celeritas/em/model/LivermorePEModel.hh"
 
 namespace celeritas
 {

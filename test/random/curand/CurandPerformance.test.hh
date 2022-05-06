@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CurandPerformance.test.hh
+//! \file random/curand/CurandPerformance.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas_test
 {

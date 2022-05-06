@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsParams.hh
+//! \file celeritas/phys/PhysicsParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "base/Units.hh"
-#include "sim/ActionInterface.hh"
-#include "sim/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/global/ActionInterface.hh"
+#include "celeritas/Types.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"

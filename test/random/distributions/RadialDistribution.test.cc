@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RadialDistribution.test.cc
+//! \file random/distributions/RadialDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/RadialDistribution.hh"
+#include "celeritas/random/distribution/RadialDistribution.hh"
 
 #include <random>
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LPMCalculator.hh
+//! \file celeritas/em/xs/LPMCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/PolyEvaluator.hh"
-#include "physics/material/MaterialView.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/Types.hh"
 
-#include "PhysicsConstants.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

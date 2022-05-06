@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighModel.cc
+//! \file celeritas/em/model/RayleighModel.cc
 //---------------------------------------------------------------------------//
 #include "RayleighModel.hh"
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "base/detail/RangeImpl.hh"
-#include "physics/base/Applicability.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/detail/RangeImpl.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/Types.hh"
 
-#include "detail/RayleighData.hh"
-#include "generated/RayleighInteract.hh"
+#include "celeritas/em/data/RayleighData.hh"
+#include "celeritas/em/generated/RayleighInteract.hh"
 
 namespace celeritas
 {

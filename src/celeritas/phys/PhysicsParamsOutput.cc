@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsParamsOutput.cc
+//! \file celeritas/phys/PhysicsParamsOutput.cc
 //---------------------------------------------------------------------------//
 #include "PhysicsParamsOutput.hh"
 
 #include <utility>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "physics/base/Model.hh"
-#include "sim/JsonPimpl.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "Model.hh"
+#include "corecel/io/JsonPimpl.hh"
 
 #include "PhysicsParams.hh"
 #if CELERITAS_USE_JSON

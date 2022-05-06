@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInserter.test.cc
+//! \file orange/construct/VolumeInserter.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/construct/VolumeInserter.hh"
 
 #include <fstream>
 
 #include "celeritas_config.h"
-#include "base/CollectionBuilder.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "orange/construct/VolumeInput.hh"
 
 #include "celeritas_test.hh"

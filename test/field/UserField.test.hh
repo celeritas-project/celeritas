@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UserField.test.hh
+//! \file field/UserField.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 #include "FieldPropagator.test.hh"
 #include "detail/FieldMapData.hh"

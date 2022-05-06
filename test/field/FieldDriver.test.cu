@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldDriver.test.cu
+//! \file field/FieldDriver.test.cu
 //---------------------------------------------------------------------------//
 #include "FieldDriver.test.hh"
 
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/Constants.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "comm/Device.hh"
-#include "field/DormandPrinceStepper.hh"
-#include "field/FieldDriver.hh"
-#include "field/FieldParamsData.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/UniformMagField.hh"
+#include "corecel/device_runtime_api.h"
+#include "celeritas/Constants.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/FieldDriver.hh"
+#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/UniformMagField.hh"
 
 #include "FieldTestParams.hh"
 #include "detail/MagTestTraits.hh"

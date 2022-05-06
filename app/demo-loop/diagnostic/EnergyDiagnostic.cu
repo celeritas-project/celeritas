@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyDiagnostic.cu
+//! \file demo-loop/diagnostic/EnergyDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "EnergyDiagnostic.hh"
 
-#include "base/CollectionBuilder.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/Macros.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/Macros.hh"
 
 using namespace celeritas;
 

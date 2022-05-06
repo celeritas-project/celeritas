@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantPhysicsList.cc
+//! \file celeritas/ext/detail/GeantPhysicsList.cc
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsList.hh"
 
@@ -28,8 +28,8 @@
 #include <G4eeToTwoGammaModel.hh>
 #include <G4eplusAnnihilation.hh>
 
-#include "base/Assert.hh"
-#include "comm/Logger.hh"
+#include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 #include "GeantBremsstrahlungProcess.hh"
 

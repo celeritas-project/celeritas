@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedSignalHandler.cc
+//! \file corecel/sys/ScopedSignalHandler.cc
 //---------------------------------------------------------------------------//
 #include "ScopedSignalHandler.hh"
 
@@ -11,8 +11,8 @@
 #include <csignal>
 
 #include "Environment.hh"
-#include "Logger.hh"
-#include "base/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/Assert.hh"
 
 namespace
 {

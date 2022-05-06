@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagTestTraits.hh
+//! \file field/detail/MagTestTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "field/FieldDriver.hh"
-#include "field/MagFieldEquation.hh"
+#include "celeritas/field/FieldDriver.hh"
+#include "celeritas/field/MagFieldEquation.hh"
 
 namespace celeritas
 {

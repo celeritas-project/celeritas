@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ElectronBremsData.hh
+//! \file celeritas/em/data/ElectronBremsData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "sim/Types.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MaterialParams.hh
+//! \file celeritas/mat/MaterialParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,11 +12,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/CollectionMirror.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "ElementView.hh"
 #include "MaterialData.hh"

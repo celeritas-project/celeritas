@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XorwowRngEngine.hh
+//! \file celeritas/random/XorwowRngEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/OpaqueId.hh"
-#include "base/Types.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+#include "distribution/GenerateCanonical.hh"
 
 #include "XorwowRngData.hh"
 #include "detail/GenerateCanonical32.hh"

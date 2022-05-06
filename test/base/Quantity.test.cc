@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Quantity.test.cc
+//! \file base/Quantity.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Quantity.hh"
+#include "corecel/math/Quantity.hh"
 
 #include <type_traits>
 
-#include "base/Constants.hh"
+#include "celeritas/Constants.hh"
 
 #include "celeritas_test.hh"
 

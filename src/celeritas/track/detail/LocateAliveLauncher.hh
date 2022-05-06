@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LocateAliveLauncher.hh
+//! \file celeritas/track/detail/LocateAliveLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Atomics.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
-#include "sim/TrackInitData.hh"
+#include "corecel/math/Atomics.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "../SimTrackView.hh"
+#include "../TrackInitData.hh"
 
 #include "Utils.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Operations.hh
+//! \file celeritas/ext/MpiOperations.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,11 +16,11 @@
 #    include <mpi.h>
 #endif
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 
-#include "Communicator.hh"
+#include "MpiCommunicator.hh"
 #include "detail/MpiTypes.hh"
 
 namespace celeritas

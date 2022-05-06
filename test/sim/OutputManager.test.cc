@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OutputManager.test.cc
+//! \file sim/OutputManager.test.cc
 //---------------------------------------------------------------------------//
-#include "sim/OutputManager.hh"
+#include "corecel/io/OutputManager.hh"
 
 #include <sstream>
 
-#include "sim/JsonPimpl.hh"
+#include "corecel/io/JsonPimpl.hh"
 
 #include "celeritas_test.hh"
 

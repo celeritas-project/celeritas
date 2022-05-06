@@ -27,9 +27,9 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "../detail/{class}Data.hh"
 
 namespace celeritas
@@ -60,9 +60,9 @@ inline void {func}_interact(
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "../detail/{class}Launcher.hh"
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "physics/base/InteractionLauncher.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/InteractionLauncher.hh"
 
 namespace celeritas
 {{
@@ -92,13 +92,13 @@ void {func}_interact(
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
-#include "base/device_runtime_api.h"
+#include "corecel/device_runtime_api.h"
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
-#include "physics/base/InteractionLauncher.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/phys/InteractionLauncher.hh"
 
 #include "../detail/{class}Launcher.hh"
 

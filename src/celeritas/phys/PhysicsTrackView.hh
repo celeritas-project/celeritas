@@ -3,28 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsTrackView.hh
+//! \file celeritas/phys/PhysicsTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/EPlusGGMacroXsCalculator.hh"
-#include "physics/em/LivermorePEMacroXsCalculator.hh"
-#include "physics/em/detail/UrbanMscData.hh"
-#include "physics/grid/GridIdFinder.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "physics/material/MaterialView.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/grid/GridIdFinder.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/Types.hh"
 
 #include "Interaction.hh"
 #include "PhysicsData.hh"
 #include "Secondary.hh"
 #if CELERITAS_DEBUG
-#    include "base/NumericLimits.hh"
+#    include "corecel/math/NumericLimits.hh"
 #endif
 
 namespace celeritas

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ScopedStreamRedirect.cc
+//! \file corecel/io/ScopedStreamRedirect.cc
 //---------------------------------------------------------------------------//
 #include "ScopedStreamRedirect.hh"
 
 #include <cctype>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

@@ -3,25 +3,25 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInit.test.cc
+//! \file sim/TrackInit.test.cc
 //---------------------------------------------------------------------------//
 #include "TrackInit.test.hh"
 
 #include <algorithm>
 #include <numeric>
 
-#include "base/CollectionStateStore.hh"
-#include "geometry/GeoMaterialParams.hh"
-#include "geometry/GeoParams.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "geometry/GeoTestBase.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/material/MaterialParams.hh"
-#include "random/RngParams.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/TrackInitParams.hh"
-#include "sim/TrackInitUtils.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/track/TrackInitUtils.hh"
 
 #include "celeritas_test.hh"
 

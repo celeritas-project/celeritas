@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungModel.cc
+//! \file celeritas/em/model/MuBremsstrahlungModel.cc
 //---------------------------------------------------------------------------//
 #include "MuBremsstrahlungModel.hh"
 
-#include "base/Assert.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/em/generated/MuBremsstrahlungInteract.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
 
 namespace celeritas
 {

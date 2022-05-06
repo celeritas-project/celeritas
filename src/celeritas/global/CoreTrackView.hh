@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CoreTrackView.hh
+//! \file celeritas/global/CoreTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/StackAllocator.hh"
-#include "geometry/GeoMaterialView.hh"
-#include "geometry/GeoTrackView.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/em/AtomicRelaxationHelper.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "random/RngEngine.hh"
-#include "sim/SimTrackView.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/random/RngEngine.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
 

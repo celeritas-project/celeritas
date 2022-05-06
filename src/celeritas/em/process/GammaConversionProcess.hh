@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GammaConversionProcess.hh
+//! \file celeritas/em/process/GammaConversionProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "physics/base/ImportedProcessAdapter.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Process.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Process.hh"
 
 namespace celeritas
 {

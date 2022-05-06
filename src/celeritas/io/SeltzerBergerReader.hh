@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SeltzerBergerReader.hh
+//! \file celeritas/io/SeltzerBergerReader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 #include "ImportSBTable.hh"
 

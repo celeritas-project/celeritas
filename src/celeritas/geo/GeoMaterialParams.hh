@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoMaterialParams.hh
+//! \file celeritas/geo/GeoMaterialParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "base/Types.hh"
-#include "geometry/GeoParams.hh"
-#include "physics/material/MaterialParams.hh"
-#include "sim/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/Types.hh"
+#include "GeoParams.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/Types.hh"
 
 #include "GeoMaterialData.hh"
 

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VectorUtils.hh
+//! \file corecel/math/VectorUtils.hh
 //! \brief Helper functions for std::vector
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

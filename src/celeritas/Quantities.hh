@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.hh
+//! \file celeritas/Quantities.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Constants.hh"
-#include "base/Quantity.hh"
-#include "base/Units.hh"
+#include "Constants.hh"
+#include "corecel/math/Quantity.hh"
+#include "Units.hh"
 
 namespace celeritas
 {

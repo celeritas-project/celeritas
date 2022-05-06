@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceAction.hh
+//! \file orange/surf/detail/SurfaceAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <utility>
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
 #include "orange/Types.hh"
 
 #include "../CylCentered.hh"

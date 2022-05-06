@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SpanImpl.hh
+//! \file corecel/cont/detail/SpanImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

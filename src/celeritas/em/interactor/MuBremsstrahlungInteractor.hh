@@ -3,27 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MuBremsstrahlungInteractor.hh
+//! \file celeritas/em/interactor/MuBremsstrahlungInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/ArrayUtils.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Range.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "MuBremsstrahlungData.hh"
+#include "celeritas/em/data/MuBremsstrahlungData.hh"
 
 namespace celeritas
 {

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LogicEvaluator.test.cc
+//! \file orange/universes/detail/LogicEvaluator.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/universes/detail/LogicEvaluator.hh"
+#include "orange/univ/detail/LogicEvaluator.hh"
 
 #include <iomanip>
 

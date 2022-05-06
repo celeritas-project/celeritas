@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeView.hh
+//! \file orange/univ/VolumeView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Collection.hh"
-#include "base/Span.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 

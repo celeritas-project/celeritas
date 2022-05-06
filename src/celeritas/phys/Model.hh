@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Model.hh
+//! \file celeritas/phys/Model.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <set>
 #include <string>
 
-#include "base/Types.hh"
-#include "sim/ActionInterface.hh"
-#include "sim/Types.hh"
+#include "corecel/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
+#include "celeritas/Types.hh"
 
 #include "Applicability.hh"
 

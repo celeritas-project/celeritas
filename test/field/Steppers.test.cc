@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Steppers.test.cc
+//! \file field/Steppers.test.cc
 //---------------------------------------------------------------------------//
 
 #include "Steppers.test.hh"
 
-#include "base/Constants.hh"
-#include "base/Range.hh"
-#include "base/Types.hh"
-#include "base/Units.hh"
-#include "field/DormandPrinceStepper.hh"
-#include "field/MagFieldEquation.hh"
-#include "field/RungeKuttaStepper.hh"
-#include "field/UniformMagField.hh"
-#include "field/UniformZMagField.hh"
-#include "field/ZHelixStepper.hh"
-#include "physics/base/Units.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/field/DormandPrinceStepper.hh"
+#include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/RungeKuttaStepper.hh"
+#include "celeritas/field/UniformMagField.hh"
+#include "celeritas/field/UniformZMagField.hh"
+#include "celeritas/field/ZHelixStepper.hh"
+#include "celeritas/Quantities.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"

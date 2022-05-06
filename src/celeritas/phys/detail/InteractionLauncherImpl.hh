@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file InteractionLauncherImpl.hh
+//! \file celeritas/phys/detail/InteractionLauncherImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/CoreTrackView.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {

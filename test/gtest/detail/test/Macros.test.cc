@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Macros.test.cc
+//! \file gtest/detail/test/Macros.test.cc
 //---------------------------------------------------------------------------//
 #include "../Macros.hh"
 
 #include <limits>
 
-#include "base/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 
 #include "celeritas_test.hh"
 

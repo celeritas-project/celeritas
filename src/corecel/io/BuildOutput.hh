@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BuildOutput.hh
+//! \file corecel/io/BuildOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "sim/OutputInterface.hh"
+#include "OutputInterface.hh"
 
 namespace celeritas
 {

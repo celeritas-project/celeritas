@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInit.test.cu
+//! \file sim/TrackInit.test.cu
 //---------------------------------------------------------------------------//
 #include "TrackInit.test.hh"
 
 #include <thrust/copy.h>
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas_test
 {

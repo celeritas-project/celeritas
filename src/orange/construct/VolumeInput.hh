@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInput.hh
+//! \file orange/construct/VolumeInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../Data.hh"
-#include "../Types.hh"
-#include "base/Span.hh"
+#include "orange/Data.hh"
+#include "orange/Types.hh"
+#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {

@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.test.hh
+//! \file base/StackAllocator.test.hh
 //---------------------------------------------------------------------------//
-#include "base/Macros.hh"
-#include "base/StackAllocatorData.hh"
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocatorData.hh"
 
 namespace celeritas_test
 {

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInserter.hh
+//! \file orange/construct/VolumeInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
 
-#include "../Data.hh"
+#include "orange/Data.hh"
 #include "VolumeInput.hh"
 
 namespace celeritas

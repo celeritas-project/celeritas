@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaLauncher.hh
+//! \file celeritas/em/launcher/KleinNishinaLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "sim/CoreTrackView.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
-#include "KleinNishinaData.hh"
-#include "KleinNishinaInteractor.hh"
+#include "celeritas/em/data/KleinNishinaData.hh"
+#include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 
 namespace celeritas
 {

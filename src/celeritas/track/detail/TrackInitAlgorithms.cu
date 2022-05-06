@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInitAlgorithms.cu
+//! \file celeritas/track/detail/TrackInitAlgorithms.cu
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
@@ -11,8 +11,8 @@
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
-#include "base/Copier.hh"
-#include "base/Macros.hh"
+#include "corecel/data/Copier.hh"
+#include "corecel/Macros.hh"
 
 #include "Utils.hh"
 

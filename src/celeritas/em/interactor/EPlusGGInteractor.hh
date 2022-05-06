@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGInteractor.hh
+//! \file celeritas/em/interactor/EPlusGGInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/ArrayUtils.hh"
-#include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/IsotropicDistribution.hh"
-#include "random/distributions/ReciprocalDistribution.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
-#include "EPlusGGData.hh"
+#include "celeritas/em/data/EPlusGGData.hh"
 
 namespace celeritas
 {

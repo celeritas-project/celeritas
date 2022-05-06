@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Surfaces.hh
+//! \file orange/surf/Surfaces.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../Data.hh"
+#include "orange/Data.hh"
 
 namespace celeritas
 {

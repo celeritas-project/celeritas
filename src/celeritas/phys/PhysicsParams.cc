@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsParams.cc
+//! \file celeritas/phys/PhysicsParams.cc
 //---------------------------------------------------------------------------//
 #include "PhysicsParams.hh"
 
@@ -11,22 +11,22 @@
 #include <map>
 #include <tuple>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "base/VectorUtils.hh"
-#include "comm/Logger.hh"
-#include "physics/em/EPlusGGMacroXsCalculator.hh"
-#include "physics/em/EPlusGGModel.hh"
-#include "physics/em/LivermorePEModel.hh"
-#include "physics/em/UrbanMscModel.hh"
-#include "physics/grid/ValueGridInserter.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "physics/material/MaterialParams.hh"
-#include "sim/ActionManager.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/model/EPlusGGModel.hh"
+#include "celeritas/em/model/LivermorePEModel.hh"
+#include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/grid/ValueGridInserter.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/global/ActionManager.hh"
 
 #include "ParticleParams.hh"
-#include "generated/AlongStepAction.hh"
+#include "celeritas/global/generated/AlongStepAction.hh"
 #include "generated/DiscreteSelectAction.hh"
 #include "generated/PreStepAction.hh"
 

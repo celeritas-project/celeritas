@@ -3,30 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaInteractor.hh
+//! \file celeritas/em/interactor/MollerBhabhaInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Range.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "BhabhaEnergyDistribution.hh"
-#include "MollerBhabhaData.hh"
-#include "MollerEnergyDistribution.hh"
+#include "detail/BhabhaEnergyDistribution.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 
 namespace celeritas
 {

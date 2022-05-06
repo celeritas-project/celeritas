@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldUtils.hh
+//! \file celeritas/field/detail/FieldUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Array.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Assert.hh"
-#include "field/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/Assert.hh"
+#include "../Types.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VecgeomParams.hh
+//! \file celeritas/ext/VecgeomParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include <unordered_map>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"

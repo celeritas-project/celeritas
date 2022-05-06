@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighModel.hh
+//! \file celeritas/em/model/RayleighModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/CollectionMirror.hh"
-#include "physics/base/Model.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
-#include "detail/RayleighData.hh"
+#include "celeritas/em/data/RayleighData.hh"
 
 namespace celeritas
 {

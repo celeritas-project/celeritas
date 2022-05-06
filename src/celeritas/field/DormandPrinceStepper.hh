@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DormandPrinceStepper.hh
+//! \file celeritas/field/DormandPrinceStepper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 #include "Types.hh"
 

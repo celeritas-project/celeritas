@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TwodGridCalculator.test.cc
+//! \file physics/grid/TwodGridCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/TwodGridCalculator.hh"
+#include "celeritas/grid/TwodGridCalculator.hh"
 
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "physics/grid/UniformGrid.hh"
-#include "physics/grid/detail/FindInterp.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/grid/UniformGrid.hh"
+#include "celeritas/grid/detail/FindInterp.hh"
 
 #include "celeritas_test.hh"
 

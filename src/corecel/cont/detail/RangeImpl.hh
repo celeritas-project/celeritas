@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RangeImpl.hh
+//! \file corecel/cont/detail/RangeImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/OpaqueId.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {

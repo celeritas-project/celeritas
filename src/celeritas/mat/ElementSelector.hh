@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ElementSelector.hh
+//! \file celeritas/mat/ElementSelector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Range.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "random/distributions/GenerateCanonical.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/Types.hh"
 
 #include "MaterialView.hh"
 

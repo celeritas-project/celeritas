@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PreStepLauncher.hh
+//! \file celeritas/phys/detail/PreStepActionImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "random/distributions/ExponentialDistribution.hh"
-#include "sim/CoreTrackView.hh"
-#include "sim/Types.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/Types.hh"
 
 #include "../PhysicsStepUtils.hh"
 

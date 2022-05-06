@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagFieldMap.cc
+//! \file field/detail/MagFieldMap.cc
 //---------------------------------------------------------------------------//
 #include "MagFieldMap.hh"
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
 
 namespace celeritas
 {

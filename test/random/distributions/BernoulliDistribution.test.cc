@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BernoulliDistribution.test.cc
+//! \file random/distributions/BernoulliDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 #include <random>
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 

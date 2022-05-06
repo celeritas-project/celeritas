@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Material.test.cc
+//! \file physics/material/Material.test.cc
 //---------------------------------------------------------------------------//
 #include "Material.test.hh"
 
 #include <cstring>
 #include <limits>
 
-#include "base/CollectionStateStore.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialData.hh"
-#include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialView.hh"
-#include "physics/material/detail/Utils.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/mat/detail/Utils.hh"
 
 #include "celeritas_test.hh"
 

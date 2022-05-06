@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "NumericLimits.test.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/NumericLimits.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas_test
 {

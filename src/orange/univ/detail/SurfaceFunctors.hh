@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceFunctors.hh
+//! \file orange/univ/detail/SurfaceFunctors.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Array.hh"
-#include "base/Assert.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/Types.hh"
 
 #include "Types.hh"
 

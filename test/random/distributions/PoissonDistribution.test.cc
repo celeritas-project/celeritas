@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PoissonDistribution.test.cc
+//! \file random/distributions/PoissonDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/PoissonDistribution.hh"
+#include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include <map>
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

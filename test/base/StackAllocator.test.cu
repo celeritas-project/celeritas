@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StackAllocator.test.cu
+//! \file base/StackAllocator.test.cu
 //---------------------------------------------------------------------------//
 #include "StackAllocator.test.hh"
 
@@ -11,10 +11,10 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/StackAllocator.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/sys/Device.hh"
 
 using thrust::raw_pointer_cast;
 

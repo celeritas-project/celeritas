@@ -3,23 +3,23 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RBDiffXsCalculator.hh
+//! \file celeritas/em/xs/RBDiffXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "LPMCalculator.hh"
-#include "PhysicsConstants.hh"
-#include "RelativisticBremData.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/data/RelativisticBremData.hh"
 
 namespace celeritas
 {

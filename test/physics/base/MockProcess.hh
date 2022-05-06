@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MockProcess.hh
+//! \file physics/base/MockProcess.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <functional>
 #include <vector>
 
-#include "physics/base/Model.hh"
-#include "physics/base/Process.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/MaterialParams.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/Process.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 namespace celeritas_test
 {

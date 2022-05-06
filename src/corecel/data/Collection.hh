@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Collection.hh
+//! \file corecel/data/Collection.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "OpaqueId.hh"
-#include "Range.hh"
-#include "Types.hh"
-#include "base/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
+#include "corecel/Assert.hh"
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas

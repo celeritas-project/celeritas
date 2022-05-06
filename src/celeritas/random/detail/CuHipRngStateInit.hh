@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CuHipRngStateInit.hh
+//! \file celeritas/random/detail/CuHipRngStateInit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Collection.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
 
 #include "../CuHipRngData.hh"
 

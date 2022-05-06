@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file HostKNDemoRunner.cc
+//! \file demo-interactor/HostKNDemoRunner.cc
 //---------------------------------------------------------------------------//
 #include "HostKNDemoRunner.hh"
 
 #include <iostream>
 #include <random>
 
-#include "base/ArrayUtils.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/Range.hh"
-#include "base/StackAllocator.hh"
-#include "base/Stopwatch.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/detail/KleinNishinaInteractor.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "random/distributions/ExponentialDistribution.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/interactor/KleinNishinaInteractor.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include "Detector.hh"
 #include "KernelUtils.hh"

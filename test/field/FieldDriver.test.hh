@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldDriver.test.hh
+//! \file field/FieldDriver.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "field/FieldParamsData.hh"
+#include "celeritas/field/FieldParamsData.hh"
 
 #include "FieldTestParams.hh"
 

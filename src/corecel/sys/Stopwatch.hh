@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Stopwatch.hh
+//! \file corecel/sys/Stopwatch.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <chrono>
 
-#include "Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CurandPerformance.test.cu
+//! \file random/curand/CurandPerformance.test.cu
 //---------------------------------------------------------------------------//
 #include "CurandPerformance.test.hh"
 
@@ -13,7 +13,7 @@
 #include <curand_mtgp32dc_p_11213.h>
 #include <thrust/device_vector.h>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 using thrust::raw_pointer_cast;
 

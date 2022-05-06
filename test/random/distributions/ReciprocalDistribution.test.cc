@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ReciprocalDistribution.test.cc
+//! \file random/distributions/ReciprocalDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/ReciprocalDistribution.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 

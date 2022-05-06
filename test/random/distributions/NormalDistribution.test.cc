@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file NormalDistribution.test.cc
+//! \file random/distributions/NormalDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/NormalDistribution.hh"
+#include "celeritas/random/distribution/NormalDistribution.hh"
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

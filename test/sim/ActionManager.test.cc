@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionManager.test.cc
+//! \file sim/ActionManager.test.cc
 //---------------------------------------------------------------------------//
-#include "sim/ActionManager.hh"
+#include "celeritas/global/ActionManager.hh"
 
-#include "sim/ActionManagerOutput.hh"
+#include "celeritas/global/ActionManagerOutput.hh"
 
 #include "celeritas_test.hh"
 

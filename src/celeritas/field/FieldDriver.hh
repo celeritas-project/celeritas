@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldDriver.hh
+//! \file celeritas/field/FieldDriver.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
-#include "base/NumericLimits.hh"
-#include "base/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/Types.hh"
 
 #include "FieldParamsData.hh"
 #include "MagFieldEquation.hh"

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Data.hh
+//! \file orange/Data.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/OpaqueId.hh"
-#include "orange/Types.hh"
-#include "sim/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/OpaqueId.hh"
+#include "Types.hh"
+#include "celeritas/Types.hh"
 
 #include "Types.hh"
 

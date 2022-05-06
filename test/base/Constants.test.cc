@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Constants.test.cc
+//! \file base/Constants.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Constants.hh"
+#include "celeritas/Constants.hh"
 
 #include <cmath>
 
 #include "celeritas_config.h"
-#include "base/Units.hh"
+#include "celeritas/Units.hh"
 
 #include "celeritas_test.hh"
 

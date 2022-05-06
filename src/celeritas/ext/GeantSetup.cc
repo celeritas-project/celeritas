@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantSetup.cc
+//! \file celeritas/ext/GeantSetup.cc
 //---------------------------------------------------------------------------//
 #include "GeantSetup.hh"
 
@@ -20,7 +20,7 @@
 #include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "base/ScopedTimeAndRedirect.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 #include "detail/ActionInitialization.hh"
 #include "detail/DetectorConstruction.hh"

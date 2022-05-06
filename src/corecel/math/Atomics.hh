@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Atomics.hh
+//! \file corecel/math/Atomics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "Algorithms.hh"
-#include "Assert.hh"
-#include "Macros.hh"
-#include "Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

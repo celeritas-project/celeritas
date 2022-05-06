@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Diagnostic.hh
+//! \file demo-loop/diagnostic/Diagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "sim/CoreTrackData.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 #include "../Transporter.hh"
 

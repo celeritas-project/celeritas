@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceFunctors.test.cc
+//! \file orange/universes/detail/SurfaceFunctors.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/universes/detail/SurfaceFunctors.hh"
+#include "orange/univ/detail/SurfaceFunctors.hh"
 
 #include "orange/Data.hh"
 #include "orange/construct/SurfaceInserter.hh"
-#include "orange/surfaces/SurfaceAction.hh"
-#include "orange/surfaces/Surfaces.hh"
+#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/Surfaces.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoKernel.hh
+//! \file demo-interactor/KNDemoKernel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "base/CollectionAlgorithms.hh"
-#include "base/Span.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/em/detail/KleinNishinaData.hh"
-#include "physics/grid/XsGridData.hh"
-#include "random/RngData.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/em/data/KleinNishinaData.hh"
+#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/random/RngData.hh"
 
 #include "DetectorData.hh"
 

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SimpleUnitTracker.test.hh
+//! \file orange/universes/SimpleUnitTracker.test.hh
 //---------------------------------------------------------------------------//
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "orange/Data.hh"
-#include "orange/universes/SimpleUnitTracker.hh"
+#include "orange/univ/SimpleUnitTracker.hh"
 
 namespace celeritas_test
 {

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionManagerOutput.hh
+//! \file celeritas/global/ActionManagerOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "OutputInterface.hh"
+#include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
 {

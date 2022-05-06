@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Physics.test.cc
+//! \file physics/base/Physics.test.cc
 //---------------------------------------------------------------------------//
 #include "Physics.test.hh"
 
-#include "base/CollectionStateStore.hh"
-#include "base/Range.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/base/PhysicsParamsOutput.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
-#include "physics/grid/RangeCalculator.hh"
-#include "physics/grid/XsCalculator.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/PhysicsParamsOutput.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/XsCalculator.hh"
 
 #include "PhysicsTestBase.hh"
 #include "celeritas_test.hh"

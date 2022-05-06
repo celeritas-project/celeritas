@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BhabhaEnergyDistribution.hh
+//! \file celeritas/em/interactor/detail/BhabhaEnergyDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

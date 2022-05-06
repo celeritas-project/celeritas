@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighInteractor.test.cc
+//! \file physics/em/Rayleigh.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/RayleighModel.hh"
-#include "physics/em/detail/RayleighInteractor.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "sim/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/model/RayleighModel.hh"
+#include "celeritas/em/interactor/RayleighInteractor.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/Types.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

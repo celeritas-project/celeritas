@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RelativisticBremTest.test.cc
+//! \file physics/em/RelativisticBrem.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "base/Units.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/RelativisticBremModel.hh"
-#include "physics/em/detail/RBDiffXsCalculator.hh"
-#include "physics/em/detail/RelativisticBremInteractor.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/model/RelativisticBremModel.hh"
+#include "celeritas/em/xs/RBDiffXsCalculator.hh"
+#include "celeritas/em/interactor/RelativisticBremInteractor.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

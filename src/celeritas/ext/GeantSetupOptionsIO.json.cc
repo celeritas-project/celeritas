@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantSetupOptionsIO.json.cc
+//! \file celeritas/ext/GeantSetupOptionsIO.json.cc
 //---------------------------------------------------------------------------//
 #include "GeantSetupOptionsIO.json.hh"
 
 #include <unordered_map>
 
-#include "base/Assert.hh"
-#include "base/Range.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {

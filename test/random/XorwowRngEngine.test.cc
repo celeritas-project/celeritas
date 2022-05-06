@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XorwowRngEngine.test.cc
+//! \file random/XorwowRngEngine.test.cc
 //---------------------------------------------------------------------------//
-#include "random/XorwowRngEngine.hh"
+#include "celeritas/random/XorwowRngEngine.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -14,10 +14,10 @@
 #include <string>
 #include <type_traits>
 
-#include "base/CollectionStateStore.hh"
-#include "base/detail/ReprImpl.hh"
-#include "random/XorwowRngParams.hh"
-#include "random/detail/GenerateCanonical32.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/detail/ReprImpl.hh"
+#include "celeritas/random/XorwowRngParams.hh"
+#include "celeritas/random/detail/GenerateCanonical32.hh"
 
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"

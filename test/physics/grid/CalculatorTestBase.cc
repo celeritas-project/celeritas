@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CalculatorTestBase.cc
+//! \file physics/grid/CalculatorTestBase.cc
 //---------------------------------------------------------------------------//
 #include "CalculatorTestBase.hh"
 
 #include <cmath>
 #include <vector>
 
-#include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
-#include "base/SoftEqual.hh"
-#include "physics/grid/Interpolator.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "celeritas/grid/Interpolator.hh"
 
 using namespace celeritas;
 

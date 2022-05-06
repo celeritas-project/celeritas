@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CombinedBremModel.hh
+//! \file celeritas/em/model/CombinedBremModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <functional>
 #include <memory>
 
-#include "base/CollectionMirror.hh"
-#include "physics/base/Model.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/phys/Model.hh"
 
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"
-#include "detail/CombinedBremData.hh"
+#include "celeritas/em/data/CombinedBremData.hh"
 
 namespace celeritas
 {

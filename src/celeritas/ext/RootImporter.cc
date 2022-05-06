@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RootImporter.cc
+//! \file celeritas/ext/RootImporter.cc
 //---------------------------------------------------------------------------//
 #include "RootImporter.hh"
 
@@ -12,11 +12,11 @@
 #include <TLeaf.h>
 #include <TTree.h>
 
-#include "base/Assert.hh"
-#include "base/ScopedTimeLog.hh"
-#include "comm/Logger.hh"
+#include "corecel/Assert.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/Logger.hh"
 
-#include "ImportData.hh"
+#include "celeritas/io/ImportData.hh"
 
 namespace celeritas
 {

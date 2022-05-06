@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VectorUtils.test.cc
+//! \file base/VectorUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "base/VectorUtils.hh"
+#include "corecel/math/VectorUtils.hh"
 
 #include "celeritas_test.hh"
 

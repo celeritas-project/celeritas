@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file QuadraticSolver.hh
+//! \file orange/surf/detail/QuadraticSolver.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Array.hh"
-#include "base/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
 
 namespace celeritas

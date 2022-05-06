@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MultipleScatteringProcess.cc
+//! \file celeritas/em/process/MultipleScatteringProcess.cc
 //---------------------------------------------------------------------------//
 #include "MultipleScatteringProcess.hh"
 
-#include "UrbanMscModel.hh"
+#include "celeritas/em/model/UrbanMscModel.hh"
 
 namespace celeritas
 {

@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossGammaDistribution.hh
+//! \file celeritas/em/distribution/EnergyLossGammaDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "random/distributions/GammaDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/random/distribution/GammaDistribution.hh"
 
-#include "../EnergyLossHelper.hh"
+#include "EnergyLossHelper.hh"
 
 namespace celeritas
 {

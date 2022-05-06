@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Units.hh
+//! \file celeritas/Units.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

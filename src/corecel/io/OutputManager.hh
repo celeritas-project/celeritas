@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OutputManager.hh
+//! \file corecel/io/OutputManager.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,7 @@
 #include <string>
 
 #include "OutputInterface.hh"
-#include "base/EnumArray.hh"
+#include "corecel/cont/EnumArray.hh"
 
 namespace celeritas
 {

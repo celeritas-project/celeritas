@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackInit.test.hh
+//! \file sim/TrackInit.test.hh
 //---------------------------------------------------------------------------//
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/DeviceVector.hh"
-#include "base/StackAllocator.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/Secondary.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
-#include "sim/TrackInitData.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/track/SimTrackView.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas_test
 {

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceAction.test.cc
+//! \file orange/surfaces/SurfaceAction.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/SurfaceAction.hh"
+#include "orange/surf/SurfaceAction.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -14,14 +14,14 @@
 #include <string>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "base/Range.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/cont/Range.hh"
 #include "orange/Data.hh"
 #include "orange/construct/SurfaceInserter.hh"
-#include "orange/surfaces/SurfaceIO.hh"
-#include "orange/surfaces/Surfaces.hh"
-#include "random/distributions/IsotropicDistribution.hh"
-#include "random/distributions/UniformBoxDistribution.hh"
+#include "orange/surf/SurfaceIO.hh"
+#include "orange/surf/Surfaces.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include "SurfaceAction.test.hh"
 #include "celeritas_test.hh"

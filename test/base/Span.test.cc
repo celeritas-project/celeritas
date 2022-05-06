@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Span.test.cc
+//! \file base/Span.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Span.hh"
+#include "corecel/cont/Span.hh"
 
 #include <iomanip>
 #include <sstream>
 #include <type_traits>
 
-#include "base/SpanIO.hh"
+#include "corecel/cont/SpanIO.hh"
 
 #include "celeritas_test.hh"
 

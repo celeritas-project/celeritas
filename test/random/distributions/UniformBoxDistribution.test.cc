@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformBoxDistribution.test.cc
+//! \file random/distributions/UniformBoxDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/UniformBoxDistribution.hh"
+#include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
 #include <random>
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

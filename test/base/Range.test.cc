@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Range.test.cc
+//! \file base/Range.test.cc
 //---------------------------------------------------------------------------//
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
-#include "comm/Device.hh"
+#include "corecel/sys/Device.hh"
 
 #include "Range.test.hh"
 #include "celeritas_test.hh"

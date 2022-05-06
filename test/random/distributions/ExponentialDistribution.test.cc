@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ExponentialDistribution.test.cc
+//! \file random/distributions/ExponentialDistribution.test.cc
 //---------------------------------------------------------------------------//
-#include "random/distributions/ExponentialDistribution.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include <random>
 
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 #include "../DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"

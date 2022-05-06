@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ProcessPrimariesLauncher.hh
+//! \file celeritas/track/detail/ProcessPrimariesLauncher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-#include "sim/TrackInitData.hh"
+#include "corecel/cont/Span.hh"
+#include "../TrackInitData.hh"
 
 namespace celeritas
 {

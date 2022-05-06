@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file DeviceIO.json.cc
+//! \file corecel/sys/DeviceIO.json.cc
 //---------------------------------------------------------------------------//
 #include "DeviceIO.json.hh"
 
 #include "celeritas_config.h"
-#include "comm/Device.hh"
+#include "Device.hh"
 
 namespace celeritas
 {

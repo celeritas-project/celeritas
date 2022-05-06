@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file orange/univ/detail/Types.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/OpaqueId.hh"
-#include "base/Span.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/Types.hh"
 
 namespace celeritas

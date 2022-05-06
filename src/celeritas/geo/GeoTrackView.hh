@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoTrackView.hh
+//! \file celeritas/geo/GeoTrackView.hh
 //! \brief Select geometry implementation at configure time
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_VECGEOM
-#    include "vecgeom/VecgeomTrackView.hh"
+#    include "celeritas/ext/VecgeomTrackView.hh"
 #else
 #    include "orange/OrangeTrackView.hh"
 #endif

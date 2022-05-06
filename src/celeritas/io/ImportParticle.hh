@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportParticle.hh
+//! \file celeritas/io/ImportParticle.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

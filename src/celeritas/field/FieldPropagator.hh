@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldPropagator.hh
+//! \file celeritas/field/FieldPropagator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
-#include "base/NumericLimits.hh"
-#include "base/Types.hh"
-#include "geometry/GeoTrackView.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/Types.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 #include "orange/Types.hh"
-#include "physics/base/ParticleTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "Types.hh"
 #include "detail/FieldUtils.hh"

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsStepUtils.test.cc
+//! \file physics/base/PhysicsStepUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/base/PhysicsStepUtils.hh"
+#include "celeritas/phys/PhysicsStepUtils.hh"
 
-#include "base/CollectionStateStore.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "random/DiagnosticRngEngine.hh"
 
 #include "PhysicsTestBase.hh"

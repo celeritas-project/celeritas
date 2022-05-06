@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OpaqueId.test.cc
+//! \file base/OpaqueId.test.cc
 //---------------------------------------------------------------------------//
-#include "base/OpaqueId.hh"
+#include "corecel/OpaqueId.hh"
 
 #include <cstdint>
 #include <utility>

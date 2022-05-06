@@ -114,9 +114,9 @@ TEST_F({name}Test, host)
 '''
 
 TEST_HEADER_FILE = '''
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas_test
 {{
@@ -151,9 +151,9 @@ inline void {lowabbr}_test(const {capabbr}TestInput&)
 TEST_CODE_FILE = '''\
 #include "{name}.test.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
 
 namespace celeritas_test
 {{

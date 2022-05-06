@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EIonizationProcess.cc
+//! \file celeritas/em/process/EIonizationProcess.cc
 //---------------------------------------------------------------------------//
 #include "EIonizationProcess.hh"
 
-#include "base/Assert.hh"
-#include "io/ImportProcess.hh"
-#include "physics/base/PDGNumber.hh"
+#include "corecel/Assert.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
-#include "MollerBhabhaModel.hh"
+#include "celeritas/em/model/MollerBhabhaModel.hh"
 
 namespace celeritas
 {

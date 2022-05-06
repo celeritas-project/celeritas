@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Process.cc
+//! \file celeritas/phys/Process.cc
 //---------------------------------------------------------------------------//
 #include "Process.hh"
 

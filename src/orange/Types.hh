@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file orange/Types.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <utility>
 
-#include "base/Array.hh"
-#include "base/NumericLimits.hh"
-#include "base/OpaqueId.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

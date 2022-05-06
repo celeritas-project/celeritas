@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file FieldPropagator.test.hh
+//! \file field/FieldPropagator.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "field/FieldParamsData.hh"
-#include "geometry/GeoData.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/geo/GeoData.hh"
 #include "orange/Types.hh"
-#include "physics/base/ParticleData.hh"
+#include "celeritas/phys/ParticleData.hh"
 
 #include "FieldTestParams.hh"
 

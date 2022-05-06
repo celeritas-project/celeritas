@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportedProcessAdapter.cc
+//! \file celeritas/phys/ImportedProcessAdapter.cc
 //---------------------------------------------------------------------------//
 #include "ImportedProcessAdapter.hh"
 
@@ -11,15 +11,15 @@
 #include <ostream>
 #include <tuple>
 
-#include "base/EnumArray.hh"
-#include "base/Range.hh"
-#include "io/ImportData.hh"
-#include "io/ImportPhysicsVector.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/grid/ValueGridBuilder.hh"
-#include "physics/grid/ValueGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
+#include "PDGNumber.hh"
+#include "ParticleParams.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantBremsstrahlungProcess.cc
+//! \file celeritas/ext/detail/GeantBremsstrahlungProcess.cc
 //---------------------------------------------------------------------------//
 #include "GeantBremsstrahlungProcess.hh"
 

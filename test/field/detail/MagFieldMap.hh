@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagFieldMap.hh
+//! \file field/detail/MagFieldMap.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/CollectionMirror.hh"
+#include "corecel/data/CollectionMirror.hh"
 
 #include "FieldMapData.hh"
 

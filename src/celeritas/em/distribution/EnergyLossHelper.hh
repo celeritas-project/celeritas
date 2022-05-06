@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossHelper.hh
+//! \file celeritas/em/distribution/EnergyLossHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/FluctuationData.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/FluctuationData.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 namespace celeritas
 {

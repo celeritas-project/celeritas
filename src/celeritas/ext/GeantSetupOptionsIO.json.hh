@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantSetupOptionsIO.json.hh
+//! \file celeritas/ext/GeantSetupOptionsIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

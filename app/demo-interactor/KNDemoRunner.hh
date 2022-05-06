@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoRunner.hh
+//! \file demo-interactor/KNDemoRunner.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/KleinNishinaData.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/em/data/KleinNishinaData.hh"
 
 #include "KNDemoIO.hh"
 #include "KNDemoKernel.hh"

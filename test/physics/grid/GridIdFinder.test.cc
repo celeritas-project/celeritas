@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GridIdFinder.test.cc
+//! \file physics/grid/GridIdFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/GridIdFinder.hh"
+#include "celeritas/grid/GridIdFinder.hh"
 
-#include "base/OpaqueId.hh"
-#include "physics/base/Units.hh"
+#include "corecel/OpaqueId.hh"
+#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

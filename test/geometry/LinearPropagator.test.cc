@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LinearPropagator.test.cc
+//! \file geometry/LinearPropagator.test.cc
 //---------------------------------------------------------------------------//
-#include "geometry/LinearPropagator.hh"
+#include "celeritas/field/LinearPropagator.hh"
 
-#include "base/ArrayIO.hh"
-#include "base/CollectionStateStore.hh"
-#include "comm/Device.hh"
-#include "comm/Logger.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoParams.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 #include "GeoTestBase.hh"
 #include "celeritas_test.hh"

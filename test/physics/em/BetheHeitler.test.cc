@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheHeitlerInteractor.test.cc
+//! \file physics/em/BetheHeitler.test.cc
 //---------------------------------------------------------------------------//
-#include "base/ArrayUtils.hh"
-#include "base/Range.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/BetheHeitlerModel.hh"
-#include "physics/em/GammaConversionProcess.hh"
-#include "physics/em/detail/BetheHeitlerInteractor.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialTrackView.hh"
-#include "sim/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/model/BetheHeitlerModel.hh"
+#include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/interactor/BetheHeitlerInteractor.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/Types.hh"
 
 #include "../InteractionIO.hh"
 #include "../InteractorHostTestBase.hh"

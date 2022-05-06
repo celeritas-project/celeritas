@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInterface.cc
+//! \file celeritas/global/ActionInterface.cc
 //---------------------------------------------------------------------------//
 #include "ActionInterface.hh"
 
 #include <utility>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UniformGridData.hh
+//! \file celeritas/grid/UniformGridData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceInput.hh
+//! \file orange/construct/SurfaceInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "../Data.hh"
+#include "orange/Data.hh"
 
 namespace celeritas
 {

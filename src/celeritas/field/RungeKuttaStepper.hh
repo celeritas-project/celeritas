@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RungeKuttaStepper.hh
+//! \file celeritas/field/RungeKuttaStepper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 
 #include "Types.hh"
 #include "detail/FieldUtils.hh"

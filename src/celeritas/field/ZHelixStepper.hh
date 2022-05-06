@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ZHelixStepper.hh
+//! \file celeritas/field/ZHelixStepper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Range.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/Types.hh"
 
 #include "Types.hh"
 #include "UniformZMagField.hh"

@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Selector.test.cc
+//! \file random/Selector.test.cc
 //---------------------------------------------------------------------------//
-#include "random/Selector.hh"
+#include "celeritas/random/Selector.hh"
 
-#include "base/OpaqueId.hh"
+#include "corecel/OpaqueId.hh"
 
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"

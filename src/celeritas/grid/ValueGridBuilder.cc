@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ValueGridBuilder.cc
+//! \file celeritas/grid/ValueGridBuilder.cc
 //---------------------------------------------------------------------------//
 #include "ValueGridBuilder.hh"
 
 #include <algorithm>
 #include <cmath>
 
-#include "base/Assert.hh"
-#include "base/Range.hh"
-#include "base/SoftEqual.hh"
-#include "physics/grid/UniformGrid.hh"
-#include "physics/grid/UniformGridData.hh"
-#include "physics/grid/ValueGridInserter.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "UniformGrid.hh"
+#include "UniformGridData.hh"
+#include "ValueGridInserter.hh"
 
 namespace celeritas
 {

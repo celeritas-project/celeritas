@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImportedProcessAdapter.hh
+//! \file celeritas/phys/ImportedProcessAdapter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,13 +13,13 @@
 #include <utility>
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/OpaqueId.hh"
-#include "base/Span.hh"
-#include "io/ImportPhysicsTable.hh"
-#include "io/ImportProcess.hh"
-#include "physics/base/Applicability.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "Applicability.hh"
+#include "celeritas/Types.hh"
 
 #include "PDGNumber.hh"
 #include "Process.hh"

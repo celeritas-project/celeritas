@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CutoffData.hh
+//! \file celeritas/phys/CutoffData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Collection.hh"
-#include "physics/base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

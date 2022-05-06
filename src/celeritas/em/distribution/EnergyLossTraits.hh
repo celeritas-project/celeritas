@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossTraits.hh
+//! \file celeritas/em/distribution/EnergyLossTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "../EnergyLossHelper.hh"
+#include "EnergyLossHelper.hh"
 #include "EnergyLossDeltaDistribution.hh"
 #include "EnergyLossGammaDistribution.hh"
 #include "EnergyLossGaussianDistribution.hh"

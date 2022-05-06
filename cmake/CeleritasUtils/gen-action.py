@@ -23,10 +23,10 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "sim/ActionInterface.hh"
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackData.hh"
+#include "celeritas/global/ActionInterface.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {{
@@ -61,9 +61,9 @@ inline void {clsname}::execute(CoreDeviceRef const&) const
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "{clsname}.hh"
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "sim/TrackLauncher.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "celeritas/global/TrackLauncher.hh"
 #include "../detail/{clsname}Impl.hh"
 
 namespace celeritas
@@ -89,12 +89,12 @@ void {clsname}::execute(CoreHostRef const& data) const
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "{clsname}.hh"
 
-#include "base/device_runtime_api.h"
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
-#include "sim/TrackLauncher.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/global/TrackLauncher.hh"
 #include "../detail/{clsname}Impl.hh"
 
 namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInitialization.hh
+//! \file celeritas/ext/detail/ActionInitialization.hh
 //! Invoke UserAction type classes.
 //---------------------------------------------------------------------------//
 #pragma once

@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossDeltaDistribution.hh
+//! \file celeritas/em/distribution/EnergyLossDeltaDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Units.hh"
+#include "celeritas/Quantities.hh"
 
-#include "../EnergyLossHelper.hh"
+#include "EnergyLossHelper.hh"
 
 namespace celeritas
 {

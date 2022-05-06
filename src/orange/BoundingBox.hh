@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BoundingBox.hh
+//! \file orange/BoundingBox.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Array.hh"
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "base/NumericLimits.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

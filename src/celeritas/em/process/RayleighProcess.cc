@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RayleighProcess.cc
+//! \file celeritas/em/process/RayleighProcess.cc
 //---------------------------------------------------------------------------//
 #include "RayleighProcess.hh"
 
 #include <utility>
 
-#include "RayleighModel.hh"
+#include "celeritas/em/model/RayleighModel.hh"
 
 namespace celeritas
 {

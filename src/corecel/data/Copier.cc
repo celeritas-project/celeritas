@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Copier.cc
+//! \file corecel/data/Copier.cc
 //---------------------------------------------------------------------------//
 #include "Copier.hh"
 
 #include <cstring>
 
-#include "base/Macros.hh"
-#include "base/device_runtime_api.h"
+#include "corecel/Macros.hh"
+#include "corecel/device_runtime_api.h"
 
 namespace celeritas
 {

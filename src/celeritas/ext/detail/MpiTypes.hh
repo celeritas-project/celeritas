@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MpiTypes.hh
+//! \file celeritas/ext/detail/MpiTypes.hh
 //! Type definitions for MPI parallel operations (implementation-agnostic)
 //---------------------------------------------------------------------------//
 #pragma once

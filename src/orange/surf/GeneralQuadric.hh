@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeneralQuadric.hh
+//! \file orange/surf/GeneralQuadric.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
 
 #include "detail/QuadraticSolver.hh"

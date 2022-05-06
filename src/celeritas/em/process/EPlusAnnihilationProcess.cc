@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusAnnihilationProcess.cc
+//! \file celeritas/em/process/EPlusAnnihilationProcess.cc
 //---------------------------------------------------------------------------//
 #include "EPlusAnnihilationProcess.hh"
 
 #include <memory>
 #include <utility>
 
-#include "physics/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 
-#include "EPlusGGModel.hh"
+#include "celeritas/em/model/EPlusGGModel.hh"
 
 namespace celeritas
 {

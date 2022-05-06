@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LoggerMessage.cc
+//! \file corecel/io/detail/LoggerMessage.cc
 //---------------------------------------------------------------------------//
 #include "LoggerMessage.hh"
 
 #include <sstream>
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

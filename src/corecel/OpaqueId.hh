@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OpaqueId.hh
+//! \file corecel/OpaqueId.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

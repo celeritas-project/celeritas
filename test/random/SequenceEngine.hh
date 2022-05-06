@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SequenceEngine.hh
+//! \file random/SequenceEngine.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,9 +13,9 @@
 #include <utility>
 #include <vector>
 
-#include "base/Algorithms.hh"
-#include "base/Span.hh"
-#include "random/distributions/GenerateCanonical.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 
 namespace celeritas_test
 {

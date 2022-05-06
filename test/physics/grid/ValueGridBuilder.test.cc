@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ValueGridBuilder.test.cc
+//! \file physics/grid/ValueGridBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "physics/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 
 #include <memory>
 #include <vector>
 
-#include "physics/grid/ValueGridInserter.hh"
-#include "physics/grid/XsCalculator.hh"
+#include "celeritas/grid/ValueGridInserter.hh"
+#include "celeritas/grid/XsCalculator.hh"
 
 #include "celeritas_test.hh"
 

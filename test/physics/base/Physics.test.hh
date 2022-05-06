@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Physics.test.hh
+//! \file physics/base/Physics.test.hh
 //---------------------------------------------------------------------------//
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "base/Range.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "physics/base/PhysicsData.hh"
-#include "physics/base/Units.hh"
-#include "physics/grid/RangeCalculator.hh"
-#include "physics/grid/XsCalculator.hh"
-#include "sim/Types.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/grid/RangeCalculator.hh"
+#include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/Types.hh"
 
 // Kernel functions
-#include "base/Algorithms.hh"
-#include "base/NumericLimits.hh"
-#include "physics/base/PhysicsTrackView.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
 
 namespace celeritas_test
 {

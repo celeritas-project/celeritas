@@ -3,28 +3,28 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheHeitlerInteractor.hh
+//! \file celeritas/em/interactor/BetheHeitlerInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "random/distributions/BernoulliDistribution.hh"
-#include "random/distributions/GenerateCanonical.hh"
-#include "random/distributions/UniformRealDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "BetheHeitlerData.hh"
-#include "LPMCalculator.hh"
-#include "TsaiUrbanDistribution.hh"
+#include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/em/xs/LPMCalculator.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 
 namespace celeritas
 {

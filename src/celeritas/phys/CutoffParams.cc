@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CutoffParams.cc
+//! \file celeritas/phys/CutoffParams.cc
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
 
 #include <utility>
 
-#include "base/CollectionBuilder.hh"
-#include "base/Macros.hh"
-#include "base/Quantity.hh"
-#include "base/Range.hh"
-#include "io/ImportData.hh"
-#include "io/ImportMaterial.hh"
-#include "physics/base/CutoffData.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/MaterialParams.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/Macros.hh"
+#include "corecel/math/Quantity.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportMaterial.hh"
+#include "CutoffData.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 #include "ParticleParams.hh"
 

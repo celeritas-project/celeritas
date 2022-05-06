@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EPlusGGModel.cc
+//! \file celeritas/em/model/EPlusGGModel.cc
 //---------------------------------------------------------------------------//
 #include "EPlusGGModel.hh"
 
-#include "base/Assert.hh"
-#include "base/Quantity.hh"
-#include "physics/base/Applicability.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleView.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/detail/EPlusGGData.hh"
-#include "physics/em/generated/EPlusGGInteract.hh"
+#include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleView.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/em/generated/EPlusGGInteract.hh"
 
 namespace celeritas
 {

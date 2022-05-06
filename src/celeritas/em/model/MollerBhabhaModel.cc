@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MollerBhabhaModel.cc
+//! \file celeritas/em/model/MollerBhabhaModel.cc
 //---------------------------------------------------------------------------//
 #include "MollerBhabhaModel.hh"
 
-#include "base/Assert.hh"
-#include "base/Quantity.hh"
-#include "physics/base/Applicability.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Units.hh"
+#include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/Quantities.hh"
 
-#include "detail/MollerBhabhaData.hh"
-#include "generated/MollerBhabhaInteract.hh"
+#include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/generated/MollerBhabhaInteract.hh"
 
 namespace celeritas
 {

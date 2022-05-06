@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SoftEqualTraits.hh
+//! \file corecel/math/detail/SoftEqualTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-interactor.cc
+//! \file demo-interactor/demo-interactor.cc
 //---------------------------------------------------------------------------//
 
 #include <cstddef>
@@ -15,14 +15,14 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
-#include "comm/Communicator.hh"
-#include "comm/Device.hh"
-#include "comm/DeviceIO.json.hh"
-#include "comm/KernelDiagnostics.hh"
-#include "comm/KernelDiagnosticsIO.json.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
-#include "physics/base/ParticleParams.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/KernelDiagnostics.hh"
+#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"

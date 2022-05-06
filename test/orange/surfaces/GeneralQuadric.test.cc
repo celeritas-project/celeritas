@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeneralQuadric.test.cc
+//! \file orange/surfaces/GeneralQuadric.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/surfaces/GeneralQuadric.hh"
+#include "orange/surf/GeneralQuadric.hh"
 
 #include "celeritas_test.hh"
 

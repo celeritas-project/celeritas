@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KernelDiagnosticsIO.json.cc
+//! \file corecel/sys/KernelDiagnosticsIO.json.cc
 //---------------------------------------------------------------------------//
 #include "KernelDiagnosticsIO.json.hh"
 
 #include "KernelDiagnostics.hh"
-#include "base/Range.hh"
+#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {

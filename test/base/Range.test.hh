@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Range.test.hh
+//! \file base/Range.test.hh
 //---------------------------------------------------------------------------//
 #include <cstdint>
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas_test
 {

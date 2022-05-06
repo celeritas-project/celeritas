@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeoParams.hh
+//! \file celeritas/geo/GeoParams.hh
 //! \brief Select geometry implementation at configure time
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_VECGEOM
-#    include "vecgeom/VecgeomParams.hh"
+#    include "celeritas/ext/VecgeomParams.hh"
 #else
 #    include "orange/OrangeParams.hh"
 #endif

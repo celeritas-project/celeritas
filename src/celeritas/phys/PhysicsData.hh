@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file PhysicsData.hh
+//! \file celeritas/phys/PhysicsData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "physics/base/Units.hh"
-#include "physics/em/FluctuationData.hh"
-#include "physics/em/detail/EPlusGGData.hh"
-#include "physics/em/detail/LivermorePEData.hh"
-#include "physics/em/detail/UrbanMscData.hh"
-#include "physics/grid/ValueGridData.hh"
-#include "physics/grid/XsGridData.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/em/data/FluctuationData.hh"
+#include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/Types.hh"
 
 #include "Interaction.hh"
 #include "Secondary.hh"

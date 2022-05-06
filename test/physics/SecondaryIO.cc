@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SecondaryIO.cc
+//! \file physics/SecondaryIO.cc
 //---------------------------------------------------------------------------//
 #include "SecondaryIO.hh"
 
-#include "base/ArrayIO.hh"
-#include "physics/base/Units.hh"
+#include "corecel/cont/ArrayIO.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

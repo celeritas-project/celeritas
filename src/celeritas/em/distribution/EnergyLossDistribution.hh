@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyLossDistribution.hh
+//! \file celeritas/em/distribution/EnergyLossDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 #include "EnergyLossHelper.hh"
-#include "detail/EnergyLossTraits.hh"
+#include "EnergyLossTraits.hh"
 
 namespace celeritas
 {

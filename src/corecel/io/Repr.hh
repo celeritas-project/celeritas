@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Repr.hh
+//! \file corecel/io/Repr.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,10 +13,10 @@
 #include <utility>
 #include <vector>
 
-#include "Array.hh"
-#include "Collection.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
 #include "Join.hh"
-#include "Span.hh"
+#include "corecel/cont/Span.hh"
 #include "detail/ReprImpl.hh"
 
 namespace celeritas

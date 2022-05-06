@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file GeantSetup.hh
+//! \file celeritas/ext/GeantSetup.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include <string>
 
 #include "celeritas_config.h"
-#include "base/Assert.hh"
+#include "corecel/Assert.hh"
 
 // Geant4 forward declarations
 class G4VPhysicalVolume;

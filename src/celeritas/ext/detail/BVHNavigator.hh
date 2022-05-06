@@ -20,7 +20,7 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
-#include "base/Macros.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {

@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CMSParameterizedField.hh
+//! \file field/detail/CMSParameterizedField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Array.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

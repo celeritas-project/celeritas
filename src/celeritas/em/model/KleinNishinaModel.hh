@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KleinNishinaModel.hh
+//! \file celeritas/em/model/KleinNishinaModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-#include "physics/base/ParticleParams.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
-#include "detail/KleinNishinaData.hh"
+#include "celeritas/em/data/KleinNishinaData.hh"
 
 namespace celeritas
 {

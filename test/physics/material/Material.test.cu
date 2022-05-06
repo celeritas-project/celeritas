@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Material.test.cu
+//! \file physics/material/Material.test.cu
 //---------------------------------------------------------------------------//
 #include "Material.test.hh"
 
 #include <thrust/device_vector.h>
 
-#include "base/device_runtime_api.h"
-#include "base/KernelParamCalculator.device.hh"
-#include "base/Range.hh"
-#include "comm/Device.hh"
-#include "physics/material/MaterialTrackView.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 using thrust::raw_pointer_cast;
 

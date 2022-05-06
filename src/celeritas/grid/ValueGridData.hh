@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ValueGridData.hh
+//! \file celeritas/grid/ValueGridData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/EnumArray.hh"
-#include "base/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

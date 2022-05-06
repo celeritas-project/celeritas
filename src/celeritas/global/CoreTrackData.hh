@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CoreTrackData.hh
+//! \file celeritas/global/CoreTrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/StackAllocatorData.hh"
-#include "geometry/GeoData.hh"
-#include "geometry/GeoMaterialData.hh"
-#include "physics/base/CutoffData.hh"
-#include "physics/base/ParticleData.hh"
-#include "physics/base/PhysicsData.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/em/AtomicRelaxationData.hh"
-#include "physics/material/MaterialData.hh"
-#include "random/RngData.hh"
+#include "corecel/data/StackAllocatorData.hh"
+#include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/GeoMaterialData.hh"
+#include "celeritas/phys/CutoffData.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
+#include "celeritas/mat/MaterialData.hh"
+#include "celeritas/random/RngData.hh"
 
-#include "SimData.hh"
+#include "celeritas/track/SimData.hh"
 
 namespace celeritas
 {

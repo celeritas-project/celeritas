@@ -3,30 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file CombinedBremInteractor.hh
+//! \file celeritas/em/interactor/CombinedBremInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/ArrayUtils.hh"
-#include "base/Constants.hh"
-#include "base/Macros.hh"
-#include "base/StackAllocator.hh"
-#include "base/Types.hh"
-#include "physics/base/CutoffView.hh"
-#include "physics/base/Interaction.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/Secondary.hh"
-#include "physics/base/Units.hh"
-#include "physics/material/ElementView.hh"
-#include "physics/material/MaterialView.hh"
-#include "sim/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Macros.hh"
+#include "corecel/data/StackAllocator.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/mat/ElementView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/Types.hh"
 
-#include "BremFinalStateHelper.hh"
-#include "CombinedBremData.hh"
-#include "PhysicsConstants.hh"
-#include "RBEnergySampler.hh"
-#include "SBEnergySampler.hh"
+#include "detail/BremFinalStateHelper.hh"
+#include "celeritas/em/data/CombinedBremData.hh"
+#include "detail/PhysicsConstants.hh"
+#include "detail/RBEnergySampler.hh"
+#include "detail/SBEnergySampler.hh"
 
 namespace celeritas
 {

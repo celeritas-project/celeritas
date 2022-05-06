@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanMscData.hh
+//! \file celeritas/em/data/UrbanMscData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Collection.hh"
-#include "base/Macros.hh"
-#include "physics/base/Units.hh"
-#include "sim/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {

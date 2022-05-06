@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SoftEqual.test.cc
+//! \file base/SoftEqual.test.cc
 //---------------------------------------------------------------------------//
-#include "base/SoftEqual.hh"
+#include "corecel/math/SoftEqual.hh"
 
 #include <limits>
 
-#include "base/ColorUtils.hh"
+#include "corecel/io/ColorUtils.hh"
 
 #include "celeritas_test.hh"
 

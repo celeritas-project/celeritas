@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleProcessDiagnostic.hh
+//! \file demo-loop/diagnostic/ParticleProcessDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include <unordered_map>
 
-#include "base/Atomics.hh"
-#include "base/CollectionBuilder.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/base/PhysicsTrackView.hh"
-#include "sim/SimTrackView.hh"
+#include "corecel/math/Atomics.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 

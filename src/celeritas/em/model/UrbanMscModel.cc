@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file UrbanMscModel.cc
+//! \file celeritas/em/model/UrbanMscModel.cc
 //---------------------------------------------------------------------------//
 #include "UrbanMscModel.hh"
 
 #include <cmath>
 
-#include "base/Algorithms.hh"
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
-#include "physics/base/PDGNumber.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/UrbanMscData.hh"
-#include "physics/grid/PolyEvaluator.hh"
-#include "physics/material/MaterialParams.hh"
-#include "physics/material/MaterialView.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas
 {

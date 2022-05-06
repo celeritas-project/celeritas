@@ -3,17 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ArrayUtils.hh
+//! \file corecel/math/ArrayUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
 #include "Algorithms.hh"
-#include "Array.hh"
-#include "Assert.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/Assert.hh"
 #include "SoftEqual.hh"
-#include "Types.hh"
+#include "corecel/Types.hh"
 #include "detail/ArrayUtilsImpl.hh"
 
 namespace celeritas

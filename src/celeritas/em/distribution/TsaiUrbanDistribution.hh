@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TsaiUrbanDistribution.hh
+//! \file celeritas/em/distribution/TsaiUrbanDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Algorithms.hh"
-#include "base/Macros.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
-#include "random/distributions/BernoulliDistribution.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 namespace celeritas
 {

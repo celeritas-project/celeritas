@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file MagFieldEquation.hh
+//! \file celeritas/field/MagFieldEquation.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Constants.hh"
-#include "base/Types.hh"
-#include "physics/base/Units.hh"
+#include "celeritas/Constants.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 
 #include "Types.hh"
 

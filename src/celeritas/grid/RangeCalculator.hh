@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RangeCalculator.hh
+//! \file celeritas/grid/RangeCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
 
-#include "base/Collection.hh"
-#include "base/Quantity.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/math/Quantity.hh"
 
 #include "Interpolator.hh"
 #include "UniformGrid.hh"

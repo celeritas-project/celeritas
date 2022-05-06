@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file BetheHeitlerModel.hh
+//! \file celeritas/em/model/BetheHeitlerModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/Model.hh"
-#include "physics/base/ParticleParams.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
-#include "detail/BetheHeitlerData.hh"
+#include "celeritas/em/data/BetheHeitlerData.hh"
 
 namespace celeritas
 {

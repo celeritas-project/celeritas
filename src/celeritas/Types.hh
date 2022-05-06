@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Types.hh
+//! \file celeritas/Types.hh
 //! Type definitions for simulation management
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/OpaqueId.hh"
-#include "base/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
 #include "orange/Types.hh"
 
 namespace celeritas
