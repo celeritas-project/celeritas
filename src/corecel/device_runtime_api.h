@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
 /*!
- * \file base/device_runtime_api.h
+ * \file corecel/device_runtime_api.h
  * Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
  */
 #ifndef CELERITAS_DEVICE_RUNTIME_API_H

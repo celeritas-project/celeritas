@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Constants.hh
+//! \brief Mathematical, numerical, and physical constants
 //---------------------------------------------------------------------------//
 #pragma once
 

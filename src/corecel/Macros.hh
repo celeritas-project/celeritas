@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/Macros.hh
+//! \brief Language and compiler abstraction macro definitions
 //---------------------------------------------------------------------------//
 #pragma once
 

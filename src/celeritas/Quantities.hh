@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Quantities.hh
+//! \brief Unit struct definitions for use with the Quantity class
 //---------------------------------------------------------------------------//
 #pragma once
 
