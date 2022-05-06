@@ -20,7 +20,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
-#include "celeritas/Types.hh"
 
 #include "Data.hh"
 #include "Types.hh"

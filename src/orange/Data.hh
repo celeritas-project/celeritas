@@ -10,7 +10,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Types.hh"
 
 #include "Types.hh"
 
