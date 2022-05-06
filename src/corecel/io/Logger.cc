@@ -58,7 +58,7 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
 class LocalHandler
 {
   public:
-    explicit LocalHandler(const Communicator& comm) : rank_(comm.rank()) {}
+    explicit LocalHandler(const MpiCommunicator& comm) : rank_(comm.rank()) {}
 
     void operator()(Provenance prov, LogLevel lev, std::string msg)
     {
@@ -85,7 +85,7 @@ namespace celeritas
 /*!
  * Construct with communicator (only rank zero is active) and handler.
  */
-Logger::Logger(const Communicator& comm,
+Logger::Logger(const MpiCommunicator& comm,
                LogHandler          handle,
                const char*         level_env)
 {
@@ -134,8 +134,8 @@ Logger& world_logger()
     // Use the null communicator if MPI isn't enabled, otherwise comm_world
     static Logger logger(
         ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? Communicator::comm_world()
-            : Communicator{},
+            ? MpiCommunicator::comm_world()
+            : MpiCommunicator{},
         &default_global_handler,
         "CELER_LOG");
     return logger;
@@ -154,10 +154,10 @@ Logger& self_logger()
     // If only
     static Logger logger(
         ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? Communicator::comm_world()
-            : Communicator{},
+            ? MpiCommunicator::comm_world()
+            : MpiCommunicator{},
         ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? LocalHandler{Communicator::comm_world()}
+            ? LocalHandler{MpiCommunicator::comm_world()}
             : LogHandler{&default_global_handler},
         "CELER_LOG_LOCAL");
     return logger;

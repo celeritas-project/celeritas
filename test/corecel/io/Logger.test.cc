@@ -18,7 +18,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Communicator;
+using celeritas::MpiCommunicator;
 using celeritas::Logger;
 using celeritas::LogLevel;
 using celeritas::Provenance;
@@ -36,13 +36,13 @@ class LoggerTest : public celeritas::Test
         using celeritas::ScopedMpiInit;
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
-            comm_self  = Communicator::comm_self();
-            comm_world = Communicator::comm_world();
+            comm_self  = MpiCommunicator::comm_self();
+            comm_world = MpiCommunicator::comm_world();
         }
     }
 
-    Communicator comm_self;
-    Communicator comm_world;
+    MpiCommunicator comm_self;
+    MpiCommunicator comm_world;
 };
 
 //---------------------------------------------------------------------------//

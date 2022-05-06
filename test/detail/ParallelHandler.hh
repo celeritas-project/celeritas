@@ -11,7 +11,7 @@
 
 namespace celeritas
 {
-class Communicator;
+class MpiCommunicator;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
 {
   public:
     // Construct with communicator
-    explicit ParallelHandler(const Communicator& comm);
+    explicit ParallelHandler(const MpiCommunicator& comm);
 
     void OnTestProgramStart(const ::testing::UnitTest&) override;
     void OnTestProgramEnd(const ::testing::UnitTest&) override;
@@ -30,7 +30,7 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
     void OnTestEnd(const ::testing::TestInfo&) override;
 
   private:
-    const Communicator& comm_;
+    const MpiCommunicator& comm_;
 };
 
 //---------------------------------------------------------------------------//

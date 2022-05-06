@@ -102,10 +102,10 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
-    Communicator comm
+    MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? Communicator{}
-               : Communicator::comm_world());
+               ? MpiCommunicator{}
+               : MpiCommunicator::comm_world());
 
     if (comm.size() > 1)
     {

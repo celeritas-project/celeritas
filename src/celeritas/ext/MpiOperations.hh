@@ -41,12 +41,12 @@ enum class Operation
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Wait for all processes in this communicator to reach the barrier
-inline void barrier(const Communicator& comm);
+inline void barrier(const MpiCommunicator& comm);
 
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data from src to dst
 template<class T, std::size_t N>
-inline void allreduce(const Communicator& comm,
+inline void allreduce(const MpiCommunicator& comm,
                       Operation           op,
                       Span<const T, N>    src,
                       Span<T, N>          dst);
@@ -54,12 +54,12 @@ inline void allreduce(const Communicator& comm,
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data, in place
 template<class T, std::size_t N>
-inline void allreduce(const Communicator& comm, Operation op, Span<T, N> data);
+inline void allreduce(const MpiCommunicator& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*> = nullptr>
-inline T allreduce(const Communicator& comm, Operation op, const T src);
+inline T allreduce(const MpiCommunicator& comm, Operation op, const T src);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -87,7 +87,7 @@ inline MPI_Op to_mpi(Operation op)
 /*!
  * Wait for all processes in this communicator to reach the barrier.
  */
-void barrier(const Communicator& comm)
+void barrier(const MpiCommunicator& comm)
 {
     if (!comm)
         return;
@@ -100,7 +100,7 @@ void barrier(const Communicator& comm)
  * All-to-all reduction on the data from src to dst.
  */
 template<class T, std::size_t N>
-void allreduce(const Communicator&          comm,
+void allreduce(const MpiCommunicator&          comm,
                CELER_MAYBE_UNUSED Operation op,
                Span<const T, N>             src,
                Span<T, N>                   dst)
@@ -126,7 +126,7 @@ void allreduce(const Communicator&          comm,
  * All-to-all reduction on the data, in place.
  */
 template<class T, std::size_t N>
-void allreduce(const Communicator&          comm,
+void allreduce(const MpiCommunicator&          comm,
                CELER_MAYBE_UNUSED Operation op,
                CELER_MAYBE_UNUSED Span<T, N> data)
 {
@@ -146,7 +146,7 @@ void allreduce(const Communicator&          comm,
  * Perform reduction on a fundamental scalar and return the result.
  */
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*>>
-T allreduce(const Communicator& comm, Operation op, const T src)
+T allreduce(const MpiCommunicator& comm, Operation op, const T src)
 {
     T dst{};
     allreduce(comm, op, Span<const T, 1>{&src, 1}, Span<T, 1>{&dst, 1});

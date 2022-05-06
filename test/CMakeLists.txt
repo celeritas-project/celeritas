@@ -140,7 +140,7 @@ celeritas_device_test(corecel/data/StackAllocator)
 
 celeritas_setup_tests(PREFIX comm)
 
-celeritas_add_test(celeritas/ext/Communicator.test.cc)
+celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc)
 celeritas_add_test(corecel/sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
 )

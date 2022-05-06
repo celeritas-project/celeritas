@@ -118,7 +118,7 @@ int Device::num_devices()
 /*!
  * Initialize device in a round-robin fashion from a communicator.
  */
-Device Device::from_round_robin(const Communicator& comm)
+Device Device::from_round_robin(const MpiCommunicator& comm)
 {
     int num_devices = Device::num_devices();
     if (num_devices == 0)

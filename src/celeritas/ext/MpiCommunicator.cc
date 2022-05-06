@@ -19,7 +19,7 @@ namespace celeritas
  *
  * This will fail with a \c NotConfigured error if MPI is disabled.
  */
-Communicator::Communicator(MpiComm comm) : comm_(comm)
+MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
 {
     CELER_EXPECT(comm != detail::MpiCommNull());
     CELER_VALIDATE(

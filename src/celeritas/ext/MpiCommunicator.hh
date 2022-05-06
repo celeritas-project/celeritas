@@ -19,7 +19,7 @@ namespace celeritas
  * constructed without calling \c MPI_Init or having MPI compiled. It will act
  * like \c MPI_Comm_Self but will not actually use MPI calls.
  */
-class Communicator
+class MpiCommunicator
 {
   public:
     //!@{
@@ -29,18 +29,18 @@ class Communicator
 
   public:
     // Construct a communicator with MPI_COMM_SELF
-    inline static Communicator comm_self();
+    inline static MpiCommunicator comm_self();
 
     // Construct a communicator with MPI_COMM_WORLD
-    inline static Communicator comm_world();
+    inline static MpiCommunicator comm_world();
 
     //// CONSTRUCTORS ////
 
     // Construct with a null communicator (MPI is disabled)
-    Communicator() = default;
+    MpiCommunicator() = default;
 
     // Construct with a native MPI communicator
-    explicit Communicator(MpiComm comm);
+    explicit MpiCommunicator(MpiComm comm);
 
     //// ACCESSORS ////
 
@@ -66,16 +66,16 @@ class Communicator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Construct a communicator with MPI_COMM_SELF
-Communicator Communicator::comm_self()
+MpiCommunicator MpiCommunicator::comm_self()
 {
-    return Communicator{detail::MpiCommSelf()};
+    return MpiCommunicator{detail::MpiCommSelf()};
 }
 
 //---------------------------------------------------------------------------//
 //! Construct a communicator with MPI_COMM_WORLD
-Communicator Communicator::comm_world()
+MpiCommunicator MpiCommunicator::comm_world()
 {
-    return Communicator{detail::MpiCommWorld()};
+    return MpiCommunicator{detail::MpiCommWorld()};
 }
 
 //---------------------------------------------------------------------------//

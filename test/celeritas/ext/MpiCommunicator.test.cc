@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/Communicator.test.cc
+//! \file celeritas/ext/MpiCommunicator.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
@@ -12,7 +12,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Communicator;
+using celeritas::MpiCommunicator;
 using celeritas::Operation;
 using celeritas::ScopedMpiInit;
 
@@ -40,7 +40,7 @@ TEST_F(CommunicatorTest, null)
 {
     using celeritas::make_span;
 
-    Communicator comm;
+    MpiCommunicator comm;
     EXPECT_FALSE(comm);
 
     // "null" comm always acts like it's running in serial
@@ -62,8 +62,8 @@ TEST_F(CommunicatorTest, null)
 
 TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
 {
-    Communicator comm = Communicator::comm_self();
-    EXPECT_NE(Communicator::comm_world().mpi_comm(), comm.mpi_comm());
+    MpiCommunicator comm = MpiCommunicator::comm_self();
+    EXPECT_NE(MpiCommunicator::comm_world().mpi_comm(), comm.mpi_comm());
 
     // "self" comm always acts like it's running in serial
     EXPECT_EQ(1, comm.size());
@@ -75,7 +75,7 @@ TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
 
 TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 {
-    Communicator comm = Communicator::comm_world();
+    MpiCommunicator comm = MpiCommunicator::comm_world();
 
 #if CELERITAS_USE_MPI
     EXPECT_EQ(MPI_COMM_WORLD, comm.mpi_comm());

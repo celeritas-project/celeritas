@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && Communicator::comm_world().size() > 1)
+        && MpiCommunicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;

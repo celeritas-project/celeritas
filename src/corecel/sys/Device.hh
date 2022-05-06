@@ -17,7 +17,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class Communicator;
+class MpiCommunicator;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -54,7 +54,7 @@ class Device
     static int num_devices();
 
     // Construct in round-robin fashion from an MPI communicator
-    static Device from_round_robin(const Communicator& comm);
+    static Device from_round_robin(const MpiCommunicator& comm);
 
     //// CONSTRUCTORS ////
 

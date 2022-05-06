@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Construct with MPI communicator
  */
-ParallelHandler::ParallelHandler(const Communicator& comm) : comm_(comm) {}
+ParallelHandler::ParallelHandler(const MpiCommunicator& comm) : comm_(comm) {}
 
 //---------------------------------------------------------------------------//
 /*!

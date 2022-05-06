@@ -49,7 +49,7 @@
 
 namespace celeritas
 {
-class Communicator;
+class MpiCommunicator;
 //---------------------------------------------------------------------------//
 /*!
  * Manage logging in serial and parallel.
@@ -60,14 +60,14 @@ class Communicator;
  *
  * This object \em is assignable, so to replace the default log handler with a
  * different one, you can call \code
-   world_logger = Logger(Communicator::comm_world(), my_handler);
+   world_logger = Logger(MpiCommunicator::comm_world(), my_handler);
  * \endcode
  */
 class Logger
 {
   public:
     // Construct with communicator (only rank zero is active) and handler
-    Logger(const Communicator& comm,
+    Logger(const MpiCommunicator& comm,
            LogHandler          handle,
            const char*         level_env = nullptr);
 
