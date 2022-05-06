@@ -23,7 +23,7 @@ CLIKE_TOP = '''\
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \\file {filename}
+//! \\file {relpath}{filename}
 //---------------------------------------------------------------------------//
 '''
 
@@ -78,7 +78,7 @@ CODE_FILE = '''\
 '''
 
 TEST_HARNESS_FILE = '''\
-#include "{dirfromtest}/{name}.{hext}"
+#include "{relpath}{name}.{hext}"
 
 #include "celeritas_test.hh"
 // #include "{name}.test.hh"
@@ -389,8 +389,10 @@ def generate(root, filename, namespace):
         nsend.append(f'}} // namespace {subns}')
 
     relpath = re.sub(r'^[./]+', '', relpath)
+    relpath = re.sub(r'^(src|app|test)/', '', os.path.dirname(relpath))
+    if relpath:
+        relpath = relpath + '/'
     capabbr = re.sub(r'[^A-Z]+', '', name)
-    dirfromtest = re.sub(r'^test/', '', os.path.dirname(relpath))
     variables = {
         'longext': longext,
         'ext': ext,
@@ -402,7 +404,7 @@ def generate(root, filename, namespace):
         'namespace_end': "\n".join(reversed(nsend)),
         'filename': filename,
         'basename': basename,
-        'dirfromtest': dirfromtest,
+        'relpath': relpath,
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         'year': YEAR,
