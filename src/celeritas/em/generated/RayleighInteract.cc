@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void rayleigh_interact(
-    const celeritas::detail::RayleighHostRef& model_data,
+    const celeritas::RayleighHostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
@@ -27,7 +27,7 @@ void rayleigh_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::rayleigh_interact_track);
+        celeritas::rayleigh_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {

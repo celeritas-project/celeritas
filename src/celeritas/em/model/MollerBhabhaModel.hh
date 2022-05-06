@@ -46,7 +46,7 @@ class MollerBhabhaModel final : public Model
     }
 
   private:
-    detail::MollerBhabhaData interface_;
+    MollerBhabhaData interface_;
 };
 
 //---------------------------------------------------------------------------//

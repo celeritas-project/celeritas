@@ -16,16 +16,16 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const celeritas::detail::KleinNishinaHostRef&,
+    const celeritas::KleinNishinaHostRef&,
     const CoreRef<MemSpace::host>&);
 
 void klein_nishina_interact(
-    const celeritas::detail::KleinNishinaDeviceRef&,
+    const celeritas::KleinNishinaDeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
-    const celeritas::detail::KleinNishinaDeviceRef&,
+    const celeritas::KleinNishinaDeviceRef&,
     const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();

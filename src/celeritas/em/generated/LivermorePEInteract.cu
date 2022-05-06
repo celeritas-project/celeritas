@@ -32,7 +32,7 @@ __launch_bounds__(1024, 7)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 livermore_pe_interact_kernel(
-    const celeritas::detail::LivermorePEDeviceRef model_data,
+    const celeritas::LivermorePEDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -42,13 +42,13 @@ livermore_pe_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::livermore_pe_interact_track);
+        celeritas::livermore_pe_interact_track);
     launch(tid);
 }
 } // namespace
 
 void livermore_pe_interact(
-    const celeritas::detail::LivermorePEDeviceRef& model_data,
+    const celeritas::LivermorePEDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

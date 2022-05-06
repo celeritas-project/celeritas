@@ -16,16 +16,16 @@ namespace celeritas
 namespace generated
 {
 void mu_bremsstrahlung_interact(
-    const celeritas::detail::MuBremsstrahlungHostRef&,
+    const celeritas::MuBremsstrahlungHostRef&,
     const CoreRef<MemSpace::host>&);
 
 void mu_bremsstrahlung_interact(
-    const celeritas::detail::MuBremsstrahlungDeviceRef&,
+    const celeritas::MuBremsstrahlungDeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void mu_bremsstrahlung_interact(
-    const celeritas::detail::MuBremsstrahlungDeviceRef&,
+    const celeritas::MuBremsstrahlungDeviceRef&,
     const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();

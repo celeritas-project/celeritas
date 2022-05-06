@@ -14,7 +14,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::KleinNishinaInteractor;
+using celeritas::KleinNishinaInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -92,7 +92,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::KleinNishinaData data_;
+    celeritas::KleinNishinaData data_;
 };
 
 //---------------------------------------------------------------------------//

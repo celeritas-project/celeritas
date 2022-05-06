@@ -51,9 +51,9 @@ class SeltzerBergerModel final : public Model
     using Mass         = units::MevMass;
     using ReadData     = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef
-        = detail::SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
+        = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
+        = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
   public:
@@ -92,10 +92,10 @@ class SeltzerBergerModel final : public Model
 
   private:
     // Host/device storage and reference
-    CollectionMirror<detail::SeltzerBergerData> data_;
+    CollectionMirror<SeltzerBergerData> data_;
 
     using HostXsTables
-        = detail::SeltzerBergerTableData<Ownership::value, MemSpace::host>;
+        = SeltzerBergerTableData<Ownership::value, MemSpace::host>;
     void append_table(const ElementView&   element,
                       const ImportSBTable& table,
                       HostXsTables*        tables,

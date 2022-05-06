@@ -37,16 +37,16 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::detail::{class}HostRef&,
+    const celeritas::{class}HostRef&,
     const CoreRef<MemSpace::host>&);
 
 void {func}_interact(
-    const celeritas::detail::{class}DeviceRef&,
+    const celeritas::{class}DeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
-    const celeritas::detail::{class}DeviceRef&,
+    const celeritas::{class}DeviceRef&,
     const CoreRef<MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
@@ -70,7 +70,7 @@ namespace celeritas
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::detail::{class}HostRef& model_data,
+    const celeritas::{class}HostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {{
     CELER_EXPECT(core_data);
@@ -79,7 +79,7 @@ void {func}_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::{func}_interact_track);
+        celeritas::{func}_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {{
@@ -110,7 +110,7 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    const celeritas::detail::{class}DeviceRef model_data,
+    const celeritas::{class}DeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {{
     auto tid = KernelParamCalculator::thread_id();
@@ -120,13 +120,13 @@ __global__ void{launch_bounds}{func}_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::{func}_interact_track);
+        celeritas::{func}_interact_track);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const celeritas::detail::{class}DeviceRef& model_data,
+    const celeritas::{class}DeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {{
     CELER_EXPECT(core_data);

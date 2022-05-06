@@ -35,7 +35,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
     CELER_EXPECT(id);
     CELER_EXPECT(load_sb_table);
 
-    detail::SeltzerBergerData<Ownership::value, MemSpace::host> host_data;
+    SeltzerBergerData<Ownership::value, MemSpace::host> host_data;
 
     // Save IDs
     host_data.ids.action   = id;
@@ -67,7 +67,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
                  == materials.num_elements());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<detail::SeltzerBergerData>{std::move(host_data)};
+    data_ = CollectionMirror<SeltzerBergerData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
 }
@@ -84,7 +84,7 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
     electron_applic.lower    = zero_quantity();
-    electron_applic.upper    = detail::seltzer_berger_limit();
+    electron_applic.upper    = seltzer_berger_limit();
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle      = this->host_ref().ids.positron;
@@ -137,7 +137,7 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
     const size_type num_x = imported.x.size();
     const size_type num_y = imported.y.size();
 
-    detail::SBElementTableData table;
+    SBElementTableData table;
 
     // TODO: hash the energy grid for reuse, because only Z = 100 has a
     // different energy grid.
@@ -172,7 +172,7 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
             // Check that the maximum scaled positron cross section is always
             // at the first reduced photon energy grid point
             real_type                     inc_energy = std::exp(imported.x[i]);
-            detail::SBPositronXsCorrector scale_xs(
+            SBPositronXsCorrector scale_xs(
                 electron_mass,
                 element,
                 Energy{imported.y[0] * inc_energy},

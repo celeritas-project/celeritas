@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void relativistic_brem_interact(
-    const celeritas::detail::RelativisticBremHostRef& model_data,
+    const celeritas::RelativisticBremHostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
@@ -27,7 +27,7 @@ void relativistic_brem_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::relativistic_brem_interact_track);
+        celeritas::relativistic_brem_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {

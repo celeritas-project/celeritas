@@ -32,7 +32,7 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 eplusgg_interact_kernel(
-    const celeritas::detail::EPlusGGDeviceRef model_data,
+    const celeritas::EPlusGGDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -42,13 +42,13 @@ eplusgg_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::eplusgg_interact_track);
+        celeritas::eplusgg_interact_track);
     launch(tid);
 }
 } // namespace
 
 void eplusgg_interact(
-    const celeritas::detail::EPlusGGDeviceRef& model_data,
+    const celeritas::EPlusGGDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

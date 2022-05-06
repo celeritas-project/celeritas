@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply BetheHeitler to the current track.
@@ -44,5 +42,4 @@ inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

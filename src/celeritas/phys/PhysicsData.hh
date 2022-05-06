@@ -142,17 +142,17 @@ struct HardwiredModels
     ProcessId                     photoelectric;
     units::MevEnergy              photoelectric_table_thresh;
     ModelId                       livermore_pe;
-    detail::LivermorePEData<W, M> livermore_pe_data;
+    LivermorePEData<W, M> livermore_pe_data;
 
     // Positron annihilation
     ProcessId           positron_annihilation;
     ModelId             eplusgg;
-    detail::EPlusGGData eplusgg_data;
+    EPlusGGData eplusgg_data;
 
     // Multiple scattering (data for the mean free path)
     ProcessId                  msc;
     ModelId                    urban;
-    detail::UrbanMscData<W, M> urban_data;
+    UrbanMscData<W, M> urban_data;
 
     //// MEMBER FUNCTIONS ////
 

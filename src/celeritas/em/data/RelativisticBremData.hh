@@ -18,8 +18,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * The atomic form factors used in the differential cross section of the
@@ -103,5 +101,4 @@ using RelativisticBremHostRef
 using RelativisticBremRef
     = RelativisticBremData<Ownership::const_reference, MemSpace::native>;
 
-} // namespace detail
 } // namespace celeritas

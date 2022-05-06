@@ -16,16 +16,16 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    const celeritas::detail::MollerBhabhaHostRef&,
+    const celeritas::MollerBhabhaHostRef&,
     const CoreRef<MemSpace::host>&);
 
 void moller_bhabha_interact(
-    const celeritas::detail::MollerBhabhaDeviceRef&,
+    const celeritas::MollerBhabhaDeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void moller_bhabha_interact(
-    const celeritas::detail::MollerBhabhaDeviceRef&,
+    const celeritas::MollerBhabhaDeviceRef&,
     const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();

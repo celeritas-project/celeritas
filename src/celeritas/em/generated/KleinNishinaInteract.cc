@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const celeritas::detail::KleinNishinaHostRef& model_data,
+    const celeritas::KleinNishinaHostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
@@ -27,7 +27,7 @@ void klein_nishina_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::klein_nishina_interact_track);
+        celeritas::klein_nishina_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {

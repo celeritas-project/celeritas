@@ -22,8 +22,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Annihilate a positron to create two gammas.
@@ -169,5 +167,4 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -23,8 +23,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Calculate differential cross sections for relativistic bremsstrahlung.
@@ -41,7 +39,7 @@ class RBDiffXsCalculator
     //!@{
     //! Type aliases
     using Energy      = units::MevEnergy;
-    using ElementData = detail::RelBremElementData;
+    using ElementData = RelBremElementData;
     //!@}
 
   public:
@@ -239,5 +237,4 @@ RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

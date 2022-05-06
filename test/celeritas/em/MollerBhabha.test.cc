@@ -21,7 +21,7 @@ using celeritas::CutoffView;
 using celeritas::dot_product;
 using celeritas::normalize_direction;
 using celeritas::ParticleCutoff;
-using celeritas::detail::MollerBhabhaInteractor;
+using celeritas::MollerBhabhaInteractor;
 using celeritas::units::AmuMass;
 using celeritas::units::MevEnergy;
 namespace constants = celeritas::constants;
@@ -107,7 +107,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::MollerBhabhaData data_;
+    celeritas::MollerBhabhaData data_;
 };
 
 struct SampleInit

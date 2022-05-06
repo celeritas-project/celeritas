@@ -30,8 +30,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Perform Moller (e-e-) and Bhabha (e+e-) scattering.
@@ -197,5 +195,4 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

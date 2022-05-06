@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Physical constants which are derived from fundamental constants.
@@ -86,5 +84,4 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

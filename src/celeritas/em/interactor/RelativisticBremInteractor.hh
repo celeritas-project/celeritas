@@ -29,8 +29,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Perform a high-energy Bremsstrahlung interaction.
@@ -49,7 +47,7 @@ class RelativisticBremInteractor
     //! Type aliases
     using Energy      = units::MevEnergy;
     using Momentum    = units::MevMomentum;
-    using ElementData = detail::RelBremElementData;
+    using ElementData = RelBremElementData;
     using ItemIdT     = celeritas::ItemId<unsigned int>;
     //!@}
 
@@ -151,5 +149,4 @@ CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

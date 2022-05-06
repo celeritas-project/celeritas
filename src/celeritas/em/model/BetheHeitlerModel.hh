@@ -47,7 +47,7 @@ class BetheHeitlerModel final : public Model
     }
 
   private:
-    detail::BetheHeitlerData interface_;
+    BetheHeitlerData interface_;
 };
 
 //---------------------------------------------------------------------------//

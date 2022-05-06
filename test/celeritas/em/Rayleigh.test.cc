@@ -21,7 +21,7 @@
 using celeritas::ElementId;
 using celeritas::MaterialParams;
 using celeritas::RayleighModel;
-using celeritas::detail::RayleighInteractor;
+using celeritas::RayleighInteractor;
 using celeritas::units::AmuMass;
 
 namespace constants = celeritas::constants;
@@ -86,7 +86,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<RayleighModel> model_;
-    celeritas::detail::RayleighRef model_ref_;
+    celeritas::RayleighRef model_ref_;
 };
 
 //---------------------------------------------------------------------------//

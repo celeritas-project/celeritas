@@ -17,8 +17,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Default scaling for SB cross sections.
@@ -174,5 +172,4 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

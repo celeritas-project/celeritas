@@ -22,8 +22,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * This is a helper class for the UrbanMscStepLimit and UrbanMscScatter.
@@ -34,7 +32,7 @@ class UrbanMscHelper
     //!@{
     //! Type aliases
     using Energy       = units::MevEnergy;
-    using MaterialData = detail::UrbanMscMaterialData;
+    using MaterialData = UrbanMscMaterialData;
     //!@}
 
   public:
@@ -153,5 +151,4 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

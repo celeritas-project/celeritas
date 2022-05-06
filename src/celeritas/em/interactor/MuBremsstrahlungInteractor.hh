@@ -26,8 +26,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Muon bremsstrahlung.
@@ -255,5 +253,4 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

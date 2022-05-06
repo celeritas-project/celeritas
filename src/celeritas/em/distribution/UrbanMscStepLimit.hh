@@ -27,8 +27,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * This is the step limitation algorithm of the Urban model for the e-/e+
@@ -44,8 +42,8 @@ class UrbanMscStepLimit
     //!@{
     //! Type aliases
     using Energy        = units::MevEnergy;
-    using MscParameters = detail::UrbanMscParameters;
-    using MaterialData  = detail::UrbanMscMaterialData;
+    using MscParameters = UrbanMscParameters;
+    using MaterialData  = UrbanMscMaterialData;
     //!@}
 
   public:
@@ -348,5 +346,4 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min(Energy    energy,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

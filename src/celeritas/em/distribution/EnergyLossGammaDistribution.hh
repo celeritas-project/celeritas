@@ -19,8 +19,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample energy loss from a gamma distribution.
@@ -111,5 +109,4 @@ EnergyLossGammaDistribution::build_gamma(real_type mean, real_type var)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

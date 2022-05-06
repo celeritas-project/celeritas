@@ -30,11 +30,11 @@ using celeritas::ElementId;
 using celeritas::ElementView;
 using celeritas::SeltzerBergerModel;
 using celeritas::SeltzerBergerReader;
-using celeritas::detail::SBElectronXsCorrector;
-using celeritas::detail::SBEnergyDistHelper;
-using celeritas::detail::SBEnergyDistribution;
-using celeritas::detail::SBPositronXsCorrector;
-using celeritas::detail::SeltzerBergerInteractor;
+using celeritas::SBElectronXsCorrector;
+using celeritas::SBEnergyDistHelper;
+using celeritas::SBEnergyDistribution;
+using celeritas::SBPositronXsCorrector;
+using celeritas::SeltzerBergerInteractor;
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;
 namespace constants = celeritas::constants;
@@ -147,7 +147,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<SeltzerBergerModel> model_;
-    celeritas::detail::SeltzerBergerRef data_;
+    celeritas::SeltzerBergerRef data_;
 };
 
 //---------------------------------------------------------------------------//

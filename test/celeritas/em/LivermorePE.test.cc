@@ -50,7 +50,7 @@ using celeritas::PhotoelectricProcess;
 using celeritas::SubshellId;
 using celeritas::ThreadId;
 using celeritas::ValueGridInserter;
-using celeritas::detail::LivermorePEInteractor;
+using celeritas::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//

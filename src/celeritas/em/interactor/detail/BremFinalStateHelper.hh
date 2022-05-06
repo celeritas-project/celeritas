@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the angular distribution of photon from e+/e- Bremsstrahlung.
@@ -116,5 +114,4 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

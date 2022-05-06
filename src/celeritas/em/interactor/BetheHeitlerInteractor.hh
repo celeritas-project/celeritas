@@ -27,8 +27,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Relativistic model for electron-positron pair production.
@@ -382,5 +380,4 @@ CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f2(real_type delta) c
                           : R(41.326) - delta * (R(5.848) - R(0.902) * delta);
 }
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

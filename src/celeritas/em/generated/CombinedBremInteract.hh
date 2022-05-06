@@ -16,16 +16,16 @@ namespace celeritas
 namespace generated
 {
 void combined_brem_interact(
-    const celeritas::detail::CombinedBremHostRef&,
+    const celeritas::CombinedBremHostRef&,
     const CoreRef<MemSpace::host>&);
 
 void combined_brem_interact(
-    const celeritas::detail::CombinedBremDeviceRef&,
+    const celeritas::CombinedBremDeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void combined_brem_interact(
-    const celeritas::detail::CombinedBremDeviceRef&,
+    const celeritas::CombinedBremDeviceRef&,
     const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();

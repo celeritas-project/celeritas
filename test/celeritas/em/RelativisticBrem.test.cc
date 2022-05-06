@@ -24,8 +24,8 @@ using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::ElementView;
 using celeritas::RelativisticBremModel;
-using celeritas::detail::RBDiffXsCalculator;
-using celeritas::detail::RelativisticBremInteractor;
+using celeritas::RBDiffXsCalculator;
+using celeritas::RelativisticBremInteractor;
 
 namespace pdg = celeritas::pdg;
 
@@ -113,9 +113,9 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<RelativisticBremModel> model_;
-    celeritas::detail::RelativisticBremRef data_;
+    celeritas::RelativisticBremRef data_;
     std::shared_ptr<RelativisticBremModel> model_lpm_;
-    celeritas::detail::RelativisticBremRef data_lpm_;
+    celeritas::RelativisticBremRef data_lpm_;
 };
 
 //---------------------------------------------------------------------------//

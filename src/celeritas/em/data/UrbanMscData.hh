@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * UrbanMscModel settable parameters and default values.
@@ -146,5 +144,4 @@ using UrbanMscHostRef
     = UrbanMscData<Ownership::const_reference, MemSpace::host>;
 using UrbanMscRef = UrbanMscData<Ownership::const_reference, MemSpace::native>;
 
-} // namespace detail
 } // namespace celeritas

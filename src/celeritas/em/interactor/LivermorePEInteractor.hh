@@ -27,8 +27,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Livermore model for the photoelectric effect.
@@ -365,5 +363,4 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

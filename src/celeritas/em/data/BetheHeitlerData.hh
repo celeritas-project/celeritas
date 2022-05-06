@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Particle IDs used in Bethe-Heitler.
@@ -67,5 +65,4 @@ using BetheHeitlerHostRef   = BetheHeitlerData;
 using BetheHeitlerDeviceRef = BetheHeitlerData;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

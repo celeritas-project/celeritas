@@ -22,8 +22,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the Landau-Pomeranchuk-Migdal (LPM) suppression functions.
@@ -241,5 +239,4 @@ CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

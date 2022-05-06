@@ -49,7 +49,7 @@ class PhysicsTrackView
     using PhysicsStateRef
         = PhysicsStateData<Ownership::reference, MemSpace::native>;
     using UrbanMscRef
-        = detail::UrbanMscData<Ownership::const_reference, MemSpace::native>;
+        = UrbanMscData<Ownership::const_reference, MemSpace::native>;
     using Energy      = units::MevEnergy;
     using ModelFinder = GridIdFinder<Energy, ModelId>;
     //!@}

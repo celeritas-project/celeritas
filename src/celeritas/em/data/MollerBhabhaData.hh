@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Model and particles IDs for Moller Bhabha.
@@ -66,5 +64,4 @@ using MollerBhabhaHostRef   = MollerBhabhaData;
 using MollerBhabhaDeviceRef = MollerBhabhaData;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

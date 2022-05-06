@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Particle IDs used in muon brems.
@@ -68,5 +66,4 @@ using MuBremsstrahlungHostRef   = MuBremsstrahlungData;
 using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

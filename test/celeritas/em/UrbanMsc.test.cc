@@ -39,8 +39,6 @@ using namespace celeritas_test;
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
-using detail::UrbanMscScatter;
-using detail::UrbanMscStepLimit;
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
@@ -199,7 +197,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         ActionId{0}, *particle_params_, *material_params_);
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    const detail::UrbanMscMaterialData& msc_
+    const UrbanMscMaterialData& msc_
         = model->host_ref().msc_data[material_view.material_id()];
 
     EXPECT_DOUBLE_EQ(msc_.zeff, 25.8);

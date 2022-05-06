@@ -22,7 +22,7 @@
 
 using celeritas::ElementComponentId;
 using celeritas::GammaConversionProcess;
-using celeritas::detail::BetheHeitlerInteractor;
+using celeritas::BetheHeitlerInteractor;
 using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
@@ -113,7 +113,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::BetheHeitlerData data_;
+    celeritas::BetheHeitlerData data_;
 };
 
 //---------------------------------------------------------------------------//

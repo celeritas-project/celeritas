@@ -16,8 +16,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Device data for sampling CombinedBremInteractor.
@@ -63,5 +61,4 @@ using CombinedBremRef
     = CombinedBremData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

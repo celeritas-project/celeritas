@@ -23,7 +23,7 @@ namespace generated
 namespace
 {
 __global__ void seltzer_berger_interact_kernel(
-    const celeritas::detail::SeltzerBergerDeviceRef model_data,
+    const celeritas::SeltzerBergerDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -33,13 +33,13 @@ __global__ void seltzer_berger_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::seltzer_berger_interact_track);
+        celeritas::seltzer_berger_interact_track);
     launch(tid);
 }
 } // namespace
 
 void seltzer_berger_interact(
-    const celeritas::detail::SeltzerBergerDeviceRef& model_data,
+    const celeritas::SeltzerBergerDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

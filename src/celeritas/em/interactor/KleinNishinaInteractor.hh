@@ -23,8 +23,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Perform Compton scattering, neglecting atomic binding energy.
@@ -197,5 +195,4 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

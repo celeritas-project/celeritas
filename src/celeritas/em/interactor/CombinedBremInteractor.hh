@@ -30,8 +30,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply either Seltzer-Berger or Relativistic depending on energy.
@@ -49,7 +47,7 @@ class CombinedBremInteractor
     //! Type aliases
     using Energy      = units::MevEnergy;
     using Momentum    = units::MevMomentum;
-    using ElementData = detail::RelBremElementData;
+    using ElementData = RelBremElementData;
     using ItemIdT     = celeritas::ItemId<unsigned int>;
     //!@}
 
@@ -169,5 +167,4 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

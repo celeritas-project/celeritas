@@ -45,13 +45,13 @@ CombinedBremModel::CombinedBremModel(ActionId              id,
     rb_model_ = std::make_shared<RelativisticBremModel>(
         id, particles, materials, enable_lpm);
 
-    detail::CombinedBremData<Ownership::value, MemSpace::host> host_ref;
+    CombinedBremData<Ownership::value, MemSpace::host> host_ref;
     host_ref.ids.action         = id;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
     host_ref.rb_data            = rb_model_->host_ref();
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<detail::CombinedBremData>{std::move(host_ref)};
+    data_ = CollectionMirror<CombinedBremData>{std::move(host_ref)};
     CELER_ENSURE(this->data_);
 }
 
@@ -64,7 +64,7 @@ auto CombinedBremModel::applicability() const -> SetApplicability
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().rb_data.ids.electron;
     electron_brem.lower    = zero_quantity();
-    electron_brem.upper    = detail::high_energy_limit();
+    electron_brem.upper    = high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle      = this->host_ref().rb_data.ids.positron;

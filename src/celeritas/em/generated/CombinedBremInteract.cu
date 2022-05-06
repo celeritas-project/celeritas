@@ -32,7 +32,7 @@ __launch_bounds__(1024, 5)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 combined_brem_interact_kernel(
-    const celeritas::detail::CombinedBremDeviceRef model_data,
+    const celeritas::CombinedBremDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -42,13 +42,13 @@ combined_brem_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::combined_brem_interact_track);
+        celeritas::combined_brem_interact_track);
     launch(tid);
 }
 } // namespace
 
 void combined_brem_interact(
-    const celeritas::detail::CombinedBremDeviceRef& model_data,
+    const celeritas::CombinedBremDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

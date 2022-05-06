@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 template<EnergyLossFluctuationModel M>
 struct EnergyLossTraits;
@@ -46,5 +44,4 @@ struct EnergyLossTraits<EnergyLossFluctuationModel::urban>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

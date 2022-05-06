@@ -17,8 +17,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply the Livermore photoelectric interaction to the current track.
@@ -56,5 +54,4 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

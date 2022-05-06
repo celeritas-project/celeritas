@@ -18,7 +18,7 @@
 
 using celeritas::ElementId;
 using celeritas::EPlusGGMacroXsCalculator;
-using celeritas::detail::EPlusGGInteractor;
+using celeritas::EPlusGGInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -105,7 +105,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::detail::EPlusGGData data_;
+    celeritas::EPlusGGData data_;
 };
 
 //---------------------------------------------------------------------------//

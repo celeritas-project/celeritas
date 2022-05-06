@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Passthrough model for "no distribution" energy loss.
@@ -50,5 +48,4 @@ class EnergyLossDeltaDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

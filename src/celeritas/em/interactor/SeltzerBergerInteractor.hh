@@ -27,8 +27,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Seltzer-Berger model for electron and positron bremsstrahlung processes.
@@ -172,5 +170,4 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

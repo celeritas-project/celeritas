@@ -36,9 +36,9 @@ class CombinedBremModel final : public Model
     using AtomicNumber = int;
     using ReadData     = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef
-        = detail::CombinedBremData<Ownership::const_reference, MemSpace::host>;
+        = CombinedBremData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::CombinedBremData<Ownership::const_reference, MemSpace::device>;
+        = CombinedBremData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -80,7 +80,7 @@ class CombinedBremModel final : public Model
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<detail::CombinedBremData> data_;
+    CollectionMirror<CombinedBremData> data_;
 
     // Associated models
     std::shared_ptr<SeltzerBergerModel>    sb_model_;

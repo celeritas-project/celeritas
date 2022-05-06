@@ -18,8 +18,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Seltzer-Berger differential cross section tables for a single element.
@@ -142,5 +140,4 @@ using SeltzerBergerRef
     = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

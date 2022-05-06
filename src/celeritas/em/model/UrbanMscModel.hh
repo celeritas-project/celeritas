@@ -27,9 +27,9 @@ class UrbanMscModel final : public Model
     //@{
     //! Type aliases
     using HostRef
-        = detail::UrbanMscData<Ownership::const_reference, MemSpace::host>;
+        = UrbanMscData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::UrbanMscData<Ownership::const_reference, MemSpace::device>;
+        = UrbanMscData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -69,12 +69,12 @@ class UrbanMscModel final : public Model
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<detail::UrbanMscData> mirror_;
+    CollectionMirror<UrbanMscData> mirror_;
 
     //// TYPES ////
 
-    using HostValue = detail::UrbanMscData<Ownership::value, MemSpace::host>;
-    using MaterialData = detail::UrbanMscMaterialData;
+    using HostValue = UrbanMscData<Ownership::value, MemSpace::host>;
+    using MaterialData = UrbanMscMaterialData;
 
     //// HELPER FUNCTIONS ////
 

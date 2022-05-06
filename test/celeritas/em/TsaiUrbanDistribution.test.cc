@@ -14,7 +14,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::TsaiUrbanDistribution;
+using celeritas::TsaiUrbanDistribution;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

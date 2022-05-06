@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply MollerBhabha to the current track.
@@ -36,5 +34,4 @@ inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

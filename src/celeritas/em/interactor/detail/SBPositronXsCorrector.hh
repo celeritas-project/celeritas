@@ -17,8 +17,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Scale SB differential cross sections for positrons.
@@ -169,5 +167,4 @@ SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

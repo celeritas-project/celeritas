@@ -12,8 +12,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 //! IDs used by brems
 struct ElectronBremIds
@@ -35,5 +33,4 @@ struct ElectronBremIds
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

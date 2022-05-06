@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply the EPlusGGInteractor to the current track.
@@ -33,5 +31,4 @@ eplusgg_interact_track(EPlusGGData const& model, CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

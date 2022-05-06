@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    const celeritas::detail::MollerBhabhaHostRef& model_data,
+    const celeritas::MollerBhabhaHostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
@@ -27,7 +27,7 @@ void moller_bhabha_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::moller_bhabha_interact_track);
+        celeritas::moller_bhabha_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {

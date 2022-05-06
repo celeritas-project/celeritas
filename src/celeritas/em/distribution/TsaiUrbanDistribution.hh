@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Angular distribution for pair-production and bremsstrahlung processes.
@@ -92,5 +90,4 @@ CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -54,7 +54,7 @@ RelativisticBremModel::RelativisticBremModel(ActionId              id,
     this->build_data(&host_ref, materials, host_ref.electron_mass.value());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<detail::RelativisticBremData>{std::move(host_ref)};
+    data_ = CollectionMirror<RelativisticBremData>{std::move(host_ref)};
     CELER_ENSURE(this->data_);
 }
 
@@ -66,8 +66,8 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower    = detail::seltzer_berger_limit();
-    electron_brem.upper    = detail::high_energy_limit();
+    electron_brem.lower    = seltzer_berger_limit();
+    electron_brem.upper    = high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle      = this->host_ref().ids.positron;

@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply Rayleigh to the current track.
@@ -38,5 +36,4 @@ rayleigh_interact_track(RayleighRef const& model, CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

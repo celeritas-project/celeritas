@@ -19,8 +19,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample energy loss from a Gaussian distribution.
@@ -132,5 +130,4 @@ CELER_FUNCTION auto EnergyLossGaussianDistribution::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for \c MollerBhabhaInteractor .
@@ -120,5 +118,4 @@ MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -23,7 +23,7 @@ namespace generated
 namespace
 {
 __global__ void relativistic_brem_interact_kernel(
-    const celeritas::detail::RelativisticBremDeviceRef model_data,
+    const celeritas::RelativisticBremDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -33,13 +33,13 @@ __global__ void relativistic_brem_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::relativistic_brem_interact_track);
+        celeritas::relativistic_brem_interact_track);
     launch(tid);
 }
 } // namespace
 
 void relativistic_brem_interact(
-    const celeritas::detail::RelativisticBremDeviceRef& model_data,
+    const celeritas::RelativisticBremDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

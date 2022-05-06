@@ -44,7 +44,7 @@ RayleighModel::RayleighModel(ActionId              id,
     this->build_data(&host_ref, materials);
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<detail::RayleighData>{std::move(host_ref)};
+    mirror_ = CollectionMirror<RayleighData>{std::move(host_ref)};
 
     CELER_ENSURE(this->mirror_);
 }

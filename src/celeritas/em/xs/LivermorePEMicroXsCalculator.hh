@@ -19,8 +19,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Calculate photoelectric effect cross sections using the Livermore data.
@@ -108,5 +106,4 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

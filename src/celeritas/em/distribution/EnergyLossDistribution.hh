@@ -17,12 +17,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Return an energy loss distribution function based on the helper's model.
 template<EnergyLossFluctuationModel M>
-CELER_FUNCTION typename detail::EnergyLossTraits<M>::type
+CELER_FUNCTION typename EnergyLossTraits<M>::type
 make_distribution(const EnergyLossHelper& helper)
 {
     CELER_EXPECT(helper.model() == M);
 
-    using Distribution = typename detail::EnergyLossTraits<M>::type;
+    using Distribution = typename EnergyLossTraits<M>::type;
     return Distribution{helper};
 }
 

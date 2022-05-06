@@ -50,7 +50,7 @@ class KNDemoRunner
     constSPParticleParams               pparams_;
     constSPXsGridParams                 xsparams_;
     DeviceGridParams                    launch_params_;
-    celeritas::detail::KleinNishinaData kn_data_;
+    celeritas::KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//

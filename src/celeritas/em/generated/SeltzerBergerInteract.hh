@@ -16,16 +16,16 @@ namespace celeritas
 namespace generated
 {
 void seltzer_berger_interact(
-    const celeritas::detail::SeltzerBergerHostRef&,
+    const celeritas::SeltzerBergerHostRef&,
     const CoreRef<MemSpace::host>&);
 
 void seltzer_berger_interact(
-    const celeritas::detail::SeltzerBergerDeviceRef&,
+    const celeritas::SeltzerBergerDeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void seltzer_berger_interact(
-    const celeritas::detail::SeltzerBergerDeviceRef&,
+    const celeritas::SeltzerBergerDeviceRef&,
     const CoreRef<MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();

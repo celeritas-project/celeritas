@@ -26,9 +26,9 @@ class RayleighModel final : public Model
     //@{
     //! Type aliases
     using HostRef
-        = detail::RayleighData<Ownership::const_reference, MemSpace::host>;
+        = RayleighData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
-        = detail::RayleighData<Ownership::const_reference, MemSpace::device>;
+        = RayleighData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -65,13 +65,13 @@ class RayleighModel final : public Model
     //// DATA ////
 
     // Host/device storage and reference
-    CollectionMirror<detail::RayleighData> mirror_;
+    CollectionMirror<RayleighData> mirror_;
 
     //// TYPES ////
 
     using AtomicNumber = int;
-    using HostValue = detail::RayleighData<Ownership::value, MemSpace::host>;
-    using ElScatParams = detail::RayleighParameters;
+    using HostValue = RayleighData<Ownership::value, MemSpace::host>;
+    using ElScatParams = RayleighParameters;
 
     //// HELPER FUNCTIONS ////
 

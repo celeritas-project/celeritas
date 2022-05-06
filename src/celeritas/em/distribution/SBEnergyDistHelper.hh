@@ -18,8 +18,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Help sample exiting photon energy from Bremsstrahlung.
@@ -233,5 +231,4 @@ SBEnergyDistHelper::make_esq_sampler(real_type inc_energy,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -26,10 +26,10 @@ class LivermorePEMacroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy         = detail::LivermorePEMicroXsCalculator::Energy;
-    using MicroXsUnits   = detail::LivermorePEMicroXsCalculator::XsUnits;
+    using Energy         = LivermorePEMicroXsCalculator::Energy;
+    using MicroXsUnits   = LivermorePEMicroXsCalculator::XsUnits;
     using XsUnits        = units::NativeUnit;
-    using LivermorePERef = detail::LivermorePERef;
+    using LivermorePERef = LivermorePERef;
     //!@}
 
   public:
@@ -71,7 +71,7 @@ CELER_FUNCTION real_type
 LivermorePEMacroXsCalculator::operator()(Energy energy) const
 {
     real_type                            result = 0.;
-    detail::LivermorePEMicroXsCalculator calc_micro_xs(shared_, energy);
+    LivermorePEMicroXsCalculator calc_micro_xs(shared_, energy);
     for (const auto& el_comp : elements_)
     {
         const real_type micro_xs = calc_micro_xs(el_comp.element);

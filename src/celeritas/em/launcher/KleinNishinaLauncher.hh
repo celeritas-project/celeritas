@@ -13,8 +13,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply the KleinNishinaInteractor to the current track.
@@ -32,5 +30,4 @@ inline CELER_FUNCTION Interaction klein_nishina_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -45,10 +45,10 @@ class EPlusGGModel final : public Model
     }
 
     // Access data on device
-    detail::EPlusGGData device_ref() const { return interface_; }
+    EPlusGGData device_ref() const { return interface_; }
 
   private:
-    detail::EPlusGGData interface_;
+    EPlusGGData interface_;
 };
 
 //---------------------------------------------------------------------------//

@@ -45,7 +45,7 @@ class KleinNishinaModel final : public Model
     }
 
   private:
-    detail::KleinNishinaData interface_;
+    KleinNishinaData interface_;
 };
 
 //---------------------------------------------------------------------------//

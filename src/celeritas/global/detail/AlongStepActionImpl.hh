@@ -98,7 +98,7 @@ along_step_track(celeritas::CoreTrackView const& track)
         auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
         // Sample multiple scattering step length
-        celeritas::detail::UrbanMscStepLimit msc_step_limit(
+        celeritas::UrbanMscStepLimit msc_step_limit(
             phys.urban_data(),
             particle,
             &geo,
@@ -149,7 +149,7 @@ along_step_track(celeritas::CoreTrackView const& track)
         auto msc_step_result      = phys.msc_step();
         msc_step_result.geom_path = geo_step;
 
-        celeritas::detail::UrbanMscScatter msc_scatter(urban_data,
+        celeritas::UrbanMscScatter msc_scatter(urban_data,
                                                        particle,
                                                        &geo,
                                                        phys,

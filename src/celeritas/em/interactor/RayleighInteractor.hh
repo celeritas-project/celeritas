@@ -23,8 +23,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Brief class description.
@@ -202,5 +200,4 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

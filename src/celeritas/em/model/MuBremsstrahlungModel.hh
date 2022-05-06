@@ -42,7 +42,7 @@ class MuBremsstrahlungModel final : public Model
     std::string description() const final { return "Muon bremsstrahlung"; }
 
   private:
-    detail::MuBremsstrahlungData interface_;
+    MuBremsstrahlungData interface_;
 };
 
 //---------------------------------------------------------------------------//

@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply MuBremsstrahlung to the current track.
@@ -44,5 +42,4 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -16,8 +16,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Electron subshell data.
@@ -190,5 +188,4 @@ using LivermorePERef
     = LivermorePEData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

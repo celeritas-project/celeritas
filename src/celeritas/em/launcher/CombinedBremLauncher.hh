@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply electron/positron brems to the current track.
@@ -48,5 +46,4 @@ inline CELER_FUNCTION Interaction combined_brem_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

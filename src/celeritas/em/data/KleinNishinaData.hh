@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Model and particles IDs.
@@ -58,5 +56,4 @@ using KleinNishinaDeviceRef = KleinNishinaData;
 using KleinNishinaHostRef   = KleinNishinaData;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

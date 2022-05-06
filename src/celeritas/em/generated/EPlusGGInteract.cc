@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void eplusgg_interact(
-    const celeritas::detail::EPlusGGHostRef& model_data,
+    const celeritas::EPlusGGHostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
@@ -27,7 +27,7 @@ void eplusgg_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::eplusgg_interact_track);
+        celeritas::eplusgg_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {

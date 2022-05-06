@@ -21,8 +21,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample from the Urban model of energy loss fluctuations in thin layers.
@@ -383,5 +381,4 @@ CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_fast_urban(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

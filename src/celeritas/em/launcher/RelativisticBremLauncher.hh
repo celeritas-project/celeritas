@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Apply RelativisticBrem to the current track.
@@ -49,5 +47,4 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

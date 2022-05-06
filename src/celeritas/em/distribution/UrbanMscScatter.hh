@@ -25,8 +25,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample cos(theta) of the Urban multiple scattering model.
@@ -37,8 +35,8 @@ class UrbanMscScatter
     //!@{
     //! Type aliases
     using Energy        = units::MevEnergy;
-    using MscParameters = detail::UrbanMscParameters;
-    using MaterialData  = detail::UrbanMscMaterialData;
+    using MscParameters = UrbanMscParameters;
+    using MaterialData  = UrbanMscMaterialData;
     //!@}
 
   public:
@@ -624,5 +622,4 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

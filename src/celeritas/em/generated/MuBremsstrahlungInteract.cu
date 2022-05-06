@@ -23,7 +23,7 @@ namespace generated
 namespace
 {
 __global__ void mu_bremsstrahlung_interact_kernel(
-    const celeritas::detail::MuBremsstrahlungDeviceRef model_data,
+    const celeritas::MuBremsstrahlungDeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -33,13 +33,13 @@ __global__ void mu_bremsstrahlung_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::mu_bremsstrahlung_interact_track);
+        celeritas::mu_bremsstrahlung_interact_track);
     launch(tid);
 }
 } // namespace
 
 void mu_bremsstrahlung_interact(
-    const celeritas::detail::MuBremsstrahlungDeviceRef& model_data,
+    const celeritas::MuBremsstrahlungDeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);

@@ -14,8 +14,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Device data for creating an EPlusGGInteractor.
@@ -48,5 +46,4 @@ using EPlusGGHostRef   = EPlusGGData;
 using EPlusGGDeviceRef = EPlusGGData;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -25,8 +25,8 @@ using celeritas::CombinedBremModel;
 using celeritas::ElementComponentId;
 using celeritas::ElementId;
 using celeritas::SeltzerBergerReader;
-using celeritas::detail::CombinedBremInteractor;
-using celeritas::detail::SBEnergyDistHelper;
+using celeritas::CombinedBremInteractor;
+using celeritas::SBEnergyDistHelper;
 
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;
@@ -136,7 +136,7 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<CombinedBremModel> model_;
-    celeritas::detail::CombinedBremRef data_;
+    celeritas::CombinedBremRef data_;
 };
 
 //---------------------------------------------------------------------------//

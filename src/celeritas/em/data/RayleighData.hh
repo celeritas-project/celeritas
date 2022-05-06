@@ -15,8 +15,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Rayleigh angular parameters to fit tabulated form factors.
@@ -87,5 +85,4 @@ using RayleighHostRef
     = RayleighData<Ownership::const_reference, MemSpace::host>;
 using RayleighRef = RayleighData<Ownership::const_reference, MemSpace::native>;
 
-} // namespace detail
 } // namespace celeritas

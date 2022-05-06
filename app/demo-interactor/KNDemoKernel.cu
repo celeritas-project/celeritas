@@ -21,7 +21,6 @@
 #include "KernelUtils.hh"
 
 using namespace celeritas;
-using celeritas::detail::KleinNishinaInteractor;
 
 namespace demo_interactor
 {

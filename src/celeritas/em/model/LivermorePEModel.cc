@@ -40,7 +40,7 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
 
-    detail::LivermorePEData<Ownership::value, MemSpace::host> host_data;
+    LivermorePEData<Ownership::value, MemSpace::host> host_data;
 
     // Save IDs
     host_data.ids.action   = id;
@@ -67,7 +67,7 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
     CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 
     // Move to mirrored data, copying to device
-    data_ = CollectionMirror<detail::LivermorePEData>{std::move(host_data)};
+    data_ = CollectionMirror<LivermorePEData>{std::move(host_data)};
     CELER_ENSURE(this->data_);
 }
 
@@ -131,7 +131,7 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
 
     auto reals = make_builder(&xs->reals);
 
-    detail::LivermoreElement el;
+    LivermoreElement el;
 
     // Add tabulated total cross sections
     el.xs_lo.grid  = reals.insert_back(inp.xs_lo.x.begin(), inp.xs_lo.x.end());
@@ -148,7 +148,7 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
     el.thresh_hi = MevEnergy{inp.thresh_hi};
 
     // Allocate subshell data
-    std::vector<detail::LivermoreSubshell> shells(inp.shells.size());
+    std::vector<LivermoreSubshell> shells(inp.shells.size());
 
     // Add subshell data
     for (auto i : range(inp.shells.size()))
