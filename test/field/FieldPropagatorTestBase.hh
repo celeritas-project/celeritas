@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "base/CollectionStateStore.hh"
+#include "field/FieldParamsData.hh"
 #include "geometry/GeoData.hh"
 #include "geometry/GeoParams.hh"
 #include "geometry/GeoTestBase.hh"
