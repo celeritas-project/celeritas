@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file comm/Logger.test.cc
+//! \file corecel/io/Logger.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/io/Logger.hh"
 

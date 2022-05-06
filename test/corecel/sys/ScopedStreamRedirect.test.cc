@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/ScopedStreamRedirect.test.cc
+//! \file corecel/sys/ScopedStreamRedirect.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/io/ScopedStreamRedirect.hh"
 

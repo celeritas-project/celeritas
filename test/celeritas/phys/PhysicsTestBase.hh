@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/base/PhysicsTestBase.hh
+//! \file celeritas/phys/PhysicsTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "MockProcess.hh"
-#include "gtest/Test.hh"
+#include "Test.hh"
 
 namespace celeritas
 {

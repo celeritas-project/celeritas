@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Copier.test.cc
+//! \file corecel/data/Copier.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/Copier.hh"
 

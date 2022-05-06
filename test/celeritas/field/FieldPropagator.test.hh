@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/FieldPropagator.test.hh
+//! \file celeritas/field/FieldPropagator.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

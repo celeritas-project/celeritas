@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/TypeDemangler.test.cc
+//! \file corecel/sys/TypeDemangler.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/sys/TypeDemangler.hh"
 

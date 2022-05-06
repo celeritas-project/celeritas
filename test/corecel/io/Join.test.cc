@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Join.test.cc
+//! \file corecel/io/Join.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/io/Join.hh"
 

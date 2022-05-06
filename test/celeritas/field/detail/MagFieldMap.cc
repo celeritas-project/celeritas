@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/detail/MagFieldMap.cc
+//! \file celeritas/field/detail/MagFieldMap.cc
 //---------------------------------------------------------------------------//
 #include "MagFieldMap.hh"
 

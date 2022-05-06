@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/universes/SimpleUnitTracker.test.cu
+//! \file orange/univ/SimpleUnitTracker.test.cu
 //---------------------------------------------------------------------------//
 #include "SimpleUnitTracker.test.hh"
 

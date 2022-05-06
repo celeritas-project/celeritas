@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surfaces/detail/QuadraticSolver.test.cc
+//! \file orange/surf/detail/QuadraticSolver.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/QuadraticSolver.hh"
 

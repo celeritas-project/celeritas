@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/Steppers.test.cc
+//! \file celeritas/field/Steppers.test.cc
 //---------------------------------------------------------------------------//
 
 #include "Steppers.test.hh"

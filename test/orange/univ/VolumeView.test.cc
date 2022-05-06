@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/universes/VolumeView.test.cc
+//! \file orange/univ/VolumeView.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/univ/VolumeView.hh"
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 
-#include "../OrangeGeoTestBase.hh"
+#include "orange/OrangeGeoTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;

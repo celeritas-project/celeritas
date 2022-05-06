@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/FieldPropagator.test.cc
+//! \file celeritas/field/FieldPropagator.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/field/FieldPropagator.hh"
 

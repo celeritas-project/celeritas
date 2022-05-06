@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/SeltzerBerger.test.cc
+//! \file celeritas/em/SeltzerBerger.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
@@ -19,10 +19,10 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 
-#include "../InteractionIO.hh"
-#include "../InteractorHostTestBase.hh"
+#include "celeritas/phys/InteractionIO.hh"
+#include "celeritas/phys/InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
-#include "gtest/Main.hh"
+#include "Main.hh"
 
 using celeritas::BremsstrahlungProcess;
 using celeritas::ElementComponentId;

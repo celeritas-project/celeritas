@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/SoftEqual.test.cc
+//! \file corecel/math/SoftEqual.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/SoftEqual.hh"
 

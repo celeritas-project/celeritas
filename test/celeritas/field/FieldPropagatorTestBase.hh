@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/FieldPropagatorTestBase.hh
+//! \file celeritas/field/FieldPropagatorTestBase.hh
 //---------------------------------------------------------------------------//
 
 #include "corecel/data/CollectionStateStore.hh"
@@ -18,7 +18,7 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-#include "geometry/GeoTestBase.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

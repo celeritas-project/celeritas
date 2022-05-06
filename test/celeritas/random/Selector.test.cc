@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/Selector.test.cc
+//! \file celeritas/random/Selector.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/random/Selector.hh"
 

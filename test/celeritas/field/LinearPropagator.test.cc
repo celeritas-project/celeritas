@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geometry/LinearPropagator.test.cc
+//! \file celeritas/field/LinearPropagator.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/field/LinearPropagator.hh"
 
@@ -14,7 +14,7 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-#include "GeoTestBase.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;

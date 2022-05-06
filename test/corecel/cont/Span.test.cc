@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Span.test.cc
+//! \file corecel/cont/Span.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
 

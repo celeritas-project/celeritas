@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/curand/CurandPerformance.test.cc
+//! \file celeritas/random/curand/CurandPerformance.test.cc
 //---------------------------------------------------------------------------//
 #include "CurandPerformance.test.hh"
 
@@ -15,7 +15,7 @@
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "celeritas_test.hh"
-#include "random/DiagnosticRngEngine.hh"
+#include "DiagnosticRngEngine.hh"
 
 using namespace celeritas_test;
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Range.test.cc
+//! \file corecel/cont/Range.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 

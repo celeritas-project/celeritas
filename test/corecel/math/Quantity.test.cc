@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Quantity.test.cc
+//! \file corecel/math/Quantity.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/Quantity.hh"
 

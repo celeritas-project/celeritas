@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/EPlusGG.test.cc
+//! \file celeritas/em/EPlusGG.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -12,8 +12,8 @@
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 
-#include "../InteractionIO.hh"
-#include "../InteractorHostTestBase.hh"
+#include "celeritas/phys/InteractionIO.hh"
+#include "celeritas/phys/InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
 
 using celeritas::ElementId;

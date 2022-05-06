@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/UrbanMsc.test.cc
+//! \file celeritas/em/UrbanMsc.test.cc
 //---------------------------------------------------------------------------//
 #include <random>
 
@@ -30,9 +30,9 @@
 #include "celeritas/track/SimTrackView.hh"
 
 #include "celeritas_test.hh"
-#include "geometry/GeoTestBase.hh"
-#include "gtest/Test.hh"
-#include "random/DiagnosticRngEngine.hh"
+#include "celeritas/geo/GeoTestBase.hh"
+#include "Test.hh"
+#include "DiagnosticRngEngine.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file comm/ScopedSignalHandler.test.cc
+//! \file corecel/sys/ScopedSignalHandler.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/sys/ScopedSignalHandler.hh"
 

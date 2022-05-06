@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/base/Particle.test.cu
+//! \file celeritas/phys/Particle.test.cu
 //---------------------------------------------------------------------------//
 #include "Particle.test.hh"
 

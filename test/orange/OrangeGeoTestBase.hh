@@ -21,7 +21,7 @@
 #include "celeritas/Types.hh"
 
 // Test dependencies
-#include "gtest/Test.hh"
+#include "Test.hh"
 
 namespace celeritas_test
 {

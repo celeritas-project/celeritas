@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/distributions/IsotropicDistribution.test.cc
+//! \file celeritas/random/distribution/IsotropicDistribution.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
@@ -12,7 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 
-#include "../DiagnosticRngEngine.hh"
+#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 using celeritas::IsotropicDistribution;

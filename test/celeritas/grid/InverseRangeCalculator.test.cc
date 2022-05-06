@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/grid/InverseRangeCalculator.test.cc
+//! \file celeritas/grid/InverseRangeCalculator.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/InverseRangeCalculator.hh"
 

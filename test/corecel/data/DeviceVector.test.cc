@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/DeviceVector.test.cc
+//! \file corecel/data/DeviceVector.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/DeviceVector.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/detail/MagTestTraits.hh
+//! \file celeritas/field/detail/MagTestTraits.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

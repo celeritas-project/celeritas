@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/ArrayUtils.test.cc
+//! \file corecel/math/ArrayUtils.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayUtils.hh"
 

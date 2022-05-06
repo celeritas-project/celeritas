@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/base/Physics.test.hh
+//! \file celeritas/phys/Physics.test.hh
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"

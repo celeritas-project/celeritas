@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surfaces/PlaneAligned.test.cc
+//! \file orange/surf/PlaneAligned.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/PlaneAligned.hh"
 

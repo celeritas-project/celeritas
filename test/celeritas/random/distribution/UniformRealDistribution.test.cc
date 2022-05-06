@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/distributions/UniformRealDistribution.test.cc
+//! \file celeritas/random/distribution/UniformRealDistribution.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 

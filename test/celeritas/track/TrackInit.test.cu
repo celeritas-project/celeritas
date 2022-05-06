@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file sim/TrackInit.test.cu
+//! \file celeritas/track/TrackInit.test.cu
 //---------------------------------------------------------------------------//
 #include "TrackInit.test.hh"
 

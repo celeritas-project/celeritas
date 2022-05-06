@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/StackAllocator.test.cc
+//! \file corecel/data/StackAllocator.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/StackAllocator.hh"
 

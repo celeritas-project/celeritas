@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geometry/BoundingBox.test.cc
+//! \file orange/BoundingBox.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/BoundingBox.hh"
 

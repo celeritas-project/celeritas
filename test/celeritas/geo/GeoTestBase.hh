@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geometry/GeoTestBase.hh
+//! \file celeritas/geo/GeoTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
-#include "gtest/Test.hh"
+#include "Test.hh"
 
 namespace celeritas_test
 {

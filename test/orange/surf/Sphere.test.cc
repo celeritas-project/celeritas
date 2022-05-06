@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surfaces/Sphere.test.cc
+//! \file orange/surf/Sphere.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/Sphere.hh"
 

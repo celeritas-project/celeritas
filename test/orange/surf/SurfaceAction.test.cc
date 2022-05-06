@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surfaces/SurfaceAction.test.cc
+//! \file orange/surf/SurfaceAction.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/SurfaceAction.hh"
 

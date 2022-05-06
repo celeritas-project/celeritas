@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/base/PhysicsStepUtils.test.cc
+//! \file celeritas/phys/PhysicsStepUtils.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
@@ -14,7 +14,7 @@
 
 #include "PhysicsTestBase.hh"
 #include "celeritas_test.hh"
-#include "random/DiagnosticRngEngine.hh"
+#include "DiagnosticRngEngine.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file vecgeom/Vecgeom.test.cc
+//! \file celeritas/ext/Vecgeom.test.cc
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
@@ -17,7 +17,7 @@
 #include "celeritas/ext/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
-#include "geometry/GeoTestBase.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

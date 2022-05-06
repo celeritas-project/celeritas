@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Algorithms.test.cc
+//! \file corecel/math/Algorithms.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/Algorithms.hh"
 

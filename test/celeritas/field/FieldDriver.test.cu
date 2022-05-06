@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/FieldDriver.test.cu
+//! \file celeritas/field/FieldDriver.test.cu
 //---------------------------------------------------------------------------//
 #include "FieldDriver.test.hh"
 

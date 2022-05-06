@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/InteractorHostTestBase.hh
+//! \file celeritas/phys/InteractorHostTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -29,8 +29,8 @@
 #include "celeritas/phys/Secondary.hh"
 
 // Test helpers
-#include "gtest/Test.hh"
-#include "random/DiagnosticRngEngine.hh"
+#include "Test.hh"
+#include "DiagnosticRngEngine.hh"
 
 namespace celeritas
 {

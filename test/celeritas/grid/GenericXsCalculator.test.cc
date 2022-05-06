@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/grid/GenericXsCalculator.test.cc
+//! \file celeritas/grid/GenericXsCalculator.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/GenericXsCalculator.hh"
 

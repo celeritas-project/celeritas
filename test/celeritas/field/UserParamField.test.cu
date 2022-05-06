@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/UserParamField.test.cu
+//! \file celeritas/field/UserParamField.test.cu
 //---------------------------------------------------------------------------//
 #include <thrust/device_vector.h>
 

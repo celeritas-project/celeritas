@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/KleinNishina.test.cc
+//! \file celeritas/em/KleinNishina.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
 
-#include "../InteractionIO.hh"
-#include "../InteractorHostTestBase.hh"
+#include "celeritas/phys/InteractionIO.hh"
+#include "celeritas/phys/InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
 
 using celeritas::detail::KleinNishinaInteractor;

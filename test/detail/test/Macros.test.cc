@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file gtest/detail/test/Macros.test.cc
+//! \file detail/test/Macros.test.cc
 //---------------------------------------------------------------------------//
-#include "../Macros.hh"
+#include "detail/Macros.hh"
 
 #include <limits>
 

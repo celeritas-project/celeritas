@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/MollerBhabha.test.cc
+//! \file celeritas/em/MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -13,8 +13,8 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 
-#include "../InteractionIO.hh"
-#include "../InteractorHostTestBase.hh"
+#include "celeritas/phys/InteractionIO.hh"
+#include "celeritas/phys/InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
 
 using celeritas::CutoffView;

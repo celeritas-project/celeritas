@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surfaces/CylCentered.test.cc
+//! \file orange/surf/CylCentered.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/surf/CylCentered.hh"
 

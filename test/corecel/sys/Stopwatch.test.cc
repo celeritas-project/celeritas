@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/Stopwatch.test.cc
+//! \file corecel/sys/Stopwatch.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/sys/Stopwatch.hh"
 

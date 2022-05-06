@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/em/EnergyLossFluctuation.test.cc
+//! \file celeritas/em/EnergyLossFluctuation.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
@@ -16,7 +16,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "celeritas_test.hh"
-#include "random/DiagnosticRngEngine.hh"
+#include "DiagnosticRngEngine.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

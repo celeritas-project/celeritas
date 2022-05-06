@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file io/RootImporter.test.cc
+//! \file celeritas/ext/RootImporter.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/RootImporter.hh"
 

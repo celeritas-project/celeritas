@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/grid/CalculatorTestBase.hh
+//! \file celeritas/grid/CalculatorTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/data/Collection.hh"
 #include "celeritas/grid/XsGridData.hh"
 
-#include "gtest/Test.hh"
+#include "Test.hh"
 
 namespace celeritas_test
 {

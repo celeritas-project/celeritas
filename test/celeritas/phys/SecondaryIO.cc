@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/SecondaryIO.cc
+//! \file celeritas/phys/SecondaryIO.cc
 //---------------------------------------------------------------------------//
 #include "SecondaryIO.hh"
 

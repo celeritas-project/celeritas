@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/UserMapField.test.cu
+//! \file celeritas/field/UserMapField.test.cu
 //---------------------------------------------------------------------------//
 #include <thrust/device_vector.h>
 

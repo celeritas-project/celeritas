@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/XorwowRngEngine.test.cc
+//! \file celeritas/random/XorwowRngEngine.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/random/XorwowRngEngine.hh"
 

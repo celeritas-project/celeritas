@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/InteractorHostTestBase.cc
+//! \file celeritas/phys/InteractorHostTestBase.cc
 //---------------------------------------------------------------------------//
 #include "InteractorHostTestBase.hh"
 
@@ -14,7 +14,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 
-#include "gtest/detail/Macros.hh"
+#include "detail/Macros.hh"
 
 using namespace celeritas;
 

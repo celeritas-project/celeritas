@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file field/UserParamField.test.cc
+//! \file celeritas/field/UserParamField.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -17,7 +17,7 @@
 #include "UserField.test.hh"
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
-#include "field/FieldPropagator.test.hh"
+#include "FieldPropagator.test.hh"
 
 using celeritas::detail::CMSParameterizedField;
 

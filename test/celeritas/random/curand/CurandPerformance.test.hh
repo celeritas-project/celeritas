@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file random/curand/CurandPerformance.test.hh
+//! \file celeritas/random/curand/CurandPerformance.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

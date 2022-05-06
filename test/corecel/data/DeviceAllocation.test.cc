@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file base/DeviceAllocation.test.cc
+//! \file corecel/data/DeviceAllocation.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/DeviceAllocation.hh"
 

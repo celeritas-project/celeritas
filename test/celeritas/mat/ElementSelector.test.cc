@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/material/ElementSelector.test.cc
+//! \file celeritas/mat/ElementSelector.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/mat/ElementSelector.hh"
 
@@ -14,7 +14,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
-#include "random/SequenceEngine.hh"
+#include "celeritas/random/SequenceEngine.hh"
 
 using namespace celeritas;
 using MaterialParamsRef = MaterialParams::HostRef;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file physics/InteractionIO.hh
+//! \file celeritas/phys/InteractionIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
