@@ -15,8 +15,8 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "celeritas_test.hh"
 #include "DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -100,9 +100,9 @@ auto GeoTestBase<GP>::geometry() const -> const SPConstGeo&
     {
         // Construct filename:
         // ${SOURCE}/test/${dirname}/data/${filebase}${fileext}
-        auto        filename  = filebase + this->fileext();
-        std::string test_file = celeritas::Test::test_data_path(
-            "celeritas", filename.c_str());
+        auto        filename = filebase + this->fileext();
+        std::string test_file
+            = celeritas::Test::test_data_path("celeritas", filename.c_str());
 
         // MUST reset geometry before trying to build a new one
         // since VecGeom is all full of globals

@@ -14,8 +14,8 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
-#include "celeritas_test.hh"
 #include "DiagnosticRngEngine.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas_test;
 

@@ -13,11 +13,11 @@
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 
+#include "FieldPropagator.test.hh"
 #include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
-#include "FieldPropagator.test.hh"
 
 using celeritas::detail::CMSParameterizedField;
 

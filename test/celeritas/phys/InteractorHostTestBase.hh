@@ -29,8 +29,8 @@
 #include "celeritas/phys/Secondary.hh"
 
 // Test helpers
-#include "Test.hh"
 #include "DiagnosticRngEngine.hh"
+#include "Test.hh"
 
 namespace celeritas
 {

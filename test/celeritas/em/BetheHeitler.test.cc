@@ -14,11 +14,11 @@
 #include "celeritas/em/process/GammaConversionProcess.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
-#include "celeritas_test.hh"
+
 #include "Main.hh"
+#include "celeritas_test.hh"
 
 using celeritas::ElementComponentId;
 using celeritas::GammaConversionProcess;

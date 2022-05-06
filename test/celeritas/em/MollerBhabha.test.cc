@@ -12,9 +12,9 @@
 #include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::CutoffView;

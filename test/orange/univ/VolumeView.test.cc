@@ -9,8 +9,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
-
 #include "orange/OrangeGeoTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;

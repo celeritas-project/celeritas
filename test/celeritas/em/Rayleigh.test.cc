@@ -13,9 +13,9 @@
 #include "celeritas/em/model/RayleighModel.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::ElementId;

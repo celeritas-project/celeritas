@@ -164,7 +164,8 @@ class CutoffParamsImportTest : public celeritas::Test
   protected:
     void SetUp() override
     {
-        root_filename_ = this->test_data_path("celeritas", "four-steel-slabs.root");
+        root_filename_
+            = this->test_data_path("celeritas", "four-steel-slabs.root");
         RootImporter import_from_root(root_filename_.c_str());
         data_ = import_from_root();
         ;

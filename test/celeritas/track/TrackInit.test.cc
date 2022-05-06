@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -23,7 +24,6 @@
 #include "celeritas/track/TrackInitUtils.hh"
 
 #include "celeritas_test.hh"
-#include "celeritas/geo/GeoTestBase.hh"
 
 namespace celeritas_test
 {

@@ -9,9 +9,9 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::detail::KleinNishinaInteractor;

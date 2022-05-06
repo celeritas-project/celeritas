@@ -15,9 +15,9 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::ElementComponentId;

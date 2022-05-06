@@ -26,9 +26,9 @@
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using celeritas::Applicability;

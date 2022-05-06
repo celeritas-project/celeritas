@@ -17,6 +17,7 @@
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/grid/RangeCalculator.hh"
@@ -29,10 +30,9 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "celeritas_test.hh"
-#include "celeritas/geo/GeoTestBase.hh"
-#include "Test.hh"
 #include "DiagnosticRngEngine.hh"
+#include "Test.hh"
+#include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;

@@ -13,8 +13,8 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-
 #include "celeritas/geo/GeoTestBase.hh"
+
 #include "celeritas_test.hh"
 
 using namespace celeritas;

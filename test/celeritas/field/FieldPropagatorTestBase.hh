@@ -11,6 +11,7 @@
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTestBase.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -18,7 +19,6 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-#include "celeritas/geo/GeoTestBase.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
