@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "celeritas_config.h"
+#include "base/Assert.hh"
 #include "comm/Logger.hh"
 
 #include "gtest/Test.hh"

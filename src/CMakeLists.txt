@@ -328,7 +328,8 @@ if(CELERITAS_USE_ROOT)
     io/ImportVolume.hh
     io/ImportData.hh
     MODULE celeritas_io
-    LINKDEF io/RootInterfaceLinkDef.h
+    LINKDEF
+      io/RootInterfaceLinkDef.h
   )
   list(APPEND _IO_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx

@@ -281,7 +281,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                        &geo_view,
                                        phys,
                                        material_view,
-                                       sim_track_view,
+                                       sim_track_view.num_steps() == 0,
                                        step[i]);
 
         step_result = step_limiter(rng_engine);

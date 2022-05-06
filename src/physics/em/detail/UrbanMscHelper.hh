@@ -11,6 +11,8 @@
 #include "base/ArrayUtils.hh"
 #include "base/Macros.hh"
 #include "base/Types.hh"
+#include "physics/base/ParticleTrackView.hh"
+#include "physics/base/PhysicsTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/grid/EnergyLossCalculator.hh"
 #include "physics/grid/InverseRangeCalculator.hh"

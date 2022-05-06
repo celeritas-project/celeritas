@@ -46,15 +46,19 @@ inline CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y);
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
-inline CELER_FUNCTION void normalize_direction(Real3* direction);
+template<class T>
+inline CELER_FUNCTION void normalize_direction(Array<T, 3>* direction);
 
 //---------------------------------------------------------------------------//
 // Calculate a cartesian unit vector from spherical coordinates
-inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi);
+template<class T>
+inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi);
 
 //---------------------------------------------------------------------------//
 // Rotate the direction 'dir' according to the reference rotation axis 'rot'
-inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot);
+template<class T>
+inline CELER_FUNCTION Array<T, 3>
+                      rotate(const Array<T, 3>& dir, const Array<T, 3>& rot);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector
@@ -122,7 +126,7 @@ CELER_FUNCTION T norm(const Array<T, N>& v)
 template<class T, size_type N>
 CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y)
 {
-    real_type dist_sq = 0;
+    T dist_sq = 0;
     for (size_type i = 0; i != N; ++i)
     {
         dist_sq += ipow<2>(y[i] - x[i]);
@@ -134,10 +138,11 @@ CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y)
 /*!
  * Divide the given vector by its Euclidian norm.
  */
-CELER_FUNCTION void normalize_direction(Real3* direction)
+template<class T>
+CELER_FUNCTION void normalize_direction(Array<T, 3>* direction)
 {
     CELER_EXPECT(direction);
-    const real_type scale_factor = 1 / norm(*direction);
+    const T scale_factor = 1 / norm(*direction);
     (*direction)[0] *= scale_factor;
     (*direction)[1] *= scale_factor;
     (*direction)[2] *= scale_factor;
@@ -151,11 +156,12 @@ CELER_FUNCTION void normalize_direction(Real3* direction)
  * the angle between the x axis and the projection of the vector onto the x-y
  * plane.
  */
-inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
+template<class T>
+inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
 {
     CELER_EXPECT(costheta >= -1 && costheta <= 1);
 
-    const real_type sintheta = std::sqrt(1 - costheta * costheta);
+    const T sintheta = std::sqrt(1 - costheta * costheta);
     return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
 }
 
@@ -197,7 +203,9 @@ inline CELER_FUNCTION Real3 from_spherical(real_type costheta, real_type phi)
             + \cos\theta\mathbf{k}
  * \f]
  */
-inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
+template<class T>
+inline CELER_FUNCTION Array<T, 3>
+                      rotate(const Array<T, 3>& dir, const Array<T, 3>& rot)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     CELER_EXPECT(is_soft_unit_vector(rot));
@@ -212,17 +220,17 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
 
     // Transform direction vector into theta, phi so we can use it as a
     // rotation matrix
-    real_type sintheta = std::sqrt(1 - ipow<2>(rot[Z]));
-    real_type cosphi;
-    real_type sinphi;
+    T sintheta = std::sqrt(1 - ipow<2>(rot[Z]));
+    T cosphi;
+    T sinphi;
 
-    if (sintheta >= detail::RealVecTraits<real_type>::min_accurate_sintheta())
+    if (sintheta >= detail::RealVecTraits<T>::min_accurate_sintheta())
     {
         // Typical case: far enough from z axis to assume the X and Y
         // components have a hypotenuse of 1 within epsilon tolerance
-        const real_type inv_sintheta = 1 / (sintheta);
-        cosphi                       = rot[X] * inv_sintheta;
-        sinphi                       = rot[Y] * inv_sintheta;
+        const T inv_sintheta = 1 / (sintheta);
+        cosphi               = rot[X] * inv_sintheta;
+        sinphi               = rot[Y] * inv_sintheta;
     }
     else if (sintheta > 0)
     {
@@ -237,7 +245,7 @@ inline CELER_FUNCTION Real3 rotate(const Real3& dir, const Real3& rot)
         sinphi = 0;
     }
 
-    Real3 result
+    Array<T, 3> result
         = {(rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
            (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
            -sintheta * dir[X] + rot[Z] * dir[Z]};
