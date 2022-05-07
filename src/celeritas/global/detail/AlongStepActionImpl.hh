@@ -29,10 +29,9 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION bool
-use_msc_track(const celeritas::ParticleTrackView& particle,
-              const celeritas::PhysicsTrackView&  phys,
-              celeritas::real_type                step)
+inline CELER_FUNCTION bool use_msc_track(const ParticleTrackView& particle,
+                                         const PhysicsTrackView&  phys,
+                                         real_type                step)
 {
     if (!phys.msc_ppid())
         return false;
@@ -55,8 +54,7 @@ use_msc_track(const celeritas::ParticleTrackView& particle,
  * TODO:
  * - change to launcher class that can be templated on propagator, MSC type
  */
-inline CELER_FUNCTION void
-along_step_track(celeritas::CoreTrackView const& track)
+inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
     if (sim.status() == TrackStatus::inactive)
@@ -98,13 +96,13 @@ along_step_track(celeritas::CoreTrackView const& track)
         auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
         // Sample multiple scattering step length
-        celeritas::UrbanMscStepLimit msc_step_limit(phys.urban_data(),
-                                                    particle,
-                                                    &geo,
-                                                    phys,
-                                                    mat.make_material_view(),
-                                                    sim.num_steps() == 0,
-                                                    step_limit.step);
+        UrbanMscStepLimit msc_step_limit(phys.urban_data(),
+                                         particle,
+                                         &geo,
+                                         phys,
+                                         mat.make_material_view(),
+                                         sim.num_steps() == 0,
+                                         step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);
         phys.msc_step(msc_step_result);
@@ -148,13 +146,13 @@ along_step_track(celeritas::CoreTrackView const& track)
         auto msc_step_result      = phys.msc_step();
         msc_step_result.geom_path = geo_step;
 
-        celeritas::UrbanMscScatter msc_scatter(urban_data,
-                                               particle,
-                                               &geo,
-                                               phys,
-                                               mat.make_material_view(),
-                                               msc_step_result);
-        auto                       msc_result = msc_scatter(rng);
+        UrbanMscScatter msc_scatter(urban_data,
+                                    particle,
+                                    &geo,
+                                    phys,
+                                    mat.make_material_view(),
+                                    msc_step_result);
+        auto            msc_result = msc_scatter(rng);
 
         // Update full path length traveled along the step based on MSC to
         // correctly calculate energy loss, step time, etc.
@@ -164,8 +162,8 @@ along_step_track(celeritas::CoreTrackView const& track)
 
         // Update direction and position
         geo.set_dir(msc_result.direction);
-        celeritas::Real3 new_pos;
-        for (int i : celeritas::range(3))
+        Real3 new_pos;
+        for (int i : range(3))
         {
             new_pos[i] = geo.pos()[i] + msc_result.displacement[i];
         }
@@ -201,7 +199,7 @@ along_step_track(celeritas::CoreTrackView const& track)
             step_limit.action = phys.scalars().range_action();
             step_limit.step += backward_bump;
 
-            celeritas::Real3 pos = geo.pos();
+            Real3 pos = geo.pos();
             axpy(backward_bump, geo.dir(), &pos);
             geo.move_internal(pos);
         }
