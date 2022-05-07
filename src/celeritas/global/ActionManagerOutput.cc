@@ -39,6 +39,7 @@ void ActionManagerOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     auto obj = nlohmann::json::array();
+    bool has_timing = actions_->sync();
     for (auto id : range(ActionId{actions_->num_actions()}))
     {
         nlohmann::json entry{
@@ -50,6 +51,10 @@ void ActionManagerOutput::output(JsonPimpl* j) const
         if (!desc.empty())
         {
             entry["description"] = std::move(desc);
+        }
+        if (has_timing)
+        {
+            entry["time"] = actions_->accum_time(id);
         }
         obj.push_back(entry);
     }

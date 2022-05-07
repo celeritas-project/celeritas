@@ -191,7 +191,9 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Create action manager
     {
-        result.actions = std::make_shared<ActionManager>();
+        ActionManager::Options opts;
+        opts.sync      = args.sync;
+        result.actions = std::make_shared<ActionManager>(opts);
     }
 
     // Load geometry
@@ -301,7 +303,6 @@ TransporterInput load_input(const LDemoArgs& args)
     result.max_num_tracks         = args.max_num_tracks;
     result.max_steps              = args.max_steps;
     result.enable_diagnostics     = args.enable_diagnostics;
-    result.sync                   = args.sync;
 
     // Propagate diagnosics
     result.energy_diag = args.energy_diag;

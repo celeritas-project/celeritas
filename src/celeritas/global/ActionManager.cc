@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionManager.hh"
 
+#include "corecel/sys/Stopwatch.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -41,11 +43,25 @@ template<MemSpace M>
 void ActionManager::invoke(ActionId id, const CoreRef<M>& data) const
 {
     CELER_ASSERT(id < actions_.size());
-    PConstExplicit action = actions_[id.unchecked_get()].expl;
-    CELER_VALIDATE(action,
+    const auto& action_data = actions_[id.unchecked_get()];
+    CELER_VALIDATE(action_data.expl,
                    << "action '" << actions_[id.unchecked_get()].label
                    << "' is implicit and cannot be invoked");
-    action->execute(data);
+
+    if (options_.sync)
+    {
+        Stopwatch get_time;
+        action_data.expl->execute(data);
+        if (M == MemSpace::device)
+        {
+            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+        }
+        action_data.time += get_time();
+    }
+    else
+    {
+        action_data.expl->execute(data);
+    }
 }
 
 //---------------------------------------------------------------------------//

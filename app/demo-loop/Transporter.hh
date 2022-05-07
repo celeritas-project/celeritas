@@ -73,7 +73,6 @@ struct TransporterInput
     size_type max_num_tracks{};
     size_type max_steps{};
     bool      enable_diagnostics{true};
-    bool      sync{false};
 
     // Diagnostic setup
     EnergyDiagInput energy_diag;
@@ -95,15 +94,6 @@ struct TransporterTiming
     VecReal   steps;   //!< Real time per step
     real_type total{}; //!< Total simulation time
     real_type setup{}; //!< One-time initialization cost
-
-    // Finer-grained timing information within a step
-    real_type initialize_tracks{};
-    real_type pre_step{};
-    real_type along_step{};
-    real_type discrete_select{};
-    real_type cross_boundary{};
-    real_type launch_models{};
-    real_type extend_from_secondaries{};
 };
 
 //---------------------------------------------------------------------------//

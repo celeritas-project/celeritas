@@ -180,7 +180,6 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
         return PhysicsStepView(params_ref, state.ref(), tid);
     }
 
-
     PhysicsStepView make_step_view(const char* particle)
     {
         auto pid = this->particles()->find(particle);
@@ -239,8 +238,8 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
 TEST_F(PhysicsTrackViewHostTest, step_view)
 {
-    PhysicsStepView gamma = this->make_step_view(ThreadId{0});
-    PhysicsStepView celer = this->make_step_view(ThreadId{1});
+    PhysicsStepView        gamma      = this->make_step_view(ThreadId{0});
+    PhysicsStepView        celer      = this->make_step_view(ThreadId{1});
     const PhysicsStepView& gamma_cref = gamma;
 
     // Cross sections
@@ -519,11 +518,12 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     for (const char* particle : {"gamma", "anti-celeriton"})
     {
         PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
-        PhysicsStepView pstep = this->make_step_view(particle);
+        PhysicsStepView  pstep = this->make_step_view(particle);
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
-            step.push_back(celeritas_test::calc_step(phys, pstep, MevEnergy{energy}));
+            step.push_back(
+                celeritas_test::calc_step(phys, pstep, MevEnergy{energy}));
         }
     }
 

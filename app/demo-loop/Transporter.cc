@@ -10,7 +10,6 @@
 #include <csignal>
 #include <memory>
 
-#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/VectorUtils.hh"
@@ -126,30 +125,6 @@ build_diagnostics(const TransporterInput&                        inp,
     return result;
 }
 
-// Accumulate fine-grained timing results
-template<MemSpace M>
-void accum_time(const TransporterInput&, Stopwatch&, real_type*);
-
-template<>
-void accum_time<MemSpace::device>(const TransporterInput& inp,
-                                  Stopwatch&              get_time,
-                                  real_type*              time)
-{
-    if (inp.sync)
-    {
-        CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
-        *time += get_time();
-    }
-}
-
-template<>
-void accum_time<MemSpace::host>(const TransporterInput&,
-                                Stopwatch& get_time,
-                                real_type* time)
-{
-    *time += get_time();
-}
-
 //!@}
 //---------------------------------------------------------------------------//
 } // namespace
@@ -242,40 +217,27 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         result.initializers.push_back(num_inits);
 
         // Create new tracks from primaries or secondaries
-        Stopwatch get_time;
         initialize_tracks(core_ref, &track_init_states);
-        accum_time<M>(input_, get_time, &result.time.initialize_tracks);
-
         result.active.push_back(input_.max_num_tracks
                                 - track_init_states.vacancies.size());
 
         // Reset track data, sample mean free path, and calculate step limits
-        get_time = {};
         actions.invoke<M>(pre_step_action_, core_ref);
-        accum_time<M>(input_, get_time, &result.time.pre_step);
 
         // Move, calculate dE/dx, and select model for discrete interaction
-        get_time = {};
         actions.invoke<M>(along_step_action_, core_ref);
-        accum_time<M>(input_, get_time, &result.time.along_step);
 
         // Cross boundary
-        get_time = {};
         actions.invoke<M>(boundary_action_, core_ref);
-        accum_time<M>(input_, get_time, &result.time.cross_boundary);
 
         // Determine discrete processes
-        get_time = {};
         actions.invoke<M>(discrete_select_action_, core_ref);
-        accum_time<M>(input_, get_time, &result.time.discrete_select);
 
         // Launch the interaction kernels for all applicable models
-        get_time = {};
         for (ActionId action : input_.physics->model_actions())
         {
             actions.invoke<M>(action, core_ref);
         }
-        accum_time<M>(input_, get_time, &result.time.launch_models);
 
         // Mid-step diagnostics
         for (auto& diagnostic : diagnostics)
@@ -284,9 +246,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         }
 
         // Create track initializers from surviving secondaries
-        get_time = {};
         extend_from_secondaries(core_ref, &track_init_states);
-        accum_time<M>(input_, get_time, &result.time.extend_from_secondaries);
 
         // Get the number of track initializers and active tracks
         num_alive = input_.max_num_tracks - track_init_states.vacancies.size();

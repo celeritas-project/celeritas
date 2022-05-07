@@ -302,7 +302,7 @@ template<class Engine>
 CELER_FUNCTION ActionId
 select_discrete_interaction(const ParticleTrackView& particle,
                             const PhysicsTrackView&  physics,
-                            const PhysicsStepView&  pstep,
+                            const PhysicsStepView&   pstep,
                             Engine&                  rng)
 {
     // Nonzero MFP to interaction -- no interaction model
@@ -310,9 +310,7 @@ select_discrete_interaction(const ParticleTrackView& particle,
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(
-        [&pstep](ParticleProcessId ppid) {
-            return pstep.per_process_xs(ppid);
-        },
+        [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
         ParticleProcessId{physics.num_particle_processes()},
         pstep.macro_xs())(rng);
 

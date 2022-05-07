@@ -56,10 +56,9 @@ struct PTestInput
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 inline CELER_FUNCTION celeritas::real_type
-                      calc_step(
-                          celeritas::PhysicsTrackView& phys,
-                          celeritas::PhysicsStepView& pstep,
-                          celeritas::units::MevEnergy energy)
+                      calc_step(celeritas::PhysicsTrackView& phys,
+                                celeritas::PhysicsStepView&  pstep,
+                                celeritas::units::MevEnergy  energy)
 {
     using namespace celeritas;
 
