@@ -33,8 +33,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 int test_main(int argc, char** argv)
 {
-    ScopedMpiInit scoped_mpi(&argc, &argv);
-    MpiCommunicator  comm
+    ScopedMpiInit   scoped_mpi(&argc, &argv);
+    MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
                ? MpiCommunicator{}
                : MpiCommunicator::comm_world());

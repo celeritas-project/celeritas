@@ -48,14 +48,15 @@ inline void barrier(const MpiCommunicator& comm);
 // All-to-all reduction on the data from src to dst
 template<class T, std::size_t N>
 inline void allreduce(const MpiCommunicator& comm,
-                      Operation           op,
-                      Span<const T, N>    src,
-                      Span<T, N>          dst);
+                      Operation              op,
+                      Span<const T, N>       src,
+                      Span<T, N>             dst);
 
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data, in place
 template<class T, std::size_t N>
-inline void allreduce(const MpiCommunicator& comm, Operation op, Span<T, N> data);
+inline void
+allreduce(const MpiCommunicator& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result
@@ -101,7 +102,7 @@ void barrier(const MpiCommunicator& comm)
  * All-to-all reduction on the data from src to dst.
  */
 template<class T, std::size_t N>
-void allreduce(const MpiCommunicator&          comm,
+void allreduce(const MpiCommunicator&       comm,
                CELER_MAYBE_UNUSED Operation op,
                Span<const T, N>             src,
                Span<T, N>                   dst)
@@ -127,7 +128,7 @@ void allreduce(const MpiCommunicator&          comm,
  * All-to-all reduction on the data, in place.
  */
 template<class T, std::size_t N>
-void allreduce(const MpiCommunicator&          comm,
+void allreduce(const MpiCommunicator&       comm,
                CELER_MAYBE_UNUSED Operation op,
                CELER_MAYBE_UNUSED Span<T, N> data)
 {

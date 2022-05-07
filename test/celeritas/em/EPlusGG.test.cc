@@ -17,8 +17,8 @@
 #include "celeritas_test.hh"
 
 using celeritas::ElementId;
-using celeritas::EPlusGGMacroXsCalculator;
 using celeritas::EPlusGGInteractor;
+using celeritas::EPlusGGMacroXsCalculator;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//

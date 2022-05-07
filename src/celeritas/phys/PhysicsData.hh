@@ -139,19 +139,19 @@ template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
     // Photoelectric effect
-    ProcessId                     photoelectric;
-    units::MevEnergy              photoelectric_table_thresh;
-    ModelId                       livermore_pe;
+    ProcessId             photoelectric;
+    units::MevEnergy      photoelectric_table_thresh;
+    ModelId               livermore_pe;
     LivermorePEData<W, M> livermore_pe_data;
 
     // Positron annihilation
-    ProcessId           positron_annihilation;
-    ModelId             eplusgg;
+    ProcessId   positron_annihilation;
+    ModelId     eplusgg;
     EPlusGGData eplusgg_data;
 
     // Multiple scattering (data for the mean free path)
-    ProcessId                  msc;
-    ModelId                    urban;
+    ProcessId          msc;
+    ModelId            urban;
     UrbanMscData<W, M> urban_data;
 
     //// MEMBER FUNCTIONS ////

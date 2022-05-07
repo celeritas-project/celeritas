@@ -5,8 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/MpiCommunicator.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/cont/Span.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
+
+#include "corecel/cont/Span.hh"
 #include "celeritas/ext/MpiOperations.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 

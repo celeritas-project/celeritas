@@ -98,14 +98,13 @@ along_step_track(celeritas::CoreTrackView const& track)
         auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
         // Sample multiple scattering step length
-        celeritas::UrbanMscStepLimit msc_step_limit(
-            phys.urban_data(),
-            particle,
-            &geo,
-            phys,
-            mat.make_material_view(),
-            sim.num_steps() == 0,
-            step_limit.step);
+        celeritas::UrbanMscStepLimit msc_step_limit(phys.urban_data(),
+                                                    particle,
+                                                    &geo,
+                                                    phys,
+                                                    mat.make_material_view(),
+                                                    sim.num_steps() == 0,
+                                                    step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);
         phys.msc_step(msc_step_result);
@@ -150,12 +149,12 @@ along_step_track(celeritas::CoreTrackView const& track)
         msc_step_result.geom_path = geo_step;
 
         celeritas::UrbanMscScatter msc_scatter(urban_data,
-                                                       particle,
-                                                       &geo,
-                                                       phys,
-                                                       mat.make_material_view(),
-                                                       msc_step_result);
-        auto                               msc_result = msc_scatter(rng);
+                                               particle,
+                                               &geo,
+                                               phys,
+                                               mat.make_material_view(),
+                                               msc_step_result);
+        auto                       msc_result = msc_scatter(rng);
 
         // Update full path length traveled along the step based on MSC to
         // correctly calculate energy loss, step time, etc.

@@ -171,12 +171,11 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
 
             // Check that the maximum scaled positron cross section is always
             // at the first reduced photon energy grid point
-            real_type                     inc_energy = std::exp(imported.x[i]);
-            SBPositronXsCorrector scale_xs(
-                electron_mass,
-                element,
-                Energy{imported.y[0] * inc_energy},
-                Energy{inc_energy});
+            real_type             inc_energy = std::exp(imported.x[i]);
+            SBPositronXsCorrector scale_xs(electron_mass,
+                                           element,
+                                           Energy{imported.y[0] * inc_energy},
+                                           Energy{inc_energy});
 
             // When the reduced photon energy is 1 the scaling factor is 0
             size_type num_scaled = num_y - 1;

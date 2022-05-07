@@ -19,9 +19,9 @@
 
 using celeritas::CutoffView;
 using celeritas::dot_product;
+using celeritas::MollerBhabhaInteractor;
 using celeritas::normalize_direction;
 using celeritas::ParticleCutoff;
-using celeritas::MollerBhabhaInteractor;
 using celeritas::units::AmuMass;
 using celeritas::units::MevEnergy;
 namespace constants = celeritas::constants;

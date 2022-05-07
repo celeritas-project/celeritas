@@ -86,8 +86,8 @@ namespace celeritas
  * Construct with communicator (only rank zero is active) and handler.
  */
 Logger::Logger(const MpiCommunicator& comm,
-               LogHandler          handle,
-               const char*         level_env)
+               LogHandler             handle,
+               const char*            level_env)
 {
     if (comm.rank() == 0)
     {

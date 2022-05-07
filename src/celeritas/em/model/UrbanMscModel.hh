@@ -26,8 +26,7 @@ class UrbanMscModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef
-        = UrbanMscData<Ownership::const_reference, MemSpace::host>;
+    using HostRef = UrbanMscData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = UrbanMscData<Ownership::const_reference, MemSpace::device>;
     //@}
@@ -73,7 +72,7 @@ class UrbanMscModel final : public Model
 
     //// TYPES ////
 
-    using HostValue = UrbanMscData<Ownership::value, MemSpace::host>;
+    using HostValue    = UrbanMscData<Ownership::value, MemSpace::host>;
     using MaterialData = UrbanMscMaterialData;
 
     //// HELPER FUNCTIONS ////

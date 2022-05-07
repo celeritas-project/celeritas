@@ -71,8 +71,7 @@ class LivermorePEModel final : public Model
     // Host/device storage and reference
     CollectionMirror<LivermorePEData> data_;
 
-    using HostXsData
-        = LivermorePEXsData<Ownership::value, MemSpace::host>;
+    using HostXsData = LivermorePEXsData<Ownership::value, MemSpace::host>;
     void
     append_element(const ImportLivermorePE& inp, HostXsData* xs_data) const;
 };

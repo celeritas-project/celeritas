@@ -41,6 +41,7 @@ using celeritas::ElementId;
 using celeritas::ImportPhysicsTable;
 using celeritas::ImportPhysicsVectorType;
 using celeritas::ImportTableType;
+using celeritas::LivermorePEInteractor;
 using celeritas::LivermorePEMacroXsCalculator;
 using celeritas::LivermorePEModel;
 using celeritas::LivermorePEReader;
@@ -50,7 +51,6 @@ using celeritas::PhotoelectricProcess;
 using celeritas::SubshellId;
 using celeritas::ThreadId;
 using celeritas::ValueGridInserter;
-using celeritas::LivermorePEInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//

@@ -18,9 +18,9 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::MpiCommunicator;
 using celeritas::Logger;
 using celeritas::LogLevel;
+using celeritas::MpiCommunicator;
 using celeritas::Provenance;
 // using namespace celeritas_test;
 

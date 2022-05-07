@@ -26,10 +26,10 @@ class RelativisticBremModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef   = RelativisticBremData<Ownership::const_reference,
-                                                 MemSpace::host>;
-    using DeviceRef = RelativisticBremData<Ownership::const_reference,
-                                                   MemSpace::device>;
+    using HostRef
+        = RelativisticBremData<Ownership::const_reference, MemSpace::host>;
+    using DeviceRef
+        = RelativisticBremData<Ownership::const_reference, MemSpace::device>;
     //@}
 
   public:
@@ -74,8 +74,7 @@ class RelativisticBremModel final : public Model
 
     //// TYPES ////
 
-    using HostValue
-        = RelativisticBremData<Ownership::value, MemSpace::host>;
+    using HostValue = RelativisticBremData<Ownership::value, MemSpace::host>;
 
     using AtomicNumber = int;
     using FormFactor   = RelBremFormFactor;

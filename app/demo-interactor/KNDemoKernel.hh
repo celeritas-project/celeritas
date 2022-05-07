@@ -68,7 +68,7 @@ struct ParamsData
 {
     celeritas::ParticleParamsData<W, M> particle;
     TableData<W, M>                     tables;
-    celeritas::KleinNishinaData kn_interactor;
+    celeritas::KleinNishinaData         kn_interactor;
     DetectorParamsData                  detector;
 
     explicit CELER_FUNCTION operator bool() const

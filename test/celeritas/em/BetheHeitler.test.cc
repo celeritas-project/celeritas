@@ -20,9 +20,9 @@
 #include "Main.hh"
 #include "celeritas_test.hh"
 
+using celeritas::BetheHeitlerInteractor;
 using celeritas::ElementComponentId;
 using celeritas::GammaConversionProcess;
-using celeritas::BetheHeitlerInteractor;
 using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;

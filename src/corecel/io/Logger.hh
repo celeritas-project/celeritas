@@ -68,8 +68,8 @@ class Logger
   public:
     // Construct with communicator (only rank zero is active) and handler
     Logger(const MpiCommunicator& comm,
-           LogHandler          handle,
-           const char*         level_env = nullptr);
+           LogHandler             handle,
+           const char*            level_env = nullptr);
 
     // Create a logger that flushes its contents when it destructs
     inline detail::LoggerMessage operator()(Provenance prov, LogLevel lev);
