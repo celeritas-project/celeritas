@@ -7,15 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/StackAllocatorData.hh"
-#include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/phys/CutoffData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 
@@ -27,13 +24,12 @@ namespace celeritas
  */
 struct CoreScalars
 {
-    real_type secondary_stack_factor = 3; //!< Secondary storage per state size
     ActionId  boundary_action;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return secondary_stack_factor > 0 && boundary_action;
+        return bool(boundary_action);
     }
 };
 
@@ -50,7 +46,6 @@ struct CoreParamsData
     ParticleParamsData<W, M>    particles;
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
-    AtomicRelaxParamsData<W, M> relaxation; // TODO: move into physics?
     RngParamsData<W, M>         rng;
 
     CoreScalars scalars;
@@ -73,7 +68,6 @@ struct CoreParamsData
         particles  = other.particles;
         cutoffs    = other.cutoffs;
         physics    = other.physics;
-        relaxation = other.relaxation;
         rng        = other.rng;
         scalars    = other.scalars;
         return *this;
@@ -99,20 +93,13 @@ struct CoreStateData
     RngStateData<W, M>      rng;
     SimStateData<W, M>      sim;
 
-    // TODO: move to physics?
-    AtomicRelaxStateData<W, M> relaxation;
-
-    // Stacks
-    StackAllocatorData<Secondary, W, M> secondaries;
-
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && particles && physics && rng && sim
-               && secondaries;
+        return geometry && materials && particles && physics && rng && sim;
     }
 
     //! Assign from another set of data
@@ -126,8 +113,6 @@ struct CoreStateData
         physics     = other.physics;
         rng         = other.rng;
         sim         = other.sim;
-        relaxation  = other.relaxation;
-        secondaries = other.secondaries;
         return *this;
     }
 };
@@ -165,24 +150,19 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
  */
 template<MemSpace M>
 inline void
-resize(CoreStateData<Ownership::value, M>*                               data,
+resize(CoreStateData<Ownership::value, M>*                               state,
        const CoreParamsData<Ownership::const_reference, MemSpace::host>& params,
        size_type                                                         size)
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(state);
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
-    resize(&data->geometry, params.geometry, size);
-    resize(&data->materials, params.materials, size);
-    resize(&data->particles, params.particles, size);
-    resize(&data->physics, params.physics, size);
-    resize(&data->relaxation, params.relaxation, size);
-    resize(&data->rng, params.rng, size);
-    resize(&data->sim, size);
-
-    auto sec_size
-        = static_cast<size_type>(size * params.scalars.secondary_stack_factor);
-    resize(&data->secondaries, sec_size);
+    resize(&state->geometry, params.geometry, size);
+    resize(&state->materials, params.materials, size);
+    resize(&state->particles, params.particles, size);
+    resize(&state->physics, params.physics, size);
+    resize(&state->rng, params.rng, size);
+    resize(&state->sim, size);
 }
 
 //---------------------------------------------------------------------------//

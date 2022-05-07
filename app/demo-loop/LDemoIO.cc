@@ -254,6 +254,7 @@ TransporterInput load_input(const LDemoArgs& args)
         input.materials                  = result.materials;
         input.options.enable_fluctuation = args.eloss_fluctuation;
         input.options.fixed_step_limiter = args.step_limiter;
+        input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager             = result.actions.get();
 
         BremsstrahlungProcess::Options brem_options;
@@ -299,7 +300,6 @@ TransporterInput load_input(const LDemoArgs& args)
     // Save constants
     result.max_num_tracks         = args.max_num_tracks;
     result.max_steps              = args.max_steps;
-    result.secondary_stack_factor = args.secondary_stack_factor;
     result.enable_diagnostics     = args.enable_diagnostics;
     result.sync                   = args.sync;
 

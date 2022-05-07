@@ -10,6 +10,8 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
 
 using namespace celeritas;
 
@@ -29,9 +31,10 @@ __global__ void phys_test_kernel(const PTestInput inp)
 
     const auto&      init = inp.inits[tid];
     PhysicsTrackView phys(inp.params, inp.states, init.particle, init.mat, tid);
+    PhysicsStepView step(inp.params, inp.states, tid);
 
     phys                  = PhysicsTrackInitializer{};
-    inp.result[tid.get()] = calc_step(phys, init.energy);
+    inp.result[tid.get()] = calc_step(phys, step, init.energy);
 }
 } // namespace
 

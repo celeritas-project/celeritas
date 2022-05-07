@@ -174,6 +174,23 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
         return phys;
     }
 
+    PhysicsStepView make_step_view(ThreadId tid)
+    {
+        CELER_EXPECT(tid < state.size());
+        return PhysicsStepView(params_ref, state.ref(), tid);
+    }
+
+
+    PhysicsStepView make_step_view(const char* particle)
+    {
+        auto pid = this->particles()->find(particle);
+        CELER_ASSERT(pid);
+        CELER_ASSERT(pid.get() < state.size());
+
+        ThreadId tid((pid.get() + 1) % state.size());
+        return this->make_step_view(tid);
+    }
+
     ParticleProcessId
     find_ppid(const PhysicsTrackView& track, const char* label) const
     {
@@ -195,7 +212,7 @@ class PhysicsTrackViewHostTest : public PhysicsTestBase
     std::map<std::string, ProcessId> process_names;
 };
 
-TEST_F(PhysicsTrackViewHostTest, accessors)
+TEST_F(PhysicsTrackViewHostTest, track_view)
 {
     PhysicsTrackView gamma = this->make_track_view("gamma", MaterialId{0});
     PhysicsTrackView celer = this->make_track_view("celeriton", MaterialId{1});
@@ -211,6 +228,21 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
         EXPECT_DOUBLE_EQ(2.345, celer.interaction_mfp());
     }
 
+    // Model/action ID conversion
+    for (ModelId m : range(ModelId{this->physics()->num_models()}))
+    {
+        ActionId a = gamma_cref.model_to_action(m);
+        EXPECT_EQ(m.unchecked_get(),
+                  gamma_cref.action_to_model(a).unchecked_get());
+    }
+}
+
+TEST_F(PhysicsTrackViewHostTest, step_view)
+{
+    PhysicsStepView gamma = this->make_step_view(ThreadId{0});
+    PhysicsStepView celer = this->make_step_view(ThreadId{1});
+    const PhysicsStepView& gamma_cref = gamma;
+
     // Cross sections
     {
         gamma.per_process_xs(ParticleProcessId{0}) = 1.2;
@@ -224,7 +256,7 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
     // Energy deposition
     {
         using Energy = PhysicsTrackView::Energy;
-        EXPECT_DOUBLE_EQ(0.0, value_as<Energy>(gamma_cref.energy_deposition()));
+        gamma.reset_energy_deposition();
         gamma.deposit_energy(Energy(2.5));
         EXPECT_DOUBLE_EQ(2.5, value_as<Energy>(gamma_cref.energy_deposition()));
         // Allow zero-energy deposition
@@ -242,14 +274,6 @@ TEST_F(PhysicsTrackViewHostTest, accessors)
         auto actual = gamma_cref.secondaries();
         EXPECT_EQ(3, actual.size());
         EXPECT_EQ(temp.data(), actual.data());
-    }
-
-    // Model/action ID conversion
-    for (ModelId m : range(ModelId{this->physics()->num_models()}))
-    {
-        ActionId a = gamma_cref.model_to_action(m);
-        EXPECT_EQ(m.unchecked_get(),
-                  gamma_cref.action_to_model(a).unchecked_get());
     }
 }
 
@@ -495,10 +519,11 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
     for (const char* particle : {"gamma", "anti-celeriton"})
     {
         PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
+        PhysicsStepView pstep = this->make_step_view(particle);
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
-            step.push_back(celeritas_test::calc_step(phys, MevEnergy{energy}));
+            step.push_back(celeritas_test::calc_step(phys, pstep, MevEnergy{energy}));
         }
     }
 

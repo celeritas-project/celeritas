@@ -31,7 +31,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     if (track.thread_id() == ThreadId{0})
     {
         // Clear secondary storage on a single thread
-        auto alloc = track.make_secondary_allocator();
+        auto alloc = track.make_physics_step_view().make_secondary_allocator();
         alloc.clear();
     }
 
@@ -39,9 +39,9 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     if (sim.status() == TrackStatus::inactive)
     {
 #if CELERITAS_DEBUG
-        auto phys = track.make_physics_view_inactive();
-        phys.reset_energy_deposition_debug();
-        phys.secondaries({});
+        auto step = track.make_physics_step_view();
+        step.reset_energy_deposition_debug();
+        step.secondaries({});
 #endif
 
         // Clear step limit and associated action for an empty track slot
@@ -49,14 +49,15 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
         return;
     }
 
-    auto phys = track.make_physics_view();
+    auto step = track.make_physics_step_view();
     {
         // Clear out energy deposition and secondary pointers
-        phys.reset_energy_deposition();
-        phys.secondaries({});
+        step.reset_energy_deposition();
+        step.secondaries({});
     }
 
     // Sample mean free path
+    auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())
     {
         auto                               rng = track.make_rng_engine();
@@ -67,7 +68,7 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     // Calculate physics step limits and total macro xs
     auto      mat      = track.make_material_view();
     auto      particle = track.make_particle_view();
-    StepLimit limit    = calc_physics_step_limit(mat, particle, phys);
+    StepLimit limit    = calc_physics_step_limit(mat, particle, phys, step);
     sim.reset_step_limit(limit);
 }
 

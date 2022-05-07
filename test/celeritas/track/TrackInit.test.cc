@@ -113,12 +113,12 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         host_physics.scalars.linear_loss_limit      = 0.01;
         host_physics.scalars.model_to_action        = 4;
         host_physics.scalars.num_models             = 1;
+        host_physics.scalars.secondary_stack_factor = 10;
         CELER_ASSERT(host_physics);
         physics = CollectionMirror<PhysicsParamsData>{std::move(host_physics)};
         core_data.params.physics = physics.device();
 
         core_data.params.scalars.boundary_action = ActionId{0}; // Unused
-        core_data.params.scalars.secondary_stack_factor = 2;
         CELER_ENSURE(core_data.params);
     }
 
@@ -139,7 +139,7 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
     }
 
     //! Create mutable state data
-    void build_states(size_type num_tracks, size_type storage_factor)
+    void build_states(size_type num_tracks)
     {
         CELER_EXPECT(core_data.params);
         CELER_EXPECT(track_inits);
@@ -153,7 +153,6 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         host_params.cutoffs   = cutoffs->host_ref();
         host_params.physics   = physics.host();
         host_params.rng       = rng->host_ref();
-        host_params.scalars.secondary_stack_factor = storage_factor;
         host_params.scalars.boundary_action        = ActionId{0}; // Unused
         CELER_ASSERT(host_params);
 
@@ -229,7 +228,7 @@ TEST_F(TrackInitTest, run)
     track_inits = std::make_shared<TrackInitParams>(
         TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
-    build_states(num_tracks, storage_factor);
+    build_states(num_tracks);
 
     // Check that all of the track slots were marked as empty
     {
@@ -338,7 +337,7 @@ TEST_F(TrackInitTest, primaries)
     track_inits = std::make_shared<TrackInitParams>(
         TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
-    build_states(num_tracks, storage_factor);
+    build_states(num_tracks);
 
     // Kill all the tracks in each interaction and don't produce secondaries
     std::vector<size_type> alloc(num_tracks, 0);
@@ -388,7 +387,7 @@ TEST_F(TrackInitTest, secondaries)
     track_inits = std::make_shared<TrackInitParams>(
         TrackInitParams::Input{generate_primaries(num_primaries), capacity});
 
-    build_states(num_tracks, storage_factor);
+    build_states(num_tracks);
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)

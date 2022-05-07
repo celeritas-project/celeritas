@@ -20,12 +20,7 @@
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
 
-#include "Interaction.hh"
 #include "PhysicsData.hh"
-#include "Secondary.hh"
-#if CELERITAS_DEBUG
-#    include "corecel/math/NumericLimits.hh"
-#endif
 
 namespace celeritas
 {
@@ -55,7 +50,7 @@ class PhysicsTrackView
     //!@}
 
   public:
-    // Construct from "dynamic" state and "static" particle definitions
+    // Construct from params, states, and per-state IDs
     inline CELER_FUNCTION PhysicsTrackView(const PhysicsParamsRef& params,
                                            const PhysicsStateRef&  states,
                                            ParticleId              particle,
@@ -71,26 +66,6 @@ class PhysicsTrackView
     // Reset the remaining MFP to interaction
     inline CELER_FUNCTION void reset_interaction_mfp();
 
-    // Set the total (process-integrated) macroscopic xs [cm^-1]
-    inline CELER_FUNCTION void macro_xs(real_type);
-
-    // Save MSC step data
-    inline CELER_FUNCTION void msc_step(const MscStep&);
-
-    // Reset the energy deposition
-    inline CELER_FUNCTION void reset_energy_deposition();
-
-#if CELERITAS_DEBUG
-    // Reset the energy deposition to NaN to catch errors
-    inline CELER_FUNCTION void reset_energy_deposition_debug();
-#endif
-
-    // Accumulate into local step's energy deposition
-    inline CELER_FUNCTION void deposit_energy(Energy);
-
-    // Set secondaries during an interaction
-    inline CELER_FUNCTION void secondaries(Span<Secondary>);
-
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Whether the remaining MFP has been calculated
@@ -98,18 +73,6 @@ class PhysicsTrackView
 
     // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
-
-    // Total (process-integrated) macroscopic xs [cm^-1]
-    CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
-
-    // Retrieve MSC step data
-    inline CELER_FUNCTION const MscStep& msc_step() const;
-
-    // Access local energy deposition
-    inline CELER_FUNCTION Energy energy_deposition() const;
-
-    // Access secondaries created by an interaction
-    inline CELER_FUNCTION Span<const Secondary> secondaries() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -134,16 +97,6 @@ class PhysicsTrackView
     inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
                                             ValueGridId       grid_id,
                                             Energy            energy) const;
-
-    // Get hardwired model, null if not present
-    inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
-                                                  Energy energy) const;
-
-    // Particle-process ID of the process with the de/dx and range tables
-    inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
-
-    // Particle-process ID of the process with the msc cross section table
-    inline CELER_FUNCTION ParticleProcessId msc_ppid() const;
 
     // Models that apply to the given process ID
     inline CELER_FUNCTION
@@ -184,12 +137,6 @@ class PhysicsTrackView
     template<class T>
     inline CELER_FUNCTION T make_calculator(ValueGridId) const;
 
-    //// SCRATCH SPACE ////
-
-    // Access scratch space for particle-process cross section calculations
-    inline CELER_FUNCTION real_type& per_process_xs(ParticleProcessId);
-    inline CELER_FUNCTION real_type  per_process_xs(ParticleProcessId) const;
-
     //// HACKS ////
 
     // Process ID for photoelectric effect
@@ -197,6 +144,16 @@ class PhysicsTrackView
 
     // Process ID for positron annihilation
     inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
+
+    // Get hardwired model, null if not present
+    inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
+                                                  Energy energy) const;
+
+    // Particle-process ID of the process with the de/dx and range tables
+    inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
+
+    // Particle-process ID of the process with the msc cross section table
+    inline CELER_FUNCTION ParticleProcessId msc_ppid() const;
 
   private:
     const PhysicsParamsRef& params_;
@@ -216,7 +173,9 @@ class PhysicsTrackView
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared and static data.
+ * Construct from shared and state data.
+ *
+ * Particle and material IDs are derived from other class states.
  */
 CELER_FUNCTION
 PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
@@ -240,9 +199,7 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
 CELER_FUNCTION PhysicsTrackView&
 PhysicsTrackView::operator=(const Initializer_t&)
 {
-    this->state().interaction_mfp   = 0;
-    this->state().macro_xs          = -1;
-    this->state().energy_deposition = 0;
+    this->state().interaction_mfp = 0;
     return *this;
 }
 
@@ -269,64 +226,6 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
     this->state().interaction_mfp = 0;
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Set the process-integrated total macroscopic cross section.
- */
-CELER_FUNCTION void PhysicsTrackView::macro_xs(real_type inv_distance)
-{
-    CELER_EXPECT(inv_distance >= 0);
-    this->state().macro_xs = inv_distance;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Save MSC step limit data.
- */
-CELER_FUNCTION void PhysicsTrackView::msc_step(const MscStep& limit)
-{
-    states_.msc_step[thread_] = limit;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the energy deposition to zero at the beginning of a step.
- */
-CELER_FUNCTION void PhysicsTrackView::reset_energy_deposition()
-{
-    this->state().energy_deposition = 0;
-}
-
-#if CELERITAS_DEBUG
-//---------------------------------------------------------------------------//
-/*!
- * Set the energy deposition to NaN for inactive tracks to catch errors.
- */
-CELER_FUNCTION void PhysicsTrackView::reset_energy_deposition_debug()
-{
-    this->state().energy_deposition = numeric_limits<real_type>::quiet_NaN();
-}
-#endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Accumulate into local step's energy deposition.
- */
-CELER_FUNCTION void PhysicsTrackView::deposit_energy(Energy energy)
-{
-    CELER_EXPECT(energy >= zero_quantity());
-    // TODO: save a memory read/write by skipping if energy is zero?
-    this->state().energy_deposition += energy.value();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set secondaries during an interaction, or clear them with an empty span.
- */
-CELER_FUNCTION void PhysicsTrackView::secondaries(Span<Secondary> sec)
-{
-    this->state().secondaries = sec;
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -346,49 +245,6 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
     real_type mfp = this->state().interaction_mfp;
     CELER_ENSURE(mfp >= 0);
     return mfp;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculated process-integrated macroscopic XS.
- *
- * This value should be calculated in the pre-step kernel, and will be used to
- * decrement `interaction_mfp` and for sampling a process.
- */
-CELER_FUNCTION real_type PhysicsTrackView::macro_xs() const
-{
-    real_type xs = this->state().macro_xs;
-    CELER_ENSURE(xs >= 0);
-    return xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access calculated MSC step data.
- */
-CELER_FUNCTION const MscStep& PhysicsTrackView::msc_step() const
-{
-    return states_.msc_step[thread_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access accumulated energy deposition.
- */
-CELER_FUNCTION auto PhysicsTrackView::energy_deposition() const -> Energy
-{
-    real_type result = this->state().energy_deposition;
-    CELER_ENSURE(result >= 0);
-    return Energy{result};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access secondaries created by a discrete interaction.
- */
-CELER_FUNCTION Span<const Secondary> PhysicsTrackView::secondaries() const
-{
-    return this->state().secondaries;
 }
 
 //---------------------------------------------------------------------------//
@@ -730,34 +586,6 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
     return T{params_.value_grids[id], params_.reals};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access scratch space for particle-process cross section calculations.
- */
-CELER_FUNCTION real_type&
-PhysicsTrackView::per_process_xs(ParticleProcessId ppid)
-{
-    CELER_EXPECT(ppid < this->num_particle_processes());
-    auto idx = thread_.get() * params_.scalars.max_particle_processes
-               + ppid.get();
-    CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[ItemId<real_type>(idx)];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access scratch space for particle-process cross section calculations.
- */
-CELER_FUNCTION
-real_type PhysicsTrackView::per_process_xs(ParticleProcessId ppid) const
-{
-    CELER_EXPECT(ppid < this->num_particle_processes());
-    auto idx = thread_.get() * params_.scalars.max_particle_processes
-               + ppid.get();
-    CELER_ENSURE(idx < states_.per_process_xs.size());
-    return states_.per_process_xs[ItemId<real_type>(idx)];
 }
 
 //---------------------------------------------------------------------------//

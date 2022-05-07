@@ -16,7 +16,6 @@
 #include "corecel/math/VectorUtils.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/em/AtomicRelaxationParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
@@ -84,10 +83,6 @@ build_params_refs(const TransporterInput& p, ActionId boundary_action)
     ref.cutoffs                        = get_ref<M>(*p.cutoffs);
     ref.physics                        = get_ref<M>(*p.physics);
     ref.rng                            = get_ref<M>(*p.rng);
-    if (p.relaxation)
-    {
-        ref.relaxation = get_ref<M>(*p.relaxation);
-    }
     CELER_ENSURE(ref);
     return ref;
 }

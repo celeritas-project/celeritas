@@ -30,7 +30,8 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
     CELER_ASSERT(material.num_elements() == 1);
     const ElementComponentId elcomp_id{0};
 
-    auto        allocate_secondaries = track.make_secondary_allocator();
+    auto allocate_secondaries
+        = track.make_physics_step_view().make_secondary_allocator();
     auto        particle             = track.make_particle_view();
     const auto& dir                  = track.make_geo_view().dir();
 
