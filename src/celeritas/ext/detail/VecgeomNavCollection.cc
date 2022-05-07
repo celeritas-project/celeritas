@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomNavCollection.hh"
 
+#include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/navigation/NavStatePool.h>
 
 #include "corecel/data/CollectionBuilder.hh"

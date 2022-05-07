@@ -16,6 +16,7 @@
 #include <VecGeom/base/Vector3D.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/navigation/NavStateFwd.h>
+#include <VecGeom/navigation/NavigationState.h>
 
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>

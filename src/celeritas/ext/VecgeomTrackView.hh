@@ -8,8 +8,10 @@
 #pragma once
 
 #include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/navigation/GlobalLocator.h>
 #include <VecGeom/navigation/NavStateFwd.h>
+#include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 

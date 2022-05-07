@@ -9,13 +9,17 @@
 
 #include <memory>
 #include <vector>
+#include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavStatePool.h>
+#include <VecGeom/navigation/NavigationState.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {

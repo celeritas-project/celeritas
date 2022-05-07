@@ -9,6 +9,8 @@
 
 #include <regex>
 #include <set>
+#include <VecGeom/base/Config.h>
+#include <VecGeom/base/Cuda.h>
 #include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
