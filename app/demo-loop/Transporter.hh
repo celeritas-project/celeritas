@@ -72,7 +72,6 @@ struct TransporterInput
     // Constants
     size_type max_num_tracks{};
     size_type max_steps{};
-    real_type secondary_stack_factor{};
     bool      enable_diagnostics{true};
     bool      sync{false};
 

@@ -77,7 +77,6 @@ build_params_refs(const TransporterInput& p, ActionId boundary_action)
     CELER_EXPECT(boundary_action);
     CoreParamsData<Ownership::const_reference, M> ref;
     ref.scalars.boundary_action        = boundary_action;
-    ref.scalars.secondary_stack_factor = p.secondary_stack_factor;
     ref.geometry                       = get_ref<M>(*p.geometry);
     ref.geo_mats                       = get_ref<M>(*p.geo_mats);
     ref.materials                      = get_ref<M>(*p.materials);

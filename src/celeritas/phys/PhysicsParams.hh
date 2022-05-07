@@ -42,12 +42,14 @@ class ParticleParams;
  * - \c max_step_over_range: at higher energy (longer range), gradually
  *   decrease the maximum step length until it's this fraction of the tabulated
  *   range.
- * - \c min_eprime_over_e: Energy scaling fraction used to estimate the maximum
+ * - \c min_eprime_over_e: energy scaling fraction used to estimate the maximum
  *   cross section over the step in the integral approach for energy loss
  *   processes.
  * - \c linear_loss_limit: if the mean energy loss along a step is greater than
  *   this fractional value of the pre-step kinetic energy, recalculate the
  *   energy loss.
+ * - \c secondary_stack_factor: the number of secondary slots per track slot
+ *   allocated.
  * - \c use_integral_xs: for energy loss processes, the particle energy changes
  *   over the step, so the assumption that the cross section is constant is no
  *   longer valid. Use MC integration to sample the discrete interaction length
@@ -91,6 +93,7 @@ class PhysicsParams
         real_type min_eprime_over_e   = 0.8;
         real_type fixed_step_limiter  = 0;
         real_type linear_loss_limit   = 0.01;
+        real_type secondary_stack_factor = 3;
         bool      use_integral_xs     = true;
         bool      enable_fluctuation  = true;
     };
