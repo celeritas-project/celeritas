@@ -16,18 +16,17 @@ namespace celeritas
 namespace generated
 {
 //---------------------------------------------------------------------------//
-class AlongStepAction final : public ExplicitActionInterface,
-                              public ConcreteAction
+class AlongStepAction final : public ExplicitActionInterface, public ConcreteAction
 {
-  public:
-    // Construct with ID and label
-    using ConcreteAction::ConcreteAction;
+public:
+  // Construct with ID and label
+  using ConcreteAction::ConcreteAction;
 
-    // Launch kernel with host data
-    void execute(CoreHostRef const&) const final;
+  // Launch kernel with host data
+  void execute(CoreHostRef const&) const final;
 
-    // Launch kernel with device data
-    void execute(CoreDeviceRef const&) const final;
+  // Launch kernel with device data
+  void execute(CoreDeviceRef const&) const final;
 };
 
 #if !CELER_USE_DEVICE
