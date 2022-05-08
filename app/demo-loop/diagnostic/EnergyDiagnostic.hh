@@ -22,6 +22,7 @@
 #include "celeritas/grid/NonuniformGrid.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "../Transporter.hh"
 #include "Diagnostic.hh"
 
 namespace demo_loop

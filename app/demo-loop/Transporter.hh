@@ -21,6 +21,12 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParams.hh"
 
+namespace demo_loop
+{
+template<celeritas::MemSpace M>
+class Diagnostic;
+}
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -120,6 +126,21 @@ struct TransporterResult
 };
 
 //---------------------------------------------------------------------------//
+//! Hack: help adapt demo-loop diagnostics to Transporter/Action
+struct DiagnosticStore
+{
+    template<MemSpace M>
+    using VecUPDiag = std::vector<std::unique_ptr<::demo_loop::Diagnostic<M>>>;
+
+    VecUPDiag<MemSpace::host>   host;
+    VecUPDiag<MemSpace::device> device;
+
+    // Adapter methods
+    VecUPDiag<MemSpace::host>&   host_ref() { return host; };
+    VecUPDiag<MemSpace::device>& device_ref() { return device; }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Interface class for transporting a set of primaries to completion.
  *
@@ -138,7 +159,20 @@ class TransporterBase
     virtual TransporterResult operator()(const TrackInitParams& primaries) = 0;
 
     //! Access input parameters (TODO hacky)
-    virtual const TransporterInput& input() const = 0;
+    const TransporterInput& input() const { return input_; }
+
+  protected:
+    // TODO: these protected data are all a hack for now
+    TransporterInput input_;
+
+    std::shared_ptr<DiagnosticStore> diagnostics_;
+
+    ActionId pre_step_action_;
+    ActionId along_step_action_;
+    ActionId mid_step_diag_;
+    ActionId boundary_action_;
+    ActionId discrete_select_action_;
+    ActionId end_step_diag_;
 };
 
 //---------------------------------------------------------------------------//
@@ -155,20 +189,9 @@ class Transporter : public TransporterBase
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(const TrackInitParams& primaries) final;
 
-    //! Access input parameters (TODO hacky)
-    const TransporterInput& input() const final { return input_; }
-
   private:
-    TransporterInput                              input_;
     CoreParamsData<Ownership::const_reference, M> params_;
     CollectionStateStore<CoreStateData, M>        states_;
-
-    // TODO: convert to a vector of actions in order to take, after updating
-    // the rest of the code to use actions as well
-    ActionId pre_step_action_;
-    ActionId along_step_action_;
-    ActionId boundary_action_;
-    ActionId discrete_select_action_;
 };
 
 //---------------------------------------------------------------------------//

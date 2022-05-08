@@ -8,6 +8,7 @@
 #include "Transporter.hh"
 
 #include <csignal>
+#include <functional>
 #include <memory>
 
 #include "corecel/Assert.hh"
@@ -18,6 +19,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -49,23 +51,25 @@ struct ParamsGetter;
 template<class P>
 struct ParamsGetter<P, MemSpace::host>
 {
-    const P& params_;
+    P params_;
 
+    auto operator()() -> decltype(auto) { return params_.host_ref(); }
     auto operator()() const -> decltype(auto) { return params_.host_ref(); }
 };
 
 template<class P>
 struct ParamsGetter<P, MemSpace::device>
 {
-    const P& params_;
+    P params_;
 
+    auto operator()() -> decltype(auto) { return params_.device_ref(); }
     auto operator()() const -> decltype(auto) { return params_.device_ref(); }
 };
 
 template<MemSpace M, class P>
-decltype(auto) get_ref(const P& params)
+decltype(auto) get_ref(P&& params)
 {
-    return ParamsGetter<P, M>{params}();
+    return ParamsGetter<P, M>{std::forward<P>(params)}();
 }
 
 template<MemSpace M>
@@ -99,31 +103,82 @@ struct ParamsShim
     }
 };
 
-//! Create a vector of diagnostics
-template<MemSpace M>
-std::vector<std::unique_ptr<Diagnostic<M>>>
-build_diagnostics(const TransporterInput&                        inp,
-                  CoreParamsData<Ownership::const_reference, M>& params)
+//! Adapt a vector of diagnostics to the Action interface
+class DiagnosticActionAdapter final : public ExplicitActionInterface
 {
-    std::vector<std::unique_ptr<Diagnostic<M>>> result;
-    if (inp.enable_diagnostics)
-    {
-        result.push_back(std::make_unique<TrackDiagnostic<M>>());
-        result.push_back(std::make_unique<StepDiagnostic<M>>(
-            params, inp.particles, inp.max_num_tracks, 200));
-        result.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
-            params, inp.particles, inp.physics));
+  public:
+    using SPDiagnostics = std::shared_ptr<DiagnosticStore>;
 
-        const auto& ediag = inp.energy_diag;
-        CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
-                       << "Invalid axis '" << ediag.axis
-                       << "' (must be x, y, or z)");
-        result.push_back(std::make_unique<EnergyDiagnostic<M>>(
-            linspace(ediag.min, ediag.max, ediag.num_bins + 1),
-            static_cast<Axis>(ediag.axis - 'x')));
+    enum class StepTime
+    {
+        mid,
+        end
+    };
+
+  public:
+    DiagnosticActionAdapter(ActionId id, StepTime which, SPDiagnostics diag)
+        : id_(id), which_step_(which), diagnostics_(diag)
+    {
+        CELER_EXPECT(id_);
+        CELER_EXPECT(diagnostics_);
     }
-    return result;
-}
+
+    //! Execute the action with host data
+    void execute(CoreHostRef const& core) const final
+    {
+        this->execute_impl(core.states, diagnostics_->host);
+    }
+
+    //! Execute the action with device data
+    void execute(CoreDeviceRef const& core) const final
+    {
+        this->execute_impl(core.states, diagnostics_->device);
+    }
+
+    //!@{
+    //! Action interface
+    ActionId    action_id() const final { return id_; }
+    std::string label() const final
+    {
+        std::string result{"diagnostics-"};
+        result += (which_step_ == StepTime::mid ? "mid" : "end");
+        return result;
+    }
+    std::string description() const final
+    {
+        if (which_step_ == StepTime::mid)
+        {
+            return "diagnostics before end-of-step processing";
+        }
+        else
+        {
+            return "diagnostics at end of step";
+        }
+    }
+    //!@}
+
+  private:
+    ActionId      id_;
+    StepTime      which_step_;
+    SPDiagnostics diagnostics_;
+
+    template<MemSpace M>
+    using VecUPDiag = DiagnosticStore::VecUPDiag<M>;
+
+    template<MemSpace M>
+    void execute_impl(CoreStateData<Ownership::reference, M> const& states,
+                      VecUPDiag<M> const& diagnostics) const
+    {
+        // Call the desired member function on all diagnostics
+        auto call_diag = std::mem_fn(which_step_ == StepTime::mid
+                                         ? &Diagnostic<M>::mid_step
+                                         : &Diagnostic<M>::end_step);
+        for (const auto& diag_ptr : diagnostics)
+        {
+            call_diag(*diag_ptr, states);
+        }
+    }
+};
 
 //!@}
 //---------------------------------------------------------------------------//
@@ -138,8 +193,9 @@ TransporterBase::~TransporterBase() = default;
  * Construct from persistent problem data.
  */
 template<MemSpace M>
-Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
+Transporter<M>::Transporter(TransporterInput inp)
 {
+    TransporterBase::input_ = std::move(inp);
     CELER_EXPECT(input_);
 
     // Add geometry action
@@ -164,6 +220,39 @@ Transporter<M>::Transporter(TransporterInput inp) : input_(std::move(inp))
     // Create states
     states_ = CollectionStateStore<CoreStateData, M>(
         ParamsShim{input_, boundary_action_}, input_.max_num_tracks);
+
+    // Create diagnostics
+    if (input_.enable_diagnostics)
+    {
+        diagnostics_ = std::make_shared<DiagnosticStore>();
+        auto& diag   = get_ref<M>(*diagnostics_);
+        diag.push_back(std::make_unique<TrackDiagnostic<M>>());
+        diag.push_back(std::make_unique<StepDiagnostic<M>>(
+            params_, input_.particles, input_.max_num_tracks, 200));
+        diag.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
+            params_, input_.particles, input_.physics));
+        {
+            const auto& ediag = input_.energy_diag;
+            CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
+                           << "Invalid axis '" << ediag.axis
+                           << "' (must be x, y, or z)");
+            diag.push_back(std::make_unique<EnergyDiagnostic<M>>(
+                linspace(ediag.min, ediag.max, ediag.num_bins + 1),
+                static_cast<Axis>(ediag.axis - 'x')));
+        }
+
+        // Add diagnostic adapters to action manager
+        mid_step_diag_ = input_.actions->next_id();
+        input_.actions->insert(std::make_shared<DiagnosticActionAdapter>(
+            mid_step_diag_,
+            DiagnosticActionAdapter::StepTime::mid,
+            diagnostics_));
+        end_step_diag_ = input_.actions->next_id();
+        input_.actions->insert(std::make_shared<DiagnosticActionAdapter>(
+            end_step_diag_,
+            DiagnosticActionAdapter::StepTime::end,
+            diagnostics_));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -183,9 +272,6 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         result.initializers.reserve(input_.max_steps);
         result.active.reserve(input_.max_steps);
     }
-
-    // Construct diagnostics
-    auto diagnostics = build_diagnostics(input_, params_);
 
     // Copy primaries to device and create track initializers.
     // We (currently) have to create initializers from *all* primaries
@@ -240,9 +326,9 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         }
 
         // Mid-step diagnostics
-        for (auto& diagnostic : diagnostics)
+        if (mid_step_diag_)
         {
-            diagnostic->mid_step(core_ref.states);
+            actions.invoke<M>(mid_step_diag_, core_ref);
         }
 
         // Create track initializers from surviving secondaries
@@ -253,9 +339,9 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         num_inits = track_init_states.initializers.size();
 
         // End-of-step diagnostics
-        for (auto& diagnostic : diagnostics)
+        if (end_step_diag_)
         {
-            diagnostic->end_step(core_ref.states);
+            actions.invoke<M>(end_step_diag_, core_ref);
         }
 
         result.time.steps.push_back(get_step_time());
@@ -275,11 +361,14 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
         }
     }
 
-    CELER_LOG(status) << "Finalizing diagnostic data";
-    // Collect results from diagnostics
-    for (auto& diagnostic : diagnostics)
+    if (diagnostics_)
     {
-        diagnostic->get_result(&result);
+        CELER_LOG(status) << "Finalizing diagnostic data";
+        // Collect results from diagnostics
+        for (auto& diagnostic : get_ref<M>(*diagnostics_))
+        {
+            diagnostic->get_result(&result);
+        }
     }
     result.time.total = get_transport_time();
     return result;

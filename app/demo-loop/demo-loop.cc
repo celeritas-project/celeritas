@@ -28,6 +28,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/global/ActionManagerOutput.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 
 #include "LDemoIO.hh"
@@ -80,6 +81,7 @@ void run(std::istream* is, OutputManager* output)
         // Save diagnostic information
         const auto& tinp = transport_ptr->input();
         output->insert(std::make_shared<PhysicsParamsOutput>(tinp.physics));
+        output->insert(std::make_shared<ActionManagerOutput>(tinp.actions));
     }
 
     // Run all the primaries

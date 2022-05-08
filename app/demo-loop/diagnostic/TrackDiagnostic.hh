@@ -12,6 +12,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "../Transporter.hh"
 #include "Diagnostic.hh"
 
 namespace demo_loop
