@@ -10,6 +10,7 @@
 #include <random>
 
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Ref.hh"
 
 #include "detail/CuHipRngStateInit.hh"
 

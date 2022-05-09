@@ -9,6 +9,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/global/CoreTrackData.hh"
 

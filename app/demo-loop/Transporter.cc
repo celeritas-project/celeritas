@@ -46,30 +46,28 @@ namespace
 //!@{
 //! Helpers for constructing parameters for host and device.
 template<class P, MemSpace M>
-struct ParamsGetter;
+struct DiagParamsGetter;
 
 template<class P>
-struct ParamsGetter<P, MemSpace::host>
+struct DiagParamsGetter<P, MemSpace::host>
 {
     P params_;
 
     auto operator()() -> decltype(auto) { return params_.host_ref(); }
-    auto operator()() const -> decltype(auto) { return params_.host_ref(); }
 };
 
 template<class P>
-struct ParamsGetter<P, MemSpace::device>
+struct DiagParamsGetter<P, MemSpace::device>
 {
     P params_;
 
     auto operator()() -> decltype(auto) { return params_.device_ref(); }
-    auto operator()() const -> decltype(auto) { return params_.device_ref(); }
 };
 
 template<MemSpace M, class P>
-decltype(auto) get_ref(P&& params)
+decltype(auto) get_diag_ref(P&& params)
 {
-    return ParamsGetter<P, M>{std::forward<P>(params)}();
+    return DiagParamsGetter<P, M>{std::forward<P>(params)}();
 }
 
 template<MemSpace M>
@@ -225,7 +223,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     if (input_.enable_diagnostics)
     {
         diagnostics_ = std::make_shared<DiagnosticStore>();
-        auto& diag   = get_ref<M>(*diagnostics_);
+        auto& diag   = get_diag_ref<M>(*diagnostics_);
         diag.push_back(std::make_unique<TrackDiagnostic<M>>());
         diag.push_back(std::make_unique<StepDiagnostic<M>>(
             params_, input_.particles, input_.max_num_tracks, 200));
@@ -365,7 +363,7 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     {
         CELER_LOG(status) << "Finalizing diagnostic data";
         // Collect results from diagnostics
-        for (auto& diagnostic : get_ref<M>(*diagnostics_))
+        for (auto& diagnostic : get_diag_ref<M>(*diagnostics_))
         {
             diagnostic->get_result(&result);
         }

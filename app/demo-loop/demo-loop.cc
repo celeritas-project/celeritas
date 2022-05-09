@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
