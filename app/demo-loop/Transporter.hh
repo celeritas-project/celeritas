@@ -17,9 +17,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/random/RngParams.hh"
+#include "celeritas/random/RngParamsFwd.hh"
 
 namespace demo_loop
 {
