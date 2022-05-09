@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "base/Range.hh"
 #include "base/Types.hh"
 
 #include "Types.hh"

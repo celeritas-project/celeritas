@@ -14,7 +14,6 @@
 #include "base/Macros.hh"
 #include "base/Quantity.hh"
 #include "base/Types.hh"
-#include "physics/base/ParticleTrackView.hh"
 #include "physics/base/Units.hh"
 #include "physics/material/Types.hh"
 
@@ -48,9 +47,9 @@ class RBDiffXsCalculator
   public:
     // Construct with incident electron and current element
     inline CELER_FUNCTION RBDiffXsCalculator(const RelativisticBremRef& shared,
-                                             const ParticleTrackView& particle,
-                                             const MaterialView&      material,
-                                             ElementComponentId elcomp_id);
+                                             Energy                     energy,
+                                             const MaterialView& material,
+                                             ElementComponentId  elcomp_id);
 
     // Compute cross section of exiting gamma energy
     inline CELER_FUNCTION real_type operator()(Energy energy);
@@ -119,13 +118,13 @@ class RBDiffXsCalculator
  */
 CELER_FUNCTION
 RBDiffXsCalculator::RBDiffXsCalculator(const RelativisticBremRef& shared,
-                                       const ParticleTrackView&   particle,
+                                       Energy                     energy,
                                        const MaterialView&        material,
                                        ElementComponentId         elcomp_id)
     : elem_data_(shared.elem_data[material.element_id(elcomp_id)])
     , material_(material)
     , element_(material.make_element_view(elcomp_id))
-    , total_energy_(value_as<units::MevEnergy>(particle.energy())
+    , total_energy_(value_as<units::MevEnergy>(energy)
                     + value_as<units::MevMass>(shared.electron_mass))
 {
     real_type density_factor = material.electron_density() * migdal_constant();

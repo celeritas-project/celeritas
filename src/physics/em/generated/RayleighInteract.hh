@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------//
 #include "base/Assert.hh"
 #include "base/Macros.hh"
+#include "sim/CoreTrackData.hh"
 #include "../detail/RayleighData.hh"
 
 namespace celeritas

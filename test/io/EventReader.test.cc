@@ -10,6 +10,7 @@
 #include "base/Range.hh"
 #include "base/Span.hh"
 #include "physics/base/ParticleParams.hh"
+#include "physics/base/Primary.hh"
 #include "physics/base/Units.hh"
 
 #include "celeritas_test.hh"

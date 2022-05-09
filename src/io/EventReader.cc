@@ -12,6 +12,8 @@
 
 #include "base/ArrayUtils.hh"
 #include "comm/Logger.hh"
+#include "physics/base/ParticleParams.hh"
+#include "physics/base/Primary.hh"
 #include "physics/base/Units.hh"
 
 namespace celeritas

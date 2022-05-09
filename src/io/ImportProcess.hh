@@ -10,8 +10,6 @@
 #include <map>
 #include <vector>
 
-#include "physics/base/PDGNumber.hh"
-
 #include "ImportPhysicsTable.hh"
 
 namespace celeritas

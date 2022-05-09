@@ -8,6 +8,7 @@
 #include "EventReader.hh"
 
 #include "base/Assert.hh"
+#include "physics/base/Primary.hh"
 
 namespace celeritas
 {

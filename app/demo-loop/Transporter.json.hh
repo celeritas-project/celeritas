@@ -19,6 +19,7 @@ inline void to_json(nlohmann::json& j, const TransporterTiming& v)
 {
     j = nlohmann::json{{"steps", v.steps},
                        {"total", v.total},
+                       {"setup", v.setup},
                        {"initialize_tracks", v.initialize_tracks},
                        {"pre_step", v.pre_step},
                        {"along_step", v.along_step},

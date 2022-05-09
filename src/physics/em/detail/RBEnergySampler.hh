@@ -74,7 +74,7 @@ RBEnergySampler::RBEnergySampler(const RelativisticBremRef& shared,
                                  const CutoffView&          cutoffs,
                                  const MaterialView&        material,
                                  const ElementComponentId&  elcomp_id)
-    : calc_dxsec_(shared, particle, material, elcomp_id)
+    : calc_dxsec_(shared, particle.energy(), material, elcomp_id)
 {
     // Min and max kinetic energy limits for sampling the secondary photon
     real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.ids.gamma));

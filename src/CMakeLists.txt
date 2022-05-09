@@ -5,10 +5,11 @@
 #----------------------------------------------------------------------------#
 
 #----------------------------------------------------------------------------#
-# CONFIGURE FILE
+# CONFIGURE FILES
 #----------------------------------------------------------------------------#
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
+set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
 # Define a numeric table of options for the default runtime RNG.
@@ -29,8 +30,25 @@ string(JOIN "\n" CELERITAS_RNG_MACROS
   "#define CELERITAS_RNG CELERITAS_RNG_${CELERITAS_RNG}"
 )
 configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
+
+#----------------------------------------------------------------------------#
+
+# TODO: add build flags
+set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+foreach(_var CELERITAS_RNG CELERITAS_BUILD_TYPE)
+  string(TOLOWER "${_var}" _lower)
+  string(APPEND CELERITAS_CMAKE_STRINGS
+    "static const char ${_lower}[] = \"${${_var}}\";\n"
+  )
+endforeach()
+configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
+
+#----------------------------------------------------------------------------#
+
 install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
@@ -105,6 +123,7 @@ list(APPEND SOURCES
   base/TypeDemangler.cc
   base/VectorUtils.cc
   base/detail/ReprImpl.cc
+  comm/BuildOutput.cc
   comm/Communicator.cc
   comm/Device.cc
   comm/Environment.cc
@@ -130,6 +149,7 @@ list(APPEND SOURCES
   physics/base/ImportedProcessAdapter.cc
   physics/base/ParticleParams.cc
   physics/base/PhysicsParams.cc
+  physics/base/PhysicsParamsOutput.cc
   physics/base/Process.cc
   physics/em/AtomicRelaxationParams.cc
   physics/em/BetheHeitlerModel.cc
@@ -163,6 +183,9 @@ list(APPEND SOURCES
   random/detail/CuHipRngStateInit.cc
   sim/ActionInterface.cc
   sim/ActionManager.cc
+  sim/ActionManagerOutput.cc
+  sim/OutputInterface.cc
+  sim/OutputManager.cc
   sim/TrackInitParams.cc
   sim/detail/TrackInitAlgorithms.cc
 )
@@ -306,7 +329,8 @@ if(CELERITAS_USE_ROOT)
     io/ImportVolume.hh
     io/ImportData.hh
     MODULE celeritas_io
-    LINKDEF io/RootInterfaceLinkDef.h
+    LINKDEF
+      io/RootInterfaceLinkDef.h
   )
   list(APPEND _IO_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
@@ -342,8 +366,13 @@ if(CELERITAS_USE_Geant4)
     ${Geant4_LIBRARIES}
   )
 endif()
+if(CELERITAS_USE_JSON)
+  list(APPEND _IO_SOURCES
+    io/GeantSetupOptionsIO.json.cc
+  )
+endif()
 
-if(NOT CELERITAS_USE_Geant4 AND NOT CELERITAS_USE_ROOT)
+if(NOT _IO_SOURCES)
   # No sources to compile: header only
   set(_IO_LIBTYPE INTERFACE)
   set(_IO_PRIVATE_DEPS)

@@ -43,8 +43,6 @@ namespace detail
  */
 GeantPhysicsList::GeantPhysicsList() : G4VUserPhysicsList()
 {
-    // Manually set the physics table binning
-    // G4EmParameters::Instance()->SetNumberOfBins(10);
 }
 
 //---------------------------------------------------------------------------//

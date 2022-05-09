@@ -32,7 +32,11 @@ void ActionManager::insert(SPConstExplicit action)
 }
 
 //---------------------------------------------------------------------------//
-// Call the given action ID with host or device data.
+/*!
+ * Call the given action ID with host or device data.
+ *
+ * The given action ID \em must be an explicit action.
+ */
 template<MemSpace M>
 void ActionManager::invoke(ActionId id, const CoreRef<M>& data) const
 {

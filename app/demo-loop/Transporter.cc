@@ -233,7 +233,8 @@ TransporterResult Transporter<M>::operator()(const TrackInitParams& primaries)
     core_ref.states = states_.ref();
     const ActionManager& actions = *input_.actions;
 
-    ScopedSignalHandler interrupted(SIGINT);
+    // Abort cleanly for interrupt and user-defined signals
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
     CELER_LOG(status) << "Transporting";
     size_type num_alive       = 0;
     size_type num_inits       = track_init_states.initializers.size();

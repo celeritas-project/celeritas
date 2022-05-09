@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "base/Atomics.hh"
 #include "base/CollectionBuilder.hh"
 #include "physics/base/ParticleParams.hh"
 #include "physics/base/ParticleTrackView.hh"

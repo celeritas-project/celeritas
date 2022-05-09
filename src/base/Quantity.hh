@@ -232,14 +232,6 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
     return quant.value() * UnitT::value();
 }
 
-//! Old spelling of "native_value_from".
-template<class UnitT, class ValueT>
-[[deprecated("use 'native_value_from'")]] CELER_CONSTEXPR_FUNCTION auto
-unit_cast(Quantity<UnitT, ValueT> quant) -> decltype(auto)
-{
-    return quant.value() * UnitT::value();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a quantity from a value in the Celeritas unit system.

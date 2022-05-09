@@ -68,7 +68,7 @@
  * - MPI was not initialized (needed to construct a communicator). Maybe set
  *   the environment variable CELER_DISABLE_PARALLEL=1 to disable
  *   externally?"
- * - invalid min_range={opts.min_range} (should be positive)"
+ * - min_range={opts.min_range} (must be positive)"
  *
  * \code
  * CELER_VALIDATE(file_stream,

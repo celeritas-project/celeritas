@@ -28,7 +28,19 @@ struct CoreRef;
 /*!
  * Construct and store metadata about end-of-step actions.
  *
- * Registering an action checks its ID.
+ * The action manager helps create and retain access to "actions" (possible
+ * control paths for a track) over the program's lifetime. "Implicit" actions
+ * are primarily for debugging, but "explicit" actions indicate that a kernel
+ * will change the state of a track on device.
+ *
+ * Associated actions use the \c ActionInterface class to provide debugging
+ * information, and the \c ExplicitActionInterface is used to invoke kernels
+ * with core data.
+ *
+ * New actions should be created with an action ID corresponding to \c
+ * next_id . Registering an action checks its ID.
+ *
+ * \todo Add options for post-kernel device sync and timer accumulation.
  */
 class ActionManager
 {

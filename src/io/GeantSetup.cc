@@ -15,6 +15,7 @@
 #endif
 
 #include <FTFP_BERT.hh>
+#include <G4EmParameters.hh>
 #include <G4GenericPhysicsList.hh>
 #include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
@@ -33,7 +34,7 @@ namespace celeritas
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(const std::string& gdml_filename, PhysicsList physics)
+GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4";
 
@@ -64,12 +65,13 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, PhysicsList physics)
 
     std::unique_ptr<G4VUserPhysicsList> physics_list;
 
-    switch (physics)
+    using PL = GeantSetupPhysicsList;
+    switch (options.physics)
     {
-        case PhysicsList::em_basic:
+        case PL::em_basic:
             physics_list = std::make_unique<detail::GeantPhysicsList>();
             break;
-        case PhysicsList::em_standard: {
+        case PL::em_standard: {
             auto physics_constructor
                 = std::make_unique<std::vector<G4String>>();
             physics_constructor->push_back("G4EmStandardPhysics");
@@ -77,19 +79,33 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, PhysicsList physics)
                 physics_constructor.release());
             break;
         }
-        case PhysicsList::ftfp_bert:
+        case PL::ftfp_bert:
             // Full Physics
             physics_list = std::make_unique<FTFP_BERT>();
             break;
+        default:
+            CELER_VALIDATE(false, << "invalid physics list");
     }
+
+    {
+        // Set EM options
+        auto& em_parameters = *G4EmParameters::Instance();
+        CELER_VALIDATE(options.em_bins_per_decade > 0,
+                       << "number of EM bins per decade="
+                       << options.em_bins_per_decade << " (must be positive)");
+        em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
+    }
+
     run_manager_->SetUserInitialization(physics_list.release());
 
-    // Minimal run to generate the physics tables
-    auto action_initialization
-        = std::make_unique<detail::ActionInitialization>();
-    run_manager_->SetUserInitialization(action_initialization.release());
-    G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
-    run_manager_->BeamOn(1);
+    //// Generate physics tables ////
+    {
+        auto action_initialization
+            = std::make_unique<detail::ActionInitialization>();
+        run_manager_->SetUserInitialization(action_initialization.release());
+        G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
+        run_manager_->BeamOn(1);
+    }
 
     CELER_ENSURE(*this);
     CELER_ENSURE(world_);

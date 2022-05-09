@@ -11,12 +11,8 @@
 #include "io/SeltzerBergerReader.hh"
 #include "physics/base/CutoffView.hh"
 #include "physics/base/Units.hh"
-#include "physics/em/BremsstrahlungProcess.hh"
 #include "physics/em/CombinedBremModel.hh"
 #include "physics/em/detail/CombinedBremInteractor.hh"
-#include "physics/em/detail/RBDiffXsCalculator.hh"
-#include "physics/em/detail/SBEnergyDistribution.hh"
-#include "physics/em/detail/SBPositronXsCorrector.hh"
 #include "physics/material/MaterialTrackView.hh"
 #include "physics/material/MaterialView.hh"
 
@@ -25,18 +21,12 @@
 #include "celeritas_test.hh"
 #include "gtest/Main.hh"
 
-using celeritas::BremsstrahlungProcess;
 using celeritas::CombinedBremModel;
 using celeritas::ElementComponentId;
 using celeritas::ElementId;
-using celeritas::ElementView;
 using celeritas::SeltzerBergerReader;
 using celeritas::detail::CombinedBremInteractor;
-using celeritas::detail::RBDiffXsCalculator;
-using celeritas::detail::SBElectronXsCorrector;
 using celeritas::detail::SBEnergyDistHelper;
-using celeritas::detail::SBEnergyDistribution;
-using celeritas::detail::SBPositronXsCorrector;
 
 using celeritas::units::AmuMass;
 using celeritas::units::MevMass;

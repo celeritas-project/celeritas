@@ -107,7 +107,7 @@ except json.decoder.JSONDecodeError as e:
 
 outfilename = f'{run_name}.out.json'
 with open(outfilename, 'w') as f:
-    json.dump(result, f)
+    json.dump(result, f, indent=1)
 print("Results written to", outfilename)
 
 time = result['result']['time'].copy()

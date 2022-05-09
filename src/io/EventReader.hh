@@ -8,9 +8,7 @@
 #pragma once
 
 #include <memory>
-
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/Primary.hh"
+#include <vector>
 
 namespace HepMC3
 {
@@ -19,6 +17,9 @@ class Reader;
 
 namespace celeritas
 {
+class ParticleParams;
+struct Primary;
+
 //---------------------------------------------------------------------------//
 /*!
  * Read an event record file using the HepMC3 event record library and create

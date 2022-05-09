@@ -38,6 +38,27 @@ TEST(ScopedSignalHandlerTest, single)
     }
 }
 
+TEST(ScopedSignalHandlerTest, multiple)
+{
+    for (auto* raise : {ScopedSignalHandler::raise, std::raise})
+    {
+        {
+            ScopedSignalHandler interrupted{SIGINT, SIGUSR1};
+            EXPECT_TRUE(interrupted);
+            EXPECT_FALSE(interrupted());
+            raise(SIGINT);
+            EXPECT_TRUE(interrupted());
+            raise(SIGUSR1);
+            EXPECT_TRUE(interrupted());
+        }
+        {
+            ScopedSignalHandler interrupted{SIGINT, SIGUSR1};
+            raise(SIGUSR1);
+            EXPECT_TRUE(interrupted());
+        }
+    }
+}
+
 TEST(ScopedSignalHandlerTest, nested)
 {
     {

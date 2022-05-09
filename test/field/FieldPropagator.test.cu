@@ -59,20 +59,20 @@ __global__ void fp_test_kernel(const int                       size,
     ParticleTrackView particle_track(particle_params, particle_states, tid);
     particle_track = init_track[tid.get()];
 
-    // Construct the RK stepper adnd propagator in a field
+    // Construct the field propagator with UniformMagField
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
-    RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t    rk4(equation);
-    RKTraits::Driver_t     driver(field_params, &rk4);
-    RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t    stepper(equation);
+    MFTraits::Driver_t     driver(field_params, &stepper);
+    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
 
     real_type curved_length = 0;
 
-    RKTraits::Propagator_t::result_type result;
+    MFTraits::Propagator_t::result_type result;
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test.revolutions))
     {
@@ -116,13 +116,13 @@ __global__ void bc_test_kernel(const int                       size,
     ParticleTrackView particle_track(particle_params, particle_states, tid);
     particle_track = init_track[tid.get()];
 
-    // Construct the RK stepper and propagator in a field
+    // Construct the field propagator with UniformMagField
     UniformMagField field({0, 0, test.field_value});
-    using RKTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
-    RKTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t    rk4(equation);
-    RKTraits::Driver_t     driver(field_params, &rk4);
-    RKTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
+    MFTraits::Stepper_t    stepper(equation);
+    MFTraits::Driver_t     driver(field_params, &stepper);
+    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -140,7 +140,7 @@ __global__ void bc_test_kernel(const int                       size,
 
     real_type delta = celeritas::numeric_limits<real_type>::max();
 
-    RKTraits::Propagator_t::result_type result;
+    MFTraits::Propagator_t::result_type result;
 
     for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
     {
