@@ -28,22 +28,22 @@ enum class ImportEmParameter
 {
     energy_loss_fluct, //!< Energy loss fluctuation flag
     lpm,               //!< LPM effect flag (bremsstrahlung, pair production)
-    integral_approach, //!< Use integral approach
+    integral_approach, //!< Integral approach flag
     linear_loss_limit, //!< Linear loss limit
     bins_per_decade,   //!< Cross-section table binning
-    min_table_energy,  //!< Cross-section tables minimum kinetic energy [MeV]
-    max_table_energy,  //!< Cross-section tables maximum kinetic energy [MeV]
+    min_table_energy,  //!< Cross-section table minimum kinetic energy [MeV]
+    max_table_energy,  //!< Cross-section table maximum kinetic energy [MeV]
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Import all the needed data from external sources (currently Geant4).
  *
- * All the data imported to Celeritas is stored in this single entity. Any
- * external app should fill this struct and record it in a ROOT TBranch as a
- * single TTree entry, which will be read by \c RootImporter to load the data
- * into Celeritas. Currently, the TTree and TBranch names are hardcoded as
- * \e geant4_data and \e ImportData in \c RootImporter .
+ * All the data imported to Celeritas is stored in this single entity. This
+ * struct can be used in memory or recorded in a ROOT TBranch as a single TTree
+ * entry, which will be read by \c RootImporter to load the data into
+ * Celeritas. Currently, the TTree and TBranch names are hardcoded as \e
+ * geant4_data and \e ImportData in \c RootImporter .
  *
  * Each entity's id is defined by its vector position. An \c ImportElement with
  * id = 3 is stored at \c elements.at(3) . Same for materials and volumes.

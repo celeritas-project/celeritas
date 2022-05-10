@@ -52,7 +52,7 @@ class GeantImporter
 
   public:
     // Construct from an existing Geant4 geometry, assuming physics is loaded
-    explicit GeantImporter();
+    explicit GeantImporter(const G4VPhysicalVolume* world);
 
     // Construct by capturing a GeantSetup object
     explicit GeantImporter(GeantSetup&& setup);
@@ -66,6 +66,8 @@ class GeantImporter
   private:
     // Optional setup if celeritas handles initialization
     GeantSetup setup_;
+    // World physical volume
+    const G4VPhysicalVolume* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

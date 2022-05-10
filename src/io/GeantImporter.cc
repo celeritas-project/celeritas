@@ -347,20 +347,13 @@ std::vector<ImportProcess> store_processes()
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume> store_volumes()
+std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 {
     std::vector<ImportVolume>            volumes;
     std::map<unsigned int, ImportVolume> volids_volumes;
 
-    // Fetch world logical volume
-    const auto world_logical_volume
-        = G4TransportationManager::GetTransportationManager()
-              ->GetNavigatorForTracking()
-              ->GetWorldVolume()
-              ->GetLogicalVolume();
-
     // Recursive loop over all logical volumes to populate map<volid, volume>
-    loop_volumes(volids_volumes, *world_logical_volume);
+    loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
 
     // Populate vector<ImportVolume>
     for (const auto& key : volids_volumes)
@@ -411,21 +404,23 @@ ImportData::ImportEmParamsMap store_em_parameters()
 /*!
  * Construct from an existing Geant4 geometry, assuming physics is loaded.
  */
-GeantImporter::GeantImporter()
+GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
 {
-    // Verify that a top world physical volume exists
-    CELER_ASSERT(G4TransportationManager::GetTransportationManager()
-                     ->GetNavigatorForTracking()
-                     ->GetWorldVolume());
+    CELER_EXPECT(world);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct by capturing a GeantSetup object.
  */
-GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
+GeantImporter::GeantImporter(GeantSetup&& setup)
+    : setup_(std::move(setup))
+    , world_(G4TransportationManager::GetTransportationManager()
+                 ->GetNavigatorForTracking()
+                 ->GetWorldVolume())
 {
     CELER_ASSERT(setup_);
+    CELER_ASSERT(world_);
 }
 
 //---------------------------------------------------------------------------//
@@ -439,7 +434,7 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.elements  = store_elements();
     import_data.materials = store_materials();
     import_data.processes = store_processes();
-    import_data.volumes   = store_volumes();
+    import_data.volumes   = store_volumes(world_);
     import_data.em_params = store_em_parameters();
 
     CELER_ENSURE(import_data);
