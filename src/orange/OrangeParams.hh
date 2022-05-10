@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeParams.hh
+//! \file orange/OrangeParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,11 +11,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "base/Types.hh"
-#include "geometry/BoundingBox.hh"
-#include "geometry/Types.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/CollectionMirror.hh"
 
+#include "BoundingBox.hh"
 #include "Data.hh"
 #include "Types.hh"
 

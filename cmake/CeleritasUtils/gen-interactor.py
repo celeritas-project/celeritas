@@ -27,26 +27,26 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
-#include "base/Assert.hh"
-#include "base/Macros.hh"
-#include "sim/CoreTrackData.hh"
-#include "../detail/{class}Data.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/em/data/{class}Data.hh"
 
 namespace celeritas
 {{
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::detail::{class}HostRef&,
+    const celeritas::{class}HostRef&,
     const CoreRef<MemSpace::host>&);
 
 void {func}_interact(
-    const celeritas::detail::{class}DeviceRef&,
+    const celeritas::{class}DeviceRef&,
     const CoreRef<MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
-    const celeritas::detail::{class}DeviceRef&,
+    const celeritas::{class}DeviceRef&,
     const CoreRef<MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
@@ -58,18 +58,19 @@ inline void {func}_interact(
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "../detail/{class}Launcher.hh"
+#include "{class}Interact.hh"
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "physics/base/InteractionLauncher.hh"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "celeritas/phys/InteractionLauncher.hh"
+#include "celeritas/em/launcher/{class}Launcher.hh"
 
 namespace celeritas
 {{
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::detail::{class}HostRef& model_data,
+    const celeritas::{class}HostRef& model_data,
     const CoreRef<MemSpace::host>& core_data)
 {{
     CELER_EXPECT(core_data);
@@ -78,7 +79,7 @@ void {func}_interact(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::{func}_interact_track);
+        celeritas::{func}_interact_track);
     #pragma omp parallel for
     for (size_type i = 0; i < core_data.states.size(); ++i)
     {{
@@ -92,15 +93,15 @@ void {func}_interact(
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
-#include "base/device_runtime_api.h"
+#include "{class}Interact.hh"
 
-#include "base/Assert.hh"
-#include "base/Types.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "comm/Device.hh"
-#include "physics/base/InteractionLauncher.hh"
-
-#include "../detail/{class}Launcher.hh"
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/em/launcher/{class}Launcher.hh"
+#include "celeritas/phys/InteractionLauncher.hh"
 
 namespace celeritas
 {{
@@ -109,7 +110,7 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    const celeritas::detail::{class}DeviceRef model_data,
+    const celeritas::{class}DeviceRef model_data,
     const CoreRef<MemSpace::device> core_data)
 {{
     auto tid = KernelParamCalculator::thread_id();
@@ -119,13 +120,13 @@ __global__ void{launch_bounds}{func}_interact_kernel(
     auto launch = make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::detail::{func}_interact_track);
+        celeritas::{func}_interact_track);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const celeritas::detail::{class}DeviceRef& model_data,
+    const celeritas::{class}DeviceRef& model_data,
     const CoreRef<MemSpace::device>& core_data)
 {{
     CELER_EXPECT(core_data);

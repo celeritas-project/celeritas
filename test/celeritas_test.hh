@@ -14,9 +14,9 @@
 
 #include "celeritas_config.h"
 
-#include "gtest/Main.hh"
-#include "gtest/Test.hh"
-#include "gtest/detail/Macros.hh"
+#include "Main.hh"
+#include "Test.hh"
+#include "detail/Macros.hh"
 
 using std::cout;
 using std::endl;

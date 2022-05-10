@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RDemoRunner.hh
+//! \file demo-rasterizer/RDemoRunner.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "geometry/GeoParams.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 #include "ImageStore.hh"
 

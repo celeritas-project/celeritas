@@ -70,19 +70,19 @@ list(APPEND SOURCES
 set(_gen_sources)
 macro(celeritas_gen_interactor class func)
   celeritas_gen(_gen_sources
-    "gen-interactor.py" "physics/em/generated/${class}Interact"
+    "gen-interactor.py" "celeritas/em/generated/${class}Interact"
     --class ${class}  --func ${func}
   )
 endmacro()
 macro(celeritas_gen_action basedir class func)
   celeritas_gen(_gen_sources
-    "gen-action.py" "${basedir}/generated/${class}"
+    "gen-action.py" "celeritas/${basedir}/generated/${class}"
     --class ${class} --func ${func}
   )
 endmacro()
 macro(celeritas_gen_trackinit class)
   celeritas_gen(_gen_sources
-    "gen-trackinit.py" "sim/generated/${class}"
+    "gen-trackinit.py" "celeritas/track/generated/${class}"
     --class ${class}
   )
 endmacro()
@@ -98,10 +98,10 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("physics/base" "AlongStepAction" "along_step")
-celeritas_gen_action("physics/base" "DiscreteSelectAction" "discrete_select")
-celeritas_gen_action("physics/base" "PreStepAction" "pre_step")
-celeritas_gen_action("geometry" "BoundaryAction" "boundary")
+celeritas_gen_action("global" "AlongStepAction" "along_step")
+celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select")
+celeritas_gen_action("phys" "PreStepAction" "pre_step")
+celeritas_gen_action("geo" "BoundaryAction" "boundary")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
@@ -112,92 +112,94 @@ list(APPEND SOURCES ${_gen_sources})
 
 # Main library
 list(APPEND SOURCES
-  base/Assert.cc
-  base/ColorUtils.cc
-  base/Copier.cc
-  base/DeviceAllocation.cc
-  base/ScopedTimeAndRedirect.cc
-  base/StringUtils.cc
-  comm/KernelDiagnostics.cc
-  base/ScopedStreamRedirect.cc
-  base/TypeDemangler.cc
-  base/VectorUtils.cc
-  base/detail/ReprImpl.cc
-  comm/BuildOutput.cc
-  comm/Communicator.cc
-  comm/Device.cc
-  comm/Environment.cc
-  comm/Logger.cc
-  comm/LoggerTypes.cc
-  comm/ScopedMpiInit.cc
-  comm/ScopedSignalHandler.cc
-  comm/detail/LoggerMessage.cc
-  geometry/GeoMaterialParams.cc
+  corecel/Assert.cc
+  corecel/data/Copier.cc
+  corecel/data/DeviceAllocation.cc
+  corecel/io/BuildOutput.cc
+  corecel/io/ColorUtils.cc
+  corecel/io/Logger.cc
+  corecel/io/LoggerTypes.cc
+  corecel/io/OutputInterface.cc
+  corecel/io/OutputManager.cc
+  corecel/io/ScopedStreamRedirect.cc
+  corecel/io/ScopedTimeAndRedirect.cc
+  corecel/io/StringUtils.cc
+  corecel/io/detail/LoggerMessage.cc
+  corecel/io/detail/ReprImpl.cc
+  corecel/math/VectorUtils.cc
+  corecel/sys/Device.cc
+  corecel/sys/Environment.cc
+  corecel/sys/KernelDiagnostics.cc
+  corecel/sys/ScopedSignalHandler.cc
+  corecel/sys/TypeDemangler.cc
+
   orange/OrangeParams.cc
   orange/Types.cc
   orange/construct/SurfaceInserter.cc
   orange/construct/VolumeInserter.cc
-  orange/surfaces/SurfaceIO.cc
-  io/ImportProcess.cc
-  io/ImportData.cc
-  io/ImportPhysicsTable.cc
-  io/ImportPhysicsVector.cc
-  io/AtomicRelaxationReader.cc
-  io/LivermorePEReader.cc
-  io/SeltzerBergerReader.cc
-  physics/base/CutoffParams.cc
-  physics/base/ImportedProcessAdapter.cc
-  physics/base/ParticleParams.cc
-  physics/base/PhysicsParams.cc
-  physics/base/PhysicsParamsOutput.cc
-  physics/base/Process.cc
-  physics/em/AtomicRelaxationParams.cc
-  physics/em/BetheHeitlerModel.cc
-  physics/em/BremsstrahlungProcess.cc
-  physics/em/CombinedBremModel.cc
-  physics/em/ComptonProcess.cc
-  physics/em/PhotoelectricProcess.cc
-  physics/em/LivermorePEModel.cc
-  physics/em/EIonizationProcess.cc
-  physics/em/EPlusAnnihilationProcess.cc
-  physics/em/EPlusGGModel.cc
-  physics/em/GammaConversionProcess.cc
-  physics/em/KleinNishinaModel.cc
-  physics/em/MollerBhabhaModel.cc
-  physics/em/MuBremsstrahlungModel.cc
-  physics/em/MultipleScatteringProcess.cc
-  physics/em/RayleighModel.cc
-  physics/em/RayleighProcess.cc
-  physics/em/RelativisticBremModel.cc
-  physics/em/SeltzerBergerModel.cc
-  physics/em/UrbanMscModel.cc
-  physics/em/detail/Utils.cc
-  physics/grid/ValueGridBuilder.cc
-  physics/grid/ValueGridInserter.cc
-  physics/grid/ValueGridInterface.cc
-  physics/material/MaterialParams.cc
-  physics/material/detail/Utils.cc
-  random/CuHipRngData.cc
-  random/XorwowRngData.cc
-  random/XorwowRngParams.cc
-  random/detail/CuHipRngStateInit.cc
-  sim/ActionInterface.cc
-  sim/ActionManager.cc
-  sim/ActionManagerOutput.cc
-  sim/OutputInterface.cc
-  sim/OutputManager.cc
-  sim/TrackInitParams.cc
-  sim/detail/TrackInitAlgorithms.cc
+  orange/surf/SurfaceIO.cc
+
+  celeritas/em/AtomicRelaxationParams.cc
+  celeritas/em/detail/Utils.cc
+  celeritas/em/model/BetheHeitlerModel.cc
+  celeritas/em/model/CombinedBremModel.cc
+  celeritas/em/model/EPlusGGModel.cc
+  celeritas/em/model/KleinNishinaModel.cc
+  celeritas/em/model/LivermorePEModel.cc
+  celeritas/em/model/MollerBhabhaModel.cc
+  celeritas/em/model/MuBremsstrahlungModel.cc
+  celeritas/em/model/RayleighModel.cc
+  celeritas/em/model/RelativisticBremModel.cc
+  celeritas/em/model/SeltzerBergerModel.cc
+  celeritas/em/model/UrbanMscModel.cc
+  celeritas/em/process/BremsstrahlungProcess.cc
+  celeritas/em/process/ComptonProcess.cc
+  celeritas/em/process/EIonizationProcess.cc
+  celeritas/em/process/EPlusAnnihilationProcess.cc
+  celeritas/em/process/GammaConversionProcess.cc
+  celeritas/em/process/MultipleScatteringProcess.cc
+  celeritas/em/process/PhotoelectricProcess.cc
+  celeritas/em/process/RayleighProcess.cc
+  celeritas/ext/MpiCommunicator.cc
+  celeritas/ext/ScopedMpiInit.cc
+  celeritas/geo/GeoMaterialParams.cc
+  celeritas/global/ActionInterface.cc
+  celeritas/global/ActionManager.cc
+  celeritas/global/ActionManagerOutput.cc
+  celeritas/grid/ValueGridBuilder.cc
+  celeritas/grid/ValueGridInserter.cc
+  celeritas/grid/ValueGridInterface.cc
+  celeritas/io/AtomicRelaxationReader.cc
+  celeritas/io/ImportData.cc
+  celeritas/io/ImportPhysicsTable.cc
+  celeritas/io/ImportPhysicsVector.cc
+  celeritas/io/ImportProcess.cc
+  celeritas/io/LivermorePEReader.cc
+  celeritas/io/SeltzerBergerReader.cc
+  celeritas/mat/MaterialParams.cc
+  celeritas/mat/detail/Utils.cc
+  celeritas/phys/CutoffParams.cc
+  celeritas/phys/ImportedProcessAdapter.cc
+  celeritas/phys/ParticleParams.cc
+  celeritas/phys/PhysicsParams.cc
+  celeritas/phys/PhysicsParamsOutput.cc
+  celeritas/phys/Process.cc
+  celeritas/random/CuHipRngData.cc
+  celeritas/random/XorwowRngData.cc
+  celeritas/random/XorwowRngParams.cc
+  celeritas/random/detail/CuHipRngStateInit.cc
+  celeritas/track/TrackInitParams.cc
+  celeritas/track/detail/TrackInitAlgorithms.cc
 )
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
-    base/KernelParamCalculator.device.cc
+    corecel/sys/KernelParamCalculator.device.cc
   )
   set(DEVICE_SOURCES
-    base/detail/Filler.cu
-    random/detail/CuHipRngStateInit.cu
-    sim/detail/TrackInitAlgorithms.cu
+    corecel/data/detail/Filler.cu
+    celeritas/random/detail/CuHipRngStateInit.cu
+    celeritas/track/detail/TrackInitAlgorithms.cu
   )
 endif()
 
@@ -216,19 +218,19 @@ endif()
 
 if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES
-    io/EventReader.cc
+    celeritas/io/EventReader.cc
   )
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
 else()
   list(APPEND SOURCES
-    io/EventReader.nohepmc.cc
+    celeritas/io/EventReader.nohepmc.cc
   )
 endif()
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
-    comm/DeviceIO.json.cc
-    comm/KernelDiagnosticsIO.json.cc
+    corecel/sys/DeviceIO.json.cc
+    corecel/sys/KernelDiagnosticsIO.json.cc
     orange/construct/SurfaceInputIO.json.cc
     orange/construct/VolumeInputIO.json.cc
   )
@@ -241,8 +243,8 @@ endif()
 
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
-    vecgeom/VecgeomParams.cc
-    vecgeom/detail/VecgeomNavCollection.cc
+    celeritas/ext/VecgeomParams.cc
+    celeritas/ext/detail/VecgeomNavCollection.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed
@@ -320,23 +322,23 @@ if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
 
   root_generate_dictionary(CeleritasRootInterface
-    io/ImportElement.hh
-    io/ImportMaterial.hh
-    io/ImportParticle.hh
-    io/ImportPhysicsTable.hh
-    io/ImportPhysicsVector.hh
-    io/ImportProcess.hh
-    io/ImportVolume.hh
-    io/ImportData.hh
+    celeritas/io/ImportData.hh
+    celeritas/io/ImportElement.hh
+    celeritas/io/ImportMaterial.hh
+    celeritas/io/ImportParticle.hh
+    celeritas/io/ImportPhysicsTable.hh
+    celeritas/io/ImportPhysicsVector.hh
+    celeritas/io/ImportProcess.hh
+    celeritas/io/ImportVolume.hh
     MODULE celeritas_io
     LINKDEF
-      io/RootInterfaceLinkDef.h
+      celeritas/ext/RootInterfaceLinkDef.h
   )
   list(APPEND _IO_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
-    io/RootExporter.cc
-    io/RootImporter.cc
-    io/detail/TFileUniquePtr.root.cc
+    celeritas/ext/RootExporter.cc
+    celeritas/ext/RootImporter.cc
+    celeritas/ext/detail/TFileUniquePtr.root.cc
   )
   # Note that ROOT requires *shared* libraries due to runtime initialization,
   # *and* it must be forcibly linked into any ROOT-using application by ensuring
@@ -350,16 +352,16 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   list(APPEND _IO_SOURCES
-    io/GeantImporter.cc
-    io/GeantSetup.cc
-    io/detail/ActionInitialization.cc
-    io/detail/DetectorConstruction.cc
-    io/detail/GeantBremsstrahlungProcess.cc
-    io/detail/GeantExceptionHandler.cc
-    io/detail/GeantLoggerAdapter.cc
-    io/detail/GeantPhysicsList.cc
-    io/detail/ImportProcessConverter.cc
-    io/detail/PrimaryGeneratorAction.cc
+    celeritas/ext/GeantImporter.cc
+    celeritas/ext/GeantSetup.cc
+    celeritas/ext/detail/ActionInitialization.cc
+    celeritas/ext/detail/DetectorConstruction.cc
+    celeritas/ext/detail/GeantBremsstrahlungProcess.cc
+    celeritas/ext/detail/GeantExceptionHandler.cc
+    celeritas/ext/detail/GeantLoggerAdapter.cc
+    celeritas/ext/detail/GeantPhysicsList.cc
+    celeritas/ext/detail/ImportProcessConverter.cc
+    celeritas/ext/detail/PrimaryGeneratorAction.cc
   )
   list(APPEND _IO_PRIVATE_DEPS
     XercesC::XercesC
@@ -368,7 +370,7 @@ if(CELERITAS_USE_Geant4)
 endif()
 if(CELERITAS_USE_JSON)
   list(APPEND _IO_SOURCES
-    io/GeantSetupOptionsIO.json.cc
+    celeritas/ext/GeantSetupOptionsIO.json.cc
   )
 endif()
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceInserter.test.cc
+//! \file orange/construct/SurfaceInserter.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/construct/SurfaceInserter.hh"
 
@@ -11,10 +11,10 @@
 
 #include "celeritas_config.h"
 #include "orange/construct/SurfaceInput.hh"
-#include "orange/surfaces/CylCentered.hh"
-#include "orange/surfaces/GeneralQuadric.hh"
-#include "orange/surfaces/PlaneAligned.hh"
-#include "orange/surfaces/Sphere.hh"
+#include "orange/surf/CylCentered.hh"
+#include "orange/surf/GeneralQuadric.hh"
+#include "orange/surf/PlaneAligned.hh"
+#include "orange/surf/Sphere.hh"
 
 #include "celeritas_test.hh"
 

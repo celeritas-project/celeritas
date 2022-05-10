@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoKernel.thrust.cu
+//! \file demo-interactor/KNDemoKernel.thrust.cu
 //---------------------------------------------------------------------------//
 #include "KNDemoKernel.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
 
-#include "base/device_runtime_api.h"
+#include "corecel/device_runtime_api.h"
 
 using namespace celeritas;
 

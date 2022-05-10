@@ -3,37 +3,37 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LDemoIO.cc
+//! \file demo-loop/LDemoIO.cc
 //---------------------------------------------------------------------------//
 #include "LDemoIO.hh"
 
 #include <algorithm>
 #include <string>
 
-#include "base/StringUtils.hh"
-#include "comm/Logger.hh"
-#include "geometry/GeoMaterialParams.hh"
-#include "geometry/GeoParams.hh"
-#include "io/EventReader.hh"
-#include "io/GeantImporter.hh"
-#include "io/GeantSetupOptionsIO.json.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/CutoffParams.hh"
-#include "physics/base/ImportedProcessAdapter.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/PhysicsParams.hh"
-#include "physics/em/BremsstrahlungProcess.hh"
-#include "physics/em/ComptonProcess.hh"
-#include "physics/em/EIonizationProcess.hh"
-#include "physics/em/EPlusAnnihilationProcess.hh"
-#include "physics/em/GammaConversionProcess.hh"
-#include "physics/em/MultipleScatteringProcess.hh"
-#include "physics/em/PhotoelectricProcess.hh"
-#include "physics/em/RayleighProcess.hh"
-#include "physics/material/MaterialParams.hh"
-#include "random/RngParams.hh"
-#include "sim/ActionManager.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
+#include "celeritas/em/process/BremsstrahlungProcess.hh"
+#include "celeritas/em/process/ComptonProcess.hh"
+#include "celeritas/em/process/EIonizationProcess.hh"
+#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/em/process/GammaConversionProcess.hh"
+#include "celeritas/em/process/MultipleScatteringProcess.hh"
+#include "celeritas/em/process/PhotoelectricProcess.hh"
+#include "celeritas/em/process/RayleighProcess.hh"
+#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/global/ActionManager.hh"
+#include "celeritas/io/EventReader.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
 

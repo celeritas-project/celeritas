@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file HostKNDemoRunner.hh
+//! \file demo-interactor/HostKNDemoRunner.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "physics/base/ParticleData.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/em/detail/KleinNishinaData.hh"
+#include "celeritas/em/data/KleinNishinaData.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "KNDemoIO.hh"
 #include "XsGridParams.hh"
@@ -43,9 +43,9 @@ class HostKNDemoRunner
     result_type operator()(demo_interactor::KNDemoRunArgs args);
 
   private:
-    constSPParticleParams               pparams_;
-    constSPXsGridParams                 xsparams_;
-    celeritas::detail::KleinNishinaData kn_data_;
+    constSPParticleParams       pparams_;
+    constSPXsGridParams         xsparams_;
+    celeritas::KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//

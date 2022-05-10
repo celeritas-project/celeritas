@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StepDiagnostic.hh
+//! \file demo-loop/diagnostic/StepDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,11 +12,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/Atomics.hh"
-#include "base/CollectionBuilder.hh"
-#include "physics/base/ParticleParams.hh"
-#include "physics/base/ParticleTrackView.hh"
-#include "sim/SimTrackView.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/Atomics.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 
@@ -120,8 +120,8 @@ class StepLauncher
   public:
     //!@{
     //! Type aliases
-    using size_type     = celeritas::size_type;
-    using ThreadId      = celeritas::ThreadId;
+    using size_type = celeritas::size_type;
+    using ThreadId  = celeritas::ThreadId;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}

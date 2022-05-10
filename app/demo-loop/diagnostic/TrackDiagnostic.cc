@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackDiagnostic.cc
+//! \file demo-loop/diagnostic/TrackDiagnostic.cc
 //---------------------------------------------------------------------------//
 #include "TrackDiagnostic.hh"
 
-#include "base/Macros.hh"
-#include "base/Range.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
 
 using namespace celeritas;
 

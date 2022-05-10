@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file StepDiagnostic.cu
+//! \file demo-loop/diagnostic/StepDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
-#include "base/KernelParamCalculator.device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 using namespace celeritas;
 

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoIO.hh
+//! \file demo-interactor/KNDemoIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "base/Types.hh"
-#include "physics/grid/UniformGrid.hh"
+#include "corecel/Types.hh"
+#include "celeritas/grid/UniformGrid.hh"
 
 #include "KNDemoKernel.hh"
 

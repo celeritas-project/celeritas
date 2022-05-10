@@ -9,14 +9,14 @@
 #include <iomanip>
 #include <iostream>
 
-#include "base/Join.hh"
-#include "base/Range.hh"
-#include "comm/Communicator.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
-#include "io/ImportData.hh"
-#include "io/RootImporter.hh"
-#include "physics/base/ParticleParams.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -372,7 +372,7 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && Communicator::comm_world().size() > 1)
+        && MpiCommunicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;

@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ParticleProcessDiagnostic.cu
+//! \file demo-loop/diagnostic/ParticleProcessDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "ParticleProcessDiagnostic.hh"
 
-#include "base/KernelParamCalculator.device.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
 
 using namespace celeritas;
 

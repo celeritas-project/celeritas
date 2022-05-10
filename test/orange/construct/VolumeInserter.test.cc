@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInserter.test.cc
+//! \file orange/construct/VolumeInserter.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/construct/VolumeInserter.hh"
 
 #include <fstream>
 
 #include "celeritas_config.h"
-#include "base/CollectionBuilder.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "orange/construct/VolumeInput.hh"
 
 #include "celeritas_test.hh"
@@ -28,7 +28,7 @@ using namespace celeritas;
 class VolumeInserterTest : public celeritas::Test
 {
   protected:
-    VolumeData<Ownership::value, MemSpace::host> volume_data_;
+    VolumeData<Ownership::value, MemSpace::host>            volume_data_;
     SurfaceData<Ownership::value, MemSpace::host>           surface_data_;
     SurfaceData<Ownership::const_reference, MemSpace::host> surface_ref_;
 

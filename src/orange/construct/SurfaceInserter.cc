@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceInserter.cc
+//! \file orange/construct/SurfaceInserter.cc
 //---------------------------------------------------------------------------//
 #include "SurfaceInserter.hh"
 
-#include "base/Assert.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/Range.hh"
-#include "orange/surfaces/SurfaceAction.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "orange/surf/SurfaceAction.hh"
 
 #include "SurfaceInput.hh"
 

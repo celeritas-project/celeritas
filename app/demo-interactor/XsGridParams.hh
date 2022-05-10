@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XsGridParams.hh
+//! \file demo-interactor/XsGridParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
-#include "base/CollectionMirror.hh"
-#include "physics/grid/XsGridData.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/grid/XsGridData.hh"
 
 #include "KNDemoKernel.hh"
 

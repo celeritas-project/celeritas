@@ -3,24 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file EnergyDiagnostic.hh
+//! \file demo-loop/diagnostic/EnergyDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
 #include "celeritas_config.h"
-#include "base/Atomics.hh"
-#include "base/CollectionAlgorithms.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/CollectionMirror.hh"
-#include "base/Macros.hh"
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "geometry/Types.hh"
-#include "physics/grid/NonuniformGrid.hh"
-#include "sim/CoreTrackData.hh"
-#include "sim/SimTrackView.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/math/Atomics.hh"
+#include "orange/Types.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/grid/NonuniformGrid.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "Diagnostic.hh"
 
@@ -36,10 +36,10 @@ class EnergyDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Types
-    using real_type    = celeritas::real_type;
-    using Axis         = celeritas::Axis;
-    using Items        = celeritas::Collection<real_type, Ownership::value, M>;
-    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
+    using real_type = celeritas::real_type;
+    using Axis      = celeritas::Axis;
+    using Items     = celeritas::Collection<real_type, Ownership::value, M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using TransporterResult = celeritas::TransporterResult;
     //!@}
 
@@ -96,10 +96,10 @@ class EnergyDiagnosticLauncher
   public:
     //!@{
     //! Type aliases
-    using real_type    = celeritas::real_type;
-    using ThreadId     = celeritas::ThreadId;
-    using Pointers     = EnergyBinPointers<M>;
-    using StateRef     = celeritas::CoreStateData<Ownership::reference, M>;
+    using real_type = celeritas::real_type;
+    using ThreadId  = celeritas::ThreadId;
+    using Pointers  = EnergyBinPointers<M>;
+    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -111,8 +111,8 @@ class EnergyDiagnosticLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const StateRef&     states_;
-    const Pointers&     pointers_;
+    const StateRef& states_;
+    const Pointers& pointers_;
 };
 
 using PointersDevice = EnergyBinPointers<MemSpace::device>;
@@ -159,9 +159,9 @@ void EnergyDiagnostic<M>::mid_step(const StateRef& states)
 {
     // Set up pointers to pass to device
     EnergyBinPointers<M> pointers;
-    pointers.axis           = axis_;
-    pointers.bounds         = bounds_;
-    pointers.edep           = energy_per_bin_;
+    pointers.axis   = axis_;
+    pointers.bounds = bounds_;
+    pointers.edep   = energy_per_bin_;
 
     // Invoke kernel for binning energies
     demo_loop::bin_energy(states, pointers);

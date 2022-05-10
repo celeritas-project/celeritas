@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RDemoKernel.cu
+//! \file demo-rasterizer/RDemoKernel.cu
 //---------------------------------------------------------------------------//
 #include "RDemoKernel.hh"
 
 #include <cmath>
 
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "geometry/GeoTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 
 #include "ImageTrackView.hh"
 
