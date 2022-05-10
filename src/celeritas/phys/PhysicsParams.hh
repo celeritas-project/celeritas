@@ -24,6 +24,7 @@
 namespace celeritas
 {
 class ActionManager;
+class AtomicRelaxationParams;
 class MaterialParams;
 class ParticleParams;
 
@@ -76,13 +77,16 @@ class PhysicsParams
     using SPConstParticles   = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials   = std::shared_ptr<const MaterialParams>;
     using SPConstProcess     = std::shared_ptr<const Process>;
+    using SPConstRelaxation  = std::shared_ptr<const AtomicRelaxationParams>;
+
     using VecProcess         = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<const ProcessId>;
+    using ActionIdRange      = Range<ActionId>;
+
     using HostRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::device>;
-    using ActionIdRange = Range<ActionId>;
     //!@}
 
     //! Global physics configuration options
@@ -104,6 +108,7 @@ class PhysicsParams
         SPConstParticles particles;
         SPConstMaterials materials;
         VecProcess       processes;
+        SPConstRelaxation relaxation; //!< Optional atomic relaxation
         ActionManager*   action_manager = nullptr;
 
         Options options;
@@ -166,6 +171,7 @@ class PhysicsParams
     // Host metadata/access
     VecProcess processes_;
     VecModel   models_;
+    SPConstRelaxation relaxation_;
 
     // Host/device storage and reference
     CollectionMirror<PhysicsParamsData> data_;

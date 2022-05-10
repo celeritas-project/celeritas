@@ -136,16 +136,22 @@ struct ProcessGroup
 //---------------------------------------------------------------------------//
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
+ *
+ * TODO: livermore/relaxation/urban data are owned by other classes, but
+ * because we assign <host, value> -> { <host, cref> ; <device, value> ->
+ * <device, cref> }
  */
 template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
+    //// DATA ////
+
     // Photoelectric effect
     ProcessId                   photoelectric;
     units::MevEnergy            photoelectric_table_thresh;
     ModelId                     livermore_pe;
     LivermorePEData<W, M>       livermore_pe_data;
-    AtomicRelaxParamsData<W, M> relaxation;
+    AtomicRelaxParamsData<W, M> relaxation_data;
 
     // Positron annihilation
     ProcessId   positron_annihilation;
@@ -172,7 +178,7 @@ struct HardwiredModels
             livermore_pe               = other.livermore_pe;
             livermore_pe_data          = other.livermore_pe_data;
         }
-        relaxation            = other.relaxation;
+        relaxation_data       = other.relaxation_data;
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
         eplusgg_data          = other.eplusgg_data;
@@ -453,7 +459,7 @@ inline void resize(
     make_builder(&state->per_process_xs)
         .resize(size * params.scalars.max_particle_processes);
 
-    resize(&state->relaxation, params.hardwired.relaxation, size);
+    resize(&state->relaxation, params.hardwired.relaxation_data, size);
     resize(&state->secondaries, size * params.scalars.secondary_stack_factor);
 }
 

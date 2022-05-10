@@ -17,6 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/VectorUtils.hh"
+#include "celeritas/em/AtomicRelaxationParams.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
@@ -49,7 +50,9 @@ class ImplicitPhysicsAction final : public ImplicitActionInterface,
 /*!
  * Construct with processes and helper classes.
  */
-PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
+PhysicsParams::PhysicsParams(Input inp)
+    : processes_(std::move(inp.processes))
+    , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
     CELER_EXPECT(std::all_of(processes_.begin(),
@@ -362,6 +365,11 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.urban      = ModelId{model_idx};
             data->hardwired.urban_data = urban_model->host_ref();
         }
+    }
+
+    if (relaxation_)
+    {
+        data->hardwired.relaxation_data = relaxation_->host_ref();
     }
 
     CELER_ENSURE(*data);
