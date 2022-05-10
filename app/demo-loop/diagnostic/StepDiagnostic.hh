@@ -81,7 +81,6 @@ class StepDiagnostic : public Diagnostic<M>
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:

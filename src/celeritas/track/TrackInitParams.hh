@@ -22,6 +22,10 @@ namespace celeritas
  *
  * Primary particles are stored on the host and only copied to device when they
  * are needed to initialize new tracks.
+ *
+ * \todo This class will probably go away. The interface as-is requires a copy
+ * when none is needed, and the capacity of the secondaries doesn't need to be
+ * set every time new primaries are added to the state.
  */
 class TrackInitParams
 {

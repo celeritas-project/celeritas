@@ -13,13 +13,9 @@
 using celeritas::MemSpace;
 using celeritas::Ownership;
 
-namespace celeritas
-{
-struct TransporterResult;
-}
-
 namespace demo_loop
 {
+struct TransporterResult;
 //---------------------------------------------------------------------------//
 /*!
  * Interface for on-device data access at different stages of a simulation.
@@ -30,16 +26,12 @@ class Diagnostic
   public:
     using EventId  = celeritas::EventId;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
 
     // Virtual destructor for polymorphic deletion
     virtual ~Diagnostic() = 0;
 
     // Collect diagnostic(s) in the middle of a step
     virtual void mid_step(const StateRef&) {}
-
-    // Collect diagnostic(s) after step
-    virtual void end_step(const StateRef&) {}
 
     // Collect results from diagnostic
     virtual void get_result(TransporterResult*) {}

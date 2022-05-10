@@ -42,7 +42,6 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
     using SPConstParticles  = std::shared_ptr<const celeritas::ParticleParams>;
     using SPConstPhysics    = std::shared_ptr<const celeritas::PhysicsParams>;
-    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:

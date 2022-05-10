@@ -41,13 +41,13 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts);
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-size_type remove_if_alive<MemSpace::device>(Span<size_type>)
+inline size_type remove_if_alive<MemSpace::device>(Span<size_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<>
-size_type exclusive_scan_counts<MemSpace::device>(Span<size_type>)
+inline size_type exclusive_scan_counts<MemSpace::device>(Span<size_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

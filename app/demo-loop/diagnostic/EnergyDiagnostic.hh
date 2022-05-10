@@ -41,7 +41,6 @@ class EnergyDiagnostic : public Diagnostic<M>
     using Axis      = celeritas::Axis;
     using Items     = celeritas::Collection<real_type, Ownership::value, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:

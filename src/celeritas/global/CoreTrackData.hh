@@ -24,7 +24,7 @@ namespace celeritas
  */
 struct CoreScalars
 {
-    ActionId  boundary_action;
+    ActionId boundary_action;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const

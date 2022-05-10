@@ -11,7 +11,7 @@
 
 #include "Transporter.hh"
 
-namespace celeritas
+namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 //! Save data to json
@@ -33,4 +33,4 @@ inline void to_json(nlohmann::json& j, const TransporterResult& v)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_loop

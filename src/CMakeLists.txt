@@ -166,6 +166,8 @@ list(APPEND SOURCES
   celeritas/global/ActionInterface.cc
   celeritas/global/ActionManager.cc
   celeritas/global/ActionManagerOutput.cc
+  celeritas/global/CoreParams.cc
+  celeritas/global/Stepper.cc
   celeritas/grid/ValueGridBuilder.cc
   celeritas/grid/ValueGridInserter.cc
   celeritas/grid/ValueGridInterface.cc
