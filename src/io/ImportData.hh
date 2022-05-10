@@ -19,12 +19,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Enumerator for all possible EM parameters.
+ * Enumerator for EM parameters (see G4EmParameters.hh).
+ *
+ * \note
+ * Geant4 v11 removed the Spline() option from G4EmParameters.hh.
  */
 enum class ImportEmParameter
 {
-    energy_loss_fluct,
-    lpm,
+    energy_loss_fluct, //!< Energy loss fluctuation flag
+    lpm,               //!< LPM effect flag (bremsstrahlung, pair production)
+    bins_per_decade,   //!< Cross-section table binning
+    min_table_energy,  //!< Cross-section tables minimum kinetic energy
+    max_table_energy,  //!< Cross-section tables maximum kinetic energy
 };
 
 //---------------------------------------------------------------------------//

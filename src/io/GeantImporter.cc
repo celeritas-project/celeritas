@@ -347,13 +347,20 @@ std::vector<ImportProcess> store_processes()
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
+std::vector<ImportVolume> store_volumes()
 {
     std::vector<ImportVolume>            volumes;
     std::map<unsigned int, ImportVolume> volids_volumes;
 
+    // Fetch world logical volume
+    const auto world_logical_volume
+        = G4TransportationManager::GetTransportationManager()
+              ->GetNavigatorForTracking()
+              ->GetWorldVolume()
+              ->GetLogicalVolume();
+
     // Recursive loop over all logical volumes to populate map<volid, volume>
-    loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
+    loop_volumes(volids_volumes, *world_logical_volume);
 
     // Populate vector<ImportVolume>
     for (const auto& key : volids_volumes)
@@ -375,9 +382,18 @@ ImportData::ImportEmParamsMap store_em_parameters()
     ImportData::ImportEmParamsMap import_em_params;
     const auto&                   g4_em_params = *G4EmParameters::Instance();
 
+    // Model flags
     import_em_params.insert({ImportEmParameter::energy_loss_fluct,
                              g4_em_params.LossFluctuation()});
     import_em_params.insert({ImportEmParameter::lpm, g4_em_params.LPM()});
+
+    // Cross-section tables
+    import_em_params.insert({ImportEmParameter::bins_per_decade,
+                             g4_em_params.NumberOfBinsPerDecade()});
+    import_em_params.insert({ImportEmParameter::min_table_energy,
+                             g4_em_params.MinKinEnergy() / MeV});
+    import_em_params.insert({ImportEmParameter::max_table_energy,
+                             g4_em_params.MaxKinEnergy() / MeV});
 
     CELER_LOG(debug) << "Loaded " << import_em_params.size()
                      << " EM parameters";
@@ -391,9 +407,12 @@ ImportData::ImportEmParamsMap store_em_parameters()
 /*!
  * Construct from an existing Geant4 geometry, assuming physics is loaded.
  */
-GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
+GeantImporter::GeantImporter()
 {
-    CELER_EXPECT(world);
+    // Verify that a top world physical volume exists
+    CELER_ASSERT(G4TransportationManager::GetTransportationManager()
+                     ->GetNavigatorForTracking()
+                     ->GetWorldVolume());
 }
 
 //---------------------------------------------------------------------------//
@@ -403,7 +422,6 @@ GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_ASSERT(setup_);
-    world_ = setup_.world();
 }
 
 //---------------------------------------------------------------------------//
@@ -417,7 +435,7 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.elements  = store_elements();
     import_data.materials = store_materials();
     import_data.processes = store_processes();
-    import_data.volumes   = store_volumes(world_);
+    import_data.volumes   = store_volumes();
     import_data.em_params = store_em_parameters();
 
     CELER_ENSURE(import_data);

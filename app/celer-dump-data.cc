@@ -353,13 +353,13 @@ void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
     cout << R"gfm(
 # EM parameters
 
-| EM parameter      | Value |
-| ----------------- | ----- |
+| EM parameter       | Value   |
+| ------------------ | ------- |
 )gfm";
 
     for (const auto& key : em_params_map)
     {
-        cout << "| " << setw(17) << to_cstring(key.first) << " | " << setw(5)
+        cout << "| " << setw(18) << to_cstring(key.first) << " | " << setw(7)
              << key.second << " |\n";
     }
 }

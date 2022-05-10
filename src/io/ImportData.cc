@@ -17,7 +17,11 @@ namespace celeritas
  */
 const char* to_cstring(ImportEmParameter value)
 {
-    static const char* const strings[] = {"energy_loss_fluct", "lpm"};
+    static const char* const strings[] = {"energy_loss_fluct",
+                                          "lpm",
+                                          "bins_per_decade",
+                                          "min_table_energy",
+                                          "max_table_energy"};
 
     CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
