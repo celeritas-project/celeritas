@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeParams.cc
+//! \file orange/OrangeParams.cc
 //---------------------------------------------------------------------------//
 #include "OrangeParams.hh"
 
@@ -12,27 +12,27 @@
 #include <initializer_list>
 
 #include "celeritas_config.h"
-#include "base/Array.hh"
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/OpaqueId.hh"
-#include "base/Range.hh"
-#include "base/ScopedTimeLog.hh"
-#include "base/StringUtils.hh"
-#include "comm/Logger.hh"
-#include "orange/construct/SurfaceInput.hh"
-#include "orange/construct/SurfaceInserter.hh"
-#include "orange/construct/VolumeInput.hh"
-#include "orange/construct/VolumeInserter.hh"
-#include "orange/universes/detail/LogicStack.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/StringUtils.hh"
 
 #include "Data.hh"
 #include "Types.hh"
+#include "construct/SurfaceInput.hh"
+#include "construct/SurfaceInserter.hh"
+#include "construct/VolumeInput.hh"
+#include "construct/VolumeInserter.hh"
+#include "univ/detail/LogicStack.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "base/Array.json.hh"
+#    include "corecel/cont/Array.json.hh"
 
 #    include "construct/SurfaceInputIO.json.hh"
 #    include "construct/VolumeInputIO.json.hh"

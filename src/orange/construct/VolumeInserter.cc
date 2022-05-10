@@ -3,23 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInserter.cc
+//! \file orange/construct/VolumeInserter.cc
 //---------------------------------------------------------------------------//
 #include "VolumeInserter.hh"
 
 #include <algorithm>
 #include <vector>
 
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/OpaqueId.hh"
-#include "base/Span.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
-#include "orange/construct/VolumeInput.hh"
-#include "orange/surfaces/SurfaceAction.hh"
-#include "orange/surfaces/Surfaces.hh"
+#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/Surfaces.hh"
+
+#include "VolumeInput.hh"
 
 namespace celeritas
 {

@@ -3,17 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeTrackView.hh
+//! \file orange/OrangeTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Array.hh"
-#include "base/Macros.hh"
-#include "geometry/Types.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 
 #include "Data.hh"
-#include "universes/SimpleUnitTracker.hh"
-#include "universes/detail/Types.hh"
+#include "Types.hh"
+#include "univ/SimpleUnitTracker.hh"
+#include "univ/detail/Types.hh"
 
 namespace celeritas
 {
@@ -100,8 +101,8 @@ class OrangeTrackView
     const StateRef&  states_;
     ThreadId         thread_;
 
-    real_type          next_step_{0};   //!< Temporary next step
-    detail::OnSurface  next_surface_{}; //!< Temporary next surface
+    real_type         next_step_{0};   //!< Temporary next step
+    detail::OnSurface next_surface_{}; //!< Temporary next surface
 
     //// HELPER FUNCTIONS ////
 

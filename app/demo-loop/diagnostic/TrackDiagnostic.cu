@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TrackDiagnostic.cu
+//! \file demo-loop/diagnostic/TrackDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "TrackDiagnostic.hh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
 
-#include "base/Assert.hh"
-#include "base/KernelParamCalculator.device.hh"
-#include "sim/SimTrackView.hh"
+#include "corecel/Assert.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 using namespace celeritas;
 

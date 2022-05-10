@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file interface/celeritas.i
+//! \file celeritas.i
 //---------------------------------------------------------------------------//
 %module "celeritas"
 
@@ -41,11 +41,11 @@
 //---------------------------------------------------------------------------//
 
 %{
-#include "base/Types.hh"
+#include "corecel/Types.hh"
 %}
 
 %ignore celeritas::Byte;
-%include "base/Types.hh"
+%include "corecel/Types.hh"
 
 %include <std_vector.i>
 %template(VecReal) std::vector<celeritas::real_type>;
@@ -55,20 +55,20 @@
 //---------------------------------------------------------------------------//
 
 %{
-#include "base/Units.hh"
+#include "celeritas/Units.hh"
 %}
 
-%include "base/Units.hh"
+%include "celeritas/Units.hh"
 
 //---------------------------------------------------------------------------//
 // BASE/CONSTANTS
 //---------------------------------------------------------------------------//
 
 %{
-#include "base/Constants.hh"
+#include "celeritas/Constants.hh"
 %}
 
-%include "base/Constants.hh"
+%include "celeritas/Constants.hh"
 
 //---------------------------------------------------------------------------//
 // PHYSICS
@@ -86,7 +86,7 @@ class MaterialParams;
 //---------------------------------------------------------------------------//
 
 %{
-#include "io/RootImporter.hh"
+#include "celeritas/ext/RootImporter.hh"
 %}
 
 namespace celeritas
@@ -102,50 +102,50 @@ namespace celeritas
 %rename(xs_hi) ImportTableType::lambda_prim;
 }
 
-%include "io/ImportPhysicsVector.hh"
+%include "celeritas/io/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
 
-%include "io/ImportPhysicsTable.hh"
+%include "celeritas/io/ImportPhysicsTable.hh"
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
 
-%include "io/ImportProcess.hh"
+%include "celeritas/io/ImportProcess.hh"
 %template(VecImportProcess) std::vector<celeritas::ImportProcess>;
 
-%include "io/ImportParticle.hh"
+%include "celeritas/io/ImportParticle.hh"
 %template(VecImportParticle) std::vector<celeritas::ImportParticle>;
 
-%include "io/ImportElement.hh"
+%include "celeritas/io/ImportElement.hh"
 %template(VecImportElement) std::vector<celeritas::ImportElement>;
 
-%include "io/ImportMaterial.hh"
+%include "celeritas/io/ImportMaterial.hh"
 %template(VecImportMaterial) std::vector<celeritas::ImportMaterial>;
 
-%include "io/ImportVolume.hh"
+%include "celeritas/io/ImportVolume.hh"
 %template(VecImportVolume) std::vector<celeritas::ImportVolume>;
 
-%include "io/ImportData.hh"
+%include "celeritas/io/ImportData.hh"
 
 %rename(RootImportResult) celeritas::RootImporter::result_type;
-%include "io/RootImporter.hh"
+%include "celeritas/ext/RootImporter.hh"
 
 //---------------------------------------------------------------------------//
 
 %{
-#include "io/SeltzerBergerReader.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 %}
 
-%include "io/ImportSBTable.hh"
-%include "io/SeltzerBergerReader.hh"
+%include "celeritas/io/ImportSBTable.hh"
+%include "celeritas/io/SeltzerBergerReader.hh"
 
 //---------------------------------------------------------------------------//
 
 %{
-#include "io/LivermorePEReader.hh"
+#include "celeritas/io/LivermorePEReader.hh"
 %}
 
-%include "io/ImportLivermorePE.hh"
+%include "celeritas/io/ImportLivermorePE.hh"
 %template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
 
-%include "io/LivermorePEReader.hh"
+%include "celeritas/io/LivermorePEReader.hh"
 
 // vim: set ft=lex ts=2 sw=2 sts=2 :

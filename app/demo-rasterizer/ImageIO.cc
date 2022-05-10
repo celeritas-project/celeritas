@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ImageIO.cc
+//! \file demo-rasterizer/ImageIO.cc
 //---------------------------------------------------------------------------//
 #include "ImageIO.hh"
 
-#include "base/Array.json.hh"
+#include "corecel/cont/Array.json.hh"
 
 #include "ImageStore.hh"
 

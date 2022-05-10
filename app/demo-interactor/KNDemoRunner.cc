@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file KNDemoRunner.cc
+//! \file demo-interactor/KNDemoRunner.cc
 //---------------------------------------------------------------------------//
 #include "KNDemoRunner.hh"
 
-#include "base/Range.hh"
-#include "base/Stopwatch.hh"
-#include "physics/base/Units.hh"
-#include "random/RngParams.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
 
@@ -32,7 +32,7 @@ KNDemoRunner::KNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(launch_params_.threads_per_block > 0);
 
     // Set up KN interactor data;
-    namespace pdg        = celeritas::pdg;
+    namespace pdg         = celeritas::pdg;
     kn_data_.ids.action   = ActionId{0}; // Unused but needed for error check
     kn_data_.ids.electron = pparams_->find(pdg::electron());
     kn_data_.ids.gamma    = pparams_->find(pdg::gamma());

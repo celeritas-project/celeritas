@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-interactor.cc
+//! \file demo-interactor/host-demo-interactor.cc
 //---------------------------------------------------------------------------//
 
 #include <cstddef>
@@ -15,12 +15,12 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
-#include "comm/Communicator.hh"
-#include "comm/DeviceIO.json.hh"
-#include "comm/KernelDiagnosticsIO.json.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
-#include "physics/base/ParticleParams.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "HostKNDemoRunner.hh"
 #include "KNDemoIO.hh"
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && Communicator::comm_world().size() > 1)
+        && MpiCommunicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;

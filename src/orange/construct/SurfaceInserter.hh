@@ -3,13 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file SurfaceInserter.hh
+//! \file orange/construct/SurfaceInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Span.hh"
-#include "base/Types.hh"
-#include "geometry/Types.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 

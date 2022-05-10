@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-loop.cc
+//! \file demo-loop/demo-loop.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
 #include <fstream>
@@ -15,20 +15,20 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
-#include "base/Stopwatch.hh"
-#include "comm/BuildOutput.hh"
-#include "comm/Communicator.hh"
-#include "comm/Device.hh"
-#include "comm/DeviceIO.json.hh"
-#include "comm/Environment.hh"
-#include "comm/EnvironmentIO.json.hh"
-#include "comm/KernelDiagnostics.hh"
-#include "comm/KernelDiagnosticsIO.json.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
-#include "physics/base/PhysicsParamsOutput.hh"
-#include "sim/OutputInterfaceAdapter.hh"
-#include "sim/OutputManager.hh"
+#include "corecel/io/BuildOutput.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputManager.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
+#include "corecel/sys/KernelDiagnostics.hh"
+#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/phys/PhysicsParamsOutput.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -102,10 +102,10 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
-    Communicator comm
+    MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
-               ? Communicator{}
-               : Communicator::comm_world());
+               ? MpiCommunicator{}
+               : MpiCommunicator::comm_world());
 
     if (comm.size() > 1)
     {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     }
 
     // Initialize GPU
-    celeritas::activate_device(celeritas::Device::from_round_robin(comm));
+    celeritas::activate_device(celeritas::make_device(comm));
 
     std::string   filename = args[1];
     std::ifstream infile;

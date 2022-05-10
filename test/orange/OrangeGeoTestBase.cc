@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeGeoTestBase.cc
+//! \file orange/OrangeGeoTestBase.cc
 //---------------------------------------------------------------------------//
 #include "OrangeGeoTestBase.hh"
 
@@ -12,18 +12,18 @@
 #include <utility>
 
 #include "celeritas_config.h"
-#include "base/Join.hh"
+#include "corecel/io/Join.hh"
 #include "orange/Types.hh"
 #include "orange/construct/SurfaceInput.hh"
 #include "orange/construct/SurfaceInserter.hh"
 #include "orange/construct/VolumeInput.hh"
 #include "orange/construct/VolumeInserter.hh"
-#include "orange/surfaces/Sphere.hh"
-#include "orange/surfaces/SurfaceAction.hh"
-#include "orange/surfaces/SurfaceIO.hh"
+#include "orange/surf/Sphere.hh"
+#include "orange/surf/SurfaceAction.hh"
+#include "orange/surf/SurfaceIO.hh"
 
 #if CELERITAS_USE_JSON
-#    include "base/Array.json.hh"
+#    include "corecel/cont/Array.json.hh"
 #    include "orange/construct/SurfaceInputIO.json.hh"
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif

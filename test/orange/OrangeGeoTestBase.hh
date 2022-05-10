@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file OrangeGeoTestBase.hh
+//! \file orange/OrangeGeoTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,14 +13,15 @@
 #include <vector>
 
 // Source dependencies
-#include "base/Array.hh"
-#include "base/CollectionStateStore.hh"
-#include "base/Span.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "orange/Data.hh"
 #include "orange/OrangeParams.hh"
+#include "celeritas/Types.hh"
 
 // Test dependencies
-#include "gtest/Test.hh"
+#include "Test.hh"
 
 namespace celeritas_test
 {

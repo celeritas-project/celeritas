@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file LDemoIO.hh
+//! \file demo-loop/LDemoIO.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,10 +11,10 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "base/NumericLimits.hh"
-#include "base/Types.hh"
-#include "io/GeantSetup.hh"
-#include "sim/TrackInitParams.hh"
+#include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "Transporter.hh"
 

@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file VolumeInserter.hh
+//! \file orange/construct/VolumeInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "base/Types.hh"
-#include "geometry/Types.hh"
+#include "corecel/Types.hh"
+#include "orange/Data.hh"
+#include "orange/Types.hh"
 
-#include "../Data.hh"
 #include "VolumeInput.hh"
 
 namespace celeritas
@@ -34,7 +34,7 @@ class VolumeInserter
     //!@{
     //! Type aliases
     using SurfData = SurfaceData<Ownership::const_reference, MemSpace::host>;
-    using Data = VolumeData<Ownership::value, MemSpace::host>;
+    using Data     = VolumeData<Ownership::value, MemSpace::host>;
     //!@}
 
   public:
@@ -49,8 +49,8 @@ class VolumeInserter
 
   private:
     const SurfData& surface_data_;
-    Data* volume_data_{nullptr};
-    int   max_logic_depth_{0};
+    Data*           volume_data_{nullptr};
+    int             max_logic_depth_{0};
 };
 
 //---------------------------------------------------------------------------//

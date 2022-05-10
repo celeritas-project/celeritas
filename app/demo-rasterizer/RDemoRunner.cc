@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file RDemoRunner.cc
+//! \file demo-rasterizer/RDemoRunner.cc
 //---------------------------------------------------------------------------//
 #include "RDemoRunner.hh"
 
-#include "base/CollectionStateStore.hh"
-#include "base/ColorUtils.hh"
-#include "base/Range.hh"
-#include "base/Stopwatch.hh"
-#include "comm/Logger.hh"
-#include "geometry/GeoParams.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/ColorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 #include "ImageTrackView.hh"
 #include "RDemoKernel.hh"

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file XsGridParams.cc
+//! \file demo-interactor/XsGridParams.cc
 //---------------------------------------------------------------------------//
 #include "XsGridParams.hh"
 
@@ -11,15 +11,15 @@
 #include <cmath>
 #include <type_traits>
 
-#include "base/Assert.hh"
-#include "base/Collection.hh"
-#include "base/CollectionBuilder.hh"
-#include "base/OpaqueId.hh"
-#include "base/Range.hh"
-#include "base/SoftEqual.hh"
-#include "physics/grid/UniformGrid.hh"
-#include "physics/grid/UniformGridData.hh"
-#include "physics/grid/XsGridData.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "celeritas/grid/UniformGrid.hh"
+#include "celeritas/grid/UniformGridData.hh"
+#include "celeritas/grid/XsGridData.hh"
 
 namespace demo_interactor
 {

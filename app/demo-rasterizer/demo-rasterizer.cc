@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer.cc
+//! \file demo-rasterizer/demo-rasterizer.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
 #include <fstream>
@@ -13,16 +13,16 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
-#include "base/ColorUtils.hh"
-#include "base/Range.hh"
-#include "base/Stopwatch.hh"
-#include "comm/Communicator.hh"
-#include "comm/Device.hh"
-#include "comm/DeviceIO.json.hh"
-#include "comm/KernelDiagnostics.hh"
-#include "comm/KernelDiagnosticsIO.json.hh"
-#include "comm/Logger.hh"
-#include "comm/ScopedMpiInit.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/ColorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/KernelDiagnostics.hh"
+#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/sys/Stopwatch.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "RDemoRunner.hh"
 
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 {
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
-        && Communicator::comm_world().size() > 1)
+        && MpiCommunicator::comm_world().size() > 1)
     {
         CELER_LOG(critical) << "This app cannot run in parallel";
         return EXIT_FAILURE;
