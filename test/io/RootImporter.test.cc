@@ -374,7 +374,7 @@ TEST_F(RootImporterTest, volumes)
 TEST_F(RootImporterTest, em_params)
 {
     const auto em_params = data_.em_params;
-    EXPECT_EQ(5, em_params.size());
+    EXPECT_EQ(7, em_params.size());
 
     std::vector<std::string> enum_string;
     std::vector<double>      value;
@@ -387,11 +387,14 @@ TEST_F(RootImporterTest, em_params)
 
     static const std::string expected_enum_string[] = {"energy_loss_fluct",
                                                        "lpm",
+                                                       "integral_approach",
+                                                       "linear_loss_limit",
                                                        "bins_per_decade",
                                                        "min_table_energy",
                                                        "max_table_energy"};
 
-    static const double expected_value[] = {true, true, 7, 1e-4, 100e6};
+    static const double expected_value[]
+        = {true, true, true, 0.01, 7, 1e-4, 100e6};
 
     EXPECT_VEC_EQ(expected_enum_string, enum_string);
     EXPECT_VEC_EQ(expected_value, value);

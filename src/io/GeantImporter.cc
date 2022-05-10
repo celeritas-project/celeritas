@@ -382,10 +382,14 @@ ImportData::ImportEmParamsMap store_em_parameters()
     ImportData::ImportEmParamsMap import_em_params;
     const auto&                   g4_em_params = *G4EmParameters::Instance();
 
-    // Model flags
+    // EM flags and parameters
     import_em_params.insert({ImportEmParameter::energy_loss_fluct,
                              g4_em_params.LossFluctuation()});
     import_em_params.insert({ImportEmParameter::lpm, g4_em_params.LPM()});
+    import_em_params.insert(
+        {ImportEmParameter::integral_approach, g4_em_params.Integral()});
+    import_em_params.insert({ImportEmParameter::linear_loss_limit,
+                             g4_em_params.LinearLossLimit()});
 
     // Cross-section tables
     import_em_params.insert({ImportEmParameter::bins_per_decade,

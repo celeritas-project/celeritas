@@ -19,6 +19,8 @@ const char* to_cstring(ImportEmParameter value)
 {
     static const char* const strings[] = {"energy_loss_fluct",
                                           "lpm",
+                                          "integral_approach",
+                                          "linear_loss_limit",
                                           "bins_per_decade",
                                           "min_table_energy",
                                           "max_table_energy"};

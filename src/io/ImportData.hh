@@ -28,9 +28,11 @@ enum class ImportEmParameter
 {
     energy_loss_fluct, //!< Energy loss fluctuation flag
     lpm,               //!< LPM effect flag (bremsstrahlung, pair production)
+    integral_approach, //!< Use integral approach
+    linear_loss_limit, //!< Linear loss limit
     bins_per_decade,   //!< Cross-section table binning
-    min_table_energy,  //!< Cross-section tables minimum kinetic energy
-    max_table_energy,  //!< Cross-section tables maximum kinetic energy
+    min_table_energy,  //!< Cross-section tables minimum kinetic energy [MeV]
+    max_table_energy,  //!< Cross-section tables maximum kinetic energy [MeV]
 };
 
 //---------------------------------------------------------------------------//
