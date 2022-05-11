@@ -164,7 +164,7 @@ std::vector<ImportParticle> store_particles()
  */
 std::vector<ImportElement> store_elements()
 {
-    const auto g4element_table = *G4Element::GetElementTable();
+    const auto& g4element_table = *G4Element::GetElementTable();
 
     std::vector<ImportElement> elements;
     elements.resize(g4element_table.size());
