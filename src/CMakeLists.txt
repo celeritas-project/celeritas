@@ -172,6 +172,7 @@ list(APPEND SOURCES
   celeritas/grid/ValueGridInserter.cc
   celeritas/grid/ValueGridInterface.cc
   celeritas/io/AtomicRelaxationReader.cc
+  celeritas/io/ImportData.cc
   celeritas/io/ImportPhysicsTable.cc
   celeritas/io/ImportPhysicsVector.cc
   celeritas/io/ImportProcess.cc

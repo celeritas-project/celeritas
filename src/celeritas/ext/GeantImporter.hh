@@ -64,10 +64,10 @@ class GeantImporter
     ImportData operator()() { return (*this)(DataSelection{}); }
 
   private:
-    // World detector
-    const G4VPhysicalVolume* world_{nullptr};
     // Optional setup if celeritas handles initialization
     GeantSetup setup_;
+    // World physical volume
+    const G4VPhysicalVolume* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
