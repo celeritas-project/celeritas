@@ -223,8 +223,9 @@
  *     CELER_CUDA_CALL(cudaDeviceSynchronize());
  * \endcode
  *
- * \note A file that uses this macro must include \c cuda_runtime_api.h or be
- * compiled by NVCC (which implicitly includes that header).
+ * \note A file that uses this macro must include \c
+ * corecel/device_runtime_api.h or be compiled by NVCC (which implicitly
+ * includes that header).
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_CUDA_CALL(STATEMENT)                       \

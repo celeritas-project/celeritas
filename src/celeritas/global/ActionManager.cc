@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ActionManager.hh"
 
+#    include <cuda_runtime_api.h>
 #include "corecel/sys/Stopwatch.hh"
 
 namespace celeritas
