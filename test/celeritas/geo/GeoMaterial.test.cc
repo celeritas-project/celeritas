@@ -30,6 +30,8 @@ class GeoMaterialTest : public celeritas_test::GeoTestBase<celeritas::GeoParams>
     void SetUp() override
     {
         // Load ROOT file
+        // The simple-cms.root has no ImportData processes stored. Process data
+        // is not used and increases the file size by > 5x.
         std::string root_file
             = this->test_data_path("celeritas", "simple-cms.root");
         auto data = RootImporter(root_file.c_str())();

@@ -57,8 +57,6 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     auto detector
         = std::make_unique<detail::DetectorConstruction>(gdml_filename);
-    // Get world_volume for store_geometry() before releasing detector ptr
-    world_ = detector->get_world_volume();
     run_manager_->SetUserInitialization(detector.release());
 
     //// Load the physics list ////
@@ -108,7 +106,6 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
     }
 
     CELER_ENSURE(*this);
-    CELER_ENSURE(world_);
 }
 
 //---------------------------------------------------------------------------//

@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <G4EmParameters.hh>
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
 #include <G4ParticleTable.hh>
@@ -163,7 +164,7 @@ std::vector<ImportParticle> store_particles()
  */
 std::vector<ImportElement> store_elements()
 {
-    const auto g4element_table = *G4Element::GetElementTable();
+    const auto& g4element_table = *G4Element::GetElementTable();
 
     std::vector<ImportElement> elements;
     elements.resize(g4element_table.size());
@@ -366,6 +367,31 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::ImportEmParamsMap .
+ */
+ImportData::ImportEmParamsMap store_em_parameters()
+{
+    using IEP = ImportEmParameter;
+
+    const auto& g4_em_params = *G4EmParameters::Instance();
+
+    ImportData::ImportEmParamsMap import_em_params{
+        {IEP::energy_loss_fluct, g4_em_params.LossFluctuation()},
+        {IEP::lpm, g4_em_params.LPM()},
+        {IEP::integral_approach, g4_em_params.Integral()},
+        {IEP::linear_loss_limit, g4_em_params.LinearLossLimit()},
+        {IEP::bins_per_decade, g4_em_params.NumberOfBinsPerDecade()},
+        {IEP::min_table_energy, g4_em_params.MinKinEnergy() / MeV},
+        {IEP::max_table_energy, g4_em_params.MaxKinEnergy() / MeV},
+    };
+
+    CELER_LOG(debug) << "Loaded " << import_em_params.size()
+                     << " EM parameters";
+    return import_em_params;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -384,7 +410,13 @@ GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_ASSERT(setup_);
-    world_ = setup_.world();
+
+    auto* transportation = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(transportation);
+    auto* navigator = transportation->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+    world_ = navigator->GetWorldVolume();
+    CELER_ASSERT(world_);
 }
 
 //---------------------------------------------------------------------------//
@@ -399,6 +431,7 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.materials = store_materials();
     import_data.processes = store_processes();
     import_data.volumes   = store_volumes(world_);
+    import_data.em_params = store_em_parameters();
 
     CELER_ENSURE(import_data);
     return import_data;

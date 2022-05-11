@@ -25,9 +25,8 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 /*!
- * The \e four-steel-slabs.root is created by the \e app/geant-exporter
- * using the \e four-steel-slabs.gdml example file available in
- * \e app/geant-exporter/data.
+ * The \e four-steel-slabs.root is created by the \e app/celer-export-geant
+ * using the \e four-steel-slabs.gdml example file available in \e app/data .
  *
  * \note
  * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
@@ -370,4 +369,34 @@ TEST_F(RootImporterTest, volumes)
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_solids, solids);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, em_params)
+{
+    const auto& em_params = data_.em_params;
+    EXPECT_EQ(7, em_params.size());
+
+    std::vector<std::string> enum_string;
+    std::vector<double>      value;
+
+    for (const auto& key : em_params)
+    {
+        enum_string.push_back(to_cstring(key.first));
+        value.push_back(key.second);
+    }
+
+    static const std::string expected_enum_string[] = {"energy_loss_fluct",
+                                                       "lpm",
+                                                       "integral_approach",
+                                                       "linear_loss_limit",
+                                                       "bins_per_decade",
+                                                       "min_table_energy",
+                                                       "max_table_energy"};
+
+    static const double expected_value[]
+        = {true, true, true, 0.01, 7, 1e-4, 100e6};
+
+    EXPECT_VEC_EQ(expected_enum_string, enum_string);
+    EXPECT_VEC_EQ(expected_value, value);
 }

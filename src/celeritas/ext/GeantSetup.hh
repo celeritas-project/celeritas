@@ -14,7 +14,6 @@
 #include "corecel/Assert.hh"
 
 // Geant4 forward declarations
-class G4VPhysicalVolume;
 class G4RunManager;
 
 namespace celeritas
@@ -61,9 +60,6 @@ class GeantSetup
     // Default constructor
     GeantSetup() = default;
 
-    // Get the world detector volume
-    inline const G4VPhysicalVolume* world() const;
-
     //! True if we own a run manager
     explicit operator bool() const { return static_cast<bool>(run_manager_); }
 
@@ -74,22 +70,11 @@ class GeantSetup
     };
     using RMUniquePtr = std::unique_ptr<G4RunManager, RMDeleter>;
 
-    RMUniquePtr              run_manager_{nullptr};
-    const G4VPhysicalVolume* world_{nullptr};
+    RMUniquePtr run_manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get the world detector volume.
- */
-const G4VPhysicalVolume* GeantSetup::world() const
-{
-    CELER_EXPECT(*this);
-    return world_;
-}
-
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
 inline GeantSetup::GeantSetup(const std::string&, Options)
