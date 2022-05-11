@@ -172,9 +172,9 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     CELER_LOG(status) << "Transporting";
 
     StepperInput input;
-    input.params           = input_.params;
-    input.num_track_slots  = input_.num_track_slots;
-    input.num_initializers = input_.num_initializers;
+    input.params             = input_.params;
+    input.num_track_slots    = input_.num_track_slots;
+    input.num_initializers   = input_.num_initializers;
     input.post_step_callback = diagnostic_action_; // May be "false"
     Stepper<M> step(std::move(input));
 

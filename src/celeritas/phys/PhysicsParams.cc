@@ -209,12 +209,16 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
                    << " (should be positive)");
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
-                   << " (should be be within 0 <= limit <= 1)");
+                   << " (should be within 0 <= limit <= 1)");
+    CELER_VALIDATE(opts.secondary_stack_factor > 0,
+                   << "invalid secondary_stack_factor=" << opts.secondary_stack_factor
+                   << " (should be positive)");
     data->scalars.scaling_min_range  = opts.min_range;
     data->scalars.scaling_fraction   = opts.max_step_over_range;
     data->scalars.energy_fraction    = opts.min_eprime_over_e;
     data->scalars.linear_loss_limit  = opts.linear_loss_limit;
     data->scalars.enable_fluctuation = opts.enable_fluctuation;
+    data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }
 
 //---------------------------------------------------------------------------//

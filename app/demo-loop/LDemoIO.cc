@@ -166,7 +166,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
 TransporterInput load_input(const LDemoArgs& args)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
-    TransporterInput result;
+    TransporterInput  result;
     CoreParams::Input params;
 
     ImportData imported_data;
@@ -191,7 +191,7 @@ TransporterInput load_input(const LDemoArgs& args)
     // Create action manager
     {
         ActionManager::Options opts;
-        opts.sync      = args.sync;
+        opts.sync         = args.sync;
         params.action_mgr = std::make_shared<ActionManager>(opts);
     }
 
@@ -254,8 +254,8 @@ TransporterInput load_input(const LDemoArgs& args)
         PhysicsParams::Input input;
         input.particles                      = params.particle;
         input.materials                      = params.material;
-        input.options.enable_fluctuation = args.eloss_fluctuation;
-        input.options.fixed_step_limiter = args.step_limiter;
+        input.options.enable_fluctuation     = args.eloss_fluctuation;
+        input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
 

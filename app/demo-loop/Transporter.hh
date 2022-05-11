@@ -16,6 +16,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
 namespace celeritas
@@ -79,7 +80,7 @@ struct TransporterInput
 struct TransporterTiming
 {
     using real_type = celeritas::real_type;
-    using VecReal = std::vector<real_type>;
+    using VecReal   = std::vector<real_type>;
 
     VecReal   steps;   //!< Real time per step
     real_type total{}; //!< Total simulation time
@@ -153,9 +154,9 @@ class TransporterBase
 
   protected:
     // TODO: these protected data are a hack for now
-    TransporterInput input_;
+    TransporterInput                 input_;
     std::shared_ptr<DiagnosticStore> diagnostics_;
-    ActionId                         diagnostic_action_;
+    celeritas::ActionId              diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//
@@ -174,4 +175,4 @@ class Transporter final : public TransporterBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_loop
