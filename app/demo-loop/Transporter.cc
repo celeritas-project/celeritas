@@ -142,8 +142,9 @@ Transporter<M>::Transporter(TransporterInput inp)
         }
 
         // Add diagnostic adapters to action manager
+        diagnostic_action_ = params.action_mgr()->next_id();
         params.action_mgr()->insert(std::make_shared<DiagnosticActionAdapter>(
-            params.action_mgr()->next_id(), diagnostics_));
+            diagnostic_action_, diagnostics_));
     }
 }
 
@@ -163,6 +164,7 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
         result.time.steps.reserve(input_.max_steps);
         result.initializers.reserve(input_.max_steps);
         result.active.reserve(input_.max_steps);
+        result.alive.reserve(input_.max_steps);
     }
 
     // Abort cleanly for interrupt and user-defined signals
@@ -173,6 +175,7 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     input.params           = input_.params;
     input.num_track_slots  = input_.num_track_slots;
     input.num_initializers = input_.num_initializers;
+    input.post_step_callback = diagnostic_action_; // May be "false"
     Stepper<M> step(std::move(input));
 
     // Copy primaries to device and transport

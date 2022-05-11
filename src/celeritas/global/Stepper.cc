@@ -52,7 +52,9 @@ std::vector<ActionId> build_action_vec(const CoreParams& core)
 } // namespace
 
 //---------------------------------------------------------------------------//
-// Construct with problem parameters and setup options
+/*!
+ * Construct with problem parameters and setup options.
+ */
 template<MemSpace M>
 Stepper<M>::Stepper(Input input)
     : params_(std::move(input.params))
@@ -79,12 +81,18 @@ Stepper<M>::Stepper(Input input)
 }
 
 //---------------------------------------------------------------------------//
-// Default destructor
+//! Default destructor
 template<MemSpace M>
 Stepper<M>::~Stepper() = default;
 
 //---------------------------------------------------------------------------//
-// Transport existing states
+/*!
+ * Transport already-initialized states.
+ *
+ * A single transport step is simply a loop over a toplogically sorted DAG
+ * of kernels. Currently the ordering is done manually, but we could introduce
+ * dependencies between the actions to make the action list more bulletproof.
+ */
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
@@ -99,7 +107,7 @@ auto Stepper<M>::operator()() -> result_type
     initialize_tracks(core_ref_, &inits_);
     result.active = states_.size() - inits_.vacancies.size();
 
-    // Launch the interaction kernels for all applicable models
+    // Launch all actions in their proper order
     const ActionManager& action_mgr = *params_->action_mgr();
     for (ActionId action : actions_)
     {
@@ -117,7 +125,14 @@ auto Stepper<M>::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-// Transport existing states and these new primaries
+/*!
+ * Initialize new primaries and transport them for a single step.
+ *
+ * \todo Currently the track initializers and primary initialization are tied
+ * together, so we can only call this once. Once we refactor TrackInitParams we
+ * should be able to control the injection of new primaries into the event
+ * loop.
+ */
 template<MemSpace M>
 auto Stepper<M>::operator()(VecPrimary primaries) -> result_type
 {

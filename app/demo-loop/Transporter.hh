@@ -155,6 +155,7 @@ class TransporterBase
     // TODO: these protected data are a hack for now
     TransporterInput input_;
     std::shared_ptr<DiagnosticStore> diagnostics_;
+    ActionId                         diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//
