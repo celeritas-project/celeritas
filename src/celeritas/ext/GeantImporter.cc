@@ -407,13 +407,15 @@ GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
 /*!
  * Construct by capturing a GeantSetup object.
  */
-GeantImporter::GeantImporter(GeantSetup&& setup)
-    : setup_(std::move(setup))
-    , world_(G4TransportationManager::GetTransportationManager()
-                 ->GetNavigatorForTracking()
-                 ->GetWorldVolume())
+GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
     CELER_ASSERT(setup_);
+
+    auto* transportation = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(transportation);
+    auto* navigator = transportation->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+    world_ = navigator->GetWorldVolume();
     CELER_ASSERT(world_);
 }
 
