@@ -374,7 +374,7 @@ TEST_F(RootImporterTest, volumes)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, em_params)
 {
-    const auto em_params = data_.em_params;
+    const auto& em_params = data_.em_params;
     EXPECT_EQ(7, em_params.size());
 
     std::vector<std::string> enum_string;

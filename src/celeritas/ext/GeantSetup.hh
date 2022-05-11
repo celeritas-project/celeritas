@@ -14,7 +14,6 @@
 #include "corecel/Assert.hh"
 
 // Geant4 forward declarations
-class G4VPhysicalVolume;
 class G4RunManager;
 
 namespace celeritas

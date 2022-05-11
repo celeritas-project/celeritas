@@ -372,25 +372,19 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
  */
 ImportData::ImportEmParamsMap store_em_parameters()
 {
-    ImportData::ImportEmParamsMap import_em_params;
-    const auto&                   g4_em_params = *G4EmParameters::Instance();
+    using IEP = ImportEmParameter;
 
-    // EM flags and parameters
-    import_em_params.insert({ImportEmParameter::energy_loss_fluct,
-                             g4_em_params.LossFluctuation()});
-    import_em_params.insert({ImportEmParameter::lpm, g4_em_params.LPM()});
-    import_em_params.insert(
-        {ImportEmParameter::integral_approach, g4_em_params.Integral()});
-    import_em_params.insert({ImportEmParameter::linear_loss_limit,
-                             g4_em_params.LinearLossLimit()});
+    const auto& g4_em_params = *G4EmParameters::Instance();
 
-    // Cross-section tables
-    import_em_params.insert({ImportEmParameter::bins_per_decade,
-                             g4_em_params.NumberOfBinsPerDecade()});
-    import_em_params.insert({ImportEmParameter::min_table_energy,
-                             g4_em_params.MinKinEnergy() / MeV});
-    import_em_params.insert({ImportEmParameter::max_table_energy,
-                             g4_em_params.MaxKinEnergy() / MeV});
+    ImportData::ImportEmParamsMap import_em_params{
+        {IEP::energy_loss_fluct, g4_em_params.LossFluctuation()},
+        {IEP::lpm, g4_em_params.LPM()},
+        {IEP::integral_approach, g4_em_params.Integral()},
+        {IEP::linear_loss_limit, g4_em_params.LinearLossLimit()},
+        {IEP::bins_per_decade, g4_em_params.NumberOfBinsPerDecade()},
+        {IEP::min_table_energy, g4_em_params.MinKinEnergy() / MeV},
+        {IEP::max_table_energy, g4_em_params.MaxKinEnergy() / MeV},
+    };
 
     CELER_LOG(debug) << "Loaded " << import_em_params.size()
                      << " EM parameters";
