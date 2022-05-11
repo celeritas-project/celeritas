@@ -87,8 +87,8 @@ CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
     // bits of the lower
     constexpr double norm = 1.1102230246251565e-16; // 1 / 2^53
     return norm
-           * ((static_cast<ull_int>(upper) << (53ul - 32ul))
-              ^ static_cast<ull_int>(lower));
+           * static_cast<double>((static_cast<ull_int>(upper) << (53ul - 32ul))
+                                 ^ static_cast<ull_int>(lower));
 }
 
 //---------------------------------------------------------------------------//

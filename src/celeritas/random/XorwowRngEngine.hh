@@ -72,7 +72,7 @@ class GenerateCanonical<XorwowRngEngine, RealType>
     //!@{
     //! Type aliases
     using real_type   = RealType;
-    using result_type = real_type;
+    using result_type = RealType;
     //!@}
 
   public:
