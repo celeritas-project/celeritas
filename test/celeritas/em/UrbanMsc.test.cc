@@ -10,6 +10,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/em/distribution/UrbanMscScatter.hh"
 #include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
@@ -18,7 +19,6 @@
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoTestBase.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/grid/RangeCalculator.hh"
@@ -36,7 +36,6 @@
 #include "celeritas_test.hh"
 
 using namespace celeritas;
-using namespace celeritas_test;
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
@@ -55,18 +54,10 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
+class UrbanMscTest : public celeritas_test::GlobalTestBase
 {
-  public:
-    const char* filebase() const override { return "four-steel-slabs"; }
-
   protected:
     using RandomEngine = celeritas_test::DiagnosticRngEngine<std::mt19937>;
-
-    using SPActionManager  = std::shared_ptr<ActionManager>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstPhysics   = std::shared_ptr<const PhysicsParams>;
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
 
     using PhysicsStateStore
@@ -77,52 +68,70 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
+  protected:
+    const char* geometry_basename() const override
+    {
+        return "four-steel-slabs";
+    }
+
     void SetUp() override
     {
         RootImporter import_from_root(
             this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
-        auto data = import_from_root();
+        import_data_    = import_from_root();
+        processes_data_ = std::make_shared<ImportedProcesses>(
+            std::move(import_data_.processes));
+        CELER_ASSERT(processes_data_->size() > 0);
 
-        particle_params_ = ParticleParams::from_import(data);
-        material_params_ = MaterialParams::from_import(data);
-        processes_data_
-            = std::make_shared<ImportedProcesses>(std::move(data.processes));
+        // Make one state per particle
+        auto state_size = this->particle()->size();
 
-        CELER_ENSURE(particle_params_);
-        CELER_ENSURE(processes_data_->size() > 0);
+        params_ref_     = this->physics()->host_ref();
+        physics_state_  = PhysicsStateStore(*this->physics(), state_size);
+        particle_state_ = ParticleStateStore(*this->particle(), state_size);
+        geo_state_      = GeoStateStore(*this->geometry(), 1);
+    }
 
+    SPConstParticle build_particle() override
+    {
+        return ParticleParams::from_import(import_data_);
+    }
+
+    SPConstMaterial build_material() override
+    {
+        return MaterialParams::from_import(import_data_);
+    }
+
+    SPConstPhysics build_physics() override
+    {
         PhysicsParams::Input input;
-        input.particles = particle_params_;
-        input.materials = material_params_;
+        input.particles = this->particle();
+        input.materials = this->material();
 
         // Add EIonizationProcess and MultipleScatteringProcess
         input.processes.push_back(std::make_shared<EIonizationProcess>(
-            particle_params_, processes_data_));
+            this->particle(), processes_data_));
         input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
-            particle_params_, material_params_, processes_data_));
+            this->particle(), this->material(), processes_data_));
 
         // Add action manager
-        actions_             = std::make_shared<ActionManager>();
-        input.action_manager = actions_.get();
+        input.action_manager = this->action_mgr().get();
 
-        physics_params_ = std::make_shared<PhysicsParams>(std::move(input));
-
-        // Make one state per particle
-        auto state_size = particle_params_->size();
-
-        CELER_ASSERT(physics_params_);
-        params_ref_     = physics_params_->host_ref();
-        physics_state_  = PhysicsStateStore(*physics_params_, state_size);
-        particle_state_ = ParticleStateStore(*particle_params_, state_size);
-        geo_state_      = GeoStateStore(*this->geometry(), 1);
+        return std::make_shared<PhysicsParams>(std::move(input));
     }
+
+    SPConstGeoMaterial build_geomaterial() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
 
     // Make physics track view
     PhysicsTrackView make_track_view(const char* particle, MaterialId mid)
     {
         CELER_EXPECT(particle && mid);
 
-        auto pid = this->particle_params_->find(particle);
+        auto pid = this->particle()->find(particle);
         CELER_ASSERT(pid);
         CELER_ASSERT(pid.get() < physics_state_.size());
 
@@ -144,17 +153,17 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
 
     void set_inc_particle(PDGNumber pdg, MevEnergy energy)
     {
-        CELER_EXPECT(particle_params_);
+        CELER_EXPECT(this->particle());
         CELER_EXPECT(pdg);
         CELER_EXPECT(energy >= zero_quantity());
 
         // Construct track view
         part_view_ = std::make_shared<ParticleTrackView>(
-            particle_params_->host_ref(), particle_state_.ref(), ThreadId{0});
+            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0});
 
         // Initialize
         ParticleTrackView::Initializer_t init;
-        init.particle_id = particle_params_->find(pdg);
+        init.particle_id = this->particle()->find(pdg);
         init.energy      = energy;
         *part_view_      = init;
     }
@@ -165,16 +174,14 @@ class UrbanMscTest : public GeoTestBase<celeritas::GeoParams>
         return rng_;
     }
 
-    SPConstMaterials material_params_;
-    SPConstParticles particle_params_;
-    SPActionManager  actions_;
-    SPConstPhysics   physics_params_;
+    ImportData       import_data_;
     SPConstImported  processes_data_;
 
     PhysicsParamsHostRef params_ref_;
     PhysicsStateStore    physics_state_;
     ParticleStateStore   particle_state_;
     GeoStateStore        geo_state_;
+
     // Views
     std::shared_ptr<ParticleTrackView> part_view_;
     RandomEngine                       rng_;
@@ -191,11 +198,11 @@ TEST_F(UrbanMscTest, msc_scattering)
     // Views
     PhysicsTrackView   phys     = this->make_track_view("e-", MaterialId{1});
     GeoTrackView       geo_view = this->make_geo_track_view();
-    const MaterialView material_view = material_params_->get(MaterialId{1});
+    const MaterialView material_view = this->material()->get(MaterialId{1});
 
     // Create the model
     std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ActionId{0}, *particle_params_, *material_params_);
+        ActionId{0}, *this->particle(), *this->material());
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
     const UrbanMscMaterialData& msc_

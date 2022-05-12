@@ -40,8 +40,8 @@ class CoreParams
     using SPConstParticle    = std::shared_ptr<const ParticleParams>;
     using SPConstCutoff      = std::shared_ptr<const CutoffParams>;
     using SPConstPhysics     = std::shared_ptr<const PhysicsParams>;
-    using SPActionManager    = std::shared_ptr<ActionManager>;
     using SPConstRng         = std::shared_ptr<const RngParams>;
+    using SPActionManager    = std::shared_ptr<ActionManager>;
 
     using HostRef = CoreParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
@@ -56,14 +56,15 @@ class CoreParams
         SPConstParticle    particle;
         SPConstCutoff      cutoff;
         SPConstPhysics     physics;
-        SPActionManager    action_mgr;
         SPConstRng         rng;
+
+        SPActionManager action_mgr;
 
         //! True if all params are assigned
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && action_mgr && rng;
+                   && physics && rng && action_mgr;
         }
     };
 
@@ -82,8 +83,8 @@ class CoreParams
     const SPConstParticle& particle() const { return input_.particle; }
     const SPConstCutoff&   cutoff() const { return input_.cutoff; }
     const SPConstPhysics&  physics() const { return input_.physics; }
-    const SPActionManager& action_mgr() const { return input_.action_mgr; }
     const SPConstRng&      rng() const { return input_.rng; }
+    const SPActionManager& action_mgr() const { return input_.action_mgr; }
     //!@}
 
     //! Access properties on the host

@@ -1,0 +1,98 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+0,
+2,
+1,
+0
+],
+"names": [
+"lo density celerogen",
+"hi density celerogen",
+"solid celerinium"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-100.000000000001,
+-100.000000000001,
+-100.000000000001
+],
+[
+100.000000000001,
+100.000000000001,
+100.000000000001
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"inner",
+"middle",
+"outer",
+"world"
+],
+"cells": [
+{
+"faces": [ 0 ],
+"logic": "0",
+"num_intersections": 2,
+"zorder": 2
+},
+{
+"faces": [ 1 ],
+"logic": "0 ~",
+"num_intersections": 2,
+"zorder": 2
+},
+{
+"faces": [ 1, 2 ],
+"logic": "0 1 ~ &",
+"num_intersections": 4,
+"zorder": 2
+},
+{
+"faces": [ 2, 3 ],
+"logic": "0 1 ~ &",
+"num_intersections": 4,
+"zorder": 2
+},
+{
+"faces": [
+0,
+3
+],
+"logic": "0 ~ 1 &",
+"num_intersections": 4,
+"zorder": 2
+}
+],
+"md": {
+"name": "global",
+"provenance": "three-spheres.org.omn:15"
+},
+"surface_names": [
+"world_sph.s",
+"inner_sph.s",
+"middle_sph.s",
+"outer_sph.s"
+],
+"surfaces": {
+"connectivity": [
+[ 0, 4 ],
+[ 1, 2 ],
+[ 2, 3 ],
+[ 3, 4 ]
+],
+"data": [ 10000.0, 1.0, 9.0, 36.0 ],
+"sizes": [ 1, 1, 1, 1 ],
+"types": [ "sc", "sc", "sc", "sc" ]
+}
+}
+]
+}

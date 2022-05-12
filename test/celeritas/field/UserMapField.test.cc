@@ -6,12 +6,14 @@
 //! \file celeritas/field/UserMapField.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 #include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"
@@ -112,7 +114,7 @@ TEST_F(UserMapFieldTest, host_umf_propagator)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with a user CMSMapField
     CMSMapField field(this->ref_);
@@ -168,7 +170,7 @@ TEST_F(UserMapFieldTest, host_umf_geolimited)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with a user CMSMapField
     CMSMapField field(this->ref_);
@@ -256,9 +258,9 @@ TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_propagator))
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;
@@ -290,9 +292,9 @@ TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_geolimited))
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;

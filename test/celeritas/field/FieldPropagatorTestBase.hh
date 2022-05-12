@@ -6,16 +6,12 @@
 //! \file celeritas/field/FieldPropagatorTestBase.hh
 //---------------------------------------------------------------------------//
 
-#include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/FieldParamsData.hh"
-#include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoTestBase.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
@@ -32,12 +28,20 @@ using celeritas::units::MevEnergy;
  * between. We fire off electrons (TODO: also test positrons!) that end up
  * running circles around the z axis (along which the magnetic field points).
  */
-class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
+class FieldPropagatorTestBase : public celeritas_test::GlobalTestBase
 {
   public:
-    const char* filebase() const override { return "field-test"; }
+    const char* geometry_basename() const override { return "field-test"; }
 
-    void SetUp() override
+    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() override
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+    SPConstCutoff  build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics build_physics() override { CELER_ASSERT_UNREACHABLE(); }
+
+    SPConstParticle build_particle() override
     {
         using namespace celeritas::units;
         namespace pdg = celeritas::pdg;
@@ -56,10 +60,13 @@ class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
                         ElementaryCharge{1},
                         stable});
 
-        particle_params = std::make_shared<ParticleParams>(std::move(defs));
+        return std::make_shared<ParticleParams>(std::move(defs));
+    }
 
+    void SetUp() override
+    {
         // Construct views
-        resize(&state_value, particle_params->host_ref(), 1);
+        resize(&state_value, this->particle()->host_ref(), 1);
         state_ref = state_value;
 
         // Set values of FieldParamsData;
@@ -79,7 +86,6 @@ class FieldPropagatorTestBase : public GeoTestBase<celeritas::GeoParams>
     }
 
   protected:
-    std::shared_ptr<ParticleParams>                         particle_params;
     ParticleStateData<Ownership::value, MemSpace::host>     state_value;
     ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
 

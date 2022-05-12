@@ -9,15 +9,16 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/MockTestBase.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-#include "PhysicsTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -28,8 +29,10 @@ using MevEnergy = celeritas::units::MevEnergy;
 // PHYSICS BASE CLASS
 //---------------------------------------------------------------------------//
 
-class PhysicsParamsTest : public PhysicsTestBase
+class PhysicsParamsTest : public MockTestBase
 {
+  public:
+    const SPConstParticle& particles() { return MockTestBase::particle(); }
 };
 
 TEST_F(PhysicsParamsTest, accessors)
@@ -126,9 +129,9 @@ TEST_F(PhysicsParamsTest, output)
 // PHYSICS TRACK VIEW (HOST)
 //---------------------------------------------------------------------------//
 
-class PhysicsTrackViewHostTest : public PhysicsTestBase
+class PhysicsTrackViewHostTest : public PhysicsParamsTest
 {
-    using Base = PhysicsTestBase;
+    using Base = PhysicsParamsTest;
 
   public:
     //!@{
@@ -334,7 +337,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 
     for (const char* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->materials()->size()}))
+        for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
             const PhysicsTrackView phys
                 = this->make_track_view(particle, mat_id);
@@ -369,7 +372,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     std::vector<real_type> xs;
     for (const char* particle : {"gamma", "celeriton"})
     {
-        for (auto mat_id : range(MaterialId{this->materials()->size()}))
+        for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
             const PhysicsTrackView phys
                 = this->make_track_view(particle, mat_id);
@@ -545,9 +548,9 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 //---------------------------------------------------------------------------//
 
 #define PHYS_DEVICE_TEST TEST_IF_CELER_DEVICE(PhysicsTrackViewDeviceTest)
-class PHYS_DEVICE_TEST : public PhysicsTestBase
+class PHYS_DEVICE_TEST : public PhysicsParamsTest
 {
-    using Base = PhysicsTestBase;
+    using Base = PhysicsParamsTest;
 
   public:
     //!@{
@@ -622,16 +625,16 @@ TEST_F(PHYS_DEVICE_TEST, all)
 // TEST POSITRON ANNIHILATION
 //---------------------------------------------------------------------------//
 
-class EPlusAnnihilationTest : public PhysicsTestBase
+class EPlusAnnihilationTest : public PhysicsParamsTest
 {
   public:
-    SPMaterials build_materials() const override;
-    SPParticles build_particles() const override;
-    SPPhysics   build_physics() const override;
+    SPConstMaterial build_material() override;
+    SPConstParticle build_particle() override;
+    SPConstPhysics  build_physics() override;
 };
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_materials() const -> SPMaterials
+auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 {
     using namespace celeritas::units;
     using namespace celeritas::constants;
@@ -648,7 +651,7 @@ auto EPlusAnnihilationTest::build_materials() const -> SPMaterials
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_particles() const -> SPParticles
+auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
     using namespace celeritas::units;
     namespace pdg = celeritas::pdg;
@@ -666,14 +669,14 @@ auto EPlusAnnihilationTest::build_particles() const -> SPParticles
 }
 
 //---------------------------------------------------------------------------//
-auto EPlusAnnihilationTest::build_physics() const -> SPPhysics
+auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
-    physics_inp.materials                  = this->materials();
+    physics_inp.materials                  = this->material();
     physics_inp.particles                  = this->particles();
     physics_inp.options                    = this->build_physics_options();
     physics_inp.options.enable_fluctuation = false;
-    physics_inp.action_manager             = this->action_manager().get();
+    physics_inp.action_manager             = this->action_mgr().get();
 
     physics_inp.processes.push_back(
         std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));
@@ -710,7 +713,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     EXPECT_EQ(ModelId{0}, phys.hardwired_model(ppid, MevEnergy{0}));
 
     // Check cross section
-    MaterialView material_view = this->materials()->get(MaterialId{0});
+    MaterialView material_view = this->material()->get(MaterialId{0});
     EXPECT_SOFT_EQ(5.1172452607412999e-05,
                    phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
 }

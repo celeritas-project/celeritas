@@ -141,6 +141,7 @@ class TransporterBase
     //! Type aliases
     using VecPrimary = std::vector<celeritas::Primary>;
     using CoreParams = celeritas::CoreParams;
+    using ActionId   = celeritas::ActionId;
     //!@}
 
   public:

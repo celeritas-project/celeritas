@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1"/>
+    </isotope>
+    <element name="H">
+      <fraction n="1" ref="H1"/>
+    </element>
+    <!-- the materials here should be ignored: manually create mock materials instead -->
+    <material name="lo density celerogen" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-20"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <material name="hi density celerogen" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-19"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <material name="solid celerinium" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="173"/>
+      <D unit="g/cm3" value="1"/>
+      <fraction n="1" ref="Si"/>
+    </material>
+  </materials>
+    
+  <solids>
+    <sphere lunit="cm" name="inner_sph" rmax="1.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+    <sphere lunit="cm" name="middle_sph" rmax="3.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+    <sphere lunit="cm" name="outer_sph" rmax="6.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+    <sphere lunit="cm" name="world_sph" rmax="100.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+  </solids>
+
+  <structure>
+    <volume name="inner">
+      <solidref ref="inner_sph"/>
+      <materialref ref="lo density celerogen"/>
+    </volume>
+    <volume name="middle">
+      <solidref ref="middle_sph"/>
+      <materialref ref="solid celerinium"/>
+    </volume>
+    <volume name="outer">
+      <solidref ref="outer_sph"/>
+      <materialref ref="hi density celerogen"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_sph"/>
+      <materialref ref="lo density celerogen"/>
+      <physvol>
+        <volumeref ref="inner"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="middle"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="outer"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="world"/>
+  </setup>
+</gdml>

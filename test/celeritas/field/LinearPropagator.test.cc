@@ -11,9 +11,9 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,13 +23,12 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTest
-    : public celeritas_test::GeoTestBase<celeritas::GeoParams>
+class LinearPropagatorTest : public celeritas_test::GlobalTestBase
 {
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    const char* filebase() const override { return "simple-cms"; }
+    const char* geometry_basename() const override { return "simple-cms"; }
 
     void SetUp() override { state = StateStore(*this->geometry(), 1); }
 
@@ -46,6 +45,16 @@ class LinearPropagatorTest
             return "[OUTSIDE]";
         }
         return this->geometry()->id_to_label(geo.volume_id());
+    }
+
+  protected:
+    SPConstParticle build_particle() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCutoff   build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics  build_physics() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() override
+    {
+        CELER_ASSERT_UNREACHABLE();
     }
 
   protected:

@@ -39,8 +39,6 @@ struct CoreRef;
  *
  * New actions should be created with an action ID corresponding to \c
  * next_id . Registering an action checks its ID.
- *
- * \todo Add options for post-kernel device sync and timer accumulation.
  */
 class ActionManager
 {

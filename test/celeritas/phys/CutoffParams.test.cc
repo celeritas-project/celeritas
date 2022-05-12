@@ -168,7 +168,6 @@ class CutoffParamsImportTest : public celeritas::Test
             = this->test_data_path("celeritas", "four-steel-slabs.root");
         RootImporter import_from_root(root_filename_.c_str());
         data_ = import_from_root();
-        ;
     }
     std::string root_filename_;
     ImportData  data_;

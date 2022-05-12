@@ -1,40 +1,56 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/PhysicsTestBase.cc
+//! \file celeritas/MockTestBase.cc
 //---------------------------------------------------------------------------//
-#include "PhysicsTestBase.hh"
+#include "MockTestBase.hh"
 
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+
+#include "phys/MockProcess.hh"
 
 using namespace celeritas;
 
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
-PhysicsTestBase::~PhysicsTestBase() = default;
-
+// PUBLIC MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-void PhysicsTestBase::SetUp()
+auto MockTestBase::make_applicability(const char* name,
+                                      double      lo_energy,
+                                      double hi_energy) const -> Applicability
 {
-    actions_ = std::make_shared<ActionManager>();
+    CELER_EXPECT(name);
+    CELER_EXPECT(lo_energy <= hi_energy);
 
-    materials_ = this->build_materials();
-    CELER_ASSERT(materials_);
-    particles_ = this->build_particles();
-    CELER_ASSERT(particles_);
-    physics_ = this->build_physics();
-    CELER_ASSERT(physics_);
-    model_to_action_ = this->physics()->host_ref().scalars.model_to_action;
+    using celeritas::units::MevEnergy;
+
+    Applicability result;
+    result.particle = this->particle()->find(name);
+    result.lower    = MevEnergy{lo_energy};
+    result.upper    = MevEnergy{hi_energy};
+    return result;
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_materials() const -> SPMaterials
+auto MockTestBase::make_model_callback() const -> ModelCallback
+{
+    return [this](ActionId id) {
+        CELER_ASSERT(id);
+        interactions_.push_back(ModelId{id.unchecked_get() - model_to_action_});
+    };
+}
+
+//---------------------------------------------------------------------------//
+// PROTECTED MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_material() -> SPConstMaterial
 {
     using namespace celeritas::units;
     MaterialParams::Input inp;
@@ -59,7 +75,18 @@ auto PhysicsTestBase::build_materials() const -> SPMaterials
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_particles() const -> SPParticles
+auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
+{
+    GeoMaterialParams::Input input;
+    input.geometry      = this->geometry();
+    input.materials     = this->material();
+    input.volume_to_mat = {MaterialId{0}, MaterialId{2}, MaterialId{1}};
+    input.volume_names  = {"inner", "middle", "outer"};
+    return std::make_shared<GeoMaterialParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_particle() -> SPConstParticle
 {
     using namespace celeritas::units;
     namespace pdg = celeritas::pdg;
@@ -85,24 +112,29 @@ auto PhysicsTestBase::build_particles() const -> SPParticles
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_physics_options() const -> PhysicsOptions
+auto MockTestBase::build_cutoff() -> SPConstCutoff
 {
-    return {};
+    CutoffParams::Input input;
+    input.materials = this->material();
+    input.particles = this->particle();
+    input.cutoffs   = {}; // No cutoffs
+
+    return std::make_shared<CutoffParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::build_physics() const -> SPPhysics
+auto MockTestBase::build_physics() -> SPConstPhysics
 {
     using Barn = MockProcess::BarnMicroXs;
     PhysicsParams::Input physics_inp;
-    physics_inp.materials      = this->materials();
-    physics_inp.particles      = this->particles();
+    physics_inp.materials      = this->material();
+    physics_inp.particles      = this->particle();
     physics_inp.options        = this->build_physics_options();
-    physics_inp.action_manager = actions_.get();
+    physics_inp.action_manager = this->action_mgr().get();
 
     // Add a few processes
     MockProcess::Input inp;
-    inp.materials = this->materials();
+    inp.materials = this->material();
     inp.interact  = this->make_model_callback();
     {
         inp.label       = "scattering";
@@ -164,29 +196,9 @@ auto PhysicsTestBase::build_physics() const -> SPPhysics
 }
 
 //---------------------------------------------------------------------------//
-auto PhysicsTestBase::make_applicability(const char* name,
-                                         double      lo_energy,
-                                         double      hi_energy) const
-    -> Applicability
+auto MockTestBase::build_physics_options() const -> PhysicsOptions
 {
-    using celeritas::units::MevEnergy;
-    CELER_EXPECT(particles_);
-    CELER_EXPECT(name);
-    CELER_EXPECT(lo_energy <= hi_energy);
-    Applicability result;
-    result.particle = particles_->find(name);
-    result.lower    = MevEnergy{lo_energy};
-    result.upper    = MevEnergy{hi_energy};
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-auto PhysicsTestBase::make_model_callback() const -> ModelCallback
-{
-    return [this](ActionId id) {
-        CELER_ASSERT(id);
-        interactions_.push_back(ModelId{id.unchecked_get() - model_to_action_});
-    };
+    return {};
 }
 
 //---------------------------------------------------------------------------//
