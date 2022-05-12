@@ -41,7 +41,10 @@ class OutputManager
     // Add an interface for writing
     void insert(SPConstInterface);
 
-    // Write all outputs as JSON to the given stream
+    // Write output to the given JSON object
+    void output(JsonPimpl*) const;
+
+    // Dump all outputs as JSON to the given stream
     void output(std::ostream* os) const;
 
   private:
