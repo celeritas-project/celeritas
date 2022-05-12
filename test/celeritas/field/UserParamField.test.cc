@@ -21,7 +21,7 @@
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
 
-using celeritas::detail::CMSParameterizedField;
+using celeritas_test::detail::CMSParameterizedField;
 
 using namespace celeritas;
 using namespace celeritas_test;

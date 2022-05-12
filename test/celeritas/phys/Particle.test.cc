@@ -36,7 +36,7 @@ using namespace celeritas_test;
 // TEST HARNESS BASE
 //---------------------------------------------------------------------------//
 
-class ParticleTest : public celeritas::Test
+class ParticleTest : public celeritas_test::Test
 {
   protected:
     using Initializer_t = ParticleTrackView::Initializer_t;
@@ -91,7 +91,7 @@ TEST_F(ParticleTest, params_accessors)
 // IMPORT PARTICLE DATA TEST
 //---------------------------------------------------------------------------//
 
-class ParticleImportTest : public celeritas::Test
+class ParticleImportTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

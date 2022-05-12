@@ -97,7 +97,7 @@ TEST(CollectionBuilder, size_limits)
 // SIMPLE TESTS
 //---------------------------------------------------------------------------//
 
-class SimpleCollectionTest : public celeritas::Test
+class SimpleCollectionTest : public celeritas_test::Test
 {
   protected:
     using IntId    = celeritas::ItemId<int>;
@@ -187,7 +187,7 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 // COMPLEX TESTS
 //---------------------------------------------------------------------------//
 
-class CollectionTest : public celeritas::Test
+class CollectionTest : public celeritas_test::Test
 {
   protected:
     using MockParamsMirror = celeritas::CollectionMirror<MockParamsData>;

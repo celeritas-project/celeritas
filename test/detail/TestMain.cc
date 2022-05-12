@@ -25,8 +25,9 @@
 
 using std::cout;
 using std::endl;
+using namespace celeritas;
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -42,7 +43,7 @@ int test_main(int argc, char** argv)
     try
     {
         // Initialize device
-        celeritas::activate_device(make_device(comm));
+        activate_device(make_device(comm));
     }
     catch (const std::exception& e)
     {
@@ -117,4 +118,4 @@ int test_main(int argc, char** argv)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

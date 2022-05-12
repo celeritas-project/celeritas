@@ -16,7 +16,7 @@ using celeritas::Real3;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class BoundingBoxTest : public celeritas::Test
+class BoundingBoxTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

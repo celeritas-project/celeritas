@@ -28,7 +28,7 @@ constexpr real_type sqrt_third = 1 / celeritas::constants::sqrt_three;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SphereTest : public celeritas::Test
+class SphereTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

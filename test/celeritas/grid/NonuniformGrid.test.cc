@@ -18,7 +18,7 @@ using celeritas::NonuniformGrid;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class NonuniformGridTest : public celeritas::Test
+class NonuniformGridTest : public celeritas_test::Test
 {
   protected:
     using GridT = NonuniformGrid<int>;

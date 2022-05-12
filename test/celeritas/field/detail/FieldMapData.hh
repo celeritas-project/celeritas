@@ -11,10 +11,15 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
+using size_type = celeritas::size_type;
+using real_type = celeritas::real_type;
+using Ownership = celeritas::Ownership;
+using MemSpace  = celeritas::MemSpace;
+
 //---------------------------------------------------------------------------//
 /*!
  * FieldMap (2-dimensional RZ map) parameters
@@ -79,7 +84,7 @@ struct FieldMapData
         return (idx_z < params.num_grid_z && idx_r < params.num_grid_r);
     }
 
-    inline CELER_FUNCTION ItemId<size_type> id(int idx_z, int idx_r) const
+    inline CELER_FUNCTION ElementId id(int idx_z, int idx_r) const
     {
         return ElementId(idx_z * params.num_grid_r + idx_r);
     }
@@ -103,4 +108,4 @@ using FieldMapRef = FieldMapData<Ownership::const_reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

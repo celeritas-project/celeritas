@@ -18,7 +18,7 @@ using celeritas::NormalDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class NormalDistributionTest : public celeritas::Test
+class NormalDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

@@ -13,7 +13,7 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas::detail;
+using namespace celeritas_test::detail;
 
 using VecInt = std::vector<int>;
 using VecDbl = std::vector<double>;

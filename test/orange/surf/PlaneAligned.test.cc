@@ -32,7 +32,7 @@ using VecReal = std::vector<real_type>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PlaneAlignedTest : public celeritas::Test
+class PlaneAlignedTest : public celeritas_test::Test
 {
   protected:
     template<class S>

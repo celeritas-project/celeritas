@@ -86,7 +86,7 @@ TEST(MaterialUtils, radiation_length)
 // MATERIALS HOST TEST
 //---------------------------------------------------------------------------//
 
-class MaterialTest : public celeritas::Test
+class MaterialTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override
@@ -248,7 +248,7 @@ TEST_F(MaterialTest, element_view)
 // IMPORT MATERIAL DATA TEST
 //---------------------------------------------------------------------------//
 
-class MaterialParamsImportTest : public celeritas::Test
+class MaterialParamsImportTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

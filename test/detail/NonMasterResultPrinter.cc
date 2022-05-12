@@ -12,7 +12,9 @@
 
 #include "corecel/io/ColorUtils.hh"
 
-namespace celeritas
+using celeritas::color_code;
+
+namespace celeritas_test
 {
 namespace detail
 {
@@ -53,4 +55,4 @@ void NonMasterResultPrinter::OnTestPartResult(
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

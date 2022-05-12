@@ -20,7 +20,7 @@ using celeritas::TsaiUrbanDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TsaiUrbanDistributionTest : public celeritas::Test
+class TsaiUrbanDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

@@ -15,7 +15,7 @@
 
 #include "detail/TestConfig.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -116,4 +116,4 @@ std::string Test::make_unique_filename(const char* ext)
 constexpr double Test::inf;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace celeritas_test

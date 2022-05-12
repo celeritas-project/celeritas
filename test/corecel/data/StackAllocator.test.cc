@@ -23,7 +23,7 @@ using MockAllocatorData = celeritas::StackAllocatorData<MockSecondary, W, M>;
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class StackAllocatorTest : public celeritas::Test
+class StackAllocatorTest : public celeritas_test::Test
 {
   protected:
     using Allocator = celeritas::StackAllocator<MockSecondary>;

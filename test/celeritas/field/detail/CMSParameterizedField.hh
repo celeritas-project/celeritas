@@ -16,7 +16,9 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
-namespace celeritas
+using celeritas::Real3;
+
+namespace celeritas_test
 {
 namespace detail
 {
@@ -32,7 +34,7 @@ class CMSParameterizedField
 {
     //!@{
     //! Type aliases
-    using Real4 = celeritas::Array<real_type, 4>;
+    using Real4 = celeritas::Array<celeritas::real_type, 4>;
     //!@}
 
   public:
@@ -62,17 +64,20 @@ class CMSParameterizedField
  * with the CMS detector geometry.
  */
 CELER_FUNCTION
-Real3 CMSParameterizedField::operator()(const Real3& pos) const
+auto CMSParameterizedField::operator()(const Real3& pos) const -> Real3
 {
+    using celeritas::ipow;
+    using celeritas::units::tesla;
+
     Real3 value{0., 0., 0.};
 
     real_type r    = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
     Real3     bw   = this->evaluate_field(r, pos[2]);
     real_type rinv = (r > 0) ? 1 / r : 0;
 
-    value[0] = units::tesla * bw[0] * pos[0] * rinv;
-    value[1] = units::tesla * bw[0] * pos[1] * rinv;
-    value[2] = units::tesla * bw[2];
+    value[0] = tesla * bw[0] * pos[0] * rinv;
+    value[1] = tesla * bw[0] * pos[1] * rinv;
+    value[2] = tesla * bw[2];
 
     return value;
 }
@@ -87,6 +92,9 @@ Real3 CMSParameterizedField::operator()(const Real3& pos) const
 CELER_FUNCTION
 Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 {
+    using celeritas::ipow;
+    using celeritas::units::meter;
+
     const real_type prm[9] = {4.24326,
                               15.0201,
                               3.81492,
@@ -104,12 +112,12 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     real_type coeff = 1 / ipow<2>(prm[8]);
 
     // Convert to m (cms magnetic field parameterization)
-    r *= 1 / units::meter;
-    z *= 1 / units::meter;
+    r *= 1 / meter;
+    z *= 1 / meter;
     // The max Bz point is shifted in z
     z -= prm[3];
 
-    real_type az    = std::abs(z);
+    real_type az    = std::fabs(z);
     real_type zainv = z * ainv;
     real_type u     = hlova - zainv;
     real_type v     = hlova + zainv;
@@ -142,6 +150,8 @@ CELER_FUNCTION
 CMSParameterizedField::Real4
 CMSParameterizedField::evaluate_parameters(real_type x) const
 {
+    using celeritas::ipow;
+
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);
 
@@ -156,4 +166,4 @@ CMSParameterizedField::evaluate_parameters(real_type x) const
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

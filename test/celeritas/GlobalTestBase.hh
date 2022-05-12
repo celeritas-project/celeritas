@@ -39,7 +39,7 @@ namespace celeritas_test
 /*!
  * Lazily construct core parameters, individually or together.
  */
-class GlobalTestBase : public celeritas::Test
+class GlobalTestBase : public celeritas_test::Test
 {
   public:
     //!@{

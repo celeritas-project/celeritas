@@ -15,7 +15,9 @@
 #include "corecel/Types.hh"
 #include "celeritas/Units.hh"
 
-namespace celeritas
+using namespace celeritas;
+
+namespace celeritas_test
 {
 namespace detail
 {
@@ -69,4 +71,4 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

@@ -25,7 +25,7 @@ namespace pdg = celeritas::pdg;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class EventReaderTest : public celeritas::Test,
+class EventReaderTest : public celeritas_test::Test,
                         public testing::WithParamInterface<const char*>
 {
   protected:

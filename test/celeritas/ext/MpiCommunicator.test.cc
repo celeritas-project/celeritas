@@ -27,7 +27,7 @@ using celeritas::ScopedMpiInit;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CommunicatorTest : public celeritas::Test
+class CommunicatorTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

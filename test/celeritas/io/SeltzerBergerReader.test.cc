@@ -15,7 +15,7 @@ using celeritas::SeltzerBergerReader;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SeltzerBergerReaderTest : public celeritas::Test
+class SeltzerBergerReaderTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

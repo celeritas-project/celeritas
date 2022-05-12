@@ -28,7 +28,7 @@ using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class EnergyLossDistributionTest : public celeritas::Test
+class EnergyLossDistributionTest : public celeritas_test::Test
 {
   protected:
     using HostValue = FluctuationData<Ownership::value, MemSpace::host>;

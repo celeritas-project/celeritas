@@ -61,7 +61,7 @@ class MyImplicitAction final : public ImplicitActionInterface,
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ActionManagerTest : public celeritas::Test
+class ActionManagerTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

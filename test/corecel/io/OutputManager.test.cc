@@ -47,7 +47,7 @@ class TestInterface final : public celeritas::OutputInterface
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class OutputManagerTest : public celeritas::Test
+class OutputManagerTest : public celeritas_test::Test
 {
   protected:
     using Category = celeritas::OutputInterface::Category;

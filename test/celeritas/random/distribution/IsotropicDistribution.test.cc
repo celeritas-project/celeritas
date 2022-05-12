@@ -21,7 +21,7 @@ using celeritas::IsotropicDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class IsotropicDistributionTest : public celeritas::Test
+class IsotropicDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

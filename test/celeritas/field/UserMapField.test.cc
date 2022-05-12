@@ -23,8 +23,11 @@
 #include "detail/FieldMapData.hh"
 #include "detail/MagFieldMap.hh"
 
-using celeritas::detail::CMSMapField;
-using celeritas::detail::MagFieldMap;
+using celeritas_test::detail::CMSFieldMapReader;
+using celeritas_test::detail::CMSMapField;
+using celeritas_test::detail::FieldMapParameters;
+using celeritas_test::detail::FieldMapRef;
+using celeritas_test::detail::MagFieldMap;
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -50,17 +53,16 @@ class UserMapFieldTest : public FieldPropagatorTestBase
         test.radius /= 3.8;
 
         // Construct MagFieldMap and save a reference to the host data
-        std::string test_file
-            = celeritas::Test::test_data_path("celeritas", "cmsFieldMap.tiny");
+        std::string test_file = celeritas_test::Test::test_data_path(
+            "celeritas", "cmsFieldMap.tiny");
 
-        detail::FieldMapParameters params;
+        FieldMapParameters params;
         params.delta_grid = units::meter;
         params.num_grid_r = 9 + 1;           //! [0:9]
         params.num_grid_z = 2 * 16 + 1;      //! [-16:16]
         params.offset_z   = real_type{1600}; //! 16 meters
 
-        MagFieldMap::ReadMap load_map
-            = detail::CMSFieldMapReader(params, test_file);
+        MagFieldMap::ReadMap load_map = CMSFieldMapReader(params, test_file);
 
         map_ = std::make_shared<MagFieldMap>(load_map);
         ref_ = map_->host_ref();
@@ -85,7 +87,7 @@ class UserMapFieldTest : public FieldPropagatorTestBase
     GeoStateStore                  geo_state_;
     UserFieldTestParams            test_param_;
     std::shared_ptr<MagFieldMap>   map_;
-    celeritas::detail::FieldMapRef ref_;
+    FieldMapRef                    ref_;
 };
 
 //---------------------------------------------------------------------------//

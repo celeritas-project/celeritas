@@ -37,7 +37,7 @@ TEST(SoftEqual, default_precisions)
 // Test fixture
 //---------------------------------------------------------------------------//
 template<class T>
-class FloatingTest : public celeritas::Test
+class FloatingTest : public celeritas_test::Test
 {
   protected:
     using value_type = T;

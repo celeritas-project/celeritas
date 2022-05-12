@@ -33,7 +33,7 @@ using namespace celeritas_test;
 // SEQUENCE ENGINE
 //---------------------------------------------------------------------------//
 
-class SequenceEngineTest : public celeritas::Test
+class SequenceEngineTest : public celeritas_test::Test
 {
   public:
     void SetUp() override
@@ -163,7 +163,7 @@ TEST(DiagnosticEngineTest, from_reals)
 // CUDA/ROCM RNG
 //---------------------------------------------------------------------------//
 
-class DeviceRngEngineTest : public celeritas::Test
+class DeviceRngEngineTest : public celeritas_test::Test
 {
   public:
     using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;

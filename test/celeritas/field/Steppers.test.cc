@@ -69,7 +69,8 @@ class SteppersTest : public Test
     void run_stepper(const TField& field)
     {
         // Construct a stepper for testing
-        using Traits = typename detail::MagTestTraits<TField, TStepper>;
+        using Traits =
+            typename celeritas_test::detail::MagTestTraits<TField, TStepper>;
 
         typename Traits::Equation_t equation(field,
                                              units::ElementaryCharge{-1});
@@ -99,8 +100,8 @@ class SteppersTest : public Test
                     StepperResult result = stepper(hstep, y);
                     y                    = result.end_state;
 
-                    total_err2 += detail::truncation_error(
-                        hstep, 0.001, y, result.err_state);
+                    total_err2
+                        += truncation_error(hstep, 0.001, y, result.err_state);
                 }
                 // Check the state after each revolution and the total error
                 EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));

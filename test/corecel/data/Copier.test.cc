@@ -21,7 +21,7 @@ using celeritas::MemSpace;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CopierTest : public celeritas::Test
+class CopierTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

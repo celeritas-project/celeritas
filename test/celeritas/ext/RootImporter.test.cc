@@ -33,7 +33,7 @@ using namespace celeritas;
  * values for steel, failing \c processes test.
  */
 
-class RootImporterTest : public celeritas::Test
+class RootImporterTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

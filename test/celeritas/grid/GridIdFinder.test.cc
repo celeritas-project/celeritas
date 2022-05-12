@@ -20,7 +20,7 @@ using celeritas::make_span;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GridIdFinderTest : public celeritas::Test
+class GridIdFinderTest : public celeritas_test::Test
 {
   protected:
     using Energy  = celeritas::units::MevEnergy;

@@ -43,7 +43,7 @@ using namespace celeritas::units;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CutoffParamsTest : public celeritas::Test
+class CutoffParamsTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override
@@ -159,7 +159,7 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
 // IMPORT CUTOFF DATA TEST
 //---------------------------------------------------------------------------//
 
-class CutoffParamsImportTest : public celeritas::Test
+class CutoffParamsImportTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

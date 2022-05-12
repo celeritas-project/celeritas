@@ -18,7 +18,7 @@ using celeritas::UniformGridData;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UniformGridTest : public celeritas::Test
+class UniformGridTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

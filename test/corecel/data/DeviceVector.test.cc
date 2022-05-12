@@ -15,7 +15,7 @@ using celeritas::DeviceVector;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class DeviceVectorTest : public celeritas::Test
+class DeviceVectorTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

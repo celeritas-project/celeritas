@@ -23,7 +23,7 @@ using MaterialParamsRef = MaterialParams::HostRef;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ElementSelectorTest : public celeritas::Test
+class ElementSelectorTest : public celeritas_test::Test
 {
   public:
     //!@{

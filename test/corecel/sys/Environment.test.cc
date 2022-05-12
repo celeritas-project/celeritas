@@ -22,7 +22,7 @@ using celeritas::Environment;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class EnvironmentTest : public celeritas::Test
+class EnvironmentTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

@@ -20,7 +20,7 @@ using celeritas::PoissonDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PoissonDistributionTest : public celeritas::Test
+class PoissonDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

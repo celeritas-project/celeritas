@@ -17,11 +17,9 @@
 
 namespace celeritas_test
 {
-using namespace celeritas;
-
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using celeritas::detail::FieldMapDeviceRef;
+using celeritas_test::detail::FieldMapDeviceRef;
 
 using UserFieldTestVector = std::vector<double>;
 
@@ -32,7 +30,8 @@ using UserFieldTestVector = std::vector<double>;
 //! Test parameters
 struct UserFieldTestParams
 {
-    //  using size_type = celeritas::size_type;
+    using real_type = celeritas::real_type;
+    using size_type = celeritas::size_type;
     size_type nsamples; //! number of sampling points
     real_type delta_z;  //! delta for the z-position
     real_type delta_r;  //! delta for the r-position

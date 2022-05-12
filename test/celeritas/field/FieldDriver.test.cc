@@ -23,6 +23,7 @@
 
 using namespace celeritas;
 using namespace celeritas_test;
+using celeritas_test::detail::MagTestTraits;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -62,8 +63,7 @@ TEST_F(FieldDriverTest, field_driver_host)
 {
     // Construct FieldDriver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits
-        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
+    using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);
@@ -114,8 +114,7 @@ TEST_F(FieldDriverTest, accurate_advance_host)
 {
     // Construct FieldDriver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits
-        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
+    using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, &rk4);

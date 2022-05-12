@@ -22,7 +22,7 @@ using std::make_shared;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ValueGridBuilderTest : public celeritas::Test
+class ValueGridBuilderTest : public celeritas_test::Test
 {
   public:
     using SPConstBuilder = std::shared_ptr<const ValueGridBuilder>;

@@ -10,7 +10,7 @@
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -23,11 +23,11 @@ template<class Field, template<class> class Stepper>
 struct MagTestTraits
 {
     using Field_t    = Field;
-    using Equation_t = MagFieldEquation<Field_t>;
+    using Equation_t = celeritas::MagFieldEquation<Field_t>;
     using Stepper_t  = Stepper<Equation_t>;
-    using Driver_t   = FieldDriver<Stepper_t>;
+    using Driver_t   = celeritas::FieldDriver<Stepper_t>;
 };
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

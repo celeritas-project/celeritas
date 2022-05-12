@@ -27,7 +27,7 @@
 #include "UserField.test.hh"
 #include "detail/CMSParameterizedField.hh"
 
-using celeritas::detail::CMSParameterizedField;
+using celeritas_test::detail::CMSParameterizedField;
 using thrust::raw_pointer_cast;
 
 namespace celeritas_test
