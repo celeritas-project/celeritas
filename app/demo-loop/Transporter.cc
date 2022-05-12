@@ -166,6 +166,11 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
         result.active.reserve(input_.max_steps);
         result.alive.reserve(input_.max_steps);
     }
+    auto append_track_counts = [&result](const StepperResult& track_counts) {
+        result.initializers.push_back(track_counts.queued);
+        result.active.push_back(track_counts.active);
+        result.alive.push_back(track_counts.alive);
+    };
 
     // Abort cleanly for interrupt and user-defined signals
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
@@ -180,6 +185,7 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
 
     // Copy primaries to device and transport
     auto      track_counts    = step(std::move(primaries));
+    append_track_counts(track_counts);
     size_type remaining_steps = input_.max_steps;
 
     while (track_counts)
@@ -187,10 +193,8 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
         // Run a step, adding a timer
         Stopwatch get_step_time;
         track_counts = step();
+        append_track_counts(track_counts);
         result.time.steps.push_back(get_step_time());
-        result.initializers.push_back(track_counts.queued);
-        result.active.push_back(track_counts.active);
-        result.alive.push_back(track_counts.alive);
 
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
