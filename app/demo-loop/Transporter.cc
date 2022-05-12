@@ -183,19 +183,16 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     input.post_step_callback = diagnostic_action_; // May be "false"
     Stepper<M> step(std::move(input));
 
-    // Copy primaries to device and transport
+    Stopwatch get_step_time;
+    size_type remaining_steps = input_.max_steps;
+
+    // Copy primaries to device and transport the first step
     auto      track_counts    = step(std::move(primaries));
     append_track_counts(track_counts);
-    size_type remaining_steps = input_.max_steps;
+    result.time.steps.push_back(get_step_time());
 
     while (track_counts)
     {
-        // Run a step, adding a timer
-        Stopwatch get_step_time;
-        track_counts = step();
-        append_track_counts(track_counts);
-        result.time.steps.push_back(get_step_time());
-
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
             CELER_LOG(error) << "Exceeded step count of " << input_.max_steps
@@ -209,6 +206,11 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
             interrupted = {};
             break;
         }
+
+        get_step_time = {};
+        track_counts  = step();
+        append_track_counts(track_counts);
+        result.time.steps.push_back(get_step_time());
     }
 
     if (diagnostics_)
