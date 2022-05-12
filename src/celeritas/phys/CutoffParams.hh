@@ -78,6 +78,12 @@ class CutoffParams
     // Access cutoffs on host
     inline CutoffView get(MaterialId material) const;
 
+    // Number of particle types stored
+    inline ParticleId::size_type num_particles() const;
+
+    // Number of materials stored
+    inline MaterialId::size_type num_materials() const;
+
     //! Access cutoff data on the host
     const HostRef& host_ref() const { return data_.host(); }
 
@@ -105,6 +111,24 @@ CutoffView CutoffParams::get(MaterialId material) const
 {
     CELER_EXPECT(material < this->host_ref().num_materials);
     return CutoffView(this->host_ref(), material);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of particle types stored
+ */
+ParticleId::size_type CutoffParams::num_particles() const
+{
+    return this->host_ref().num_particles;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of material types stored
+ */
+MaterialId::size_type CutoffParams::num_materials() const
+{
+    return this->host_ref().num_materials;
 }
 
 //---------------------------------------------------------------------------//

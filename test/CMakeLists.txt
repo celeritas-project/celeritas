@@ -198,6 +198,15 @@ celeritas_add_test(orange/Orange.test.cc)
 #-----------------------------------------------------------------------------#
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
+set(_gen_sources)
+macro(celeritas_gen_test_interactor subdir class func)
+  celeritas_gen(_gen_sources
+    "gen-interactor.py" "celeritas/${subdir}/generated/${class}Interact"
+    --class ${class}  --func ${func} --namespace celeritas_test --dir ${subdir}
+  )
+endmacro()
+celeritas_gen_test_interactor(phys ApplyCutoff apply_cutoff)
+
 add_library(CeleritasTest
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
@@ -205,13 +214,21 @@ add_library(CeleritasTest
   celeritas/phys/SecondaryIO.cc
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
+  celeritas/phys/ApplyCutoffModel.cc
+  celeritas/phys/ApplyCutoffProcess.cc
   celeritas/GlobalTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/TestEm3Base.cc
+  ${_gen_sources}
 )
 celeritas_target_link_libraries(CeleritasTest
   PRIVATE celeritas celeritas_io CelerTest)
+if(CELERITAS_USE_OpenMP)
+  celeritas_target_link_libraries(CeleritasTest PRIVATE OpenMP::OpenMP_CXX)
+else()
+  celeritas_target_compile_options(CeleritasTest PRIVATE -Wno-unknown-pragmas)
+endif()
 
 #-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX celeritas LINK_LIBRARIES CeleritasTest)
