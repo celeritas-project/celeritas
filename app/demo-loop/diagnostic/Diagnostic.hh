@@ -10,13 +10,12 @@
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "../Transporter.hh"
-
 using celeritas::MemSpace;
 using celeritas::Ownership;
 
 namespace demo_loop
 {
+struct TransporterResult;
 //---------------------------------------------------------------------------//
 /*!
  * Interface for on-device data access at different stages of a simulation.
@@ -27,31 +26,12 @@ class Diagnostic
   public:
     using EventId  = celeritas::EventId;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
 
     // Virtual destructor for polymorphic deletion
     virtual ~Diagnostic() = 0;
 
-    // Memory allocations
-    virtual void begin_simulation() {}
-
-    // Collect diagnostic(s) before event begins
-    virtual void begin_event(EventId, const StateRef&) {}
-
-    // Collect diagnostic(s) before step
-    virtual void begin_step(const StateRef&) {}
-
     // Collect diagnostic(s) in the middle of a step
     virtual void mid_step(const StateRef&) {}
-
-    // Collect diagnostic(s) after step
-    virtual void end_step(const StateRef&) {}
-
-    // Collect diagnostic(s) after event ends
-    virtual void end_event(EventId, const StateRef&) {}
-
-    // Collect post-sim diagnostic(s)
-    virtual void end_simulation() {}
 
     // Collect results from diagnostic
     virtual void get_result(TransporterResult*) {}

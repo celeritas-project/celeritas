@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "celeritas_config.h"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
 #include "orange/Types.hh"
 #include "orange/construct/SurfaceInput.hh"

@@ -61,9 +61,9 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 
     Interaction result = this->call_with_track(model_data, track);
 
-    auto phys = track.make_physics_view();
     if (result.changed())
     {
+        auto phys = track.make_physics_step_view();
         // Scattered or absorbed
         phys.deposit_energy(result.energy_deposition);
         {
@@ -88,6 +88,7 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
     }
     else if (CELER_UNLIKELY(result.action == Interaction::Action::failed))
     {
+        auto phys = track.make_physics_view();
         // Particle already moved to the collision site, but an out-of-memory
         // (allocation failure) occurred. Someday we can add error handling,
         // but for now use the "failure" action in the physics and set the step

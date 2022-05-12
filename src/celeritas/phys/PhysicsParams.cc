@@ -13,9 +13,11 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/VectorUtils.hh"
+#include "celeritas/em/AtomicRelaxationParams.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
@@ -48,7 +50,9 @@ class ImplicitPhysicsAction final : public ImplicitActionInterface,
 /*!
  * Construct with processes and helper classes.
  */
-PhysicsParams::PhysicsParams(Input inp) : processes_(std::move(inp.processes))
+PhysicsParams::PhysicsParams(Input inp)
+    : processes_(std::move(inp.processes))
+    , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
     CELER_EXPECT(std::all_of(processes_.begin(),
@@ -205,12 +209,16 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
                    << " (should be positive)");
     CELER_VALIDATE(opts.linear_loss_limit >= 0 && opts.linear_loss_limit <= 1,
                    << "invalid linear_loss_limit=" << opts.linear_loss_limit
-                   << " (should be be within 0 <= limit <= 1)");
+                   << " (should be within 0 <= limit <= 1)");
+    CELER_VALIDATE(opts.secondary_stack_factor > 0,
+                   << "invalid secondary_stack_factor=" << opts.secondary_stack_factor
+                   << " (should be positive)");
     data->scalars.scaling_min_range  = opts.min_range;
     data->scalars.scaling_fraction   = opts.max_step_over_range;
     data->scalars.energy_fraction    = opts.min_eprime_over_e;
     data->scalars.linear_loss_limit  = opts.linear_loss_limit;
     data->scalars.enable_fluctuation = opts.enable_fluctuation;
+    data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }
 
 //---------------------------------------------------------------------------//
@@ -361,6 +369,11 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.urban      = ModelId{model_idx};
             data->hardwired.urban_data = urban_model->host_ref();
         }
+    }
+
+    if (relaxation_)
+    {
+        data->hardwired.relaxation_data = relaxation_->host_ref();
     }
 
     CELER_ENSURE(*data);

@@ -22,6 +22,7 @@
 #include "celeritas/grid/NonuniformGrid.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "../Transporter.hh"
 #include "Diagnostic.hh"
 
 namespace demo_loop
@@ -40,7 +41,6 @@ class EnergyDiagnostic : public Diagnostic<M>
     using Axis      = celeritas::Axis;
     using Items     = celeritas::Collection<real_type, Ownership::value, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:

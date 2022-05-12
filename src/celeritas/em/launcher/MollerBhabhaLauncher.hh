@@ -25,7 +25,8 @@ inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
     auto        particle             = track.make_particle_view();
     auto        cutoff               = track.make_cutoff_view();
     const auto& dir                  = track.make_geo_view().dir();
-    auto        allocate_secondaries = track.make_secondary_allocator();
+    auto        allocate_secondaries
+        = track.make_physics_step_view().make_secondary_allocator();
 
     MollerBhabhaInteractor interact(
         model, particle, cutoff, dir, allocate_secondaries);

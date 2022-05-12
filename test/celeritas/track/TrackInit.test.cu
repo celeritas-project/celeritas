@@ -35,7 +35,8 @@ interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
         if (sim.status() != TrackStatus::inactive)
         {
             // Allow the particle to interact and create secondaries
-            StackAllocator<Secondary> allocate_secondaries(states.secondaries);
+            StackAllocator<Secondary> allocate_secondaries(
+                states.physics.secondaries);
 
             Interactor interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],

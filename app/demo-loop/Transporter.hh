@@ -15,27 +15,27 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/random/RngParams.hh"
+#include "celeritas/global/CoreParams.hh"
 
 namespace celeritas
 {
+struct Primary;
+}
+
+namespace demo_loop
+{
 //---------------------------------------------------------------------------//
-class ActionManager;
-class AtomicRelaxationParams;
-class CutoffParams;
-class GeoMaterialParams;
-class MaterialParams;
-class ParticleParams;
-class PhysicsParams;
-class TrackInitParams;
+template<celeritas::MemSpace M>
+class Diagnostic;
 
 //---------------------------------------------------------------------------//
 struct EnergyDiagInput
 {
+    using size_type = celeritas::size_type;
+    using real_type = celeritas::real_type;
+
     char      axis{'z'};
     real_type min{-700};
     real_type max{700};
@@ -46,35 +46,23 @@ struct EnergyDiagInput
 //! Input parameters to the transporter.
 struct TransporterInput
 {
+    using size_type  = celeritas::size_type;
+    using CoreParams = celeritas::CoreParams;
+
     //! Arbitrarily high number for not stopping the simulation short
     static constexpr size_type no_max_steps()
     {
         return celeritas::numeric_limits<size_type>::max();
     }
 
-    // Action manager
-    std::shared_ptr<ActionManager> actions;
+    // Problem parameters
+    std::shared_ptr<const CoreParams> params;
 
-    // Geometry and materials
-    std::shared_ptr<const GeoParams>         geometry;
-    std::shared_ptr<const MaterialParams>    materials;
-    std::shared_ptr<const GeoMaterialParams> geo_mats;
-
-    // Physics
-    std::shared_ptr<const ParticleParams>         particles;
-    std::shared_ptr<const CutoffParams>           cutoffs;
-    std::shared_ptr<const PhysicsParams>          physics;
-    std::shared_ptr<const AtomicRelaxationParams> relaxation;
-
-    // Random
-    std::shared_ptr<const RngParams> rng;
-
-    // Constants
-    size_type max_num_tracks{};
+    // Run setup
+    size_type num_track_slots{};  //!< AKA max_num_tracks
+    size_type num_initializers{}; //!< AKA initializer_capacity
     size_type max_steps{};
-    real_type secondary_stack_factor{};
     bool      enable_diagnostics{true};
-    bool      sync{false};
 
     // Diagnostic setup
     EnergyDiagInput energy_diag;
@@ -82,8 +70,8 @@ struct TransporterInput
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return geometry && materials && geo_mats && particles && cutoffs
-               && physics && rng;
+        return params && num_track_slots > 0 && num_initializers > 0
+               && max_steps > 0;
     }
 };
 
@@ -91,20 +79,12 @@ struct TransporterInput
 //! Simulation timing results.
 struct TransporterTiming
 {
-    using VecReal = std::vector<real_type>;
+    using real_type = celeritas::real_type;
+    using VecReal   = std::vector<real_type>;
 
     VecReal   steps;   //!< Real time per step
     real_type total{}; //!< Total simulation time
     real_type setup{}; //!< One-time initialization cost
-
-    // Finer-grained timing information within a step
-    real_type initialize_tracks{};
-    real_type pre_step{};
-    real_type along_step{};
-    real_type discrete_select{};
-    real_type cross_boundary{};
-    real_type launch_models{};
-    real_type extend_from_secondaries{};
 };
 
 //---------------------------------------------------------------------------//
@@ -113,6 +93,8 @@ struct TransporterResult
 {
     //!@{
     //! Type aliases
+    using real_type         = celeritas::real_type;
+    using size_type         = celeritas::size_type;
     using VecCount          = std::vector<size_type>;
     using VecReal           = std::vector<real_type>;
     using MapStringCount    = std::unordered_map<std::string, size_type>;
@@ -131,6 +113,18 @@ struct TransporterResult
 };
 
 //---------------------------------------------------------------------------//
+//! Hack: help adapt demo-loop diagnostics to Transporter/Action
+struct DiagnosticStore
+{
+    using MemSpace = celeritas::MemSpace;
+    template<MemSpace M>
+    using VecUPDiag = std::vector<std::unique_ptr<Diagnostic<M>>>;
+
+    VecUPDiag<MemSpace::host>   host;
+    VecUPDiag<MemSpace::device> device;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Interface class for transporting a set of primaries to completion.
  *
@@ -143,44 +137,42 @@ struct TransporterResult
 class TransporterBase
 {
   public:
+    //!@{
+    //! Type aliases
+    using VecPrimary = std::vector<celeritas::Primary>;
+    using CoreParams = celeritas::CoreParams;
+    //!@}
+
+  public:
     virtual ~TransporterBase() = 0;
 
     // Transport the input primaries and all secondaries produced
-    virtual TransporterResult operator()(const TrackInitParams& primaries) = 0;
+    virtual TransporterResult operator()(VecPrimary primaries) = 0;
 
     //! Access input parameters (TODO hacky)
-    virtual const TransporterInput& input() const = 0;
+    const CoreParams& params() const { return *input_.params; }
+
+  protected:
+    // TODO: these protected data are a hack for now
+    TransporterInput                 input_;
+    std::shared_ptr<DiagnosticStore> diagnostics_;
+    celeritas::ActionId              diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport a set of primaries to completion.
  */
-template<MemSpace M>
-class Transporter : public TransporterBase
+template<celeritas::MemSpace M>
+class Transporter final : public TransporterBase
 {
   public:
     // Construct from parameters
     explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
-    TransporterResult operator()(const TrackInitParams& primaries) final;
-
-    //! Access input parameters (TODO hacky)
-    const TransporterInput& input() const final { return input_; }
-
-  private:
-    TransporterInput                              input_;
-    CoreParamsData<Ownership::const_reference, M> params_;
-    CollectionStateStore<CoreStateData, M>        states_;
-
-    // TODO: convert to a vector of actions in order to take, after updating
-    // the rest of the code to use actions as well
-    ActionId pre_step_action_;
-    ActionId along_step_action_;
-    ActionId boundary_action_;
-    ActionId discrete_select_action_;
+    TransporterResult operator()(VecPrimary primaries) final;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_loop

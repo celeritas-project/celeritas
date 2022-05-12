@@ -14,6 +14,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 
 #include "Collection.test.hh"

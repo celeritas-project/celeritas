@@ -14,14 +14,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/track/TrackInitParams.hh"
 
 #include "Transporter.hh"
-
-namespace celeritas
-{
-class ParticleParams;
-}
 
 namespace demo_loop
 {
@@ -42,7 +36,7 @@ struct LDemoArgs
     // Control
     unsigned int seed{};
     size_type    max_num_tracks{};
-    size_type    max_steps = celeritas::TransporterInput::no_max_steps();
+    size_type    max_steps = TransporterInput::no_max_steps();
     size_type    initializer_capacity{};
     real_type    secondary_stack_factor{};
     bool         enable_diagnostics{};
@@ -62,7 +56,7 @@ struct LDemoArgs
     bool enable_msc{false};
 
     // Diagnostic input
-    celeritas::EnergyDiagInput energy_diag;
+    EnergyDiagInput energy_diag;
 
     // Optional setup options if loading directly from Geant4
     celeritas::GeantSetupOptions geant_options;
@@ -78,16 +72,10 @@ struct LDemoArgs
 };
 
 // Load params from input arguments
-celeritas::TransporterInput load_input(const LDemoArgs& args);
-std::shared_ptr<celeritas::TrackInitParams>
-
-// Load primary particles from an input HepMC3 event file
-load_primaries(const std::shared_ptr<const celeritas::ParticleParams>& particles,
-               const LDemoArgs&                                        args);
+TransporterInput load_input(const LDemoArgs& args);
 
 // Build transporter from input arguments
-std::unique_ptr<celeritas::TransporterBase>
-build_transporter(const LDemoArgs& run_args);
+std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);

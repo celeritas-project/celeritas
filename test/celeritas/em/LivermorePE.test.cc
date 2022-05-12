@@ -10,6 +10,7 @@
 #include <map>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Quantities.hh"

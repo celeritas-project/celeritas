@@ -150,14 +150,14 @@ using AtomicRelaxStateRef
  */
 template<MemSpace M>
 inline void
-resize(AtomicRelaxStateData<Ownership::value, M>* data,
+resize(AtomicRelaxStateData<Ownership::value, M>* state,
        const AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>&
                  params,
        size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&data->scratch).resize(size * params.max_stack_size);
-    data->num_states = size;
+    make_builder(&state->scratch).resize(size * params.max_stack_size);
+    state->num_states = size;
 }
 
 //---------------------------------------------------------------------------//

@@ -42,10 +42,12 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     }
 
     // Set up photoelectric inteactor with the selected element
-    auto        relaxation           = track.make_relaxation_helper(el_id);
+    auto relaxation
+        = track.make_physics_step_view().make_relaxation_helper(el_id);
     auto        cutoffs              = track.make_cutoff_view();
     const auto& dir                  = track.make_geo_view().dir();
-    auto        allocate_secondaries = track.make_secondary_allocator();
+    auto        allocate_secondaries
+        = track.make_physics_step_view().make_secondary_allocator();
     LivermorePEInteractor interact(
         model, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
 

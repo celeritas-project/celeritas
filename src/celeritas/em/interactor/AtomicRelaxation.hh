@@ -10,16 +10,19 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/phys/CutoffView.hh"
+#include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Atomic relaxation.
+ * Simulate particle emission from atomic deexcitation.
  *
  * The EADL radiative and non-radiative transition data is used to simulate the
  * emission of fluorescence photons and (optionally) Auger electrons given an

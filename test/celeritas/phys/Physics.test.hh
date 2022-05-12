@@ -20,6 +20,7 @@
 // Kernel functions
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 namespace celeritas_test
@@ -55,7 +56,9 @@ struct PTestInput
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 inline CELER_FUNCTION celeritas::real_type
-                      calc_step(celeritas::PhysicsTrackView& phys, celeritas::units::MevEnergy energy)
+                      calc_step(celeritas::PhysicsTrackView& phys,
+                                celeritas::PhysicsStepView&  pstep,
+                                celeritas::units::MevEnergy  energy)
 {
     using namespace celeritas;
 
@@ -77,7 +80,7 @@ inline CELER_FUNCTION celeritas::real_type
             process_xs = 0;
         }
 
-        phys.per_process_xs(ppid) = process_xs;
+        pstep.per_process_xs(ppid) = process_xs;
         total_xs += process_xs;
     }
     phys.interaction_mfp(1 / total_xs);

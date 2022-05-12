@@ -80,7 +80,6 @@ if(CELERITAS_USE_HIP)
     demo-loop/generated/ProcessInteractionsKernel.cu
     demo-loop/generated/PreStepKernel.cu
     demo-loop/generated/CleanupKernel.cu
-    demo-loop/diagnostic/TrackDiagnostic.cu
     demo-loop/diagnostic/StepDiagnostic.cu
     demo-loop/diagnostic/ParticleProcessDiagnostic.cu
     demo-loop/diagnostic/EnergyDiagnostic.cu
@@ -211,7 +210,6 @@ if(CELERITAS_BUILD_DEMOS)
     demo-loop/diagnostic/EnergyDiagnostic.cc
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
-    demo-loop/diagnostic/TrackDiagnostic.cc
   )
   set(_demo_loop_libs)
 
@@ -220,7 +218,6 @@ if(CELERITAS_BUILD_DEMOS)
       demo-loop/diagnostic/EnergyDiagnostic.cu
       demo-loop/diagnostic/ParticleProcessDiagnostic.cu
       demo-loop/diagnostic/StepDiagnostic.cu
-      demo-loop/diagnostic/TrackDiagnostic.cu
       )
   endif()
 

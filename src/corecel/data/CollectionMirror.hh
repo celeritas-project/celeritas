@@ -66,19 +66,17 @@ class CollectionMirror
     //! Whether the data is assigned
     explicit operator bool() const { return static_cast<bool>(host_); }
 
-    //! Get references to host data after construction
-    const HostRef& host() const
-    {
-        CELER_ENSURE(host_ref_);
-        return host_ref_;
-    }
+    // Get references to host data after construction
+    inline const HostRef& host_ref() const;
+    // Get references to device data after construction
+    inline const DeviceRef& device_ref() const;
 
-    //! Get references to device data after construction
-    const DeviceRef& device() const
-    {
-        CELER_ENSURE(device_ref_);
-        return device_ref_;
-    }
+    //!@{
+    //! Deprecated alias to _ref-suffied functions
+    const HostRef& host() const { return this->host_ref(); }
+    // Get references to device data after construction
+    const DeviceRef& device() const { return this->device_ref(); }
+    //!@}
 
   private:
     HostValue                             host_;
@@ -105,6 +103,27 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
         device_     = host_;
         device_ref_ = device_;
     }
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Get references to host data after construction.
+ */
+template<template<Ownership, MemSpace> class P>
+auto CollectionMirror<P>::host_ref() const -> const HostRef&
+{
+    CELER_ENSURE(host_ref_);
+    return host_ref_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get references to device data after construction.
+ */
+template<template<Ownership, MemSpace> class P>
+auto CollectionMirror<P>::device_ref() const -> const DeviceRef&
+{
+    CELER_ENSURE(device_ref_);
+    return device_ref_;
 }
 
 //---------------------------------------------------------------------------//

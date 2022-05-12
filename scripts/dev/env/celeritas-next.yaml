@@ -6,7 +6,6 @@ spack:
   - git
   - git-lfs
   - googletest
-  - hdf5 +hl +mpi
   - hepmc3
   - ninja
   - nlohmann-json

@@ -52,7 +52,19 @@ class ActionManager
     using SPConstExplicit = std::shared_ptr<const ExplicitActionInterface>;
     //!@}
 
+    //! Construction/execution options
+    struct Options
+    {
+        bool sync{false}; //!< Call DeviceSynchronize and add timer
+    };
+
   public:
+    //! Construct with options
+    explicit ActionManager(Options options) : options_(options) {}
+
+    //! Construct with default options
+    ActionManager() : ActionManager(Options{}) {}
+
     //// CONSTRUCTION ////
 
     // Get the next action ID
@@ -72,6 +84,9 @@ class ActionManager
 
     //// ACCESSORS ////
 
+    //! Whether synchronization is taking place
+    bool sync() const { return options_.sync; }
+
     // Get the number of defined actions
     inline ActionId::size_type num_actions() const;
 
@@ -80,6 +95,9 @@ class ActionManager
 
     // Get the label corresponding to an action
     inline const std::string& id_to_label(ActionId id) const;
+
+    // Get the accumulated launch time if syncing is enabled
+    inline double accum_time(ActionId id) const;
 
     // Find the action corresponding to an label
     ActionId find_action(const std::string& label) const;
@@ -95,12 +113,13 @@ class ActionManager
         std::string    label;
         SPConstAction  action;
         PConstExplicit expl{nullptr}; //!< dynamic_cast of action
+        mutable double time{0};
     };
 
     //// DATA ////
 
+    Options                                   options_;
     std::vector<ActionData>                   actions_;
-    std::vector<ActionRange>                  ranges_;
     std::unordered_map<std::string, ActionId> action_ids_;
 
     //// HELPER_FUNCTIONS ////
@@ -145,6 +164,17 @@ const std::string& ActionManager::id_to_label(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
     return actions_[id.unchecked_get()].label;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the accumulated launch time if syncing is enabled.
+ */
+double ActionManager::accum_time(ActionId id) const
+{
+    CELER_EXPECT(this->sync());
+    CELER_EXPECT(id < actions_.size());
+    return actions_[id.unchecked_get()].time;
 }
 
 //---------------------------------------------------------------------------//

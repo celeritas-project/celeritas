@@ -3,17 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/RngParams.hh
+//! \file celeritas/geo/GeoParamsFwd.hh
+//! \brief Forward-declare configure-time geometry implementation
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 
-#if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
-    || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
-#    include "CuHipRngParams.hh"
-#elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
-#    include "XorwowRngParams.hh"
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+#if CELERITAS_USE_VECGEOM
+class VecgeomParams;
+using GeoParams = VecgeomParams;
+#else
+class OrangeParams;
+using GeoParams = OrangeParams;
 #endif
-
-#include "RngParamsFwd.hh"
+//---------------------------------------------------------------------------//
+} // namespace celeritas

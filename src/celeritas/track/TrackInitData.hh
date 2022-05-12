@@ -227,17 +227,13 @@ using TrackInitStateDeviceRef
     = TrackInitStateData<Ownership::reference, MemSpace::device>;
 using TrackInitStateHostRef
     = TrackInitStateData<Ownership::reference, MemSpace::host>;
-using TrackInitStateDeviceVal
-    = TrackInitStateData<Ownership::value, MemSpace::device>;
-using TrackInitStateHostVal
-    = TrackInitStateData<Ownership::value, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Resize and initialize track initializer data.
  *
  * Here \c size is the number of track states, and the "capacity" is the
- * maximum number of track initailizers (inactive/pending tracks) that we can
+ * maximum number of track initializers (inactive/pending tracks) that we can
  * hold.
  *
  * \warning It's likely that for GPU runs, the capacity should be greater than
@@ -265,8 +261,10 @@ void resize(
     // Initialize vacancies to mark all track slots as empty
     StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
     make_builder(&vacancies).resize(size);
-    for (auto i : range(ThreadId{size}))
-        vacancies[i] = i.get();
+    for (auto i : range(size))
+    {
+        vacancies[ThreadId{i}] = i;
+    }
     data->vacancies.storage = vacancies;
     data->vacancies.resize(size);
 

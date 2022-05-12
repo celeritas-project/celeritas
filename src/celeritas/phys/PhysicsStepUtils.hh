@@ -26,6 +26,7 @@
 
 #include "CutoffView.hh"
 #include "ParticleTrackView.hh"
+#include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"
 
 namespace celeritas
@@ -60,7 +61,8 @@ CELER_FUNCTION EnergyLossHelper::Energy
 inline CELER_FUNCTION StepLimit
 calc_physics_step_limit(const MaterialTrackView& material,
                         const ParticleTrackView& particle,
-                        PhysicsTrackView&        physics)
+                        const PhysicsTrackView&  physics,
+                        PhysicsStepView&         pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
@@ -93,9 +95,9 @@ calc_physics_step_limit(const MaterialTrackView& material,
             process_xs = physics.calc_xs(ppid, grid_id, particle.energy());
             total_macro_xs += process_xs;
         }
-        physics.per_process_xs(ppid) = process_xs;
+        pstep.per_process_xs(ppid) = process_xs;
     }
-    physics.macro_xs(total_macro_xs);
+    pstep.macro_xs(total_macro_xs);
 
     // Determine limits from discrete interactions
     StepLimit limit;
@@ -300,6 +302,7 @@ template<class Engine>
 CELER_FUNCTION ActionId
 select_discrete_interaction(const ParticleTrackView& particle,
                             const PhysicsTrackView&  physics,
+                            const PhysicsStepView&   pstep,
                             Engine&                  rng)
 {
     // Nonzero MFP to interaction -- no interaction model
@@ -307,11 +310,9 @@ select_discrete_interaction(const ParticleTrackView& particle,
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(
-        [&physics](ParticleProcessId ppid) {
-            return physics.per_process_xs(ppid);
-        },
+        [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
         ParticleProcessId{physics.num_particle_processes()},
-        physics.macro_xs())(rng);
+        pstep.macro_xs())(rng);
 
     // Determine if the discrete interaction occurs for energy loss
     // processes
@@ -331,7 +332,7 @@ select_discrete_interaction(const ParticleTrackView& particle,
         // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
         // to be larger than the estimate of the maximum cross section over the
         // step \f$ \sigma_{\max} \f$.
-        if (generate_canonical(rng) * physics.per_process_xs(ppid) > xs)
+        if (generate_canonical(rng) * pstep.per_process_xs(ppid) > xs)
         {
             // No interaction occurs; reset the physics state and continue
             // tracking

@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -28,7 +29,10 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
+#include "celeritas/global/ActionManagerOutput.hh"
+#include "celeritas/io/EventReader.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
+#include "celeritas/phys/Primary.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -78,15 +82,22 @@ void run(std::istream* is, OutputManager* output)
 
     {
         // Save diagnostic information
-        const auto& tinp = transport_ptr->input();
-        output->insert(std::make_shared<PhysicsParamsOutput>(tinp.physics));
+        const CoreParams& params = transport_ptr->params();
+        output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
+        output->insert(
+            std::make_shared<ActionManagerOutput>(params.action_mgr()));
     }
 
     // Run all the primaries
-    auto primaries = load_primaries(transport_ptr->input().particles, run_args);
-    auto result    = (*transport_ptr)(*primaries);
+    TransporterResult result;
+    {
+        EventReader read_all_events(run_args.hepmc3_filename.c_str(),
+                                    transport_ptr->params().particle());
+        result = (*transport_ptr)(read_all_events());
+    }
 
     result.time.setup = setup_time;
+
     // TODO: convert individual results into OutputInterface so we don't have
     // to use this ugly "global" hack
     output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(

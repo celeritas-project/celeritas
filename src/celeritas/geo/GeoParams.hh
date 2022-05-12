@@ -15,13 +15,4 @@
 #    include "orange/OrangeParams.hh"
 #endif
 
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
-#if CELERITAS_USE_VECGEOM
-using GeoParams = VecgeomParams;
-#else
-using GeoParams = OrangeParams;
-#endif
-//---------------------------------------------------------------------------//
-} // namespace celeritas
+#include "GeoParamsFwd.hh"

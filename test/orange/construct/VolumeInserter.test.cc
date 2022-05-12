@@ -11,6 +11,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Ref.hh"
 #include "orange/construct/VolumeInput.hh"
 
 #include "celeritas_test.hh"

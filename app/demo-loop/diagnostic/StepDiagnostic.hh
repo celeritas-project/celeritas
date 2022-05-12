@@ -18,6 +18,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "../Transporter.hh"
 #include "Diagnostic.hh"
 
 namespace demo_loop
@@ -80,7 +81,6 @@ class StepDiagnostic : public Diagnostic<M>
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
     using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
-    using TransporterResult = celeritas::TransporterResult;
     //!@}
 
   public:

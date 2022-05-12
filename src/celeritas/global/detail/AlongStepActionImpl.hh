@@ -15,6 +15,7 @@
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsStepUtils.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "../CoreTrackData.hh"
@@ -105,7 +106,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
                                          step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);
-        phys.msc_step(msc_step_result);
+        track.make_physics_step_view().msc_step(msc_step_result);
 
         // Use "straight line" path calculated for geometry step
         geo_step = msc_step_result.geom_path;
@@ -143,7 +144,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         const auto& urban_data = phys.urban_data();
 
         // Replace step with actual geometry distance traveled
-        auto msc_step_result      = phys.msc_step();
+        auto msc_step_result      = track.make_physics_step_view().msc_step();
         msc_step_result.geom_path = geo_step;
 
         UrbanMscScatter msc_scatter(urban_data,
@@ -217,7 +218,8 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     }
 
     // Deposit energy loss
-    phys.deposit_energy(eloss);
+    auto step = track.make_physics_step_view();
+    step.deposit_energy(eloss);
     particle.subtract_energy(eloss);
 
     if (step_limit.action != phys.scalars().discrete_action())
@@ -225,7 +227,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         // Reduce remaining mean free paths to travel. The 'discrete action'
         // case is launched separately and resets the interaction MFP itself.
         real_type mfp = phys.interaction_mfp()
-                        - step_limit.step * phys.macro_xs();
+                        - step_limit.step * step.macro_xs();
         CELER_ASSERT(mfp > 0);
         phys.interaction_mfp(mfp);
     }

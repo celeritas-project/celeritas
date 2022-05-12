@@ -7,13 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/StackAllocator.hh"
-#include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
@@ -34,12 +33,6 @@ class CoreTrackView
     using ParamsRef
         = CoreParamsData<Ownership::const_reference, MemSpace::native>;
     using StateRef = CoreStateData<Ownership::reference, MemSpace::native>;
-    //!@}
-
-  public:
-    //!@{
-    //! Type aliases
-    using SecondaryAllocator = StackAllocator<Secondary>;
     //!@}
 
   public:
@@ -69,20 +62,11 @@ class CoreTrackView
     // Return a physics view
     inline CELER_FUNCTION PhysicsTrackView make_physics_view() const;
 
-    // Return a physics view for an inactive track
-    inline CELER_FUNCTION PhysicsTrackView make_physics_view_inactive() const;
+    // Return a view to temporary physics data
+    inline CELER_FUNCTION PhysicsStepView make_physics_step_view() const;
 
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
-
-    // Return a secondary stack allocator
-    // TODO: move to physics
-    inline CELER_FUNCTION SecondaryAllocator make_secondary_allocator() const;
-
-    // Access atomic relaxation data
-    // TODO: move to physics
-    inline CELER_FUNCTION AtomicRelaxationHelper
-    make_relaxation_helper(ElementId el_id) const;
 
     //! Get the track's index among the states
     CELER_FUNCTION ThreadId thread_id() const { return thread_; }
@@ -186,17 +170,12 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a physics view suitable for inactive tracks.
- *
- * This is a hack for allowing secondaries and energy deposition to be cleared
- * even when the track is inactive.
- * TODO: remove this.
+ * Return a physics view.
  */
-CELER_FUNCTION auto CoreTrackView::make_physics_view_inactive() const
-    -> PhysicsTrackView
+CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
+    -> PhysicsStepView
 {
-    CELER_ASSERT(this->make_sim_view().status() == TrackStatus::inactive);
-    return PhysicsTrackView{params_.physics, states_.physics, {}, {}, thread_};
+    return PhysicsStepView{params_.physics, states_.physics, thread_};
 }
 
 //---------------------------------------------------------------------------//
@@ -206,28 +185,6 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view_inactive() const
 CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 {
     return RngEngine{states_.rng, thread_};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a secondary stack allocator view.
- */
-CELER_FUNCTION auto CoreTrackView::make_secondary_allocator() const
-    -> SecondaryAllocator
-{
-    return SecondaryAllocator{states_.secondaries};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Make an atomic relaxation helper for the given element.
- */
-CELER_FUNCTION auto CoreTrackView::make_relaxation_helper(ElementId el_id) const
-    -> AtomicRelaxationHelper
-{
-    CELER_ASSERT(el_id);
-    return AtomicRelaxationHelper{
-        params_.relaxation, states_.relaxation, el_id, thread_};
 }
 
 //---------------------------------------------------------------------------//

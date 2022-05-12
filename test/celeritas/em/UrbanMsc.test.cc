@@ -9,6 +9,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/Ref.hh"
 #include "celeritas/em/distribution/UrbanMscScatter.hh"
 #include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"

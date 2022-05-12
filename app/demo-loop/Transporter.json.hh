@@ -11,22 +11,14 @@
 
 #include "Transporter.hh"
 
-namespace celeritas
+namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 //! Save data to json
 inline void to_json(nlohmann::json& j, const TransporterTiming& v)
 {
-    j = nlohmann::json{{"steps", v.steps},
-                       {"total", v.total},
-                       {"setup", v.setup},
-                       {"initialize_tracks", v.initialize_tracks},
-                       {"pre_step", v.pre_step},
-                       {"along_step", v.along_step},
-                       {"discrete_select", v.discrete_select},
-                       {"cross_boundary", v.launch_models},
-                       {"launch_models", v.launch_models},
-                       {"extend_from_secondaries", v.extend_from_secondaries}};
+    j = nlohmann::json{
+        {"steps", v.steps}, {"total", v.total}, {"setup", v.setup}};
 }
 
 inline void to_json(nlohmann::json& j, const TransporterResult& v)
@@ -41,4 +33,4 @@ inline void to_json(nlohmann::json& j, const TransporterResult& v)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_loop

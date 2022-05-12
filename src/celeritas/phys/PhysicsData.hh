@@ -10,8 +10,10 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/StackAllocatorData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
@@ -134,15 +136,22 @@ struct ProcessGroup
 //---------------------------------------------------------------------------//
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
+ *
+ * TODO: livermore/relaxation/urban data are owned by other classes, but
+ * because we assign <host, value> -> { <host, cref> ; <device, value> ->
+ * <device, cref> }
  */
 template<Ownership W, MemSpace M>
 struct HardwiredModels
 {
+    //// DATA ////
+
     // Photoelectric effect
-    ProcessId             photoelectric;
-    units::MevEnergy      photoelectric_table_thresh;
-    ModelId               livermore_pe;
-    LivermorePEData<W, M> livermore_pe_data;
+    ProcessId                   photoelectric;
+    units::MevEnergy            photoelectric_table_thresh;
+    ModelId                     livermore_pe;
+    LivermorePEData<W, M>       livermore_pe_data;
+    AtomicRelaxParamsData<W, M> relaxation_data;
 
     // Positron annihilation
     ProcessId   positron_annihilation;
@@ -169,6 +178,7 @@ struct HardwiredModels
             livermore_pe               = other.livermore_pe;
             livermore_pe_data          = other.livermore_pe_data;
         }
+        relaxation_data       = other.relaxation_data;
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
         eplusgg_data          = other.eplusgg_data;
@@ -212,6 +222,8 @@ struct PhysicsParamsScalars
     real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
     bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
 
+    real_type secondary_stack_factor = 3; //!< Secondary storage per state size
+
     // When fixed step limiter is used, this is the corresponding action ID
     ActionId fixed_step_action{};
 
@@ -221,7 +233,7 @@ struct PhysicsParamsScalars
         return max_particle_processes > 0 && model_to_action >= 3
                && num_models > 0 && scaling_min_range > 0
                && scaling_fraction > 0 && energy_fraction > 0
-               && linear_loss_limit > 0
+               && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action));
     }
@@ -339,17 +351,23 @@ struct PhysicsParamsData
 /*!
  * Physics state data for a single track.
  *
+ * State that's persistent across steps:
  * - Remaining number of mean free paths to the next discrete interaction
+ *
+ * State that is reset at every step:
  * - Current macroscopic cross section
+ * - Within-step energy deposition
+ * - Secondaries emitted from an interaction
+ * - Discrete process element selection
  */
 struct PhysicsTrackState
 {
     real_type interaction_mfp; //!< Remaining MFP to interaction
+
+    // TEMPORARY STATE
     real_type macro_xs; //!< Total cross section for discrete interactions
     real_type energy_deposition; //!< Local energy deposition in a step [MeV]
     Span<Secondary> secondaries; //!< Emitted secondaries
-
-    // CURRENTLY UNUSED
     ElementComponentId element_id; //!< Selected element during interaction
 };
 
@@ -390,10 +408,16 @@ struct PhysicsStateData
 
     Items<real_type> per_process_xs; //!< XS [track][particle process]
 
+    AtomicRelaxStateData<W, M>          relaxation;  //!< Scratch data
+    StackAllocatorData<Secondary, W, M> secondaries; //!< Secondary stack
+
     //// METHODS ////
 
     //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !state.empty() && secondaries;
+    }
 
     //! State size
     CELER_FUNCTION size_type size() const { return state.size(); }
@@ -405,7 +429,12 @@ struct PhysicsStateData
         CELER_EXPECT(other);
         state          = other.state;
         msc_step       = other.msc_step;
+
         per_process_xs = other.per_process_xs;
+
+        relaxation  = other.relaxation;
+        secondaries = other.secondaries;
+
         return *this;
     }
 };
@@ -429,6 +458,9 @@ inline void resize(
     }
     make_builder(&state->per_process_xs)
         .resize(size * params.scalars.max_particle_processes);
+
+    resize(&state->relaxation, params.hardwired.relaxation_data, size);
+    resize(&state->secondaries, size * params.scalars.secondary_stack_factor);
 }
 
 //---------------------------------------------------------------------------//
