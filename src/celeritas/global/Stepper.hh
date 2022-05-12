@@ -51,10 +51,7 @@ struct StepperResult
     size_type alive{};  //!< Active and alive at end of step
 
     //! True if more steps need to be run
-    explicit operator bool() const
-    {
-        return queued > 0 || active > 0 || alive > 0;
-    }
+    explicit operator bool() const { return queued > 0 || alive > 0; }
 };
 
 //---------------------------------------------------------------------------//
