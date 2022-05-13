@@ -24,6 +24,7 @@
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/generated/AlongStepAction.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
