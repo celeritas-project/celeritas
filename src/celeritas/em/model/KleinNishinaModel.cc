@@ -42,9 +42,6 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.ids.gamma;
-    photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = max_quantity();
-
     return {photon_applic};
 }
 

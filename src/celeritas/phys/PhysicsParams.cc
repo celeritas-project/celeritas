@@ -393,14 +393,17 @@ void PhysicsParams::build_xs(const Options&        opts,
     using UPGridBuilder = Process::UPConstGridBuilder;
     using Energy        = Applicability::Energy;
 
-    ValueGridInserter insert_grid(&data->reals, &data->value_grids);
-    auto              value_tables   = make_builder(&data->value_tables);
-    auto              integral_xs    = make_builder(&data->integral_xs);
-    auto              value_grid_ids = make_builder(&data->value_grid_ids);
-    auto              build_grid
-        = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
+    constexpr Energy at_rest_energy = zero_quantity();
+
+    auto build_grid
+        = [insert_grid = ValueGridInserter{&data->reals, &data->value_grids}](
+              const UPGridBuilder& builder) -> ValueGridId {
         return builder ? builder->build(insert_grid) : ValueGridId{};
     };
+
+    auto value_tables   = make_builder(&data->value_tables);
+    auto integral_xs    = make_builder(&data->integral_xs);
+    auto value_grid_ids = make_builder(&data->value_grid_ids);
 
     Applicability applic;
     for (auto particle_id : range(ParticleId(data->process_groups.size())))
@@ -477,7 +480,7 @@ void PhysicsParams::build_xs(const Options&        opts,
                 {
                     auto calc_xs = EPlusGGMacroXsCalculator(
                         data->hardwired.eplusgg_data, mat_view);
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
+                    process_groups.has_at_rest |= calc_xs(at_rest_energy) > 0;
                 }
 
                 if (auto grid_id
@@ -490,12 +493,16 @@ void PhysicsParams::build_xs(const Options&        opts,
 
                     // Check if the particle can have a discrete interaction at
                     // rest
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
+                    process_groups.has_at_rest |= calc_xs(at_rest_energy) > 0;
 
                     // If this is an energy loss process, find and store the
                     // energy of the largest cross section for this material
-                    if (proc.type() == ProcessType::electromagnetic_dedx
-                        && opts.use_integral_xs)
+                    // TODO: we should be doing this for *all*
+                    // processes if the particle type has *any* energy loss
+                    // process, since the cross section will change over the
+                    // step.
+                    if (opts.use_integral_xs
+                        && proc.type() == ProcessType::electromagnetic_dedx)
                     {
                         // Allocate storage for the energies if we haven't
                         // already

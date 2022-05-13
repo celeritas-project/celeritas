@@ -42,15 +42,11 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
  */
 auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 {
-    Applicability mu_minus_applic, mu_plus_applic;
-
+    Applicability mu_minus_applic;
     mu_minus_applic.particle = interface_.ids.mu_minus;
-    mu_minus_applic.lower    = interface_.min_incident_energy();
-    mu_minus_applic.upper    = interface_.max_incident_energy();
 
+    Applicability mu_plus_applic;
     mu_plus_applic.particle = interface_.ids.mu_plus;
-    mu_plus_applic.lower    = mu_minus_applic.lower;
-    mu_plus_applic.upper    = mu_minus_applic.upper;
 
     return {mu_minus_applic, mu_plus_applic};
 }

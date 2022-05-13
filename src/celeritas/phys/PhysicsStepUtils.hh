@@ -52,6 +52,50 @@ CELER_FUNCTION EnergyLossHelper::Energy
     result = Energy{celeritas::min(result.value(), max_loss.value())};
     return result;
 }
+
+//---------------------------------------------------------------------------//
+template<class Engine>
+CELER_FUNCTION bool reject_after_eloss(ParticleTrackView::Energy energy,
+                                       const PhysicsTrackView&   physics,
+                                       const PhysicsStepView&    pstep,
+                                       ParticleProcessId         ppid,
+                                       Engine&                   rng)
+{
+    // Recalculate the cross section at the post-step energy E_1
+    auto grid_id = physics.value_grid(ValueGridType::macro_xs, ppid);
+    if (!grid_id)
+    {
+        // TODO: hardwired cross sections have no macro xs grid
+        return false;
+    }
+
+    real_type xs = physics.make_calculator<XsCalculator>(grid_id)(energy);
+    if (xs == 0)
+    {
+        // Energy has dropped below the process's threshold reaction
+        return true;
+    }
+
+    if (!physics.use_integral_xs(ppid))
+    {
+        // Don't use integral rejection
+        return false;
+    }
+
+    /*!
+     * Sample rejection.
+     *
+     * The discrete interaction occurs with probability
+     * \f$ \sigma(E_1) / \sigma_{\max} \f$.
+     * Note that it's possible for \f$ \sigma(E_1) \f$
+     * to be larger than the estimate of the maximum cross section
+     * over the step \f$ \sigma_{\max} \f$.
+     */
+    return generate_canonical(rng) * pstep.per_process_xs(ppid) > xs;
+}
+
+//---------------------------------------------------------------------------//
+
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -292,11 +336,12 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   determine the interacting process ID.
  * - From the process ID and (post-slowing-down) particle energy, we obtain the
  *   applicable model ID.
- * - For energy loss (continuous-discrete) processes, the post-step energy will
- *   be different from the pre-step energy, so the assumption that the cross
- *   section is constant along the step is no longer valid. Use the "integral
- *   approach" to sample the discrete interaction from the correct probability
- *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
+ * - If a particle type has energy loss processes, the post-step energy will
+ *   likely be different from the pre-step energy, so the assumption that the
+ *   cross section is constant along the step is no longer valid. Use the
+ *   "integral approach" to sample the discrete interaction from the correct
+ *   probability distribution (section 7.4 of the Geant4 Physics Reference
+ *   release 10.6).
  */
 template<class Engine>
 CELER_FUNCTION ActionId
@@ -313,31 +358,14 @@ select_discrete_interaction(const ParticleTrackView& particle,
         [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
         ParticleProcessId{physics.num_particle_processes()},
         pstep.macro_xs())(rng);
+    CELER_ASSERT(ppid);
 
-    // Determine if the discrete interaction occurs for energy loss
-    // processes
-    if (physics.use_integral_xs(ppid))
+    if (physics.eloss_ppid()
+        && reject_after_eloss(particle.energy(), physics, pstep, ppid, rng))
     {
-        // This is an energy loss process that was sampled for a
-        // discrete interaction, so it will have macro xs tables
-        auto grid_id = physics.value_grid(ValueGridType::macro_xs, ppid);
-        CELER_ASSERT(grid_id);
-
-        // Recalculate the cross section at the post-step energy \f$
-        // E_1 \f$
-        auto      calc_xs = physics.make_calculator<XsCalculator>(grid_id);
-        real_type xs      = calc_xs(particle.energy());
-
-        // The discrete interaction occurs with probability \f$ \sigma(E_1) /
-        // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$
-        // to be larger than the estimate of the maximum cross section over the
-        // step \f$ \sigma_{\max} \f$.
-        if (generate_canonical(rng) * pstep.per_process_xs(ppid) > xs)
-        {
-            // No interaction occurs; reset the physics state and continue
-            // tracking
-            return physics.scalars().integral_rejection_action();
-        }
+        // Particle energy has changed over the step and the interaction is no
+        // longer valid
+        return physics.scalars().integral_rejection_action();
     }
 
     // Select the model and return; See doc above for details.

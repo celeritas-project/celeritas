@@ -63,11 +63,9 @@ auto CombinedBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().rb_data.ids.electron;
-    electron_brem.lower    = zero_quantity();
-    electron_brem.upper    = high_energy_limit();
 
-    Applicability positron_brem = electron_brem;
-    positron_brem.particle      = this->host_ref().rb_data.ids.positron;
+    Applicability positron_brem;
+    positron_brem.particle = this->host_ref().rb_data.ids.positron;
 
     return {electron_brem, positron_brem};
 }

@@ -40,20 +40,14 @@ EPlusGGModel::EPlusGGModel(ActionId id, const ParticleParams& particles)
 //---------------------------------------------------------------------------//
 /*!
  * Particle types and energy ranges that this model applies to.
- *
- * \todo The Interactor allows non-rest energies as does the
- * G4eeToTwoGammaModel, which also defines ComputeCrossSectionPerAtom, but
- * does not seem to export cross sections. Is it because they're generated on
- * the fly?
  */
 auto EPlusGGModel::applicability() const -> SetApplicability
 {
-    Applicability in_flight;
-    in_flight.particle = interface_.ids.positron;
-    in_flight.lower    = zero_quantity();
-    in_flight.upper    = units::MevEnergy{1e8}; // 100 TeV
+    Applicability applic = Applicability::at_rest(interface_.ids.positron);
+    // Rely on XS tables to truncate model applicability
+    applic.upper = max_quantity(); // units::MevEnergy{1e8}
 
-    return {Applicability::at_rest(interface_.ids.positron), in_flight};
+    return {applic};
 }
 
 //---------------------------------------------------------------------------//

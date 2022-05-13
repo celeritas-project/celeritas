@@ -47,19 +47,11 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
  */
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
-    Applicability electron_applic, positron_applic;
-
-    // The electron applicability.lower is twice the one for positrons due to
-    // its maximum transferable energy fraction being 0.5 (which is 1/2 the
-    // positron's). This prevents it to run an infinite number of Moller
-    // sampling loops.
+    Applicability electron_applic;
     electron_applic.particle = interface_.ids.electron;
-    electron_applic.lower    = zero_quantity();
-    electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
 
+    Applicability positron_applic;
     positron_applic.particle = interface_.ids.positron;
-    positron_applic.lower    = zero_quantity();
-    positron_applic.upper    = electron_applic.upper;
 
     return {electron_applic, positron_applic};
 }
