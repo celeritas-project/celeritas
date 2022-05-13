@@ -16,6 +16,8 @@
 #include "celeritas/em/launcher/EPlusGGLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
+using celeritas::MemSpace;
+
 namespace celeritas
 {
 namespace generated
@@ -33,13 +35,13 @@ __launch_bounds__(1024, 8)
 #endif // CELERITAS_LAUNCH_BOUNDS
 eplusgg_interact_kernel(
     const celeritas::EPlusGGDeviceRef model_data,
-    const CoreRef<MemSpace::device> core_data)
+    const celeritas::CoreRef<MemSpace::device> core_data)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
         return;
 
-    auto launch = make_interaction_launcher(
+    auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
         celeritas::eplusgg_interact_track);
@@ -49,7 +51,7 @@ eplusgg_interact_kernel(
 
 void eplusgg_interact(
     const celeritas::EPlusGGDeviceRef& model_data,
-    const CoreRef<MemSpace::device>& core_data)
+    const celeritas::CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);

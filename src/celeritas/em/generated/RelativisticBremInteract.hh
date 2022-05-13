@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -17,16 +17,16 @@ namespace generated
 {
 void relativistic_brem_interact(
     const celeritas::RelativisticBremHostRef&,
-    const CoreRef<MemSpace::host>&);
+    const celeritas::CoreRef<celeritas::MemSpace::host>&);
 
 void relativistic_brem_interact(
     const celeritas::RelativisticBremDeviceRef&,
-    const CoreRef<MemSpace::device>&);
+    const celeritas::CoreRef<celeritas::MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void relativistic_brem_interact(
     const celeritas::RelativisticBremDeviceRef&,
-    const CoreRef<MemSpace::device>&)
+    const celeritas::CoreRef<celeritas::MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

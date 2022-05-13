@@ -10,8 +10,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "celeritas/phys/InteractionLauncher.hh"
 #include "celeritas/em/launcher/RelativisticBremLauncher.hh"
+#include "celeritas/phys/InteractionLauncher.hh"
+
+using celeritas::MemSpace;
 
 namespace celeritas
 {
@@ -19,19 +21,19 @@ namespace generated
 {
 void relativistic_brem_interact(
     const celeritas::RelativisticBremHostRef& model_data,
-    const CoreRef<MemSpace::host>& core_data)
+    const celeritas::CoreRef<MemSpace::host>& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
 
-    auto launch = make_interaction_launcher(
+    auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
         celeritas::relativistic_brem_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < core_data.states.size(); ++i)
+    for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
-        ThreadId tid{i};
+        celeritas::ThreadId tid{i};
         launch(tid);
     }
 }

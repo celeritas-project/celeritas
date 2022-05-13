@@ -16,6 +16,8 @@
 #include "celeritas/em/launcher/CombinedBremLauncher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
+using celeritas::MemSpace;
+
 namespace celeritas
 {
 namespace generated
@@ -33,13 +35,13 @@ __launch_bounds__(1024, 5)
 #endif // CELERITAS_LAUNCH_BOUNDS
 combined_brem_interact_kernel(
     const celeritas::CombinedBremDeviceRef model_data,
-    const CoreRef<MemSpace::device> core_data)
+    const celeritas::CoreRef<MemSpace::device> core_data)
 {
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
         return;
 
-    auto launch = make_interaction_launcher(
+    auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
         celeritas::combined_brem_interact_track);
@@ -49,7 +51,7 @@ combined_brem_interact_kernel(
 
 void combined_brem_interact(
     const celeritas::CombinedBremDeviceRef& model_data,
-    const CoreRef<MemSpace::device>& core_data)
+    const celeritas::CoreRef<MemSpace::device>& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
