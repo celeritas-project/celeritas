@@ -57,11 +57,11 @@ class VecgeomParams
 
     //// DATA ACCESS ////
 
-    //! View in-host geometry data for CPU debugging
-    const HostRef& host_ref() const { return host_ref_; }
+    //! Access geometry data on host
+    inline const HostRef& host_ref() const;
 
-    //! Get a view to the managed on-device data
-    const DeviceRef& device_ref() const { return device_ref_; }
+    //! Access geometry data on host
+    inline const DeviceRef& device_ref() const;
 
   private:
     //// DATA ////
@@ -78,6 +78,28 @@ class VecgeomParams
 
     void build_md();
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Access geometry data on host.
+ */
+auto VecgeomParams::host_ref() const -> const HostRef&
+{
+    CELER_ENSURE(host_ref_);
+    return host_ref_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access geometry data on device.
+ */
+auto VecgeomParams::device_ref() const -> const DeviceRef&
+{
+    CELER_ENSURE(device_ref_);
+    return device_ref_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
