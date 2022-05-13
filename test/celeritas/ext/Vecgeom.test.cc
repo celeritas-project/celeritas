@@ -22,6 +22,8 @@
 using namespace celeritas;
 using namespace celeritas_test;
 
+// Since VecGeom is currently CUDA-only, we cannot use the TEST_IF_CELER_DEVICE
+// macro (which also allows HIP).
 #if CELERITAS_USE_CUDA
 #    define TEST_IF_CELERITAS_CUDA(name) name
 #else

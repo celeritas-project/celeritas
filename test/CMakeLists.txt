@@ -280,7 +280,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 
 #-------------------------------------#
 # Global
-set(CELERITASTEST_PREFIX celeritas/geo)
+set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionManager.test.cc)
 
 #-------------------------------------#
