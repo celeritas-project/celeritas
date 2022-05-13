@@ -83,21 +83,33 @@ XsCalculator::XsCalculator(const XsGridData& grid, const Values& values)
  *
  * If needed, we can add a "log(energy/MeV)" accessor if we constantly reuse
  * that value and don't want to repeat the `std::log` operation.
+ *
+ * \todo Do we ever need to extrapolate cross sections beyond the energy
+ * bounds? (And is it OK if those endpoints are a bit fuzzy because of the
+ * logarithms?)
  */
 CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 {
     const UniformGrid loge_grid(data_.log_energy);
     const real_type   loge = std::log(energy.value());
 
-    // Snap out-of-bounds values to closest grid points
+    // Cross section is zero outside of defined grid
     size_type lower_idx;
     real_type result;
-    if (loge <= loge_grid.front())
+    if (loge < loge_grid.front())
+    {
+        return 0;
+    }
+    else if (loge == loge_grid.front())
     {
         lower_idx = 0;
         result    = this->get(lower_idx);
     }
-    else if (loge >= loge_grid.back())
+    else if (loge > loge_grid.back())
+    {
+        return 0;
+    }
+    else if (loge == loge_grid.back())
     {
         lower_idx = loge_grid.size() - 1;
         result    = this->get(lower_idx);

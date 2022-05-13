@@ -55,8 +55,8 @@ TEST_F(XsCalculatorTest, simple)
     EXPECT_SOFT_EQ(5, calc(Energy{5}));
 
     // Test out-of-bounds
-    EXPECT_SOFT_EQ(1.0, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(1e5, calc(Energy{1e7}));
+    EXPECT_SOFT_EQ(0, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(0, calc(Energy{1e7}));
 }
 
 TEST_F(XsCalculatorTest, scaled_lowest)
@@ -83,10 +83,8 @@ TEST_F(XsCalculatorTest, scaled_lowest)
     EXPECT_SOFT_EQ(1, calc(Energy{0.2}));
     EXPECT_SOFT_EQ(1, calc(Energy{5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the best behavior for the lower energy value)
-    EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(0.1, calc(Energy{1e5}));
+    EXPECT_SOFT_EQ(0, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(0, calc(Energy{1e5}));
 }
 
 TEST_F(XsCalculatorTest, scaled_middle)
@@ -121,10 +119,8 @@ TEST_F(XsCalculatorTest, scaled_middle)
     EXPECT_SOFT_EQ(3, calc(Energy{0.2}));
     EXPECT_SOFT_EQ(3, calc(Energy{5}));
 
-    // Test out-of-bounds: cross section still scales according to 1/E (TODO:
-    // this might not be the right behavior for
-    EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
+    EXPECT_SOFT_EQ(0, calc(Energy{0.0001}));
+    EXPECT_SOFT_EQ(0, calc(Energy{1e5}));
 }
 
 TEST_F(XsCalculatorTest, scaled_highest)
@@ -134,8 +130,8 @@ TEST_F(XsCalculatorTest, scaled_highest)
     this->set_prime_index(2);
 
     XsCalculator calc(this->data(), this->values());
-    EXPECT_SOFT_EQ(1, calc(Energy{0.0001}));
-    EXPECT_SOFT_EQ(1, calc(Energy{1}));
+    EXPECT_SOFT_EQ(0, calc(Energy{0.0001})); // below grid
+    EXPECT_SOFT_EQ(1, calc(Energy{1}));      // lowest energy
     EXPECT_SOFT_EQ(10, calc(Energy{10}));
     EXPECT_SOFT_EQ(2.0, calc(Energy{90}));
 
@@ -145,8 +141,8 @@ TEST_F(XsCalculatorTest, scaled_highest)
     EXPECT_SOFT_EQ(1, calc[2]);
 
     // Final point and higher are scaled by 1/E
-    EXPECT_SOFT_EQ(1, calc(Energy{100}));
-    EXPECT_SOFT_EQ(.1, calc(Energy{1000}));
+    EXPECT_SOFT_EQ(1, calc(Energy{100}));  // highest energy
+    EXPECT_SOFT_EQ(0, calc(Energy{1000})); // above grid
 }
 
 TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
