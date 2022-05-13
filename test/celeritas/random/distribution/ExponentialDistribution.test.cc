@@ -20,7 +20,7 @@ using celeritas::ExponentialDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ExponentialDistributionTest : public celeritas::Test
+class ExponentialDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

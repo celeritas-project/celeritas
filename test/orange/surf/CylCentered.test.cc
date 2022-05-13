@@ -374,7 +374,7 @@ TEST(TestCCylZ, multi_intersect)
 /*!
  * Test initialization on or near boundary
  */
-class DegenerateBoundaryTest : public celeritas::Test
+class DegenerateBoundaryTest : public celeritas_test::Test
 {
   protected:
     void run(real_type xdir) const;

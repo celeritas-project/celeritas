@@ -27,7 +27,7 @@ using VGT = ValueGridType;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedProcessesTest : public celeritas::Test
+class ImportedProcessesTest : public celeritas_test::Test
 {
   protected:
     using SPConstParticles = std::shared_ptr<const ParticleParams>;

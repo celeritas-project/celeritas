@@ -12,16 +12,18 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/GlobalTestBase.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
-#include "celeritas/geo/GeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
 
+// Since VecGeom is currently CUDA-only, we cannot use the TEST_IF_CELER_DEVICE
+// macro (which also allows HIP).
 #if CELERITAS_USE_CUDA
 #    define TEST_IF_CELERITAS_CUDA(name) name
 #else
@@ -31,7 +33,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
+class VecgeomTest : public celeritas_test::GlobalTestBase
 {
   public:
     //!@{
@@ -48,8 +50,6 @@ class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
     };
 
   public:
-    const char* fileext() const override { return ".gdml"; }
-
     //! Construct host state (and load geometry) during steup
     void SetUp() override
     {
@@ -65,6 +65,13 @@ class VecgeomTest : public GeoTestBase<celeritas::VecgeomParams>
 
     //! Find linear segments until outside
     TrackingResult track(const Real3& pos, const Real3& dir);
+
+  protected:
+    SPConstParticle    build_particle() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCutoff      build_cutoff() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics     build_physics() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstMaterial    build_material() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() { CELER_ASSERT_UNREACHABLE(); }
 
   private:
     HostStateStore host_state;
@@ -128,7 +135,7 @@ void VecgeomTest::TrackingResult::print_expected()
 class FourLevelsTest : public VecgeomTest
 {
   public:
-    const char* filebase() const override { return "four-levels"; }
+    const char* geometry_basename() const override { return "four-levels"; }
 };
 
 //---------------------------------------------------------------------------//

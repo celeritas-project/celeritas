@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -31,4 +31,4 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

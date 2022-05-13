@@ -24,7 +24,7 @@ using Intersections = GeneralQuadric::Intersections;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeneralQuadricTest : public celeritas::Test
+class GeneralQuadricTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

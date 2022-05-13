@@ -18,7 +18,7 @@ using celeritas::GammaDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GammaDistributionTest : public celeritas::Test
+class GammaDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

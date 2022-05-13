@@ -14,7 +14,9 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas
+using celeritas::Real3;
+
+namespace celeritas_test
 {
 namespace detail
 {
@@ -58,6 +60,9 @@ CELER_FUNCTION Real3 CMSMapField::operator()(const Real3& pos) const
 {
     CELER_ENSURE(shared_);
 
+    using celeritas::ipow;
+    using celeritas::units::tesla;
+
     Real3 value{0, 0, 0};
 
     real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
@@ -80,19 +85,19 @@ CELER_FUNCTION Real3 CMSMapField::operator()(const Real3& pos) const
     real_type low  = shared_.fieldmap[shared_.id(iz, ir)].value_z;
     real_type high = shared_.fieldmap[shared_.id(iz + 1, ir)].value_z;
 
-    value[2] = units::tesla * (low + (high - low) * dz * scale);
+    value[2] = tesla * (low + (high - low) * dz * scale);
 
     // x and y components
     low  = shared_.fieldmap[shared_.id(iz, ir)].value_r;
     high = shared_.fieldmap[shared_.id(iz, ir + 1)].value_r;
 
     real_type tmp = (r != 0) ? (low + (high - low) * dr * scale) / r : low;
-    value[0]      = units::tesla * tmp * pos[0];
-    value[1]      = units::tesla * tmp * pos[1];
+    value[0]      = tesla * tmp * pos[0];
+    value[1]      = tesla * tmp * pos[1];
 
     return value;
 }
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

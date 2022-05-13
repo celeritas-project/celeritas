@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -17,16 +17,16 @@ namespace generated
 {
 void bethe_heitler_interact(
     const celeritas::BetheHeitlerHostRef&,
-    const CoreRef<MemSpace::host>&);
+    const celeritas::CoreRef<celeritas::MemSpace::host>&);
 
 void bethe_heitler_interact(
     const celeritas::BetheHeitlerDeviceRef&,
-    const CoreRef<MemSpace::device>&);
+    const celeritas::CoreRef<celeritas::MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void bethe_heitler_interact(
     const celeritas::BetheHeitlerDeviceRef&,
-    const CoreRef<MemSpace::device>&)
+    const celeritas::CoreRef<celeritas::MemSpace::device>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

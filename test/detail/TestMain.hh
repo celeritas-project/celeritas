@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -17,4 +17,4 @@ int test_main(int argc, char** argv);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

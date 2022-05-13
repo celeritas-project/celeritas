@@ -28,7 +28,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceInserterTest : public celeritas::Test
+class SurfaceInserterTest : public celeritas_test::Test
 {
   protected:
     SurfaceData<Ownership::value, MemSpace::host> surface_data_;

@@ -3,7 +3,11 @@
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# TEST LIBRARY
+
+include(CeleritasAddTest)
+
+#-----------------------------------------------------------------------------#
+# CORE TEST LIBRARY
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
@@ -19,11 +23,11 @@ list(APPEND CELER_SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
-add_library(CeleritasTest ${CELER_SOURCES})
-add_library(Celeritas::Test ALIAS CeleritasTest)
-celeritas_target_link_libraries(CeleritasTest PRIVATE celeritas PUBLIC GTest::GTest)
+add_library(CelerTest ${CELER_SOURCES})
+add_library(Celeritas::Test ALIAS CelerTest)
+celeritas_target_link_libraries(CelerTest PRIVATE celeritas PUBLIC GTest::GTest)
 
-target_include_directories(CeleritasTest
+target_include_directories(CelerTest
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -57,10 +61,8 @@ if(CELERITAS_USE_HIP)
 endif()
 
 #-----------------------------------------------------------------------------#
-# TESTS
+# TEST OPTIONS
 #-----------------------------------------------------------------------------#
-
-include(CeleritasAddTest)
 
 function(celeritas_device_test base)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
@@ -100,13 +102,15 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------#
-# Testing additions
+# TESTING ADDITION TESTS
+#-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX test/detail)
 
 celeritas_add_test(detail/Macros.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Corecel
+# CORECEL TESTS
+#-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX corecel)
 
 # Cont
@@ -147,7 +151,8 @@ celeritas_add_test(corecel/sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 
 #-----------------------------------------------------------------------------#
-# ORANGE
+# ORANGE TESTS
+#-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX orange)
 
 # Base-level
@@ -188,102 +193,32 @@ celeritas_device_test(orange/univ/SimpleUnitTracker)
 celeritas_add_test(orange/Orange.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Celeritas
-celeritas_setup_tests(SERIAL PREFIX celeritas)
-
-celeritas_add_test(celeritas/Constants.test.cc ${_optional_geant4_link})
-
-celeritas_device_test(celeritas/field/Steppers)
-celeritas_device_test(celeritas/field/FieldDriver)
-celeritas_device_test(celeritas/field/FieldPropagator ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
-celeritas_device_test(celeritas/field/UserParamField ${_needs_geo})
-celeritas_device_test(celeritas/field/UserMapField
-  SOURCES
-    celeritas/field/detail/MagFieldMap.cc
-    celeritas/field/detail/CMSFieldMapReader.cc
-  ${_needs_geo}
-)
-
-celeritas_add_test(celeritas/geo/GeoMaterial.test.cc ${_needs_root} ${_needs_geo}
-  LINK_LIBRARIES Celeritas::IO)
-
-celeritas_add_test(celeritas/global/ActionManager.test.cc)
-
-celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
-
-celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
-
-#-------------------------------------#
-# External
-celeritas_setup_tests(SERIAL PREFIX celeritas/ext)
-
-if(CELERITAS_USE_VecGeom)
-  celeritas_device_test(celeritas/ext/Vecgeom
-    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
-endif()
-
-celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc
-  NP ${CELERITASTEST_NP_DEFAULT})
-celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::IO)
-
+# CELERITAS TESTS
 #-----------------------------------------------------------------------------#
-# Celeritas physics: grid, phys, mat, em
-
-add_library(CeleritasPhysicsTest
+add_library(CeleritasTest
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
   celeritas/phys/SecondaryIO.cc
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
-  celeritas/phys/PhysicsTestBase.cc
+  celeritas/GlobalTestBase.cc
+  celeritas/MockTestBase.cc
+  celeritas/SimpleTestBase.cc
 )
-celeritas_target_link_libraries(CeleritasPhysicsTest PRIVATE celeritas CeleritasTest)
+celeritas_target_link_libraries(CeleritasTest
+  PRIVATE celeritas CelerTest)
+
+#-----------------------------------------------------------------------------#
+celeritas_setup_tests(SERIAL PREFIX celeritas LINK_LIBRARIES CeleritasTest)
 
 #-------------------------------------#
-# Physics (grid)
-
-celeritas_setup_tests(SERIAL PREFIX celeritas/grid
-  LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
-celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
-celeritas_add_test(celeritas/grid/Interpolator.test.cc)
-celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/NonuniformGrid.test.cc)
-celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
-celeritas_add_test(celeritas/grid/RangeCalculator.test.cc)
-celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
-celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
-celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
-celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
-celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
+# (Root level tests)
+celeritas_add_test(celeritas/Constants.test.cc ${_optional_geant4_link})
 
 #-------------------------------------#
-# Physics (mat)
-celeritas_setup_tests(SERIAL PREFIX celeritas/mat
-  LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(celeritas/mat/ElementSelector.test.cc)
-celeritas_device_test(celeritas/mat/Material
-  LINK_LIBRARIES Celeritas::IO)
-
-#-------------------------------------#
-# Physics (phys)
-celeritas_setup_tests(SERIAL PREFIX celeritas/phys
-  LINK_LIBRARIES CeleritasPhysicsTest)
-celeritas_add_test(celeritas/phys/CutoffParams.test.cc
-  LINK_LIBRARIES Celeritas::IO)
-celeritas_device_test(celeritas/phys/Particle
-  LINK_LIBRARIES Celeritas::IO)
-celeritas_device_test(celeritas/phys/Physics)
-celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
-
-#-------------------------------------#
-# Physics (EM)
-celeritas_setup_tests(SERIAL PREFIX celeritas/em
-  LINK_LIBRARIES CeleritasPhysicsTest)
+# EM
+set(CELERITASTEST_PREFIX celeritas/em)
 celeritas_add_test(celeritas/em/BetheHeitler.test.cc)
 celeritas_add_test(celeritas/em/CombinedBrem.test.cc)
 celeritas_add_test(celeritas/em/EnergyLossFluctuation.test.cc)
@@ -304,10 +239,91 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env}
   LINK_LIBRARIES Celeritas::IO)
 
+#-------------------------------------#
+# External
+set(CELERITASTEST_PREFIX celeritas/ext)
+
+if(CELERITAS_USE_VecGeom)
+  celeritas_device_test(celeritas/ext/Vecgeom
+    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
+endif()
+
+celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
+celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc
+  NP ${CELERITASTEST_NP_DEFAULT})
+celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
+  LINK_LIBRARIES Celeritas::IO)
+
+#-------------------------------------#
+# Field
+set(CELERITASTEST_PREFIX celeritas/field)
+
+celeritas_device_test(celeritas/field/Steppers)
+celeritas_device_test(celeritas/field/FieldDriver)
+celeritas_device_test(celeritas/field/FieldPropagator ${_needs_geo})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
+celeritas_device_test(celeritas/field/UserParamField ${_needs_geo})
+celeritas_device_test(celeritas/field/UserMapField
+  SOURCES
+    celeritas/field/detail/MagFieldMap.cc
+    celeritas/field/detail/CMSFieldMapReader.cc
+  ${_needs_geo}
+)
+
+#-------------------------------------#
+# Geo
+set(CELERITASTEST_PREFIX celeritas/geo)
+
+celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
+  ${_needs_root} ${_needs_geo}
+  LINK_LIBRARIES Celeritas::IO)
+
+#-------------------------------------#
+# Global
+set(CELERITASTEST_PREFIX celeritas/global)
+celeritas_add_test(celeritas/global/ActionManager.test.cc)
+
+#-------------------------------------#
+# Grid
+set(CELERITASTEST_PREFIX celeritas/grid)
+celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
+celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
+celeritas_add_test(celeritas/grid/Interpolator.test.cc)
+celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
+celeritas_add_test(celeritas/grid/NonuniformGrid.test.cc)
+celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
+celeritas_add_test(celeritas/grid/RangeCalculator.test.cc)
+celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
+celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
+celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
+celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
+celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
+
+#-------------------------------------#
+# IO
+set(CELERITASTEST_PREFIX celeritas/io)
+celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
+
+#-------------------------------------#
+# Mat
+set(CELERITASTEST_PREFIX celeritas/mat)
+celeritas_add_test(celeritas/mat/ElementSelector.test.cc)
+celeritas_device_test(celeritas/mat/Material
+  LINK_LIBRARIES Celeritas::IO)
+
+#-------------------------------------#
+# Phys
+set(CELERITASTEST_PREFIX celeritas/phys)
+celeritas_add_test(celeritas/phys/CutoffParams.test.cc
+  LINK_LIBRARIES Celeritas::IO)
+celeritas_device_test(celeritas/phys/Particle
+  LINK_LIBRARIES Celeritas::IO)
+celeritas_device_test(celeritas/phys/Physics)
+celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Random
-
-celeritas_setup_tests(SERIAL PREFIX celeritas/random)
+set(CELERITASTEST_PREFIX celeritas/random)
 
 celeritas_device_test(celeritas/random/RngEngine)
 celeritas_add_test(celeritas/random/Selector.test.cc)
@@ -331,3 +347,8 @@ if(CELERITAS_USE_CUDA)
     ${_disable_if_debug}
   )
 endif()
+
+#-------------------------------------#
+# Track
+set(CELERITASTEST_PREFIX celeritas/track)
+celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})

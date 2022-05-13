@@ -12,5 +12,5 @@
 //! Define main
 int main(int argc, char** argv)
 {
-    return celeritas::detail::test_main(argc, argv);
+    return celeritas_test::detail::test_main(argc, argv);
 }

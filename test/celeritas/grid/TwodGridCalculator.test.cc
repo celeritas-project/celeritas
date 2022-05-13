@@ -53,7 +53,7 @@ TEST(Detail, FindInterp)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TwodGridCalculatorTest : public celeritas::Test
+class TwodGridCalculatorTest : public celeritas_test::Test
 {
   protected:
     template<Ownership W>

@@ -47,7 +47,7 @@ namespace celeritas_test
  * \todo Since this now uses Collection objects it's generally safe to use this
  * to test Models as well as device code -- think about renaming it.
  */
-class InteractorHostTestBase : public celeritas::Test
+class InteractorHostTestBase : public celeritas_test::Test
 {
   public:
     static constexpr celeritas::MemSpace host = celeritas::MemSpace::host;

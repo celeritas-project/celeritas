@@ -15,7 +15,7 @@ using celeritas::ScopedStreamRedirect;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ScopedStreamRedirectTest : public celeritas::Test
+class ScopedStreamRedirectTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

@@ -18,7 +18,7 @@ namespace celeritas_test
 /*!
  * Test harness base class for interpolating values on grids.
  */
-class CalculatorTestBase : public celeritas::Test
+class CalculatorTestBase : public celeritas_test::Test
 {
   public:
     //!@{

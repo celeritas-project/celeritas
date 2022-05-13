@@ -14,7 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -63,4 +63,4 @@ trunc_string(unsigned int digits, const char* str, const char* trunc)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

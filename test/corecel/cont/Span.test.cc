@@ -32,7 +32,7 @@ std::string span_to_string(const Span<T, E>& s)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SpanTest : public celeritas::Test
+class SpanTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

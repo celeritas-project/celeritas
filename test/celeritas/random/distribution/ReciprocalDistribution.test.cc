@@ -17,7 +17,7 @@ using celeritas::ReciprocalDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ReciprocalDistributionTest : public celeritas::Test
+class ReciprocalDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

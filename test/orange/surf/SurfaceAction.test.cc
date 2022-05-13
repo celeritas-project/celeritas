@@ -29,13 +29,13 @@
 using namespace celeritas;
 using namespace celeritas_test;
 
-namespace celeritas
+namespace celeritas_test
 {
 std::ostream& operator<<(std::ostream& os, Sense s)
 {
     return os << to_char(s);
 }
-} // namespace celeritas
+} // namespace celeritas_test
 
 namespace
 {
@@ -66,7 +66,7 @@ std::string senses_to_string(Span<const Sense> s)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceActionTest : public celeritas::Test
+class SurfaceActionTest : public celeritas_test::Test
 {
   protected:
     using SurfaceDataMirror = CollectionMirror<SurfaceData>;
@@ -109,7 +109,7 @@ class SurfaceActionTest : public celeritas::Test
     std::mt19937      rng_;
 };
 
-class StaticSurfaceActionTest : public celeritas::Test
+class StaticSurfaceActionTest : public celeritas_test::Test
 {
 };
 

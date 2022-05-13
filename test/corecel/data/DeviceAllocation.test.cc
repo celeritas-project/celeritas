@@ -70,7 +70,7 @@ TEST(InitializedValue, semantics)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class DeviceAllocationTest : public celeritas::Test
+class DeviceAllocationTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

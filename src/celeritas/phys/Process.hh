@@ -13,7 +13,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
 
 #include "Applicability.hh"
@@ -21,6 +20,7 @@
 namespace celeritas
 {
 class Model;
+class ValueGridBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,6 +63,8 @@ class Process
     using VecModel           = std::vector<SPConstModel>;
     using StepLimitBuilders  = ValueGridArray<UPConstGridBuilder>;
     using ActionIdIter       = RangeIter<ActionId>;
+    using ProcessType        = ::celeritas::ProcessType;
+    using Applicability      = ::celeritas::Applicability;
     //!@}
 
   public:

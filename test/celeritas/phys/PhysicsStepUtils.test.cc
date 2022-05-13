@@ -8,12 +8,12 @@
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/MockTestBase.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "DiagnosticRngEngine.hh"
-#include "PhysicsTestBase.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -24,9 +24,9 @@ using celeritas::units::MevEnergy;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PhysicsStepUtilsTest : public PhysicsTestBase
+class PhysicsStepUtilsTest : public MockTestBase
 {
-    using Base         = PhysicsTestBase;
+    using Base         = MockTestBase;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   protected:
@@ -47,8 +47,8 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
         Base::SetUp();
 
         // Construct state for a single host thread
-        mat_state  = MaterialStateStore(*this->materials(), 1);
-        par_state  = ParticleStateStore(*this->particles(), 1);
+        mat_state  = MaterialStateStore(*this->material(), 1);
+        par_state  = ParticleStateStore(*this->particle(), 1);
         phys_state = PhysicsStateStore(*this->physics(), 1);
     }
 
@@ -64,11 +64,11 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
                                 MevEnergy          energy)
     {
         CELER_EXPECT(mat && par);
-        CELER_EXPECT(mid < this->materials()->size());
+        CELER_EXPECT(mid < this->material()->size());
         *mat = MaterialTrackView::Initializer_t{mid};
 
         ParticleTrackView::Initializer_t par_init;
-        par_init.particle_id = this->particles()->find(name);
+        par_init.particle_id = this->particle()->find(name);
         CELER_EXPECT(par_init.particle_id);
         par_init.energy = energy;
         *par            = par_init;
@@ -100,9 +100,9 @@ class PhysicsStepUtilsTest : public PhysicsTestBase
 TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
 {
     MaterialTrackView material(
-        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+        this->material()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+        this->particle()->host_ref(), par_state.ref(), ThreadId{0});
     PhysicsStepView pstep = this->step_view();
 
     ActionId range_action;
@@ -183,24 +183,23 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
 TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
 {
     MaterialTrackView material(
-        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+        this->material()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+        this->particle()->host_ref(), par_state.ref(), ThreadId{0});
+    CutoffView cutoffs(this->cutoff()->host_ref(), MaterialId{0});
 
-    // Construct empty cutoff params. If the cutoff energy is zero, no
-    // fluctuations will be added to the mean loss
-    CutoffParams::Input cutoff_input{this->particles(), this->materials(), {}};
-    CutoffParams        cutoff_params(cutoff_input);
-    CutoffView          cutoffs(cutoff_params.host_ref(), MaterialId{0});
+    auto calc_eloss
+        = [&](const PhysicsTrackView& phys, real_type step) -> real_type {
+        MevEnergy result = celeritas::calc_energy_loss(
+            cutoffs, material, particle, phys, step, this->rng());
+        return result.value();
+    };
 
     {
         // Long step, but gamma means no energy loss
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
-        EXPECT_SOFT_EQ(0,
-                       celeritas::calc_energy_loss(
-                           cutoffs, material, particle, phys, 1e4, this->rng())
-                           .value());
+        EXPECT_SOFT_EQ(0, calc_eloss(phys, 1e4));
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -208,28 +207,19 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         const real_type eloss_rate = 0.2 + 0.4;
 
         // Tiny step: should still be linear loss (single process)
-        EXPECT_SOFT_EQ(eloss_rate * 1e-6,
-                       celeritas::calc_energy_loss(
-                           cutoffs, material, particle, phys, 1e-6, this->rng())
-                           .value());
+        EXPECT_SOFT_EQ(eloss_rate * 1e-6, calc_eloss(phys, 1e-6));
 
         // Long step (lose half energy) will call inverse lookup. The correct
         // answer (if range table construction was done over energy loss)
         // should be half since the slowing down rate is constant over all
         real_type step = 0.5 * particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(5,
-                       celeritas::calc_energy_loss(
-                           cutoffs, material, particle, phys, step, this->rng())
-                           .value());
+        EXPECT_SOFT_EQ(5, calc_eloss(phys, step));
 
         // Long step (lose half energy) will call inverse lookup. The correct
         // answer (if range table construction was done over energy loss)
         // should be half since the slowing down rate is constant over all
         step = 0.999 * particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(9.99,
-                       celeritas::calc_energy_loss(
-                           cutoffs, material, particle, phys, step, this->rng())
-                           .value());
+        EXPECT_SOFT_EQ(9.99, calc_eloss(phys, step));
     }
     {
         PhysicsTrackView phys = this->init_track(
@@ -240,19 +230,16 @@ TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
         // call inverse lookup. Remaining range will be zero and eloss will be
         // equal to the pre-step energy.
         real_type step = particle.energy().value() / eloss_rate;
-        EXPECT_SOFT_EQ(1e-3,
-                       celeritas::calc_energy_loss(
-                           cutoffs, material, particle, phys, step, this->rng())
-                           .value());
+        EXPECT_SOFT_EQ(1e-3, calc_eloss(phys, step));
     }
 }
 
 TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
 {
     MaterialTrackView material(
-        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+        this->material()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+        this->particle()->host_ref(), par_state.ref(), ThreadId{0});
     PhysicsStepView pstep = this->step_view();
 
     const auto model_offset
@@ -380,9 +367,9 @@ class StepLimiterTest : public PhysicsStepUtilsTest
 TEST_F(StepLimiterTest, calc_physics_step_limit)
 {
     MaterialTrackView material(
-        this->materials()->host_ref(), mat_state.ref(), ThreadId{0});
+        this->material()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
-        this->particles()->host_ref(), par_state.ref(), ThreadId{0});
+        this->particle()->host_ref(), par_state.ref(), ThreadId{0});
     PhysicsStepView pstep = this->step_view();
 
     ActionId range_action;

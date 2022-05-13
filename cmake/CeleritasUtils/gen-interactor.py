@@ -29,32 +29,32 @@ CLIKE_TOP = '''\
 HH_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/{dir}/data/{class}Data.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/em/data/{class}Data.hh"
 
-namespace celeritas
+namespace {namespace}
 {{
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::{class}HostRef&,
-    const CoreRef<MemSpace::host>&);
+    const {namespace}::{class}HostRef&,
+    const celeritas::CoreRef<celeritas::MemSpace::host>&);
 
 void {func}_interact(
-    const celeritas::{class}DeviceRef&,
-    const CoreRef<MemSpace::device>&);
+    const {namespace}::{class}DeviceRef&,
+    const celeritas::CoreRef<celeritas::MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
-    const celeritas::{class}DeviceRef&,
-    const CoreRef<MemSpace::device>&)
+    const {namespace}::{class}DeviceRef&,
+    const celeritas::CoreRef<celeritas::MemSpace::device>&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
 #endif
 
 }} // namespace generated
-}} // namespace celeritas
+}} // namespace {namespace}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
@@ -62,34 +62,36 @@ CC_TEMPLATE = CLIKE_TOP + """\
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "celeritas/{dir}/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
-#include "celeritas/em/launcher/{class}Launcher.hh"
 
-namespace celeritas
+using celeritas::MemSpace;
+
+namespace {namespace}
 {{
 namespace generated
 {{
 void {func}_interact(
-    const celeritas::{class}HostRef& model_data,
-    const CoreRef<MemSpace::host>& core_data)
+    const {namespace}::{class}HostRef& model_data,
+    const celeritas::CoreRef<MemSpace::host>& core_data)
 {{
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
 
-    auto launch = make_interaction_launcher(
+    auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::{func}_interact_track);
+        {namespace}::{func}_interact_track);
     #pragma omp parallel for
-    for (size_type i = 0; i < core_data.states.size(); ++i)
+    for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {{
-        ThreadId tid{{i}};
+        celeritas::ThreadId tid{{i}};
         launch(tid);
     }}
 }}
 
 }} // namespace generated
-}} // namespace celeritas
+}} // namespace {namespace}
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -100,34 +102,36 @@ CU_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/em/launcher/{class}Launcher.hh"
+#include "celeritas/{dir}/launcher/{class}Launcher.hh"
 #include "celeritas/phys/InteractionLauncher.hh"
 
-namespace celeritas
+using celeritas::MemSpace;
+
+namespace {namespace}
 {{
 namespace generated
 {{
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    const celeritas::{class}DeviceRef model_data,
-    const CoreRef<MemSpace::device> core_data)
+    const {namespace}::{class}DeviceRef model_data,
+    const celeritas::CoreRef<MemSpace::device> core_data)
 {{
-    auto tid = KernelParamCalculator::thread_id();
+    auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
         return;
 
-    auto launch = make_interaction_launcher(
+    auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
-        celeritas::{func}_interact_track);
+        {namespace}::{func}_interact_track);
     launch(tid);
 }}
 }} // namespace
 
 void {func}_interact(
-    const celeritas::{class}DeviceRef& model_data,
-    const CoreRef<MemSpace::device>& core_data)
+    const {namespace}::{class}DeviceRef& model_data,
+    const celeritas::CoreRef<MemSpace::device>& core_data)
 {{
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -139,7 +143,7 @@ void {func}_interact(
 }}
 
 }} // namespace generated
-}} // namespace celeritas
+}} // namespace {namespace}
 """
 
 TEMPLATES = {
@@ -176,6 +180,15 @@ def main():
     parser.add_argument(
         '--func',
         help='snake_case name of the interact function prefix')
+    parser.add_argument(
+        '--dir',
+        default='em',
+        help='directory inside celeritas')
+    parser.add_argument(
+        '--namespace',
+        default='celeritas',
+        help='namespace of model/process/launcher/etc')
+
 
     kwargs = vars(parser.parse_args())
     for ext in ['hh', 'cc', 'cu']:

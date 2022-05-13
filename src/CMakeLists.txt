@@ -266,7 +266,7 @@ if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
   )
 endif()
 
-if(OpenMP_FOUND)
+if(CELERITAS_USE_OpenMP)
   celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
 else()
   celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)

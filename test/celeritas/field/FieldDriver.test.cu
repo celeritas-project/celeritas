@@ -24,11 +24,12 @@
 #include "FieldTestParams.hh"
 #include "detail/MagTestTraits.hh"
 
+using celeritas_test::detail::MagTestTraits;
 using thrust::raw_pointer_cast;
+using namespace celeritas;
 
 namespace celeritas_test
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
@@ -47,8 +48,7 @@ __global__ void driver_test_kernel(const FieldParamsData data,
 
     // Construct the driver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits
-        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
+    using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(data, &rk4);
@@ -99,8 +99,7 @@ __global__ void accurate_advance_kernel(const FieldParamsData data,
 
     // Construct the driver
     UniformMagField field({0, 0, test_params.field_value});
-    using RKTraits
-        = detail::MagTestTraits<UniformMagField, DormandPrinceStepper>;
+    using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(data, &rk4);

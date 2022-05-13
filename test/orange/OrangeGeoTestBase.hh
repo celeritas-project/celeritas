@@ -29,7 +29,7 @@ namespace celeritas_test
 /*!
  * Test base for loading geometry.
  */
-class OrangeGeoTestBase : public celeritas::Test
+class OrangeGeoTestBase : public celeritas_test::Test
 {
   public:
     //!@{

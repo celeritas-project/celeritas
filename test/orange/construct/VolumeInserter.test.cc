@@ -26,7 +26,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeInserterTest : public celeritas::Test
+class VolumeInserterTest : public celeritas_test::Test
 {
   protected:
     VolumeData<Ownership::value, MemSpace::host>            volume_data_;

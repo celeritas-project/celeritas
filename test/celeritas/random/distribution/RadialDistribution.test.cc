@@ -19,7 +19,7 @@ using celeritas::RadialDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RadialDistributionTest : public celeritas::Test
+class RadialDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

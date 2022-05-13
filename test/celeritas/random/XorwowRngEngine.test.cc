@@ -173,7 +173,7 @@ TEST(GenerateCanonical32, moments)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class XorwowRngEngineTest : public celeritas::Test
+class XorwowRngEngineTest : public celeritas_test::Test
 {
   protected:
     using HostStore = CollectionStateStore<XorwowRngStateData, MemSpace::host>;

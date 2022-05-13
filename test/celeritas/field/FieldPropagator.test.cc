@@ -7,12 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/FieldPropagator.hh"
 
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/UniformMagField.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldPropagator.test.hh"
 #include "FieldPropagatorTestBase.hh"
@@ -43,7 +47,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with UniformMagField
     UniformMagField field({0, 0, test.field_value});
@@ -102,7 +106,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with UniformMagField
     UniformMagField field({0, 0, test.field_value});
@@ -186,9 +190,9 @@ TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;
@@ -222,9 +226,9 @@ TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;

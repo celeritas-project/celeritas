@@ -19,7 +19,7 @@ using celeritas::UniformRealDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UniformRealDistributionTest : public celeritas::Test
+class UniformRealDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

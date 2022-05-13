@@ -19,7 +19,7 @@ struct TestInstantiator;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class OpaqueIdTest : public celeritas::Test
+class OpaqueIdTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

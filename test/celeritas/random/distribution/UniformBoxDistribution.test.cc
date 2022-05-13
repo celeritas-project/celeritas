@@ -20,7 +20,7 @@ using celeritas::UniformBoxDistribution;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UniformBoxDistributionTest : public celeritas::Test
+class UniformBoxDistributionTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

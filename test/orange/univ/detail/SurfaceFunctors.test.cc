@@ -20,7 +20,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceFunctorsTest : public celeritas::Test
+class SurfaceFunctorsTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

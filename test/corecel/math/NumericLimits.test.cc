@@ -20,7 +20,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 
 template<class T>
-class RealNumericLimitsTest : public celeritas::Test
+class RealNumericLimitsTest : public celeritas_test::Test
 {
 };
 using RealTypes = ::testing::Types<float, double>;
@@ -59,7 +59,7 @@ TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
 //---------------------------------------------------------------------------//
 
 template<class T>
-class UIntNumericLimitsTest : public celeritas::Test
+class UIntNumericLimitsTest : public celeritas_test::Test
 {
 };
 

@@ -19,7 +19,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ValueGridInserterTest : public celeritas::Test
+class ValueGridInserterTest : public celeritas_test::Test
 {
   protected:
     Collection<real_type, Ownership::value, MemSpace::host>  real_storage;

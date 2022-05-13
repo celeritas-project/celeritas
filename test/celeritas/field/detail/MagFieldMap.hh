@@ -11,7 +11,7 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -41,13 +41,13 @@ class MagFieldMap
 
   private:
     // Host/device storage and reference
-    CollectionMirror<detail::FieldMapData> mirror_;
+    celeritas::CollectionMirror<detail::FieldMapData> mirror_;
 
   private:
-    using HostValue = detail::FieldMapData<Ownership::value, MemSpace::host>;
+    using HostValue = FieldMapData<Ownership::value, MemSpace::host>;
     void build_data(const ReadMap&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

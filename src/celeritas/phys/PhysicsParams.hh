@@ -30,12 +30,7 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Manage physics processes and models.
- *
- * The physics params takes a vector of processes and sets up the processes and
- * models. It constructs data and mappings of data:
- * - particle type and process to tabulated values of cross sections etc,
- * - particle type to applicable processes
+ * Physics configuration options.
  *
  * Input options are:
  * - \c min_range: below this value, there is no extra transformation from
@@ -56,6 +51,27 @@ class ParticleParams;
  *   longer valid. Use MC integration to sample the discrete interaction length
  *   with the correct probability.
  * - \c enable_fluctuation: enable simulation of energy loss fluctuations.
+ */
+struct PhysicsParamsOptions
+{
+    real_type min_range              = 1 * units::millimeter;
+    real_type max_step_over_range    = 0.2;
+    real_type min_eprime_over_e      = 0.8;
+    real_type fixed_step_limiter     = 0;
+    real_type linear_loss_limit      = 0.01;
+    real_type secondary_stack_factor = 3;
+    bool      use_integral_xs        = true;
+    bool      enable_fluctuation     = true;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Manage physics processes and models.
+ *
+ * The physics params takes a vector of processes and sets up the processes and
+ * models. It constructs data and mappings of data:
+ * - particle type and process to tabulated values of cross sections etc,
+ * - particle type to applicable processes
  *
  * During construction it constructs models and their corresponding list of
  * \c ActionId values, as well as the tables of cross section data. Besides the
@@ -82,6 +98,7 @@ class PhysicsParams
     using VecProcess         = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<const ProcessId>;
     using ActionIdRange      = Range<ActionId>;
+    using Options            = PhysicsParamsOptions;
 
     using HostRef
         = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
@@ -89,27 +106,14 @@ class PhysicsParams
         = PhysicsParamsData<Ownership::const_reference, MemSpace::device>;
     //!@}
 
-    //! Global physics configuration options
-    struct Options
-    {
-        real_type min_range           = 1 * units::millimeter;
-        real_type max_step_over_range = 0.2;
-        real_type min_eprime_over_e   = 0.8;
-        real_type fixed_step_limiter  = 0;
-        real_type linear_loss_limit   = 0.01;
-        real_type secondary_stack_factor = 3;
-        bool      use_integral_xs     = true;
-        bool      enable_fluctuation  = true;
-    };
-
     //! Physics parameter construction arguments
     struct Input
     {
-        SPConstParticles particles;
-        SPConstMaterials materials;
-        VecProcess       processes;
+        SPConstParticles  particles;
+        SPConstMaterials  materials;
+        VecProcess        processes;
         SPConstRelaxation relaxation; //!< Optional atomic relaxation
-        ActionManager*   action_manager = nullptr;
+        ActionManager*    action_manager = nullptr;
 
         Options options;
     };

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "celeritas_config.h"
@@ -21,36 +22,39 @@
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
-    EXPECT_PRED_FORMAT2(::celeritas::detail::IsVecEq, expected, actual)
+    EXPECT_PRED_FORMAT2(::celeritas_test::detail::IsVecEq, expected, actual)
 
 //! Soft equivalence macro
 #define EXPECT_SOFT_EQ(expected, actual) \
-    EXPECT_PRED_FORMAT2(::celeritas::detail::IsSoftEquiv, expected, actual)
+    EXPECT_PRED_FORMAT2(                 \
+        ::celeritas_test::detail::IsSoftEquiv, expected, actual)
 
 //! Soft equivalence macro with relative error
 #define EXPECT_SOFT_NEAR(expected, actual, rel_error) \
     EXPECT_PRED_FORMAT3(                              \
-        ::celeritas::detail::IsSoftEquiv, expected, actual, rel_error)
+        ::celeritas_test::detail::IsSoftEquiv, expected, actual, rel_error)
 
 //! Container soft equivalence macro
 #define EXPECT_VEC_SOFT_EQ(expected, actual) \
-    EXPECT_PRED_FORMAT2(::celeritas::detail::IsVecSoftEquiv, expected, actual)
+    EXPECT_PRED_FORMAT2(                     \
+        ::celeritas_test::detail::IsVecSoftEquiv, expected, actual)
 
 //! Container soft equivalence macro with relative error
 #define EXPECT_VEC_NEAR(expected, actual, rel_error) \
     EXPECT_PRED_FORMAT3(                             \
-        ::celeritas::detail::IsVecSoftEquiv, expected, actual, rel_error)
+        ::celeritas_test::detail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Container soft equivalence macro with relative and absolute error
 #define EXPECT_VEC_CLOSE(expected, actual, rel_error, abs_thresh) \
-    EXPECT_PRED_FORMAT4(::celeritas::detail::IsVecSoftEquiv,      \
+    EXPECT_PRED_FORMAT4(::celeritas_test::detail::IsVecSoftEquiv, \
                         expected,                                 \
                         actual,                                   \
                         rel_error,                                \
                         abs_thresh)
 
 //! Print the given container as an array for regression testing
-#define PRINT_EXPECTED(data) ::celeritas::detail::print_expected(data, #data)
+#define PRINT_EXPECTED(data) \
+    ::celeritas_test::detail::print_expected(data, #data)
 
 //! Construct a test name that is disabled when assertions are enabled
 #if CELERITAS_DEBUG
@@ -80,7 +84,7 @@
 #    define TEST_IF_CELERITAS_JSON(name) DISABLED_##name
 #endif
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -155,7 +159,7 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
            << "\nExpected: " << expected_expr << "\nWhich is: " << expected
            << '\n';
 
-    SoftZero<value_type> is_soft_zero(comp.abs());
+    celeritas::SoftZero<value_type> is_soft_zero(comp.abs());
     if (is_soft_zero(expected))
     {
         // Avoid divide by zero errors
@@ -234,10 +238,13 @@ struct FailedValue
 template<class C1, class C2>
 struct TCT
 {
-    using first_type =
-        typename std::remove_const<typename ContTraits<C1>::value_type>::type;
-    using second_type =
-        typename std::remove_const<typename ContTraits<C2>::value_type>::type;
+    template<class C>
+    using value_type_ = typename celeritas::ContTraits<C>::value_type;
+    template<class C>
+    using nc_value_type_ = typename std::remove_const<value_type_<C>>::type;
+
+    using first_type  = nc_value_type_<C1>;
+    using second_type = nc_value_type_<C2>;
 
     using common_type =
         typename std::common_type<first_type, second_type>::type;
@@ -250,10 +257,13 @@ struct TCT
 template<class Iter1, class Iter2>
 struct FVIT
 {
-    using first_type = typename std::remove_const<
-        typename std::iterator_traits<Iter1>::value_type>::type;
-    using second_type = typename std::remove_const<
-        typename std::iterator_traits<Iter2>::value_type>::type;
+    template<class I>
+    using value_type_ = typename std::iterator_traits<I>::value_type;
+    template<class I>
+    using nc_value_type_ = typename std::remove_const<value_type_<I>>::type;
+
+    using first_type  = nc_value_type_<Iter1>;
+    using second_type = nc_value_type_<Iter2>;
 
     using type  = FailedValue<first_type, second_type>;
     using Vec_t = std::vector<type>;
@@ -351,7 +361,7 @@ template<class ContainerE, class ContainerA, class BinaryOp>
         if (failures.empty())
         {
             // Size was different; print the actual vector
-            result << "Actual values: " << repr(actual) << ";\n";
+            result << "Actual values: " << celeritas::repr(actual) << ";\n";
         }
         else
         {
@@ -375,8 +385,8 @@ std::string failure_msg(const char*                             expected_expr,
                         const char*                             actual_expr,
                         const std::vector<FailedValue<T1, T2>>& failures)
 {
-    using RT1 = ReprTraits<T1>;
-    using RT2 = ReprTraits<T2>;
+    using RT1 = celeritas::ReprTraits<T1>;
+    using RT2 = celeritas::ReprTraits<T2>;
     using std::setw;
 
     // Calculate how many digits we need to space out
@@ -468,8 +478,8 @@ std::string float_failure_msg(const char* expected_expr,
 template<class Container>
 void print_expected(const Container& data, std::string label)
 {
-    using RT  = ReprTraits<Container>;
-    using VRT = ReprTraits<typename RT::value_type>;
+    using RT  = celeritas::ReprTraits<Container>;
+    using VRT = celeritas::ReprTraits<typename RT::value_type>;
 
     std::cout << "static const ";
     label.insert(0, "expected_");
@@ -514,7 +524,7 @@ template<class ContainerE, class ContainerA>
         if (failures.empty())
         {
             // Size was different; print the actual vector
-            result << "Actual values: " << repr(actual) << ";\n";
+            result << "Actual values: " << celeritas::repr(actual) << ";\n";
         }
         else
         {
@@ -616,4 +626,4 @@ template<class ContainerE, class ContainerA>
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

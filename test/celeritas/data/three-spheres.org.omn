@@ -1,0 +1,52 @@
+!##############################################################################
+! File  : three-spheres.org.omn
+!
+! Three concentric spheres.
+! Regenerate the JSON file with `orange2celeritas` from SCALE
+!##############################################################################
+
+[GEOMETRY]
+global "global"
+comp       : matid
+    "lo density celerogen" 0
+    "hi density celerogen" 1
+    "solid celerinium" 2
+
+[UNIVERSE=general global]
+interior "world_sph"
+
+!##############################################################################
+! SHAPES ("solids")
+!##############################################################################
+
+[UNIVERSE][SHAPE=sphere inner_sph]
+radius 1
+
+[UNIVERSE][SHAPE=sphere middle_sph]
+radius 3
+
+[UNIVERSE][SHAPE=sphere outer_sph]
+radius 6
+
+[UNIVERSE][SHAPE=sphere world_sph]
+radius 100
+
+!##############################################################################
+! CELLS ("volumes")
+!##############################################################################
+
+[UNIVERSE][CELL inner]
+comp "lo density celerogen"
+shapes inner_sph
+
+[UNIVERSE][CELL middle]
+comp "solid celerinium"
+shapes middle_sph ~inner_sph
+
+[UNIVERSE][CELL outer]
+comp "hi density celerogen"
+shapes outer_sph ~middle_sph
+
+[UNIVERSE][CELL world]
+comp "lo density celerogen"
+shapes world_sph ~outer_sph

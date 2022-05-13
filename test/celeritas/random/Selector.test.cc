@@ -19,7 +19,7 @@ using celeritas_test::SequenceEngine;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PdfSelectorTest : public celeritas::Test
+class PdfSelectorTest : public celeritas_test::Test
 {
   public:
     using SelectorT = celeritas::Selector<std::function<double(int)>, int>;

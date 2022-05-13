@@ -25,7 +25,7 @@ using celeritas::range;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CurandTest : public celeritas::Test
+class CurandTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override

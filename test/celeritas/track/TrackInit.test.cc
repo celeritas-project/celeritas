@@ -9,17 +9,12 @@
 
 #include <algorithm>
 #include <numeric>
+#include <vector>
 
-#include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoTestBase.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/SimpleTestBase.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
@@ -56,71 +51,10 @@ ITTestInputData ITTestInput::device_ref()
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
+class TrackInitTest : public celeritas_test::SimpleTestBase
 {
   protected:
-    const char* filebase() const override { return "two-boxes"; }
-
-    void SetUp() override
-    {
-        // Set up shared geometry data
-        core_data.params.geometry = this->geometry()->device_ref();
-
-        // Set up shared material data
-        materials = std::make_shared<MaterialParams>(
-            MaterialParams::Input{{{1, units::AmuMass{1.008}, "H"}},
-                                  {{1e-5 * constants::na_avogadro,
-                                    100.0,
-                                    MatterState::gas,
-                                    {{ElementId{0}, 1.0}},
-                                    "H2"}}});
-        core_data.params.materials = materials->device_ref();
-
-        // Set up dummy geo/material coupling data
-        geo_mats = std::make_shared<GeoMaterialParams>(GeoMaterialParams::Input{
-            this->geometry(),
-            materials,
-            std::vector<MaterialId>(this->geometry()->num_volumes(),
-                                    MaterialId{0}),
-            {}});
-        core_data.params.geo_mats = geo_mats->device_ref();
-
-        // Set up shared particle data
-        particles = std::make_shared<ParticleParams>(
-            ParticleParams::Input{{"gamma",
-                                   pdg::gamma(),
-                                   zero_quantity(),
-                                   zero_quantity(),
-                                   ParticleRecord::stable_decay_constant()}});
-        core_data.params.particles = particles->device_ref();
-
-        // Set up empty cutoff data
-        cutoffs = std::make_shared<CutoffParams>(
-            CutoffParams::Input{particles, materials, {}});
-        core_data.params.cutoffs = cutoffs->device_ref();
-
-        // Set up shared RNG data
-        rng                  = std::make_shared<RngParams>(12345);
-        core_data.params.rng = rng->device_ref();
-
-        // Add dummy physics data
-        PhysicsParamsData<Ownership::value, MemSpace::host> host_physics;
-        resize(&host_physics.process_groups, 1);
-        host_physics.scalars.max_particle_processes = 1;
-        host_physics.scalars.scaling_min_range      = 1;
-        host_physics.scalars.scaling_fraction       = 0.2;
-        host_physics.scalars.energy_fraction        = 0.8;
-        host_physics.scalars.linear_loss_limit      = 0.01;
-        host_physics.scalars.model_to_action        = 4;
-        host_physics.scalars.num_models             = 1;
-        host_physics.scalars.secondary_stack_factor = 10;
-        CELER_ASSERT(host_physics);
-        physics = CollectionMirror<PhysicsParamsData>{std::move(host_physics)};
-        core_data.params.physics = physics.device();
-
-        core_data.params.scalars.boundary_action = ActionId{0}; // Unused
-        CELER_ENSURE(core_data.params);
-    }
+    void SetUp() override { core_data.params = this->core()->device_ref(); }
 
     //! Create primary particles
     std::vector<Primary> generate_primaries(size_type num_primaries)
@@ -144,20 +78,8 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         CELER_EXPECT(core_data.params);
         CELER_EXPECT(track_inits);
 
-        CoreParamsData<Ownership::const_reference, MemSpace::host> host_params;
-
-        host_params.geometry  = this->geometry()->host_ref();
-        host_params.geo_mats  = geo_mats->host_ref();
-        host_params.materials = materials->host_ref();
-        host_params.particles = particles->host_ref();
-        host_params.cutoffs   = cutoffs->host_ref();
-        host_params.physics   = physics.host();
-        host_params.rng       = rng->host_ref();
-        host_params.scalars.boundary_action        = ActionId{0}; // Unused
-        CELER_ASSERT(host_params);
-
         // Allocate state data
-        resize(&device_states, host_params, num_tracks);
+        resize(&device_states, this->core()->host_ref(), num_tracks);
         core_data.states = device_states;
 
         resize(&track_init_states, track_inits->host_ref(), num_tracks);
@@ -201,12 +123,8 @@ class TrackInitTest : public GeoTestBase<celeritas::GeoParams>
         return result;
     }
 
-    std::shared_ptr<GeoMaterialParams>                geo_mats;
-    std::shared_ptr<ParticleParams>                   particles;
-    std::shared_ptr<MaterialParams>                   materials;
-    std::shared_ptr<CutoffParams>                     cutoffs;
-    std::shared_ptr<RngParams>                        rng;
-    std::shared_ptr<TrackInitParams>                  track_inits;
+    std::shared_ptr<TrackInitParams> track_inits;
+
     CollectionMirror<PhysicsParamsData>               physics;
     CoreStateData<Ownership::value, MemSpace::device> device_states;
     CoreDeviceRef                                     core_data;
@@ -376,7 +294,13 @@ TEST_F(TrackInitTest, primaries)
     EXPECT_EQ(track_init_states.initializers.size(), 0);
 }
 
-TEST_F(TrackInitTest, secondaries)
+class TrackInitSecondaryTest : public TrackInitTest
+{
+  protected:
+    real_type secondary_stack_factor() const final { return 8; }
+};
+
+TEST_F(TrackInitSecondaryTest, secondaries)
 {
     const size_type num_primaries  = 512;
     const size_type num_tracks     = 512;
@@ -411,15 +335,16 @@ TEST_F(TrackInitTest, secondaries)
     {
         // All queued initializers are converted to tracks
         initialize_tracks(core_data, &track_init_states);
-        EXPECT_EQ(0, track_init_states.initializers.size());
+        ASSERT_EQ(0, track_init_states.initializers.size());
 
         // Launch kernel to process interactions
         interact(core_data.states, input.device_ref());
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(core_data, &track_init_states);
-        EXPECT_EQ(128, track_init_states.initializers.size());
-        EXPECT_EQ(128, track_init_states.vacancies.size());
+        ASSERT_EQ(128, track_init_states.initializers.size())
+            << "iteration " << i;
+        ASSERT_EQ(128, track_init_states.vacancies.size());
     }
 }
 

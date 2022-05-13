@@ -6,12 +6,14 @@
 //! \file celeritas/field/UserMapField.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldParamsData.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 #include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"
@@ -21,8 +23,11 @@
 #include "detail/FieldMapData.hh"
 #include "detail/MagFieldMap.hh"
 
-using celeritas::detail::CMSMapField;
-using celeritas::detail::MagFieldMap;
+using celeritas_test::detail::CMSFieldMapReader;
+using celeritas_test::detail::CMSMapField;
+using celeritas_test::detail::FieldMapParameters;
+using celeritas_test::detail::FieldMapRef;
+using celeritas_test::detail::MagFieldMap;
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -48,17 +53,16 @@ class UserMapFieldTest : public FieldPropagatorTestBase
         test.radius /= 3.8;
 
         // Construct MagFieldMap and save a reference to the host data
-        std::string test_file
-            = celeritas::Test::test_data_path("celeritas", "cmsFieldMap.tiny");
+        std::string test_file = celeritas_test::Test::test_data_path(
+            "celeritas", "cmsFieldMap.tiny");
 
-        detail::FieldMapParameters params;
+        FieldMapParameters params;
         params.delta_grid = units::meter;
         params.num_grid_r = 9 + 1;           //! [0:9]
         params.num_grid_z = 2 * 16 + 1;      //! [-16:16]
         params.offset_z   = real_type{1600}; //! 16 meters
 
-        MagFieldMap::ReadMap load_map
-            = detail::CMSFieldMapReader(params, test_file);
+        MagFieldMap::ReadMap load_map = CMSFieldMapReader(params, test_file);
 
         map_ = std::make_shared<MagFieldMap>(load_map);
         ref_ = map_->host_ref();
@@ -83,7 +87,7 @@ class UserMapFieldTest : public FieldPropagatorTestBase
     GeoStateStore                  geo_state_;
     UserFieldTestParams            test_param_;
     std::shared_ptr<MagFieldMap>   map_;
-    celeritas::detail::FieldMapRef ref_;
+    FieldMapRef                    ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -112,7 +116,7 @@ TEST_F(UserMapFieldTest, host_umf_propagator)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with a user CMSMapField
     CMSMapField field(this->ref_);
@@ -168,7 +172,7 @@ TEST_F(UserMapFieldTest, host_umf_geolimited)
     GeoTrackView geo_track = GeoTrackView(
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
-        particle_params->host_ref(), state_ref, ThreadId(0));
+        this->particle()->host_ref(), state_ref, ThreadId(0));
 
     // Construct FieldDriver with a user CMSMapField
     CMSMapField field(this->ref_);
@@ -256,9 +260,9 @@ TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_propagator))
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;
@@ -290,9 +294,9 @@ TEST_F(UserMapFieldDeviceTest, TEST_IF_CELER_DEVICE(device_umf_geolimited))
     input.geo_states = device_states.ref();
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init_track.size());
+        *this->particle(), input.init_track.size());
 
-    input.particle_params = particle_params->device_ref();
+    input.particle_params = this->particle()->device_ref();
     input.particle_states = pstates.ref();
 
     input.field_params = this->field_params;

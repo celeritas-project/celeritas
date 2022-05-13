@@ -17,6 +17,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"
 

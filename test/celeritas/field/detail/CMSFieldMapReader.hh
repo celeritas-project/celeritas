@@ -11,7 +11,7 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas
+namespace celeritas_test
 {
 namespace detail
 {
@@ -59,4 +59,4 @@ class CMSFieldMapReader
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas
+} // namespace celeritas_test

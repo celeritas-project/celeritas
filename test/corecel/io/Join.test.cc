@@ -70,7 +70,7 @@ struct transform_functor
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class JoinTest : public celeritas::Test
+class JoinTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override {}

@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 #include "MockModel.hh"

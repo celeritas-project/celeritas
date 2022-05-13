@@ -28,7 +28,7 @@ using celeritas::Provenance;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LoggerTest : public celeritas::Test
+class LoggerTest : public celeritas_test::Test
 {
   protected:
     void SetUp() override
