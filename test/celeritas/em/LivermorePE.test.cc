@@ -572,7 +572,7 @@ TEST_F(LivermorePETest, utils)
     unsigned int num_shells = 20;
     {
         Values data;
-        make_builder(&data.elements).resize(1);
+        resize(&data.elements, 1);
         AtomicRelaxElement& el = data.elements[ElementId(0)];
 
         std::vector<AtomicRelaxSubshell> shells(num_shells);
@@ -601,7 +601,7 @@ TEST_F(LivermorePETest, utils)
     }
     {
         Values data;
-        make_builder(&data.elements).resize(1);
+        resize(&data.elements, 1);
         AtomicRelaxElement& el = data.elements[ElementId(0)];
 
         std::vector<AtomicRelaxSubshell> shells(num_shells);

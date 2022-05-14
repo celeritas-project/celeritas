@@ -49,7 +49,7 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
 
         // Allocate memory and copy primaries
         Collection<Primary, Ownership::value, M> primaries;
-        make_builder(&primaries).resize(count);
+        resize(&primaries, count);
         Copier<Primary, MemSpace::host> copy{
             params.primaries[ItemRange<Primary>(
                 ItemId<Primary>(data->num_primaries - count),

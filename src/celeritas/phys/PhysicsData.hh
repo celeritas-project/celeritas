@@ -451,14 +451,13 @@ inline void resize(
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.scalars.max_particle_processes > 0);
-    make_builder(&state->state).resize(size);
+    resize(&state->state, size);
     if (params.hardwired.msc)
     {
-        make_builder(&state->msc_step).resize(size);
+        resize(&state->msc_step, size);
     }
-    make_builder(&state->per_process_xs)
-        .resize(size * params.scalars.max_particle_processes);
-
+    resize(&state->per_process_xs,
+           size * params.scalars.max_particle_processes);
     resize(&state->relaxation, params.hardwired.relaxation_data, size);
     resize(&state->secondaries, size * params.scalars.secondary_stack_factor);
 }

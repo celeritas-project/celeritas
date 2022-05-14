@@ -37,14 +37,14 @@ void resize(
 
     // Create seeds for device in host memory
     StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
-    make_builder(&host_seeds).resize(size);
+    resize(&host_seeds, size);
     for (RngInit& init : host_seeds[AllItems<RngInit>{}])
     {
         init.seed = sample_uniform_int(host_rng);
     }
 
     // Resize state data and assign
-    make_builder(&state->rng).resize(size);
+    resize(&state->rng, size);
     detail::CuHipRngInitData<Ownership::value, M> init_data;
     init_data.seeds = host_seeds;
     detail::rng_state_init(make_ref(*state), make_const_ref(init_data));

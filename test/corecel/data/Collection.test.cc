@@ -159,7 +159,7 @@ TEST_F(SimpleCollectionTest, algo_host)
     Value<host> src;
 
     // Test 'fill'
-    make_builder(&src).resize(4);
+    resize(&src, 4);
     celeritas::fill(123, &src);
     EXPECT_EQ(123, src[IntId{0}]);
     EXPECT_EQ(123, src[IntId{3}]);
@@ -173,7 +173,7 @@ TEST_F(SimpleCollectionTest, algo_host)
 TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 {
     Value<device> src;
-    make_builder(&src).resize(2);
+    resize(&src, 2);
     celeritas::fill(123, &src);
 
     // Test 'copy_to_host'
@@ -273,7 +273,7 @@ inline void
 resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&data->matid).resize(size);
+    resize(&data->matid, size);
 }
 
 //---------------------------------------------------------------------------//

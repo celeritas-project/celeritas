@@ -79,10 +79,10 @@ resize(OrangeMiniStateData<Ownership::value, M>* data,
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
-    make_builder(&data->pos).resize(size);
-    make_builder(&data->dir).resize(size);
-    make_builder(&data->sense).resize(size);
-    make_builder(&data->distance).resize(size);
+    resize(&data->pos, size);
+    resize(&data->dir, size);
+    resize(&data->sense, size);
+    resize(&data->distance, size);
 
     CELER_ENSURE(*data);
 }

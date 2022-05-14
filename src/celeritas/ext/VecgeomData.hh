@@ -122,9 +122,9 @@ void resize(
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.max_depth > 0);
 
-    make_builder(&data->pos).resize(size);
-    make_builder(&data->dir).resize(size);
-    make_builder(&data->next_step).resize(size);
+    resize(&data->pos, size);
+    resize(&data->dir, size);
+    resize(&data->next_step, size);
     data->vgstate.resize(params.max_depth, size);
     data->vgnext.resize(params.max_depth, size);
 

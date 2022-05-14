@@ -158,7 +158,7 @@ resize(ParticleStateData<Ownership::value, M>* data,
        size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&data->state).resize(size);
+    resize(&data->state, size);
 }
 
 //---------------------------------------------------------------------------//

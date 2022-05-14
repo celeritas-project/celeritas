@@ -55,8 +55,8 @@ inline void
 resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
 {
     CELER_EXPECT(capacity > 0);
-    make_builder(&data->storage).resize(capacity);
-    make_builder(&data->size).resize(1);
+    resize(&data->storage, capacity);
+    resize(&data->size, 1);
     celeritas::fill(size_type(0), &data->size);
 }
 

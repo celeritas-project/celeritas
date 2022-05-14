@@ -156,7 +156,7 @@ resize(AtomicRelaxStateData<Ownership::value, M>* state,
        size_type size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&state->scratch).resize(size * params.max_stack_size);
+    resize(&state->scratch, size * params.max_stack_size);
     state->num_states = size;
 }
 
