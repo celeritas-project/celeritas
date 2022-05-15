@@ -21,6 +21,40 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+template<class T, class Enable = void>
+struct TrivialInvalidValueTraits
+{
+    static_assert(std::is_trivial<T>::value,
+                  "Cannot legally memset non-trivial types");
+    static T value()
+    {
+        T result;
+        std::memset(&result, 0xd0, sizeof(T)); // 4*b"\xf0\x9f\xa6\xa4".decode()
+        return result;
+    }
+};
+
+//---------------------------------------------------------------------------//
+template<class T>
+struct TrivialInvalidValueTraits<
+    T,
+    typename std::enable_if<std::is_arithmetic<T>::value>::type>
+{
+    static constexpr T value() { return std::numeric_limits<T>::max() / 2; }
+};
+
+template<class T, size_type N>
+struct TrivialInvalidValueTraits<Array<T, N>, void>
+{
+    static Array<T, N> value()
+    {
+        Array<T, N> result;
+        result.fill(TrivialInvalidValueTraits<T>::value());
+        return result;
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Return an 'invalid' value.
  *
@@ -29,7 +63,7 @@ namespace detail
  *
  * Instead of assigning 'NaN', which may work automatically for sentinel logic
  * such as "valid if x > 0)", we assign large (half-max) values for numeric
- * types, and fill generic types with garbage values that look like
+ * types, and fill trivial types with garbage values that look like
  * `0xd0d0d0d0`.
  */
 template<class T, class Enable = void>
@@ -37,8 +71,21 @@ struct InvalidValueTraits
 {
     static T value()
     {
+#if !CELERITAS_USE_HIP
+        static_assert(std::is_trivially_copyable<T>::value,
+                      "Filling can only be done to trivially copyable "
+                      "classes");
+#endif
+        // BAD: we're assigning garbage data to a result with a *non-trivial
+        // type*, such as a struct of OpaqueIds. However, this is in essence
+        // what's going on when we allocate space for nontrivial types on
+        // device: whatever's there (whether memset on NVIDIA or uninitialized
+        // on AMD) is not going to have "placement new" applied since we're not
+        // using thrust or calling Filler to launch initialization kernels on
+        // all our datatypes. Reinterpret the data as bytes and assign garbage
+        // values.
         T result;
-        std::memset(&result, 0xd0, sizeof(T)); // 4*b"\xf0\x9f\xa6\xa4".decode()
+        std::memset(reinterpret_cast<unsigned char*>(&result), 0xd0, sizeof(T));
         return result;
     }
 };
@@ -53,22 +100,11 @@ struct InvalidValueTraits<OpaqueId<I, T>, void>
     }
 };
 
+//---------------------------------------------------------------------------//
 template<class T>
-struct InvalidValueTraits<T,
-                          typename std::enable_if<std::is_arithmetic<T>::value>::type>
+struct InvalidValueTraits<T, typename std::enable_if<std::is_trivial<T>::value>::type>
 {
-    static constexpr T value() { return std::numeric_limits<T>::max() / 2; }
-};
-
-template<class T, size_type N>
-struct InvalidValueTraits<Array<T, N>, void>
-{
-    static Array<T, N> value()
-    {
-        Array<T, N> result;
-        result.fill(InvalidValueTraits<T>::value());
-        return result;
-    }
+    static T value() { return TrivialInvalidValueTraits<T>::value(); }
 };
 
 //---------------------------------------------------------------------------//
