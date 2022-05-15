@@ -10,7 +10,10 @@
 #include <initializer_list>
 #include <limits>
 
+#include "celeritas_config.h"
+
 #include "Collection.hh"
+#include "detail/FillInvalid.hh"
 
 namespace celeritas
 {
@@ -34,7 +37,10 @@ namespace celeritas
 
  * The CollectionBuilder can also be used to resize device-value collections
  * without having to allocate a host version and copy to device. (This is
- * useful for state allocations.)
+ * useful for state allocations.) When resizing values with debugging
+ assertions
+ * enabled on host memory, it will assign garbage values to aid in reproducible
+ * debugging.)
  */
 template<class T, MemSpace M, class I>
 class CollectionBuilder
@@ -166,6 +172,11 @@ void CollectionBuilder<T, M, I>::resize(size_type size)
 {
     CELER_EXPECT(this->storage().empty());
     this->storage() = StorageT(size);
+    if (CELERITAS_DEBUG && M == MemSpace::host)
+    {
+        // Fill with invalid values to help with debugging on host
+        detail::fill_invalid(&col_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -193,7 +204,6 @@ void resize(Collection<T, Ownership::value, M, I>* collection,
             typename I::size_type                  size)
 {
     CELER_EXPECT(collection);
-    CELER_EXPECT(size > 0);
     CollectionBuilder<T, M, I>(collection).resize(size);
 }
 
