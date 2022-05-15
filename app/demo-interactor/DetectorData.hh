@@ -93,7 +93,7 @@ inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     resize(&data->hit_buffer, size);
-    make_builder(&data->tally_deposition).resize(params.tally_grid.size);
+    resize(&data->tally_deposition, params.tally_grid.size);
 }
 #endif
 

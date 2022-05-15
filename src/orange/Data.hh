@@ -274,7 +274,7 @@ struct OrangeStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize particle states in host code.
+ * Resize geometry tracking states.
  */
 template<MemSpace M>
 inline void
@@ -284,19 +284,19 @@ resize(OrangeStateData<Ownership::value, M>* data,
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
-    make_builder(&data->pos).resize(size);
-    make_builder(&data->dir).resize(size);
-    make_builder(&data->vol).resize(size);
-    make_builder(&data->surf).resize(size);
-    make_builder(&data->sense).resize(size);
+    resize(&data->pos, size);
+    resize(&data->dir, size);
+    resize(&data->vol, size);
+    resize(&data->surf, size);
+    resize(&data->sense, size);
 
     size_type face_states = params.scalars.max_faces * size;
-    make_builder(&data->temp_sense).resize(face_states);
+    resize(&data->temp_sense, face_states);
 
     size_type isect_states = params.scalars.max_intersections * size;
-    make_builder(&data->temp_face).resize(isect_states);
-    make_builder(&data->temp_distance).resize(isect_states);
-    make_builder(&data->temp_isect).resize(isect_states);
+    resize(&data->temp_face, isect_states);
+    resize(&data->temp_distance, isect_states);
+    resize(&data->temp_isect, isect_states);
 
     CELER_ENSURE(*data);
 }

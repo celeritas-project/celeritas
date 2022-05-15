@@ -38,7 +38,7 @@ void resize(
 
     // Create seeds for device in host memory
     XorwowRngStateData<Ownership::value, MemSpace::host> host_state;
-    make_builder(&host_state.state).resize(size);
+    resize(&host_state.state, size);
 
     // Fill all seeds with random data. The xorstate is never all
     // zeros, with probability 2^{-320}.

@@ -218,13 +218,7 @@ OrangeParams::OrangeParams(Input input)
     host_data.scalars.max_faces         = max_faces;
     host_data.scalars.max_intersections = max_intersections;
 
-    if (!simple_safety)
-    {
-        CELER_LOG(warning) << "Geometry contains surfaces that are "
-                              "incompatible with the current ORANGE simple "
-                              "safety algorithm: multiple scattering may "
-                              "result in arbitrarily small steps";
-    }
+    supports_safety_ = simple_safety;
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);

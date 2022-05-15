@@ -58,6 +58,9 @@ class OrangeParams
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(Input input);
 
+    //! Whether safety distance calculations are accurate and precise
+    bool supports_safety() const { return supports_safety_; }
+
     //// VOLUMES ////
 
     //! Number of volumes
@@ -98,6 +101,7 @@ class OrangeParams
     std::unordered_map<std::string, VolumeId>  vol_ids_;
     std::unordered_map<std::string, SurfaceId> surf_ids_;
     BoundingBox                                bbox_;
+    bool                                       supports_safety_{};
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;

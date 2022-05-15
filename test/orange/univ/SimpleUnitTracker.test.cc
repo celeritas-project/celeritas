@@ -10,14 +10,13 @@
 #include <algorithm>
 #include <random>
 
-// Source includes
+#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/Constants.hh"
-
-// Test includes
 #include "orange/OrangeGeoTestBase.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
@@ -42,8 +41,10 @@ constexpr real_type sqrt_half = sqrt_two / 2;
 class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
 {
   protected:
-    using StateHostValue
-        = celeritas::OrangeStateData<Ownership::value, MemSpace::host>;
+    using StateHostValue = OrangeStateData<Ownership::value, MemSpace::host>;
+    using StateHostRef = OrangeStateData<Ownership::reference, MemSpace::host>;
+    using HostStateStore
+        = CollectionStateStore<OrangeStateData, MemSpace::host>;
 
     struct HeuristicInitResult
     {
@@ -74,7 +75,8 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
 
   private:
     StateHostValue      setup_heuristic_states(size_type num_tracks) const;
-    HeuristicInitResult reduce_heuristic_init(StateHostValue, double) const;
+    HeuristicInitResult
+    reduce_heuristic_init(const StateHostRef&, double) const;
 };
 
 class OneVolumeTest : public SimpleUnitTrackerTest
@@ -196,21 +198,19 @@ LocalState SimpleUnitTrackerTest::make_state_crossing(
 auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
     -> HeuristicInitResult
 {
-    auto state_host = this->setup_heuristic_states(num_tracks);
+    HostStateStore states(this->setup_heuristic_states(num_tracks));
 
     // Set up for host run
-    OrangeStateData<Ownership::reference, MemSpace::host> host_state_ref;
-    host_state_ref = state_host;
-    InitializingLauncher<> calc_init{this->params().host_ref(), host_state_ref};
+    InitializingLauncher<> calc_init{this->params().host_ref(), states.ref()};
 
     // Loop over all threads
     Stopwatch get_time;
-    for (auto tid : range(ThreadId{state_host.size()}))
+    for (auto tid : range(ThreadId{states.size()}))
     {
         calc_init(tid);
     }
 
-    return this->reduce_heuristic_init(std::move(state_host), get_time());
+    return this->reduce_heuristic_init(states.ref(), get_time());
 }
 
 //---------------------------------------------------------------------------//
@@ -220,21 +220,17 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
     -> HeuristicInitResult
 {
-    // Construct on host and copy to device
-    auto state_host = this->setup_heuristic_states(num_tracks);
-    OrangeStateData<Ownership::value, MemSpace::device> state_device;
-    state_device = state_host;
-    StateRef<MemSpace::device> state_device_ref;
-    state_device_ref = state_device;
+    using DStateStore = CollectionStateStore<OrangeStateData, MemSpace::device>;
+    DStateStore states(this->setup_heuristic_states(num_tracks));
 
     // Run on device
     Stopwatch get_time;
-    test_initialize(this->params().device_ref(), state_device_ref);
+    test_initialize(this->params().device_ref(), states.ref());
     const double kernel_time = get_time();
 
     // Copy result back to host
-    state_host = state_device;
-    return this->reduce_heuristic_init(std::move(state_host), kernel_time);
+    HostStateStore state_host(std::move(states));
+    return this->reduce_heuristic_init(state_host.ref(), kernel_time);
 }
 
 //---------------------------------------------------------------------------//
@@ -261,6 +257,12 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
         pos_view[i] = sample_box(rng);
         dir_view[i] = sample_isotropic(rng);
     }
+
+    // Clear other data
+    fill(VolumeId{}, &result.vol);
+    fill(SurfaceId{}, &result.surf);
+
+    CELER_ENSURE(result);
     return result;
 }
 
@@ -268,7 +270,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostValue host,
+auto SimpleUnitTrackerTest::reduce_heuristic_init(const StateHostRef& host,
                                                   double wall_time) const
     -> HeuristicInitResult
 {

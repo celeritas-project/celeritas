@@ -118,6 +118,9 @@ auto CollectionMirror<P>::host_ref() const -> const HostRef&
 //---------------------------------------------------------------------------//
 /*!
  * Get references to device data after construction.
+ *
+ * This will raise an exception if \c celeritas::device is null (and device
+ * data wasn't set).
  */
 template<template<Ownership, MemSpace> class P>
 auto CollectionMirror<P>::device_ref() const -> const DeviceRef&

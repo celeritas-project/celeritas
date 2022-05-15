@@ -16,6 +16,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 namespace celeritas
@@ -41,6 +42,12 @@ class EPlusGGMacroXsCalculator
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(MevEnergy energy) const;
+
+    //! Minimum energy for Heitler formula validity
+    static CELER_CONSTEXPR_FUNCTION MevEnergy min_energy()
+    {
+        return MevEnergy{1e-6};
+    }
 
   private:
     const real_type electron_mass_;
@@ -74,15 +81,18 @@ EPlusGGMacroXsCalculator::operator()(MevEnergy energy) const
 {
     using constants::pi;
     using constants::r_electron;
+    using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    energy                 = max(MevEnergy{1.e-6}, energy);
-    const real_type gamma  = energy.value() / electron_mass_;
-    const real_type g1     = gamma + 1.;
-    const real_type g2     = gamma * (gamma + 2.);
-    real_type       result = electron_density_ * pi * r_electron * r_electron
-                       * ((g1 * (g1 + 4) + 1.) * std::log(g1 + std::sqrt(g2))
-                          - (g1 + 3.) * std::sqrt(g2))
-                       / (g2 * (g1 + 1.));
+    const real_type gamma
+        = celeritas::max(energy.value(), this->min_energy().value())
+          / electron_mass_;
+    const real_type sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
+
+    real_type result
+        = pi * ipow<2>(r_electron) * electron_density_
+          * (PolyQuad{1, 4, 1}(gamma + 1) * std::log(gamma + 1 + sqrt_gg2)
+             - (gamma + 4) * sqrt_gg2)
+          / (gamma * ipow<2>(gamma + 2));
 
     CELER_ENSURE(result >= 0);
     return result;

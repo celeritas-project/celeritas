@@ -251,16 +251,16 @@ void resize(
 
     // Allocate device data
     auto capacity = params.capacity;
-    make_builder(&data->initializers.storage).resize(capacity);
-    make_builder(&data->parents).resize(size);
-    make_builder(&data->secondary_counts).resize(size);
+    resize(&data->initializers.storage, capacity);
+    resize(&data->parents, size);
+    resize(&data->secondary_counts, size);
 
     // Start with an empty vector of track initializers
     data->initializers.resize(0);
 
     // Initialize vacancies to mark all track slots as empty
     StateCollection<size_type, Ownership::value, MemSpace::host> vacancies;
-    make_builder(&vacancies).resize(size);
+    resize(&vacancies, size);
     for (auto i : range(size))
     {
         vacancies[ThreadId{i}] = i;

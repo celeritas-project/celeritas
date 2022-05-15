@@ -42,9 +42,9 @@ void OutputManager::insert(SPConstInterface interface)
 
 //---------------------------------------------------------------------------//
 /*!
- * Output all classes to a JSON object that's written to the given stream.
+ * Output all classes to a JSON object.
  */
-void OutputManager::output(std::ostream* os) const
+void OutputManager::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     nlohmann::json result;
@@ -80,9 +80,25 @@ void OutputManager::output(std::ostream* os) const
         }
     }
 
-    *os << result.dump();
+    j->obj = std::move(result);
 #else
-    // Write a JSON-compatible string showing why output is unavailable
+    (void)sizeof(j);
+    CELER_NOT_CONFIGURED("nljson");
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to a JSON object that's written to the given stream.
+ */
+void OutputManager::output(std::ostream* os) const
+{
+#if CELERITAS_USE_JSON
+    JsonPimpl json_wrap;
+    this->output(&json_wrap);
+    *os << json_wrap.obj.dump();
+#else
+    // Write a JSON-compatible string and print an explanation to stderr
     CELER_LOG(error) << "Cannot write output to JSON: nljson is not enabled "
                         "in the current build configuration";
     *os << "\"output unavailable\"";

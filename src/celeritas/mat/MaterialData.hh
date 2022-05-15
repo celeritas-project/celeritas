@@ -184,9 +184,8 @@ inline void resize(
     size_type                                                             size)
 {
     CELER_EXPECT(size > 0);
-    make_builder(&data->state).resize(size);
-    make_builder(&data->element_scratch)
-        .resize(size * params.max_element_components);
+    resize(&data->state, size);
+    resize(&data->element_scratch, size * params.max_element_components);
 }
 
 //---------------------------------------------------------------------------//

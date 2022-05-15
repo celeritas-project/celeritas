@@ -51,10 +51,16 @@ ITTestInputData ITTestInput::device_ref()
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+#define TrackInitTest TEST_IF_CELER_DEVICE(TrackInitTest)
+
 class TrackInitTest : public celeritas_test::SimpleTestBase
 {
   protected:
-    void SetUp() override { core_data.params = this->core()->device_ref(); }
+    void SetUp() override
+    {
+        core_data.params = this->core()->device_ref();
+        CELER_ENSURE(core_data.params);
+    }
 
     //! Create primary particles
     std::vector<Primary> generate_primaries(size_type num_primaries)
@@ -293,6 +299,8 @@ TEST_F(TrackInitTest, primaries)
     EXPECT_EQ(track_init_states.num_primaries, 0);
     EXPECT_EQ(track_init_states.initializers.size(), 0);
 }
+
+#define TrackInitSecondaryTest TEST_IF_CELER_DEVICE(TrackInitSecondaryTest)
 
 class TrackInitSecondaryTest : public TrackInitTest
 {

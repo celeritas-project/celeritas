@@ -9,6 +9,8 @@
 
 #include <fstream>
 
+#include "celeritas_config.h"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputManager.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -17,6 +19,9 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+#endif
 
 using namespace celeritas;
 
@@ -147,7 +152,15 @@ void GlobalTestBase::write_output()
 //---------------------------------------------------------------------------//
 void GlobalTestBase::write_output(std::ostream& os) const
 {
-    output_->output(&os);
+#if CELERITAS_USE_JSON
+    JsonPimpl json_wrap;
+    output_->output(&json_wrap);
+
+    // Print with pretty indentation
+    os << json_wrap.obj.dump(1) << '\n';
+#else
+    os << "\"output unavailable\"";
+#endif
 }
 
 //---------------------------------------------------------------------------//

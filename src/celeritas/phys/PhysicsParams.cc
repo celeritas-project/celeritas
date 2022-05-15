@@ -391,6 +391,7 @@ void PhysicsParams::build_xs(const Options&        opts,
     CELER_EXPECT(*data);
 
     using UPGridBuilder = Process::UPConstGridBuilder;
+    using Energy        = Applicability::Energy;
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
     auto              value_tables   = make_builder(&data->value_tables);
@@ -431,8 +432,8 @@ void PhysicsParams::build_xs(const Options&        opts,
             // Get energy bounds for this process
             Span<const real_type> energy_grid
                 = data->reals[model_groups[pp_idx].energy];
-            applic.lower = Applicability::Energy{energy_grid.front()};
-            applic.upper = Applicability::Energy{energy_grid.back()};
+            applic.lower = Energy{energy_grid.front()};
+            applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
             const Process& proc = this->process(processes[pp_idx]);

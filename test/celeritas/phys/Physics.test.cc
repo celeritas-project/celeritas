@@ -152,6 +152,21 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         params_ref = this->physics()->host_ref();
         state      = StateStore(*this->physics(), state_size);
 
+        // Clear secondary data (done in pre-step kernel)
+        {
+            StackAllocator<Secondary> allocate(state.ref().secondaries);
+            allocate.clear();
+        }
+
+        // Clear out energy deposition and secondary pointers (done in pre-step
+        // kernel)
+        for (auto tid : range(ThreadId(state_size)))
+        {
+            auto step = this->make_step_view(tid);
+            step.reset_energy_deposition();
+            step.secondaries({});
+        }
+
         // Save mapping of process label -> ID
         for (auto id : range(ProcessId{this->physics()->num_processes()}))
         {

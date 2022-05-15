@@ -87,11 +87,11 @@ class CoreParams
     const SPActionManager& action_mgr() const { return input_.action_mgr; }
     //!@}
 
-    //! Access properties on the host
-    const HostRef& host_ref() const { return host_ref_; }
+    // Access properties on the host
+    inline const HostRef& host_ref() const;
 
-    //! Access properties on the device
-    const DeviceRef& device_ref() const { return device_ref_; }
+    // Access properties on the device
+    inline const DeviceRef& device_ref() const;
 
   private:
     Input       input_;
@@ -99,6 +99,31 @@ class CoreParams
     HostRef     host_ref_;
     DeviceRef   device_ref_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Access properties on the host.
+ */
+auto CoreParams::host_ref() const -> const HostRef&
+{
+    CELER_ENSURE(host_ref_);
+    return host_ref_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access properties on the device.
+ *
+ * This will raise an exception if \c celeritas::device is null (and device
+ * data wasn't set).
+ */
+auto CoreParams::device_ref() const -> const DeviceRef&
+{
+    CELER_ENSURE(device_ref_);
+    return device_ref_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
