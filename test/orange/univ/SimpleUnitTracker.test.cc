@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <random>
 
-// Source includes
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -257,6 +257,10 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
         pos_view[i] = sample_box(rng);
         dir_view[i] = sample_isotropic(rng);
     }
+
+    // Clear other data
+    fill(VolumeId{}, &result.vol);
+    fill(SurfaceId{}, &result.surf);
 
     CELER_ENSURE(result);
     return result;

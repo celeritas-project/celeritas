@@ -274,7 +274,7 @@ struct OrangeStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize particle states in host code.
+ * Resize geometry tracking states.
  */
 template<MemSpace M>
 inline void

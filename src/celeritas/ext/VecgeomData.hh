@@ -110,7 +110,7 @@ struct VecgeomStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize particle states in host code.
+ * Resize geometry states.
  */
 template<MemSpace M>
 void resize(
