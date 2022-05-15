@@ -41,6 +41,9 @@ class VecgeomParams
     // Clean up VecGeom on destruction
     ~VecgeomParams();
 
+    //! Whether safety distance calculations are accurate and precise
+    bool supports_safety() const { return true; }
+
     //// VOLUMES ////
 
     //! Number of volumes

@@ -199,6 +199,14 @@ TransporterInput load_input(const LDemoArgs& args)
     {
         params.geometry
             = std::make_shared<GeoParams>(args.geometry_filename.c_str());
+        if (!params.geometry->supports_safety())
+        {
+            CELER_LOG(warning)
+                << "Geometry contains surfaces that are "
+                   "incompatible with the current ORANGE simple "
+                   "safety algorithm: multiple scattering may "
+                   "result in arbitrarily small steps";
+        }
     }
 
     // Load materials
