@@ -55,26 +55,31 @@ class CollectionStateStore
   public:
     CollectionStateStore() = default;
 
-    //! Construct from parameters
+    // Construct from parameters
     template<class Params>
-    CollectionStateStore(const Params& p, size_type size)
-    {
-        CELER_EXPECT(size > 0);
-        resize(&val_, p.host_ref(), size);
+    inline CollectionStateStore(const Params& p, size_type size);
 
-        // Save reference
-        ref_ = val_;
-    }
+    // Construct without parameters
+    explicit inline CollectionStateStore(size_type size);
 
-    //! Construct without parameters
-    explicit CollectionStateStore(size_type size)
-    {
-        CELER_EXPECT(size > 0);
-        resize(&val_, size);
+    // Construct from values by capture, mostly for testing
+    explicit inline CollectionStateStore(S<Ownership::value, M>&& other);
 
-        // Save reference
-        ref_ = val_;
-    }
+    // Construct from values by copy, mostly for testing
+    template<MemSpace M2>
+    explicit inline CollectionStateStore(const S<Ownership::value, M2>& other);
+
+    // Move construction from this memspace or another
+    template<MemSpace M2>
+    inline CollectionStateStore(CollectionStateStore<S, M2>&& other);
+
+    // Move assignment from this memspace or another
+    template<MemSpace M2>
+    inline CollectionStateStore& operator=(CollectionStateStore<S, M2>&& other);
+
+    //! Default copy construction/assignment
+    CollectionStateStore(const CollectionStateStore&) = default;
+    CollectionStateStore& operator=(const CollectionStateStore&) = default;
 
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(val_); }
@@ -82,17 +87,116 @@ class CollectionStateStore
     //! Number of elements
     size_type size() const { return val_.size(); }
 
-    //! Get a reference to the mutable state data
-    const Ref& ref() const
-    {
-        CELER_EXPECT(*this);
-        return ref_;
-    }
+    // Get a reference to the mutable state data
+    inline const Ref& ref() const;
 
   private:
     Value val_;
     Ref   ref_;
+
+    template<template<Ownership, MemSpace> class S2, MemSpace M2>
+    friend class CollectionStateStore;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from parameters.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+template<class Params>
+CollectionStateStore<S, M>::CollectionStateStore(const Params& p,
+                                                 size_type     size)
+{
+    CELER_EXPECT(size > 0);
+    resize(&val_, p.host_ref(), size);
+
+    // Save reference
+    ref_ = val_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without parameters.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+CollectionStateStore<S, M>::CollectionStateStore(size_type size)
+{
+    CELER_EXPECT(size > 0);
+    resize(&val_, size);
+
+    // Save reference
+    ref_ = val_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from values by capture, mostly for testing.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+CollectionStateStore<S, M>::CollectionStateStore(S<Ownership::value, M>&& other)
+    : val_(std::move(other))
+{
+    CELER_EXPECT(val_);
+    // Save reference
+    ref_ = val_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from values by copy, mostly for testing.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+template<MemSpace M2>
+CollectionStateStore<S, M>::CollectionStateStore(
+    const S<Ownership::value, M2>& other)
+{
+    CELER_EXPECT(other);
+    // Assign using const-cast because state copy operators have to be mutable
+    // even when they're just copying...
+    val_ = const_cast<S<Ownership::value, M2>&>(other);
+    // Save reference
+    ref_ = val_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move construction from this memspace or another.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+template<MemSpace M2>
+CollectionStateStore<S, M>::CollectionStateStore(
+    CollectionStateStore<S, M2>&& other)
+    : CollectionStateStore(std::move(other.val_))
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move assignment from this memspace or another.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+template<MemSpace M2>
+auto CollectionStateStore<S, M>::operator=(CollectionStateStore<S, M2>&& other)
+    -> CollectionStateStore<S, M>&
+{
+    CELER_EXPECT(other);
+    // Assign
+    val_ = std::move(other.val_);
+    // Save reference
+    ref_ = val_;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a reference to the mutable state data.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+auto CollectionStateStore<S, M>::ref() const -> const Ref&
+{
+    CELER_EXPECT(*this);
+    return ref_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
