@@ -91,10 +91,13 @@ if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
   # Optional dependence on low-energy EM data
-  set(_ds G4EMLOW)
-  set(_optional_geant4_env
-     ENVIRONMENT "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
-  )
+  set(_geant4_test_env)
+  foreach(_ds G4EMLOW G4ENSDFSTATE)
+    list(APPEND _geant4_test_env
+      "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}"
+    )
+  endforeach()
+  set(_optional_geant4_env ENVIRONMENT "${_geant4_test_env}")
   set(_optional_geant4_link
     LINK_LIBRARIES ${Geant4_LIBRARIES}
   )
@@ -205,9 +208,10 @@ add_library(CeleritasTest
   celeritas/GlobalTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
+  celeritas/TestEm3Base.cc
 )
 celeritas_target_link_libraries(CeleritasTest
-  PRIVATE celeritas CelerTest)
+  PRIVATE celeritas celeritas_io CelerTest)
 
 #-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX celeritas LINK_LIBRARIES CeleritasTest)
@@ -282,6 +286,8 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 # Global
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionManager.test.cc)
+celeritas_add_test(celeritas/global/Stepper.test.cc
+  GPU ${_needs_geant4})
 
 #-------------------------------------#
 # Grid

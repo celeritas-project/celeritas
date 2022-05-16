@@ -38,6 +38,9 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 /*!
  * Lazily construct core parameters, individually or together.
+ *
+ * \note Inherit from this class using \c virtual \c public so that tests can
+ * create mixins (see e.g. \c SimpleStepperTest).
  */
 class GlobalTestBase : public celeritas_test::Test
 {
