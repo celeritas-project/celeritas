@@ -17,6 +17,7 @@
 #include <FTFP_BERT.hh>
 #include <G4EmParameters.hh>
 #include <G4GenericPhysicsList.hh>
+#include <G4ParticleTable.hh>
 #include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
@@ -41,6 +42,11 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
     {
         // Run manager writes output that cannot be redirected...
         ScopedTimeAndRedirect scoped_time("G4RunManager");
+        detail::GeantExceptionHandler scoped_exception_handler;
+        // Access the particle table before creating the run manager, so that
+        // missing environment variables like G4ENSDFSTATEDATA get caught
+        // cleanly rather than segfaulting
+        G4ParticleTable::GetParticleTable();
 #if CELERITAS_G4_V10
         run_manager_.reset(new G4RunManager);
 #else
