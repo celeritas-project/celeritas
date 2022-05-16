@@ -40,7 +40,10 @@ TEST(ScopedSignalHandlerTest, single)
 
 TEST(ScopedSignalHandlerTest, multiple)
 {
-    for (auto* raise : {ScopedSignalHandler::raise, std::raise})
+    using FuncPtr = int (*)(int);
+
+    for (auto* raise :
+         {FuncPtr(&ScopedSignalHandler::raise), FuncPtr(&std::raise)})
     {
         {
             ScopedSignalHandler interrupted{SIGINT, SIGUSR1};
