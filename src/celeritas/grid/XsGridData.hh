@@ -25,6 +25,8 @@ namespace celeritas
  *
  * Interpolation is linear-linear after transforming to log-E space and before
  * scaling the value by E (if the grid point is above prime_index).
+ *
+ * Cross sections below the grid are assigned below_grid_value.
  */
 struct XsGridData
 {
@@ -40,13 +42,14 @@ struct XsGridData
     UniformGridData      log_energy;
     size_type            prime_index{no_scaling()};
     ItemRange<real_type> value;
+    real_type            below_grid_value{};
 
     //! Whether the interface is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
         return log_energy && (value.size() >= 2)
                && (prime_index < log_energy.size || prime_index == no_scaling())
-               && log_energy.size == value.size();
+               && log_energy.size == value.size() && below_grid_value >= 0;
     }
 };
 

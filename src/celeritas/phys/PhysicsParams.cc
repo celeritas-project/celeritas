@@ -589,6 +589,37 @@ void PhysicsParams::build_xs(const Options&        opts,
                 temp_tables[vgt].begin(), temp_tables[vgt].end());
         }
     }
+
+    // Extrapolate range, energy loss tables
+    // TODO: this is a hack, see #425 for discussion of us vs geant handling
+    // We will probably want to add different parameterizations of the cross
+    // section grid
+    for (auto particle_id : range(ParticleId(data->process_groups.size())))
+    {
+        const ProcessGroup& pg         = data->process_groups[particle_id];
+        ParticleProcessId   eloss_ppid = pg.eloss_ppid;
+        if (!eloss_ppid)
+        {
+            continue;
+        }
+
+        ValueTableId table_id
+            = pg.tables[ValueGridType::energy_loss][eloss_ppid.unchecked_get()];
+        CELER_ASSERT(table_id);
+        CELER_ASSERT(!data->value_tables[table_id].material.empty());
+
+        // Loop over all materials
+        for (auto gid_ref : data->value_tables[table_id].material)
+        {
+            auto        gid     = data->value_grid_ids[gid_ref];
+            XsGridData& xs_data = data->value_grids[gid];
+            CELER_ASSERT(xs_data);
+
+            real_type lowest_xs_value = data->reals[xs_data.value[0]];
+            CELER_ASSERT(lowest_xs_value >= 0);
+            xs_data.below_grid_value = lowest_xs_value;
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

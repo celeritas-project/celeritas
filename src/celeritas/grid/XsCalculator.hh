@@ -28,7 +28,10 @@ namespace celeritas
  * interpolation (e.g. log interpolation). It might also make sense to get rid
  * of the "prime energy" and just use log-log interpolation instead, or do a
  * piecewise change in the interpolation instead of storing the cross section
- * scaled by the energy.
+ * scaled by the energy. Additionally, the behavior of cross sections outside
+ * the energy grid may need more than one option: should there be a point at
+ * zero energy for at-rest processes; should the values be truncated below
+ * and/or above the grid range?
  *
  * \code
     XsCalculator calc_xs(xs_grid, xs_params.reals);
@@ -98,7 +101,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
     real_type result;
     if (loge < loge_grid.front())
     {
-        return 0;
+        return data_.below_grid_value;
     }
     else if (loge == loge_grid.front())
     {
