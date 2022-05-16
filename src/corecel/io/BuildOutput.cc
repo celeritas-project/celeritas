@@ -46,6 +46,11 @@ void BuildOutput::output(JsonPimpl* j) const
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
         cfg["CELERITAS_RNG"]        = celeritas_rng;
+        if (CELERITAS_USE_GEANT4)
+        {
+            cfg["CLHEP_VERSION"]  = celeritas_clhep_version;
+            cfg["Geant4_VERSION"] = celeritas_geant4_version;
+        }
 
         obj["config"] = std::move(cfg);
     }
