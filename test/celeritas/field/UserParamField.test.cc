@@ -10,7 +10,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/geo/GeoParams.hh"

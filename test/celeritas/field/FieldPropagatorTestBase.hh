@@ -8,7 +8,7 @@
 
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -69,7 +69,7 @@ class FieldPropagatorTestBase : public celeritas_test::GlobalTestBase
         resize(&state_value, this->particle()->host_ref(), 1);
         state_ref = state_value;
 
-        // Set values of FieldParamsData;
+        // Set values of FieldDriverOptions;
         field_params.delta_intersection = 1.0e-4 * units::millimeter;
 
         // Input parameters of an electron in a uniform magnetic field
@@ -89,7 +89,7 @@ class FieldPropagatorTestBase : public celeritas_test::GlobalTestBase
     ParticleStateData<Ownership::value, MemSpace::host>     state_value;
     ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
 
-    FieldParamsData field_params;
+    FieldDriverOptions field_params;
 
     // Test parameters
     FieldTestParams test;

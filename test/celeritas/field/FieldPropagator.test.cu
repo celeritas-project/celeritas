@@ -14,7 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
@@ -39,7 +39,7 @@ __global__ void fp_test_kernel(const int                       size,
                                const GeoTrackInitializer*      start,
                                const ParticleParamsRef         particle_params,
                                ParticleStateRef                particle_states,
-                               FieldParamsData                 field_params,
+                               FieldDriverOptions              field_params,
                                FieldTestParams                 test,
                                const ParticleTrackInitializer* init_track,
                                double*                         pos,
@@ -96,7 +96,7 @@ __global__ void bc_test_kernel(const int                       size,
                                const GeoTrackInitializer*      start,
                                ParticleParamsRef               particle_params,
                                ParticleStateRef                particle_states,
-                               FieldParamsData                 field_params,
+                               FieldDriverOptions              field_params,
                                FieldTestParams                 test,
                                const ParticleTrackInitializer* init_track,
                                double*                         pos,

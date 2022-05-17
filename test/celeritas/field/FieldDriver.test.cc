@@ -12,7 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/Types.hh"
 #include "celeritas/field/UniformMagField.hh"
@@ -49,7 +49,7 @@ class FieldDriverTest : public Test
 
   protected:
     // Field parameters
-    FieldParamsData field_params;
+    FieldDriverOptions field_params;
 
     // Test parameters
     FieldTestParams test_params;

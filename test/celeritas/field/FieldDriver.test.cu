@@ -17,7 +17,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/UniformMagField.hh"
 
@@ -34,13 +34,13 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void driver_test_kernel(const FieldParamsData data,
-                                   FieldTestParams       test_params,
-                                   double*               pos_x,
-                                   double*               pos_z,
-                                   double*               mom_y,
-                                   double*               mom_z,
-                                   double*               error)
+__global__ void driver_test_kernel(const FieldDriverOptions data,
+                                   FieldTestParams          test_params,
+                                   double*                  pos_x,
+                                   double*                  pos_z,
+                                   double*                  mom_y,
+                                   double*                  mom_z,
+                                   double*                  error)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= test_params.nstates)
@@ -85,13 +85,13 @@ __global__ void driver_test_kernel(const FieldParamsData data,
     error[tid.get()] = total_step_length;
 }
 
-__global__ void accurate_advance_kernel(const FieldParamsData data,
-                                        FieldTestParams       test_params,
-                                        double*               pos_x,
-                                        double*               pos_z,
-                                        double*               mom_y,
-                                        double*               mom_z,
-                                        double*               length)
+__global__ void accurate_advance_kernel(const FieldDriverOptions data,
+                                        FieldTestParams          test_params,
+                                        double*                  pos_x,
+                                        double*                  pos_z,
+                                        double*                  mom_y,
+                                        double*                  mom_z,
+                                        double*                  length)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= test_params.nstates)
@@ -145,7 +145,7 @@ __global__ void accurate_advance_kernel(const FieldParamsData data,
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 FITestOutput
-driver_test(const FieldParamsData& fd_data, FieldTestParams test_params)
+driver_test(const FieldDriverOptions& fd_data, FieldTestParams test_params)
 {
     // Input/Output data for kernel
 
@@ -189,8 +189,8 @@ driver_test(const FieldParamsData& fd_data, FieldTestParams test_params)
     return result;
 }
 
-OneGoodStepOutput accurate_advance_test(const FieldParamsData& fd_data,
-                                        FieldTestParams        test_params)
+OneGoodStepOutput accurate_advance_test(const FieldDriverOptions& fd_data,
+                                        FieldTestParams           test_params)
 {
     // Input/Output data for kernel
 

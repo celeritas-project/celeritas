@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "orange/Types.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/phys/ParticleData.hh"
 
@@ -50,7 +50,7 @@ struct FPTestInput
     ParticleParamsRef         particle_params;
     ParticleStateRef          particle_states;
 
-    celeritas::FieldParamsData field_params;
+    celeritas::FieldDriverOptions field_params;
     FieldTestParams            test;
 };
 

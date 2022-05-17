@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 
 #include "FieldTestParams.hh"
 
@@ -40,21 +40,21 @@ struct OneGoodStepOutput
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 FITestOutput
-driver_test(const celeritas::FieldParamsData& fd_ptr, FieldTestParams tp);
+driver_test(const celeritas::FieldDriverOptions& fd_ptr, FieldTestParams tp);
 
 OneGoodStepOutput
-accurate_advance_test(const celeritas::FieldParamsData& fd_ptr,
-                      FieldTestParams                   tp);
+accurate_advance_test(const celeritas::FieldDriverOptions& fd_ptr,
+                      FieldTestParams                      tp);
 
 #if !CELER_USE_DEVICE
 inline FITestOutput
-driver_test(const celeritas::FieldParamsData&, FieldTestParams)
+driver_test(const celeritas::FieldDriverOptions&, FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 inline OneGoodStepOutput
-accurate_advance_test(const celeritas::FieldParamsData&, FieldTestParams)
+accurate_advance_test(const celeritas::FieldDriverOptions&, FieldTestParams)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
