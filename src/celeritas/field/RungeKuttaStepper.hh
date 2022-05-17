@@ -36,7 +36,7 @@ class RungeKuttaStepper
   public:
     // Construct with the equation of motion
     CELER_FUNCTION
-    RungeKuttaStepper(const EquationT& eq) : equation_(eq) {}
+    RungeKuttaStepper(const EquationT& eq) : calc_rhs_(eq) {}
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
@@ -50,7 +50,7 @@ class RungeKuttaStepper
 
   private:
     // Equation of the motion
-    const EquationT& equation_;
+    const EquationT& calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -87,12 +87,12 @@ RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state)
     constexpr real_type fourth_order_correction = 1 / real_type(15);
 
     Result   result;
-    OdeState beg_slope = equation_(beg_state);
+    OdeState beg_slope = calc_rhs_(beg_state);
 
     // Do two half steps
     result.mid_state = do_step(half_step, beg_state, beg_slope);
     result.end_state
-        = do_step(half_step, result.mid_state, equation_(result.mid_state));
+        = do_step(half_step, result.mid_state, calc_rhs_(result.mid_state));
 
     // Do a full step
     OdeState yt = do_step(step, beg_state, beg_slope);
@@ -124,17 +124,17 @@ RungeKuttaStepper<E>::do_step(real_type       step,
     // 1st step k1 = (step/2)*beg_slope
     OdeState mid_est = beg_state;
     axpy(half_step, beg_slope, &mid_est);
-    OdeState mid_est_slope = equation_(mid_est);
+    OdeState mid_est_slope = calc_rhs_(mid_est);
 
     // 2nd step k2 = (step/2)*mid_est_slope
     OdeState mid_state = beg_state;
     axpy(half_step, mid_est_slope, &mid_state);
-    OdeState mid_slope = equation_(mid_state);
+    OdeState mid_slope = calc_rhs_(mid_state);
 
     // 3rd step k3 = step*mid_slope
     OdeState end_est = beg_state;
     axpy(step, mid_slope, &end_est);
-    OdeState end_slope = equation_(end_est);
+    OdeState end_slope = calc_rhs_(end_est);
 
     // Average slope at all 4 points
     axpy(real_type(1.0), beg_slope, &end_slope);

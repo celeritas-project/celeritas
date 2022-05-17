@@ -66,7 +66,7 @@ class FieldDriver
     const FieldDriverOptions& options_;
 
     // Stepper for this field driver
-    StepperT& stepper_;
+    StepperT& apply_step_;
 
     //// TYPES ////
 
@@ -118,7 +118,7 @@ template<class StepperT>
 CELER_FUNCTION
 FieldDriver<StepperT>::FieldDriver(const FieldDriverOptions& shared,
                                    StepperT*                 stepper)
-    : options_(shared), stepper_(*stepper)
+    : options_(shared), apply_step_(*stepper)
 {
     CELER_EXPECT(options_ && stepper);
 }
@@ -183,7 +183,7 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
     do
     {
         // Try with the proposed step
-        result = stepper_(step, state);
+        result = apply_step_(step, state);
 
         // Check whether the distance to the chord is small than the reference
         real_type dchord = detail::distance_chord(
@@ -293,7 +293,7 @@ FieldDriver<StepperT>::integrate_step(real_type step, const OdeState& state)
     else
     {
         // Do an integration step for a small step (a.k.a quick advance)
-        StepperResult result = stepper_(step, state);
+        StepperResult result = apply_step_(step, state);
 
         // Update position and momentum
         output.end.state = result.end_state;
@@ -332,7 +332,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
 
     do
     {
-        result  = stepper_(step, state);
+        result  = apply_step_(step, state);
         errmax2 = detail::truncation_error(
             step, options_.epsilon_rel_max, state, result.err_state);
 

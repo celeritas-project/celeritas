@@ -68,7 +68,7 @@ class DormandPrinceStepper
   public:
     // Construct with the equation of motion
     CELER_FUNCTION
-    DormandPrinceStepper(const EquationT& eq) : equation_(eq) {}
+    DormandPrinceStepper(const EquationT& eq) : calc_rhs_(eq) {}
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
@@ -76,7 +76,7 @@ class DormandPrinceStepper
 
   private:
     // Equation of the motion
-    const EquationT& equation_;
+    const EquationT& calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -138,25 +138,25 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     Result result;
 
     // First step
-    OdeState k1    = equation_(beg_state);
+    OdeState k1    = calc_rhs_(beg_state);
     OdeState state = beg_state;
     axpy(a11 * step, k1, &state);
 
     // Second step
-    OdeState k2 = equation_(state);
+    OdeState k2 = calc_rhs_(state);
     state       = beg_state;
     axpy(a21 * step, k1, &state);
     axpy(a22 * step, k2, &state);
 
     // Third step
-    OdeState k3 = equation_(state);
+    OdeState k3 = calc_rhs_(state);
     state       = beg_state;
     axpy(a31 * step, k1, &state);
     axpy(a32 * step, k2, &state);
     axpy(a33 * step, k3, &state);
 
     // Fourth step
-    OdeState k4 = equation_(state);
+    OdeState k4 = calc_rhs_(state);
     state       = beg_state;
     axpy(a41 * step, k1, &state);
     axpy(a42 * step, k2, &state);
@@ -164,7 +164,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a44 * step, k4, &state);
 
     // Fifth step
-    OdeState k5 = equation_(state);
+    OdeState k5 = calc_rhs_(state);
     state       = beg_state;
     axpy(a51 * step, k1, &state);
     axpy(a52 * step, k2, &state);
@@ -173,7 +173,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a55 * step, k5, &state);
 
     // Sixth step
-    OdeState k6      = equation_(state);
+    OdeState k6      = calc_rhs_(state);
     result.end_state = beg_state;
     axpy(a61 * step, k1, &result.end_state);
     axpy(a63 * step, k3, &result.end_state);
@@ -182,7 +182,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a66 * step, k6, &result.end_state);
 
     // Seventh step: the final step
-    OdeState k7 = equation_(result.end_state);
+    OdeState k7 = calc_rhs_(result.end_state);
 
     // The error estimate
     axpy(d71 * step, k1, &result.err_state);

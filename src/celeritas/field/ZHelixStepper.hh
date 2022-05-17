@@ -25,9 +25,9 @@ namespace celeritas
 template<class EquationT>
 class ZHelixStepper
 {
-    // Check whether the field_type used in EquationT is UniformZMagField
+    // Check whether the Field_t used in EquationT is UniformZMagField
     static_assert(
-        std::is_same<typename EquationT::field_type, UniformZMagField>::value,
+        std::is_same<typename EquationT::Field_t, UniformZMagField>::value,
         "ZHelix stepper only works with UniformZMagField");
 
   public:
@@ -39,7 +39,7 @@ class ZHelixStepper
   public:
     // Construct with the equation of motion
     CELER_FUNCTION
-    ZHelixStepper(const EquationT& eq) : equation_(eq) {}
+    ZHelixStepper(const EquationT& eq) : calc_rhs_(eq) {}
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
@@ -49,7 +49,7 @@ class ZHelixStepper
     //// DATA ////
 
     // Equation of the motion
-    const EquationT& equation_;
+    const EquationT& calc_rhs_;
 
     //// HELPER TYPES ////
     enum class Helicity : bool
@@ -94,7 +94,7 @@ ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
     Result result;
 
     // Evaluate the right hand side of the equation
-    OdeState rhs = equation_(beg_state);
+    OdeState rhs = calc_rhs_(beg_state);
 
     // Calculate the radius of the helix
     real_type radius = std::sqrt(dot_product(beg_state.mom, beg_state.mom)

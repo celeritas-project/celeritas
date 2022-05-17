@@ -30,7 +30,7 @@ class MagFieldEquation
   public:
     //!@{
     //! Type aliases
-    using field_type = FieldT;
+    using Field_t = FieldT;
     //!@}
 
   public:
@@ -42,7 +42,7 @@ class MagFieldEquation
     inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
-    const field_type&       field_;
+    const Field_t&          calc_field_;
     units::ElementaryCharge charge_;
     real_type               coeffi_;
 };
@@ -57,7 +57,7 @@ template<class FieldT>
 CELER_FUNCTION
 MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
                                            units::ElementaryCharge charge)
-    : field_(field), charge_(charge)
+    : calc_field_(field), charge_(charge)
 {
     // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
     coeffi_ = native_value_from(charge_)
@@ -81,7 +81,7 @@ CELER_FUNCTION auto
 MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 {
     // Get a magnetic field value at a given position
-    Real3 mag_vec = field_(y.pos);
+    Real3 mag_vec = calc_field_(y.pos);
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
     CELER_ASSERT(momentum_mag2 > 0.0);
