@@ -63,7 +63,7 @@ class DormandPrinceStepper
   public:
     //!@{
     //! Type aliases
-    using Result = StepperResult;
+    using result_type = StepperResult;
     //!@}
 
   public:
@@ -74,8 +74,8 @@ class DormandPrinceStepper
     }
 
     // Adaptive step size control
-    CELER_FUNCTION auto
-    operator()(real_type step, const OdeState& beg_state) const -> Result;
+    CELER_FUNCTION result_type operator()(real_type       step,
+                                          const OdeState& beg_state) const;
 
   private:
     // Functor to calculate the force applied to a particle
@@ -91,7 +91,8 @@ class DormandPrinceStepper
 template<class E>
 CELER_FUNCTION auto
 DormandPrinceStepper<E>::operator()(real_type       step,
-                                    const OdeState& beg_state) const -> Result
+                                    const OdeState& beg_state) const
+    -> result_type
 {
     using celeritas::axpy;
     using R = real_type;
@@ -138,7 +139,7 @@ DormandPrinceStepper<E>::operator()(real_type       step,
     constexpr R c76 = -1776094331 / R(19743644256);
     constexpr R c77 = 11237099 / R(235043384);
 
-    Result result;
+    result_type result;
 
     // First step
     OdeState k1    = calc_rhs_(beg_state);

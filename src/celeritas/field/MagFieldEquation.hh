@@ -22,8 +22,13 @@ namespace celeritas
 /*!
  * Evaluate the force applied by a magnetic field.
  *
- * The templated \c FieldT must provide the operator(Real3 position) which
- * returns a magnetic field value of Real3 at a given position.
+ * The templated \c FieldT must be a function-like object with the signature
+ * \code
+ * Real3 (*)(const Real3&)
+ * \endcode
+ * which returns a magnetic field vector at a given position. The field
+ * strength is in Celeritas native units, so multiply by \c units::tesla if
+ * necessary.
  */
 template<class FieldT>
 class MagFieldEquation
@@ -40,7 +45,7 @@ class MagFieldEquation
     MagFieldEquation(FieldT&& field, units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
-    inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
+    inline CELER_FUNCTION OdeState operator()(const OdeState& y) const;
 
   private:
     Field_t&& calc_field_;
@@ -70,7 +75,7 @@ MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
 /*!
  * Evaluate the right hand side of the Lorentz equation.
  *
- * This calculates the force based on the current magnetic field state
+ * This calculates the force based on the given magnetic field state
  * (position and momentum).
  *
  * \f[
@@ -86,7 +91,7 @@ CELER_FUNCTION auto
 MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 {
     // Get a magnetic field value at a given position
-    Real3 mag_vec = calc_field_(y.pos);
+    auto&& mag_vec = calc_field_(y.pos);
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
     CELER_ASSERT(momentum_mag2 > 0);

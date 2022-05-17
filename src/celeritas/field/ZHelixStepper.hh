@@ -35,7 +35,7 @@ class ZHelixStepper
   public:
     //!@{
     //! Type aliases
-    using Result = StepperResult;
+    using result_type = StepperResult;
     //!@}
 
   public:
@@ -47,7 +47,7 @@ class ZHelixStepper
 
     // Adaptive step size control
     CELER_FUNCTION auto
-    operator()(real_type step, const OdeState& beg_state) const -> Result;
+    operator()(real_type step, const OdeState& beg_state) const -> result_type;
 
   private:
     //// DATA ////
@@ -93,9 +93,9 @@ class ZHelixStepper
 template<class E>
 CELER_FUNCTION auto
 ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
-    -> Result
+    -> result_type
 {
-    Result result;
+    result_type result;
 
     // Evaluate the right hand side of the equation
     OdeState rhs = calc_rhs_(beg_state);

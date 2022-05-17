@@ -27,7 +27,7 @@ namespace celeritas
  * particle along a curved trajectory up to an interaction length proposed by
  * a chosen physics process for the step, possibly integrating sub-steps by
  * an adaptive step control with a required accuracy of tracking in a
- * magnetic field and updates the final state (position, momentum) along with
+ * field and updates the final state (position, momentum) along with
  * the step actually taken.  If the final position is outside the current
  * volume, it returns a geometry limited step and the state at the
  * intersection between the curve trajectory and the first volume boundary
@@ -41,13 +41,16 @@ template<class DriverT>
 class FieldPropagator
 {
   public:
+    //!@{
+    //! Type aliases
     using result_type = Propagation;
+    //!@}
 
   public:
     // Construct with shared parameters and the field driver
     inline CELER_FUNCTION FieldPropagator(DriverT&&                driver,
                                           const ParticleTrackView& particle,
-                                          GeoTrackView*            track);
+                                          GeoTrackView*            geo);
 
     // Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
@@ -59,7 +62,7 @@ class FieldPropagator
     //// DATA ////
 
     DriverT       driver_;
-    GeoTrackView& track_;
+    GeoTrackView& geo_;
     OdeState      state_;
 };
 
@@ -73,16 +76,16 @@ template<class DriverT>
 CELER_FUNCTION
 FieldPropagator<DriverT>::FieldPropagator(DriverT&&                driver,
                                           const ParticleTrackView& particle,
-                                          GeoTrackView*            track)
-    : driver_(::celeritas::forward<DriverT>(driver)), track_(*track)
+                                          GeoTrackView*            geo)
+    : driver_(::celeritas::forward<DriverT>(driver)), geo_(*geo)
 {
-    CELER_ASSERT(track);
+    CELER_ASSERT(geo);
 
     using MomentumUnits = OdeState::MomentumUnits;
 
-    state_.pos = track->pos();
+    state_.pos = geo_.pos();
     state_.mom = detail::ax(value_as<MomentumUnits>(particle.momentum()),
-                            track->dir());
+                            geo_.dir());
 }
 
 //---------------------------------------------------------------------------//
@@ -97,15 +100,15 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Propagate a charged particle in a magnetic field.
+ * Propagate a charged particle in a field.
  *
- * It utilises a magnetic field driver based on an adaptive step
+ * It utilises a field driver based on an adaptive step
  * control to track a charged particle until it travels along a curved
  * trajectory for a given step length within a required accuracy or intersects
  * with a new volume (geometry limited step).
  *
  * The position of the internal OdeState `state_` should be consistent with the
- * geometry `track_`'s position, but the geometry's direction will be a series
+ * geometry `geo_`'s position, but the geometry's direction will be a series
  * of "trial" directions that are the chords between the start and end points
  * of a curved substep through the field. At the end of the propagation step,
  * the geometry state's direction is updated based on the actual value of the
@@ -134,7 +137,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     real_type remaining = step;
     while (remaining >= driver_.minimum_step())
     {
-        CELER_ASSERT(soft_zero(distance(state_.pos, track_.pos())));
+        CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
@@ -148,8 +151,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         // Do a detailed check boundary check from the start position toward
         // the substep end point.
-        track_.set_dir(chord.dir);
-        auto linear_step = track_.find_next_step(chord.length);
+        geo_.set_dir(chord.dir);
+        auto linear_step = geo_.find_next_step(chord.length);
         if (!linear_step.boundary)
         {
             // No boundary intersection along the chord: accept substep
@@ -159,7 +162,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             state_ = substep.state;
             result.distance += substep.step;
             remaining = step - result.distance;
-            track_.move_internal(state_.pos);
+            geo_.move_internal(state_.pos);
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
@@ -198,8 +201,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
     if (result.boundary)
     {
-        track_.move_to_boundary();
-        state_.pos = track_.pos();
+        geo_.move_to_boundary();
+        state_.pos = geo_.pos();
     }
     else if (remaining > 0)
     {
@@ -214,7 +217,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // *direction* based on the state's momentum.
     Real3 dir = state_.mom;
     normalize_direction(&dir);
-    track_.set_dir(dir);
+    geo_.set_dir(dir);
 
     return result;
 }
