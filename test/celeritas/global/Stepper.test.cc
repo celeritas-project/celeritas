@@ -96,6 +96,35 @@ class StepperTest : virtual public celeritas_test::GlobalTestBase
     std::shared_ptr<DummyAction> dummy_action_;
 };
 
+class SimpleStepperTest : public celeritas_test::SimpleTestBase,
+                          public StepperTest
+{
+  public:
+    //! Make primaries headed along +z at the origin
+    std::vector<Primary> make_primaries(size_type count) const final
+    {
+        Primary p;
+        p.particle_id = this->particle()->find("gamma");
+        p.energy      = units::MevEnergy{1};
+        p.event_id    = EventId{0};
+        p.position    = {0, 0, 0};
+        p.direction   = {0, 0, 1};
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].track_id = TrackId{i};
+        }
+        return result;
+    }
+
+    StepperInput make_stepper_input(size_type tracks)
+    {
+        // For "simple" test problem, there's no multiplication
+        return StepperTest::make_stepper_input(tracks, 2);
+    }
+};
+
 #if !CELERITAS_USE_GEANT4
 #    define TestEm3Test DISABLED_TestEm3Test
 #endif
@@ -123,21 +152,114 @@ class TestEm3Test : public celeritas_test::TestEm3Base, public StepperTest
 };
 
 //---------------------------------------------------------------------------//
+// KLEIN-NISHINA + CUTOFF TEST
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleStepperTest, host)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(2 * 8));
+
+    auto counts = step(this->make_primaries(8));
+    EXPECT_EQ(8, counts.active);
+    EXPECT_EQ(8, counts.queued); // possibly RNG-dependent
+    EXPECT_EQ(8, counts.alive);
+
+    std::vector<size_type> active = {counts.active};
+    while (counts)
+    {
+        auto old_counts = counts;
+        counts          = step();
+        active.push_back(counts.active);
+        EXPECT_EQ(old_counts.alive + old_counts.queued, counts.active);
+        ASSERT_LT(active.size(), 1000) << "max iterations exceeded";
+    }
+
+    if (string_equal(celeritas_rng, "XORWOW"))
+    {
+        static const unsigned int expected_active[]
+            = {8u, 16u, 16u, 16u, 14u, 12u, 10u, 8u, 8u, 2u, 2u};
+        EXPECT_VEC_EQ(expected_active, active);
+    }
+    else
+    {
+        cout << "No output saved for RNG type '" << celeritas_rng << "'\n";
+        PRINT_EXPECTED(active);
+    }
+
+    // Check that callback was called
+    EXPECT_EQ(active.size(), dummy_action_->num_execute_host());
+    EXPECT_EQ(0, dummy_action_->num_execute_device());
+
+    // this->write_output(std::cout);
+}
+
+TEST_F(SimpleStepperTest, TEST_IF_CELER_DEVICE(device))
+{
+    Stepper<MemSpace::device> step(this->make_stepper_input(2 * 1024));
+
+    auto counts = step(this->make_primaries(1024));
+    EXPECT_EQ(1024, counts.active);
+    EXPECT_EQ(1024, counts.alive);
+    if (string_equal(celeritas_rng, "CURAND"))
+    {
+        EXPECT_EQ(1021, counts.queued);
+    }
+
+    std::vector<size_type> active = {counts.active};
+    while (counts)
+    {
+        counts = step();
+        active.push_back(counts.active);
+        ASSERT_LT(active.size(), 100) << "max iterations exceeded";
+    }
+
+    if (string_equal(celeritas_rng, "XORWOW"))
+    {
+        static const unsigned int expected_active[] = {1024u,
+                                                       2041u,
+                                                       2033u,
+                                                       2033u,
+                                                       2000u,
+                                                       1809u,
+                                                       1472u,
+                                                       1008u,
+                                                       594u,
+                                                       336u,
+                                                       166u,
+                                                       68u,
+                                                       22u,
+                                                       12u,
+                                                       4u,
+                                                       2u};
+        EXPECT_VEC_EQ(expected_active, active);
+    }
+    else
+    {
+        cout << "No output saved for RNG type '" << celeritas_rng << "'\n";
+        PRINT_EXPECTED(active);
+    }
+
+    // Check that callback was called
+    EXPECT_EQ(active.size(), dummy_action_->num_execute_device());
+    EXPECT_EQ(0, dummy_action_->num_execute_host());
+}
+
+//---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
 TEST_F(TestEm3Test, host)
 {
-    size_type               num_primaries   = 8;
+    size_type               num_primaries   = 1;
     size_type               inits_per_track = 32;
-    size_type               num_tracks      = num_primaries * inits_per_track;
+    size_type               num_tracks      = 256;
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
 
-    auto counts = step(this->make_primaries(1));
-    EXPECT_EQ(1, counts.active);
+    auto counts = step(this->make_primaries(num_primaries));
+    EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(0, counts.queued);
-    EXPECT_EQ(1, counts.alive);
+    EXPECT_EQ(num_primaries, counts.alive);
 
     std::vector<size_type> active = {counts.active};
     std::vector<size_type> queued = {counts.queued};

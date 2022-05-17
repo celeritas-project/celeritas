@@ -16,6 +16,9 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 /*!
  * Compton scattering with gammas in mock aluminum in a box in hard vacuum.
+ *
+ * The aluminum has a compton scattering cross section of 1.0 at 1 MeV, 100 at
+ * 1e-4 MeV, and 1/E higher than 1 MeV. The detector is only 10 cm on a side.
  */
 class SimpleTestBase : virtual public GlobalTestBase
 {
@@ -28,7 +31,7 @@ class SimpleTestBase : virtual public GlobalTestBase
   protected:
     const char* geometry_basename() const override { return "two-boxes"; }
 
-    virtual real_type secondary_stack_factor() const { return 1.0; }
+    virtual real_type secondary_stack_factor() const { return 2.0; }
 
     SPConstMaterial    build_material() override;
     SPConstGeoMaterial build_geomaterial() override;

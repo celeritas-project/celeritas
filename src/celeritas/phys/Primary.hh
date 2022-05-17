@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 #include "ParticleData.hh"
@@ -26,6 +28,12 @@ struct Primary
     Real3            direction;
     EventId          event_id;
     TrackId          track_id;
+
+    //! True if all components are assigned.
+    CELER_FUNCTION explicit operator bool() const
+    {
+        return particle_id && energy > zero_quantity() && event_id && track_id;
+    }
 };
 
 //---------------------------------------------------------------------------//

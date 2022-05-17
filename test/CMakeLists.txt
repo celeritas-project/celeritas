@@ -304,7 +304,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionManager.test.cc)
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU ${_needs_geant4})
+  GPU ${_optional_geant4_env})
 
 #-------------------------------------#
 # Grid

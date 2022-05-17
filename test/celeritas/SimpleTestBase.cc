@@ -12,6 +12,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ApplyCutoffProcess.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -73,7 +74,7 @@ auto SimpleTestBase::build_cutoff() -> SPConstCutoff
     input.particles = this->particle();
     input.cutoffs   = {
         {pdg::gamma(),
-         {{MevEnergy{0.01}, 0.1 * units::millimeter},
+         {{MevEnergy{0.1}, 1 * units::millimeter},
           {MevEnergy{100}, 100 * units::centimeter}}},
         {pdg::electron(),
          {{MevEnergy{1000}, 1000 * units::centimeter},
@@ -101,8 +102,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambda.y_units         = ImportUnits::cm_inv;
         lambda.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},   // energy
-             {1e-4, 1e-2}}, // lambda (detector)
+             {1e-4, 1.0}, // energy
+             {100, 1}},   // lambda (detector)
             {ImportPhysicsVectorType::log,
              {1e-4, 1.0},     // energy
              {1e-10, 1e-10}}, // lambda (world)
@@ -116,8 +117,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambdap.y_units         = ImportUnits::cm_mev_inv;
         lambdap.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},     // energy
-             {1e-2, 1e-2, 1e-2}}, // lambda * energy (detector)
+             {1.0, 1e4, 1e8}, // energy
+             {1, 1, 1}},      // lambda * energy (detector)
             {ImportPhysicsVectorType::log,
              {1.0, 1e4, 1e8},        // energy
              {1e-10, 1e-10, 1e-10}}, // lambda * energy (world)
@@ -130,8 +131,10 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 
     input.particles = this->particle();
     input.materials = this->material();
-    input.processes
-        = {std::make_shared<ComptonProcess>(input.particles, process_data)};
+    input.processes = {
+        std::make_shared<ComptonProcess>(input.particles, process_data),
+        std::make_shared<ApplyCutoffProcess>(this->cutoff()),
+    };
     input.action_manager = this->action_mgr().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));
