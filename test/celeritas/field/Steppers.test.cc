@@ -17,8 +17,8 @@
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
-#include "celeritas/field/UniformMagField.hh"
-#include "celeritas/field/UniformZMagField.hh"
+#include "celeritas/field/UniformField.hh"
+#include "celeritas/field/UniformZField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
 
 #include "FieldTestParams.hh"
@@ -135,30 +135,30 @@ class SteppersTest : public Test
 TEST_F(SteppersTest, host_helix)
 {
     // Construct a uniform magnetic field along Z axis
-    UniformZMagField field(param.field_value);
+    UniformZField field(param.field_value);
 
     // Test the analytical ZHelix stepper
-    this->run_stepper<UniformZMagField, ZHelixStepper>(field);
+    this->run_stepper<UniformZField, ZHelixStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, host_classical_rk4)
 {
     // Construct a uniform magnetic field
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
     // Test the classical 4th order Runge-Kutta stepper
-    this->run_stepper<UniformMagField, RungeKuttaStepper>(field);
+    this->run_stepper<UniformField, RungeKuttaStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SteppersTest, host_dormand_prince_547)
 {
     // Construct a uniform magnetic field
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
     // Test the Dormand-Prince 547(M) stepper
-    this->run_stepper<UniformMagField, DormandPrinceStepper>(field);
+    this->run_stepper<UniformField, DormandPrinceStepper>(field);
 }
 
 //---------------------------------------------------------------------------//

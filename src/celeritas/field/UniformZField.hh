@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/UniformMagField.hh
+//! \file celeritas/field/UniformZField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,19 +14,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A uniform magnetic field.
+ * A uniform field along the Z axis.
  */
-class UniformMagField
+class UniformZField
 {
   public:
-    //! Construct with a uniform magnetic field vector
-    explicit CELER_FUNCTION UniformMagField(Real3 value) : value_(value) {}
+    //! Construct with a scalar magnetic field value
+    CELER_FUNCTION
+    explicit UniformZField(real_type value) : value_(value) {}
 
-    //! Return the magnetic field at the given position
-    CELER_FUNCTION Real3 operator()(const Real3&) const { return value_; }
+    //! Return the field at the given position
+    CELER_FUNCTION
+    Real3 operator()(const Real3&) const { return {0, 0, value_}; }
 
   private:
-    Real3 value_;
+    real_type value_;
 };
 
 //---------------------------------------------------------------------------//

@@ -20,8 +20,8 @@
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/Types.hh"
-#include "celeritas/field/UniformMagField.hh"
-#include "celeritas/field/UniformZMagField.hh"
+#include "celeritas/field/UniformField.hh"
+#include "celeritas/field/UniformZField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
 
 using celeritas::detail::truncation_error;
@@ -88,9 +88,9 @@ __global__ void helix_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    UniformZMagField field(param.field_value);
+    UniformZField field(param.field_value);
 
-    gpu_stepper<UniformZMagField, ZHelixStepper>(
+    gpu_stepper<UniformZField, ZHelixStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
@@ -102,9 +102,9 @@ __global__ void rk4_test_kernel(FieldTestParams param,
                                 real_type*      mom_z,
                                 real_type*      error)
 {
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
-    gpu_stepper<UniformMagField, RungeKuttaStepper>(
+    gpu_stepper<UniformField, RungeKuttaStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
@@ -116,9 +116,9 @@ __global__ void dp547_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
-    gpu_stepper<UniformMagField, DormandPrinceStepper>(
+    gpu_stepper<UniformField, DormandPrinceStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 

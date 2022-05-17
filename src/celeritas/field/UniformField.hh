@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/UniformZMagField.hh
+//! \file celeritas/field/UniformField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,21 +14,22 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A uniform magnetic field along the Z axis.
+ * A uniform field.
  */
-class UniformZMagField
+class UniformField
 {
   public:
-    //! Construct with a scalar magnetic field value
-    CELER_FUNCTION
-    explicit UniformZMagField(real_type value) : value_(value) {}
+    //! Construct with a field vector
+    explicit CELER_FUNCTION UniformField(Real3 value) : value_(value) {}
 
-    //! Return the magnetic field at the given position
-    CELER_FUNCTION
-    Real3 operator()(const Real3&) const { return {0, 0, value_}; }
+    //! Return the field at the given position
+    CELER_FUNCTION const Real3& operator()(const Real3&) const
+    {
+        return value_;
+    }
 
   private:
-    real_type value_;
+    Real3 value_;
 };
 
 //---------------------------------------------------------------------------//

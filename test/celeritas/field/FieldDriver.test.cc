@@ -16,7 +16,7 @@
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/Types.hh"
-#include "celeritas/field/UniformMagField.hh"
+#include "celeritas/field/UniformField.hh"
 
 #include "FieldDriver.test.hh"
 #include "celeritas_test.hh"
@@ -62,9 +62,9 @@ class FieldDriverTest : public Test
 TEST_F(FieldDriverTest, field_driver_host)
 {
     // Construct FieldDriver
-    UniformMagField field({0, 0, test_params.field_value});
+    UniformField field({0, 0, test_params.field_value});
     using RKTraits
-        = celeritas::MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, rk4);
@@ -114,9 +114,9 @@ TEST_F(FieldDriverTest, field_driver_host)
 TEST_F(FieldDriverTest, accurate_advance_host)
 {
     // Construct FieldDriver
-    UniformMagField field({0, 0, test_params.field_value});
+    UniformField field({0, 0, test_params.field_value});
     using RKTraits
-        = celeritas::MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
     RKTraits::Driver_t   driver(field_params, rk4);

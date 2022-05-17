@@ -12,7 +12,7 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
-#include "UniformZMagField.hh"
+#include "UniformZField.hh"
 
 namespace celeritas
 {
@@ -29,8 +29,8 @@ class ZHelixStepper
     static_assert(
         std::is_same<std::remove_cv_t<std::remove_reference_t<
                          typename std::remove_reference_t<EquationT>::Field_t>>,
-                     UniformZMagField>::value,
-        "ZHelix stepper only works with UniformZMagField");
+                     UniformZField>::value,
+        "ZHelix stepper only works with UniformZField");
 
   public:
     //!@{

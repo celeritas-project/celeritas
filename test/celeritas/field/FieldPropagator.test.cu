@@ -18,7 +18,7 @@
 #include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
-#include "celeritas/field/UniformMagField.hh"
+#include "celeritas/field/UniformField.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
@@ -59,9 +59,9 @@ __global__ void fp_test_kernel(const int                       size,
     ParticleTrackView particle_track(particle_params, particle_states, tid);
     particle_track = init_track[tid.get()];
 
-    // Construct the field propagator with UniformMagField
-    UniformMagField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    // Construct the field propagator with UniformField
+    UniformField field({0, 0, test.field_value});
+    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
     MFTraits::Driver_t     driver(field_params, stepper);
@@ -116,9 +116,9 @@ __global__ void bc_test_kernel(const int                       size,
     ParticleTrackView particle_track(particle_params, particle_states, tid);
     particle_track = init_track[tid.get()];
 
-    // Construct the field propagator with UniformMagField
-    UniformMagField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
+    // Construct the field propagator with UniformField
+    UniformField field({0, 0, test.field_value});
+    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
     MFTraits::Driver_t     driver(field_params, stepper);
