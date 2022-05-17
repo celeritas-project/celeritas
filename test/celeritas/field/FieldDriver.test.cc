@@ -66,7 +66,7 @@ TEST_F(FieldDriverTest, field_driver_host)
     using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, &rk4);
+    RKTraits::Driver_t   driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -117,7 +117,7 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, &rk4);
+    RKTraits::Driver_t   driver(field_params, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;

@@ -45,9 +45,9 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(const ParticleTrackView& particle,
-                                          GeoTrackView*            track,
-                                          DriverT*                 driver);
+    inline CELER_FUNCTION FieldPropagator(DriverT&&                driver,
+                                          const ParticleTrackView& particle,
+                                          GeoTrackView*            track);
 
     // Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
@@ -58,8 +58,8 @@ class FieldPropagator
   private:
     //// DATA ////
 
+    DriverT       driver_;
     GeoTrackView& track_;
-    DriverT&      driver_;
     OdeState      state_;
 };
 
@@ -71,13 +71,12 @@ class FieldPropagator
  */
 template<class DriverT>
 CELER_FUNCTION
-FieldPropagator<DriverT>::FieldPropagator(const ParticleTrackView& particle,
-                                          GeoTrackView*            track,
-                                          DriverT*                 driver)
-    : track_(*track), driver_(*driver)
+FieldPropagator<DriverT>::FieldPropagator(DriverT&&                driver,
+                                          const ParticleTrackView& particle,
+                                          GeoTrackView*            track)
+    : driver_(::celeritas::forward<DriverT>(driver)), track_(*track)
 {
-    CELER_ASSERT(track && driver);
-    CELER_ASSERT(particle.charge() != zero_quantity());
+    CELER_ASSERT(track);
 
     using MomentumUnits = OdeState::MomentumUnits;
 

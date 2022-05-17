@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
 
@@ -67,30 +68,30 @@ class DormandPrinceStepper
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION DormandPrinceStepper(const EquationT& eq)
-        : calc_rhs_(eq)
+    explicit CELER_FUNCTION DormandPrinceStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    CELER_FUNCTION auto
+    operator()(real_type step, const OdeState& beg_state) const -> Result;
 
   private:
     // Functor to calculate the force applied to a particle
-    const EquationT& calc_rhs_;
+    EquationT calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control for the DormandPrince RK5(4)7M method
+ * Adaptive step size control for the DormandPrince RK5(4)7M method.
  */
 template<class E>
 CELER_FUNCTION auto
-DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+DormandPrinceStepper<E>::operator()(real_type       step,
+                                    const OdeState& beg_state) const -> Result
 {
     using celeritas::axpy;
     using R = real_type;

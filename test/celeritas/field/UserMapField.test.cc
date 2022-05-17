@@ -124,7 +124,7 @@ TEST_F(UserMapFieldTest, host_umf_propagator)
     using MFTraits = MagFieldTraits<CMSMapField, DormandPrinceStepper>;
     MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t  stepper(equation);
-    MFTraits::Driver_t   driver(field_params, &stepper);
+    MFTraits::Driver_t   driver(field_params, stepper);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -145,7 +145,7 @@ TEST_F(UserMapFieldTest, host_umf_propagator)
         EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+        MFTraits::Propagator_t propagate(driver, particle_track, &geo_track);
 
         real_type                           total_length = 0;
         MFTraits::Propagator_t::result_type result;
@@ -179,7 +179,7 @@ TEST_F(UserMapFieldTest, host_umf_geolimited)
     using MFTraits = MagFieldTraits<CMSMapField, DormandPrinceStepper>;
     MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t  stepper(equation);
-    MFTraits::Driver_t   driver(field_params, &stepper);
+    MFTraits::Driver_t   driver(field_params, stepper);
 
     static const real_type expected_y[] = {0.5, 0.5, -0.5, -0.5};
     const int num_boundary = sizeof(expected_y) / sizeof(real_type);
@@ -196,7 +196,7 @@ TEST_F(UserMapFieldTest, host_umf_geolimited)
         EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        MFTraits::Propagator_t propagate(particle_track, &geo_track, &driver);
+        MFTraits::Propagator_t propagate(driver, particle_track, &geo_track);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;

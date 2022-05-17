@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
 #include "UniformZMagField.hh"
@@ -26,7 +27,9 @@ template<class EquationT>
 class ZHelixStepper
 {
     static_assert(
-        std::is_same<typename EquationT::Field_t, UniformZMagField>::value,
+        std::is_same<std::remove_cv_t<std::remove_reference_t<
+                         typename std::remove_reference_t<EquationT>::Field_t>>,
+                     UniformZMagField>::value,
         "ZHelix stepper only works with UniformZMagField");
 
   public:
@@ -37,19 +40,20 @@ class ZHelixStepper
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION ZHelixStepper(const EquationT& eq) : calc_rhs_(eq)
+    explicit CELER_FUNCTION ZHelixStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    CELER_FUNCTION auto
+    operator()(real_type step, const OdeState& beg_state) const -> Result;
 
   private:
     //// DATA ////
 
     // Evaluate the equation of the motion
-    const EquationT& calc_rhs_;
+    EquationT calc_rhs_;
 
     //// HELPER TYPES ////
     enum class Helicity : bool
@@ -65,7 +69,7 @@ class ZHelixStepper
                                  real_type       radius,
                                  Helicity        helicity,
                                  const OdeState& beg_state,
-                                 const OdeState& rhs);
+                                 const OdeState& rhs) const;
 
     //// COMMON PROPERTIES ////
 
@@ -88,7 +92,7 @@ class ZHelixStepper
  */
 template<class E>
 CELER_FUNCTION auto
-ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
+ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
     -> Result
 {
     Result result;
@@ -150,7 +154,7 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                                                real_type       radius,
                                                Helicity        helicity,
                                                const OdeState& beg_state,
-                                               const OdeState& rhs)
+                                               const OdeState& rhs) const
 {
     OdeState end_state;
 

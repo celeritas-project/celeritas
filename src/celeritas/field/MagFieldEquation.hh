@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
@@ -36,14 +37,14 @@ class MagFieldEquation
   public:
     // Construct with a magnetic field
     inline CELER_FUNCTION
-    MagFieldEquation(const FieldT& field, units::ElementaryCharge q);
+    MagFieldEquation(FieldT&& field, units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
     inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
-    const Field_t& calc_field_;
-    real_type      coeffi_;
+    Field_t&& calc_field_;
+    real_type coeffi_;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,10 +55,12 @@ class MagFieldEquation
  */
 template<class FieldT>
 CELER_FUNCTION
-MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
+MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
                                            units::ElementaryCharge charge)
-    : calc_field_(field)
+    : calc_field_(::celeritas::forward<FieldT>(field))
 {
+    CELER_EXPECT(charge != zero_quantity());
+
     // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
     coeffi_ = native_value_from(charge)
               / native_value_from(units::MevMomentum{1});
@@ -68,7 +71,7 @@ MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
  * Evaluate the right hand side of the Lorentz equation.
  *
  * This calculates the force based on the current magnetic field state
- * (position and direction).
+ * (position and momentum).
  *
  * \f[
     m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})

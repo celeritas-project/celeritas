@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
 #include "detail/FieldUtils.hh"
@@ -35,14 +36,14 @@ class RungeKuttaStepper
 
   public:
     //! Construct with the equation of motion
-    explicit CELER_FUNCTION RungeKuttaStepper(const EquationT& eq)
-        : calc_rhs_(eq)
+    explicit CELER_FUNCTION RungeKuttaStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
     {
     }
 
     // Advance the ODE state according to the field equations
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    CELER_FUNCTION auto
+    operator()(real_type step, const OdeState& beg_state) const -> Result;
 
   private:
     // Return the final state by the 4th order Runge-Kutta method
@@ -52,7 +53,7 @@ class RungeKuttaStepper
 
   private:
     // Equation of the motion
-    const EquationT& calc_rhs_;
+    EquationT calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -81,8 +82,8 @@ class RungeKuttaStepper
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+RungeKuttaStepper<E>::operator()(real_type       step,
+                                 const OdeState& beg_state) const -> Result
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);

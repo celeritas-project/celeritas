@@ -23,9 +23,9 @@ template<class Field, template<class> class Stepper>
 struct MagTestTraits
 {
     using Field_t    = Field;
-    using Equation_t = celeritas::MagFieldEquation<Field_t>;
-    using Stepper_t  = Stepper<Equation_t>;
-    using Driver_t   = celeritas::FieldDriver<Stepper_t>;
+    using Equation_t = celeritas::MagFieldEquation<const Field_t&>;
+    using Stepper_t  = Stepper<const Equation_t&>;
+    using Driver_t   = celeritas::FieldDriver<const Stepper_t&>;
 };
 
 //---------------------------------------------------------------------------//

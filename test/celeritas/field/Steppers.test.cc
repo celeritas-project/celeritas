@@ -139,7 +139,7 @@ TEST_F(SteppersTest, host_helix)
     UniformZMagField field(param.field_value);
 
     // Test the analytical ZHelix stepper
-    this->template run_stepper<UniformZMagField, ZHelixStepper>(field);
+    this->run_stepper<UniformZMagField, ZHelixStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +149,7 @@ TEST_F(SteppersTest, host_classical_rk4)
     UniformMagField field({0, 0, param.field_value});
 
     // Test the classical 4th order Runge-Kutta stepper
-    this->template run_stepper<UniformMagField, RungeKuttaStepper>(field);
+    this->run_stepper<UniformMagField, RungeKuttaStepper>(field);
 }
 
 //---------------------------------------------------------------------------//
@@ -159,7 +159,7 @@ TEST_F(SteppersTest, host_dormand_prince_547)
     UniformMagField field({0, 0, param.field_value});
 
     // Test the Dormand-Prince 547(M) stepper
-    this->template run_stepper<UniformMagField, DormandPrinceStepper>(field);
+    this->run_stepper<UniformMagField, DormandPrinceStepper>(field);
 }
 
 //---------------------------------------------------------------------------//

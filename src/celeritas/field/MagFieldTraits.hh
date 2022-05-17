@@ -22,10 +22,10 @@ template<class Field, template<class> class Stepper>
 struct MagFieldTraits
 {
     using Field_t      = Field;
-    using Equation_t   = MagFieldEquation<Field_t>;
-    using Stepper_t    = Stepper<Equation_t>;
-    using Driver_t     = FieldDriver<Stepper_t>;
-    using Propagator_t = FieldPropagator<Driver_t>;
+    using Equation_t   = MagFieldEquation<const Field_t&>;
+    using Stepper_t    = Stepper<const Equation_t&>;
+    using Driver_t     = FieldDriver<const Stepper_t&>;
+    using Propagator_t = FieldPropagator<const Driver_t&>;
 };
 
 //---------------------------------------------------------------------------//

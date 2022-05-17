@@ -64,8 +64,8 @@ __global__ void fp_test_kernel(const int                       size,
     using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(field_params, stepper);
+    MFTraits::Propagator_t propagator(particle_track, &geo_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -121,8 +121,8 @@ __global__ void bc_test_kernel(const int                       size,
     using MFTraits = MagFieldTraits<UniformMagField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(field_params, stepper);
+    MFTraits::Propagator_t propagator(particle_track, &geo_track, driver);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;

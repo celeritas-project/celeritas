@@ -51,7 +51,7 @@ __global__ void driver_test_kernel(const FieldDriverOptions data,
     using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, &rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -102,7 +102,7 @@ __global__ void accurate_advance_kernel(const FieldDriverOptions data,
     using RKTraits = MagTestTraits<UniformMagField, DormandPrinceStepper>;
     RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, &rk4);
+    RKTraits::Driver_t   driver(data, rk4);
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
