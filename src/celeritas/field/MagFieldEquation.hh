@@ -19,10 +19,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The MagFieldEquation evaluates the right hand side of the Lorentz equation
- * for a given magnetic field value.
+ * Evaluate the force applied by a magnetic field.
+ *
  * The templated \c FieldT must provide the operator(Real3 position) which
- * returns a magnetic field value of Real3 at a given position
+ * returns a magnetic field value of Real3 at a given position.
  */
 template<class FieldT>
 class MagFieldEquation
@@ -42,31 +42,33 @@ class MagFieldEquation
     inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
 
   private:
-    const Field_t&          calc_field_;
-    units::ElementaryCharge charge_;
-    real_type               coeffi_;
+    const Field_t& calc_field_;
+    real_type      coeffi_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a constant magnetic field.
+ * Construct with a magnetic field equation.
  */
 template<class FieldT>
 CELER_FUNCTION
 MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
                                            units::ElementaryCharge charge)
-    : calc_field_(field), charge_(charge)
+    : calc_field_(field)
 {
     // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
-    coeffi_ = native_value_from(charge_)
+    coeffi_ = native_value_from(charge)
               / native_value_from(units::MevMomentum{1});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the right hand side of the Lorentz equation.
+ *
+ * This calculates the force based on the current magnetic field state
+ * (position and direction).
  *
  * \f[
     m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})
@@ -84,8 +86,8 @@ MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
     Real3 mag_vec = calc_field_(y.pos);
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
-    CELER_ASSERT(momentum_mag2 > 0.0);
-    real_type momentum_inv = 1.0 / std::sqrt(momentum_mag2);
+    CELER_ASSERT(momentum_mag2 > 0);
+    real_type momentum_inv = 1 / std::sqrt(momentum_mag2);
 
     // Evaluate the right-hand-side of the equation
     OdeState result;

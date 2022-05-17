@@ -12,7 +12,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
 
 #include "FieldDriverOptions.hh"
 #include "MagFieldEquation.hh"
@@ -31,9 +30,9 @@ template<class StepperT>
 class FieldDriver
 {
   public:
-    // Construct with shared data and the stepper
+    // Construct with options data and the stepper
     inline CELER_FUNCTION
-    FieldDriver(const FieldDriverOptions& shared, StepperT* stepper);
+    FieldDriver(const FieldDriverOptions& options, StepperT* perform_step);
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION DriverResult advance(real_type       step,
@@ -62,7 +61,7 @@ class FieldDriver
   private:
     //// DATA ////
 
-    // Shared constant properties
+    // Driver configuration
     const FieldDriverOptions& options_;
 
     // Stepper for this field driver
@@ -112,13 +111,13 @@ class FieldDriver
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared data and the stepper.
+ * Construct with options and the step advancement functor.
  */
 template<class StepperT>
 CELER_FUNCTION
-FieldDriver<StepperT>::FieldDriver(const FieldDriverOptions& shared,
+FieldDriver<StepperT>::FieldDriver(const FieldDriverOptions& options,
                                    StepperT*                 stepper)
-    : options_(shared), apply_step_(*stepper)
+    : options_(options), apply_step_(*stepper)
 {
     CELER_EXPECT(options_ && stepper);
 }
@@ -177,7 +176,7 @@ FieldDriver<StepperT>::find_next_chord(real_type step, const OdeState& state)
     ChordSearch output;
 
     bool          succeeded       = false;
-    unsigned int  remaining_steps = options_.max_nsteps;
+    size_type     remaining_steps = options_.max_nsteps;
     StepperResult result;
 
     do
@@ -242,10 +241,10 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     Integration output;
     output.end.state = state;
 
-    // Performance integration
-    bool         succeeded       = false;
-    real_type    curve_length    = 0;
-    unsigned int remaining_steps = options_.max_nsteps;
+    // Perform integration
+    bool      succeeded       = false;
+    real_type curve_length    = 0;
+    size_type remaining_steps = options_.max_nsteps;
 
     do
     {
@@ -326,8 +325,8 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state)
 
     // Perform integration for adaptive step control with the trunction error
     bool          succeeded       = false;
-    unsigned int  remaining_steps = options_.max_nsteps;
-    real_type     errmax2 = celeritas::numeric_limits<real_type>::max();
+    size_type     remaining_steps = options_.max_nsteps;
+    real_type     errmax2;
     StepperResult result;
 
     do

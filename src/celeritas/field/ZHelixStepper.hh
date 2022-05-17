@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The Helix (Test) Stepper.
+ * Analytically step along a helical path for a uniform Z magnetic field.
  *
  * The analytical solution for the motion of a charged particle in a uniform
  * magnetic field along the z-direction.
@@ -25,7 +25,6 @@ namespace celeritas
 template<class EquationT>
 class ZHelixStepper
 {
-    // Check whether the Field_t used in EquationT is UniformZMagField
     static_assert(
         std::is_same<typename EquationT::Field_t, UniformZMagField>::value,
         "ZHelix stepper only works with UniformZMagField");
@@ -37,9 +36,10 @@ class ZHelixStepper
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    ZHelixStepper(const EquationT& eq) : calc_rhs_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION ZHelixStepper(const EquationT& eq) : calc_rhs_(eq)
+    {
+    }
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
@@ -48,7 +48,7 @@ class ZHelixStepper
   private:
     //// DATA ////
 
-    // Equation of the motion
+    // Evaluate the equation of the motion
     const EquationT& calc_rhs_;
 
     //// HELPER TYPES ////

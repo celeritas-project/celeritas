@@ -66,16 +66,18 @@ class DormandPrinceStepper
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    DormandPrinceStepper(const EquationT& eq) : calc_rhs_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION DormandPrinceStepper(const EquationT& eq)
+        : calc_rhs_(eq)
+    {
+    }
 
     // Adaptive step size control
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
         -> Result;
 
   private:
-    // Equation of the motion
+    // Functor to calculate the force applied to a particle
     const EquationT& calc_rhs_;
 };
 

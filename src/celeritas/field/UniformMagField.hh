@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
@@ -15,21 +14,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A uniform magnetic field
+ * A uniform magnetic field.
  */
 class UniformMagField
 {
   public:
-    // Construct with a uniform magnetic field vector
-    CELER_FUNCTION
-    explicit UniformMagField(Real3 value) : value_(value) {}
+    //! Construct with a uniform magnetic field vector
+    explicit CELER_FUNCTION UniformMagField(Real3 value) : value_(value) {}
 
-    // Return a const magnetic field value
-    CELER_FUNCTION
-    Real3 operator()(CELER_MAYBE_UNUSED const Real3& pos) const
-    {
-        return value_;
-    }
+    //! Return the magnetic field at the given position
+    CELER_FUNCTION Real3 operator()(const Real3&) const { return value_; }
 
   private:
     Real3 value_;

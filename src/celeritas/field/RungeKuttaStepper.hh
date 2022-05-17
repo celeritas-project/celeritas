@@ -34,11 +34,13 @@ class RungeKuttaStepper
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    RungeKuttaStepper(const EquationT& eq) : calc_rhs_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION RungeKuttaStepper(const EquationT& eq)
+        : calc_rhs_(eq)
+    {
+    }
 
-    // Adaptive step size control
+    // Advance the ODE state according to the field equations
     CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
         -> Result;
 
