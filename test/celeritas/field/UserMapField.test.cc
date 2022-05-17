@@ -11,9 +11,12 @@
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldPropagatorTestBase.hh"
 #include "UserField.test.hh"

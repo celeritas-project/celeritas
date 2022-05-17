@@ -15,6 +15,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/UniformMagField.hh"
 #include "celeritas/field/UniformZMagField.hh"
@@ -22,7 +23,6 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-#include "detail/MagTestTraits.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -69,8 +69,7 @@ class SteppersTest : public Test
     void run_stepper(const TField& field)
     {
         // Construct a stepper for testing
-        using Traits =
-            typename celeritas_test::detail::MagTestTraits<TField, TStepper>;
+        using Traits = MagFieldTraits<TField, TStepper>;
 
         typename Traits::Equation_t equation(field,
                                              units::ElementaryCharge{-1});

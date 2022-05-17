@@ -17,13 +17,12 @@
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/Types.hh"
 #include "celeritas/field/UniformMagField.hh"
 #include "celeritas/field/UniformZMagField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
-
-#include "detail/MagTestTraits.hh"
 
 using celeritas::detail::truncation_error;
 using thrust::raw_pointer_cast;
@@ -48,7 +47,7 @@ __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
         return;
 
     // Construct a TStepper for testing
-    using RKTraits = detail::MagTestTraits<TField, TStepper>;
+    using RKTraits = celeritas::MagFieldTraits<TField, TStepper>;
     typename RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
     typename RKTraits::Stepper_t  rk4(equation);
 
