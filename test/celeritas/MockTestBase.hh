@@ -40,7 +40,7 @@ namespace celeritas_test
  *
  * Cutoff values are all zero.
  */
-class MockTestBase : public GlobalTestBase
+class MockTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{

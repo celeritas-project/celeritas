@@ -34,12 +34,14 @@ configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 #----------------------------------------------------------------------------#
 
 # TODO: add build flags
-set(CELERITAS_CMAKE_STRINGS)
-set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var CELERITAS_RNG CELERITAS_BUILD_TYPE)
+set(CELERITAS_CMAKE_STRINGS
+    "static const char celeritas_rng[] = \"${CELERITAS_RNG}\";\n"
+)
+set(BUILD_TYPE ${CMAKE_BUILD_TYPE})
+foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION)
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "static const char ${_lower}[] = \"${${_var}}\";\n"
+    "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
 configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)

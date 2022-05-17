@@ -233,7 +233,7 @@ TransporterInput load_input(const LDemoArgs& args)
             // the geometry (possibly using a ROOT/GDML input with an ORANGE
             // geometry): try to let the GeoMaterialParams remap them
             CELER_LOG(warning) << "Volume/material mapping is inconsistent "
-                                  "between ROOT file and geometry file: "
+                                  "between Geant4 data and geometry file: "
                                   "attempting to remap";
             input.volume_names.resize(imported_data.volumes.size());
             for (auto volume_idx : range(imported_data.volumes.size()))

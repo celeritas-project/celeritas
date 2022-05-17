@@ -98,7 +98,7 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 # RNG selection
-set(CELERITAS_RNG_OPTIONS)
+set(CELERITAS_RNG_OPTIONS XORWOW)
 if(CELERITAS_USE_CUDA)
   list(APPEND CELERITAS_RNG_OPTIONS CURAND)
 elseif(CELERITAS_USE_HIP)
@@ -107,7 +107,6 @@ elseif(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP))
   # TODO: allow wrapper to standard library RNG when not building for device?
   # TODO: maybe even add wrapper to Geant4 RNG??
 endif()
-list(APPEND CELERITAS_RNG_OPTIONS XORWOW)
 list(GET CELERITAS_RNG_OPTIONS 0 _DEFAULT_RNG)
 set(CELERITAS_RNG "${_DEFAULT_RNG}" CACHE STRING
   "Celeritas runtime random number generator")

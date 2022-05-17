@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
+#include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -403,12 +404,13 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
-TEST_F(PhysicsTrackViewHostTest, calc_range)
+TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
     EXPECT_SOFT_EQ(0.1 * units::centimeter,
                    params_ref.scalars.scaling_min_range);
     EXPECT_SOFT_EQ(0.2, params_ref.scalars.scaling_fraction);
+    std::vector<real_type> eloss;
     std::vector<real_type> range;
     std::vector<real_type> step;
 
@@ -420,28 +422,41 @@ TEST_F(PhysicsTrackViewHostTest, calc_range)
             = this->make_track_view(particle, MaterialId{0});
         auto ppid = phys.eloss_ppid();
         ASSERT_TRUE(ppid);
-        auto id = phys.value_grid(ValueGridType::range, ppid);
-        ASSERT_TRUE(id);
-        auto calc_range = phys.make_calculator<RangeCalculator>(id);
-        for (real_type energy : {0.01, 1.0, 1e2})
+
+        auto eloss_id = phys.value_grid(ValueGridType::energy_loss, ppid);
+        ASSERT_TRUE(eloss_id);
+        auto calc_eloss = phys.make_calculator<EnergyLossCalculator>(eloss_id);
+
+        auto range_id = phys.value_grid(ValueGridType::range, ppid);
+        ASSERT_TRUE(range_id);
+        auto calc_range = phys.make_calculator<RangeCalculator>(range_id);
+        for (real_type energy : {1e-6, 0.01, 1.0, 1e2})
         {
+            eloss.push_back(calc_eloss(MevEnergy{energy}));
             range.push_back(calc_range(MevEnergy{energy}));
             step.push_back(phys.range_to_step(range.back()));
         }
     }
 
-    const double expected_range[] = {0.01666666666667,
-                                     1.666666666667,
-                                     166.6666666667,
-                                     0.01428571428571,
-                                     1.428571428571,
-                                     142.8571428571};
-    const double expected_step[]  = {0.01666666666667,
-                                    0.4885333333333,
-                                    33.49328533333,
-                                    0.01428571428571,
-                                    0.4401142857143,
-                                    28.73137257143};
+    static const double expected_eloss[]
+        = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
+    static const double expected_range[] = {5.2704627669473e-05,
+                                            0.016666666666667,
+                                            1.6666666666667,
+                                            166.66666666667,
+                                            4.5175395145263e-05,
+                                            0.014285714285714,
+                                            1.4285714285714,
+                                            142.85714285714};
+    static const double expected_step[]  = {5.2704627669473e-05,
+                                           0.016666666666667,
+                                           0.48853333333333,
+                                           33.493285333333,
+                                           4.5175395145263e-05,
+                                           0.014285714285714,
+                                           0.44011428571429,
+                                           28.731372571429};
+    EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
