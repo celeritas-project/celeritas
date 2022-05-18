@@ -9,10 +9,8 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/field/MagFieldEquation.hh"
-#include "celeritas/field/MagFieldTraits.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -48,13 +46,7 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
         this->particle()->host_ref(), state_ref, ThreadId(0));
-
-    // Construct FieldDriver with UniformField
     UniformField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
-    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    MFTraits::Stepper_t  stepper(equation);
-    MFTraits::Driver_t   driver(field_params, stepper);
 
     // Test parameters and the sub-step size
     double step = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -75,16 +67,16 @@ TEST_F(FieldPropagatorHostTest, field_propagator_host)
         EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        MFTraits::Propagator_t propagate(driver, particle_track, &geo_track);
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, this->field_params, particle_track, &geo_track);
 
-        real_type                           total_length = 0;
-        MFTraits::Propagator_t::result_type result;
+        real_type total_length = 0;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
             for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
             {
-                result = propagate(step);
+                auto result = propagate(step);
                 EXPECT_FALSE(result.boundary);
                 EXPECT_DOUBLE_EQ(step, result.distance);
                 total_length += result.distance;
@@ -107,13 +99,7 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
     ParticleTrackView particle_track(
         this->particle()->host_ref(), state_ref, ThreadId(0));
-
-    // Construct FieldDriver with UniformField
     UniformField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
-    MFTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    MFTraits::Stepper_t  stepper(equation);
-    MFTraits::Driver_t   driver(field_params, stepper);
 
     // clang-format off
     static const real_type expected_y[]
@@ -134,17 +120,17 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
 
         // Construct FieldPropagator
-        MFTraits::Propagator_t propagate(driver, particle_track, &geo_track);
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, this->field_params, particle_track, &geo_track);
 
         int                                 icross       = 0;
         real_type                           total_length = 0;
-        MFTraits::Propagator_t::result_type result;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {
             for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
             {
-                result = propagate(step);
+                auto result = propagate(step);
                 total_length += result.distance;
 
                 if (result.boundary)

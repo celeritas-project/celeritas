@@ -13,11 +13,27 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/field/MagFieldEquation.hh"
 
 #include "FieldTestParams.hh"
 
 namespace celeritas_test
 {
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+
+template<template<class EquationT> class StepperT, class FieldT>
+CELER_FUNCTION decltype(auto)
+make_mag_field_stepper(FieldT&&                           field,
+                       celeritas::units::ElementaryCharge charge)
+{
+    using Equation_t = celeritas::MagFieldEquation<FieldT>;
+    using Stepper_t  = StepperT<Equation_t>;
+    return Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}};
+}
+
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//

@@ -24,6 +24,7 @@
 
 #include "FieldPropagator.test.hh"
 #include "FieldTestParams.hh"
+#include "MagFieldTraits.hh"
 #include "UserField.test.hh"
 #include "detail/CMSMapField.hh"
 #include "detail/FieldMapData.hh"

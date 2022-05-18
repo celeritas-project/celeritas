@@ -15,7 +15,6 @@
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
-#include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
@@ -59,27 +58,22 @@ class SteppersTest : public Test
         param.delta_z     = 6.7003310629;       //! z-change/revolution [cm]
         param.momentum_y  = 10.9610028286;      //! initial momentum_y [MeV/c]
         param.momentum_z  = 3.1969591583;       //! initial momentum_z [MeV/c]
-        param.nstates     = 32 * 512;           //! number of states (tracks)
+        param.nstates     = 1;                  //! number of states (tracks)
         param.nsteps      = 100;                //! number of steps/revolution
         param.revolutions = 10;                 //! number of revolutions
         param.epsilon     = 1.0e-5;             //! tolerance error
     }
 
-    template<class TField, template<class> class TStepper>
-    void run_stepper(const TField& field)
+    template<class FieldT, template<class> class StepperT>
+    void run_stepper(const FieldT& field)
     {
         // Construct a stepper for testing
-        using Traits = MagFieldTraits<TField, TStepper>;
-
-        typename Traits::Equation_t equation(field,
-                                             units::ElementaryCharge{-1});
-        typename Traits::Stepper_t  stepper(equation);
-
+        auto stepper = make_mag_field_stepper<StepperT>(
+            field, units::ElementaryCharge{-1});
         // Test parameters and the sub-step size
         real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
 
-        // Only test every 128 states to reduce debug runtime
-        for (unsigned int i : celeritas::range(param.nstates).step(128u))
+        for (unsigned int i : celeritas::range(param.nstates))
         {
             // Initial state and the epected state after revolutions
             OdeState y;
@@ -110,7 +104,7 @@ class SteppersTest : public Test
         }
     }
 
-    void check_result(StepperTestOutput output)
+    void check_result(const StepperTestOutput& output)
     {
         // Check gpu stepper results
         real_type zstep = param.delta_z * param.revolutions;
@@ -167,6 +161,7 @@ TEST_F(SteppersTest, host_dormand_prince_547)
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_helix))
 {
     // Run the ZHelix kernel
+    param.nstates = 32 * 512;
     auto output = helix_test(param);
 
     // Check stepper results
@@ -177,6 +172,7 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_helix))
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_classical_rk4))
 {
     // Run the classical Runge-Kutta kernel
+    param.nstates = 32 * 512;
     auto output = rk4_test(param);
 
     // Check stepper results
@@ -187,6 +183,7 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_classical_rk4))
 TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_dormand_prince_547))
 {
     // Run the Dormand-Prince 547(M) kernel
+    param.nstates = 32 * 512;
     auto output = dp547_test(param);
 
     // Check stepper results

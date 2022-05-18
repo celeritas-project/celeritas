@@ -13,11 +13,8 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/field/FieldPropagator.hh"
-#include "celeritas/field/MagFieldEquation.hh"
-#include "celeritas/field/MagFieldTraits.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -60,25 +57,21 @@ __global__ void fp_test_kernel(const int                       size,
     particle_track = init_track[tid.get()];
 
     // Construct the field propagator with UniformField
-    UniformField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
-    MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
-    MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, driver);
+    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        UniformField({0, 0, test.field_value}),
+        this->field_params,
+        particle_track,
+        &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
-    double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
-
+    const double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
     real_type curved_length = 0;
-
-    MFTraits::Propagator_t::result_type result;
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test.revolutions))
     {
         for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
         {
-            result = propagator(hstep);
+            auto result = propagate(hstep);
             curved_length += result.distance;
             CELER_ASSERT(!result.boundary);
         }
@@ -117,16 +110,14 @@ __global__ void bc_test_kernel(const int                       size,
     particle_track = init_track[tid.get()];
 
     // Construct the field propagator with UniformField
-    UniformField field({0, 0, test.field_value});
-    using MFTraits = MagFieldTraits<UniformField, DormandPrinceStepper>;
-    MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
-    MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, driver);
+    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        UniformField({0, 0, test.field_value}),
+        this->field_params,
+        particle_track,
+        &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
-    double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
-
+    const double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
     real_type curved_length = 0;
 
     constexpr int num_boundary = 16;
@@ -140,13 +131,11 @@ __global__ void bc_test_kernel(const int                       size,
 
     real_type delta = celeritas::numeric_limits<real_type>::max();
 
-    MFTraits::Propagator_t::result_type result;
-
     for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
     {
         for (CELER_MAYBE_UNUSED int i : celeritas::range(test.nsteps))
         {
-            result = propagator(hstep);
+            auto result = propagate(hstep);
             curved_length += result.distance;
 
             if (result.boundary)

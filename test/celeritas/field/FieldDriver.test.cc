@@ -14,7 +14,6 @@
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
-#include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/Types.hh"
 #include "celeritas/field/UniformField.hh"
 
@@ -23,7 +22,6 @@
 
 using namespace celeritas;
 using namespace celeritas_test;
-using celeritas::MagFieldTraits;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -35,7 +33,7 @@ class FieldDriverTest : public Test
     void SetUp() override
     {
         // Input parameters of an electron in a uniform magnetic field
-        test_params.nstates     = 128 * 512;
+        test_params.nstates     = 1;
         test_params.nsteps      = 100;
         test_params.revolutions = 10;
         test_params.field_value = 1.0 * units::tesla;
@@ -62,19 +60,16 @@ class FieldDriverTest : public Test
 TEST_F(FieldDriverTest, field_driver_host)
 {
     // Construct FieldDriver
-    UniformField field({0, 0, test_params.field_value});
-    using RKTraits
-        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+        UniformField({0, 0, test_params.field_value}),
+        field_params,
+        units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep         = circumference / test_params.nsteps;
 
-    // Only test every 128 states to reduce debug runtime
-    for (unsigned int i : celeritas::range(test_params.nstates).step(128u))
+    for (unsigned int i : celeritas::range(test_params.nstates))
     {
         // Initial state and the epected state after revolutions
         OdeState y;
@@ -113,20 +108,17 @@ TEST_F(FieldDriverTest, field_driver_host)
 
 TEST_F(FieldDriverTest, accurate_advance_host)
 {
-    // Construct FieldDriver
-    UniformField field({0, 0, test_params.field_value});
-    using RKTraits
-        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(field_params, rk4);
+    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+        UniformField({0, 0, test_params.field_value}),
+        field_params,
+        units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep         = circumference / test_params.nsteps;
 
     // Only test every 128 states to reduce debug runtime
-    for (unsigned int i : celeritas::range(test_params.nstates).step(128u))
+    for (unsigned int i : celeritas::range(test_params.nstates))
     {
         // Initial state and the epected state after revolutions
         OdeState y;
@@ -173,6 +165,7 @@ class FieldDriverDeviceTest : public FieldDriverTest
 TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(field_driver_device))
 {
     // Run kernel
+    test_params.nstates = 32 * 256;
     auto output = driver_test(field_params, test_params);
 
     // Check stepper results
@@ -195,6 +188,7 @@ TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(field_driver_device))
 TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(accurate_advance_device))
 {
     // Run kernel
+    test_params.nstates = 32 * 256;
     auto output = accurate_advance_test(field_params, test_params);
 
     // Check stepper results

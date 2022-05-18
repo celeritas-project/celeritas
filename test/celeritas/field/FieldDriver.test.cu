@@ -19,12 +19,10 @@
 #include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
-#include "celeritas/field/MagFieldTraits.hh"
 #include "celeritas/field/UniformField.hh"
 
 #include "FieldTestParams.hh"
 
-using celeritas::MagFieldTraits;
 using thrust::raw_pointer_cast;
 using namespace celeritas;
 
@@ -46,13 +44,10 @@ __global__ void driver_test_kernel(const FieldDriverOptions data,
     if (tid.get() >= test_params.nstates)
         return;
 
-    // Construct the driver
-    UniformField field({0, 0, test_params.field_value});
-    using RKTraits
-        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, rk4);
+    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+        UniformField({0, 0, test_params.field_value}),
+        field_params,
+        units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
     real_type hstep = 2 * constants::pi * test_params.radius
@@ -99,12 +94,10 @@ __global__ void accurate_advance_kernel(const FieldDriverOptions data,
         return;
 
     // Construct the driver
-    UniformField field({0, 0, test_params.field_value});
-    using RKTraits
-        = celeritas::MagFieldTraits<UniformField, DormandPrinceStepper>;
-    RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    RKTraits::Stepper_t  rk4(equation);
-    RKTraits::Driver_t   driver(data, rk4);
+    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+        UniformField({0, 0, test_params.field_value}),
+        field_params,
+        units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
