@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/detail/InvalidValueTraits.hh
+//! \file corecel/data/detail/FillInvalid.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
