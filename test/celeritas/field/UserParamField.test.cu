@@ -64,7 +64,7 @@ __global__ void par_fp_test_kernel(const int                  size,
                                    const GeoTrackInitializer* start,
                                    const ParticleParamsRef    particle_params,
                                    ParticleStateRef           particle_states,
-                                   FieldDriverOptions         field_params,
+                                   FieldDriverOptions         driver_options,
                                    FieldTestParams            test,
                                    const ParticleTrackInitializer* init_track,
                                    double*                         pos,
@@ -90,8 +90,8 @@ __global__ void par_fp_test_kernel(const int                  size,
         = MagFieldTraits<CMSParameterizedField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(driver_options, stepper);
+    MFTraits::Propagator_t propagator(driver, particle_track, &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -120,7 +120,7 @@ __global__ void par_bc_test_kernel(const int                  size,
                                    const GeoTrackInitializer* start,
                                    ParticleParamsRef          particle_params,
                                    ParticleStateRef           particle_states,
-                                   FieldDriverOptions         field_params,
+                                   FieldDriverOptions         driver_options,
                                    FieldTestParams            test,
                                    const ParticleTrackInitializer* init_track,
                                    double*                         pos,
@@ -146,8 +146,8 @@ __global__ void par_bc_test_kernel(const int                  size,
         = MagFieldTraits<CMSParameterizedField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(driver_options, stepper);
+    MFTraits::Propagator_t propagator(driver, particle_track, &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;

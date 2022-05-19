@@ -32,7 +32,7 @@ namespace celeritas_test
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void driver_test_kernel(const FieldDriverOptions data,
+__global__ void driver_test_kernel(const FieldDriverOptions driver_options,
                                    FieldTestParams          test_params,
                                    double*                  pos_x,
                                    double*                  pos_z,
@@ -46,7 +46,7 @@ __global__ void driver_test_kernel(const FieldDriverOptions data,
 
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
         UniformField({0, 0, test_params.field_value}),
-        field_params,
+        driver_options,
         units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
@@ -81,7 +81,7 @@ __global__ void driver_test_kernel(const FieldDriverOptions data,
     error[tid.get()] = total_step_length;
 }
 
-__global__ void accurate_advance_kernel(const FieldDriverOptions data,
+__global__ void accurate_advance_kernel(const FieldDriverOptions driver_options,
                                         FieldTestParams          test_params,
                                         double*                  pos_x,
                                         double*                  pos_z,
@@ -96,7 +96,7 @@ __global__ void accurate_advance_kernel(const FieldDriverOptions data,
     // Construct the driver
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
         UniformField({0, 0, test_params.field_value}),
-        field_params,
+        driver_options,
         units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size

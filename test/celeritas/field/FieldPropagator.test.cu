@@ -36,7 +36,7 @@ __global__ void fp_test_kernel(const int                       size,
                                const GeoTrackInitializer*      start,
                                const ParticleParamsRef         particle_params,
                                ParticleStateRef                particle_states,
-                               FieldDriverOptions              field_params,
+                               FieldDriverOptions              driver_options,
                                FieldTestParams                 test,
                                const ParticleTrackInitializer* init_track,
                                double*                         pos,
@@ -59,7 +59,7 @@ __global__ void fp_test_kernel(const int                       size,
     // Construct the field propagator with UniformField
     auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
         UniformField({0, 0, test.field_value}),
-        this->field_params,
+        driver_options,
         particle_track,
         &geo_track);
 
@@ -89,7 +89,7 @@ __global__ void bc_test_kernel(const int                       size,
                                const GeoTrackInitializer*      start,
                                ParticleParamsRef               particle_params,
                                ParticleStateRef                particle_states,
-                               FieldDriverOptions              field_params,
+                               FieldDriverOptions              driver_options,
                                FieldTestParams                 test,
                                const ParticleTrackInitializer* init_track,
                                double*                         pos,
@@ -112,7 +112,7 @@ __global__ void bc_test_kernel(const int                       size,
     // Construct the field propagator with UniformField
     auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
         UniformField({0, 0, test.field_value}),
-        this->field_params,
+        driver_options,
         particle_track,
         &geo_track);
 
