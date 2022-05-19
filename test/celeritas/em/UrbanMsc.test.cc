@@ -57,8 +57,8 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 class UrbanMscTest : public celeritas_test::GlobalTestBase
 {
   protected:
-    using RandomEngine = celeritas_test::DiagnosticRngEngine<std::mt19937>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
 
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
@@ -71,13 +71,13 @@ class UrbanMscTest : public celeritas_test::GlobalTestBase
   protected:
     const char* geometry_basename() const override
     {
-        return "four-steel-slabs";
+        return "g4-ext-testem15";
     }
 
     void SetUp() override
     {
         RootImporter import_from_root(
-            this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
+            this->test_data_path("celeritas", "g4-ext-testem15.root").c_str());
         import_data_    = import_from_root();
         processes_data_ = std::make_shared<ImportedProcesses>(
             std::move(import_data_.processes));
@@ -174,8 +174,8 @@ class UrbanMscTest : public celeritas_test::GlobalTestBase
         return rng_;
     }
 
-    ImportData       import_data_;
-    SPConstImported  processes_data_;
+    ImportData      import_data_;
+    SPConstImported processes_data_;
 
     PhysicsParamsHostRef params_ref_;
     PhysicsStateStore    physics_state_;
@@ -185,8 +185,6 @@ class UrbanMscTest : public celeritas_test::GlobalTestBase
     // Views
     std::shared_ptr<ParticleTrackView> part_view_;
     RandomEngine                       rng_;
-
-    std::shared_ptr<UrbanMscModel> model_;
 };
 
 //---------------------------------------------------------------------------//
@@ -221,32 +219,15 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.d_over_r, 0.64474963087322135);
     EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
-    // Test the step limitation algorithm and the msc sample scattering
-    MscStep        step_result;
-    MscInteraction sample_result;
+    // Test the step limitation algorithm and the msc sample scattering with
+    // respect to TestEM15 with G4_STAINLESS-STEEL and 1mm cut: For details,
+    // refer to Geant4 Release 11.0 examples/extended/electromagnetic/TestEm15
 
-    // Input
-    static const real_type energy[] = {51.0231,
-                                       10.0564,
-                                       5.05808,
-                                       1.01162,
-                                       0.501328,
-                                       0.102364,
-                                       0.0465336,
-                                       0.00708839};
-
-    static const real_type step[] = {0.00279169,
-                                     0.412343,
-                                     0.0376414,
-                                     0.078163296576415602,
-                                     0.031624394625545782,
-                                     0.002779271697902872,
-                                     0.00074215289000934838,
-                                     0.000031163160031423049};
-
-    constexpr unsigned int nsamples = std::end(step) - std::begin(step);
-    static_assert(nsamples == std::end(energy) - std::begin(energy),
-                  "Input sizes do not match");
+    // TestEM15 parameters
+    constexpr unsigned int nsamples = 1e+5;
+    constexpr double       det_size = 1e+5 * units::millimeter;
+    Real3                  origin{-det_size / 2, 0, 0};
+    Real3                  direction{1, 0, 0};
 
     // Mock SimStateData
     SimStateValue states_ref;
@@ -269,57 +250,126 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_EQ(nsamples, sim_state_data.size());
     EXPECT_EQ(0, sim_track_view.num_steps());
 
-    RandomEngine&       rng_engine = this->rng();
-    std::vector<double> fstep;
-    std::vector<double> angle;
-    Real3               direction{0, 0, 1};
+    // Input energy
+    static const real_type energy[]   = {100, 10, 1, 1e-1, 1e-2, 1e-3};
+    constexpr unsigned int num_energy = std::end(energy) - std::begin(energy);
 
-    for (auto i : celeritas::range(nsamples))
+    // Test variables
+    std::vector<double> geom_path;
+    std::vector<double> true_path;
+    std::vector<double> lateral_dist;
+    std::vector<double> psi_mean;
+    std::vector<double> mom_xdir;
+    std::vector<double> phi_correl;
+
+    RandomEngine& rng_engine = this->rng();
+
+    MscStep        step_result;
+    MscInteraction sample_result;
+
+    for (real_type e_inc : energy)
     {
-        real_type r = i * 2 - real_type(1e-4);
-        geo_view    = {{r, r, r}, direction};
+        double sum_true_path    = 0;
+        double sum_geom_path    = 0;
+        double sum_lateral_dist = 0;
+        double sum_psi          = 0;
+        double sum_mom_xdir     = 0;
+        double sum_phi_correl   = 0;
 
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
+        for (CELER_MAYBE_UNUSED unsigned int j : celeritas::range(nsamples))
+        {
+            this->set_inc_particle(pdg::electron(), MevEnergy{e_inc});
+            geo_view = {origin, direction};
 
-        UrbanMscStepLimit step_limiter(model->host_ref(),
-                                       *part_view_,
-                                       &geo_view,
-                                       phys,
-                                       material_view,
-                                       sim_track_view.num_steps() == 0,
-                                       step[i]);
+            // Sample multiple scattering step limit
+            UrbanMscStepLimit step_limiter(model->host_ref(),
+                                           *part_view_,
+                                           &geo_view,
+                                           phys,
+                                           material_view,
+                                           sim_track_view.num_steps() == 0,
+                                           det_size);
 
-        step_result = step_limiter(rng_engine);
+            step_result = step_limiter(rng_engine);
 
-        UrbanMscScatter scatter(model->host_ref(),
-                                *part_view_,
-                                &geo_view,
-                                phys,
-                                material_view,
-                                step_result);
+            // Mock transportation
+            geo_view
+                = {{-det_size / 2 + step_result.geom_path, 0, 0}, direction};
 
-        sample_result = scatter(rng_engine);
+            // Sample the multiple scattering
+            UrbanMscScatter scatter(model->host_ref(),
+                                    *part_view_,
+                                    &geo_view,
+                                    phys,
+                                    material_view,
+                                    step_result);
 
-        fstep.push_back(sample_result.step_length);
-        angle.push_back(sample_result.direction[0]);
+            sample_result = scatter(rng_engine);
+
+            // Geometrical path length
+            sum_geom_path += step_result.geom_path;
+
+            // True path length
+            sum_true_path += sample_result.step_length;
+
+            // Lateral displacement
+            double disp_y      = sample_result.displacement[1];
+            double disp_z      = sample_result.displacement[2];
+            double lateral_arm = sqrt(ipow<2>(disp_y) + ipow<2>(disp_z));
+            sum_lateral_dist += lateral_arm;
+
+            // Psi variable
+            sum_psi += std::atan(lateral_arm / step_result.geom_path);
+
+            // Angle along the line of flight
+            sum_mom_xdir += sample_result.direction[0];
+
+            // Phi correlation
+            if (lateral_arm > 0)
+            {
+                sum_phi_correl += (disp_y * sample_result.direction[1]
+                                   + disp_z * sample_result.direction[2])
+                                  / lateral_arm;
+            }
+        }
+
+        // Mean values of test variables
+        geom_path.push_back(sum_geom_path / nsamples);
+        true_path.push_back(sum_true_path / nsamples);
+        lateral_dist.push_back(sum_lateral_dist / nsamples);
+        psi_mean.push_back(sum_psi / nsamples);
+        mom_xdir.push_back(sum_mom_xdir / nsamples);
+        phi_correl.push_back(sum_phi_correl / nsamples);
     }
 
-    static const double expected_fstep[] = {0.0027916899999997,
-                                            0.14681061896989,
-                                            0.028194652662093,
-                                            0.035727783460526,
-                                            0.0012630589956741,
-                                            9.8927866508237e-05,
-                                            0.00028678982069363,
-                                            1.1737319513141e-05};
-    EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    static const double expected_angle[] = {0.018295123575691,
-                                            0.27206685190532,
-                                            0.41125840612784,
-                                            0.73023360431147,
-                                            -0.25014464909878,
-                                            -0.16344305508081,
-                                            -0.27093903107024,
-                                            0.76465696539213};
-    EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
+    // Expected results obtained from TestEM15
+    static const double g4_geom_path[]
+        = {7.9736, 1.3991e-1, 2.8978e-3, 9.8068e-5, 1.9926e-6, 1.7734e-7};
+
+    static const double g4_true_path[]
+        = {8.8845, 1.5101e-1, 3.082e-3, 1.0651e-4, 2.1776e-6, 2.5102e-7};
+
+    static const double g4_lateral_dist[]
+        = {0, 4.1431e-2, 7.6514e-4, 3.0315e-5, 6.4119e-7, 1.2969e-7};
+
+    static const double g4_psi_mean[]
+        = {0, 0.28637, 0.25691, 0.29862, 0.31131, 0.63142};
+
+    static const double g4_mom_xdir[]
+        = {1, 0.83511, 0.86961, 0.84, 0.83257, 0.46774};
+
+    static const double g4_phi_correl[]
+        = {0, 0.37091, 0.32647, 0.35153, 0.34172, 0.58865};
+
+    // Tolerance of the relative error with respect to Geant4: percent
+    constexpr double tolerance = 0.01;
+    for (auto i : celeritas::range(num_energy))
+    {
+        EXPECT_SOFT_NEAR(g4_geom_path[i], geom_path[i], tolerance);
+        EXPECT_SOFT_NEAR(g4_true_path[i], true_path[i], tolerance);
+        EXPECT_SOFT_NEAR(g4_lateral_dist[i], lateral_dist[i], tolerance);
+        EXPECT_SOFT_NEAR(g4_psi_mean[i], psi_mean[i], tolerance);
+        EXPECT_SOFT_NEAR(g4_mom_xdir[i], mom_xdir[i], tolerance);
+        EXPECT_SOFT_NEAR(g4_phi_correl[i], phi_correl[i], tolerance);
+    }
 }
