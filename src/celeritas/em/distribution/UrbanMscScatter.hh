@@ -192,7 +192,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         return MscInteraction{true_path_, inc_direction_, {0, 0, 0}};
     }
 
-    // Sample polar angle
+    // Sample polar angle and update tau_
     real_type costheta
         = this->sample_cos_theta(rng, input_.true_path, input_.limit_min);
     CELER_ASSERT(std::fabs(costheta) <= 1);
