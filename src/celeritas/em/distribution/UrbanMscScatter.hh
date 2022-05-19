@@ -171,7 +171,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     {
         end_energy_    = helper_.calc_end_energy(true_path_);
         skip_sampling_ = (end_energy_ < params_.min_sampling_energy()
-                          || true_path_ <= input_.limit_min
+                          || true_path_ <= shared.params.limit_min_fix()
                           || true_path_ < lambda_ * params_.tau_small);
     }
 }
@@ -191,6 +191,11 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         // Do not sample scattering at the last or at a small step
         return MscInteraction{true_path_, inc_direction_, {0, 0, 0}};
     }
+
+    // Sample polar angle
+    real_type costheta
+        = this->sample_cos_theta(rng, input_.true_path, input_.limit_min);
+    CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Sample azimuthal angle, used for displacement and exiting angle
     real_type phi
@@ -215,11 +220,6 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     {
         displacement = {0, 0, 0};
     }
-
-    // Sample polar angle
-    real_type costheta
-        = this->sample_cos_theta(rng, input_.true_path, input_.limit_min);
-    CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Calculate direction and return
     Real3 direction = rotate(from_spherical(costheta, phi), inc_direction_);
