@@ -143,9 +143,6 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     range_ = helper_.range();
     // Mean free path for MSC at current energy
     lambda_ = helper_.msc_mfp(inc_energy_);
-
-    // The slowing down range should already have been applied as a step limit
-    CELER_ENSURE(range_ >= phys_step_);
 }
 
 //---------------------------------------------------------------------------//
@@ -167,7 +164,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     MscStep result;
 
     result.phys_step = phys_step_;
-    result.true_path = phys_step_;
+    result.true_path = min<real_type>(range_, phys_step_);
 
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
