@@ -57,8 +57,8 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 class UrbanMscTest : public celeritas_test::GlobalTestBase
 {
   protected:
-    using RandomEngine = celeritas_test::DiagnosticRngEngine<std::mt19937>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
 
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
@@ -174,8 +174,8 @@ class UrbanMscTest : public celeritas_test::GlobalTestBase
         return rng_;
     }
 
-    ImportData       import_data_;
-    SPConstImported  processes_data_;
+    ImportData      import_data_;
+    SPConstImported processes_data_;
 
     PhysicsParamsHostRef params_ref_;
     PhysicsStateStore    physics_state_;
@@ -305,21 +305,21 @@ TEST_F(UrbanMscTest, msc_scattering)
     }
 
     static const double expected_fstep[] = {0.0027916899999997,
-                                            0.14681061896989,
-                                            0.028194652662093,
+                                            0.134631648532277,
+                                            0.0376414,
                                             0.035727783460526,
-                                            0.0012630589956741,
-                                            9.8927866508237e-05,
+                                            0.00111391683751815,
+                                            0.000112053935348643,
                                             0.00028678982069363,
                                             1.1737319513141e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    static const double expected_angle[] = {0.018295123575691,
-                                            0.27206685190532,
-                                            0.41125840612784,
-                                            0.73023360431147,
-                                            -0.25014464909878,
-                                            -0.16344305508081,
-                                            -0.27093903107024,
-                                            0.76465696539213};
+    static const double expected_angle[] = {0.000314741326035635,
+                                            0.738624667826603,
+                                            -0.145610123961716,
+                                            -0.657415795200799,
+                                            0.119014628205848,
+                                            -0.216102964881347,
+                                            0.793645871128744,
+                                            -0.98020130119347};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
 }
