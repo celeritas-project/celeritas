@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
 #include "detail/FieldUtils.hh"
@@ -30,17 +31,19 @@ class RungeKuttaStepper
   public:
     //!@{
     //! Type aliases
-    using Result = StepperResult;
+    using result_type = StepperResult;
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    RungeKuttaStepper(const EquationT& eq) : equation_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION RungeKuttaStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
+    {
+    }
 
-    // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    // Advance the ODE state according to the field equations
+    CELER_FUNCTION result_type operator()(real_type       step,
+                                          const OdeState& beg_state) const;
 
   private:
     // Return the final state by the 4th order Runge-Kutta method
@@ -50,7 +53,7 @@ class RungeKuttaStepper
 
   private:
     // Equation of the motion
-    const EquationT& equation_;
+    EquationT calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,27 +82,27 @@ class RungeKuttaStepper
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state) const
+    -> result_type
 {
     using celeritas::axpy;
     real_type           half_step               = step / real_type(2);
     constexpr real_type fourth_order_correction = 1 / real_type(15);
 
-    Result   result;
-    OdeState beg_slope = equation_(beg_state);
+    result_type result;
+    OdeState beg_slope = calc_rhs_(beg_state);
 
     // Do two half steps
-    result.mid_state = do_step(half_step, beg_state, beg_slope);
-    result.end_state
-        = do_step(half_step, result.mid_state, equation_(result.mid_state));
+    result.mid_state = this->do_step(half_step, beg_state, beg_slope);
+    result.end_state = this->do_step(
+        half_step, result.mid_state, calc_rhs_(result.mid_state));
 
     // Do a full step
-    OdeState yt = do_step(step, beg_state, beg_slope);
+    OdeState yt = this->do_step(step, beg_state, beg_slope);
 
     // Stepper error: difference between the full step and two half steps
     result.err_state = result.end_state;
-    axpy(real_type(-1.0), yt, &result.err_state);
+    axpy(real_type(-1), yt, &result.err_state);
 
     // Output correction with the 4th order coefficient (1/15)
     axpy(fourth_order_correction, result.err_state, &result.end_state);
@@ -124,22 +127,22 @@ RungeKuttaStepper<E>::do_step(real_type       step,
     // 1st step k1 = (step/2)*beg_slope
     OdeState mid_est = beg_state;
     axpy(half_step, beg_slope, &mid_est);
-    OdeState mid_est_slope = equation_(mid_est);
+    OdeState mid_est_slope = calc_rhs_(mid_est);
 
     // 2nd step k2 = (step/2)*mid_est_slope
     OdeState mid_state = beg_state;
     axpy(half_step, mid_est_slope, &mid_state);
-    OdeState mid_slope = equation_(mid_state);
+    OdeState mid_slope = calc_rhs_(mid_state);
 
     // 3rd step k3 = step*mid_slope
     OdeState end_est = beg_state;
     axpy(step, mid_slope, &end_est);
-    OdeState end_slope = equation_(end_est);
+    OdeState end_slope = calc_rhs_(end_est);
 
     // Average slope at all 4 points
-    axpy(real_type(1.0), beg_slope, &end_slope);
-    axpy(real_type(2.0), mid_slope, &end_slope);
-    axpy(real_type(2.0), mid_est_slope, &end_slope);
+    axpy(real_type(1), beg_slope, &end_slope);
+    axpy(real_type(2), mid_slope, &end_slope);
+    axpy(real_type(2), mid_est_slope, &end_slope);
 
     // 4th Step k4 = h*dydxt and the final RK4 output: k1/6+k4/6+(k2+k3)/3
     OdeState end_state = beg_state;

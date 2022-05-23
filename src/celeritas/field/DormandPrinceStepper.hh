@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
 
@@ -62,33 +63,36 @@ class DormandPrinceStepper
   public:
     //!@{
     //! Type aliases
-    using Result = StepperResult;
+    using result_type = StepperResult;
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    DormandPrinceStepper(const EquationT& eq) : equation_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION DormandPrinceStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
+    {
+    }
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    CELER_FUNCTION result_type operator()(real_type       step,
+                                          const OdeState& beg_state) const;
 
   private:
-    // Equation of the motion
-    const EquationT& equation_;
+    // Functor to calculate the force applied to a particle
+    EquationT calc_rhs_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control for the DormandPrince RK5(4)7M method
+ * Adaptive step size control for the DormandPrince RK5(4)7M method.
  */
 template<class E>
 CELER_FUNCTION auto
-DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+DormandPrinceStepper<E>::operator()(real_type       step,
+                                    const OdeState& beg_state) const
+    -> result_type
 {
     using celeritas::axpy;
     using R = real_type;
@@ -135,28 +139,28 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     constexpr R c76 = -1776094331 / R(19743644256);
     constexpr R c77 = 11237099 / R(235043384);
 
-    Result result;
+    result_type result;
 
     // First step
-    OdeState k1    = equation_(beg_state);
+    OdeState k1    = calc_rhs_(beg_state);
     OdeState state = beg_state;
     axpy(a11 * step, k1, &state);
 
     // Second step
-    OdeState k2 = equation_(state);
+    OdeState k2 = calc_rhs_(state);
     state       = beg_state;
     axpy(a21 * step, k1, &state);
     axpy(a22 * step, k2, &state);
 
     // Third step
-    OdeState k3 = equation_(state);
+    OdeState k3 = calc_rhs_(state);
     state       = beg_state;
     axpy(a31 * step, k1, &state);
     axpy(a32 * step, k2, &state);
     axpy(a33 * step, k3, &state);
 
     // Fourth step
-    OdeState k4 = equation_(state);
+    OdeState k4 = calc_rhs_(state);
     state       = beg_state;
     axpy(a41 * step, k1, &state);
     axpy(a42 * step, k2, &state);
@@ -164,7 +168,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a44 * step, k4, &state);
 
     // Fifth step
-    OdeState k5 = equation_(state);
+    OdeState k5 = calc_rhs_(state);
     state       = beg_state;
     axpy(a51 * step, k1, &state);
     axpy(a52 * step, k2, &state);
@@ -173,7 +177,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a55 * step, k5, &state);
 
     // Sixth step
-    OdeState k6      = equation_(state);
+    OdeState k6      = calc_rhs_(state);
     result.end_state = beg_state;
     axpy(a61 * step, k1, &result.end_state);
     axpy(a63 * step, k3, &result.end_state);
@@ -182,7 +186,7 @@ DormandPrinceStepper<E>::operator()(real_type step, const OdeState& beg_state)
     axpy(a66 * step, k6, &result.end_state);
 
     // Seventh step: the final step
-    OdeState k7 = equation_(result.end_state);
+    OdeState k7 = calc_rhs_(result.end_state);
 
     // The error estimate
     axpy(d71 * step, k1, &result.err_state);

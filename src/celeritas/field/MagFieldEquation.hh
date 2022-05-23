@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
@@ -19,10 +20,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The MagFieldEquation evaluates the right hand side of the Lorentz equation
- * for a given magnetic field value.
- * The templated \c FieldT must provide the operator(Real3 position) which
- * returns a magnetic field value of Real3 at a given position
+ * Evaluate the force applied by a magnetic field.
+ *
+ * The templated \c FieldT must be a function-like object with the signature
+ * \code
+ * Real3 (*)(const Real3&)
+ * \endcode
+ * which returns a magnetic field vector at a given position. The field
+ * strength is in Celeritas native units, so multiply by \c units::tesla if
+ * necessary.
  */
 template<class FieldT>
 class MagFieldEquation
@@ -30,43 +36,48 @@ class MagFieldEquation
   public:
     //!@{
     //! Type aliases
-    using field_type = FieldT;
+    using Field_t = FieldT;
     //!@}
 
   public:
     // Construct with a magnetic field
     inline CELER_FUNCTION
-    MagFieldEquation(const FieldT& field, units::ElementaryCharge q);
+    MagFieldEquation(FieldT&& field, units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
-    inline CELER_FUNCTION auto operator()(const OdeState& y) const -> OdeState;
+    inline CELER_FUNCTION OdeState operator()(const OdeState& y) const;
 
   private:
-    const field_type&       field_;
-    units::ElementaryCharge charge_;
-    real_type               coeffi_;
+    // Field evaluator
+    Field_t calc_field_;
+
+    // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
+    real_type coeffi_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a constant magnetic field.
+ * Construct with a magnetic field equation.
  */
 template<class FieldT>
 CELER_FUNCTION
-MagFieldEquation<FieldT>::MagFieldEquation(const FieldT&           field,
+MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
                                            units::ElementaryCharge charge)
-    : field_(field), charge_(charge)
+    : calc_field_(::celeritas::forward<FieldT>(field))
+    , coeffi_{native_value_from(charge)
+              / native_value_from(units::MevMomentum{1})}
 {
-    // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
-    coeffi_ = native_value_from(charge_)
-              / native_value_from(units::MevMomentum{1});
+    CELER_EXPECT(charge != zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the right hand side of the Lorentz equation.
+ *
+ * This calculates the force based on the given magnetic field state
+ * (position and momentum).
  *
  * \f[
     m \frac{d^2 \vec{x}}{d t^2} = (q/c)(\vec{v} \times  \vec{B})
@@ -81,11 +92,11 @@ CELER_FUNCTION auto
 MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 {
     // Get a magnetic field value at a given position
-    Real3 mag_vec = field_(y.pos);
+    auto&& mag_vec = calc_field_(y.pos);
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
-    CELER_ASSERT(momentum_mag2 > 0.0);
-    real_type momentum_inv = 1.0 / std::sqrt(momentum_mag2);
+    CELER_ASSERT(momentum_mag2 > 0);
+    real_type momentum_inv = 1 / std::sqrt(momentum_mag2);
 
     // Evaluate the right-hand-side of the equation
     OdeState result;

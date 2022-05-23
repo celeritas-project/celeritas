@@ -19,11 +19,9 @@
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/Types.hh"
-#include "celeritas/field/UniformMagField.hh"
-#include "celeritas/field/UniformZMagField.hh"
+#include "celeritas/field/UniformField.hh"
+#include "celeritas/field/UniformZField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
-
-#include "detail/MagTestTraits.hh"
 
 using celeritas::detail::truncation_error;
 using thrust::raw_pointer_cast;
@@ -34,9 +32,9 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 // HELP FUNCTIONS
 //---------------------------------------------------------------------------//
-template<class TField, template<class> class TStepper>
+template<class FieldT, template<class> class StepperT>
 __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
-                                   const TField&                   field,
+                                   const FieldT&                   field,
                                    real_type*                      pos_x,
                                    real_type*                      pos_z,
                                    real_type*                      mom_y,
@@ -47,10 +45,9 @@ __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
     if (tid.get() >= param.nstates)
         return;
 
-    // Construct a TStepper for testing
-    using RKTraits = detail::MagTestTraits<TField, TStepper>;
-    typename RKTraits::Equation_t equation(field, units::ElementaryCharge{-1});
-    typename RKTraits::Stepper_t  rk4(equation);
+    // Construct a StepperT for testing
+    auto advance_step
+        = make_mag_field_stepper<StepperT>(field, units::ElementaryCharge{-1});
 
     // Initial state and the epected state after revolutions
     OdeState y;
@@ -66,7 +63,7 @@ __device__ inline void gpu_stepper(celeritas_test::FieldTestParams param,
         // Travel hstep for nsteps times in the field
         for (CELER_MAYBE_UNUSED int i : celeritas::range(param.nsteps))
         {
-            StepperResult result = rk4(hstep, y);
+            StepperResult result = advance_step(hstep, y);
             y                    = result.end_state;
             total_error += truncation_error(hstep, 0.001, y, result.err_state);
         }
@@ -89,9 +86,9 @@ __global__ void helix_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    UniformZMagField field(param.field_value);
+    UniformZField field(param.field_value);
 
-    gpu_stepper<UniformZMagField, ZHelixStepper>(
+    gpu_stepper<UniformZField, ZHelixStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
@@ -103,9 +100,9 @@ __global__ void rk4_test_kernel(FieldTestParams param,
                                 real_type*      mom_z,
                                 real_type*      error)
 {
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
-    gpu_stepper<UniformMagField, RungeKuttaStepper>(
+    gpu_stepper<UniformField, RungeKuttaStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 
@@ -117,9 +114,9 @@ __global__ void dp547_test_kernel(FieldTestParams param,
                                   real_type*      mom_z,
                                   real_type*      error)
 {
-    UniformMagField field({0, 0, param.field_value});
+    UniformField field({0, 0, param.field_value});
 
-    gpu_stepper<UniformMagField, DormandPrinceStepper>(
+    gpu_stepper<UniformField, DormandPrinceStepper>(
         param, field, pos_x, pos_z, mom_y, mom_z, error);
 }
 

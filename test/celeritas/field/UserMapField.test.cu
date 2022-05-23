@@ -15,7 +15,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriver.hh"
-#include "celeritas/field/FieldParamsData.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MagFieldTraits.hh"
@@ -24,6 +24,7 @@
 
 #include "FieldPropagator.test.hh"
 #include "FieldTestParams.hh"
+#include "MagFieldTraits.hh"
 #include "UserField.test.hh"
 #include "detail/CMSMapField.hh"
 #include "detail/FieldMapData.hh"
@@ -70,7 +71,7 @@ __global__ void map_fp_test_kernel(const int                  size,
                                    const ParticleParamsRef    particle_params,
                                    ParticleStateRef           particle_states,
                                    const FieldMapDeviceRef    field_data,
-                                   FieldParamsData            field_params,
+                                   FieldDriverOptions         field_params,
                                    FieldTestParams            test,
                                    const ParticleTrackInitializer* init_track,
                                    double*                         pos,
@@ -96,8 +97,8 @@ __global__ void map_fp_test_kernel(const int                  size,
     using MFTraits = MagFieldTraits<detail::CMSMapField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(field_params, stepper);
+    MFTraits::Propagator_t propagator(driver, particle_track, &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
@@ -127,7 +128,7 @@ __global__ void map_bc_test_kernel(const int                  size,
                                    ParticleParamsRef          particle_params,
                                    ParticleStateRef           particle_states,
                                    const FieldMapDeviceRef    field_data,
-                                   FieldParamsData            field_params,
+                                   FieldDriverOptions         field_params,
                                    FieldTestParams            test,
                                    const ParticleTrackInitializer* init_track,
                                    double*                         pos,
@@ -153,8 +154,8 @@ __global__ void map_bc_test_kernel(const int                  size,
     using MFTraits = MagFieldTraits<detail::CMSMapField, DormandPrinceStepper>;
     MFTraits::Equation_t   equation(field, units::ElementaryCharge{-1});
     MFTraits::Stepper_t    stepper(equation);
-    MFTraits::Driver_t     driver(field_params, &stepper);
-    MFTraits::Propagator_t propagator(particle_track, &geo_track, &driver);
+    MFTraits::Driver_t     driver(field_params, stepper);
+    MFTraits::Propagator_t propagator(driver, particle_track, &geo_track);
 
     // Tests with input parameters of a electron in a uniform magnetic field
     double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;

@@ -9,15 +9,16 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
-#include "UniformZMagField.hh"
+#include "UniformZField.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The Helix (Test) Stepper.
+ * Analytically step along a helical path for a uniform Z magnetic field.
  *
  * The analytical solution for the motion of a charged particle in a uniform
  * magnetic field along the z-direction.
@@ -25,31 +26,34 @@ namespace celeritas
 template<class EquationT>
 class ZHelixStepper
 {
-    // Check whether the field_type used in EquationT is UniformZMagField
     static_assert(
-        std::is_same<typename EquationT::field_type, UniformZMagField>::value,
-        "ZHelix stepper only works with UniformZMagField");
+        std::is_same<std::remove_cv_t<std::remove_reference_t<
+                         typename std::remove_reference_t<EquationT>::Field_t>>,
+                     UniformZField>::value,
+        "ZHelix stepper only works with UniformZField");
 
   public:
     //!@{
     //! Type aliases
-    using Result = StepperResult;
+    using result_type = StepperResult;
     //!@}
 
   public:
-    // Construct with the equation of motion
-    CELER_FUNCTION
-    ZHelixStepper(const EquationT& eq) : equation_(eq) {}
+    //! Construct with the equation of motion
+    explicit CELER_FUNCTION ZHelixStepper(EquationT&& eq)
+        : calc_rhs_(::celeritas::forward<EquationT>(eq))
+    {
+    }
 
     // Adaptive step size control
-    CELER_FUNCTION auto operator()(real_type step, const OdeState& beg_state)
-        -> Result;
+    CELER_FUNCTION auto
+    operator()(real_type step, const OdeState& beg_state) const -> result_type;
 
   private:
     //// DATA ////
 
-    // Equation of the motion
-    const EquationT& equation_;
+    // Evaluate the equation of the motion
+    EquationT calc_rhs_;
 
     //// HELPER TYPES ////
     enum class Helicity : bool
@@ -65,7 +69,7 @@ class ZHelixStepper
                                  real_type       radius,
                                  Helicity        helicity,
                                  const OdeState& beg_state,
-                                 const OdeState& rhs);
+                                 const OdeState& rhs) const;
 
     //// COMMON PROPERTIES ////
 
@@ -88,13 +92,13 @@ class ZHelixStepper
  */
 template<class E>
 CELER_FUNCTION auto
-ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state)
-    -> Result
+ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
+    -> result_type
 {
-    Result result;
+    result_type result;
 
     // Evaluate the right hand side of the equation
-    OdeState rhs = equation_(beg_state);
+    OdeState rhs = calc_rhs_(beg_state);
 
     // Calculate the radius of the helix
     real_type radius = std::sqrt(dot_product(beg_state.mom, beg_state.mom)
@@ -150,7 +154,7 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                                                real_type       radius,
                                                Helicity        helicity,
                                                const OdeState& beg_state,
-                                               const OdeState& rhs)
+                                               const OdeState& rhs) const
 {
     OdeState end_state;
 

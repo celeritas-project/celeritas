@@ -10,12 +10,8 @@
 
 # File setup
 set(DOXYGEN_EXCLUDE_PATTERNS
-  "*.nocuda.hh"
-  "*.nocuda.cc"
   "*.nohepmc.cc"
   "*.nompi.cc"
-  "*.nompi.i.hh"
-  "*.noroot.cc"
   "*/generated/*"
 )
 if(NOT CELERITAS_DEBUG)
@@ -38,10 +34,6 @@ set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
 set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
-
-# TODO: possibly siwtch to MathJAX?
-# set(DOXYGEN_USE_MATHJAX YES)
-# set(DOXYGEN_MATHJAX_EXTENSIONS "TeX/AMS")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 
 # Verbosity/warning levels

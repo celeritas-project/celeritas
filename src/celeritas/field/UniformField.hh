@@ -3,11 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/UniformMagField.hh
+//! \file celeritas/field/UniformField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "celeritas/Types.hh"
 
@@ -15,18 +14,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A uniform magnetic field
+ * A uniform field.
  */
-class UniformMagField
+class UniformField
 {
   public:
-    // Construct with a uniform magnetic field vector
-    CELER_FUNCTION
-    explicit UniformMagField(Real3 value) : value_(value) {}
+    //! Construct with a field vector
+    explicit CELER_FUNCTION UniformField(Real3 value) : value_(value) {}
 
-    // Return a const magnetic field value
-    CELER_FUNCTION
-    Real3 operator()(CELER_MAYBE_UNUSED const Real3& pos) const
+    //! Return the field at the given position
+    CELER_FUNCTION const Real3& operator()(const Real3&) const
     {
         return value_;
     }
