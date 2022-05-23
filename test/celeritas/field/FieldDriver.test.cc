@@ -65,6 +65,15 @@ TEST_F(FieldDriverTest, field_driver_host)
         field_params,
         units::ElementaryCharge{-1});
 
+    // Make sure object is holding things by value
+    EXPECT_TRUE(
+        (std::is_same<
+            FieldDriver<DormandPrinceStepper<MagFieldEquation<UniformField>>>,
+            decltype(driver)>::value));
+    // Size: field vector, q / c, reference to options
+    EXPECT_EQ(sizeof(Real3) + sizeof(real_type) + sizeof(FieldDriverOptions*),
+              sizeof(driver));
+
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep         = circumference / test_params.nsteps;

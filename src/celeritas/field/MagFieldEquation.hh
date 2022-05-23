@@ -48,7 +48,10 @@ class MagFieldEquation
     inline CELER_FUNCTION OdeState operator()(const OdeState& y) const;
 
   private:
-    Field_t&& calc_field_;
+    // Field evaluator
+    Field_t calc_field_;
+
+    // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
     real_type coeffi_;
 };
 
@@ -63,12 +66,10 @@ CELER_FUNCTION
 MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
                                            units::ElementaryCharge charge)
     : calc_field_(::celeritas::forward<FieldT>(field))
+    , coeffi_{native_value_from(charge)
+              / native_value_from(units::MevMomentum{1})}
 {
     CELER_EXPECT(charge != zero_quantity());
-
-    // The (Lorentz) coefficent in ElementaryCharge and MevMomentum
-    coeffi_ = native_value_from(charge)
-              / native_value_from(units::MevMomentum{1});
 }
 
 //---------------------------------------------------------------------------//
