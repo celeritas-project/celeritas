@@ -22,6 +22,39 @@
       }
     },
     {
+      "name": "acceleritas",
+      "displayName": "Acceleritas",
+      "description": "Build requirements for acceleritas",
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "RelWithDebInfo"},
+        "CMAKE_BUILD_RPATH": {
+          "type": "PATH",
+          "value": "$env{SPACK_ROOT}/var/spack/environments/acceleritas/.spack-env/view/lib"
+        },
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "12"}
+      },
+      "environment": {
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/acceleritas/.spack-env/view/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/acceleritas/.spack-env/view"
+      }
+    },
+    {
       "name": "base",
       "displayName": "Yuri default options",
       "inherits": [".base", "default"],
