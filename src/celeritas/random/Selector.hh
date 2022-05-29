@@ -10,6 +10,7 @@
 #include <type_traits>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "distribution/GenerateCanonical.hh"
@@ -51,7 +52,11 @@ class Selector
     //!@{
     //! Type aliases
     using value_type = T;
+#if __cplusplus < 201703L
     using real_type  = typename std::result_of<F(value_type)>::type;
+#else
+    using real_type = typename std::invoke_result<F, value_type>::type;
+#endif
     //!@}
 
   public:
@@ -74,10 +79,15 @@ class Selector
 };
 
 //---------------------------------------------------------------------------//
-// Create a selector object from a function and total accumulated value
+/*!
+ * Create a selector object from a function and total accumulated value.
+ */
 template<class F, class T>
-inline CELER_FUNCTION Selector<F, T>
-make_selector(F&& func, T size, decltype(func(size)) total = 1);
+CELER_FUNCTION Selector<F, T>
+               make_selector(F&& func, T size, decltype(func(size)) total = 1)
+{
+    return {celeritas::forward<F>(func), size, total};
+}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -88,7 +98,7 @@ make_selector(F&& func, T size, decltype(func(size)) total = 1);
 template<class F, class T>
 CELER_FUNCTION
 Selector<F, T>::Selector(F&& eval, value_type size, real_type total)
-    : eval_{std::forward<F>(eval)}, last_{size}, total_{total}
+    : eval_{celeritas::forward<F>(eval)}, last_{size}, total_{total}
 {
     CELER_EXPECT(last_ != IterT{});
     CELER_EXPECT(total_ > 0);
@@ -135,17 +145,6 @@ CELER_FUNCTION auto Selector<F, T>::debug_accumulated_total() const
         accum += eval_(*iter);
     }
     return accum;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a selector object from a function and total accumulated value.
- */
-template<class F, class T>
-CELER_FUNCTION Selector<F, T>
-               make_selector(F&& func, T size, decltype(func(size)) total)
-{
-    return {std::forward<F>(func), size, total};
 }
 
 //---------------------------------------------------------------------------//
