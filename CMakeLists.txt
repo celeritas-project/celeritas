@@ -270,7 +270,7 @@ endif()
 set(CELER_CMAKE_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/lib/cmake")
 # Where to install configured cmake files
 set(CELER_INSTALL_CMAKECONFIGDIR
-  "${CMAKE_INSTALL_DATAROOTDIR}/cmake/Celeritas")
+  "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
 
 # Build list of CMake files to install
 set(_cmake_files
