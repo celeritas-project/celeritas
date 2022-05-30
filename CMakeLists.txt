@@ -20,6 +20,7 @@ if(CMAKE_VERSION VERSION_LESS 3.18)
 endif()
 
 include(GNUInstallDirs)
+include(CeleritasLibrary)
 include(CeleritasUtils)
 include(CMakeDependentOption)
 

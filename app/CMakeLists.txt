@@ -76,10 +76,6 @@ endif()
 
 if(CELERITAS_USE_HIP)
   set_source_files_properties(
-    demo-loop/generated/AlongAndPostStepKernel.cu
-    demo-loop/generated/ProcessInteractionsKernel.cu
-    demo-loop/generated/PreStepKernel.cu
-    demo-loop/generated/CleanupKernel.cu
     demo-loop/diagnostic/StepDiagnostic.cu
     demo-loop/diagnostic/ParticleProcessDiagnostic.cu
     demo-loop/diagnostic/EnergyDiagnostic.cu
