@@ -50,12 +50,6 @@ configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
 #----------------------------------------------------------------------------#
 
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
@@ -301,19 +295,10 @@ if(CELERITAS_USE_HIP)
 endif()
 
 celeritas_install(TARGETS celeritas
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-
-install(FILES
-  "${CMAKE_CURRENT_SOURCE_DIR}/celeritas_version.h"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
-  COMPONENT development
-  FILES_MATCHING PATTERN "*.hh"
+  EXPORT celeritas-targets
+  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  COMPONENT runtime
 )
 
 #----------------------------------------------------------------------------#
@@ -393,5 +378,32 @@ if(_IO_PRIVATE_DEPS)
   )
 endif()
 add_library(Celeritas::IO ALIAS celeritas_io)
+
+celeritas_install(TARGETS celeritas_io
+  EXPORT celeritas-targets
+  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  COMPONENT runtime
+)
+
+#----------------------------------------------------------------------------#
+# HEADERS
+#----------------------------------------------------------------------------#
+
+# C/generated headers
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/celeritas_version.h"
+  COMPONENT development
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+# C++ source headers
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  COMPONENT development
+  FILES_MATCHING PATTERN "*.hh"
+)
 
 #---------------------------------------------------------------------------##

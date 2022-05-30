@@ -1,0 +1,122 @@
+#---------------------------------*-CMake-*----------------------------------#
+# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#----------------------------------------------------------------------------#
+
+# Helper scripts, see CMakePackageConfigHelpers
+set(Celeritas_VERSION @Celeritas_VERSION@)
+@PACKAGE_INIT@
+
+#-----------------------------------------------------------------------------#
+# Helper scripts
+#-----------------------------------------------------------------------------#
+
+get_filename_component(CELER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+list(APPEND CMAKE_MODULE_PATH
+  "${CELER_CMAKE_DIR}"
+)
+if(CMAKE_VERSION VERSION_LESS 3.18)
+  list(APPEND CMAKE_MODULE_PATH
+    "${CELER_CMAKE_DIR}/backport/3.18"
+  )
+endif()
+
+#-----------------------------------------------------------------------------#
+# Variables
+#-----------------------------------------------------------------------------#
+
+@CELER_EXPORT_VARIABLES@
+
+#-----------------------------------------------------------------------------#
+# Dependencies
+#-----------------------------------------------------------------------------#
+
+include(CMakeFindDependencyMacro)
+
+if(CELERITAS_USE_CUDA)
+  enable_language(CUDA)
+  find_dependency(CUDAToolkit REQUIRED QUIET)
+elseif(CELERITAS_USE_HIP)
+  enable_language(HIP)
+endif()
+
+if(CELERITAS_USE_Geant4)
+  # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
+  # Save and restore include directories around the call -- even though as a
+  # standalone project Celeritas will never have directory-level includes
+  get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
+  find_dependency(Geant4 REQUIRED)
+  set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
+endif()
+
+if(CELERITAS_USE_HepMC3)
+  find_dependency(HepMC3 REQUIRED)
+endif()
+
+if(CELERITAS_USE_JSON)
+  find_dependency(nlohmann_json 3.7.0 REQUIRED)
+endif()
+
+if(CELERITAS_USE_MPI)
+  find_dependency(MPI REQUIRED)
+endif()
+
+if(CELERITAS_USE_OpenMP)
+  find_dependency(OpenMP REQUIRED)
+endif()
+
+if(CELERITAS_USE_Python)
+  set(_components Interpreter)
+  if(CELERITAS_USE_SWIG)
+    list(APPEND _components Development)
+  endif()
+  find_dependency(Python 3.6 REQUIRED COMPONENTS ${_components})
+endif()
+
+if(CELERITAS_USE_ROOT)
+  find_dependency(ROOT REQUIRED)
+endif()
+
+if(CELERITAS_USE_VecGeom)
+  find_dependency(VecGeom 1.1.17 REQUIRED)
+
+  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
+      OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
+    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
+      "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
+      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
+    )
+  endif()
+  if(NOT VecGeom_GDML_FOUND)
+    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
+  endif()
+endif()
+
+if(CELER_BUILD_TESTS)
+  if(CMAKE_VERSION VERSION_LESS 3.20)
+    # First look for standard CMake installation
+    # (automatically done for CMake >= 3.20)
+    find_dependency(GTest QUIET NO_MODULE)
+  endif()
+  if(NOT GTest_FOUND)
+    # If not found, try again
+    find_dependency(GTest)
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
+# Targets
+#-----------------------------------------------------------------------------#
+
+if(NOT TARGET celeritas)
+  include("${CELER_CMAKE_DIR}/CeleritasTargets.cmake")
+  add_library(Celeritas::Core ALIAS celeritas)
+  add_library(Celeritas::IO ALIAS celeritas_io)
+endif()
+
+#-----------------------------------------------------------------------------#
+
+check_required_components(Celeritas)
+
+#-----------------------------------------------------------------------------#

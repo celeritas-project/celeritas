@@ -6,10 +6,10 @@
 .DS_Store
 .nfs*
 .vscode
-/[bB][uU][iI][lL][dD]*
-/install
+/build*
+/install*
 /spack-build*
-CMakeUserPresets.json
+/CMakeUserPresets.json
 Testing
 compile_commands.json
 cmake_install.cmake
