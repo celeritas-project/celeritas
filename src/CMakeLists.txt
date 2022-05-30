@@ -394,7 +394,6 @@ celeritas_install(TARGETS celeritas_io
 install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
   "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/celeritas_version.h"
   COMPONENT development
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
@@ -403,7 +402,7 @@ install(FILES
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   COMPONENT development
-  FILES_MATCHING PATTERN "*.hh"
+  FILES_MATCHING REGEX ".*\\.hh?$"
 )
 
 #---------------------------------------------------------------------------##
