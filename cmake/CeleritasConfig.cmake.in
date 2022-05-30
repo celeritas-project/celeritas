@@ -110,8 +110,8 @@ endif()
 
 if(NOT TARGET celeritas)
   include("${CELER_CMAKE_DIR}/CeleritasTargets.cmake")
-  add_library(Celeritas::Core ALIAS celeritas)
-  add_library(Celeritas::IO ALIAS celeritas_io)
+  add_library(Celeritas::Core ALIAS Celeritas::celeritas)
+  add_library(Celeritas::IO ALIAS Celeritas::celeritas_io)
 endif()
 
 #-----------------------------------------------------------------------------#

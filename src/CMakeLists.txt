@@ -254,8 +254,9 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_library(celeritas ${SOURCES} ${DEVICE_SOURCES})
-celeritas_strip_alias(celeritas_target celeritas)
-add_library(Celeritas::Core ALIAS ${celeritas_target})
+celeritas_strip_alias(_TARGET celeritas)
+add_library(Celeritas::Core ALIAS ${_TARGET})
+add_library(Celeritas::celeritas ALIAS ${_TARGET})
 
 if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
   # Must build with -fPIC to link with ROOT
@@ -378,6 +379,7 @@ if(_IO_PRIVATE_DEPS)
   )
 endif()
 add_library(Celeritas::IO ALIAS celeritas_io)
+add_library(Celeritas::celeritas_io ALIAS celeritas_io)
 
 celeritas_install(TARGETS celeritas_io
   EXPORT celeritas-targets

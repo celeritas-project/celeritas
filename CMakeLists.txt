@@ -357,6 +357,7 @@ install(FILES
 # references the targets we install.
 install(EXPORT celeritas-targets
   FILE CeleritasTargets.cmake
+  NAMESPACE Celeritas::
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
 )
 
