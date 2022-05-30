@@ -267,7 +267,7 @@ endif()
 #----------------------------------------------------------------------------#
 
 # Where to configure cmake files
-set(CELER_CMAKE_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/share")
+set(CELER_CMAKE_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/lib/cmake")
 # Where to install configured cmake files
 set(CELER_INSTALL_CMAKECONFIGDIR
   "${CMAKE_INSTALL_DATAROOTDIR}/cmake/Celeritas")
@@ -313,24 +313,31 @@ foreach(_key BUILD_SHARED_LIBS)
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies
+list(APPEND CELER_EXPORT_VARIABLES "# Hints for upstream dependencies")
 foreach(_key
-  MPIEXEC_EXECUTABLE nlohmann_json_DIR VecCore_DIR VecGeom_DIR Python_DIR Geant4_DIR
+  MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
+  Geant4_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
+  VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
   XercesC_LIBRARY XercesC_INCLUDE_DIR
 )
   set(_val "${${_key}}")
   if(_val)
-    list(APPEND CELER_EXPORT_VARIABLES "set_and_check(${_key} \"${_val}\")")
+    list(APPEND CELER_EXPORT_VARIABLES
+      "if(NOT DEFINED ${_key})"
+      "  set(${_key} \"${_val}\")"
+      "endif()"
+    )
   endif()
 endforeach()
 list(JOIN CELER_EXPORT_VARIABLES "\n" CELER_EXPORT_VARIABLES)
 
 # Generate the file needed by downstream "find_package(CELER)"
-configure_package_config_file(
+configure_file(
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasConfig.cmake.in"
   "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
-  INSTALL_DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  @ONLY
 )
 
 # Export version info
@@ -350,7 +357,6 @@ install(FILES
 # references the targets we install.
 install(EXPORT celeritas-targets
   FILE CeleritasTargets.cmake
-  NAMESPACE ${CELER_NAMESPACE}
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
 )
 

@@ -6,7 +6,6 @@
 
 # Helper scripts, see CMakePackageConfigHelpers
 set(Celeritas_VERSION @Celeritas_VERSION@)
-@PACKAGE_INIT@
 
 #-----------------------------------------------------------------------------#
 # Helper scripts
@@ -117,6 +116,8 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
-check_required_components(Celeritas)
+foreach(_dep CUDA ROOT Geant4 VecGeom MPI OpenMP)
+  set(Celeritas_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
+endforeach()
 
 #-----------------------------------------------------------------------------#
