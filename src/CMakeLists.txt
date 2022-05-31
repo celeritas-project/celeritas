@@ -84,6 +84,16 @@ add_subdirectory(corecel)
 add_subdirectory(orange)
 add_subdirectory(celeritas)
 
+if(CELERITAS_USE_VECGEOM)
+  celeritas_target_include_directories(celeritas
+    PUBLIC
+    $<BUILD_INTERFACE:${Geant4_INCLUDE_DIRS}>
+  )
+  celeritas_target_link_libraries(celeritas
+    PRIVATE ${Geant4_LIBRARIES}
+  )
+endif()
+
 #----------------------------------------------------------------------------#
 # HEADERS
 #----------------------------------------------------------------------------#

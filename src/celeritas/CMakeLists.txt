@@ -199,6 +199,7 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     ext/VecgeomParams.cc
     ext/detail/VecgeomNavCollection.cc
+    ext/detail/G4VecgeomConverter.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed
