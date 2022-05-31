@@ -20,8 +20,10 @@ if(CMAKE_VERSION VERSION_LESS 3.18)
 endif()
 
 include(GNUInstallDirs)
+include(CeleritasLibrary)
 include(CeleritasUtils)
 include(CMakeDependentOption)
+include(CMakePackageConfigHelpers)
 
 #----------------------------------------------------------------------------#
 # OPTIONS
@@ -259,5 +261,104 @@ add_subdirectory(app)
 if(CELERITAS_USE_Doxygen)
   add_subdirectory(doc)
 endif()
+
+#----------------------------------------------------------------------------#
+# CONFIG FILE INSTALLATION
+#----------------------------------------------------------------------------#
+
+# Where to configure cmake files
+set(CELER_CMAKE_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/lib/cmake")
+# Where to install configured cmake files
+set(CELER_INSTALL_CMAKECONFIGDIR
+  "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
+
+# Build list of CMake files to install
+set(_cmake_files
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen.cmake"
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasGen/gen-action.py"
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
+)
+foreach(_dep Geant4 HepMC3 ROOT VecGeom)
+  if(CELERITAS_USE_${_dep})
+    list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
+  endif()
+endforeach()
+if(CELERITAS_BUILD_TESTS)
+  list(APPEND _cmake_files
+    "${PROJECT_SOURCE_DIR}/cmake/CeleritasAddTest.cmake"
+  )
+endif()
+
+install(FILES ${_cmake_files}
+  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  COMPONENT devel
+)
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
+  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  COMPONENT devel
+)
+
+# Export all cache variables that start with CELERITAS_
+set(CELER_EXPORT_VARIABLES)
+get_directory_property(_cachevar_keys CACHE_VARIABLES)
+foreach(_key IN LISTS _cachevar_keys)
+  if(_key MATCHES "^CELERITAS_")
+    list(APPEND CELER_EXPORT_VARIABLES "set(${_key} \"${${_key}}\")")
+  endif()
+endforeach()
+
+# Add other cache variables, prefixed with CELER_
+foreach(_key BUILD_SHARED_LIBS)
+  list(APPEND CELER_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
+endforeach()
+
+# Add hints for direct dependencies and indirect geant dependencies
+list(APPEND CELER_EXPORT_VARIABLES "# Hints for upstream dependencies")
+foreach(_key
+  MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
+  Geant4_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
+  VecCore_DIR VecGeom_DIR
+  CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
+  EXPAT_INCLUDE_DIR EXPAT_LIBRARY
+  XercesC_LIBRARY XercesC_INCLUDE_DIR
+)
+  set(_val "${${_key}}")
+  if(_val)
+    list(APPEND CELER_EXPORT_VARIABLES
+      "if(NOT DEFINED ${_key})"
+      "  set(${_key} \"${_val}\")"
+      "endif()"
+    )
+  endif()
+endforeach()
+list(JOIN CELER_EXPORT_VARIABLES "\n" CELER_EXPORT_VARIABLES)
+
+# Generate the file needed by downstream "find_package(CELER)"
+configure_file(
+  "${PROJECT_SOURCE_DIR}/cmake/CeleritasConfig.cmake.in"
+  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
+  @ONLY
+)
+
+# Export version info
+write_basic_package_version_file(
+  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
+  COMPATIBILITY ExactVersion
+)
+
+# Install the config and version files
+install(FILES
+  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
+  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
+  DESTINATION ${CELER_INSTALL_CMAKECONFIGDIR}
+)
+
+# Install 'CeleritasTargets.cmake', included by CeleritasConfig.cmake, which
+# references the targets we install.
+install(EXPORT celeritas-targets
+  FILE CeleritasTargets.cmake
+  NAMESPACE Celeritas::
+  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+)
 
 #----------------------------------------------------------------------------#

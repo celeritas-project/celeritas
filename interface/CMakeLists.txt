@@ -62,12 +62,19 @@ function(celeritas_swig_python_module target module_source)
   install(FILES
     "${module_source}"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    COMPONENT development
   )
 
   # Install built module and wrapper files
-  install(TARGETS ${target} DESTINATION python)
+  install(TARGETS ${target}
+    DESTINATION python
+    COMPONENT runtime
+  )
   get_property(_WRAPPERS TARGET ${target} PROPERTY SWIG_SUPPORT_FILES)
-  install(FILES "${_WRAPPERS}" DESTINATION python)
+  install(FILES "${_WRAPPERS}"
+    DESTINATION python
+    COMPONENT runtime
+  )
 endfunction()
 
 #-----------------------------------------------------------------------------#

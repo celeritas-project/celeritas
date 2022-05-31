@@ -181,7 +181,7 @@ celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
 
 ### Tests that require a geometry input ###
 
-celeritas_add_library(CeleritasOrangeTest
+add_library(CeleritasOrangeTest
   orange/OrangeGeoTestBase.cc
 )
 celeritas_target_link_libraries(CeleritasOrangeTest
