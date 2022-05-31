@@ -101,6 +101,39 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         }
     }
 
+    Initialize();
+}
+
+#ifdef CELERITAS_USE_Geant4
+//---------------------------------------------------------------------------//
+/*!
+ *  Create a VecGeom model from an pre-existing Geant4 geometry
+ */
+VecgeomParams::VecgeomParams(const G4VPhysicalVolume* p_G4world)
+{
+    CELER_LOG(info) << "Creating VecGeom model from pre-existing G4 geometry";
+    CELER_ASSERT(p_G4world);
+
+    // Convert the geometry to VecGeom
+    G4VecGeomConverter::Instance().SetVerbose(1);
+    G4VecGeomConverter::Instance().ConvertG4Geometry(fWorld);
+    CELER_LOG(info) << "Converted: max_depth = "
+                    << vecgeom::GeoManager::Instance().getMaxDepth();
+
+    //.. dump VecGeom geometry details for comparison
+    vecgeom::VPlacedVolume const* vgWorld
+        = vecgeom::GeoManager::Instance().GetWorld();
+    CELER_ENSURE(vgWorld);
+
+    vgWorld->PrintContent();
+    std::cout << "================================================\n";
+
+    Initialize();
+}
+#endif
+
+void VecgeomParams::Initialize()
+{
     CELER_LOG(status) << "Initializing tracking information";
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
