@@ -345,7 +345,7 @@ TEST_F(FourLevelsTest, safety)
 
         if (!geo.is_outside())
         {
-            safeties.push_back(geo.find_safety(geo.pos()));
+            safeties.push_back(geo.find_safety());
         }
     }
 

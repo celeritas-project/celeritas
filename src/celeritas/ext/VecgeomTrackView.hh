@@ -97,8 +97,8 @@ class VecgeomTrackView
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
-    // Find the safety at a given position within the current volume
-    inline CELER_FUNCTION real_type find_safety(const Real3& pos);
+    // Find the safety at a the current position within the current volume
+    inline CELER_FUNCTION real_type find_safety();
 
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
@@ -324,10 +324,10 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 /*!
  * Find the new safety at a given position within the current volume.
  */
-CELER_FUNCTION real_type VecgeomTrackView::find_safety(const Real3& pos)
+CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
     real_type safety = detail::BVHNavigator::ComputeSafety(
-        detail::to_vector(pos), vgstate_);
+        detail::to_vector(this->pos()), vgstate_);
     return safety;
 }
 

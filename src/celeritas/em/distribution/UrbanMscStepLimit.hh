@@ -128,7 +128,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     : shared_(shared)
     , inc_energy_(particle.energy())
     , is_positron_(particle.particle_id() == shared.ids.positron)
-    , safety_(geometry->find_safety(geometry->pos()))
+    , safety_(geometry->find_safety())
     , params_(shared.params)
     , msc_(shared_.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
