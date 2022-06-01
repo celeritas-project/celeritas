@@ -15,7 +15,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -50,10 +49,10 @@ class UrbanMscStepLimit
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
                                             const ParticleTrackView& particle,
-                                            GeoTrackView*            geometry,
                                             const PhysicsTrackView&  physics,
-                                            const MaterialView&      material,
+                                            MaterialId               matid,
                                             bool      is_first_step,
+                                            real_type safety,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
@@ -120,23 +119,24 @@ class UrbanMscStepLimit
 CELER_FUNCTION
 UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
-                                     GeoTrackView*            geometry,
                                      const PhysicsTrackView&  physics,
-                                     const MaterialView&      material,
+                                     MaterialId               matid,
                                      bool                     is_first_step,
+                                     real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , is_positron_(particle.particle_id() == shared.ids.positron)
-    , safety_(geometry->find_safety())
+    , safety_(safety)
     , params_(shared.params)
-    , msc_(shared_.msc_data[material.material_id()])
+    , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics)
     , on_boundary_(is_first_step || safety_ == 0)
     , phys_step_(phys_step)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
+    CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(phys_step > 0);
 
     // Mean slowing-down distance from current energy to zero

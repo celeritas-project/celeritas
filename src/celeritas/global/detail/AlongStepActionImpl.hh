@@ -94,16 +94,16 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     bool      use_msc  = use_msc_track(particle, phys, geo_step);
     if (use_msc)
     {
-        auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
         // Sample multiple scattering step length
-        UrbanMscStepLimit msc_step_limit(phys.urban_data(),
-                                         particle,
-                                         &geo,
-                                         phys,
-                                         mat.make_material_view(),
-                                         sim.num_steps() == 0,
-                                         step_limit.step);
+        UrbanMscStepLimit msc_step_limit(
+            phys.urban_data(),
+            particle,
+            phys,
+            track.make_material_view().material_id(),
+            sim.num_steps() == 0,
+            geo.find_safety(),
+            step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);
         track.make_physics_step_view().msc_step(msc_step_result);
