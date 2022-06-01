@@ -322,9 +322,9 @@ if(CELERITAS_USE_ROOT)
     celeritas/io/ImportPhysicsVector.hh
     celeritas/io/ImportProcess.hh
     celeritas/io/ImportVolume.hh
+    NOINSTALL
     MODULE celeritas_io
-    LINKDEF
-      celeritas/ext/RootInterfaceLinkDef.h
+    LINKDEF celeritas/ext/RootInterfaceLinkDef.h
   )
   list(APPEND _IO_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx
@@ -387,6 +387,20 @@ celeritas_install(TARGETS celeritas_io
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   COMPONENT runtime
 )
+
+if(CELERITAS_USE_ROOT)
+  # Install the rootmap/pcm files needed for users or downstream apps to use
+  # Celeritas ROOT interfaces
+  set(_iolib_prefix
+    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas_io"
+  )
+  install(FILES
+    "${_iolib_prefix}.rootmap"
+    "${_iolib_prefix}_rdict.pcm"
+    COMPONENT runtime
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  )
+endif()
 
 #----------------------------------------------------------------------------#
 # HEADERS
