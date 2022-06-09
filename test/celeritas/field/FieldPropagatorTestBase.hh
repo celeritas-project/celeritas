@@ -28,7 +28,7 @@ using celeritas::units::MevEnergy;
  * between. We fire off electrons (TODO: also test positrons!) that end up
  * running circles around the z axis (along which the magnetic field points).
  */
-class FieldPropagatorTestBase : public celeritas_test::GlobalTestBase
+class FieldPropagatorTestBase : public celeritas_test::GlobalGeoTestBase
 {
   public:
     const char* geometry_basename() const override { return "field-test"; }

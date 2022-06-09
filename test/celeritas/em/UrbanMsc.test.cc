@@ -54,7 +54,7 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public celeritas_test::GlobalTestBase
+class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 {
   protected:
     using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;

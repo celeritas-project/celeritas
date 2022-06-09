@@ -33,7 +33,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTest : public celeritas_test::GlobalTestBase
+class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
 {
   public:
     //!@{
@@ -67,17 +67,21 @@ class VecgeomTest : public celeritas_test::GlobalTestBase
     TrackingResult track(const Real3& pos, const Real3& dir);
 
   protected:
-    SPConstParticle    build_particle() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff      build_cutoff() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics     build_physics() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstMaterial    build_material() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstParticle    build_particle() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCutoff      build_cutoff() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics     build_physics() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstMaterial    build_material() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() final
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
 
   private:
     HostStateStore host_state;
 };
 
-auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
+auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
+    -> TrackingResult
 {
     const auto& params = *this->geometry();
 
@@ -118,7 +122,7 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
     return result;
 }
 
-void VecgeomTest::TrackingResult::print_expected()
+void VecgeomTestBase::TrackingResult::print_expected()
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
          << "static const char* const expected_volumes[] = "
@@ -132,10 +136,11 @@ void VecgeomTest::TrackingResult::print_expected()
 
 //---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTest
+class FourLevelsTest : public VecgeomTestBase,
+                       virtual public celeritas_test::GlobalGeoTestBase
 {
   public:
-    const char* geometry_basename() const override { return "four-levels"; }
+    const char* geometry_basename() const final { return "four-levels"; }
 };
 
 //---------------------------------------------------------------------------//

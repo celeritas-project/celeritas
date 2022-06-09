@@ -28,9 +28,9 @@ using namespace celeritas;
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
-// STATIC
+// GlobalGeoTestBase
 //---------------------------------------------------------------------------//
-auto GlobalTestBase::lazy_geo() -> LazyGeo&
+auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
 {
     // Delayed initialization
     static LazyGeo lg;
@@ -53,9 +53,9 @@ auto GlobalTestBase::lazy_geo() -> LazyGeo&
 }
 
 //---------------------------------------------------------------------------//
-void GlobalTestBase::CleanupGeoEnvironment::TearDown()
+void GlobalGeoTestBase::CleanupGeoEnvironment::TearDown()
 {
-    auto& lazy = GlobalTestBase::lazy_geo();
+    auto& lazy = GlobalGeoTestBase::lazy_geo();
     if (lazy.geo)
     {
         CELER_LOG(debug) << "Destroying geometry";
@@ -64,21 +64,9 @@ void GlobalTestBase::CleanupGeoEnvironment::TearDown()
 }
 
 //---------------------------------------------------------------------------//
-// PUBLIC
-//---------------------------------------------------------------------------//
-GlobalTestBase::GlobalTestBase()
+auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
-    output_ = std::make_shared<OutputManager>();
-}
-
-//---------------------------------------------------------------------------//
-// Default destructor
-GlobalTestBase::~GlobalTestBase() = default;
-
-//---------------------------------------------------------------------------//
-auto GlobalTestBase::build_geometry() const -> SPConstGeo
-{
-    auto& lazy = GlobalTestBase::lazy_geo();
+    auto& lazy = GlobalGeoTestBase::lazy_geo();
 
     // Construct filename
     const char* basename_cstr = this->geometry_basename();
@@ -104,6 +92,18 @@ auto GlobalTestBase::build_geometry() const -> SPConstGeo
 
     return lazy.geo;
 }
+
+//---------------------------------------------------------------------------//
+// GlobalTestBase
+//---------------------------------------------------------------------------//
+GlobalTestBase::GlobalTestBase()
+{
+    output_ = std::make_shared<OutputManager>();
+}
+
+//---------------------------------------------------------------------------//
+// Default destructor
+GlobalTestBase::~GlobalTestBase() = default;
 
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_rng() const -> SPConstRng

@@ -39,8 +39,9 @@ namespace celeritas_test
 /*!
  * Lazily construct core parameters, individually or together.
  *
- * \note Inherit from this class using \c virtual \c public so that tests can
- * create mixins (see e.g. \c SimpleStepperTest).
+ * \note Inherit from this class (or \c GeoTestBase below) using \c
+ * virtual \c public so that tests can create mixins (see e.g. \c
+ * SimpleStepperTest).
  */
 class GlobalTestBase : public celeritas_test::Test
 {
@@ -104,8 +105,7 @@ class GlobalTestBase : public celeritas_test::Test
     void write_output(std::ostream& os) const;
 
   protected:
-    virtual const char* geometry_basename() const = 0;
-
+    virtual SPConstGeo         build_geometry()    = 0;
     virtual SPConstMaterial    build_material()    = 0;
     virtual SPConstGeoMaterial build_geomaterial() = 0;
     virtual SPConstParticle    build_particle()    = 0;
@@ -113,7 +113,6 @@ class GlobalTestBase : public celeritas_test::Test
     virtual SPConstPhysics     build_physics()     = 0;
 
   private:
-    SPConstGeo      build_geometry() const;
     SPConstRng      build_rng() const;
     SPActionManager build_action_mgr() const;
     SPConstCore     build_core();
@@ -139,7 +138,23 @@ class GlobalTestBase : public celeritas_test::Test
     SPConstRng         rng_;
     SPConstCore        core_;
     SPOutputManager    output_;
+};
 
+//---------------------------------------------------------------------------//
+/*!
+ * Reuse geometry across individual tests.
+ *
+ * This is helpful for slow geometry construction or if the geometry has
+ * trouble building/destroying multiple times per execution due to global
+ * variable usage (VecGeom, Geant4).
+ */
+class GlobalGeoTestBase : virtual public GlobalTestBase
+{
+  public:
+    virtual const char* geometry_basename() const = 0;
+    SPConstGeo          build_geometry() final;
+
+  private:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP FOR VECGEOM ////
 
     struct LazyGeo

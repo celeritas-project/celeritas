@@ -23,7 +23,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public celeritas_test::GlobalTestBase
+class GeoMaterialTest : public celeritas_test::GlobalGeoTestBase
 {
     const char* geometry_basename() const override { return "simple-cms"; }
 

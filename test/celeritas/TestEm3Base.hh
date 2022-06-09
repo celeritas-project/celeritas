@@ -25,7 +25,7 @@ namespace celeritas_test
  *
  * This class requires Geant4 to import the data.
  */
-class TestEm3Base : virtual public GlobalTestBase
+class TestEm3Base : virtual public GlobalGeoTestBase
 {
   public:
     //!@{
