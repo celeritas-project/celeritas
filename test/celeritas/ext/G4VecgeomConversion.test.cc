@@ -5,13 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/RootImporter.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/ext/detail/G4VecgeomConverter.hh"
-
-//#include <algorithm>
-//#include "corecel/Types.hh"
-//#include "corecel/cont/Range.hh"
-//#include "celeritas/ext/GeantSetup.hh"
+#include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/ext/VecgeomData.hh"
+#include "celeritas/ext/detail/G4VecgeomConverter.hh"
 #include "celeritas/geo/GeoParams.hh"
 
 #include "Geant4/G4GDMLParser.hh"
@@ -41,6 +38,14 @@ class G4VecgeomConvTest : public celeritas_test::Test
         // TODO: use celeritas way to deal with placed volumes in host/device
         // host_world_ = vecgeom::GeoManager::Instance().GetWorld();
         geom_ = std::make_shared<GeoParams>(parser.GetWorldVolume());
+    }
+
+    void TearDown() override
+    {
+        CELER_LOG(info) << "G4VecgeomConvTest::TearDown()";
+        geom_.reset();
+        // G4GeometryManager::GetInstance()->OpenGeometry();
+        // G4PhysicalVolumeStore::GetInstance()->Clean();
     }
 
     std::string filename_
@@ -78,7 +83,7 @@ TEST_F(G4VecgeomConvTest, conversion)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(G4VecgeomConvTest, host_world)
+TEST_F(G4VecgeomConvTest, params_access)
 {
     // access world volumes through GeoParams object
     const auto& geom = *this->geom_.get();
@@ -92,4 +97,76 @@ TEST_F(G4VecgeomConvTest, host_world)
     EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}));
     EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}));
     EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{3}));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(G4VecgeomConvTest, host_access_vecgeom)
+{
+    // access world volumes through GeoParams object
+    const auto& geom = *this->geom_.get();
+
+    // const auto& world = geom.host_ref();
+    //  get uniform pointer to PlacedVolume
+    // PlacedVolumeT<MemSpace::host> const& world{*pworld};
+    const auto& geoparams = geom.host_ref();
+    EXPECT_TRUE(geoparams);
+
+    // addess to VecGeom objects
+    const auto& world = *geoparams.world_volume;
+    EXPECT_TRUE(world.GetLogicalVolume());
+    EXPECT_EQ(8, world.GetDaughters().size());
+
+    // world->PrintContent();
+}
+* /
+//---------------------------------------------------------------------------//
+
+#include "corecel/data/CollectionStateStore.hh"
+
+#include "G4VecgeomConversion.test.hh" // for definition of VGGTestInput,Output structs
+
+// Since VecGeom is currently CUDA-only, we cannot use the TEST_IF_CELER_DEVICE
+// macro (which also allows HIP).
+#if CELERITAS_USE_CUDA
+#    define TEST_IF_CELERITAS_CUDA(name) name
+#else
+#    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
+#endif
+
+    TEST_F(G4VecgeomConvTest, TEST_IF_CELERITAS_CUDA(device_g4vgconv))
+{
+    using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
+
+    // Set up test input
+    celeritas_test::G4VGConvTestInput input;
+    input.init = {{{10, 10, 10}, {1, 0, 0}},
+                  {{10, 10, -10}, {1, 0, 0}},
+                  {{10, -10, 10}, {1, 0, 0}},
+                  {{10, -10, -10}, {1, 0, 0}},
+                  {{-10, 10, 10}, {-1, 0, 0}},
+                  {{-10, 10, -10}, {-1, 0, 0}},
+                  {{-10, -10, 10}, {-1, 0, 0}},
+                  {{-10, -10, -10}, {-1, 0, 0}}};
+
+    const auto& geoparams = *this->geom_.get();
+    StateStore  device_states(geoparams, input.init.size());
+    input.max_segments = 5;
+    input.params       = geoparams.device_ref();
+    input.state        = device_states.ref();
+
+    // Run kernel
+    auto output = g4vgconv_test(input);
+
+    static const int expected_ids[]
+        = {1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
+           1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
+
+    static const double expected_distances[]
+        = {5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
+           5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
+
+    // Check results
+    EXPECT_VEC_EQ(expected_ids, output.ids);
+    EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
 }
