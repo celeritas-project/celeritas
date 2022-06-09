@@ -147,12 +147,21 @@ class GlobalTestBase : public celeritas_test::Test
  * This is helpful for slow geometry construction or if the geometry has
  * trouble building/destroying multiple times per execution due to global
  * variable usage (VecGeom, Geant4).
+ *
+ * The "geometry basename" should be the filename without extension of a
+ * geometry file inside `test/celeritas/data`.
  */
 class GlobalGeoTestBase : virtual public GlobalTestBase
 {
   public:
+    // Overload with the base filename of the geometry
     virtual const char* geometry_basename() const = 0;
-    SPConstGeo          build_geometry() final;
+
+    // Construct a geometry that's persistent across tests
+    SPConstGeo build_geometry() final;
+
+    // Clear the lazy geometry
+    static void reset_geometry();
 
   private:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP FOR VECGEOM ////
@@ -168,7 +177,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
     class CleanupGeoEnvironment : public ::testing::Environment
     {
         void SetUp() override {}
-        void TearDown() override;
+        void TearDown() override { GlobalGeoTestBase::reset_geometry(); }
     };
 };
 

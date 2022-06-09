@@ -30,40 +30,6 @@ namespace celeritas_test
 //---------------------------------------------------------------------------//
 // GlobalGeoTestBase
 //---------------------------------------------------------------------------//
-auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
-{
-    // Delayed initialization
-    static LazyGeo lg;
-
-    if (!lg.geo)
-    {
-        /*! Always reset geometry at end of testing before global destructors.
-         *
-         * This is needed because VecGeom stores its objects as static globals,
-         * and only makes those objects visible with references/raw data. Thus
-         * we can't guarantee that the GeoParams destructor is calling a valid
-         * global VecGeom pointer when it destructs, since static
-         * initialization/destruction order is undefined across translation
-         * units.
-         */
-        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
-    }
-
-    return lg;
-}
-
-//---------------------------------------------------------------------------//
-void GlobalGeoTestBase::CleanupGeoEnvironment::TearDown()
-{
-    auto& lazy = GlobalGeoTestBase::lazy_geo();
-    if (lazy.geo)
-    {
-        CELER_LOG(debug) << "Destroying geometry";
-        lazy.geo.reset();
-    }
-}
-
-//---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
     auto& lazy = GlobalGeoTestBase::lazy_geo();
@@ -85,12 +51,49 @@ auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 
         // MUST reset geometry before trying to build a new one
         // since VecGeom is all full of globals
-        lazy.geo.reset();
+        GlobalGeoTestBase::reset_geometry();
         lazy.geo      = std::make_shared<GeoParams>(test_file.c_str());
         lazy.basename = std::move(basename);
     }
 
     return lazy.geo;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Destroy the geometry if needed.
+ */
+void GlobalGeoTestBase::reset_geometry()
+{
+    auto& lazy = GlobalGeoTestBase::lazy_geo();
+    if (lazy.geo)
+    {
+        CELER_LOG(debug) << "Destroying '" << lazy.basename << "' geometry";
+        lazy.geo.reset();
+    }
+}
+
+//---------------------------------------------------------------------------//
+auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
+{
+    // Delayed initialization
+    static LazyGeo lg;
+
+    if (!lg.geo)
+    {
+        /*! Always reset geometry at end of testing before global destructors.
+         *
+         * This is needed because VecGeom stores its objects as static globals,
+         * and only makes those objects visible with references/raw data. Thus
+         * we can't guarantee that the GeoParams destructor is calling a valid
+         * global VecGeom pointer when it destructs, since static
+         * initialization/destruction order is undefined across translation
+         * units.
+         */
+        ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
+    }
+
+    return lg;
 }
 
 //---------------------------------------------------------------------------//

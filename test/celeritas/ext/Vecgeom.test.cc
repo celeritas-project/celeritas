@@ -422,10 +422,15 @@ class GeantBuilderTest : public VecgeomTestBase,
                          virtual public celeritas_test::GlobalTestBase
 {
   public:
+    static void SetUpTestCase()
+    {
+        // Make sure existing VecGeom geometry has been cleared
+        celeritas_test::GlobalGeoTestBase::reset_geometry();
+    }
+
     void SetUp() override
     {
         VecgeomTestBase::SetUp();
-
         std::string gdml_filename
             = this->test_data_path("celeritas", "four-levels.gdml");
 
