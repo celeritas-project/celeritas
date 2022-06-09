@@ -45,7 +45,8 @@ void load_physics(const GeantSetupOptions& options, G4RunManager* run_manager)
     switch (options.physics)
     {
         case PL::none:
-            //
+            // Do not load any physics (possibly for geometry-only testing or
+            // visualization)
             return;
         case PL::em_basic:
             physics_list = std::make_unique<detail::GeantPhysicsList>();
