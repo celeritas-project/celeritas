@@ -13,6 +13,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/GlobalTestBase.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -28,6 +29,13 @@ using namespace celeritas_test;
 #    define TEST_IF_CELERITAS_CUDA(name) name
 #else
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
+#endif
+
+// Always compile and sometimes disable tests that require Geant4
+#if CELERITAS_USE_GEANT4
+#    define TEST_IF_CELERITAS_GEANT(name) name
+#else
+#    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
 #endif
 
 //---------------------------------------------------------------------------//
@@ -404,3 +412,35 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
 }
+
+//---------------------------------------------------------------------------//
+// CONSTRUCT FROM GEANT4 (TODO)
+//---------------------------------------------------------------------------//
+
+#define GeantBuilderTest TEST_IF_CELERITAS_GEANT(GeantBuilderTest)
+class GeantBuilderTest : public VecgeomTestBase,
+                         virtual public celeritas_test::GlobalTestBase
+{
+  public:
+    void SetUp() override
+    {
+        VecgeomTestBase::SetUp();
+
+        std::string gdml_filename
+            = this->test_data_path("celeritas", "four-levels.gdml");
+
+        GeantSetupOptions opts;
+        opts.physics = GeantSetupPhysicsList::none;
+
+        geant_setup = std::make_shared<GeantSetup>(gdml_filename, opts);
+    }
+
+    SPConstGeo build_geometry() override
+    {
+        CELER_NOT_IMPLEMENTED("build_geometry");
+        // return std::make_shared<VecgeomParams>(geant_setup->world());
+    }
+
+  private:
+    std::shared_ptr<GeantSetup> geant_setup;
+};

@@ -400,7 +400,7 @@ ImportData::ImportEmParamsMap store_em_parameters()
  */
 GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
 {
-    CELER_EXPECT(world);
+    CELER_EXPECT(world_);
 }
 
 //---------------------------------------------------------------------------//
@@ -409,14 +409,9 @@ GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
  */
 GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 {
-    CELER_ASSERT(setup_);
-
-    auto* transportation = G4TransportationManager::GetTransportationManager();
-    CELER_ASSERT(transportation);
-    auto* navigator = transportation->GetNavigatorForTracking();
-    CELER_ASSERT(navigator);
-    world_ = navigator->GetWorldVolume();
-    CELER_ASSERT(world_);
+    CELER_EXPECT(setup_);
+    world_ = setup_.world();
+    CELER_ENSURE(world_);
 }
 
 //---------------------------------------------------------------------------//

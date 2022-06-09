@@ -249,7 +249,7 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_device_test(celeritas/ext/Vecgeom
-    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom)
+    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom Celeritas::IO)
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
