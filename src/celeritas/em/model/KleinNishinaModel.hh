@@ -8,6 +8,7 @@
 #pragma once
 
 #include "celeritas/em/data/KleinNishinaData.hh"
+#include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -20,11 +21,22 @@ namespace celeritas
 class KleinNishinaModel final : public Model
 {
   public:
+    //!@{
+    //! Type aliases
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    //!@}
+
+  public:
     // Construct from model ID and other necessary data
-    KleinNishinaModel(ActionId id, const ParticleParams& particles);
+    KleinNishinaModel(ActionId              id,
+                      const ParticleParams& particles,
+                      SPConstImported       data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
 
     //! Apply the interaction kernel to host data
     void execute(CoreHostRef const&) const final;
@@ -45,7 +57,8 @@ class KleinNishinaModel final : public Model
     }
 
   private:
-    KleinNishinaData interface_;
+    KleinNishinaData     interface_;
+    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

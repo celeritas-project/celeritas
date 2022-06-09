@@ -10,6 +10,7 @@
 #include <functional>
 
 #include "celeritas/Types.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas_test
@@ -26,24 +27,36 @@ class MockModel final : public celeritas::Model
   public:
     //!@{
     //! Type aliases
-    using Applicability = celeritas::Applicability;
-    using ActionId      = celeritas::ActionId;
-    using ModelCallback = std::function<void(ActionId)>;
+    using real_type        = celeritas::real_type;
+    using Applicability    = celeritas::Applicability;
+    using ActionId         = celeritas::ActionId;
+    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
+    using ModelCallback    = std::function<void(ActionId)>;
+    using VecMicroXs       = std::vector<BarnMicroXs>;
+    using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
     //!@}
 
+    struct Input
+    {
+        ActionId         id;
+        SPConstMaterials materials;
+        Applicability    applic;
+        ModelCallback    cb;
+        VecMicroXs       xs;
+    };
+
   public:
-    MockModel(ActionId id, Applicability applic, ModelCallback cb);
+    explicit MockModel(Input data);
     SetApplicability applicability() const final;
+    MicroXsBuilders  micro_xs(Applicability range) const final;
     void             execute(CoreHostRef const&) const final;
     void             execute(CoreDeviceRef const&) const final;
-    ActionId         action_id() const final { return id_; }
+    ActionId         action_id() const final { return data_.id; }
     std::string      label() const final;
     std::string      description() const final;
 
   private:
-    ActionId      id_;
-    Applicability applic_;
-    ModelCallback cb_;
+    Input data_;
 };
 
 //---------------------------------------------------------------------------//

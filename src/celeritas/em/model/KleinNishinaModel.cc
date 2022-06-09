@@ -18,7 +18,13 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 KleinNishinaModel::KleinNishinaModel(ActionId              id,
-                                     const ParticleParams& particles)
+                                     const ParticleParams& particles,
+                                     SPConstImported       data)
+    : imported_(data,
+                particles,
+                ImportProcessClass::compton,
+                ImportModelClass::klein_nishina,
+                {pdg::gamma()})
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;
@@ -46,6 +52,15 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
     photon_applic.upper    = max_quantity();
 
     return {photon_applic};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto KleinNishinaModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

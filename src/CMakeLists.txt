@@ -179,6 +179,7 @@ list(APPEND SOURCES
   celeritas/mat/MaterialParams.cc
   celeritas/mat/detail/Utils.cc
   celeritas/phys/CutoffParams.cc
+  celeritas/phys/ImportedModelAdapter.cc
   celeritas/phys/ImportedProcessAdapter.cc
   celeritas/phys/ParticleParams.cc
   celeritas/phys/PhysicsParams.cc

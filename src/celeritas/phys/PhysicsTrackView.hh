@@ -292,8 +292,8 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
     if (!table)
         return {}; // No table for this process
 
-    CELER_EXPECT(material_ < table.material.size());
-    auto grid_id_ref = table.material[material_.get()];
+    CELER_EXPECT(material_ < table.grids.size());
+    auto grid_id_ref = table.grids[material_.get()];
     if (!grid_id_ref)
         return {}; // No table for this particular material
 

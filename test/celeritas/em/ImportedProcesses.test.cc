@@ -123,7 +123,7 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     ASSERT_TRUE(models.front());
     EXPECT_EQ("annihil-2-gamma", models.front()->label());
     auto all_applic = models.front()->applicability();
-    ASSERT_EQ(2, all_applic.size());
+    ASSERT_EQ(1, all_applic.size());
 
     // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))

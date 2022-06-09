@@ -86,6 +86,17 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
+{
+    // Cross sections are calculated on the fly
+    MicroXsBuilders builders;
+    return builders;
+}
+
+//---------------------------------------------------------------------------//
 //!@{
 /*!
  * Apply the interaction kernel.

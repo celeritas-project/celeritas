@@ -10,6 +10,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -28,16 +29,21 @@ class RayleighModel final : public Model
     using HostRef = RayleighData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = RayleighData<Ownership::const_reference, MemSpace::device>;
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
   public:
     // Construct from model ID and other necessary data
     RayleighModel(ActionId              id,
                   const ParticleParams& particles,
-                  const MaterialParams& materials);
+                  const MaterialParams& materials,
+                  SPConstImported       data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel to host data
     void execute(CoreHostRef const&) const final;
@@ -65,6 +71,8 @@ class RayleighModel final : public Model
 
     // Host/device storage and reference
     CollectionMirror<RayleighData> mirror_;
+
+    ImportedModelAdapter imported_;
 
     //// TYPES ////
 

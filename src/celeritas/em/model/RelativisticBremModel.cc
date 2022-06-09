@@ -29,7 +29,13 @@ namespace celeritas
 RelativisticBremModel::RelativisticBremModel(ActionId              id,
                                              const ParticleParams& particles,
                                              const MaterialParams& materials,
+                                             SPConstImported       data,
                                              bool                  enable_lpm)
+    : imported_(data,
+                particles,
+                ImportProcessClass::e_brems,
+                ImportModelClass::e_brems_lpm,
+                {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(id);
 
@@ -73,6 +79,16 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
     positron_brem.particle      = this->host_ref().ids.positron;
 
     return {electron_brem, positron_brem};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto RelativisticBremModel::micro_xs(Applicability applic) const
+    -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

@@ -19,7 +19,13 @@ namespace celeritas
  */
 BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
                                      const ParticleParams& particles,
+                                     SPConstImported       data,
                                      bool                  enable_lpm)
+    : imported_(data,
+                particles,
+                ImportProcessClass::conversion,
+                ImportModelClass::bethe_heitler_lpm,
+                {pdg::gamma()})
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;
@@ -49,6 +55,15 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
     photon_applic.upper    = units::MevEnergy{1e8};
 
     return {photon_applic};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

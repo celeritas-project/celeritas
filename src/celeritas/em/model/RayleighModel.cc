@@ -29,7 +29,13 @@ namespace celeritas
  */
 RayleighModel::RayleighModel(ActionId              id,
                              const ParticleParams& particles,
-                             const MaterialParams& materials)
+                             const MaterialParams& materials,
+                             SPConstImported       data)
+    : imported_(data,
+                particles,
+                ImportProcessClass::rayleigh,
+                ImportModelClass::livermore_rayleigh,
+                {pdg::gamma()})
 {
     CELER_EXPECT(id);
 
@@ -61,6 +67,15 @@ auto RayleighModel::applicability() const -> SetApplicability
     rayleigh_scattering.upper    = units::MevEnergy{1e+8};
 
     return {rayleigh_scattering};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto RayleighModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

@@ -326,7 +326,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                                              temp_energy_grid.end());
             mdata.model  = model_ids.insert_back(temp_models.begin(),
                                                 temp_models.end());
-            CELER_ASSERT(mdata);
+            CELER_ASSERT(mdata.energy.size() >= 2
+                         && mdata.model.size() + 1 == mdata.energy.size());
             temp_model_datas.push_back(mdata);
         }
 
@@ -396,6 +397,7 @@ void PhysicsParams::build_xs(const Options&        opts,
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
     auto              value_tables   = make_builder(&data->value_tables);
     auto              integral_xs    = make_builder(&data->integral_xs);
+    auto              model_xs       = make_builder(&data->model_xs);
     auto              value_grid_ids = make_builder(&data->value_grid_ids);
     auto              build_grid
         = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
@@ -411,7 +413,7 @@ void PhysicsParams::build_xs(const Options&        opts,
         ProcessGroup& process_groups = data->process_groups[particle_id];
         Span<const ProcessId> processes
             = data->process_ids[process_groups.processes];
-        Span<const ModelGroup> model_groups
+        Span<ModelGroup> model_groups
             = data->model_groups[process_groups.models];
         CELER_ASSERT(processes.size() == model_groups.size());
 
@@ -436,11 +438,23 @@ void PhysicsParams::build_xs(const Options&        opts,
             applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
+            Span<const ModelId> models
+                = data->model_ids[model_groups[pp_idx].model];
+
             const Process& proc = this->process(processes[pp_idx]);
 
             // Grid IDs for each grid type, each material
             ValueGridArray<std::vector<ValueGridId>> temp_grid_ids;
             for (auto& vec : temp_grid_ids)
+            {
+                vec.resize(mats.size());
+            }
+
+            // Micro xs grid IDs for each model in the process, each material,
+            // and each element in the material
+            std::vector<std::vector<std::vector<ValueGridId>>> temp_xs_grid_ids(
+                models.size());
+            for (auto& vec : temp_xs_grid_ids)
             {
                 vec.resize(mats.size());
             }
@@ -452,31 +466,72 @@ void PhysicsParams::build_xs(const Options&        opts,
             for (auto mat_id : range(MaterialId{mats.size()}))
             {
                 applic.material = mat_id;
-
-                // Construct step limit builders
-                auto builders = proc.step_limits(applic);
-                CELER_VALIDATE(
-                    std::any_of(builders.begin(),
-                                builders.end(),
-                                [](const UPGridBuilder& p) { return bool(p); }),
-                    << "process '" << proc.label()
-                    << "' has neither interaction nor energy loss (it must "
-                       "have at least one)");
-
-                // Construct grids
-                for (auto vgt : range(ValueGridType::size_))
                 {
-                    temp_grid_ids[vgt][mat_id.get()]
-                        = build_grid(builders[vgt]);
+                    // Construct step limit builders
+                    auto builders = proc.step_limits(applic);
+                    CELER_VALIDATE(std::any_of(builders.begin(),
+                                               builders.end(),
+                                               [](const UPGridBuilder& p) {
+                                                   return bool(p);
+                                               }),
+                                   << "process '" << proc.label()
+                                   << "' has neither interaction nor energy "
+                                      "loss (it must have at least one)");
+
+                    // Construct grids
+                    for (auto vgt : range(ValueGridType::size_))
+                    {
+                        temp_grid_ids[vgt][mat_id.get()]
+                            = build_grid(builders[vgt]);
+                    }
+                }
+
+                auto material = mats.get(mat_id);
+                if (material.num_elements() > 1)
+                {
+                    for (auto model_id : models)
+                    {
+                        // Construct microscopic cross section builders
+                        const Model& model    = this->model(model_id);
+                        auto         builders = model.micro_xs(applic);
+
+                        // Hardwired models that calculate xs on the fly and
+                        // multiple scattering models won't have micro xs grids
+                        if (builders.empty())
+                        {
+                            CELER_ASSERT(model_id == data->hardwired.livermore_pe
+                                         || model_id == data->hardwired.eplusgg
+                                         || model_id == data->hardwired.urban);
+                            continue;
+                        }
+                        CELER_ASSERT(builders.size()
+                                     == material.num_elements());
+
+                        // Construct grids for each element in the material
+                        auto& grid_ids
+                            = temp_xs_grid_ids[model_id.get()][mat_id.get()];
+                        grid_ids.resize(builders.size());
+
+                        // TODO: simplify if imported ElementComponent IDs are
+                        // in the same oroder
+                        for (auto comp_id :
+                             range(ElementComponentId{material.num_elements()}))
+                        {
+                            auto el_id = material.element_id(comp_id);
+                            auto iter  = builders.find(el_id);
+                            CELER_ASSERT(iter != builders.end()
+                                         && iter->second);
+                            grid_ids[comp_id.get()] = build_grid(iter->second);
+                        }
+                    }
                 }
 
                 // Check if the particle can have a discrete interaction at
                 // rest for models with on-the-fly cross section calculation
-                auto mat_view = mats.get(mat_id);
                 if (processes[pp_idx] == data->hardwired.positron_annihilation)
                 {
                     auto calc_xs = EPlusGGMacroXsCalculator(
-                        data->hardwired.eplusgg_data, mat_view);
+                        data->hardwired.eplusgg_data, material);
                     process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
                 }
 
@@ -556,10 +611,58 @@ void PhysicsParams::build_xs(const Options&        opts,
 
                 // Construct value grid table
                 ValueTable& temp_table = temp_tables[vgt][pp_idx];
-                temp_table.material    = value_grid_ids.insert_back(
+                temp_table.grids       = value_grid_ids.insert_back(
                     temp_grid_ids[vgt].begin(), temp_grid_ids[vgt].end());
-                CELER_ASSERT(temp_table.material.size() == mats.size());
+                CELER_ASSERT(temp_table.grids.size() == mats.size());
             }
+
+            // Construct partial macroscopic cross section CDF tables
+            std::vector<ValueTable>   temp_table_xs(mats.size());
+            std::vector<ModelXsTable> temp_model_xs(models.size());
+            for (auto model_idx : range(models.size()))
+            {
+                auto& table = temp_xs_grid_ids[model_idx];
+                for (auto mat_idx : range(mats.size()))
+                {
+                    // No micro xs stored for this material
+                    auto& grid_ids = table[mat_idx];
+                    if (grid_ids.empty())
+                    {
+                        continue;
+                    }
+
+                    const auto elements
+                        = mats.get(MaterialId{mat_idx}).elements();
+
+                    // Get the number of grid points -- the energy grids are
+                    // the same for each element in the material
+                    size_type num_bins
+                        = data->value_grids[grid_ids[0]].value.size();
+                    for (auto bin_idx : range(num_bins))
+                    {
+                        // Cumulative partial macroscopic cross section
+                        real_type cum_xs{0};
+
+                        for (auto comp_idx : range(elements.size()))
+                        {
+                            auto& grid = data->value_grids[grid_ids[comp_idx]];
+                            CELER_ASSERT(bin_idx < grid.value.size());
+                            real_type& value = data->reals[grid.value[bin_idx]];
+                            cum_xs += value * elements[comp_idx].fraction;
+                            value = cum_xs;
+                        }
+                    }
+                    // Construct value grid table
+                    temp_table_xs[mat_idx].grids = value_grid_ids.insert_back(
+                        grid_ids.begin(), grid_ids.end());
+                }
+                // Construct cross section table for this model
+                temp_model_xs[model_idx].material = value_tables.insert_back(
+                    temp_table_xs.begin(), temp_table_xs.end());
+            }
+            // Construct model cross sections for this process
+            model_groups[pp_idx].xs = model_xs.insert_back(
+                temp_model_xs.begin(), temp_model_xs.end());
 
             // Store the energies of the maximum cross sections
             if (!energy_max_xs.empty())

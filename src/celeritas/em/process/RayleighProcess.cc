@@ -35,8 +35,10 @@ RayleighProcess::RayleighProcess(SPConstParticles particles,
  */
 auto RayleighProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    return {std::make_shared<RayleighModel>(
-        *start_id++, *particles_, *materials_)};
+    return {std::make_shared<RayleighModel>(*start_id++,
+                                            *particles_,
+                                            *materials_,
+                                            std::move(imported_.processes()))};
 }
 
 //---------------------------------------------------------------------------//

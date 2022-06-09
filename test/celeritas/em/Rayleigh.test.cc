@@ -70,9 +70,21 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("PbWO");
 
+        // Dummy imported process data
+        std::vector<celeritas::ImportProcess> imported{
+            {22,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::rayleigh,
+             {celeritas::ImportModelClass::livermore_rayleigh},
+             {},
+             {}}};
+        this->set_imported_processes(imported);
+
         // Construct RayleighModel and save the host data reference
-        model_ = std::make_shared<RayleighModel>(
-            ActionId{0}, particles, *this->material_params());
+        model_     = std::make_shared<RayleighModel>(ActionId{0},
+                                                 particles,
+                                                 *this->material_params(),
+                                                 this->imported_processes());
         model_ref_ = model_->host_ref();
     }
 

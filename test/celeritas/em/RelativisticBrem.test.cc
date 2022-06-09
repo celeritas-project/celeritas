@@ -78,14 +78,40 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         this->set_inc_particle(pdg::positron(), MevEnergy{25000});
         this->set_inc_direction({0, 0, 1});
 
+        // Dummy imported process data
+        std::vector<celeritas::ImportProcess> imported{
+            {11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}},
+            {-11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}}};
+        this->set_imported_processes(imported);
+
         // Construct RelativisticBremModel and save the host data reference
         model_ = std::make_shared<RelativisticBremModel>(
-            ActionId{0}, particles, *this->material_params(), false);
+            ActionId{0},
+            particles,
+            *this->material_params(),
+            this->imported_processes(),
+            false);
         data_ = model_->host_ref();
 
         // Construct RelativisticBremModel and save the host data reference
         model_lpm_ = std::make_shared<RelativisticBremModel>(
-            ActionId{0}, particles, *this->material_params(), true);
+            ActionId{0},
+            particles,
+            *this->material_params(),
+            this->imported_processes(),
+            true);
         data_lpm_ = model_lpm_->host_ref();
 
         // Set cutoffs: photon energy thresholds and range cut for Pb

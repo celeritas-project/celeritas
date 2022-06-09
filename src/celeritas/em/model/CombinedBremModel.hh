@@ -39,6 +39,7 @@ class CombinedBremModel final : public Model
         = CombinedBremData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = CombinedBremData<Ownership::const_reference, MemSpace::device>;
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
   public:
@@ -46,11 +47,15 @@ class CombinedBremModel final : public Model
     CombinedBremModel(ActionId              id,
                       const ParticleParams& particles,
                       const MaterialParams& materials,
+                      SPConstImported       data,
                       ReadData              load_sb_table,
                       bool                  enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel to host data
     void execute(CoreHostRef const&) const final;

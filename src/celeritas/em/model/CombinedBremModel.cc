@@ -31,6 +31,7 @@ namespace celeritas
 CombinedBremModel::CombinedBremModel(ActionId              id,
                                      const ParticleParams& particles,
                                      const MaterialParams& materials,
+                                     SPConstImported       data,
                                      ReadData              sb_table,
                                      bool                  enable_lpm)
 {
@@ -40,10 +41,10 @@ CombinedBremModel::CombinedBremModel(ActionId              id,
     // Construct SeltzerBergerModel and RelativisticBremModel and save the
     // host data reference
     sb_model_ = std::make_shared<SeltzerBergerModel>(
-        id, particles, materials, sb_table);
+        id, particles, materials, data, sb_table);
 
     rb_model_ = std::make_shared<RelativisticBremModel>(
-        id, particles, materials, enable_lpm);
+        id, particles, materials, data, enable_lpm);
 
     CombinedBremData<Ownership::value, MemSpace::host> host_ref;
     host_ref.ids.action         = id;
@@ -70,6 +71,16 @@ auto CombinedBremModel::applicability() const -> SetApplicability
     positron_brem.particle      = this->host_ref().rb_data.ids.positron;
 
     return {electron_brem, positron_brem};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
+{
+    // TODO
+    CELER_NOT_IMPLEMENTED("Combined brems micro xs");
 }
 
 //---------------------------------------------------------------------------//

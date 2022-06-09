@@ -11,7 +11,6 @@
 
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/mat/MaterialView.hh"
 
 #include "MockModel.hh"
 
@@ -37,11 +36,17 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
 //---------------------------------------------------------------------------//
 auto MockProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
+    MockModel::Input input;
+    input.materials = data_.materials;
+    input.cb        = data_.interact;
+    input.xs        = data_.xs;
+
     VecModel result;
     for (const Applicability& applic : data_.applic)
     {
-        result.push_back(
-            std::make_shared<MockModel>(*start_id++, applic, data_.interact));
+        input.id     = *start_id++;
+        input.applic = applic;
+        result.push_back(std::make_shared<MockModel>(input));
     }
     return result;
 }

@@ -43,6 +43,9 @@ class LivermorePEModel final : public Model
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
 
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
+
     // Apply the interaction kernel on host
     void execute(CoreHostRef const&) const final;
 

@@ -38,6 +38,40 @@ using ValueTableId = OpaqueId<struct ValueTable>;
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
+ * Set of value grids for all materials (or elements).
+ *
+ * It is allowable for this to be "false" (i.e. no materials assigned)
+ * indicating that the value table doesn't apply in the context -- for
+ * example, an empty ValueTable macro_xs means that the process doesn't have a
+ * discrete interaction.
+ */
+struct ValueTable
+{
+    ItemRange<ValueGridId> grids; //!< Value grid by material index
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set of partial macroscopic cross section CDF tables for all materials.
+ *
+ * Each material has a set of value grids for all elements; these are used to
+ * sample an element from a material. An empty ValueTable means the material
+ * only has a single element, so no microscopic cross sections need to be
+ * stored.
+ */
+struct ModelXsTable
+{
+    ItemRange<ValueTable> material; //!< Value table by material index
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Energy-dependent model IDs for a single process and particle type.
  *
  * For a given particle type, a single process should be divided into multiple
@@ -49,31 +83,16 @@ struct ModelGroup
 {
     using Energy = units::MevEnergy;
 
-    ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
-    ItemRange<ModelId>   model;  //!< Corresponding models
+    ItemRange<real_type>    energy; //!< Energy grid bounds [MeV]
+    ItemRange<ModelId>      model;  //!< Corresponding models
+    ItemRange<ModelXsTable> xs; //!< Partial macro xs CDF table for each model
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return (energy.size() >= 2) && (model.size() + 1 == energy.size());
+        return (energy.size() >= 2) && (model.size() + 1 == energy.size())
+               && (xs.size() == model.size());
     }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Set of value grids for all materials.
- *
- * It is allowable for this to be "false" (i.e. no materials assigned)
- * indicating that the value table doesn't apply in the context -- for
- * example, an empty ValueTable macro_xs means that the process doesn't have a
- * discrete interaction.
- */
-struct ValueTable
-{
-    ItemRange<ValueGridId> material; //!< Value grid by material index
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -299,6 +318,7 @@ struct PhysicsParamsData
     Items<ProcessId>            process_ids;
     Items<ValueTable>           value_tables;
     Items<IntegralXsProcess>    integral_xs;
+    Items<ModelXsTable>         model_xs;
     Items<ModelGroup>           model_groups;
     ParticleItems<ProcessGroup> process_groups;
 
@@ -333,6 +353,7 @@ struct PhysicsParamsData
         process_ids    = other.process_ids;
         value_tables   = other.value_tables;
         integral_xs    = other.integral_xs;
+        model_xs       = other.model_xs;
         model_groups   = other.model_groups;
         process_groups = other.process_groups;
 
