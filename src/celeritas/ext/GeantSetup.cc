@@ -18,7 +18,6 @@
 #include <G4EmParameters.hh>
 #include <G4GenericPhysicsList.hh>
 #include <G4ParticleTable.hh>
-#include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/ScopedTimeAndRedirect.hh"
@@ -129,7 +128,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         auto action_initialization
             = std::make_unique<detail::ActionInitialization>();
         run_manager_->SetUserInitialization(action_initialization.release());
-        G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
+        run_manager_->Initialize();
         run_manager_->BeamOn(1);
     }
 
