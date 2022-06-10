@@ -38,6 +38,7 @@ __global__ void g4vgconv_test_kernel(const GeoParamsCRefDevice  params,
     VecgeomTrackView geo(params, state, tid);
     geo = start[tid.get()];
 
+    // Tracking test
     for (int seg = 0; seg < max_segments; ++seg)
     {
         // Move next step
@@ -51,7 +52,7 @@ __global__ void g4vgconv_test_kernel(const GeoParamsCRefDevice  params,
         // Save current ID and distance travelled
         ids[tid.get() * max_segments + seg]
             = (geo.is_outside()
-                   ? -2
+                   ? -1
                    : static_cast<int>(geo.volume_id().unchecked_get()));
         distances[tid.get() * max_segments + seg] = next.distance;
 
@@ -74,12 +75,12 @@ G4VGConvTestOutput g4vgconv_test(G4VGConvTestInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> init(input.init.begin(),
                                                     input.init.end());
-    thrust::device_vector<int> ids(input.init.size() * input.max_segments, -3);
-    thrust::device_vector<double> distances(ids.size(), -3.0);
+    thrust::device_vector<int> ids(input.init.size() * input.max_segments, 0);
+    thrust::device_vector<double> distances(ids.size(), 0);
 
     // Run kernel
     static const celeritas::KernelParamCalculator calc_launch_params(
-        g4vgconv_test_kernel, "g4vgconv_test");
+        "g4vgconv_test", g4vgconv_test_kernel, device().default_block_size());
     auto params = calc_launch_params(init.size());
     g4vgconv_test_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
         input.params,

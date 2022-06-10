@@ -12,6 +12,8 @@
 #include "celeritas/geo/GeoParams.hh"
 
 #include "Geant4/G4GDMLParser.hh"
+#include "Geant4/G4GeometryManager.hh"
+#include "Geant4/G4PhysicalVolumeStore.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -22,34 +24,41 @@ using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 /*!
- * The \e four-levels.gdml file is used t   o construct a Geant4 model,
- * which is later converted into a corresponding Vecgeom model.
+ * The \e four-levels.gdml file is used to construct a Geant4 model,
+ * which is then converted into a corresponding Vecgeom model.
  */
-class G4VecgeomConvTest : public celeritas_test::Test
+class G4VecgeomConvTest : public ::testing::Test
 {
   protected:
     void SetUp() override
     {
+        CELER_LOG(info) << "G4VecgeomConvTest::SetUp()";
         // GeantSetup setup = {"four_levels.gdml", GeantSetupOptions{}};
         G4GDMLParser parser;
+        std::string  filename
+            = ::test::Test::test_data_path("celeritas", "four-levels.gdml");
         // parser.SetOverlapCheck(true);
-        parser.Read(filename_.c_str(), false);
+        bool validate_xml = false;
+        parser.Read(filename.c_str(), validate_xml);
 
-        // TODO: use celeritas way to deal with placed volumes in host/device
-        // host_world_ = vecgeom::GeoManager::Instance().GetWorld();
+        // Convert Geant4 model into VecGeom model
         geom_ = std::make_shared<GeoParams>(parser.GetWorldVolume());
+
+        // Tried to delete G4 geometry - it crashes at 2nd test
+        // auto* g4_volume_store = G4PhysicalVolumeStore::GetInstance();
+        // const auto& volume_map = g4_volume_store->GetMap(); // Not all G4
+        // versions support this CELER_EXPECT(volume_map.size() > 0);
+        // G4GeometryManager::GetInstance()->OpenGeometry();
+        // G4PhysicalVolumeStore::GetInstance()->Clean();
+        // CELER_ASSERT(volume_map.size() == 0);
     }
 
     void TearDown() override
     {
         CELER_LOG(info) << "G4VecgeomConvTest::TearDown()";
         geom_.reset();
-        // G4GeometryManager::GetInstance()->OpenGeometry();
-        // G4PhysicalVolumeStore::GetInstance()->Clean();
+        CELER_ASSERT(!vecgeom::GeoManager::Instance().GetWorld());
     }
-
-    std::string filename_
-        = this->test_data_path("celeritas", "four-levels.gdml");
 
   public:
     void PrintContent() const;
@@ -112,14 +121,14 @@ TEST_F(G4VecgeomConvTest, host_access_vecgeom)
     const auto& geoparams = geom.host_ref();
     EXPECT_TRUE(geoparams);
 
-    // addess to VecGeom objects
+    // address to VecGeom objects
     const auto& world = *geoparams.world_volume;
     EXPECT_TRUE(world.GetLogicalVolume());
     EXPECT_EQ(8, world.GetDaughters().size());
 
     // world->PrintContent();
 }
-* /
+
 //---------------------------------------------------------------------------//
 
 #include "corecel/data/CollectionStateStore.hh"
@@ -134,37 +143,39 @@ TEST_F(G4VecgeomConvTest, host_access_vecgeom)
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
 
-    TEST_F(G4VecgeomConvTest, TEST_IF_CELERITAS_CUDA(device_g4vgconv))
+TEST_F(G4VecgeomConvTest, TEST_IF_CELERITAS_CUDA(device_tracking))
 {
     using StateStore = CollectionStateStore<VecgeomStateData, MemSpace::device>;
 
     // Set up test input
+    // TODO: apply mm -> cm conversion to volume dimensions in the G4->VecGeom
+    // conversion
     celeritas_test::G4VGConvTestInput input;
-    input.init = {{{10, 10, 10}, {1, 0, 0}},
-                  {{10, 10, -10}, {1, 0, 0}},
-                  {{10, -10, 10}, {1, 0, 0}},
-                  {{10, -10, -10}, {1, 0, 0}},
-                  {{-10, 10, 10}, {-1, 0, 0}},
-                  {{-10, 10, -10}, {-1, 0, 0}},
-                  {{-10, -10, 10}, {-1, 0, 0}},
-                  {{-10, -10, -10}, {-1, 0, 0}}};
+    input.init = {{{100, 100, 100}, {1, 0, 0}},
+                  {{100, 100, -100}, {1, 0, 0}},
+                  {{100, -100, 100}, {1, 0, 0}},
+                  {{100, -100, -100}, {1, 0, 0}},
+                  {{-100, 100, 100}, {-1, 0, 0}},
+                  {{-100, 100, -100}, {-1, 0, 0}},
+                  {{-100, -100, 100}, {-1, 0, 0}},
+                  {{-100, -100, -100}, {-1, 0, 0}}};
 
     const auto& geoparams = *this->geom_.get();
-    StateStore  device_states(geoparams, input.init.size());
-    input.max_segments = 5;
+    StateStore  device_states(geoparams.host_ref(), input.init.size());
+    input.max_segments = 4;
     input.params       = geoparams.device_ref();
     input.state        = device_states.ref();
 
     // Run kernel
     auto output = g4vgconv_test(input);
 
-    static const int expected_ids[]
-        = {1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
-           1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
+    static const int expected_ids[] = {2,  1,  0, -1, 2,  1,  0, -1, 2,  1, 0,
+                                       -1, 2,  1, 0,  -1, 2,  1, 0,  -1, 2, 1,
+                                       0,  -1, 2, 1,  0,  -1, 2, 1,  0,  -1};
 
     static const double expected_distances[]
-        = {5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
-           5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
+        = {50, 10, 10, 70, 50, 10, 10, 70, 50, 10, 10, 70, 50, 10, 10, 70,
+           50, 10, 10, 70, 50, 10, 10, 70, 50, 10, 10, 70, 50, 10, 10, 70};
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
