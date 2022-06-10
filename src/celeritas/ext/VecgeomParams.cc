@@ -27,6 +27,7 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/ext/detail/G4VecgeomConverter.hh"
 
 #include "VecgeomData.hh"
 
@@ -104,7 +105,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
     Initialize();
 }
 
-#ifdef CELERITAS_USE_Geant4
+#ifdef CELERITAS_USE_GEANT4
 //---------------------------------------------------------------------------//
 /*!
  *  Create a VecGeom model from an pre-existing Geant4 geometry
@@ -116,7 +117,7 @@ VecgeomParams::VecgeomParams(const G4VPhysicalVolume* p_G4world)
 
     // Convert the geometry to VecGeom
     G4VecGeomConverter::Instance().SetVerbose(1);
-    G4VecGeomConverter::Instance().ConvertG4Geometry(fWorld);
+    G4VecGeomConverter::Instance().ConvertG4Geometry(p_G4world);
     CELER_LOG(info) << "Converted: max_depth = "
                     << vecgeom::GeoManager::Instance().getMaxDepth();
 
@@ -124,9 +125,6 @@ VecgeomParams::VecgeomParams(const G4VPhysicalVolume* p_G4world)
     vecgeom::VPlacedVolume const* vgWorld
         = vecgeom::GeoManager::Instance().GetWorld();
     CELER_ENSURE(vgWorld);
-
-    vgWorld->PrintContent();
-    std::cout << "================================================\n";
 
     Initialize();
 }

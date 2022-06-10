@@ -278,6 +278,8 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom)
+  celeritas_add_device_test(celeritas/ext/G4VecgeomConversion ${_needs_geant4}
+    LINK_LIBRARIES ${Geant4_LIBRARIES})
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})

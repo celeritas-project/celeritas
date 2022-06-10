@@ -28,7 +28,7 @@ class G4AffineTransformation;
 class G4VPhysicalVolume;
 class G4VSolid;
 
-namespace vecgeom
+namespace celeritas
 {
 inline namespace VECGEOM_IMPL_NAMESPACE
 {
