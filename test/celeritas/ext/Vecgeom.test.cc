@@ -42,7 +42,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTestBase : virtual public celeritas_test::GlobalGeoTestBase
+class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
 {
   public:
     //!@{
@@ -146,7 +146,7 @@ void VecgeomTestBase::TrackingResult::print_expected()
 //---------------------------------------------------------------------------//
 
 class FourLevelsTest : public VecgeomTestBase,
-                       virtual public celeritas_test::GlobalGeoTestBase
+                       public celeritas_test::GlobalGeoTestBase
 {
   public:
     const char* geometry_basename() const final { return "four-levels"; }
