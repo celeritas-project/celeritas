@@ -12,7 +12,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/GlobalTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
 #include "celeritas/global/ActionInterface.hh"

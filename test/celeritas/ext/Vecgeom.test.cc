@@ -12,7 +12,9 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -30,10 +32,17 @@ using namespace celeritas_test;
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
 
+// Always compile and sometimes disable tests that require Geant4
+#if CELERITAS_USE_GEANT4
+#    define TEST_IF_CELERITAS_GEANT(name) name
+#else
+#    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
+#endif
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTest : public celeritas_test::GlobalTestBase
+class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
 {
   public:
     //!@{
@@ -67,17 +76,21 @@ class VecgeomTest : public celeritas_test::GlobalTestBase
     TrackingResult track(const Real3& pos, const Real3& dir);
 
   protected:
-    SPConstParticle    build_particle() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff      build_cutoff() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics     build_physics() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstMaterial    build_material() { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() { CELER_ASSERT_UNREACHABLE(); }
+    SPConstParticle    build_particle() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCutoff      build_cutoff() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics     build_physics() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstMaterial    build_material() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() final
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
 
   private:
     HostStateStore host_state;
 };
 
-auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
+auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
+    -> TrackingResult
 {
     const auto& params = *this->geometry();
 
@@ -118,7 +131,7 @@ auto VecgeomTest::track(const Real3& pos, const Real3& dir) -> TrackingResult
     return result;
 }
 
-void VecgeomTest::TrackingResult::print_expected()
+void VecgeomTestBase::TrackingResult::print_expected()
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
          << "static const char* const expected_volumes[] = "
@@ -132,10 +145,11 @@ void VecgeomTest::TrackingResult::print_expected()
 
 //---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTest
+class FourLevelsTest : public VecgeomTestBase,
+                       public celeritas_test::GlobalGeoTestBase
 {
   public:
-    const char* geometry_basename() const override { return "four-levels"; }
+    const char* geometry_basename() const final { return "four-levels"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -399,3 +413,40 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
 }
+
+//---------------------------------------------------------------------------//
+// CONSTRUCT FROM GEANT4 (TODO)
+//---------------------------------------------------------------------------//
+
+#define GeantBuilderTest TEST_IF_CELERITAS_GEANT(GeantBuilderTest)
+class GeantBuilderTest : public VecgeomTestBase,
+                         virtual public celeritas_test::GlobalTestBase
+{
+  public:
+    static void SetUpTestCase()
+    {
+        // Make sure existing VecGeom geometry has been cleared
+        celeritas_test::GlobalGeoTestBase::reset_geometry();
+    }
+
+    void SetUp() override
+    {
+        VecgeomTestBase::SetUp();
+        std::string gdml_filename
+            = this->test_data_path("celeritas", "four-levels.gdml");
+
+        GeantSetupOptions opts;
+        opts.physics = GeantSetupPhysicsList::none;
+
+        geant_setup = std::make_shared<GeantSetup>(gdml_filename, opts);
+    }
+
+    SPConstGeo build_geometry() override
+    {
+        CELER_NOT_IMPLEMENTED("build_geometry");
+        // return std::make_shared<VecgeomParams>(geant_setup->world());
+    }
+
+  private:
+    std::shared_ptr<GeantSetup> geant_setup;
+};

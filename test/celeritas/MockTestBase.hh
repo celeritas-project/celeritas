@@ -13,7 +13,7 @@
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 
-#include "GlobalTestBase.hh"
+#include "GlobalGeoTestBase.hh"
 
 namespace celeritas
 {
@@ -40,7 +40,7 @@ namespace celeritas_test
  *
  * Cutoff values are all zero.
  */
-class MockTestBase : virtual public GlobalTestBase
+class MockTestBase : virtual public GlobalGeoTestBase
 {
   public:
     //!@{

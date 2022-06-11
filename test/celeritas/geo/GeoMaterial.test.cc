@@ -6,7 +6,7 @@
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/GlobalTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
@@ -23,7 +23,7 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public celeritas_test::GlobalTestBase
+class GeoMaterialTest : public celeritas_test::GlobalGeoTestBase
 {
     const char* geometry_basename() const override { return "simple-cms"; }
 

@@ -18,7 +18,6 @@
 #include <G4EmParameters.hh>
 #include <G4GenericPhysicsList.hh>
 #include <G4ParticleTable.hh>
-#include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
 #include "corecel/io/ScopedTimeAndRedirect.hh"
@@ -31,47 +30,23 @@
 
 namespace celeritas
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a GDML file and physics options.
+ * Set up global geant4 physics.
  */
-GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
+void load_physics(const GeantSetupOptions& options, G4RunManager* run_manager)
 {
-    CELER_LOG(status) << "Initializing Geant4";
-
-    {
-        // Run manager writes output that cannot be redirected...
-        ScopedTimeAndRedirect scoped_time("G4RunManager");
-        detail::GeantExceptionHandler scoped_exception_handler;
-        // Access the particle table before creating the run manager, so that
-        // missing environment variables like G4ENSDFSTATEDATA get caught
-        // cleanly rather than segfaulting
-        G4ParticleTable::GetParticleTable();
-#if CELERITAS_G4_V10
-        run_manager_.reset(new G4RunManager);
-#else
-        run_manager_.reset(
-            G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
-#endif
-        CELER_ASSERT(run_manager_);
-    }
-
-    detail::GeantLoggerAdapter    scoped_logger;
-    detail::GeantExceptionHandler scoped_exception_handler;
-
-    //// Initialize the geometry ////
-
-    auto detector
-        = std::make_unique<detail::DetectorConstruction>(gdml_filename);
-    run_manager_->SetUserInitialization(detector.release());
-
-    //// Load the physics list ////
-
     std::unique_ptr<G4VUserPhysicsList> physics_list;
 
     using PL = GeantSetupPhysicsList;
     switch (options.physics)
     {
+        case PL::none:
+            // Do not load any physics (possibly for geometry-only testing or
+            // visualization)
+            return;
         case PL::em_basic:
             physics_list = std::make_unique<detail::GeantPhysicsList>();
             break;
@@ -100,14 +75,60 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     }
 
-    run_manager_->SetUserInitialization(physics_list.release());
+    CELER_ASSERT(physics_list);
+    run_manager->SetUserInitialization(physics_list.release());
+}
+} // namespace
 
-    //// Generate physics tables ////
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a GDML file and physics options.
+ */
+GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
+{
+    CELER_LOG(status) << "Initializing Geant4";
+
+    {
+        // Run manager writes output that cannot be redirected...
+        ScopedTimeAndRedirect         scoped_time("G4RunManager");
+        detail::GeantExceptionHandler scoped_exception_handler;
+        // Access the particle table before creating the run manager, so that
+        // missing environment variables like G4ENSDFSTATEDATA get caught
+        // cleanly rather than segfaulting
+        G4ParticleTable::GetParticleTable();
+#if CELERITAS_G4_V10
+        run_manager_.reset(new G4RunManager);
+#else
+        run_manager_.reset(
+            G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
+#endif
+        CELER_ASSERT(run_manager_);
+    }
+
+    detail::GeantLoggerAdapter    scoped_logger;
+    detail::GeantExceptionHandler scoped_exception_handler;
+
+    // Initialize geometry
+    {
+        auto detector
+            = std::make_unique<detail::DetectorConstruction>(gdml_filename);
+
+        // Get world_volume for store_geometry() before releasing detector ptr
+        world_ = detector->get_world_volume();
+
+        run_manager_->SetUserInitialization(detector.release());
+    }
+
+    // Construct the physics
+    load_physics(options, run_manager_.get());
+
+    // Generate physics tables
+    if (options.physics != GeantSetupPhysicsList::none)
     {
         auto action_initialization
             = std::make_unique<detail::ActionInitialization>();
         run_manager_->SetUserInitialization(action_initialization.release());
-        G4UImanager::GetUIpointer()->ApplyCommand("/run/initialize");
+        run_manager_->Initialize();
         run_manager_->BeamOn(1);
     }
 

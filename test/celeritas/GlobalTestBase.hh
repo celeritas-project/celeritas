@@ -10,7 +10,6 @@
 #include <iosfwd>
 #include <memory>
 #include <string>
-#include <gtest/gtest.h>
 
 #include "corecel/Assert.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
@@ -39,8 +38,9 @@ namespace celeritas_test
 /*!
  * Lazily construct core parameters, individually or together.
  *
- * \note Inherit from this class using \c virtual \c public so that tests can
- * create mixins (see e.g. \c SimpleStepperTest).
+ * \note Inherit from this class (or \c GlobalGeoTestBase) using \c
+ * virtual \c public so that tests can create mixins (see e.g. \c
+ * SimpleStepperTest).
  */
 class GlobalTestBase : public celeritas_test::Test
 {
@@ -104,8 +104,7 @@ class GlobalTestBase : public celeritas_test::Test
     void write_output(std::ostream& os) const;
 
   protected:
-    virtual const char* geometry_basename() const = 0;
-
+    virtual SPConstGeo         build_geometry()    = 0;
     virtual SPConstMaterial    build_material()    = 0;
     virtual SPConstGeoMaterial build_geomaterial() = 0;
     virtual SPConstParticle    build_particle()    = 0;
@@ -113,7 +112,6 @@ class GlobalTestBase : public celeritas_test::Test
     virtual SPConstPhysics     build_physics()     = 0;
 
   private:
-    SPConstGeo      build_geometry() const;
     SPConstRng      build_rng() const;
     SPActionManager build_action_mgr() const;
     SPConstCore     build_core();
@@ -139,22 +137,6 @@ class GlobalTestBase : public celeritas_test::Test
     SPConstRng         rng_;
     SPConstCore        core_;
     SPOutputManager    output_;
-
-    //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP FOR VECGEOM ////
-
-    struct LazyGeo
-    {
-        std::string basename{};
-        SPConstGeo  geo{};
-    };
-
-    static LazyGeo& lazy_geo();
-
-    class CleanupGeoEnvironment : public ::testing::Environment
-    {
-        void SetUp() override {}
-        void TearDown() override;
-    };
 };
 
 //---------------------------------------------------------------------------//

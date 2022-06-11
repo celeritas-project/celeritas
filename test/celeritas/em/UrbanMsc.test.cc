@@ -10,7 +10,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
-#include "celeritas/GlobalTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/em/distribution/UrbanMscScatter.hh"
 #include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
@@ -54,7 +54,7 @@ using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public celeritas_test::GlobalTestBase
+class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 {
   protected:
     using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;

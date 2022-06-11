@@ -27,6 +27,7 @@ const char* to_cstring(GeantSetupPhysicsList value)
     CELER_EXPECT(value != GeantSetupPhysicsList::size_);
 
     static const char* const strings[] = {
+        "none",
         "em_basic",
         "em_standard",
         "ftfp_bert",
