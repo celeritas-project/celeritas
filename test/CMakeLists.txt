@@ -206,6 +206,7 @@ add_library(CeleritasTest
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
   celeritas/GlobalTestBase.cc
+  celeritas/GlobalGeoTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/TestEm3Base.cc

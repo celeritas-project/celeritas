@@ -12,6 +12,7 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/VecgeomData.hh"
@@ -41,7 +42,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
+class VecgeomTestBase : virtual public celeritas_test::GlobalGeoTestBase
 {
   public:
     //!@{

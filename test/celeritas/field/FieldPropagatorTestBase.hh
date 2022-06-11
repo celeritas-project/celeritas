@@ -6,7 +6,7 @@
 //! \file celeritas/field/FieldPropagatorTestBase.hh
 //---------------------------------------------------------------------------//
 
-#include "celeritas/GlobalTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PDGNumber.hh"

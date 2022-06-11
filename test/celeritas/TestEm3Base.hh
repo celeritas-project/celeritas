@@ -9,7 +9,7 @@
 
 #include "celeritas/Types.hh"
 
-#include "GlobalTestBase.hh"
+#include "GlobalGeoTestBase.hh"
 
 namespace celeritas
 {

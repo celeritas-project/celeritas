@@ -11,7 +11,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/GlobalTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 
