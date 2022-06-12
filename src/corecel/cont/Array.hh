@@ -27,7 +27,7 @@ template<class T, ::celeritas::size_type N>
 struct Array
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type      = T;
     using size_type       = ::celeritas::size_type;
     using pointer         = value_type*;
@@ -45,7 +45,7 @@ struct Array
     //// ACCESSORS ////
 
     //!@{
-    //! Element access
+    //! \name Element access
     CFIF_ const_reference operator[](size_type i) const { return data_[i]; }
     CFIF_ reference       operator[](size_type i) { return data_[i]; }
     CFIF_ const_reference front() const { return data_[0]; }
@@ -57,7 +57,7 @@ struct Array
     //!@}
 
     //!@{
-    //! Iterators
+    //! \name Iterators
     CFIF_ iterator       begin() { return data_; }
     CFIF_ iterator       end() { return data_ + N; }
     CFIF_ const_iterator begin() const { return data_; }
@@ -67,13 +67,14 @@ struct Array
     //!@}
 
     //!@{
-    //! Capacity
+    //! \name Capacity
     CELER_CONSTEXPR_FUNCTION bool      empty() const { return N == 0; }
     CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
     //!@}
 
     //!@{
-    //! Operations
+    //! \name  Operations
+    //! Fill the array with a constant value
     CFIF_ void fill(const_reference value)
     {
         for (size_type i = 0; i != N; ++i)
@@ -111,10 +112,6 @@ CFIF_ bool operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 }
 
 #undef CFIF_
-
-//---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

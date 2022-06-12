@@ -44,7 +44,7 @@ class {name}
 {{
   public:
     //!@{{
-    //! Type aliases
+    //! \\name Type aliases
     <++>
     //!@}}
 
