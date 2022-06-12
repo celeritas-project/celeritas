@@ -3,8 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/Macros.hh
-//! \brief Language and compiler abstraction macro definitions
+/*!
+ * \file corecel/Macros.hh
+ * \brief Language and compiler abstraction macro definitions.
+ *
+ * The Macros file defines cross-platform (CUDA, C++, HIP) macros that
+ * expand to attributes depending on the compiler and build configuration.
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -3,11 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*! \file Assert.hh
- *  \brief Macros, exceptions, and helpers for assertions and error handling.
+/*!
+ * \file Assert.hh
+ * \brief Macros, exceptions, and helpers for assertions and error handling.
  *
- *  This defines host- and device-compatible assertion macros that are toggled
- *  on the \c CELERITAS_DEBUG configure macro.
+ * This defines host- and device-compatible assertion macros that are toggled
+ * on the \c CELERITAS_DEBUG configure macro.
  */
 //---------------------------------------------------------------------------//
 #pragma once
