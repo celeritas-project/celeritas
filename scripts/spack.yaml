@@ -1,0 +1,37 @@
+spack:
+  definitions:
+    - platspecs: []
+    - when: 'platform == "linux"'
+      platspecs:
+      - valgrind
+  specs: 
+    - cmake
+    - doxygen
+    - geant4@11 cxxstd=17
+    - git
+    - git-lfs
+    - googletest
+    - hepmc3
+    - ninja
+    - nlohmann-json
+    - mpi
+    - python
+    - py-breathe
+    - py-sphinx
+    - py-sphinxcontrib-bibtex
+    - root cxxstd=17
+    - swig
+    - vecgeom +gdml cxxstd=17
+    - $platspecs
+  view: true
+  concretization: together
+  packages:
+    root:
+      variants: ~aqua ~davix ~examples ~opengl ~x ~tbb ~math ~gsl
+    all:
+      providers:
+        blas: [openblas]
+        lapack: [openblas]
+        mpi: [openmpi]
+      variants: cxxstd=17
+      # NOTE: add `+cuda cuda_arch=70` (or similar) to your site packages.py

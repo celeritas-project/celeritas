@@ -32,10 +32,30 @@ preset" if the value for `configurePreset` is missing or incorrect.
 
 # Development scripts
 
-These scripts are used by developers and by the Celeritas cmake code itself to
+These scripts are used by developers and by the Celeritas CMake code itself to
 generate files, set up development machines, and analyze the codebase.
 
 # Docker scripts
 
 The `docker` subdirectory contains scripts for setting up and maintaining
 reproducible environments for building Celeritas and running it under CI.
+
+# Spack environment
+
+See [the Spack documentation](https://spack.readthedocs.io/en/latest/) for
+getting started with Spack. Once it's installed, if you have CUDA and
+optionally a CUDA-compatible card on your system, create a YAML configuration
+file at
+`$SPACK_ROOT/etc/spack/packages.yaml` to inform Spack to build all
+supported packages with CUDA and C++17:
+```yaml
+packages:
+  all:
+    variants: +cuda cuda_arch=70 cxxstd=17
+```
+Note that the value of `cuda_arch` is the CUDA GPU architecture and may differ
+based on your card's capabilities.
+
+Once Spack is installed, run `spack env create celeritas spack.yaml` and `spack
+-e celeritas install` to install a complete environment needed to build
+Celeritas with all supported options.
