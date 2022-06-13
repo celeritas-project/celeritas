@@ -8,11 +8,16 @@
 API documentation
 *****************
 
+.. only:: nobreathe
+
+   .. note:: The breathe_ extension was not used when building this version of
+      the documentation. The API documentation will not be rendered below.
+
+   .. _breathe: https://github.com/michaeljones/breathe#readme
+
 The Celeritas codebase lives under the ``src/`` directory and is divided into
 three packages. Additional top-level files provide access to version and
 configuration attributes.
-
-.. doxygenfile:: celeritas_config.h
 
 .. doxygenfile:: celeritas_version.h
 

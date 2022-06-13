@@ -34,7 +34,9 @@ all_authors = [
  'Stefano C Tognini',
 ]
 author = " and ".join(all_authors)
-copyright = '{:%Y}, UT–Battelle/ORNL'.format(datetime.datetime.today())
+copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
+    datetime.datetime.today()
+)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -47,14 +49,21 @@ except (KeyError, IOError) as e:
     print("Failed to load config data:", e)
     build_dir = '.'
     celer_config = {
-        "version": "unknown",
-        "release": "unknown",
-        "breathe": False,
-        "sphinxbib": False,
+        "version": "*unknown version*",
+        "release": "*unknown release*",
+        "options": {
+            "breathe": False,
+            "sphinxbib": False,
+        }
     }
 
 version = celer_config['version']
 release = celer_config['release']
+
+# Set nobreathe, sphinxbib, etc for use in 'only' directives.
+for (opt, val) in celer_config['options'].items():
+    prefix = '' if val else 'no'
+    tags.add(prefix + opt)
 
 # -- General configuration ---------------------------------------------------
 
@@ -66,7 +75,7 @@ extensions = [
     'sphinx.ext.todo'
 ]
 
-if celer_config['breathe']:
+if celer_config['options']['breathe']:
     extensions.append('breathe')
     breathe_default_project = project
     breathe_projects = {
@@ -74,7 +83,7 @@ if celer_config['breathe']:
     }
     breathe_default_members = ('members',)
 
-if celer_config['sphinxbib']:
+if celer_config['options']['sphinxbib']:
     import pybtex
     extensions.append("sphinxcontrib.bibtex")
     bibtex_bibfiles = ['_static/references.bib']
@@ -96,7 +105,6 @@ highlight_language = 'cpp'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
 html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,

@@ -8,7 +8,17 @@
 License
 *******
 
+Celeritas is copyrighted and licensed under the following terms and conditions.
+
+Code
+====
+
 .. include:: ../../COPYRIGHT
+
+Documentation
+=============
+
+.. include:: ../COPYRIGHT
 
 
 Additional licenses

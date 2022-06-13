@@ -16,7 +16,6 @@ needed.
 
 .. _CMake: https://cmake.org
 
-
 Installation
 ============
 
@@ -24,23 +23,49 @@ This project requires external dependencies to build with full functionality.
 However, any combination of these requirements can be omitted to enable
 limited development on personal machines with fewer available components.
 
-- [CUDA](https://developer.nvidia.com/cuda-toolkit): on-device computation
-- an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): shared-memory parallelism
-- [ROOT](https://root.cern): I/O
-- [nljson](https://github.com/nlohmann/json): simple text-based I/O for
-  diagnostics and program setup
-- [VecGeom](https://gitlab.cern.ch/VecGeom/VecGeom): on-device navigation of GDML-defined detector geometry
-- [Geant4](https://geant4.web.cern.ch/support/download): preprocessing physics data for a problem input
-- [G4EMLOW](https://geant4.web.cern.ch/support/download): EM physics model data
-- [HepMC3](http://hepmc.web.cern.ch/hepmc/): Event input
-- [SWIG](http://swig.org): limited set of Python wrappers for analyzing input
-  data
+.. tabularcolumns:: lll
 
-Build/test dependencies are:
+.. csv-table::
+   :header: Component, Category, Description
+   :widths: 10, 10, 20
 
-- [CMake](https://cmake.org): build system
-- [clang-format](https://clang.llvm.org/docs/ClangFormat.html): formatting enforcement
-- [GoogleTest](https://github.com/google/googletest): test harness
+   CUDA_, Runtime, "GPU computation"
+   Geant4_, Runtime, "Preprocessing physics data for a problem input"
+   G4EMLOW_, Runtime, "EM physics model data"
+   HepMC3_, Runtime, "Event input"
+   HIP_, Runtime, "GPU computation"
+   nljson_, Runtime, "Simple text-based I/O for diagnostics and program setup"
+   "`Open MPI`_", Runtime, "Shared-memory parallelism"
+   ROOT_, Runtime, "Input and output"
+   SWIG_, Runtime, "Low-level Python wrappers"
+   VecGeom_, Runtime, "On-device navigation of GDML-defined detector geometry"
+   Breathe_, Docs, "Generating code documentation inside user docs"
+   Doxygen_, Docs, "Code documentation"
+   Sphinx_, Docs, "User documentation"
+   sphinxbib_, Docs, "Reference generation for user documentation"
+   clang-format_, Development, "Code formatting enforcement"
+   CMake_, Development, "Build system"
+   Git_, Development, "Repository management"
+   GoogleTest_, Development, "Test harness"
+
+.. _CMake: https://cmake.org
+.. _CUDA: https://developer.nvidia.com/cuda-toolkit
+.. _Doxygen: https://www.doxygen.nl
+.. _G4EMLOW: https://geant4.web.cern.ch/support/download
+.. _Geant4: https://geant4.web.cern.ch/support/download
+.. _Git: https://git-scm.com
+.. _GoogleTest: https://github.com/google/googletest
+.. _HepMC3: http://hepmc.web.cern.ch/hepmc/
+.. _HIP: https://docs.amd.com
+.. _Open MPI: https://www.open-mpi.org
+.. _ROOT: https://root.cern
+.. _SWIG: http://swig.org
+.. _Sphinx: https://www.sphinx-doc.org/
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
+.. _breathe: https://github.com/michaeljones/breathe#readme
+.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+.. _nljson: https://github.com/nlohmann/json
+.. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
 
 
 Downstream usage as a library
