@@ -71,36 +71,47 @@ doxygen_add_docs(doxygen
 # SPHINX/BREATHE
 #-----------------------------------------------------------------------------#
 
-if(NOT Python_FOUND)
-  return()
+if(Python_FOUND)
+  celeritas_check_python_module(CELERITAS_USE_SPHINX sphinx)
 endif()
-
-celeritas_check_python_module(CELERITAS_USE_SPHINX sphinx)
-if(NOT CELERITAS_USE_SPHINX)
-  return()
+if(CELERITAS_USE_SPHINX)
+  celeritas_check_python_module(CELERITAS_USE_BREATHE breathe)
+  celeritas_check_python_module(CELERITAS_USE_SPHINXBIBTEX "sphinxcontrib.bibtex")
 endif()
-celeritas_check_python_module(CELERITAS_USE_BREATHE breathe)
-celeritas_check_python_module(CELERITAS_USE_SPHINXBIBTEX "sphinxcontrib.bibtex")
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_build_sphinx type output)
-  add_custom_command(OUTPUT "${output}"
-    VERBATIM COMMAND
-      "${CMAKE_COMMAND}" -E env
-        "PYTHONPATH=${CELERITAS_PYTHONPATH}"
-        "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
-      "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
-        -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
-        -b ${type}
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${CMAKE_CURRENT_BINARY_DIR}/${type}"
-    COMMENT "Building ${type} documentation with Sphinx"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    ${ARGN}
-  )
-endfunction()
+if(NOT CELERITAS_USE_SPHINX)
+  function(celeritas_build_sphinx type output)
+    add_custom_command(OUTPUT "${output}"
+      VERBATIM COMMAND
+        "${CMAKE_COMMAND}"
+        -UCELERITAS_PYTHONPATH
+        -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
+        "${CMAKE_BINARY_DIR}"
+        COMMENT "Rerunning CMake because Sphinx was not found"
+      ${ARGN}
+    )
+  endfunction()
+else()
+  function(celeritas_build_sphinx type output)
+    add_custom_command(OUTPUT "${output}"
+      VERBATIM COMMAND
+        "${CMAKE_COMMAND}" -E env
+          "PYTHONPATH=${CELERITAS_PYTHONPATH}"
+          "CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}"
+        "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
+          -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
+          -b ${type}
+          "${CMAKE_CURRENT_SOURCE_DIR}"
+          "${CMAKE_CURRENT_BINARY_DIR}/${type}"
+      COMMENT "Building ${type} documentation with Sphinx"
+      DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+      ${ARGN}
+    )
+  endfunction()
+endif()
 
 #-----------------------------------------------------------------------------#
 

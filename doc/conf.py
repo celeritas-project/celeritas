@@ -114,3 +114,11 @@ html_static_path = ['_static']
 
 html_logo = "_static/celeritas-thumbnail.png"
 
+html_theme_options = {
+    'github_button': True,
+    'github_user': 'celeritas-project',
+    'github_repo': project.lower(),
+    'show_relbars': True,
+    'show_powered_by': False,
+}
+
