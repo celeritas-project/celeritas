@@ -328,8 +328,10 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
     real_type safety = detail::BVHNavigator::ComputeSafety(
         detail::to_vector(this->pos()), vgstate_);
-    CELER_ENSURE(safety >= 0);
-    return safety;
+
+    // TODO: ComputeSafety can return negative safety distances: clamp it to
+    // zero until we debug the underlying cause.
+    return max<real_type>(safety, 0);
 }
 
 //---------------------------------------------------------------------------//
