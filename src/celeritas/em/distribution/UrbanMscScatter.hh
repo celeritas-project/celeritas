@@ -548,8 +548,7 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
     real_type rho = multiplier * norm(displacement);
     if (rho > params_.geom_limit)
     {
-        real_type safety = (1 - params_.safety_tol)
-                           * geometry_.find_safety(geometry_.pos());
+        real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
         if (rho <= safety)
         {
             // No scaling needed

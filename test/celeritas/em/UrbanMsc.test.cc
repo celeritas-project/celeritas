@@ -283,10 +283,10 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,
-                                       &geo_view,
                                        phys,
-                                       material_view,
+                                       material_view.material_id(),
                                        sim_track_view.num_steps() == 0,
+                                       geo_view.find_safety(),
                                        step[i]);
 
         step_result = step_limiter(rng_engine);

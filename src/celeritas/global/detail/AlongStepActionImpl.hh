@@ -65,9 +65,6 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         return;
     }
 
-    // Increment the step counter
-    sim.increment_num_steps();
-
     // True step is the actual path length traveled by the particle, including
     // within-step MSC
     StepLimit step_limit = sim.step_limit();
@@ -80,6 +77,10 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         CELER_ASSERT(track.make_particle_view().is_stopped());
         CELER_ASSERT(step_limit.action
                      == track.make_physics_view().scalars().discrete_action());
+
+        // Increment the step counter for diagnostic purposes
+        sim.increment_num_steps();
+
         return;
     }
 
@@ -94,16 +95,16 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     bool      use_msc  = use_msc_track(particle, phys, geo_step);
     if (use_msc)
     {
-        auto mat = track.make_material_view();
         auto rng = track.make_rng_engine();
         // Sample multiple scattering step length
-        UrbanMscStepLimit msc_step_limit(phys.urban_data(),
-                                         particle,
-                                         &geo,
-                                         phys,
-                                         mat.make_material_view(),
-                                         sim.num_steps() == 0,
-                                         step_limit.step);
+        UrbanMscStepLimit msc_step_limit(
+            phys.urban_data(),
+            particle,
+            phys,
+            track.make_material_view().material_id(),
+            sim.num_steps() == 0,
+            geo.find_safety(),
+            step_limit.step);
 
         auto msc_step_result = msc_step_limit(rng);
         track.make_physics_step_view().msc_step(msc_step_result);
@@ -234,6 +235,9 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
 
     // Override step limit with whatever action/step changes we applied here
     sim.force_step_limit(step_limit);
+
+    // Increment the step counter
+    sim.increment_num_steps();
 }
 
 //---------------------------------------------------------------------------//

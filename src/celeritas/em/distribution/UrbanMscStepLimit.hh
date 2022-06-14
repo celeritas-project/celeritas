@@ -15,7 +15,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -50,10 +49,10 @@ class UrbanMscStepLimit
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
                                             const ParticleTrackView& particle,
-                                            GeoTrackView*            geometry,
                                             const PhysicsTrackView&  physics,
-                                            const MaterialView&      material,
+                                            MaterialId               matid,
                                             bool      is_first_step,
+                                            real_type safety,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
@@ -97,12 +96,7 @@ class UrbanMscStepLimit
     inline CELER_FUNCTION GeomPathAlpha calc_geom_path(real_type true_path) const;
 
     // Calculate the minimum of the true path length limit
-    inline CELER_FUNCTION real_type calc_limit_min(Energy    energy,
-                                                   real_type step_min) const;
-
-    // Calculate the minimum of the step length for a given elastic mfp
-    inline CELER_FUNCTION real_type calc_step_min(Energy    energy,
-                                                  real_type lambda) const;
+    inline CELER_FUNCTION real_type calc_limit_min() const;
 
     //! The lower bound of energy to scale the mininum true path length limit
     static CELER_CONSTEXPR_FUNCTION Energy tlow()
@@ -120,23 +114,24 @@ class UrbanMscStepLimit
 CELER_FUNCTION
 UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
-                                     GeoTrackView*            geometry,
                                      const PhysicsTrackView&  physics,
-                                     const MaterialView&      material,
+                                     MaterialId               matid,
                                      bool                     is_first_step,
+                                     real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , is_positron_(particle.particle_id() == shared.ids.positron)
-    , safety_(geometry->find_safety(geometry->pos()))
+    , safety_(safety)
     , params_(shared.params)
-    , msc_(shared_.msc_data[material.material_id()])
+    , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics)
-    , on_boundary_(is_first_step || safety_ == 0)
+    , on_boundary_(is_first_step || safety_ <= 0)
     , phys_step_(phys_step)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
+    CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(phys_step > 0);
 
     // Mean slowing-down distance from current energy to zero
@@ -172,9 +167,8 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
     // NOTE: use d_over_r_mh for muons and charged hadrons
-    real_type distance = range_ * msc_.d_over_r;
     if (result.true_path < shared_.params.limit_min_fix()
-        || (safety_ > 0 && distance < safety_))
+        || range_ * msc_.d_over_r < safety_)
     {
         result.is_displaced = false;
         auto temp           = this->calc_geom_path(result.true_path);
@@ -198,8 +192,11 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
             range_fact *= (real_type(0.75)
                            + real_type(0.25) * lambda_ / params_.lambda_limit);
         }
-        real_type step_min = this->calc_step_min(inc_energy_, lambda_);
-        result.limit_min   = this->calc_limit_min(inc_energy_, step_min);
+        result.limit_min = this->calc_limit_min();
+    }
+    else
+    {
+        result.limit_min = shared_.params.limit_min();
     }
 
     // The step limit
@@ -316,30 +313,28 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Define the minimum step using the ratio of lambda_elastic/lambda_transport.
+ * Calculate the minimum of the true path length limit.
  */
-CELER_FUNCTION real_type UrbanMscStepLimit::calc_step_min(Energy    energy,
-                                                          real_type lambda) const
+CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
 {
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    return lambda / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(energy.value());
-}
+    // Calculate minimum step
+    real_type xm
+        = lambda_
+          / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_.value());
 
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the minimum of the true path length limit.
- */
-CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min(Energy    energy,
-                                                           real_type step) const
-{
-    real_type xm = is_positron_ ? real_type(0.70) * step * std::sqrt(msc_.zeff)
-                                : real_type(0.87) * step * msc_.z23;
+    // Scale based on particle type and effective atomic number:
+    // 0.7 * z^{1/2} for positrons, otherwise 0.87 * z^{2/3}
+    // TODO: tabulate these two values to avoid the sqrt?
+    xm *= is_positron_ ? real_type(0.70) * std::sqrt(msc_.zeff)
+                       : real_type(0.87) * msc_.z23;
 
-    if (energy < this->tlow())
+    if (inc_energy_ < this->tlow())
     {
         // Energy is below a pre-defined limit
-        xm *= real_type(0.5) * (1 + energy.value() / this->tlow().value());
+        xm *= (real_type(0.5)
+               + real_type(0.5) * inc_energy_.value() / this->tlow().value());
     }
 
     return max<real_type>(xm, shared_.params.limit_min_fix());
