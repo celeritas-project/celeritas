@@ -131,7 +131,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics)
-    , on_boundary_(is_first_step || safety_ == 0)
+    , on_boundary_(is_first_step || safety_ <= 0)
     , phys_step_(phys_step)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
@@ -174,7 +174,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // NOTE: use d_over_r_mh for muons and charged hadrons
     real_type distance = range_ * msc_.d_over_r;
     if (result.true_path < shared_.params.limit_min_fix()
-        || (safety_ > 0 && distance < safety_))
+        || (!on_boundary_ && distance < safety_))
     {
         result.is_displaced = false;
         auto temp           = this->calc_geom_path(result.true_path);
