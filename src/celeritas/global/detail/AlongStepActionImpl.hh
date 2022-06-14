@@ -65,9 +65,6 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         return;
     }
 
-    // Increment the step counter
-    sim.increment_num_steps();
-
     // True step is the actual path length traveled by the particle, including
     // within-step MSC
     StepLimit step_limit = sim.step_limit();
@@ -80,6 +77,10 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         CELER_ASSERT(track.make_particle_view().is_stopped());
         CELER_ASSERT(step_limit.action
                      == track.make_physics_view().scalars().discrete_action());
+
+        // Increment the step counter for diagnostic purposes
+        sim.increment_num_steps();
+
         return;
     }
 
@@ -234,6 +235,9 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
 
     // Override step limit with whatever action/step changes we applied here
     sim.force_step_limit(step_limit);
+
+    // Increment the step counter
+    sim.increment_num_steps();
 }
 
 //---------------------------------------------------------------------------//
