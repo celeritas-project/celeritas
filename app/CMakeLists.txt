@@ -269,15 +269,13 @@ if(CELERITAS_BUILD_DEMOS)
       LABELS "app;nomemcheck;gpu"
     )
 
-    # Disable test when prereqs are not available or for debug builds
-    # (debug failures seem limited to older architectures with debug assertions
-    # enabled)
+    # Disable test when prereqs are not available
+    # Note that this test has been known to fail for CUDA architecture 3.5
+    # when using VecGeom and a debug build
     if(NOT (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
        OR NOT CELERITAS_USE_Geant4
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python
-       OR (CELERITAS_USE_VecGeom AND CELERITAS_DEBUG
-           AND CMAKE_BUILD_TYPE STREQUAL "Debug")
        )
       set_tests_properties("app/demo-loop" PROPERTIES
         DISABLED true
