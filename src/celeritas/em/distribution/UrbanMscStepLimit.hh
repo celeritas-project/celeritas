@@ -174,7 +174,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // NOTE: use d_over_r_mh for muons and charged hadrons
     real_type distance = range_ * msc_.d_over_r;
     if (result.true_path < shared_.params.limit_min_fix()
-        || (!on_boundary_ && distance < safety_))
+        || (safety_ > 0 && distance < safety_))
     {
         result.is_displaced = false;
         auto temp           = this->calc_geom_path(result.true_path);
