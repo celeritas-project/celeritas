@@ -47,6 +47,12 @@ struct UrbanMscParameters
         return 1e-9 * units::centimeter;
     }
 
+    //! Default minimum of the true path limit: 1e-8 cm
+    static CELER_CONSTEXPR_FUNCTION real_type limit_min()
+    {
+        return 10 * limit_min_fix();
+    }
+
     //! For steps below this value, true = geometrical (no MSC to be applied)
     static CELER_CONSTEXPR_FUNCTION real_type min_step()
     {

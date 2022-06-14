@@ -76,7 +76,7 @@ struct MscStep
     real_type phys_step{};        //!< Step length from physics processes
     real_type true_path{};        //!< True path length due to the msc
     real_type geom_path{};        //!< Geometrical path length
-    real_type limit_min{1e-8};    //!< Minimum of the true path limit
+    real_type limit_min{};        //!< Minimum of the true path limit
     real_type alpha{-1};          //!< An effecive mfp rate by distance
 };
 
