@@ -55,6 +55,13 @@ CELER_FUNCTION EnergyLossHelper::Energy
 } // namespace
 
 //---------------------------------------------------------------------------//
+struct ProcessModelId
+{
+    ParticleProcessId process;
+    ActionId          action;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
  */
@@ -299,7 +306,7 @@ CELER_FUNCTION ParticleTrackView::Energy
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ActionId
+CELER_FUNCTION ProcessModelId
 select_discrete_interaction(const ParticleTrackView& particle,
                             const PhysicsTrackView&  physics,
                             const PhysicsStepView&   pstep,
@@ -336,7 +343,7 @@ select_discrete_interaction(const ParticleTrackView& particle,
         {
             // No interaction occurs; reset the physics state and continue
             // tracking
-            return physics.scalars().integral_rejection_action();
+            return {ppid, physics.scalars().integral_rejection_action()};
         }
     }
 
@@ -344,7 +351,7 @@ select_discrete_interaction(const ParticleTrackView& particle,
     auto find_model = physics.make_model_finder(ppid);
     auto model_id   = find_model(particle.energy());
     CELER_ENSURE(model_id);
-    return physics.model_to_action(model_id);
+    return {ppid, physics.model_to_action(model_id)};
 }
 
 //---------------------------------------------------------------------------//

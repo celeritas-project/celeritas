@@ -63,6 +63,9 @@ class PhysicsTrackView
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
 
+    // Set the sampled element
+    inline CELER_FUNCTION void element_id(ElementComponentId);
+
     // Reset the remaining MFP to interaction
     inline CELER_FUNCTION void reset_interaction_mfp();
 
@@ -73,6 +76,9 @@ class PhysicsTrackView
 
     // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
+
+    // Sampled element ID
+    CELER_FORCEINLINE_FUNCTION ElementComponentId element_id() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -101,6 +107,15 @@ class PhysicsTrackView
     // Models that apply to the given process ID
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
+
+    // Sample an element
+    template<class Engine>
+    inline CELER_FUNCTION ElementComponentId
+    sample_element(const MaterialView& material,
+                   ParticleProcessId,
+                   ModelId,
+                   Energy  energy,
+                   Engine& rng);
 
     // Whether the particle can have a discrete interaction at rest
     inline CELER_FUNCTION bool has_at_rest() const;
@@ -140,10 +155,10 @@ class PhysicsTrackView
     //// HACKS ////
 
     // Process ID for photoelectric effect
-    inline CELER_FUNCTION ProcessId photoelectric_process_id() const;
+    inline CELER_FUNCTION ProcessId photoelectric_pid() const;
 
     // Process ID for positron annihilation
-    inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
+    inline CELER_FUNCTION ProcessId eplusgg_pid() const;
 
     // Get hardwired model, null if not present
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
@@ -167,6 +182,8 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION PhysicsTrackState&       state();
     CELER_FORCEINLINE_FUNCTION const PhysicsTrackState& state() const;
     CELER_FORCEINLINE_FUNCTION const ProcessGroup&      process_group() const;
+    CELER_FORCEINLINE_FUNCTION const ModelGroup&
+        model_group(ParticleProcessId) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -217,6 +234,15 @@ CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the sampled element.
+ */
+CELER_FUNCTION void PhysicsTrackView::element_id(ElementComponentId elcomp_id)
+{
+    this->state().element_id = elcomp_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set the distance to the next interaction, in mean free paths.
  *
  * This value will be decremented at each step.
@@ -245,6 +271,15 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
     real_type mfp = this->state().interaction_mfp;
     CELER_ENSURE(mfp >= 0);
     return mfp;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sampled element ID.
+ */
+CELER_FUNCTION ElementComponentId PhysicsTrackView::element_id() const
+{
+    return this->state().element_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -405,9 +440,9 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
                                                          Energy energy) const
 {
     ProcessId process = this->process(ppid);
-    if ((process == this->photoelectric_process_id()
+    if ((process == this->photoelectric_pid()
          && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == this->eplusgg_process_id()))
+        || (process == this->eplusgg_pid()))
     {
         auto find_model = this->make_model_finder(ppid);
         return find_model(energy);
@@ -442,10 +477,67 @@ CELER_FUNCTION auto
 PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
-    CELER_EXPECT(ppid < this->num_particle_processes());
-    const ModelGroup& md
-        = params_.model_groups[this->process_group().models[ppid.get()]];
+    const ModelGroup& md = this->model_group(ppid);
     return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample an element from the current material.
+ */
+template<class Engine>
+CELER_FUNCTION ElementComponentId
+PhysicsTrackView::sample_element(const MaterialView& material,
+                                 ParticleProcessId   ppid,
+                                 ModelId             mid,
+                                 Energy              energy,
+                                 Engine&             rng)
+{
+    CELER_EXPECT(mid);
+
+    // Skip sampling if there is only one element in the material
+    if (material.num_elements() == 1)
+    {
+        return ElementComponentId{0};
+    }
+
+    // Find the index of the selected model (and its cross section table) in
+    // the model group
+    const auto& models    = this->model_group(ppid);
+    const auto& model_ids = params_.model_ids[models.model];
+    size_type   i         = 0;
+    for (; i < model_ids.size(); ++i)
+    {
+        if (model_ids[i] == mid)
+            break;
+    }
+    CELER_ASSERT(i < model_ids.size());
+    const ModelXsTable& model_xs = params_.model_xs[models.xs[i]];
+
+    // Skip models that don't need to sample an element (either because they
+    // compute microscopic cross sections on the fly or because their discrete
+    // interactions are material independent)
+    if (!model_xs)
+    {
+        return {};
+    }
+
+    CELER_ASSERT(material_ < model_xs.material.size());
+    const ValueTable& table
+        = params_.value_tables[model_xs.material[material_.get()]];
+    CELER_ASSERT(table.grids.size() == material.num_elements());
+
+    // Sample the element
+    size_type elcomp = 0;
+    real_type u      = generate_canonical(rng);
+    for (; elcomp < material.num_elements(); ++elcomp)
+    {
+        auto calc_xs = this->make_calculator<XsCalculator>(
+            params_.value_grid_ids[table.grids[elcomp]]);
+        if (calc_xs(energy) > u)
+            break;
+    }
+    return ElementComponentId{elcomp};
 }
 
 //---------------------------------------------------------------------------//
@@ -592,7 +684,7 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 /*!
  * Process ID for photoelectric effect.
  */
-CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_process_id() const
+CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_pid() const
 {
     return params_.hardwired.photoelectric;
 }
@@ -601,7 +693,7 @@ CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_process_id() const
 /*!
  * Process ID for positron annihilation.
  */
-CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_process_id() const
+CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_pid() const
 {
     return params_.hardwired.positron_annihilation;
 }
@@ -626,6 +718,14 @@ CELER_FUNCTION const ProcessGroup& PhysicsTrackView::process_group() const
 {
     CELER_EXPECT(particle_ < params_.process_groups.size());
     return params_.process_groups[particle_];
+}
+
+//! Get the group of models that apply to the particle and process
+CELER_FUNCTION const ModelGroup&
+PhysicsTrackView::model_group(ParticleProcessId ppid) const
+{
+    CELER_EXPECT(ppid < this->num_particle_processes());
+    return params_.model_groups[this->process_group().models[ppid.get()]];
 }
 
 //---------------------------------------------------------------------------//

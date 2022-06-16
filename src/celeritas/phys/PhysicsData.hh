@@ -38,7 +38,7 @@ using ValueTableId = OpaqueId<struct ValueTable>;
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Set of value grids for all materials (or elements).
+ * Set of value grids for all elements or materials.
  *
  * It is allowable for this to be "false" (i.e. no materials assigned)
  * indicating that the value table doesn't apply in the context -- for
@@ -47,7 +47,7 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  */
 struct ValueTable
 {
-    ItemRange<ValueGridId> grids; //!< Value grid by material index
+    ItemRange<ValueGridId> grids; //!< Value grid by element or material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
@@ -55,12 +55,12 @@ struct ValueTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Set of partial macroscopic cross section CDF tables for all materials.
+ * Set model cross section CDF tables for all materials.
  *
  * Each material has a set of value grids for all elements; these are used to
  * sample an element from a material. An empty ValueTable means the material
- * only has a single element, so no microscopic cross sections need to be
- * stored.
+ * only has a single element, so no cross sections need to be stored. An empty
+ * ModelXsTable means no element selection is required for the model.
  */
 struct ModelXsTable
 {
@@ -85,7 +85,7 @@ struct ModelGroup
 
     ItemRange<real_type>    energy; //!< Energy grid bounds [MeV]
     ItemRange<ModelId>      model;  //!< Corresponding models
-    ItemRange<ModelXsTable> xs; //!< Partial macro xs CDF table for each model
+    ItemRange<ModelXsTable> xs;     //!< Cross section CDF table for each model
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const

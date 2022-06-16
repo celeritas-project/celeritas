@@ -26,9 +26,9 @@ inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
     auto material_track = track.make_material_view();
     auto material       = material_track.make_material_view();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material.num_elements() == 1);
-    auto element = material.make_element_view(celeritas::ElementComponentId{0});
+    // Get the sampled element
+    auto elcomp_id = track.make_physics_view().element_id();
+    auto element   = material.make_element_view(elcomp_id);
 
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();

@@ -57,7 +57,7 @@ auto EPlusGGModel::applicability() const -> SetApplicability
  */
 auto EPlusGGModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    // Cross sections are calculated on the fly
+    // Discrete interaction is material independent, so no element is sampled
     MicroXsBuilders builders;
     return builders;
 }

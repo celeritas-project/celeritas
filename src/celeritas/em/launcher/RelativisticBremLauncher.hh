@@ -25,23 +25,17 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
     // Select material track view
     auto material = track.make_material_view().make_material_view();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material.num_elements() == 1);
-    const ElementComponentId selected_element{0};
+    // Get the sampled element
+    auto elcomp_id = track.make_physics_view().element_id();
 
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        particle = track.make_particle_view();
+    const auto& dir      = track.make_geo_view().dir();
     auto        allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        cutoff               = track.make_cutoff_view();
+    auto cutoff = track.make_cutoff_view();
 
-    RelativisticBremInteractor interact(model,
-                                        particle,
-                                        dir,
-                                        cutoff,
-                                        allocate_secondaries,
-                                        material,
-                                        selected_element);
+    RelativisticBremInteractor interact(
+        model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

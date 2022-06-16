@@ -74,9 +74,12 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MollerBhabhaModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    return imported_.micro_xs(std::move(applic));
+    // Aside from the production cut, the iscrete interaction is material
+    // independent, so no element is sampled
+    MicroXsBuilders builders;
+    return builders;
 }
 
 //---------------------------------------------------------------------------//

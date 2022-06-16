@@ -33,33 +33,25 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
     CELER_EXPECT(range.material);
     CELER_EXPECT(range.particle);
 
-    using VecReal = std::vector<real_type>;
-
     MicroXsBuilders builders;
 
     celeritas::MaterialView mat(data_.materials->host_ref(), range.material);
-    real_type               numdens = mat.number_density();
-
-    CELER_ASSERT(data_.applic.particle == range.particle);
-    // if (data_.applic.particle == range.particle)
+    if (mat.num_elements() > 1 && !data_.xs.empty())
     {
-        // TODO: add materials with multiple elements and calculate partial
-        // macro cdf tables
-        if (mat.num_elements() > 1 && !data_.xs.empty())
+        for (const auto& elcomp : mat.elements())
         {
-            for (const auto& elcomp : mat.elements())
+            std::vector<real_type> xs_grid;
+            for (auto xs : data_.xs)
             {
-                VecReal xs_grid;
-                for (auto xs : data_.xs)
-                {
-                    xs_grid.push_back(native_value_from(xs) * numdens);
-                }
-                builders[elcomp.element]
-                    = std::make_unique<celeritas::ValueGridLogBuilder>(
-                        range.lower.value(), range.upper.value(), xs_grid);
+                xs_grid.push_back(native_value_from(xs));
             }
+
+            builders[elcomp.element]
+                = std::make_unique<celeritas::ValueGridLogBuilder>(
+                    range.lower.value(), range.upper.value(), xs_grid);
         }
     }
+
     return builders;
 }
 

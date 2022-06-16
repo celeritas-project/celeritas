@@ -58,9 +58,11 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto KleinNishinaModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    return imported_.micro_xs(std::move(applic));
+    // Discrete interaction is material independent, so no element is sampled
+    MicroXsBuilders builders;
+    return builders;
 }
 
 //---------------------------------------------------------------------------//

@@ -25,10 +25,10 @@ rayleigh_interact_track(RayleighRef const& model, CoreTrackView const& track)
     auto        particle = track.make_particle_view();
     const auto& dir      = track.make_geo_view().dir();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(track.make_material_view().make_material_view().num_elements()
-                 == 1);
-    ElementId el_id{0};
+    // Get the sampled element
+    auto material  = track.make_material_view().make_material_view();
+    auto elcomp_id = track.make_physics_view().element_id();
+    auto el_id     = material.element_id(elcomp_id);
 
     RayleighInteractor interact(model, particle, dir, el_id);
     auto               rng = track.make_rng_engine();

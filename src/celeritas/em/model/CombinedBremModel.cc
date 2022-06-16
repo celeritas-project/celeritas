@@ -79,8 +79,9 @@ auto CombinedBremModel::applicability() const -> SetApplicability
  */
 auto CombinedBremModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    // TODO
-    CELER_NOT_IMPLEMENTED("Combined brems micro xs");
+    // Multiple elements per material not supported for combined brems model
+    MicroXsBuilders builders;
+    return builders;
 }
 
 //---------------------------------------------------------------------------//
