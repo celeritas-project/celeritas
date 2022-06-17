@@ -11,7 +11,6 @@
 #include <unordered_map>
 
 #include "corecel/Types.hh"
-#include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 
