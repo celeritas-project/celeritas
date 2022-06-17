@@ -213,7 +213,14 @@ OrangeParams::OrangeParams(Input input)
         max_faces = std::max<size_type>(max_faces, def.faces.size());
         max_intersections
             = std::max<size_type>(max_intersections, def.max_intersections);
-        simple_safety &= (def.flags & VolumeRecord::simple_safety);
+
+        // Safe if an implicit cell *or* has simple surface types and no
+        // internal surfaces
+        simple_safety
+            = simple_safety
+              && ((def.flags & VolumeRecord::implicit_cell)
+                  || ((def.flags & VolumeRecord::simple_safety)
+                      && !(def.flags & VolumeRecord::internal_surfaces)));
     }
     host_data.scalars.max_faces         = max_faces;
     host_data.scalars.max_intersections = max_intersections;
