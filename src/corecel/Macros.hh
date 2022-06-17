@@ -3,8 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/Macros.hh
-//! \brief Language and compiler abstraction macro definitions
+/*!
+ * \file corecel/Macros.hh
+ * \brief Language and compiler abstraction macro definitions.
+ *
+ * The Macros file defines cross-platform (CUDA, C++, HIP) macros that
+ * expand to attributes depending on the compiler and build configuration.
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -139,16 +144,20 @@
  */
 #if defined(__CUDACC__) || defined(__HIP__)
 #    define CELER_DEVICE_SOURCE 1
+#elif defined(__DOXYGEN__)
+#    define CELER_DEVICE_SOURCE 0
 #endif
 
 /*!
  * \def CELER_DEVICE_COMPILE
  *
  * Defined and true if building device code in HIP or CUDA. This is a generic
- * replacement for \c #ifdef \c __CUDA_ARCH__ .
+ * replacement for \c __CUDA_ARCH__ .
  */
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
 #    define CELER_DEVICE_COMPILE 1
+#elif defined(__DOXYGEN__)
+#    define CELER_DEVICE_COMPILE 0
 #endif
 
 /*!

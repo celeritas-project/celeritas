@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/ArrayUtils.hh
+//! \brief Math functions using celeritas::Array
 //---------------------------------------------------------------------------//
 #pragma once
 

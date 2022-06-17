@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/mat/detail/Utils.hh
+//! \brief Helper functions for constructing materials
 //---------------------------------------------------------------------------//
 #pragma once
 

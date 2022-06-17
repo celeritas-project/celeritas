@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/track/TrackInitUtils.hh
+//! \brief Helper functions for initializing tracks
 //---------------------------------------------------------------------------//
 #pragma once
 
