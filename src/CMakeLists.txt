@@ -111,6 +111,7 @@ list(APPEND SOURCES ${_gen_sources})
 # Main library
 list(APPEND SOURCES
   corecel/Assert.cc
+  corecel/cont/Label.cc
   corecel/data/Copier.cc
   corecel/data/DeviceAllocation.cc
   corecel/io/BuildOutput.cc

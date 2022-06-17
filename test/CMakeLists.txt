@@ -119,6 +119,7 @@ celeritas_setup_tests(SERIAL PREFIX corecel)
 # Cont
 celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
+celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
 celeritas_device_test(corecel/cont/Range)
 
 # Data
