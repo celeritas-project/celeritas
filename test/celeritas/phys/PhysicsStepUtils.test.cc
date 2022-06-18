@@ -258,17 +258,17 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         PhysicsTrackView::PhysicsStateRef state_shortcut(phys_state.ref());
         state_shortcut.state[ThreadId{0}].interaction_mfp = 0;
 
-        auto selected
+        auto action
             = select_discrete_interaction(particle, phys, pstep, this->rng());
-        EXPECT_EQ(selected.action.unchecked_get(), 0 + model_offset);
+        EXPECT_EQ(action.unchecked_get(), 0 + model_offset);
 
-        selected
+        action
             = select_discrete_interaction(particle, phys, pstep, this->rng());
-        EXPECT_EQ(selected.action.unchecked_get(), 2 + model_offset);
+        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
 
-        selected
+        action
             = select_discrete_interaction(particle, phys, pstep, this->rng());
-        EXPECT_EQ(selected.action.unchecked_get(), 2 + model_offset);
+        EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
     }
 
     {
@@ -291,9 +291,9 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         std::vector<ActionId::size_type> models(13, -1);
         for (auto i : range(models.size()))
         {
-            auto selected = select_discrete_interaction(
+            auto action_id = select_discrete_interaction(
                 particle, phys, pstep, this->rng());
-            models[i] = selected.action.unchecked_get() - model_offset;
+            models[i] = action_id.unchecked_get() - model_offset;
         }
 
         static const ActionId::size_type expected_models[]
@@ -337,9 +337,9 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
                 phys.reset_interaction_mfp();
                 pstep.macro_xs(xs_max);
 
-                auto selected = select_discrete_interaction(
+                auto action = select_discrete_interaction(
                     particle, phys, pstep, this->rng());
-                if (selected.action != reject_action)
+                if (action != reject_action)
                     ++count;
             }
             acceptance_rate.push_back(real_type(count) / num_samples);

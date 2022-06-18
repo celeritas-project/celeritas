@@ -55,12 +55,13 @@ struct ValueTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Set model cross section CDF tables for all materials.
+ * Set of cross section CDF tables for a model.
  *
- * Each material has a set of value grids for all elements; these are used to
- * sample an element from a material. An empty ValueTable means the material
- * only has a single element, so no cross sections need to be stored. An empty
- * ModelXsTable means no element selection is required for the model.
+ * Each material has a set of value grids for its constituent elements; these
+ * are used to sample an element from a material when required by a discrete
+ * interaction. An empty ValueTable means the material only has a single
+ * element, so no cross sections need to be stored. An empty ModelXsTable means
+ * no element selection is required for the model.
  */
 struct ModelXsTable
 {
@@ -379,7 +380,7 @@ struct PhysicsParamsData
  * - Current macroscopic cross section
  * - Within-step energy deposition
  * - Secondaries emitted from an interaction
- * - Discrete process element selection
+ * - Discrete process selection
  */
 struct PhysicsTrackState
 {
@@ -387,9 +388,9 @@ struct PhysicsTrackState
 
     // TEMPORARY STATE
     real_type macro_xs; //!< Total cross section for discrete interactions
-    real_type energy_deposition; //!< Local energy deposition in a step [MeV]
-    Span<Secondary> secondaries; //!< Emitted secondaries
-    ElementComponentId element_id; //!< Selected element during interaction
+    real_type energy_deposition;   //!< Local energy deposition in a step [MeV]
+    Span<Secondary>   secondaries; //!< Emitted secondaries
+    ParticleProcessId ppid;        //!< Process sampled for interaction
 };
 
 //---------------------------------------------------------------------------//

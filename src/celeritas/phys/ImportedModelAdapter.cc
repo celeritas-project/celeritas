@@ -81,23 +81,14 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
     const auto& el_to_vec = xs->second[applic.material.get()];
 
     MicroXsBuilders builders;
-
-    // No element selector is needed if the material does not have multiple
-    // elements
-    if (el_to_vec.size() > 1)
+    for (const auto& kv : el_to_vec)
     {
-        // TODO: Are these import element IDs guaranteed to be the same as the
-        // celeritas element IDs? Are they in the same order?
-        for (const auto& kv : el_to_vec)
-        {
-            const auto& vec = kv.second;
-            CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-            ElementId el{static_cast<size_type>(kv.first)};
-            builders[el] = ValueGridLogBuilder::from_geant(make_span(vec.x),
-                                                           make_span(vec.y));
-        }
+        const auto& vec = kv.second;
+        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
+        ElementId el{static_cast<size_type>(kv.first)};
+        builders[el] = ValueGridLogBuilder::from_geant(make_span(vec.x),
+                                                       make_span(vec.y));
     }
-
     return builders;
 }
 

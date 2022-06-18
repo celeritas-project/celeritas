@@ -19,6 +19,7 @@
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/mat/TabulatedElementSelector.hh"
 
 #include "PhysicsData.hh"
 
@@ -63,9 +64,6 @@ class PhysicsTrackView
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
 
-    // Set the sampled element
-    inline CELER_FUNCTION void element_id(ElementComponentId);
-
     // Reset the remaining MFP to interaction
     inline CELER_FUNCTION void reset_interaction_mfp();
 
@@ -76,9 +74,6 @@ class PhysicsTrackView
 
     // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
-
-    // Sampled element ID
-    CELER_FORCEINLINE_FUNCTION ElementComponentId element_id() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -108,14 +103,9 @@ class PhysicsTrackView
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
 
-    // Sample an element
-    template<class Engine>
-    inline CELER_FUNCTION ElementComponentId
-    sample_element(const MaterialView& material,
-                   ParticleProcessId,
-                   ModelId,
-                   Energy  energy,
-                   Engine& rng);
+    // Construct an element selector
+    inline CELER_FUNCTION
+        TabulatedElementSelector make_element_selector(ModelId, Energy);
 
     // Whether the particle can have a discrete interaction at rest
     inline CELER_FUNCTION bool has_at_rest() const;
@@ -234,15 +224,6 @@ CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the sampled element.
- */
-CELER_FUNCTION void PhysicsTrackView::element_id(ElementComponentId elcomp_id)
-{
-    this->state().element_id = elcomp_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set the distance to the next interaction, in mean free paths.
  *
  * This value will be decremented at each step.
@@ -271,15 +252,6 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
     real_type mfp = this->state().interaction_mfp;
     CELER_ENSURE(mfp >= 0);
     return mfp;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sampled element ID.
- */
-CELER_FUNCTION ElementComponentId PhysicsTrackView::element_id() const
-{
-    return this->state().element_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -483,61 +455,40 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample an element from the current material.
+ * Construct an element selector.
  */
-template<class Engine>
-CELER_FUNCTION ElementComponentId
-PhysicsTrackView::sample_element(const MaterialView& material,
-                                 ParticleProcessId   ppid,
-                                 ModelId             mid,
-                                 Energy              energy,
-                                 Engine&             rng)
+CELER_FUNCTION
+TabulatedElementSelector
+PhysicsTrackView::make_element_selector(ModelId model_id, Energy energy)
 {
-    CELER_EXPECT(mid);
-
-    // Skip sampling if there is only one element in the material
-    if (material.num_elements() == 1)
-    {
-        return ElementComponentId{0};
-    }
+    CELER_EXPECT(model_id);
 
     // Find the index of the selected model (and its cross section table) in
-    // the model group
-    const auto& models    = this->model_group(ppid);
+    // the model group from the sampled particle/process ID and model ID
+    // TODO: there are typically just one or two models in a process, but this
+    // is still not a great way to store/retrieve the model xs CDF tables
+    const auto& models    = this->model_group(this->state().ppid);
     const auto& model_ids = params_.model_ids[models.model];
     size_type   i         = 0;
     for (; i < model_ids.size(); ++i)
     {
-        if (model_ids[i] == mid)
+        if (model_ids[i] == model_id)
             break;
     }
     CELER_ASSERT(i < model_ids.size());
+
+    // Get the xs CDF table for the selected model and current material
     const ModelXsTable& model_xs = params_.model_xs[models.xs[i]];
-
-    // Skip models that don't need to sample an element (either because they
-    // compute microscopic cross sections on the fly or because their discrete
-    // interactions are material independent)
-    if (!model_xs)
-    {
-        return {};
-    }
-
     CELER_ASSERT(material_ < model_xs.material.size());
     const ValueTable& table
         = params_.value_tables[model_xs.material[material_.get()]];
-    CELER_ASSERT(table.grids.size() == material.num_elements());
 
-    // Sample the element
-    size_type elcomp = 0;
-    real_type u      = generate_canonical(rng);
-    for (; elcomp < material.num_elements(); ++elcomp)
-    {
-        auto calc_xs = this->make_calculator<XsCalculator>(
-            params_.value_grid_ids[table.grids[elcomp]]);
-        if (calc_xs(energy) > u)
-            break;
-    }
-    return ElementComponentId{elcomp};
+    // Create the element selector
+    return TabulatedElementSelector{table,
+                                    params_.value_grids,
+                                    params_.value_grid_ids,
+                                    params_.reals,
+                                    energy};
 }
 
 //---------------------------------------------------------------------------//
