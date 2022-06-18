@@ -5,50 +5,32 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/UrbanMsc.test.cc
 //---------------------------------------------------------------------------//
-#include <random>
+#include "UrbanMsc.test.hh"
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/data/Ref.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/em/distribution/UrbanMscHelper.hh"
 #include "celeritas/em/distribution/UrbanMscScatter.hh"
 #include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/ext/RootImporter.hh"
-#include "celeritas/geo/GeoData.hh"
+#include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/ActionManager.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
-#include "celeritas/phys/Model.hh"
-#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/track/SimData.hh"
-#include "celeritas/track/SimTrackView.hh"
+#include "celeritas/random/RngParams.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "Test.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
-
-using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
-
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using GeoParamsCRefDevice
-    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
-using GeoStateRefDevice
-    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
-
-using SimStateValue = SimStateData<Ownership::value, MemSpace::host>;
-using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -69,15 +51,12 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:
-    const char* geometry_basename() const override
-    {
-        return "four-steel-slabs";
-    }
+    const char* geometry_basename() const { return "geant4-testem15"; }
 
     void SetUp() override
     {
         RootImporter import_from_root(
-            this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
+            this->test_data_path("celeritas", "geant4-testem15.root").c_str());
         import_data_    = import_from_root();
         processes_data_ = std::make_shared<ImportedProcesses>(
             std::move(import_data_.processes));
@@ -86,10 +65,21 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
         // Make one state per particle
         auto state_size = this->particle()->size();
 
-        params_ref_     = this->physics()->host_ref();
+        geo_state_      = GeoStateStore(*this->geometry(), 1);
         physics_state_  = PhysicsStateStore(*this->physics(), state_size);
         particle_state_ = ParticleStateStore(*this->particle(), state_size);
-        geo_state_      = GeoStateStore(*this->geometry(), 1);
+
+        phys_params_ = this->physics()->host_ref();
+        rng_params_  = std::make_shared<RngParams>(12345);
+
+        // Test parameters with the TestEM15 detector (100 meter box)
+        test_param.nstates   = 1e+5;
+        test_param.position  = {-1e+5 * units::millimeter / 2 + 1e-8, 0, 0};
+        test_param.direction = {1, 0, 0};
+
+        // Create the Urban msc model
+        model_ = std::make_shared<UrbanMscModel>(
+            ActionId{0}, *this->particle(), *this->material());
     }
 
     SPConstParticle build_particle() override
@@ -124,6 +114,7 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
     {
         CELER_ASSERT_UNREACHABLE();
     }
+
     SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
 
     // Make physics track view
@@ -139,7 +130,7 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 
         // Construct and initialize
         PhysicsTrackView phys_view(
-            params_ref_, physics_state_.ref(), pid, mid, tid);
+            phys_params_, physics_state_.ref(), pid, mid, tid);
         phys_view = PhysicsTrackInitializer{};
         return phys_view;
     }
@@ -177,21 +168,50 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
     ImportData      import_data_;
     SPConstImported processes_data_;
 
-    PhysicsParamsHostRef params_ref_;
+    GeoStateStore        geo_state_;
     PhysicsStateStore    physics_state_;
     ParticleStateStore   particle_state_;
-    GeoStateStore        geo_state_;
+    PhysicsParamsHostRef phys_params_;
 
     // Views
     std::shared_ptr<ParticleTrackView> part_view_;
-    RandomEngine                       rng_;
 
+    // Random number generator
+    std::shared_ptr<RngParams> rng_params_;
+    RandomEngine               rng_;
+
+    // Test parameters
+    celeritas_test::MscTestParams test_param;
+
+    // Msc model
     std::shared_ptr<UrbanMscModel> model_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+TEST_F(UrbanMscTest, msc_data)
+{
+    // Views
+    const MaterialView material_view = this->material()->get(MaterialId{1});
+
+    // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
+    const UrbanMscMaterialData& msc_data
+        = model_->host_ref().msc_data[material_view.material_id()];
+
+    EXPECT_DOUBLE_EQ(msc_data.zeff, 25.8);
+    EXPECT_DOUBLE_EQ(msc_data.z23, 8.7313179636909233);
+    EXPECT_DOUBLE_EQ(msc_data.coeffth1, 0.97326969977637379);
+    EXPECT_DOUBLE_EQ(msc_data.coeffth2, 0.044188139325421663);
+    EXPECT_DOUBLE_EQ(msc_data.d[0], 1.6889578380303167);
+    EXPECT_DOUBLE_EQ(msc_data.d[1], 2.745018223507488);
+    EXPECT_DOUBLE_EQ(msc_data.d[2], -2.2531516772497562);
+    EXPECT_DOUBLE_EQ(msc_data.d[3], 0.052696806851297018);
+    EXPECT_DOUBLE_EQ(msc_data.stepmin_a, 1e3 * 4.4449610414595817);
+    EXPECT_DOUBLE_EQ(msc_data.stepmin_b, 1e3 * 1.5922149179564158);
+    EXPECT_DOUBLE_EQ(msc_data.d_over_r, 0.64474963087322135);
+    EXPECT_DOUBLE_EQ(msc_data.d_over_r_mh, 1.1248191999999999);
+}
 
 TEST_F(UrbanMscTest, msc_scattering)
 {
@@ -200,126 +220,158 @@ TEST_F(UrbanMscTest, msc_scattering)
     GeoTrackView       geo_view = this->make_geo_track_view();
     const MaterialView material_view = this->material()->get(MaterialId{1});
 
-    // Create the model
-    std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ActionId{0}, *this->particle(), *this->material());
+    // Test the step limitation algorithm and the msc sample scattering with
+    // respect to TestEM15 using G4_STAINLESS-STEEL and 1mm cut: For details,
+    // refer to Geant4 Release 11.0 examples/extended/electromagnetic/TestEm15
 
-    // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    const UrbanMscMaterialData& msc_
-        = model->host_ref().msc_data[material_view.material_id()];
+    // TestEM15 parameters
+    unsigned int nsamples = this->test_param.nstates;
 
-    EXPECT_DOUBLE_EQ(msc_.zeff, 25.8);
-    EXPECT_DOUBLE_EQ(msc_.z23, 8.7313179636909233);
-    EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
-    EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);
-    EXPECT_DOUBLE_EQ(msc_.d[0], 1.6889578380303167);
-    EXPECT_DOUBLE_EQ(msc_.d[1], 2.745018223507488);
-    EXPECT_DOUBLE_EQ(msc_.d[2], -2.2531516772497562);
-    EXPECT_DOUBLE_EQ(msc_.d[3], 0.052696806851297018);
-    EXPECT_DOUBLE_EQ(msc_.stepmin_a, 1e3 * 4.4449610414595817);
-    EXPECT_DOUBLE_EQ(msc_.stepmin_b, 1e3 * 1.5922149179564158);
-    EXPECT_DOUBLE_EQ(msc_.d_over_r, 0.64474963087322135);
-    EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
+    // Input energy
+    constexpr unsigned int num_energy = std::end(celeritas_test::energy)
+                                        - std::begin(celeritas_test::energy);
 
-    // Test the step limitation algorithm and the msc sample scattering
+    // Test output
+    std::vector<celeritas_test::MscTestOutput> output;
+    output.resize(nsamples);
+
+    std::vector<celeritas_test::MscTestOutput> mean;
+    mean.resize(num_energy);
+
+    RandomEngine& rng_engine = this->rng();
+
     MscStep        step_result;
     MscInteraction sample_result;
 
-    // Input
-    static const real_type energy[] = {51.0231,
-                                       10.0564,
-                                       5.05808,
-                                       1.01162,
-                                       0.501328,
-                                       0.102364,
-                                       0.0465336,
-                                       0.00708839};
-
-    static const real_type step[] = {0.00279169,
-                                     0.412343,
-                                     0.0376414,
-                                     0.078163296576415602,
-                                     0.031624394625545782,
-                                     0.002779271697902872,
-                                     0.00074215289000934838,
-                                     0.000031163160031423049};
-
-    constexpr unsigned int nsamples = std::end(step) - std::begin(step);
-    static_assert(nsamples == std::end(energy) - std::begin(energy),
-                  "Input sizes do not match");
-
-    // Mock SimStateData
-    SimStateValue states_ref;
-    auto          sim_state_data = make_builder(&states_ref.state);
-    sim_state_data.reserve(nsamples);
-
-    for (unsigned int i : celeritas::range(nsamples))
+    for (unsigned int j : celeritas::range(num_energy))
     {
-        SimTrackState state = {TrackId{i},
-                               TrackId{i},
-                               EventId{1},
-                               i % 2,
-                               TrackStatus::alive,
-                               StepLimit{}};
-        sim_state_data.push_back(state);
-    }
-    const SimStateRef& states = make_ref(states_ref);
-    SimTrackView       sim_track_view(states, ThreadId{0});
+        for (unsigned int i : celeritas::range(nsamples))
+        {
+            this->set_inc_particle(pdg::electron(),
+                                   MevEnergy{celeritas_test::energy[j]});
+            geo_view = {test_param.position, test_param.direction};
 
-    EXPECT_EQ(nsamples, sim_state_data.size());
-    EXPECT_EQ(0, sim_track_view.num_steps());
+            UrbanMscHelper msc_helper(model_->host_ref(), *part_view_, phys);
 
-    RandomEngine&       rng_engine = this->rng();
-    std::vector<double> fstep;
-    std::vector<double> angle;
-    Real3               direction{0, 0, 1};
+            // Sample multiple scattering step limit
+            UrbanMscStepLimit step_limiter(model_->host_ref(),
+                                           *part_view_,
+                                           phys,
+                                           material_view.material_id(),
+                                           true,
+                                           geo_view.find_safety(),
+                                           msc_helper.range());
 
-    for (auto i : celeritas::range(nsamples))
-    {
-        real_type r = i * 2 - real_type(1e-4);
-        geo_view    = {{r, r, r}, direction};
+            step_result = step_limiter(rng_engine);
 
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
+            // Propagate up to the geometric step length
+            real_type        geo_step = step_result.geom_path;
+            LinearPropagator propagate(&geo_view);
+            auto             propagated = propagate(geo_step);
 
-        UrbanMscStepLimit step_limiter(model->host_ref(),
-                                       *part_view_,
-                                       phys,
-                                       material_view.material_id(),
-                                       sim_track_view.num_steps() == 0,
-                                       geo_view.find_safety(),
-                                       step[i]);
+            if (propagated.boundary)
+            {
+                // Stopped at a geometry boundary:
+                step_result.geom_path = propagated.distance;
+            }
 
-        step_result = step_limiter(rng_engine);
+            // Sample the multiple scattering
+            UrbanMscScatter scatter(model_->host_ref(),
+                                    *part_view_,
+                                    &geo_view,
+                                    phys,
+                                    material_view,
+                                    step_result);
 
-        UrbanMscScatter scatter(model->host_ref(),
-                                *part_view_,
-                                &geo_view,
-                                phys,
-                                material_view,
-                                step_result);
+            sample_result = scatter(rng_engine);
 
-        sample_result = scatter(rng_engine);
+            output[i] = celeritas_test::calc_output(step_result, sample_result);
+        }
 
-        fstep.push_back(sample_result.step_length);
-        angle.push_back(sample_result.direction[0]);
+        // Calculate the mean value of test variables
+        mean[j] = celeritas_test::calc_mean(output);
     }
 
-    static const double expected_fstep[] = {0.0027916899999997,
-                                            0.134631648532277,
-                                            0.0376414,
-                                            0.035727783460526,
-                                            0.00111391683751815,
-                                            0.000112053935348643,
-                                            0.00028678982069363,
-                                            1.1737319513141e-05};
-    EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    static const double expected_angle[] = {0.000314741326035635,
-                                            0.738624667826603,
-                                            -0.145610123961716,
-                                            -0.657415795200799,
-                                            0.119014628205848,
-                                            -0.216102964881347,
-                                            0.793645871128744,
-                                            -0.98020130119347};
-    EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
+    // Verify results with respect to Geant4 TestEM15
+    celeritas_test::check_result(mean);
+}
+
+//---------------------------------------------------------------------------//
+// DEVICE TESTS
+//---------------------------------------------------------------------------//
+#define UrbanMscTestDeviceTest TEST_IF_CELER_DEVICE(UrbanMscTestDeviceTest)
+class UrbanMscDeviceTest : public UrbanMscTest
+{
+  public:
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
+    using MaterialStateStore
+        = CollectionStateStore<MaterialStateData, MemSpace::device>;
+    using ParticleStateStore
+        = CollectionStateStore<ParticleStateData, MemSpace::device>;
+    using PhysicsStateStore
+        = CollectionStateStore<PhysicsStateData, MemSpace::device>;
+    using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;
+};
+
+TEST_F(UrbanMscDeviceTest, TEST_IF_CELER_DEVICE(device_msc_scattering))
+{
+    // Input energy
+    constexpr unsigned int num_energy = std::end(celeritas_test::energy)
+                                        - std::begin(celeritas_test::energy);
+
+    // Test variables
+    std::vector<celeritas_test::MscTestOutput> mean;
+    mean.resize(num_energy);
+
+    // Setup test input
+    celeritas_test::MscTestInput input;
+    input.test_param = this->test_param;
+
+    // Params
+    input.geometry_params = this->geometry()->device_ref();
+    input.material_params = this->material()->device_ref();
+    input.particle_params = this->particle()->device_ref();
+    input.physics_params  = this->physics()->device_ref();
+
+    // States
+    GeoStateStore      geo_states(*this->geometry(), test_param.nstates);
+    ParticleStateStore part_states(*this->particle(), test_param.nstates);
+    PhysicsStateStore  phys_states(*this->physics(), test_param.nstates);
+
+    input.geometry_states = geo_states.ref();
+    input.particle_states = part_states.ref();
+    input.physics_states  = phys_states.ref();
+
+    // Other input data
+    RngDeviceStore rng_states(*rng_params_, test_param.nstates);
+    input.rng_states = rng_states.ref();
+
+    input.msc_data   = this->model_->device_ref();
+    input.test_param = this->test_param;
+
+    ParticleId pid = this->particle()->find("e-");
+
+    for (CELER_MAYBE_UNUSED int i : celeritas::range(test_param.nstates))
+    {
+        input.init_phys.push_back({MaterialId{1}, pid});
+    }
+
+    for (unsigned int j : celeritas::range(num_energy))
+    {
+        for (CELER_MAYBE_UNUSED int i : celeritas::range(test_param.nstates))
+        {
+            input.init_part.push_back(
+                {pid, MevEnergy{celeritas_test::energy[j]}});
+        }
+        // Run the Msc test kernel
+        auto output = celeritas_test::msc_test(input);
+
+        // Calculate the mean value of test variables
+        mean[j] = celeritas_test::calc_mean(output);
+
+        input.init_part.clear();
+    }
+
+    // Verify results with respect to Geant4 TestEM15
+    celeritas_test::check_result(mean);
 }

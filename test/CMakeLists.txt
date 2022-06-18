@@ -43,6 +43,7 @@ if(CELERITAS_USE_HIP)
     corecel/math/NumericLimits.test.cu
     corecel/cont/Range.test.cu
     corecel/data/StackAllocator.test.cu
+    celeritas/em/UrbanMsc.test.cu
     celeritas/field/FieldDriver.test.cu
     celeritas/field/FieldPropagator.test.cu
     celeritas/field/Steppers.test.cu
@@ -240,7 +241,7 @@ celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
 celeritas_add_test(celeritas/em/ImportedProcesses.test.cc ${_needs_root}
   ${_optional_geant4_env}
   LINK_LIBRARIES Celeritas::IO)
-celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
+celeritas_device_test(celeritas/em/UrbanMsc ${_needs_root}
   ${_optional_geant4_env}
   LINK_LIBRARIES Celeritas::IO)
 
