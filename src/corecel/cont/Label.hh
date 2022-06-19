@@ -22,6 +22,16 @@ struct Label
     std::string name; //!< Primary readable label component
     std::string ext; //!< Uniquifying component such as a pointer address or ID
 
+    //// STATIC DATA ////
+
+    //! Default separator for output and splitting
+    static constexpr char default_sep = '@';
+
+    //// CLASS METHODS ////
+
+    //! Create an empty label
+    Label() = default;
+
     //! Create from just a name
     explicit Label(std::string n) : name{std::move(n)}, ext{} {}
 
@@ -29,6 +39,14 @@ struct Label
     Label(std::string n, std::string e) : name{std::move(n)}, ext{std::move(e)}
     {
     }
+
+    //// STATIC METHODS ////
+
+    // Construct a label from a Geant4 pointer-appended name
+    static Label from_geant4(const std::string& name);
+
+    // Construct a label from by splitting on a separator
+    static Label from_separator(const std::string& name, char sep = default_sep);
 };
 
 //---------------------------------------------------------------------------//
@@ -59,6 +77,10 @@ inline bool operator<(const Label& lhs, const Label& rhs)
 //---------------------------------------------------------------------------//
 // Write a label to a stream
 std::ostream& operator<<(std::ostream&, const Label&);
+
+//---------------------------------------------------------------------------//
+// Get the label as a string
+std::string to_string(const Label&);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

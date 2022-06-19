@@ -8,6 +8,7 @@
 #include "corecel/cont/LabelIdMultiMap.hh"
 
 #include <iostream>
+#include <sstream>
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
@@ -19,6 +20,7 @@ using celeritas::LabelIdMultiMap;
 
 using CatId       = celeritas::OpaqueId<struct Cat>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
+using VecLabel    = CatMultiMap::VecLabel;
 
 std::ostream& operator<<(std::ostream& os, const CatId& cat)
 {
@@ -29,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const CatId& cat)
     return os;
 }
 
-TEST(LabelCmp, ordering)
+TEST(LabelTest, ordering)
 {
     EXPECT_EQ(Label("a"), Label("a"));
     EXPECT_EQ(Label("a", "1"), Label("a", "1"));
@@ -42,6 +44,23 @@ TEST(LabelCmp, ordering)
     EXPECT_TRUE(Label("a", "0") < Label("a", "1"));
     EXPECT_FALSE(Label("a", "1") < Label("a", "1"));
     EXPECT_FALSE(Label("a", "2") < Label("a", "1"));
+}
+
+TEST(LabelTest, construction)
+{
+    EXPECT_EQ(Label("foo"), Label::from_geant4("foo"));
+    EXPECT_EQ(Label("foo", "0xdeadb01d"), Label::from_geant4("foo0xdeadb01d"));
+
+    EXPECT_EQ(Label("bar"), Label::from_separator("bar", '@'));
+    EXPECT_EQ(Label("bar"), Label::from_separator("bar@", '@'));
+    EXPECT_EQ(Label("bar", "123"), Label::from_separator("bar@123", '@'));
+}
+
+TEST(LabelTest, output)
+{
+    std::ostringstream os;
+    os << Label{"bar", "123"};
+    EXPECT_EQ("bar@123", os.str());
 }
 
 //---------------------------------------------------------------------------//
@@ -63,11 +82,22 @@ TEST_F(LabelIdMultiMapTest, exceptions)
     EXPECT_THROW(CatMultiMap({Label{"kali"}, Label{"kali"}}),
                  celeritas::RuntimeError);
 #if CELERITAS_DEBUG
-    EXPECT_THROW(CatMultiMap({}), celeritas::DebugError);
+    EXPECT_THROW(CatMultiMap(VecLabel{}), celeritas::DebugError);
 #endif
 }
 
-TEST_F(LabelIdMultiMapTest, no_labels)
+TEST_F(LabelIdMultiMapTest, empty)
+{
+    CatMultiMap cats;
+    EXPECT_EQ(0, cats.size());
+    EXPECT_EQ(CatId{}, cats.find(Label{"merry"}));
+    EXPECT_EQ(0, cats.find("pippin").size());
+#if CELERITAS_DEBUG
+    EXPECT_THROW(cats.get(CatId{0}), celeritas::DebugError);
+#endif
+}
+
+TEST_F(LabelIdMultiMapTest, no_ext)
 {
     CatMultiMap cats{{Label{"dexter"}, Label{"andy"}, Label{"loki"}}};
     EXPECT_EQ(3, cats.size());

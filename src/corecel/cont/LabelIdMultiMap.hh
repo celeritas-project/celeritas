@@ -50,6 +50,9 @@ class LabelIdMultiMap
     //!@}
 
   public:
+    // Empty constructor for delayed build
+    LabelIdMultiMap() = default;
+
     // Construct from a vector of label+sublabel pairs
     explicit LabelIdMultiMap(VecLabel keys);
 
