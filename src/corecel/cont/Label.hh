@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <iosfwd>
 #include <string>
+
+#include "corecel/math/HashUtils.hh"
 
 namespace celeritas
 {
@@ -59,3 +62,21 @@ std::ostream& operator<<(std::ostream&, const Label&);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
+
+//---------------------------------------------------------------------------//
+//! \cond
+namespace std
+{
+//! Specialization for std::hash for unordered storage.
+template<>
+struct hash<celeritas::Label>
+{
+    using argument_type = celeritas::Label;
+    using result_type   = std::size_t;
+    result_type operator()(const argument_type& label) const noexcept
+    {
+        return celeritas::hash_combine(label.name, label.ext);
+    }
+};
+} // namespace std
+//! \endcond

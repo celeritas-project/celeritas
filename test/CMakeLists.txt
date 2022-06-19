@@ -139,6 +139,7 @@ celeritas_add_test(corecel/io/Repr.test.cc)
 # Math
 celeritas_add_test(corecel/math/Algorithms.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
+celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_device_test(corecel/math/NumericLimits)
 celeritas_add_test(corecel/math/Quantity.test.cc)
 celeritas_add_test(corecel/math/SoftEqual.test.cc)
