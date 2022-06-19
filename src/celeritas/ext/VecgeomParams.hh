@@ -8,9 +8,10 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/cont/Span.hh"
 
 #include "VecgeomData.hh"
 
@@ -31,6 +32,7 @@ class VecgeomParams
         = VecgeomParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
+    using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 
   public:
@@ -49,10 +51,13 @@ class VecgeomParams
     VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
 
     // Get the label for a placed volume ID
-    const std::string& id_to_label(VolumeId vol_id) const;
+    const Label& id_to_label(VolumeId vol_id) const;
 
-    // Get the volume ID corresponding to a label
-    VolumeId find_volume(const std::string& label) const;
+    // Get the volume ID corresponding to a unique label name
+    VolumeId find_volume(const std::string& name) const;
+
+    // Get zero or more volume IDs corresponding to a name
+    SpanConstVolumeId find_volumes(const std::string& name) const;
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
@@ -69,8 +74,7 @@ class VecgeomParams
     //// DATA ////
 
     // Host metadata/access
-    std::vector<std::string>                  vol_labels_;
-    std::unordered_map<std::string, VolumeId> vol_ids_;
+    LabelIdMultiMap<VolumeId> vol_labels_;
 
     // Host/device storage and reference
     HostRef   host_ref_;

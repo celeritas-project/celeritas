@@ -34,6 +34,7 @@
 #    include <nlohmann/json.hpp>
 
 #    include "corecel/cont/Array.json.hh"
+#    include "corecel/cont/Label.json.hh"
 
 #    include "construct/SurfaceInputIO.json.hh"
 #    include "construct/VolumeInputIO.json.hh"
@@ -170,29 +171,13 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  * Volume and surface labels must be unique for the time being.
  */
 OrangeParams::OrangeParams(Input input)
+    : surf_labels_{std::move(input.surface_labels)}
+    , vol_labels_{std::move(input.volume_labels)}
+    , bbox_{input.bbox}
 {
     CELER_EXPECT(input.surfaces && input.volumes);
-    CELER_EXPECT(input.surface_labels.size() == input.surfaces.size());
-    CELER_EXPECT(input.volume_labels.size() == input.volumes.size());
-
-    // Construct metadata
-    surf_labels_ = std::move(input.surface_labels);
-    vol_labels_  = std::move(input.volume_labels);
-    for (auto sid : range(SurfaceId(surf_labels_.size())))
-    {
-        auto iter_inserted = surf_ids_.insert({surf_labels_[sid.get()], sid});
-        CELER_VALIDATE(iter_inserted.second,
-                       << "duplicate surface name '"
-                       << iter_inserted.first->first << '\'');
-    }
-    for (auto vid : range(VolumeId(vol_labels_.size())))
-    {
-        auto iter_inserted = vol_ids_.insert({vol_labels_[vid.get()], vid});
-        CELER_VALIDATE(iter_inserted.second,
-                       << "duplicate volume name '"
-                       << iter_inserted.first->first << '\'');
-    }
-    bbox_ = input.bbox;
+    CELER_EXPECT(surf_labels_.size() == input.surfaces.size());
+    CELER_EXPECT(vol_labels_.size() == input.volumes.size());
 
     CELER_VALIDATE(input.volumes.connectivity.size() == input.surfaces.size(),
                    << "missing connectivity information");
@@ -227,8 +212,6 @@ OrangeParams::OrangeParams(Input input)
     CELER_ENSURE(data_);
     CELER_ENSURE(surf_labels_.size() == this->host_ref().surfaces.size());
     CELER_ENSURE(vol_labels_.size() == this->host_ref().volumes.size());
-    CELER_ENSURE(surf_ids_.size() == surf_labels_.size());
-    CELER_ENSURE(vol_ids_.size() == vol_labels_.size());
     CELER_ENSURE(bbox_);
 }
 
@@ -236,10 +219,10 @@ OrangeParams::OrangeParams(Input input)
 /*!
  * Get the label of a volume.
  */
-const std::string& OrangeParams::id_to_label(VolumeId vol) const
+const Label& OrangeParams::id_to_label(VolumeId vol) const
 {
     CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_[vol.get()];
+    return vol_labels_.get(vol);
 }
 
 //---------------------------------------------------------------------------//
@@ -248,34 +231,51 @@ const std::string& OrangeParams::id_to_label(VolumeId vol) const
  *
  * If the label isn't in the geometry, a null ID will be returned.
  */
-VolumeId OrangeParams::find_volume(const std::string& label) const
+VolumeId OrangeParams::find_volume(const std::string& name) const
 {
-    auto iter = vol_ids_.find(label);
-    if (iter == vol_ids_.end())
+    auto result = vol_labels_.find(name);
+    if (result.empty())
         return {};
-    return iter->second;
+    CELER_VALIDATE(result.size() == 1,
+                   << "volume '" << name << "' is not unique");
+    return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get zero or more volume IDs corresponding to a name.
+ *
+ * This is useful for volumes that are repeated in the geometry with different
+ * uniquifying 'extensions'.
+ */
+auto OrangeParams::find_volumes(const std::string& name) const
+    -> SpanConstVolumeId
+{
+    return vol_labels_.find(name);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the label of a surface.
  */
-const std::string& OrangeParams::id_to_label(SurfaceId surf) const
+const Label& OrangeParams::id_to_label(SurfaceId surf) const
 {
     CELER_EXPECT(surf < surf_labels_.size());
-    return surf_labels_[surf.get()];
+    return surf_labels_.get(surf);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Locate the surface ID corresponding to a label.
+ * Locate the surface ID corresponding to a label name.
  */
-SurfaceId OrangeParams::find_surface(const std::string& label) const
+SurfaceId OrangeParams::find_surface(const std::string& name) const
 {
-    auto iter = surf_ids_.find(label);
-    if (iter == surf_ids_.end())
+    auto result = surf_labels_.find(name);
+    if (result.empty())
         return {};
-    return iter->second;
+    CELER_VALIDATE(result.size() == 1,
+                   << "surface '" << name << "' is not unique");
+    return result.front();
 }
 
 //---------------------------------------------------------------------------//

@@ -12,18 +12,18 @@ interior "World"
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
-[UNIVERSE][SHAPE=box box]
+[UNIVERSE][SHAPE=box box@0]
 widths 20 20 4
 
-[UNIVERSE][SHAPE=box boxReplica]
+[UNIVERSE][SHAPE=box box@1]
 widths 20 20 4
 translate 0 0 6
 
-[UNIVERSE][SHAPE=box boxReplica2]
+[UNIVERSE][SHAPE=box box@2]
 widths 20 20 4
 translate 0 0 12
 
-[UNIVERSE][SHAPE=box boxReplica3]
+[UNIVERSE][SHAPE=box box@3]
 widths 20 20 4
 translate 0 0 18
 
@@ -34,22 +34,22 @@ widths 1000 1000 1000
 ! CELLS ("volumes")
 !##############################################################################
 
-[UNIVERSE][CELL box]
+[UNIVERSE][CELL box@0]
 comp "G4_STAINLESS-STEEL"
-shapes box
+shapes box@0
 
-[UNIVERSE][CELL boxReplica]
+[UNIVERSE][CELL box@1]
 comp "G4_STAINLESS-STEEL"
-shapes boxReplica
+shapes box@1
 
-[UNIVERSE][CELL boxReplica2]
+[UNIVERSE][CELL box@2]
 comp "G4_STAINLESS-STEEL"
-shapes boxReplica2
+shapes box@2
 
-[UNIVERSE][CELL boxReplica3]
+[UNIVERSE][CELL box@3]
 comp "G4_STAINLESS-STEEL"
-shapes boxReplica3
+shapes box@3
 
 [UNIVERSE][CELL World]
 comp G4_Galactic
-shapes World ~box ~boxReplica ~boxReplica2 ~boxReplica3
+shapes World ~box@0 ~box@1 ~box@2 ~box@3

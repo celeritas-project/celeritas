@@ -46,7 +46,8 @@ struct Label
     static Label from_geant4(const std::string& name);
 
     // Construct a label from by splitting on a separator
-    static Label from_separator(const std::string& name, char sep = default_sep);
+    static Label
+    from_separator(const std::string& name, char sep = default_sep);
 };
 
 //---------------------------------------------------------------------------//

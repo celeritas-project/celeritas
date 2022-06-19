@@ -71,14 +71,15 @@ namespace
 //---------------------------------------------------------------------------//
 //! Check that volume names are consistent between the ROOT file and geometry
 bool volumes_are_consistent(const GeoParams&                 geo,
-                            const std::vector<ImportVolume>& imported_data)
+                            const std::vector<ImportVolume>& imported)
 {
-    return geo.num_volumes() == imported_data.size()
+    return geo.num_volumes() == imported.size()
            && std::all_of(RangeIter<VolumeId>(VolumeId{0}),
                           RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
                           [&](VolumeId vol) {
                               return geo.id_to_label(vol)
-                                     == imported_data[vol.unchecked_get()].name;
+                                     == Label::from_geant4(
+                                         imported[vol.unchecked_get()].name);
                           });
 }
 
@@ -235,11 +236,11 @@ TransporterInput load_input(const LDemoArgs& args)
             CELER_LOG(warning) << "Volume/material mapping is inconsistent "
                                   "between Geant4 data and geometry file: "
                                   "attempting to remap";
-            input.volume_names.resize(imported_data.volumes.size());
+            input.volume_labels.resize(imported_data.volumes.size());
             for (auto volume_idx : range(imported_data.volumes.size()))
             {
-                input.volume_names[volume_idx]
-                    = std::move(imported_data.volumes[volume_idx].name);
+                input.volume_labels[volume_idx] = Label::from_geant4(
+                    imported_data.volumes[volume_idx].name);
             }
         }
         params.geomaterial

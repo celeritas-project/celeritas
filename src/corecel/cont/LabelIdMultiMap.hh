@@ -84,7 +84,12 @@ class LabelIdMultiMap
 template<class I>
 LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
 {
-    CELER_EXPECT(!keys_.empty());
+    if (keys_.empty())
+    {
+        // Sometimes we don't have any items to map. Rely on the
+        // default-constructed values.
+        return;
+    }
 
     // Build list of IDs corresponding to each key
     id_data_.resize(keys_.size());

@@ -83,7 +83,7 @@ TEST_F(OneVolumeTest, params)
     EXPECT_EQ(1, geo.num_volumes());
     EXPECT_EQ(0, geo.num_surfaces());
 
-    EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}));
+    EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}).name);
     EXPECT_EQ(VolumeId{0}, geo.find_volume("infinite"));
 }
 
@@ -129,7 +129,7 @@ TEST_F(TwoVolumeTest, params)
     EXPECT_EQ(2, geo.num_volumes());
     EXPECT_EQ(1, geo.num_surfaces());
 
-    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}));
+    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}).name);
     EXPECT_EQ(SurfaceId{0}, geo.find_surface("sphere"));
 
     const auto& bbox = geo.bbox();

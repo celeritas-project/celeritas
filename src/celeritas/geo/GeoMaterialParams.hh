@@ -11,12 +11,13 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "GeoMaterialData.hh"
-#include "GeoParams.hh"
+#include "GeoParamsFwd.hh"
 
 namespace celeritas
 {
@@ -50,7 +51,7 @@ class GeoMaterialParams
         std::shared_ptr<const GeoParams>      geometry;
         std::shared_ptr<const MaterialParams> materials;
         std::vector<MaterialId>               volume_to_mat;
-        std::vector<std::string>              volume_names; // Optional
+        std::vector<Label>                    volume_labels; // Optional
     };
 
   public:

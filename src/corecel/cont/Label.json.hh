@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 namespace celeritas
 {

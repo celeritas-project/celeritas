@@ -81,20 +81,21 @@ TEST_F(LabelIdMultiMapTest, exceptions)
 {
     EXPECT_THROW(CatMultiMap({Label{"kali"}, Label{"kali"}}),
                  celeritas::RuntimeError);
-#if CELERITAS_DEBUG
-    EXPECT_THROW(CatMultiMap(VecLabel{}), celeritas::DebugError);
-#endif
 }
 
 TEST_F(LabelIdMultiMapTest, empty)
 {
-    CatMultiMap cats;
-    EXPECT_EQ(0, cats.size());
-    EXPECT_EQ(CatId{}, cats.find(Label{"merry"}));
-    EXPECT_EQ(0, cats.find("pippin").size());
+    const CatMultiMap default_cats;
+    const CatMultiMap empty_cats(VecLabel{});
+    for (const CatMultiMap* cats : {&default_cats, &empty_cats})
+    {
+        EXPECT_EQ(0, cats->size());
+        EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
+        EXPECT_EQ(0, cats->find("pippin").size());
 #if CELERITAS_DEBUG
-    EXPECT_THROW(cats.get(CatId{0}), celeritas::DebugError);
+        EXPECT_THROW(cats->get(CatId{0}), celeritas::DebugError);
 #endif
+    }
 }
 
 TEST_F(LabelIdMultiMapTest, no_ext)

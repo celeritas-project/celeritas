@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
-#include <regex>
-#include <set>
+#include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/gdml/Frontend.h>
@@ -33,6 +32,29 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Get a vector of labels for all vecgeom volumes.
+std::vector<Label> get_volume_labels()
+{
+    auto& vg_manager = vecgeom::GeoManager::Instance();
+
+    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
+
+    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
+    {
+        // Get label
+        const vecgeom::LogicalVolume* vol
+            = vg_manager.FindLogicalVolume(vol_idx);
+        CELER_ASSERT(vol);
+        labels[vol_idx] = Label::from_geant4(vol->GetLabel());
+    }
+    return labels;
+}
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -51,14 +73,13 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         vgdml::Frontend::Load(filename, validate_xml_schema);
     }
 
+    vol_labels_ = LabelIdMultiMap<VolumeId>(get_volume_labels());
+
     CELER_LOG(status) << "Initializing tracking information";
     {
         ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
         vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
     }
-
-    // Create metadata
-    this->build_md();
 
     // Save host data
     auto& vg_manager       = vecgeom::GeoManager::Instance();
@@ -125,22 +146,37 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Get the label for a placed volume ID.
  */
-const std::string& VecgeomParams::id_to_label(VolumeId vol) const
+const Label& VecgeomParams::id_to_label(VolumeId vol) const
 {
     CELER_EXPECT(vol < vol_labels_.size());
-    return vol_labels_[vol.get()];
+    return vol_labels_.get(vol);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the ID corresponding to a label.
  */
-auto VecgeomParams::find_volume(const std::string& label) const -> VolumeId
+auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
 {
-    auto iter = vol_ids_.find(label);
-    if (iter == vol_ids_.end())
+    auto result = vol_labels_.find(name);
+    if (result.empty())
         return {};
-    return iter->second;
+    CELER_VALIDATE(result.size() == 1,
+                   << "volume '" << name << "' is not unique");
+    return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get zero or more volume IDs corresponding to a name.
+ *
+ * This is useful for volumes that are repeated in the geometry with different
+ * uniquifying 'extensions' from Geant4.
+ */
+auto VecgeomParams::find_volumes(const std::string& name) const
+    -> SpanConstVolumeId
+{
+    return vol_labels_.find(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -149,50 +185,5 @@ auto VecgeomParams::find_volume(const std::string& label) const -> VolumeId
 /*!
  * Construct label metadata from volumes.
  */
-void VecgeomParams::build_md()
-{
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-
-    vol_labels_.resize(vg_manager.GetRegisteredVolumesCount());
-    std::set<std::string> duplicate_volumes;
-
-    const std::regex final_ptr_regex{"0x[0-9a-f]{8,16}$"};
-    std::smatch      ptr_match;
-
-    for (auto vol_idx : range<VolumeId::size_type>(vol_labels_.size()))
-    {
-        // Get label
-        const vecgeom::LogicalVolume* vol
-            = vg_manager.FindLogicalVolume(vol_idx);
-        CELER_ASSERT(vol);
-        std::string vol_label = vol->GetLabel();
-
-        // Remove possible Geant uniquifying pointer-address suffix
-        // (Geant4 does this automatically, but VGDML does not)
-        if (std::regex_search(vol_label, ptr_match, final_ptr_regex))
-        {
-            vol_label.erase(vol_label.begin() + ptr_match.position(0),
-                            vol_label.end());
-        }
-
-        // Add to label-to-ID map
-        auto iter_inserted = vol_ids_.insert({vol_label, VolumeId{vol_idx}});
-        if (!iter_inserted.second)
-        {
-            duplicate_volumes.insert(vol_label);
-        }
-
-        // Move to volume label
-        vol_labels_[vol_idx] = std::move(vol_label);
-    }
-
-    if (!duplicate_volumes.empty())
-    {
-        CELER_LOG(warning)
-            << "Geometry contains duplicate volume names: "
-            << join(duplicate_volumes.begin(), duplicate_volumes.end(), ", ");
-    }
-}
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas

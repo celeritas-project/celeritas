@@ -22,6 +22,7 @@
 #include "orange/Types.hh"
 
 #include "GeoMaterialData.hh"
+#include "GeoParams.hh"
 
 namespace celeritas
 {
@@ -37,9 +38,9 @@ GeoMaterialParams::GeoMaterialParams(Input input)
     CELER_EXPECT(input.geometry);
     CELER_EXPECT(input.materials);
     CELER_EXPECT(
-        (input.volume_names.empty()
+        (input.volume_labels.empty()
          && input.volume_to_mat.size() == input.geometry->num_volumes())
-        || input.volume_to_mat.size() == input.volume_names.size());
+        || input.volume_to_mat.size() == input.volume_labels.size());
     CELER_EXPECT(std::all_of(input.volume_to_mat.begin(),
                              input.volume_to_mat.end(),
                              [&input](MaterialId m) {
@@ -47,15 +48,16 @@ GeoMaterialParams::GeoMaterialParams(Input input)
                                         || m < input.materials->num_materials();
                              }));
 
-    if (!input.volume_names.empty())
+    if (!input.volume_labels.empty())
     {
         // Remap materials to volume IDs using given volume names:
         // build a map of volume name -> matid
-        std::unordered_map<std::string, MaterialId> name_to_id;
+        std::unordered_map<Label, MaterialId> lab_to_id;
         for (auto idx : range(input.volume_to_mat.size()))
         {
-            auto iter_inserted = name_to_id.insert(
-                {std::move(input.volume_names[idx]), input.volume_to_mat[idx]});
+            auto iter_inserted
+                = lab_to_id.insert({std::move(input.volume_labels[idx]),
+                                    input.volume_to_mat[idx]});
             CELER_VALIDATE(iter_inserted.second,
                            << "geo/material coupling specified duplicate "
                               "volume name '"
@@ -63,13 +65,13 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         }
 
         // Set material ids based on volume names
-        std::vector<std::string> missing_volumes;
-        const GeoParams&         geo = *input.geometry;
+        std::vector<Label> missing_volumes;
+        const GeoParams&   geo = *input.geometry;
         input.volume_to_mat.assign(geo.num_volumes(), MaterialId{});
         for (auto volume_id : range(VolumeId{geo.num_volumes()}))
         {
-            auto iter = name_to_id.find(geo.id_to_label(volume_id));
-            if (iter == name_to_id.end())
+            auto iter = lab_to_id.find(geo.id_to_label(volume_id));
+            if (iter == lab_to_id.end())
             {
                 missing_volumes.push_back(geo.id_to_label(volume_id));
                 continue;
