@@ -48,8 +48,8 @@ TEST(LabelTest, ordering)
 
 TEST(LabelTest, construction)
 {
-    EXPECT_EQ(Label("foo"), Label::from_geant4("foo"));
-    EXPECT_EQ(Label("foo", "0xdeadb01d"), Label::from_geant4("foo0xdeadb01d"));
+    EXPECT_EQ(Label("foo"), Label::from_geant("foo"));
+    EXPECT_EQ(Label("foo", "0xdeadb01d"), Label::from_geant("foo0xdeadb01d"));
 
     EXPECT_EQ(Label("bar"), Label::from_separator("bar", '@'));
     EXPECT_EQ(Label("bar"), Label::from_separator("bar@", '@'));

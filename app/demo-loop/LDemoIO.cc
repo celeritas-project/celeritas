@@ -78,7 +78,7 @@ bool volumes_are_consistent(const GeoParams&                 geo,
                           RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
                           [&](VolumeId vol) {
                               return geo.id_to_label(vol)
-                                     == Label::from_geant4(
+                                     == Label::from_geant(
                                          imported[vol.unchecked_get()].name);
                           });
 }
@@ -239,7 +239,7 @@ TransporterInput load_input(const LDemoArgs& args)
             input.volume_labels.resize(imported_data.volumes.size());
             for (auto volume_idx : range(imported_data.volumes.size()))
             {
-                input.volume_labels[volume_idx] = Label::from_geant4(
+                input.volume_labels[volume_idx] = Label::from_geant(
                     imported_data.volumes[volume_idx].name);
             }
         }

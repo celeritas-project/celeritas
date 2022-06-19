@@ -50,7 +50,7 @@ class GeoMaterialTest : public celeritas_test::GlobalGeoTestBase
             const ImportVolume& volume = data_.volumes[vol_idx];
 
             input.volume_to_mat[vol_idx] = MaterialId{volume.material_id};
-            input.volume_labels[vol_idx] = Label::from_geant4(volume.name);
+            input.volume_labels[vol_idx] = Label::from_geant(volume.name);
         }
         return std::make_shared<GeoMaterialParams>(std::move(input));
     }

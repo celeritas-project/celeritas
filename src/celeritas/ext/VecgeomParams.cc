@@ -48,7 +48,7 @@ std::vector<Label> get_volume_labels()
         const vecgeom::LogicalVolume* vol
             = vg_manager.FindLogicalVolume(vol_idx);
         CELER_ASSERT(vol);
-        labels[vol_idx] = Label::from_geant4(vol->GetLabel());
+        labels[vol_idx] = Label::from_geant(vol->GetLabel());
     }
     return labels;
 }

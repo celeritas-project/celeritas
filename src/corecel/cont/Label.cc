@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct a label from a Geant4 pointer-appended name.
  */
-Label Label::from_geant4(const std::string& name)
+Label Label::from_geant(const std::string& name)
 {
     static const std::regex final_ptr_regex{"0x[0-9a-f]{8,16}$"};
 

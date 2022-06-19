@@ -43,7 +43,7 @@ struct Label
     //// STATIC METHODS ////
 
     // Construct a label from a Geant4 pointer-appended name
-    static Label from_geant4(const std::string& name);
+    static Label from_geant(const std::string& name);
 
     // Construct a label from by splitting on a separator
     static Label
