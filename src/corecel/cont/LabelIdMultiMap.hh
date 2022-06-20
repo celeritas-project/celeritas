@@ -57,7 +57,7 @@ class LabelIdMultiMap
     explicit LabelIdMultiMap(VecLabel keys);
 
     // Access the range of IDs corresponding to a label
-    inline SpanConstIdT find(const std::string& label) const;
+    inline SpanConstIdT find_all(const std::string& label) const;
 
     // Access an ID by label/sublabel pair
     inline IdT find(const Label& label_sub) const;
@@ -134,7 +134,7 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
  * Access the range of IDs corresponding to a label.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find(const std::string& name) const -> SpanConstIdT
+auto LabelIdMultiMap<I>::find_all(const std::string& name) const -> SpanConstIdT
 {
     auto iter = ids_.find(name);
     if (iter == ids_.end())
@@ -157,7 +157,7 @@ auto LabelIdMultiMap<I>::find(const std::string& name) const -> SpanConstIdT
 template<class I>
 auto LabelIdMultiMap<I>::find(const Label& label_sub) const -> IdT
 {
-    auto items = this->find(label_sub.name);
+    auto items = this->find_all(label_sub.name);
 
     // Just do a linear search on sublabels
     auto iter

@@ -158,7 +158,7 @@ const Label& VecgeomParams::id_to_label(VolumeId vol) const
  */
 auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
 {
-    auto result = vol_labels_.find(name);
+    auto result = vol_labels_.find_all(name);
     if (result.empty())
         return {};
     CELER_VALIDATE(result.size() == 1,
@@ -176,7 +176,7 @@ auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
 auto VecgeomParams::find_volumes(const std::string& name) const
     -> SpanConstVolumeId
 {
-    return vol_labels_.find(name);
+    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//

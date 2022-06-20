@@ -233,7 +233,7 @@ const Label& OrangeParams::id_to_label(VolumeId vol) const
  */
 VolumeId OrangeParams::find_volume(const std::string& name) const
 {
-    auto result = vol_labels_.find(name);
+    auto result = vol_labels_.find_all(name);
     if (result.empty())
         return {};
     CELER_VALIDATE(result.size() == 1,
@@ -251,7 +251,7 @@ VolumeId OrangeParams::find_volume(const std::string& name) const
 auto OrangeParams::find_volumes(const std::string& name) const
     -> SpanConstVolumeId
 {
-    return vol_labels_.find(name);
+    return vol_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -270,7 +270,7 @@ const Label& OrangeParams::id_to_label(SurfaceId surf) const
  */
 SurfaceId OrangeParams::find_surface(const std::string& name) const
 {
-    auto result = surf_labels_.find(name);
+    auto result = surf_labels_.find_all(name);
     if (result.empty())
         return {};
     CELER_VALIDATE(result.size() == 1,

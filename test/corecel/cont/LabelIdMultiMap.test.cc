@@ -91,7 +91,7 @@ TEST_F(LabelIdMultiMapTest, empty)
     {
         EXPECT_EQ(0, cats->size());
         EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
-        EXPECT_EQ(0, cats->find("pippin").size());
+        EXPECT_EQ(0, cats->find_all("pippin").size());
 #if CELERITAS_DEBUG
         EXPECT_THROW(cats->get(CatId{0}), celeritas::DebugError);
 #endif
@@ -100,11 +100,12 @@ TEST_F(LabelIdMultiMapTest, empty)
 
 TEST_F(LabelIdMultiMapTest, no_ext)
 {
-    CatMultiMap cats{{Label{"dexter"}, Label{"andy"}, Label{"loki"}}};
+    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki"}}};
     EXPECT_EQ(3, cats.size());
-    EXPECT_EQ(CatId{}, cats.find(Label{"nyoka"}));
-    EXPECT_EQ(CatId{0}, cats.find(Label{"dexter"}));
-    EXPECT_EQ(CatId{1}, cats.find(Label{"andy"}));
+    EXPECT_EQ(CatId{}, cats.find("nyoka"));
+    EXPECT_EQ(CatId{0}, cats.find("dexter"));
+    EXPECT_EQ(CatId{1}, cats.find("andy"));
+    EXPECT_EQ(CatId{2}, cats.find("loki"));
     EXPECT_EQ(CatId{2}, cats.find(Label{"loki"}));
 }
 
@@ -118,7 +119,7 @@ TEST_F(LabelIdMultiMapTest, some_labels)
     EXPECT_EQ(CatId{1}, cats.find(Label{"fluffy"}));
     EXPECT_EQ(CatId{2}, cats.find(Label{"fluffy", "jr"}));
     {
-        auto               found            = cats.find("fluffy");
+        auto               found            = cats.find_all("fluffy");
         static const CatId expected_found[] = {CatId{1}, CatId{2}, CatId{3}};
         EXPECT_VEC_EQ(expected_found, found);
     }
@@ -145,17 +146,17 @@ TEST_F(LabelIdMultiMapTest, shuffled_labels)
 
     // Check discontinuous ID listing
     {
-        auto               found            = cats.find("a");
+        auto               found            = cats.find_all("a");
         static const CatId expected_found[] = {CatId{3}};
         EXPECT_VEC_EQ(expected_found, found);
     }
     {
-        auto               found            = cats.find("b");
+        auto               found            = cats.find_all("b");
         static const CatId expected_found[] = {CatId{2}, CatId{1}};
         EXPECT_VEC_EQ(expected_found, found);
     }
     {
-        auto               found            = cats.find("c");
+        auto               found            = cats.find_all("c");
         static const CatId expected_found[] = {CatId{4}, CatId{5}, CatId{0}};
         EXPECT_VEC_EQ(expected_found, found);
     }

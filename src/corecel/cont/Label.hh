@@ -32,8 +32,14 @@ struct Label
     //! Create an empty label
     Label() = default;
 
-    //! Create from just a name
-    explicit Label(std::string n) : name{std::move(n)}, ext{} {}
+    //! Create *implicitly* from a C string (mostly for testing)
+    Label(const char* cstr) : name{cstr} {}
+
+    //! Create *implicitly* from just a string name (capture)
+    Label(std::string&& n) : name{std::move(n)} {}
+
+    //! Create *implicitly* from just a string name (copy)
+    Label(const std::string& n) : name{n} {}
 
     //! Create from a name and label
     Label(std::string n, std::string e) : name{std::move(n)}, ext{std::move(e)}
