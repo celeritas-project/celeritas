@@ -51,7 +51,10 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:
-    const char* geometry_basename() const { return "geant4-testem15"; }
+    const char* geometry_basename() const override
+    {
+        return "geant4-testem15";
+    }
 
     void SetUp() override
     {

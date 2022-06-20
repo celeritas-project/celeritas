@@ -122,7 +122,7 @@ static const double g4_phi_correl[]
 std::vector<MscTestOutput> msc_test(MscTestInput input);
 
 #if !CELER_USE_DEVICE
-inline std::vector<MscTestOutput> msc_test(MscTestInput, const)
+inline std::vector<MscTestOutput> msc_test(MscTestInput)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
