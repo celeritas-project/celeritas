@@ -58,13 +58,13 @@ struct Label
 
 //---------------------------------------------------------------------------//
 //! Test equality
-inline constexpr bool operator==(const Label& lhs, const Label& rhs)
+inline bool operator==(const Label& lhs, const Label& rhs)
 {
     return lhs.name == rhs.name && lhs.ext == rhs.ext;
 }
 
 //! Test inequality
-inline constexpr bool operator!=(const Label& lhs, const Label& rhs)
+inline bool operator!=(const Label& lhs, const Label& rhs)
 {
     return !(lhs == rhs);
 }
