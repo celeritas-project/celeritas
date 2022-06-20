@@ -322,8 +322,8 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
     cout << R"gfm(
 # Volumes
 
-| Volume ID | Material ID | Solid Name                           | Material Name               |
-| --------- | ----------- | ------------------------------------ | --------------------------- |
+| Volume ID | Name                                 | Material ID |
+| --------- | ------------------------------------ | ----------- |
 )gfm";
 
     for (unsigned int volume_id : range(volumes.size()))
@@ -334,9 +334,8 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
         // clang-format off
         cout << "| "
              << setw(9) << std::left << volume_id << " | "
-             << setw(11) << volume.material_id << " | "
-             << setw(36) << volume.solid_name << " | "
-             << setw(27) << material.name << " |\n";
+             << setw(36) << volume.name << " | "
+             << setw(11) << volume.material_id << " |\n";
         // clang-format on
     }
     cout << endl;
