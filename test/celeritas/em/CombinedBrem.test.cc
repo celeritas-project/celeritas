@@ -96,7 +96,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
         std::string         data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        // Dummy imported process data
+        // Imported process data needed to construct the model (with empty
+        // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {11,
              celeritas::ImportProcessType::electromagnetic,

@@ -29,6 +29,7 @@ ImportedModelAdapter::ImportedModelAdapter(SPConstImported       imported,
 {
     CELER_EXPECT(!pdg_numbers.empty());
 
+    // Build a mapping of particle ID to imported process ID
     for (PDGNumber pdg : pdg_numbers)
     {
         auto particle_id = particles.find(pdg);
@@ -68,15 +69,14 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
 {
     CELER_EXPECT(applic.material);
 
+    // Get the imported process that applies for the given particle
     auto proc = particle_to_process_.find(applic.particle);
     CELER_ASSERT(proc != particle_to_process_.end());
-
     const ImportProcess& import_process = imported_->get(proc->second);
-    auto                 xs = import_process.micro_xs.find(model_class_);
-    CELER_ASSERT(xs != import_process.micro_xs.end());
 
-    // Get the micro xs grids for the given model and particle for all elements
-    // in the material
+    // Get the micro xs grids for the given model, particle, and material
+    auto xs = import_process.micro_xs.find(model_class_);
+    CELER_ASSERT(xs != import_process.micro_xs.end());
     CELER_ASSERT(applic.material < xs->second.size());
     const auto& el_to_vec = xs->second[applic.material.get()];
 

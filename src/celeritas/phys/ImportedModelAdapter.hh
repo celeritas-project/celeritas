@@ -8,8 +8,8 @@
 #pragma once
 
 #include <initializer_list>
-#include <map>
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -17,8 +17,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 
@@ -38,7 +36,6 @@ class ImportedModelAdapter
   public:
     //!@{
     //! Type aliases
-    using ImportProcessId = ImportedProcesses::ImportProcessId;
     using MicroXsBuilders = Model::MicroXsBuilders;
     using SpanConstPDG    = Span<const PDGNumber>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
@@ -63,6 +60,8 @@ class ImportedModelAdapter
     MicroXsBuilders micro_xs(Applicability range) const;
 
   private:
+    using ImportProcessId = ImportedProcesses::ImportProcessId;
+
     SPConstImported                                 imported_;
     ImportModelClass                                model_class_;
     std::unordered_map<ParticleId, ImportProcessId> particle_to_process_;

@@ -520,7 +520,7 @@ TEST_F(PhysicsTrackViewHostTest, fluctuation)
         EXPECT_EQ(0.5109989461, phys.fluctuation().electron_mass);
     }
     {
-        // Celerinium: Z=4, I=150.7 eV
+        // Celer composite: Z_eff = 10.3, I=150.7 eV
         MaterialId             mat_id{2};
         const PhysicsTrackView phys
             = this->make_track_view("celeriton", mat_id);

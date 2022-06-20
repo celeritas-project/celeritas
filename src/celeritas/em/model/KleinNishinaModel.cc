@@ -18,13 +18,7 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 KleinNishinaModel::KleinNishinaModel(ActionId              id,
-                                     const ParticleParams& particles,
-                                     SPConstImported       data)
-    : imported_(data,
-                particles,
-                ImportProcessClass::compton,
-                ImportModelClass::klein_nishina,
-                {pdg::gamma()})
+                                     const ParticleParams& particles)
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;

@@ -97,7 +97,7 @@ class ImportedProcessAdapter
     StepLimitBuilders step_limits(Applicability range) const;
 
     // Access the imported processes
-    inline SPConstImported processes() const { return std::move(imported_); }
+    inline SPConstImported processes() const { return imported_; }
 
   private:
     using ImportTableId   = OpaqueId<ImportPhysicsTable>;

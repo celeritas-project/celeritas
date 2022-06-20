@@ -78,7 +78,8 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         this->set_inc_particle(pdg::positron(), MevEnergy{25000});
         this->set_inc_direction({0, 0, 1});
 
-        // Dummy imported process data
+        // Imported process data needed to construct the model (with empty
+        // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {11,
              celeritas::ImportProcessType::electromagnetic,

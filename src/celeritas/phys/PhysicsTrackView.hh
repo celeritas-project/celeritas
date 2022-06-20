@@ -145,10 +145,10 @@ class PhysicsTrackView
     //// HACKS ////
 
     // Process ID for photoelectric effect
-    inline CELER_FUNCTION ProcessId photoelectric_pid() const;
+    inline CELER_FUNCTION ProcessId photoelectric_process_id() const;
 
     // Process ID for positron annihilation
-    inline CELER_FUNCTION ProcessId eplusgg_pid() const;
+    inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
 
     // Get hardwired model, null if not present
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
@@ -412,9 +412,9 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
                                                          Energy energy) const
 {
     ProcessId process = this->process(ppid);
-    if ((process == this->photoelectric_pid()
+    if ((process == this->photoelectric_process_id()
          && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == this->eplusgg_pid()))
+        || (process == this->eplusgg_process_id()))
     {
         auto find_model = this->make_model_finder(ppid);
         return find_model(energy);
@@ -455,7 +455,10 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct an element selector.
+ * Construct an element selector to sample an element from tabulated xs data.
+ *
+ * This should only be called for models that need to sample an element for a
+ * discrete interaction, i.e. the ModelXsTable should not be empty.
  */
 CELER_FUNCTION
 TabulatedElementSelector
@@ -466,7 +469,8 @@ PhysicsTrackView::make_element_selector(ModelId model_id, Energy energy)
     // Find the index of the selected model (and its cross section table) in
     // the model group from the sampled particle/process ID and model ID
     // TODO: there are typically just one or two models in a process, but this
-    // is still not a great way to store/retrieve the model xs CDF tables
+    // is still not a great way to store/retrieve the model xs CDF tables. It
+    // also requires us to store the sampled process ID for each track
     const auto& models    = this->model_group(this->state().ppid);
     const auto& model_ids = params_.model_ids[models.model];
     size_type   i         = 0;
@@ -635,7 +639,7 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 /*!
  * Process ID for photoelectric effect.
  */
-CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_pid() const
+CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_process_id() const
 {
     return params_.hardwired.photoelectric;
 }
@@ -644,7 +648,7 @@ CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_pid() const
 /*!
  * Process ID for positron annihilation.
  */
-CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_pid() const
+CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_process_id() const
 {
     return params_.hardwired.positron_annihilation;
 }

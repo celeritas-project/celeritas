@@ -36,7 +36,7 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
     MicroXsBuilders builders;
 
     celeritas::MaterialView mat(data_.materials->host_ref(), range.material);
-    if (mat.num_elements() > 1 && !data_.xs.empty())
+    if (!data_.xs.empty())
     {
         for (const auto& elcomp : mat.elements())
         {

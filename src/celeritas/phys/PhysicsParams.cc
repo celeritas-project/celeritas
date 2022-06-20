@@ -628,10 +628,10 @@ void PhysicsParams::build_xs(const Options&        opts,
                 std::vector<ValueTable> temp_model_tables(table.size());
                 for (size_type mat_idx : range(table.size()))
                 {
-                    // No micro xs stored for this material
                     auto& grid_ids = table[mat_idx];
                     if (grid_ids.empty())
                     {
+                        // No micro xs stored for this material
                         continue;
                     }
 
@@ -643,15 +643,14 @@ void PhysicsParams::build_xs(const Options&        opts,
                         return data->reals[grid.value[bin]];
                     };
 
-                    const auto elements
-                        = mats.get(MaterialId{mat_idx}).elements();
-
-                    // Get the number of grid points; the energy grids are the
+                    // Get the number of grid points: the energy grids are the
                     // same for each element in the material
                     size_type num_bins
                         = data->value_grids[grid_ids[0]].value.size();
 
                     // Calculate the cross section CDF
+                    const auto elements
+                        = mats.get(MaterialId{mat_idx}).elements();
                     for (auto bin_idx : range(num_bins))
                     {
                         real_type cum_xs{0};

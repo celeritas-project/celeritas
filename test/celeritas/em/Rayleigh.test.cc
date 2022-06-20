@@ -70,7 +70,8 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         this->set_material_params(inp);
         this->set_material("PbWO");
 
-        // Dummy imported process data
+        // Imported process data needed to construct the model (with empty
+        // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {22,
              celeritas::ImportProcessType::electromagnetic,

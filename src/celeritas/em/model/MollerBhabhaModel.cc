@@ -23,13 +23,7 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
-                                     const ParticleParams& particles,
-                                     SPConstImported       data)
-    : imported_(data,
-                particles,
-                ImportProcessClass::e_ioni,
-                ImportModelClass::moller_bhabha,
-                {pdg::electron(), pdg::positron()})
+                                     const ParticleParams& particles)
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;

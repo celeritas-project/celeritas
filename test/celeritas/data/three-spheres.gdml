@@ -28,8 +28,8 @@
       <MEE unit="eV" value="173"/>
       <D unit="g/cm3" value="1"/>
       <fraction n="0.1" ref="H"/>
-      <fraction n="0.3" ref="Be"/>
-      <fraction n="0.6" ref="Si"/>
+      <fraction n="0.3" ref="C"/>
+      <fraction n="0.6" ref="O"/>
     </material>
   </materials>
     

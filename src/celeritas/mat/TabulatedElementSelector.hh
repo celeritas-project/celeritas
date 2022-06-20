@@ -96,7 +96,6 @@ TabulatedElementSelector::operator()(Engine& rng) const
     {
         ValueGridId grid_id = ids_[table_.grids[i]];
         CELER_ASSERT(grid_id < grids_.size());
-
         XsCalculator calc_xs(grids_[grid_id], reals_);
         if (calc_xs(energy_) > u)
             break;

@@ -32,8 +32,7 @@ ComptonProcess::ComptonProcess(SPConstParticles particles,
  */
 auto ComptonProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    return {std::make_shared<KleinNishinaModel>(
-        *start_id++, *particles_, std::move(imported_.processes()))};
+    return {std::make_shared<KleinNishinaModel>(*start_id++, *particles_)};
 }
 
 //---------------------------------------------------------------------------//
