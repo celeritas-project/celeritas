@@ -21,8 +21,8 @@ namespace detail
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction(G4String gdmlInput);
-    ~DetectorConstruction();
+    // Construct from a GDML filename
+    explicit DetectorConstruction(G4String gdml_input);
 
     G4VPhysicalVolume*       Construct() override;
     const G4VPhysicalVolume* get_world_volume() const;
