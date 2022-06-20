@@ -11,6 +11,8 @@
 #include <functional>
 #include <initializer_list>
 
+#include "corecel/Macros.hh"
+
 #include "detail/HashUtilsImpl.hh"
 
 namespace celeritas
@@ -32,7 +34,7 @@ std::size_t hash_combine(Args const&... args)
 {
     // Construct a hasher and initialize
     std::size_t result;
-    auto        hash_fnv = detail::make_fast_hasher(&result);
+    CELER_MAYBE_UNUSED auto hash_fnv = detail::make_fast_hasher(&result);
 
     // Hash each one of the arguments sequentially by expanding into an unused
     // initializer list.
