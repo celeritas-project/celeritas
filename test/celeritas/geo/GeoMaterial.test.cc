@@ -91,7 +91,7 @@ TEST_F(GeoMaterialTest, host)
     {
         MaterialId matid = geo_mat_view.material_id(geo.volume_id());
 
-        materials.push_back(matid ? mat_params.id_to_label(matid)
+        materials.push_back(matid ? mat_params.id_to_label(matid).name
                                   : "[invalid]");
 
         geo.find_next_step();

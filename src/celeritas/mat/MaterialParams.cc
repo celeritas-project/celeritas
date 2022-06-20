@@ -73,7 +73,7 @@ MaterialParams::from_import(const ImportData& data)
         MaterialParams::ElementInput element_params;
         element_params.atomic_number = element.atomic_number;
         element_params.atomic_mass   = units::AmuMass{element.atomic_mass};
-        element_params.name          = element.name;
+        element_params.label         = Label::from_geant(element.name);
 
         input.elements.push_back(element_params);
     }
@@ -82,10 +82,10 @@ MaterialParams::from_import(const ImportData& data)
     for (const auto& material : data.materials)
     {
         MaterialParams::MaterialInput material_params;
-        material_params.name           = material.name;
         material_params.temperature    = material.temperature;
         material_params.number_density = material.number_density;
         material_params.matter_state   = to_matter_state(material.state);
+        material_params.label          = Label::from_geant(material.name);
 
         for (const auto& elem_comp : material.elements)
         {
@@ -113,14 +113,22 @@ MaterialParams::MaterialParams(const Input& inp)
 
     // Build elements and materials on host.
     HostValue host_data;
-    for (const auto& el : inp.elements)
+
+    std::vector<Label> el_labels(inp.elements.size());
+    for (auto i : range(inp.elements.size()))
     {
-        this->append_element_def(el, &host_data);
+        el_labels[i] = inp.elements[i].label;
+        this->append_element_def(inp.elements[i], &host_data);
     }
-    for (const auto& mat : inp.materials)
+    el_labels_ = LabelIdMultiMap<ElementId>(std::move(el_labels));
+
+    std::vector<Label> mat_labels(inp.materials.size());
+    for (auto i : range(inp.materials.size()))
     {
-        this->append_material_def(mat, &host_data);
+        mat_labels[i] = inp.materials[i].label;
+        this->append_material_def(inp.materials[i], &host_data);
     }
+    mat_labels_ = LabelIdMultiMap<MaterialId>(std::move(mat_labels));
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<MaterialParamsData>{std::move(host_data)};
@@ -128,8 +136,83 @@ MaterialParams::MaterialParams(const Input& inp)
     CELER_ENSURE(this->data_);
     CELER_ENSURE(this->host_ref().elements.size() == inp.elements.size());
     CELER_ENSURE(this->host_ref().materials.size() == inp.materials.size());
-    CELER_ENSURE(elnames_.size() == inp.elements.size());
-    CELER_ENSURE(matnames_.size() == inp.materials.size());
+    CELER_ENSURE(el_labels_.size() == inp.elements.size());
+    CELER_ENSURE(mat_labels_.size() == inp.materials.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the label of a material.
+ */
+const Label& MaterialParams::id_to_label(MaterialId mat) const
+{
+    CELER_EXPECT(mat < mat_labels_.size());
+    return mat_labels_.get(mat);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the material ID corresponding to a label.
+ *
+ * If the label isn't among the materials, a null ID will be returned.
+ */
+MaterialId MaterialParams::find_material(const std::string& name) const
+{
+    auto result = mat_labels_.find_all(name);
+    if (result.empty())
+        return {};
+    CELER_VALIDATE(result.size() == 1,
+                   << "material '" << name << "' is not unique");
+    return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get zero or more material IDs corresponding to a name.
+ *
+ * This is useful for materials that are repeated with different
+ * uniquifying 'extensions'.
+ */
+auto MaterialParams::find_materials(const std::string& name) const
+    -> SpanConstMaterialId
+{
+    return mat_labels_.find_all(name);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the label of a element.
+ */
+const Label& MaterialParams::id_to_label(ElementId el) const
+{
+    CELER_EXPECT(el < el_labels_.size());
+    return el_labels_.get(el);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the element ID corresponding to a label.
+ *
+ * If the label isn't among the materials, a null ID will be returned.
+ */
+ElementId MaterialParams::find_element(const std::string& name) const
+{
+    auto result = el_labels_.find_all(name);
+    if (result.empty())
+        return {};
+    CELER_VALIDATE(result.size() == 1,
+                   << "element '" << name << "' is not unique");
+    return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get zero or more element IDs corresponding to a name.
+ */
+auto MaterialParams::find_elements(const std::string& name) const
+    -> SpanConstElementId
+{
+    return el_labels_.find_all(name);
 }
 
 //---------------------------------------------------------------------------//
@@ -161,8 +244,6 @@ void MaterialParams::append_element_def(const ElementInput& inp,
     result.coulomb_correction
         = detail::calc_coulomb_correction(result.atomic_number);
     result.mass_radiation_coeff = detail::calc_mass_rad_coeff(result);
-
-    elnames_.push_back(inp.name);
 
     // Add to host vector
     make_builder(&host_data->elements).push_back(result);
@@ -200,7 +281,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
     // Renormalize component fractions that are not unity and log them
     if (!inp.elements_fractions.empty() && !soft_equal(norm, 1.0))
     {
-        CELER_LOG(warning) << "Element component fractions for `" << inp.name
+        CELER_LOG(warning) << "Element component fractions for `" << inp.label
                            << "` should sum to 1 but instead sum to " << norm
                            << " (difference = " << norm - 1 << ")";
 
@@ -237,29 +318,6 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     CELER_EXPECT(inp.number_density >= 0);
     CELER_EXPECT((inp.number_density == 0) == inp.elements_fractions.empty());
     CELER_EXPECT(host_data);
-
-    auto iter_inserted = matname_to_id_.insert(
-        {inp.name, MaterialId(host_data->materials.size())});
-
-    std::string mat_name = inp.name;
-
-    if (!iter_inserted.second)
-    {
-        // Insertion failed due to duplicate material name
-        // Create unique material name by concatenating its name and MaterialId
-        mat_name = inp.name + "_" + std::to_string(host_data->materials.size());
-
-        CELER_LOG(info)
-            << "Material name " << inp.name << " already exists with id "
-            << iter_inserted.second
-            << ". Created new unique name identifier using its id: "
-            << mat_name << ".";
-
-        auto iter_reinserted = matname_to_id_.insert(
-            {mat_name, MaterialId(host_data->materials.size())});
-
-        CELER_ASSERT(iter_reinserted.second);
-    }
 
     MaterialRecord result;
     // Copy basic properties
@@ -302,7 +360,6 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
 
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);
-    matnames_.push_back(mat_name);
 
     // Update maximum number of materials
     host_data->max_element_components
@@ -314,6 +371,5 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     CELER_ENSURE((result.electron_density > 0) == (inp.number_density > 0));
     CELER_ENSURE(result.rad_length > 0);
 }
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas

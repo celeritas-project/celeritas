@@ -134,7 +134,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
  * Access the range of IDs corresponding to a label.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find_all(const std::string& name) const -> SpanConstIdT
+auto LabelIdMultiMap<I>::find_all(const std::string& name) const
+    -> SpanConstIdT
 {
     auto iter = ids_.find(name);
     if (iter == ids_.end())
