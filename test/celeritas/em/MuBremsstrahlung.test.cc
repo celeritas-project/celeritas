@@ -32,48 +32,16 @@ class MuBremsstrahlungInteractorTest
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleRecord;
-        using namespace celeritas::units;
-        constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-
-        Base::set_particle_params({{"mu_minus",
-                                    pdg::mu_minus(),
-                                    MevMass{105.6583745},
-                                    ElementaryCharge{-1},
-                                    stable},
-                                   {"mu_plus",
-                                    pdg::mu_plus(),
-                                    MevMass{105.6583745},
-                                    ElementaryCharge{1},
-                                    stable},
-                                   {"gamma", pdg::gamma(), zero, zero, stable},
-                                   {"electron",
-                                    pdg::electron(),
-                                    MevMass{0.5109989461},
-                                    ElementaryCharge{-1},
-                                    stable}});
         const auto& params  = this->particle_params();
         data_.ids.gamma     = params->find(pdg::gamma());
         data_.ids.mu_minus  = params->find(pdg::mu_minus());
         data_.ids.mu_plus   = params->find(pdg::mu_plus());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
-        MaterialParams::Input inp;
-        inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
-        inp.materials = {
-            {1.0 * constants::na_avogadro,
-             293.0,
-             celeritas::MatterState::solid,
-             {{celeritas::ElementId{0}, 1.0}},
-             "Cu"},
-        };
-        this->set_material_params(inp);
-        this->set_material("Cu");
-
         // Set default particle to muon with energy of 1100 MeV
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1100});
         this->set_inc_direction({0, 0, 1});
+        this->set_material("Cu");
     }
 
     void sanity_check(const Interaction& interaction) const

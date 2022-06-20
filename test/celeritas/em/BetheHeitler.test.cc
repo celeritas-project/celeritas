@@ -23,7 +23,6 @@
 using celeritas::BetheHeitlerInteractor;
 using celeritas::ElementComponentId;
 using celeritas::GammaConversionProcess;
-using celeritas::units::AmuMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
@@ -38,24 +37,6 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleRecord;
-        using namespace celeritas::units;
-        constexpr auto zero   = celeritas::zero_quantity();
-        auto           stable = ParticleRecord::stable_decay_constant();
-
-        // Particles for interactor
-        Base::set_particle_params(
-            {{"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable},
-             {"positron",
-              pdg::positron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& params  = *this->particle_params();
         data_.ids.electron  = params.find(pdg::electron());
         data_.ids.positron  = params.find(pdg::positron());
@@ -66,19 +47,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         // Set default particle to photon with energy of 100 MeV
         this->set_inc_particle(pdg::gamma(), MevEnergy{100.0});
         this->set_inc_direction({0, 0, 1});
-
-        // Setup MaterialView
-        MaterialParams::Input inp;
-        inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
-        inp.materials = {
-            {1.0 * constants::na_avogadro,
-             293.0,
-             celeritas::MatterState::solid,
-             {{celeritas::ElementId{0}, 1.0}},
-             "Cu"},
-        };
-        this->set_material_params(inp);
-        this->set_material("Cu");
+        this->set_material("Cu-1.0");
     }
 
     void sanity_check(const Interaction& interaction) const

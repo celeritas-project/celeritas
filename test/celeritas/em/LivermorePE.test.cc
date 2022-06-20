@@ -73,20 +73,10 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::MatterState;
-        using celeritas::ParticleRecord;
         using namespace celeritas::units;
         using namespace celeritas::constants;
-        constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data
-        Base::set_particle_params(
-            {{"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
 
         // Set up shared material data
@@ -98,7 +88,6 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
                          {{ElementId{0}, 1.0}},
                          "K"}};
         this->set_material_params(mi);
-        this->set_material("K");
 
         // Set cutoffs (no cuts)
         CutoffParams::Input ci;
@@ -123,6 +112,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
         // Set default particle to incident 1 keV photon
         this->set_inc_particle(pdg::gamma(), MevEnergy{0.001});
         this->set_inc_direction({0, 0, 1});
+        this->set_material("K");
     }
 
     void sanity_check(const Interaction& interaction) const
