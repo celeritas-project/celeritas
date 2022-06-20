@@ -77,12 +77,6 @@ class LabelIdMultiMapTest : public celeritas_test::Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LabelIdMultiMapTest, exceptions)
-{
-    EXPECT_THROW(CatMultiMap({Label{"kali"}, Label{"kali"}}),
-                 celeritas::RuntimeError);
-}
-
 TEST_F(LabelIdMultiMapTest, empty)
 {
     const CatMultiMap default_cats;
@@ -98,15 +92,18 @@ TEST_F(LabelIdMultiMapTest, empty)
     }
 }
 
-TEST_F(LabelIdMultiMapTest, no_ext)
+TEST_F(LabelIdMultiMapTest, no_ext_with_duplicates)
 {
-    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki"}}};
-    EXPECT_EQ(3, cats.size());
+    CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "", "", ""}}};
+    EXPECT_EQ(6, cats.size());
     EXPECT_EQ(CatId{}, cats.find("nyoka"));
     EXPECT_EQ(CatId{0}, cats.find("dexter"));
     EXPECT_EQ(CatId{1}, cats.find("andy"));
     EXPECT_EQ(CatId{2}, cats.find("loki"));
     EXPECT_EQ(CatId{2}, cats.find(Label{"loki"}));
+
+    static const CatId expected_duplicates[] = {CatId{3}, CatId{4}, CatId{5}};
+    EXPECT_VEC_EQ(expected_duplicates, cats.duplicates());
 }
 
 TEST_F(LabelIdMultiMapTest, some_labels)

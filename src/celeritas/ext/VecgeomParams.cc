@@ -48,7 +48,16 @@ std::vector<Label> get_volume_labels()
         const vecgeom::LogicalVolume* vol
             = vg_manager.FindLogicalVolume(vol_idx);
         CELER_ASSERT(vol);
-        labels[vol_idx] = Label::from_geant(vol->GetLabel());
+
+        auto label = Label::from_geant(vol->GetLabel());
+        if (label.name.empty())
+        {
+            // Many VGDML imported IDs seem to be empty for CMS
+            label.name = "[unused]";
+            label.ext  = std::to_string(vol_idx);
+        }
+
+        labels[vol_idx] = std::move(label);
     }
     return labels;
 }
@@ -74,6 +83,23 @@ VecgeomParams::VecgeomParams(const std::string& filename)
     }
 
     vol_labels_ = LabelIdMultiMap<VolumeId>(get_volume_labels());
+    // Check for duplicates
+    {
+        auto vol_dupes = vol_labels_.duplicates();
+        if (!vol_dupes.empty())
+        {
+            auto streamed_label = [this](std::ostream& os, VolumeId v) {
+                os << '"' << this->vol_labels_.get(v) << "\" ("
+                   << v.unchecked_get() << ')';
+            };
+
+            CELER_LOG(warning) << "Geometry contains duplicate volume names: "
+                               << join_stream(vol_dupes.begin(),
+                                              vol_dupes.end(),
+                                              ", ",
+                                              streamed_label);
+        }
+    }
 
     CELER_LOG(status) << "Initializing tracking information";
     {

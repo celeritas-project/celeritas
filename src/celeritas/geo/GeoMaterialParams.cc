@@ -8,6 +8,7 @@
 #include "GeoMaterialParams.hh"
 
 #include <algorithm>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -53,16 +54,22 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         // Remap materials to volume IDs using given volume names:
         // build a map of volume name -> matid
         std::unordered_map<Label, MaterialId> lab_to_id;
+        std::set<Label>                       duplicates;
         for (auto idx : range(input.volume_to_mat.size()))
         {
             auto iter_inserted
                 = lab_to_id.insert({std::move(input.volume_labels[idx]),
                                     input.volume_to_mat[idx]});
-            CELER_VALIDATE(iter_inserted.second,
-                           << "geo/material coupling specified duplicate "
-                              "volume name '"
-                           << iter_inserted.first->first << "'");
+            if (!iter_inserted.second)
+            {
+                duplicates.insert(iter_inserted.first->first);
+            }
         }
+        CELER_VALIDATE(duplicates.empty(),
+                       << "geo/material coupling specified duplicate "
+                          "volume names: \""
+                       << join(duplicates.begin(), duplicates.end(), "\", \"")
+                       << '"');
 
         // Set material ids based on volume names
         std::vector<Label> missing_volumes;

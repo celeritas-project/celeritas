@@ -34,6 +34,9 @@ namespace celeritas
  * There is no requirement that sublabels be ordered adjacent to each other:
  * the IDs corresponding to a label may be noncontiguous.
  *
+ * Duplicate labels are allowed but will be added to a list of duplicate IDs
+ * that can be warned about downstream.
+ *
  * If no sublabels or labels are available, an empty span or "false" OpaqueId
  * will be returned.
  */
@@ -65,6 +68,9 @@ class LabelIdMultiMap
     // Access the label+sublabel pair for an Id
     inline const Label& get(IdT id) const;
 
+    //! Get duplicate labels to warn about
+    SpanConstIdT duplicates() const { return make_span(duplicates_); }
+
     //! Get the number of elements
     size_type size() const { return keys_.size(); }
 
@@ -72,6 +78,7 @@ class LabelIdMultiMap
     VecLabel                                   keys_;
     std::vector<IdT>                           id_data_;
     std::vector<size_type>                     id_offsets_;
+    std::vector<IdT>                           duplicates_;
     std::unordered_map<std::string, size_type> ids_;
 };
 
@@ -113,7 +120,16 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
     {
         const Label& prev = keys_[id_data_[idx - 1].unchecked_get()];
         const Label& cur  = keys_[id_data_[idx].unchecked_get()];
-        CELER_VALIDATE(prev != cur, << "Duplicate label: " << prev);
+        if (prev == cur)
+        {
+            if (duplicates_.empty()
+                || keys_[duplicates_.back().unchecked_get()] != prev)
+            {
+                // Push back previous entry if it's not already there
+                duplicates_.push_back(id_data_[idx - 1]);
+            }
+            duplicates_.push_back(id_data_[idx]);
+        }
         if (prev.name != cur.name)
         {
             // Add start index of the new name
