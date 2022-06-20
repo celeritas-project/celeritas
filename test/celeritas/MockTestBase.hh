@@ -27,9 +27,9 @@ namespace celeritas_test
 /*!
  * Three concentric spheres with mock physics.
  *
- * This class creates two elements, three single-element materials, three
- * particles, and five MockProcesses, each of which emits one or more
- * MockModels.
+ * This class creates three elements, two single-element materials and one
+ * multi-element material, four particles, and six MockProcesses, each of which
+ * emits one or more MockModels.
  * - gamma:scattering
  * - gamma:absorption
  * - celeriton:scattering
@@ -37,6 +37,7 @@ namespace celeritas_test
  * - celeriton:meows
  * - anti-celeriton:hisses
  * - anti-celeriton:meows
+ * - electron:barks
  *
  * Cutoff values are all zero.
  */

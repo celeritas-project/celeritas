@@ -54,8 +54,9 @@ auto MockTestBase::build_material() -> SPConstMaterial
 {
     using namespace celeritas::units;
     MaterialParams::Input inp;
-    inp.elements
-        = {{1, AmuMass{1.0}, "celerogen"}, {4, AmuMass{10.0}, "celerinium"}};
+    inp.elements = {{1, AmuMass{1.0}, "celerogen"},
+                    {4, AmuMass{10.0}, "celerinium"},
+                    {15, AmuMass{30.0}, "celeron"}};
     inp.materials.push_back({1e20,
                              300,
                              MatterState::gas,
@@ -66,11 +67,12 @@ auto MockTestBase::build_material() -> SPConstMaterial
                              MatterState::liquid,
                              {{ElementId{0}, 1.0}},
                              "hi density celerogen"});
-    inp.materials.push_back({1e23,
-                             300,
-                             MatterState::solid,
-                             {{ElementId{1}, 1.0}},
-                             "solid celerinium"});
+    inp.materials.push_back(
+        {1e23,
+         300,
+         MatterState::solid,
+         {{ElementId{0}, 0.1}, {ElementId{1}, 0.3}, {ElementId{2}, 0.6}},
+         "celer composite"});
     return std::make_shared<MaterialParams>(std::move(inp));
 }
 
