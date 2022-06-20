@@ -136,7 +136,7 @@ TEST_F(LabelIdMultiMapTest, shuffled_labels)
     CatMultiMap cats{labels};
 
     // Check ordering of IDs
-    for (auto i : celeritas::range(labels.size()))
+    for (auto i : celeritas::range<CatId::size_type>(labels.size()))
     {
         EXPECT_EQ(labels[i], cats.get(CatId{i}));
     }
