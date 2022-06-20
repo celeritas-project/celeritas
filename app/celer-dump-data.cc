@@ -59,8 +59,6 @@ void print_particles(const ParticleParams& particles)
 //---------------------------------------------------------------------------//
 /*!
  * Print element properties.
- *
- * TODO: Use element params directly.
  */
 void print_elements(std::vector<ImportElement>& elements)
 {
@@ -89,8 +87,6 @@ void print_elements(std::vector<ImportElement>& elements)
 //---------------------------------------------------------------------------//
 /*!
  * Print material properties.
- *
- * TODO: Use material and cutoff params directly.
  */
 void print_materials(std::vector<ImportMaterial>& materials,
                      std::vector<ImportElement>&  elements,
@@ -312,8 +308,6 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
 //---------------------------------------------------------------------------//
 /*!
  * Print volume properties.
- *
- * TODO: Use a volume params directly when avaliable.
  */
 void print_volumes(std::vector<ImportVolume>&   volumes,
                    std::vector<ImportMaterial>& materials)
@@ -322,8 +316,8 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
     cout << R"gfm(
 # Volumes
 
-| Volume ID | Name                                 | Material ID |
-| --------- | ------------------------------------ | ----------- |
+| Volume ID | Volume name                          | Material ID | Material Name               |
+| --------- | ------------------------------------ | ----------- | --------------------------- |
 )gfm";
 
     for (unsigned int volume_id : range(volumes.size()))
@@ -335,7 +329,8 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
         cout << "| "
              << setw(9) << std::left << volume_id << " | "
              << setw(36) << volume.name << " | "
-             << setw(11) << volume.material_id << " |\n";
+             << setw(11) << volume.material_id << " | "
+             << setw(27) << material.name << " |\n";
         // clang-format on
     }
     cout << endl;
