@@ -20,13 +20,15 @@ namespace detail
 /*!
  * Construct with a given gdml input file.
  */
-DetectorConstruction::DetectorConstruction(G4String gdml_input)
+DetectorConstruction::DetectorConstruction(const std::string& gdml_input)
 {
     CELER_LOG(info) << "Loading geometry from " << gdml_input;
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label
-    // and LabelIdMultiMap.
+    // and LabelIdMultiMap. Note that material and element names (at least as
+    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
+    // their extension.
     G4GDMLParser   gdml_parser;
     gdml_parser.SetStripFlag(false);
 
