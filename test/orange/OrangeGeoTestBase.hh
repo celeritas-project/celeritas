@@ -52,7 +52,7 @@ class OrangeGeoTestBase : public celeritas_test::Test
     //! On-the-fly construction inputs
     struct OneVolInput
     {
-        bool complex_tracking = true;
+        bool complex_tracking = false;
     };
 
     struct TwoVolInput
