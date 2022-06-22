@@ -206,10 +206,4 @@ auto VecgeomParams::find_volumes(const std::string& name) const
 }
 
 //---------------------------------------------------------------------------//
-// PRIVATE MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct label metadata from volumes.
- */
-//---------------------------------------------------------------------------//
 } // namespace celeritas

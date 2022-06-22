@@ -69,7 +69,7 @@ void run(std::istream& is)
     for (auto vol_id : celeritas::range(geo_params->num_volumes()))
     {
         vol_names.push_back(
-            geo_params->id_to_label(celeritas::VolumeId(vol_id)));
+            geo_params->id_to_label(celeritas::VolumeId(vol_id)).name);
     }
 
     // Write image
