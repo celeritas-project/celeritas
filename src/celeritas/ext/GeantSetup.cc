@@ -115,6 +115,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
         // Get world_volume for store_geometry() before releasing detector ptr
         world_ = detector->get_world_volume();
+        CELER_ASSERT(world_);
 
         run_manager_->SetUserInitialization(detector.release());
     }

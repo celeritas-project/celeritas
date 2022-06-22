@@ -9,11 +9,13 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -42,6 +44,8 @@ class MaterialParams
         = MaterialParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
+    using SpanConstMaterialId = Span<const MaterialId>;
+    using SpanConstElementId  = Span<const ElementId>;
     //!@}
 
     //! Define an element's input data
@@ -49,7 +53,7 @@ class MaterialParams
     {
         int            atomic_number; //!< Z number
         units::AmuMass atomic_mass;   //!< Isotope-weighted average atomic mass
-        std::string    name;          //!< Element name
+        Label          label;         //!< Element name
     };
 
     //! Define a material's input data
@@ -60,7 +64,7 @@ class MaterialParams
         MatterState matter_state;   //!< Solid, liquid, gas
         std::vector<std::pair<ElementId, real_type>>
                     elements_fractions; //!< Fraction of number density
-        std::string name;               //!< Material name
+        Label       label;              //!< Material name
     };
 
     //! Input data to construct this class
@@ -78,22 +82,37 @@ class MaterialParams
     explicit MaterialParams(const Input& inp);
 
     //! Number of material definitions
-    MaterialId::size_type size() const { return matnames_.size(); }
+    MaterialId::size_type size() const { return mat_labels_.size(); }
 
+    //!@{
+    //! \name Material metadata
     //! Number of materials
-    MaterialId::size_type num_materials() const { return matnames_.size(); }
-
-    //! Number of distinct elements definitions
-    ElementId::size_type num_elements() const { return elnames_.size(); }
-
-    // Get element name
-    inline const std::string& id_to_label(ElementId id) const;
+    MaterialId::size_type num_materials() const { return mat_labels_.size(); }
 
     // Get material name
-    inline const std::string& id_to_label(MaterialId id) const;
+    const Label& id_to_label(MaterialId id) const;
 
     // Find a material from a name
-    inline MaterialId find(const std::string& name) const;
+    MaterialId find_material(const std::string& name) const;
+
+    // Find all materials that share a name
+    SpanConstMaterialId find_materials(const std::string& name) const;
+    //!@}
+
+    //!@{
+    //! \name Element metadata
+    //! Number of distinct elements definitions
+    ElementId::size_type num_elements() const { return el_labels_.size(); }
+
+    // Get element name
+    const Label& id_to_label(ElementId id) const;
+
+    // Find an element from a name
+    ElementId find_element(const std::string& name) const;
+
+    // Find all elements that share a name
+    SpanConstElementId find_elements(const std::string& name) const;
+    //!@}
 
     // Access material definitions on host
     inline MaterialView get(MaterialId id) const;
@@ -111,9 +130,9 @@ class MaterialParams
     inline ElementComponentId::size_type max_element_components() const;
 
   private:
-    std::vector<std::string>                    elnames_;
-    std::vector<std::string>                    matnames_;
-    std::unordered_map<std::string, MaterialId> matname_to_id_;
+    // Metadata
+    LabelIdMultiMap<MaterialId> mat_labels_;
+    LabelIdMultiMap<ElementId>  el_labels_;
 
     // Host/device storage and reference
     CollectionMirror<MaterialParamsData> data_;
@@ -128,41 +147,6 @@ class MaterialParams
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get the label for an element.
- */
-const std::string& MaterialParams::id_to_label(ElementId el) const
-{
-    CELER_EXPECT(el < elnames_.size());
-    return elnames_[el.get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the label for a material.
- */
-const std::string& MaterialParams::id_to_label(MaterialId mat) const
-{
-    CELER_EXPECT(mat < matnames_.size());
-    return matnames_[mat.get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the material ID corresponding to a name.
- *
- * This function will have to be updated to allow for multiple MaterialDefIds
- * with same material name.
- */
-MaterialId MaterialParams::find(const std::string& name) const
-{
-    auto iter = matname_to_id_.find(name);
-    if (iter == matname_to_id_.end())
-        return {};
-    return iter->second;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get material properties for the given material.

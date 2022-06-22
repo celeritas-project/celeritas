@@ -44,7 +44,7 @@ class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
         {
             return "[OUTSIDE]";
         }
-        return this->geometry()->id_to_label(geo.volume_id());
+        return this->geometry()->id_to_label(geo.volume_id()).name;
     }
 
   protected:

@@ -89,7 +89,7 @@ using {namespace}::{name};
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class {name}Test : public celeritas::Test
+class {name}Test : public celeritas_test::Test
 {{
   protected:
     void SetUp() override {{}}

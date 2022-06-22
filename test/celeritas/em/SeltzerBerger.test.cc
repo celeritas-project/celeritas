@@ -55,34 +55,14 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     void SetUp() override
     {
         using celeritas::MatterState;
-        using celeritas::ParticleRecord;
         using namespace celeritas::constants;
         using namespace celeritas::units;
-        constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
-        // Set up shared particle data
-        Base::set_particle_params(
-            {{"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable},
-             {"positron",
-              pdg::positron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
         const auto& particles = *this->particle_params();
         data_.ids.electron    = particles.find(pdg::electron());
         data_.ids.positron    = particles.find(pdg::positron());
         data_.ids.gamma       = particles.find(pdg::gamma());
         data_.electron_mass   = particles.get(data_.ids.electron).mass();
-
-        // Set default particle to incident 1 MeV photon
-        this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
-        this->set_inc_direction({0, 0, 1});
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
@@ -95,7 +75,6 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
              "Cu"},
         };
         this->set_material_params(mat_inp);
-        this->set_material("Cu");
 
         // Set up Seltzer-Berger cross section data
         std::string         data_path = this->test_data_path("celeritas", "");
@@ -116,6 +95,11 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
         this->set_cutoff_params(input);
+
+        // Set default particle to incident 1 MeV photon in copper
+        this->set_inc_particle(pdg::electron(), MevEnergy{1.0});
+        this->set_inc_direction({0, 0, 1});
+        this->set_material("Cu");
     }
 
     EnergySq density_correction(MaterialId matid, Energy e) const

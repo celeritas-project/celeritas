@@ -32,47 +32,16 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using celeritas::ParticleRecord;
-        using namespace celeritas::units;
-        using namespace celeritas::constants;
-        constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-
-        Base::set_particle_params(
-            {{"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable},
-             {"positron",
-              pdg::positron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
-
         const auto& params  = *this->particle_params();
         data_.ids.positron  = params.find(pdg::positron());
         data_.ids.gamma     = params.find(pdg::gamma());
-        data_.electron_mass = 0.5109989461;
-
-        // Set up shared material data
-        MaterialParams::Input mi;
-        mi.elements  = {{19, AmuMass{39.0983}, "K"}};
-        mi.materials = {{1e-5 * na_avogadro,
-                         293.,
-                         MatterState::solid,
-                         {{ElementId{0}, 1.0}},
-                         "K"}};
-
-        // Set default material to potassium
-        this->set_material_params(mi);
-        this->set_material("K");
+        data_.electron_mass
+            = params.get(params.find(pdg::electron())).mass().value();
 
         // Set default particle to incident 10 MeV positron
         this->set_inc_particle(pdg::positron(), MevEnergy{10});
         this->set_inc_direction({0, 0, 1});
+        this->set_material("K");
     }
 
     void sanity_check(const Interaction& interaction) const

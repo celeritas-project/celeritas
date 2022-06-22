@@ -120,8 +120,6 @@ inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
 } // namespace celeritas
 
 //---------------------------------------------------------------------------//
-// STD::HASH SPECIALIZATION FOR HOST CODE
-//---------------------------------------------------------------------------//
 //! \cond
 namespace std
 {

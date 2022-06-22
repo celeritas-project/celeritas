@@ -29,6 +29,18 @@ using celeritas_test::m_test;
 using celeritas_test::MTestInput;
 using celeritas_test::MTestOutput;
 
+namespace celeritas
+{
+std::ostream& operator<<(std::ostream& os, const MaterialId& mat)
+{
+    os << "MaterialId{";
+    if (mat)
+        os << mat.unchecked_get();
+    os << "}";
+    return os;
+}
+} // namespace celeritas
+
 //---------------------------------------------------------------------------//
 //! Test coulomb correction values
 TEST(MaterialUtils, coulomb_correction)
@@ -112,9 +124,13 @@ class MaterialTest : public celeritas_test::Test
              100.0,
              MatterState::gas,
              {{ElementId{0}, 1.0}},
-             "H2"},
+             Label{"H2", "1"}},
             // Diatomic hydrogen with the same name and different properties
-            {1.072e+20, 110.0, MatterState::gas, {{ElementId{0}, 1.0}}, "H2"},
+            {1.072e+20,
+             110.0,
+             MatterState::gas,
+             {{ElementId{0}, 1.0}},
+             Label{"H2", "2"}},
         };
         params = std::make_shared<MaterialParams>(std::move(inp));
     }
@@ -132,21 +148,26 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(4, params->num_materials());
     EXPECT_EQ(4, params->num_elements());
 
-    EXPECT_EQ(MaterialId{0}, params->find("NaI"));
-    EXPECT_EQ(MaterialId{1}, params->find("hard vacuum"));
-    EXPECT_EQ(MaterialId{2}, params->find("H2"));
-    EXPECT_EQ(MaterialId{3}, params->find("H2_3"));
-    EXPECT_EQ(MaterialId{}, params->find("nonexistent material"));
+    EXPECT_EQ(MaterialId{0}, params->find_material("NaI"));
+    EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
+    EXPECT_THROW(params->find_material("H2"), celeritas::RuntimeError);
+    {
+        auto             found      = params->find_materials("H2");
+        const MaterialId expected[] = {MaterialId{2}, MaterialId{3}};
+        EXPECT_VEC_EQ(expected, found);
+    }
+    EXPECT_EQ(MaterialId{}, params->find_material("nonexistent material"));
 
-    EXPECT_EQ("H", params->id_to_label(ElementId{0}));
-    EXPECT_EQ("Al", params->id_to_label(ElementId{1}));
-    EXPECT_EQ("Na", params->id_to_label(ElementId{2}));
-    EXPECT_EQ("I", params->id_to_label(ElementId{3}));
+    EXPECT_EQ("H", params->id_to_label(ElementId{0}).name);
+    EXPECT_EQ("Al", params->id_to_label(ElementId{1}).name);
+    EXPECT_EQ("Na", params->id_to_label(ElementId{2}).name);
+    EXPECT_EQ("I", params->id_to_label(ElementId{3}).name);
+    EXPECT_EQ(ElementId{1}, params->find_element("Al"));
 
-    EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}));
-    EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}));
-    EXPECT_EQ("H2", params->id_to_label(MaterialId{2}));
-    EXPECT_EQ("H2_3", params->id_to_label(MaterialId{3}));
+    EXPECT_EQ("NaI", params->id_to_label(MaterialId{0}).name);
+    EXPECT_EQ("hard vacuum", params->id_to_label(MaterialId{1}).name);
+    EXPECT_EQ(Label("H2", "1"), params->id_to_label(MaterialId{2}));
+    EXPECT_EQ(Label("H2", "2"), params->id_to_label(MaterialId{3}));
 
     EXPECT_EQ(2, params->max_element_components());
 }
@@ -266,11 +287,9 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
 {
     const auto material_params = MaterialParams::from_import(data_);
     // Material labels
-    std::string material_label;
-    material_label = material_params->id_to_label(MaterialId{0});
-    EXPECT_EQ(material_label, "G4_Galactic");
-    material_label = material_params->id_to_label(MaterialId{1});
-    EXPECT_EQ(material_label, "G4_STAINLESS-STEEL");
+    EXPECT_EQ("G4_Galactic", material_params->id_to_label(MaterialId{0}).name);
+    EXPECT_EQ("G4_STAINLESS-STEEL",
+              material_params->id_to_label(MaterialId{1}).name);
 
     /*!
      * Material

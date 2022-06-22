@@ -8,10 +8,12 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
+#include "corecel/cont/LabelIdMultiMap.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 
 #include "BoundingBox.hh"
@@ -36,18 +38,19 @@ class OrangeParams
         = OrangeParamsData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = OrangeParamsData<Ownership::const_reference, MemSpace::device>;
+    using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 
     struct Input
     {
         using Surfaces = SurfaceData<Ownership::value, MemSpace::host>;
         using Volumes  = VolumeData<Ownership::value, MemSpace::host>;
-        using VecStr   = std::vector<std::string>;
+        using VecLabel = std::vector<Label>;
 
         Surfaces    surfaces;       //!< Surface definitions
         Volumes     volumes;        //!< Volume definitions
-        VecStr      surface_labels; //!< Surface names (metadata)
-        VecStr      volume_labels;  //!< Volume names (metadata)
+        VecLabel    surface_labels; //!< Surface names (metadata)
+        VecLabel    volume_labels;  //!< Volume names (metadata)
         BoundingBox bbox;           //!< Outer bounding box (metadata)
     };
 
@@ -67,10 +70,13 @@ class OrangeParams
     VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
 
     // Get the label for a placed volume ID
-    const std::string& id_to_label(VolumeId vol_id) const;
+    const Label& id_to_label(VolumeId vol_id) const;
 
-    // Get the volume ID corresponding to a label
-    VolumeId find_volume(const std::string& label) const;
+    // Get the volume ID corresponding to a unique label lname
+    VolumeId find_volume(const std::string& name) const;
+
+    // Get zero or more volume IDs corresponding to a name
+    SpanConstVolumeId find_volumes(const std::string& name) const;
 
     //! Outer bounding box of geometry
     const BoundingBox& bbox() const { return bbox_; }
@@ -78,10 +84,10 @@ class OrangeParams
     //// SURFACES ////
 
     // Get the label for a placed volume ID
-    const std::string& id_to_label(SurfaceId surf_id) const;
+    const Label& id_to_label(SurfaceId surf_id) const;
 
-    // Get the surface ID corresponding to a label
-    SurfaceId find_surface(const std::string& label) const;
+    // Get the surface ID corresponding to a unique label name
+    SurfaceId find_surface(const std::string& name) const;
 
     //! Number of distinct surfaces
     size_type num_surfaces() const { return surf_labels_.size(); }
@@ -96,12 +102,10 @@ class OrangeParams
 
   private:
     // Host metadata/access
-    std::vector<std::string>                   surf_labels_;
-    std::vector<std::string>                   vol_labels_;
-    std::unordered_map<std::string, VolumeId>  vol_ids_;
-    std::unordered_map<std::string, SurfaceId> surf_ids_;
-    BoundingBox                                bbox_;
-    bool                                       supports_safety_{};
+    LabelIdMultiMap<SurfaceId> surf_labels_;
+    LabelIdMultiMap<VolumeId>  vol_labels_;
+    BoundingBox                bbox_;
+    bool                       supports_safety_{};
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;

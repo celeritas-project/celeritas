@@ -119,6 +119,7 @@ celeritas_setup_tests(SERIAL PREFIX corecel)
 # Cont
 celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
+celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
 celeritas_device_test(corecel/cont/Range)
 
 # Data
@@ -138,6 +139,7 @@ celeritas_add_test(corecel/io/Repr.test.cc)
 # Math
 celeritas_add_test(corecel/math/Algorithms.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
+celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_device_test(corecel/math/NumericLimits)
 celeritas_add_test(corecel/math/Quantity.test.cc)
 celeritas_add_test(corecel/math/SoftEqual.test.cc)

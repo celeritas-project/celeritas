@@ -59,10 +59,14 @@ int main(int argc, char* argv[])
         // Read data from geant, write to ROOT
         export_root(import());
     }
+    catch (const RuntimeError& e)
+    {
+        CELER_LOG(critical) << "Runtime error: " << e.what();
+        return EXIT_FAILURE;
+    }
     catch (const DebugError& e)
     {
-        CELER_LOG(critical)
-            << "Exception while exporting Geant4 data to root: " << e.what();
+        CELER_LOG(critical) << "Assertion failure: " << e.what();
         return EXIT_FAILURE;
     }
 
