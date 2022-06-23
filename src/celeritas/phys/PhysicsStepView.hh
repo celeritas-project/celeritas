@@ -144,7 +144,6 @@ CELER_FUNCTION void PhysicsStepView::macro_xs(real_type inv_distance)
  */
 CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
 {
-    CELER_EXPECT(elcomp_id);
     this->state().element = elcomp_id;
 }
 
@@ -218,9 +217,7 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
  */
 CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
 {
-    ElementComponentId element = this->state().element;
-    CELER_ENSURE(element);
-    return element;
+    return this->state().element;
 }
 
 //---------------------------------------------------------------------------//

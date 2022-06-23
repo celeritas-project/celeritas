@@ -24,28 +24,29 @@ namespace celeritas
 inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     LivermorePERef const& model, CoreTrackView const& track)
 {
-    // Set up element sampler
-    auto            material = track.make_material_view();
-    auto            particle = track.make_particle_view();
-    ElementSelector select_el(
-        material.make_material_view(),
-        LivermorePEMicroXsCalculator{model, particle.energy()},
-        material.element_scratch());
-
-    // Sample element
-    auto      rng = track.make_rng_engine();
+    // Sample an element (calculating microscopic cross sections on the fly)
+    // and store it
+    auto      particle = track.make_particle_view();
+    auto      rng      = track.make_rng_engine();
     ElementId el_id;
     {
-        ElementComponentId comp_id = select_el(rng);
-        CELER_ASSERT(comp_id);
-        el_id = material.make_material_view().element_id(comp_id);
+        auto            material_track = track.make_material_view();
+        auto            material       = material_track.make_material_view();
+        ElementSelector select_el(
+            material,
+            LivermorePEMicroXsCalculator{model, particle.energy()},
+            material_track.element_scratch());
+        ElementComponentId elcomp_id = select_el(rng);
+        CELER_ASSERT(elcomp_id);
+        track.make_physics_step_view().element(elcomp_id);
+        el_id = material.element_id(elcomp_id);
     }
 
-    // Set up photoelectric inteactor with the selected element
+    // Set up photoelectric interactor with the selected element
     auto relaxation
         = track.make_physics_step_view().make_relaxation_helper(el_id);
-    auto        cutoffs              = track.make_cutoff_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        cutoffs = track.make_cutoff_view();
+    const auto& dir     = track.make_geo_view().dir();
     auto        allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     LivermorePEInteractor interact(

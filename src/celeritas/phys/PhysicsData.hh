@@ -384,7 +384,7 @@ struct PhysicsParamsData
  * - Current macroscopic cross section
  * - Within-step energy deposition
  * - Secondaries emitted from an interaction
- * - Discrete process selection
+ * - Discrete process element selection
  */
 struct PhysicsTrackState
 {

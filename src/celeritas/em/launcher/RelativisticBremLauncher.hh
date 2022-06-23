@@ -25,11 +25,12 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
     auto cutoff   = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
     auto particle = track.make_particle_view();
-    auto pstep    = track.make_physics_step_view();
 
-    auto        elcomp_id            = pstep.element();
-    auto        allocate_secondaries = pstep.make_secondary_allocator();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto elcomp_id = track.make_physics_step_view().element();
+    CELER_ASSERT(elcomp_id);
+    auto allocate_secondaries
+        = track.make_physics_step_view().make_secondary_allocator();
+    const auto& dir = track.make_geo_view().dir();
 
     RelativisticBremInteractor interact(
         model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
