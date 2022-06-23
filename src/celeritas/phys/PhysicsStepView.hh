@@ -55,8 +55,8 @@ class PhysicsStepView
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
-    // Set the sampled process
-    inline CELER_FUNCTION void ppid(ParticleProcessId);
+    // Set the sampled element
+    inline CELER_FUNCTION void element(ElementComponentId);
 
     // Save MSC step data
     inline CELER_FUNCTION void msc_step(const MscStep&);
@@ -76,8 +76,8 @@ class PhysicsStepView
     // Total (process-integrated) macroscopic xs [cm^-1]
     CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
 
-    // Sampled process for discrete interaction
-    CELER_FORCEINLINE_FUNCTION ParticleProcessId ppid() const;
+    // Sampled element for discrete interaction
+    CELER_FORCEINLINE_FUNCTION ElementComponentId element() const;
 
     // Retrieve MSC step data
     inline CELER_FUNCTION const MscStep& msc_step() const;
@@ -140,12 +140,12 @@ CELER_FUNCTION void PhysicsStepView::macro_xs(real_type inv_distance)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the sampled process.
+ * Set the sampled element.
  */
-CELER_FUNCTION void PhysicsStepView::ppid(ParticleProcessId ppid)
+CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
 {
-    CELER_EXPECT(ppid);
-    this->state().ppid = ppid;
+    CELER_EXPECT(elcomp_id);
+    this->state().element = elcomp_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -214,13 +214,13 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Sampled process for discrete interaction.
+ * Sampled element for discrete interaction.
  */
-CELER_FUNCTION ParticleProcessId PhysicsStepView::ppid() const
+CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
 {
-    ParticleProcessId ppid = this->state().ppid;
-    CELER_ENSURE(ppid);
-    return ppid;
+    ElementComponentId element = this->state().element;
+    CELER_ENSURE(element);
+    return element;
 }
 
 //---------------------------------------------------------------------------//

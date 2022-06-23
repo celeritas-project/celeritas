@@ -313,7 +313,6 @@ select_discrete_interaction(const ParticleTrackView& particle,
         [&pstep](ParticleProcessId ppid) { return pstep.per_process_xs(ppid); },
         ParticleProcessId{physics.num_particle_processes()},
         pstep.macro_xs())(rng);
-    pstep.ppid(ppid);
 
     // Determine if the discrete interaction occurs for energy loss
     // processes
@@ -341,11 +340,22 @@ select_discrete_interaction(const ParticleTrackView& particle,
         }
     }
 
-    // Select the model and return; See doc above for details.
+    // Find the model that applies at the particle energy
     auto find_model = physics.make_model_finder(ppid);
-    auto model_id   = find_model(particle.energy());
-    CELER_ENSURE(model_id);
-    return physics.model_to_action(model_id);
+    auto pmid       = find_model(particle.energy());
+
+    ElementComponentId elcomp_id{0};
+    if (auto table_id = physics.value_table(pmid))
+    {
+        // Sample an element for discrete interactions that require it and for
+        // materials with more than one element
+        auto select_element
+            = physics.make_element_selector(table_id, particle.energy());
+        elcomp_id = select_element(rng);
+    }
+    pstep.element(elcomp_id);
+
+    return physics.model_to_action(physics.model_id(pmid));
 }
 
 //---------------------------------------------------------------------------//

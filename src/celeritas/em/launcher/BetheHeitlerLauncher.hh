@@ -25,22 +25,16 @@ inline CELER_FUNCTION Interaction bethe_heitler_interact_track(
     auto material_track = track.make_material_view();
     auto material       = material_track.make_material_view();
     auto particle       = track.make_particle_view();
-    auto physics        = track.make_physics_view();
-    auto rng            = track.make_rng_engine();
+    auto pstep          = track.make_physics_step_view();
 
-    // Sample an element
-    auto select_element = physics.make_element_selector(
-        physics.action_to_model(model.ids.action), particle.energy());
-    auto elcomp_id = select_element(rng);
-    auto element   = material.make_element_view(elcomp_id);
-
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
-    const auto& dir = track.make_geo_view().dir();
+    auto        element = material.make_element_view(pstep.element());
+    auto        allocate_secondaries = pstep.make_secondary_allocator();
+    const auto& dir                  = track.make_geo_view().dir();
 
     BetheHeitlerInteractor interact(
         model, particle, dir, allocate_secondaries, material, element);
 
+    auto rng = track.make_rng_engine();
     return interact(rng);
 }
 

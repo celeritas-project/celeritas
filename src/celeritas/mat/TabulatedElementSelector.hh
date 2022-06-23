@@ -74,6 +74,7 @@ TabulatedElementSelector::TabulatedElementSelector(const ValueTable&   table,
                                                    Energy              energy)
     : table_(table), grids_(grids), ids_(ids), reals_(reals), energy_(energy)
 {
+    CELER_EXPECT(table);
 }
 
 //---------------------------------------------------------------------------//
@@ -84,12 +85,6 @@ template<class Engine>
 CELER_FUNCTION ElementComponentId
 TabulatedElementSelector::operator()(Engine& rng) const
 {
-    if (!table_)
-    {
-        // Material only has a single element
-        return ElementComponentId{0};
-    }
-
     size_type i = 0;
     real_type u = generate_canonical(rng);
     for (; i < table_.grids.size(); ++i)

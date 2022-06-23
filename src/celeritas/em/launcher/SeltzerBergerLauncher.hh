@@ -25,21 +25,16 @@ inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
     auto cutoff   = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
     auto particle = track.make_particle_view();
-    auto physics  = track.make_physics_view();
-    auto rng      = track.make_rng_engine();
+    auto pstep    = track.make_physics_step_view();
 
-    // Sample an element
-    auto select_element = physics.make_element_selector(
-        physics.action_to_model(model.ids.action), particle.energy());
-    auto elcomp_id = select_element(rng);
-
-    auto allocate_secondaries
-        = track.make_physics_step_view().make_secondary_allocator();
-    const auto& dir = track.make_geo_view().dir();
+    auto        elcomp_id            = pstep.element();
+    auto        allocate_secondaries = pstep.make_secondary_allocator();
+    const auto& dir                  = track.make_geo_view().dir();
 
     SeltzerBergerInteractor interact(
         model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
+    auto rng = track.make_rng_engine();
     return interact(rng);
 }
 

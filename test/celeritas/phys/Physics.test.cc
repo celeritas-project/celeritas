@@ -122,7 +122,7 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"models":[{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":0},{"label":"mock-model-7","process":1},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":2},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":3},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":4},{"label":"mock-model-15","process":5}],"options":{"enable_fluctuation":true,"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":65}})json",
+            R"json({"models":[{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":0},{"label":"mock-model-7","process":1},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":2},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":3},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":4},{"label":"mock-model-15","process":5}],"options":{"enable_fluctuation":true,"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":43}})json",
             to_string(out));
     }
 }
@@ -378,11 +378,11 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
     static const int expected_grid_ids[]
-        = {0,  -1, -1, -1, 6,  -1, -1, -1, 1,  -1, -1, -1, 7,  -1, -1, -1, 2,
-           -1, -1, -1, 8,  -1, -1, -1, 12, -1, -1, -1, 18, 19, 20, -1, 36, -1,
-           -1, -1, 13, -1, -1, -1, 21, 22, 23, -1, 37, -1, -1, -1, 14, -1, -1,
-           -1, 24, 25, 26, -1, 38, -1, -1, -1, 42, 43, 44, -1, 57, -1, -1, -1,
-           45, 46, 47, -1, 58, -1, -1, -1, 48, 49, 50, -1, 59, -1, -1, -1};
+        = {0,  -1, -1, -1, 3,  -1, -1, -1, 1,  -1, -1, -1, 4,  -1, -1, -1, 2,
+           -1, -1, -1, 5,  -1, -1, -1, 6,  -1, -1, -1, 9,  10, 11, -1, 18, -1,
+           -1, -1, 7,  -1, -1, -1, 12, 13, 14, -1, 19, -1, -1, -1, 8,  -1, -1,
+           -1, 15, 16, 17, -1, 20, -1, -1, -1, 21, 22, 23, -1, 30, -1, -1, -1,
+           24, 25, 26, -1, 31, -1, -1, -1, 27, 28, 29, -1, 32, -1, -1, -1};
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
 
@@ -552,25 +552,25 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
 
 TEST_F(PhysicsTrackViewHostTest, element_selector)
 {
-    // Store the sampled process (constant micro xs)
-    PhysicsTrackView phys  = this->make_track_view("celeriton", MaterialId{2});
-    PhysicsStepView  pstep = this->make_step_view("celeriton");
-    auto             purr_ppid = this->find_ppid(phys, "purrs");
+    MevEnergy  energy{2};
+    MaterialId mid{2};
+
+    // Get the sampled process (constant micro xs)
+    const PhysicsTrackView phys      = this->make_track_view("celeriton", mid);
+    auto                   purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
-    pstep.ppid(purr_ppid);
 
     // Find the model that applies at the given energy
-    MevEnergy energy{2};
-    auto      find_model = phys.make_model_finder(purr_ppid);
-    auto      model_id   = find_model(energy);
-    ASSERT_TRUE(model_id);
+    auto find_model = phys.make_model_finder(purr_ppid);
+    auto pmid       = find_model(energy);
+    ASSERT_TRUE(pmid);
 
     // Sample from material composed of three elements (PMF = [0.1, 0.3, 0.6])
     {
-        MaterialId       mid{2};
-        PhysicsTrackView phys = this->make_track_view("celeriton", mid);
+        auto table_id = phys.value_table(pmid);
+        EXPECT_TRUE(table_id);
+        auto select_element = phys.make_element_selector(table_id, energy);
         std::vector<int> counts(this->material()->get(mid).num_elements());
-        auto select_element = phys.make_element_selector(model_id, energy);
         for (CELER_MAYBE_UNUSED auto i : range(1e5))
         {
             const auto elcomp_id = select_element(this->rng());
@@ -581,16 +581,12 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
         EXPECT_VEC_EQ(expected_counts, counts);
     }
 
-    // Sample from material composed of a single element
+    // Material composed of a single element
     {
         PhysicsTrackView phys
             = this->make_track_view("celeriton", MaterialId{1});
-        auto select_element = phys.make_element_selector(model_id, energy);
-        for (CELER_MAYBE_UNUSED auto i : range(100))
-        {
-            const auto elcomp_id = select_element(this->rng());
-            EXPECT_EQ(ElementComponentId{0}, elcomp_id);
-        }
+        auto table_id = phys.value_table(pmid);
+        EXPECT_FALSE(table_id);
     }
 }
 

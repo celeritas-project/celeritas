@@ -187,6 +187,7 @@ class PhysicsParams
     void     build_xs(const Options&        opts,
                       const MaterialParams& mats,
                       HostValue*            data) const;
+    void     build_model_xs(const MaterialParams& mats, HostValue* data) const;
     void     build_fluct(const Options&        opts,
                          const MaterialParams& mats,
                          const ParticleParams& particles,
