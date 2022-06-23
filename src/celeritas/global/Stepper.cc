@@ -153,8 +153,11 @@ auto Stepper<M>::operator()(VecPrimary primaries) -> result_type
 
     // Create track initializers
     resize(&inits_, init_params.host_ref(), states_.size());
-    CELER_ASSERT(init_params.host_ref().primaries.size()
-                 <= inits_.initializers.capacity());
+    CELER_VALIDATE(init_params.host_ref().primaries.size()
+                       <= inits_.initializers.capacity(),
+                   << "insufficient initializer capacity ("
+                   << inits_.initializers.capacity() << ") for primaries ("
+                   << init_params.host_ref().primaries.size() << ')');
 
     extend_from_primaries(init_params.host_ref(), &inits_);
 

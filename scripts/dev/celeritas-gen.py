@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -44,7 +43,7 @@ class {name}
 {{
   public:
     //!@{{
-    //! Type aliases
+    //! \\name Type aliases
     <++>
     //!@}}
 
@@ -90,7 +89,7 @@ using {namespace}::{name};
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class {name}Test : public celeritas::Test
+class {name}Test : public celeritas_test::Test
 {{
   protected:
     void SetUp() override {{}}
@@ -247,7 +246,6 @@ endfunction()
 
 PYTHON_TOP = '''\
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -307,6 +305,42 @@ comp galactic
 shapes world_box ~mycyl
 '''
 
+RST_TOP = '''\
+.. Copyright {year} UT-Battelle, LLC, and other Celeritas developers.
+.. See the doc/COPYRIGHT file for details.
+.. SPDX-License-Identifier: CC-BY-4.0
+'''
+
+RST_FILE = '''
+.. _{name}:
+
+****************
+{name}
+****************
+
+Text with a link to `Sphinx primer`_ and `RST`_ docs.
+
+.. _Sphinx primer : https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+.. _RST : https://docutils.sourceforge.io/docs/user/rst/quickref.html
+
+Subsection
+==========
+
+Another paragraph.
+
+.. note:: Don't start a subsection immediately after a section: make sure
+   there's something to say at the start of each one.
+
+Subsubsection
+-------------
+
+These are useful for heavily nested documentation such as API descriptions. ::
+
+    // This code block will be highlighted in the default language, which for
+    // Celeritas is C++.
+    int i = 0;
+'''
+
 YEAR = datetime.today().year
 
 TEMPLATES = {
@@ -323,6 +357,7 @@ TEMPLATES = {
     'py': PYTHON_FILE,
     'sh': SHELL_FILE,
     'org.omn': ORANGE_FILE,
+    'rst': RST_FILE,
 }
 
 LANG = {
@@ -337,6 +372,7 @@ LANG = {
     'py': "Python",
     'sh': "Shell",
     'omn': "Omnibus",
+    'rst': "RST",
 }
 
 TOPS = {
@@ -347,6 +383,7 @@ TOPS = {
     'Python': PYTHON_TOP,
     'Shell': SHELL_TOP,
     'Omnibus': OMN_TOP,
+    'RST': RST_TOP,
 }
 
 HEXT = {

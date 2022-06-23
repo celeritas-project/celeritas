@@ -14,7 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/UniformGridData.hh"
 
-#ifndef CELER_DEVICE_COMPILE
+#if !CELER_DEVICE_COMPILE
 #    include "corecel/data/CollectionBuilder.hh"
 #endif
 
@@ -80,7 +80,7 @@ struct DetectorStateData
     }
 };
 
-#ifndef CELER_DEVICE_COMPILE
+#if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//
 /*!
  * Allocate components and capacity for the detector.

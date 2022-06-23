@@ -3,11 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*! \file Assert.hh
- *  \brief Macros, exceptions, and helpers for assertions and error handling.
+/*!
+ * \file Assert.hh
+ * \brief Macros, exceptions, and helpers for assertions and error handling.
  *
- *  This defines host- and device-compatible assertion macros that are toggled
- *  on the \c CELERITAS_DEBUG configure macro.
+ * This defines host- and device-compatible assertion macros that are toggled
+ * on the \c CELERITAS_DEBUG configure macro.
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -177,12 +178,12 @@
     } while (0)
 //! \endcond
 
-#if CELERITAS_DEBUG && defined(CELER_DEVICE_COMPILE)
+#if CELERITAS_DEBUG && CELER_DEVICE_COMPILE
 #    define CELER_EXPECT(COND) CELER_DEVICE_ASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_DEVICE_ASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_DEVICE_ASSERT_(COND)
 #    define CELER_ASSERT_UNREACHABLE() CELER_DEVICE_ASSERT_UNREACHABLE_()
-#elif CELERITAS_DEBUG && !defined(CELER_DEVICE_COMPILE)
+#elif CELERITAS_DEBUG && !CELER_DEVICE_COMPILE
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
@@ -194,7 +195,7 @@
 #    define CELER_ASSERT_UNREACHABLE() CELER_UNREACHABLE
 #endif
 
-#ifndef CELER_DEVICE_COMPILE
+#if !CELER_DEVICE_COMPILE
 #    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_ASSERT_(COND, MSG)
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
@@ -429,7 +430,7 @@ class RuntimeError : public std::runtime_error
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#ifdef CELER_DEVICE_COMPILE
+#if CELER_DEVICE_COMPILE
 __attribute__((noinline)) __host__ __device__ inline void
 device_debug_error(const char* condition, const char* file, unsigned int line)
 {

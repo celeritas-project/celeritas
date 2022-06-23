@@ -72,6 +72,12 @@ class FiveVolumesTest : public OrangeTest
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
 };
 
+#define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
+class Geant4Testem15Test : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("geant4-testem15.org.json"); }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -82,8 +88,9 @@ TEST_F(OneVolumeTest, params)
 
     EXPECT_EQ(1, geo.num_volumes());
     EXPECT_EQ(0, geo.num_surfaces());
+    EXPECT_TRUE(geo.supports_safety());
 
-    EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}));
+    EXPECT_EQ("infinite", geo.id_to_label(VolumeId{0}).name);
     EXPECT_EQ(VolumeId{0}, geo.find_volume("infinite"));
 }
 
@@ -128,8 +135,9 @@ TEST_F(TwoVolumeTest, params)
 
     EXPECT_EQ(2, geo.num_volumes());
     EXPECT_EQ(1, geo.num_surfaces());
+    EXPECT_TRUE(geo.supports_safety());
 
-    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}));
+    EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}).name);
     EXPECT_EQ(SurfaceId{0}, geo.find_surface("sphere"));
 
     const auto& bbox = geo.bbox();
@@ -310,4 +318,55 @@ TEST_F(TwoVolumeTest, intersect_limited)
     next = geo.find_next_step(12345.0);
     EXPECT_SOFT_EQ(12345.0, next.distance);
     EXPECT_FALSE(next.boundary);
+}
+
+TEST_F(FiveVolumesTest, params)
+{
+    const OrangeParams& geo = this->params();
+
+    EXPECT_EQ(6, geo.num_volumes());
+    EXPECT_EQ(12, geo.num_surfaces());
+    EXPECT_FALSE(geo.supports_safety());
+}
+
+TEST_F(Geant4Testem15Test, params)
+{
+    const OrangeParams& geo = this->params();
+
+    EXPECT_EQ(3, geo.num_volumes());
+    EXPECT_EQ(12, geo.num_surfaces());
+    // The 'world' volume includes a negated box
+    EXPECT_FALSE(geo.supports_safety());
+}
+
+TEST_F(Geant4Testem15Test, safety)
+{
+    OrangeTrackView geo = this->make_track_view();
+
+    geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    EXPECT_FALSE(geo.is_outside());
+
+    // Safety at middle should be to the box boundary
+    EXPECT_SOFT_EQ(5000.0, geo.find_safety());
+
+    // Check safety near face
+    auto next = geo.find_next_step(4995.0);
+    EXPECT_SOFT_EQ(4995.0, next.distance);
+    EXPECT_FALSE(next.boundary);
+    geo.move_internal(4995.0);
+    EXPECT_SOFT_EQ(5.0, geo.find_safety());
+
+    // Check safety near edge
+    geo.set_dir({0, 1, 0});
+    next = geo.find_next_step();
+    geo.move_internal(4990.0);
+    EXPECT_SOFT_EQ(5.0, geo.find_safety());
+    geo.set_dir({-1, 0, 0});
+    next = geo.find_next_step();
+    geo.move_internal(6.0);
+    EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }

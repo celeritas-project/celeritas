@@ -132,12 +132,14 @@ class Range
         return {*begin_, *end_, step};
     }
 
+    //! \cond
     //! Return a stepped range using a different integer type
     template<class U, std::enable_if_t<std::is_unsigned<U>::value, U> = 0>
     CELER_FUNCTION detail::StepRange<step_type<U>> step(U step)
     {
         return {*begin_, *end_, step};
     }
+    //! \endcond
 
   private:
     const_iterator begin_;

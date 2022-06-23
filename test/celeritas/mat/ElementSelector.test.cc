@@ -114,7 +114,7 @@ struct CalcFancyMicroXs
 //! You can't select an element in pure void. (No interactions anyway.)
 TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 {
-    MaterialView material(mats->host_ref(), mats->find("hard_vacuum"));
+    MaterialView material(mats->host_ref(), mats->find_material("hard_vacuum"));
     EXPECT_THROW(ElementSelector(material, mock_micro_xs, make_span(storage)),
                  celeritas::DebugError);
 }
@@ -122,7 +122,7 @@ TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 //! Single element should always select the first one.
 TEST_F(ElementSelectorTest, single)
 {
-    MaterialView    material(host_mats, mats->find("Al"));
+    MaterialView    material(host_mats, mats->find_material("Al"));
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Construction should have precalculated cross sections
@@ -142,7 +142,7 @@ TEST_F(ElementSelectorTest, single)
 //! Equal number densities but unequal cross sections
 TEST_F(ElementSelectorTest, everything_even)
 {
-    MaterialView    material(host_mats, mats->find("everything_even"));
+    MaterialView material(host_mats, mats->find_material("everything_even"));
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
@@ -182,7 +182,8 @@ TEST_F(ElementSelectorTest, everything_even)
 //! Number densities scaled to 1/xs so equiprobable
 TEST_F(ElementSelectorTest, everything_weighted)
 {
-    MaterialView    material(host_mats, mats->find("everything_weighted"));
+    MaterialView    material(host_mats,
+                          mats->find_material("everything_weighted"));
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
@@ -208,7 +209,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
 //! Many zero cross sections
 TEST_F(ElementSelectorTest, even_zero_xs)
 {
-    MaterialView material(host_mats, mats->find("everything_even"));
+    MaterialView material(host_mats, mats->find_material("everything_even"));
     auto         calc_xs
         = [](ElementId el) -> real_type { return (el.get() % 2 ? 1 : 0); };
     ElementSelector select_el(material, calc_xs, make_span(storage));
@@ -229,7 +230,8 @@ TEST_F(ElementSelectorTest, even_zero_xs)
 TEST_F(ElementSelectorTest, fancy_xs)
 {
     units::MevEnergy energy{123};
-    MaterialView     material(host_mats, mats->find("everything_weighted"));
+    MaterialView     material(host_mats,
+                          mats->find_material("everything_weighted"));
     ElementSelector  select_el(
         material, CalcFancyMicroXs{host_mats, energy}, make_span(storage));
 

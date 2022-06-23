@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/StringUtils.hh
+//! \brief Helper functions for string processing
 //---------------------------------------------------------------------------//
 #pragma once
 

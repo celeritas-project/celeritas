@@ -26,6 +26,76 @@ namespace celeritas_test
  */
 InteractorHostTestBase::InteractorHostTestBase()
 {
+    using celeritas::ParticleRecord;
+    using namespace celeritas::constants;
+    using namespace celeritas::units;
+    constexpr auto zero   = celeritas::zero_quantity();
+    auto           stable = ParticleRecord::stable_decay_constant();
+
+    constexpr MevMass emass{0.5109989461};
+    constexpr MevMass mumass{105.6583745};
+
+    // Default particle params
+    ParticleParams::Input par_inp = {
+        {"electron", pdg::electron(), emass, ElementaryCharge{-1}, stable},
+        {"positron", pdg::positron(), emass, ElementaryCharge{1}, stable},
+        {"gamma", pdg::gamma(), zero, zero, stable},
+        {"mu_minus", pdg::mu_minus(), mumass, ElementaryCharge{-1}, stable},
+        {"mu_plus", pdg::mu_plus(), mumass, ElementaryCharge{1}, stable},
+    };
+    this->set_particle_params(std::move(par_inp));
+
+    // Default material params
+    MaterialParams::Input mat_inp;
+    mat_inp.elements  = {{29, AmuMass{63.546}, Label{"Cu"}},
+                        {19, AmuMass{39.0983}, Label{"K"}},
+                        {8, AmuMass{15.999}, Label{"O"}},
+                        {74, AmuMass{183.84}, Label{"W"}},
+                        {82, AmuMass{207.2}, Label{"Pb"}}};
+    mat_inp.materials = {
+        {0.141 * na_avogadro,
+         293.0,
+         celeritas::MatterState::solid,
+         {{celeritas::ElementId{0}, 1.0}},
+         Label{"Cu"}},
+        {0.05477 * na_avogadro,
+         293.15,
+         MatterState::solid,
+         {{ElementId{0}, 1.0}},
+         Label{"Pb"}},
+        {1e-5 * na_avogadro,
+         293.,
+         MatterState::solid,
+         {{ElementId{1}, 1.0}},
+         Label{"K"}},
+        {1.0 * na_avogadro,
+         293.0,
+         celeritas::MatterState::solid,
+         {{celeritas::ElementId{0}, 1.0}},
+         Label{"Cu-1.0"}},
+        {1.0 * constants::na_avogadro,
+         293.0,
+         celeritas::MatterState::solid,
+         {{celeritas::ElementId{2}, 0.5},
+          {celeritas::ElementId{3}, 0.3},
+          {celeritas::ElementId{4}, 0.2}},
+         Label{"PbWO"}},
+    };
+    this->set_material_params(std::move(mat_inp));
+
+    // Set cutoffs
+    {
+        CutoffParams::Input           input;
+        CutoffParams::MaterialCutoffs material_cutoffs(
+            material_params_->size());
+        material_cutoffs[0] = {MevEnergy{0.02064384}, 0.07};
+        input.materials     = this->material_params();
+        input.particles     = this->particle_params();
+        input.cutoffs.insert({pdg::gamma(), material_cutoffs});
+        this->set_cutoff_params(input);
+    }
+
+    // Set default capacities
     this->resize_secondaries(128);
 }
 
@@ -45,6 +115,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
     ms_ = StateStore<celeritas::MaterialStateData>(*material_params_, 1);
+    cutoff_params_ = {};
 }
 
 //---------------------------------------------------------------------------//
@@ -60,7 +131,8 @@ void InteractorHostTestBase::set_material(const std::string& name)
 
     // Initialize
     MaterialTrackView::Initializer_t init;
-    init.material_id = material_params_->find(name);
+    init.material_id = material_params_->find_material(name);
+    CELER_VALIDATE(init.material_id, << "no material '" << name << "' exists");
     *mt_view_        = init;
 }
 
@@ -73,6 +145,7 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
     ps_ = StateStore<celeritas::ParticleStateData>(*particle_params_, 1);
+    cutoff_params_ = {};
 }
 
 //---------------------------------------------------------------------------//

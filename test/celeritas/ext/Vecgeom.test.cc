@@ -114,7 +114,7 @@ auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
 
     while (!geo.is_outside())
     {
-        result.volumes.push_back(params.id_to_label(geo.volume_id()));
+        result.volumes.push_back(params.id_to_label(geo.volume_id()).name);
         auto next = geo.find_next_step();
         result.distances.push_back(next.distance);
         if (!next.boundary)
@@ -160,10 +160,11 @@ TEST_F(FourLevelsTest, accessors)
     EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}));
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}));
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}));
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}));
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
+    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
 }
 
 //---------------------------------------------------------------------------//

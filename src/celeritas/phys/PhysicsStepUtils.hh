@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/phys/PhysicsStepUtils.hh
+//! \brief Helper functions for physics step processing
 //---------------------------------------------------------------------------//
 #pragma once
 

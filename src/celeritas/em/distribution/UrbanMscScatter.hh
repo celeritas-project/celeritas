@@ -228,8 +228,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the scattering angle, \f$\theta\f$ at the end of the true step
- * length, \f$t\f$, described in G4UrbanMscModel::SampleCosineTheta of the
+ * Sample the scattering angle at the end of the true step length.
+ *
+ * The scattering angle \f$\theta\f$ and true step length, \f$t\f$ are
+ * described in G4UrbanMscModel::SampleCosineTheta of the
  * Geant4 10.7 release. See also, CERN-OPEN-2006-077 by L. Urban.
  *
  * The mean value of \f$u = \cos\theta\f$ follows \f$\exp(-t/\lambda_{1})\f$
@@ -240,11 +242,15 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
  *   g(u) = q [ p g_1(u) + (1-p) g_2(u) ] - (1 - q) g_3(u)
  * \f]
  * where \f$p,q \in [0,1]\f$ and the functions \f$g_i\f$ have been chosen as
- * \f$g_1(u) = c_1 e^{-a(1-u)}, g_2(u) = \frac{c_2}{(b-u)^d}, g_3(u) = c_3\f$
+ * \f[
+ *   g_1(u) = c_1 e^{-a(1-u)},
+ *   g_2(u) = \frac{c_2}{(b-u)^d},
+ *   g_3(u) = c_3
+ * \f]
  * with normalization constants, \f$d\f$. For small angles, \f$g_1\f$ is
- * nearly Gaussian, \f$\exp(-\frac{\theta^{2}}{2\theta_{0}^{2}})\f$, if
- * \f$\theta_0 \approx 1/1\f$, while \f$g_2\f$ has a Rutherford-like tail
- * for large $\theta$, if \f$b \approx 1\f$ and \f$d\f$ is not far from 2.
+ * nearly Gaussian, \f$ \exp(-\frac{\theta^{2}}{2\theta_{0}^{2}}), \f$
+ * if \f$\theta_0 \approx 1/1\f$, while \f$g_2\f$ has a Rutherford-like tail
+ * for large \f$\theta\f$, if \f$b \approx 1\f$ and \f$d\f$ is not far from 2.
  */
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
@@ -390,6 +396,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
 /*!
  * Sample the large angle scattering using 2 model functions.
  *
+ * \param rng Random number generator
  * \param xmean the mean of \f$\cos\theta\f$.
  * \param x2mean the mean of \f$\cos\theta^{2}\f$.
  */
@@ -511,8 +518,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
  * give the same mean value that is obtained from the single scattering
  * simulation.
  *
+ * \param rng Random number generator
  * \param phi the azimuthal angle of the multiple scattering.
- * \param rmax2 the asymmetry between true path and geom path
  */
 template<class Engine>
 CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,

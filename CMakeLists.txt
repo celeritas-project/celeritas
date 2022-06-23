@@ -189,6 +189,9 @@ if(CELERITAS_USE_Python)
     list(APPEND _components Development)
   endif()
   find_package(Python 3.6 REQUIRED COMPONENTS ${_components})
+  set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
+    "Python path used for finding modules and generating documentation"
+  )
 endif()
 
 if(CELERITAS_USE_ROOT)

@@ -40,43 +40,20 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using celeritas::ParticleRecord;
         using namespace celeritas::units;
         using namespace celeritas::constants;
-        constexpr auto zero   = celeritas::zero_quantity();
-        constexpr auto stable = ParticleRecord::stable_decay_constant();
-
-        Base::set_particle_params(
-            {{"electron",
-              pdg::electron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{-1},
-              stable},
-             {"positron",
-              pdg::positron(),
-              MevMass{0.5109989461},
-              ElementaryCharge{1},
-              stable},
-             {"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& particles = *this->particle_params();
 
         // Set up shared material data
         MaterialParams::Input mi;
         mi.elements  = {{82, AmuMass{207.2}, "Pb"}};
         mi.materials = {{0.05477 * na_avogadro,
                          293.15,
-                         MatterState::solid,
+                         celeritas::MatterState::solid,
                          {{ElementId{0}, 1.0}},
                          "Pb"}};
 
         // Set default material to potassium
         this->set_material_params(mi);
-        this->set_material("Pb");
-
-        // Set default particle to incident 25 GeV electron
-        this->set_inc_particle(pdg::positron(), MevEnergy{25000});
-        this->set_inc_direction({0, 0, 1});
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
@@ -97,23 +74,23 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
              {}}};
         this->set_imported_processes(imported);
 
-        // Construct RelativisticBremModel and save the host data reference
+        const auto& particles = *this->particle_params();
+
+        // Construct RelativisticBremModel
         model_ = std::make_shared<RelativisticBremModel>(
             ActionId{0},
             particles,
             *this->material_params(),
             this->imported_processes(),
             false);
-        data_ = model_->host_ref();
 
-        // Construct RelativisticBremModel and save the host data reference
+        // Construct RelativisticBremModel with LPM
         model_lpm_ = std::make_shared<RelativisticBremModel>(
             ActionId{0},
             particles,
             *this->material_params(),
             this->imported_processes(),
             true);
-        data_lpm_ = model_lpm_->host_ref();
 
         // Set cutoffs: photon energy thresholds and range cut for Pb
         CutoffParams::Input           input;
@@ -123,6 +100,11 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
         this->set_cutoff_params(input);
+
+        // Set default particle to incident 25 GeV electron
+        this->set_inc_particle(pdg::positron(), MevEnergy{25000});
+        this->set_inc_direction({0, 0, 1});
+        this->set_material("Pb");
     }
 
     void sanity_check(const Interaction& interaction) const
@@ -132,7 +114,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
         const auto& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
-        EXPECT_EQ(data_.ids.gamma, gamma.particle_id);
+        EXPECT_EQ(model_->host_ref().ids.gamma, gamma.particle_id);
 
         // Check conservation
         this->check_conservation(interaction);
@@ -140,9 +122,7 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<RelativisticBremModel> model_;
-    celeritas::RelativisticBremRef         data_;
     std::shared_ptr<RelativisticBremModel> model_lpm_;
-    celeritas::RelativisticBremRef         data_lpm_;
 };
 
 //---------------------------------------------------------------------------//

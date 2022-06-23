@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/ColorUtils.hh
+//! \brief Helper functions for writing colors to the terminal
 //---------------------------------------------------------------------------//
 #pragma once
 

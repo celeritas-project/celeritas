@@ -72,13 +72,14 @@ auto TestEm3Base::build_geomaterial() -> SPConstGeoMaterial
     const auto& imported = this->imported_data();
 
     input.volume_to_mat.resize(imported.volumes.size());
-    input.volume_names.resize(imported.volumes.size());
+    input.volume_labels.resize(imported.volumes.size());
     for (auto volume_idx :
          range<VolumeId::size_type>(input.volume_to_mat.size()))
     {
         input.volume_to_mat[volume_idx]
             = MaterialId{imported.volumes[volume_idx].material_id};
-        input.volume_names[volume_idx] = imported.volumes[volume_idx].name;
+        input.volume_labels[volume_idx]
+            = Label::from_geant(imported.volumes[volume_idx].name);
     }
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }

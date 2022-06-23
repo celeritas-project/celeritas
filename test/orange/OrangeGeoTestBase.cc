@@ -97,7 +97,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);
         insert(vi);
-        input.volume_labels = {"infinite"};
+        input.volume_labels = {Label("infinite")};
     }
 
     // Save fake bbox for sampling
@@ -120,7 +120,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
         // Insert surfaces
         SurfaceInserter insert(&input.surfaces);
         insert(Sphere({0, 0, 0}, inp.radius));
-        input.surface_labels = {"sphere"};
+        input.surface_labels = {Label("sphere")};
     }
     {
         // Insert volumes
@@ -139,7 +139,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
             vi.logic = {0, logic::lnot};
             insert(vi);
         }
-        input.volume_labels = {"outside", "inside"};
+        input.volume_labels = {Label("outside"), Label("inside")};
 
         {
             auto volumes      = make_builder(&input.volumes.volumes);
@@ -243,7 +243,7 @@ std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
     if (!surf)
         return "[none]";
 
-    return params_->id_to_label(surf);
+    return params_->id_to_label(surf).name;
 }
 
 //---------------------------------------------------------------------------//
@@ -255,7 +255,7 @@ std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
     if (!vol)
         return "[none]";
 
-    return params_->id_to_label(vol);
+    return params_->id_to_label(vol).name;
 }
 
 //---------------------------------------------------------------------------//

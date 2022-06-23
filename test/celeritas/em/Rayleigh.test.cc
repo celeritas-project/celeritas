@@ -49,10 +49,6 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         const auto& particles = *this->particle_params();
         model_ref_.ids.gamma  = particles.find(pdg::gamma());
 
-        // Set default particle to incident 1 MeV photon
-        this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});
-        this->set_inc_direction({0, 0, 1});
-
         // Setup MaterialView
         MaterialParams::Input inp;
         inp.elements  = {{8, AmuMass{15.999}, "O"},
@@ -68,7 +64,6 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
              "PbWO"},
         };
         this->set_material_params(inp);
-        this->set_material("PbWO");
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
@@ -87,6 +82,11 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
                                                  *this->material_params(),
                                                  this->imported_processes());
         model_ref_ = model_->host_ref();
+
+        // Set default particle to incident 1 MeV photon
+        this->set_inc_particle(pdg::gamma(), MevEnergy{1.0});
+        this->set_inc_direction({0, 0, 1});
+        this->set_material("PbWO");
     }
 
     void sanity_check(const Interaction& interaction) const

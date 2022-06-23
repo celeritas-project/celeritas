@@ -124,7 +124,7 @@ class KernelParamCalculator
  */
 CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
 {
-#ifdef CELER_DEVICE_COMPILE
+#if CELER_DEVICE_COMPILE
     return ThreadId{blockIdx.x * blockDim.x + threadIdx.x};
 #else
     // blockIdx/threadIdx not available: shouldn't be called by host code
