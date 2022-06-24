@@ -38,6 +38,41 @@ using ValueTableId = OpaqueId<struct ValueTable>;
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
+ * Set of value grids for all elements or materials.
+ *
+ * It is allowable for this to be "false" (i.e. no materials assigned)
+ * indicating that the value table doesn't apply in the context -- for
+ * example, an empty ValueTable macro_xs means that the process doesn't have a
+ * discrete interaction.
+ */
+struct ValueTable
+{
+    ItemRange<ValueGridId> grids; //!< Value grid by element or material index
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set of cross section CDF tables for a model.
+ *
+ * Each material has a set of value grids for its constituent elements; these
+ * are used to sample an element from a material when required by a discrete
+ * interaction. A null ValueTableId means the material only has a single
+ * element, so no cross sections need to be stored. An empty ModelXsTable means
+ * no element selection is required for the model.
+ */
+struct ModelXsTable
+{
+    ItemRange<ValueTableId> material; //!< Value table by material index
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Energy-dependent model IDs for a single process and particle type.
  *
  * For a given particle type, a single process should be divided into multiple
@@ -49,31 +84,14 @@ struct ModelGroup
 {
     using Energy = units::MevEnergy;
 
-    ItemRange<real_type> energy; //!< Energy grid bounds [MeV]
-    ItemRange<ModelId>   model;  //!< Corresponding models
+    ItemRange<real_type>       energy; //!< Energy grid bounds [MeV]
+    ItemRange<ParticleModelId> model;  //!< Corresponding models
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return (energy.size() >= 2) && (model.size() + 1 == energy.size());
     }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Set of value grids for all materials.
- *
- * It is allowable for this to be "false" (i.e. no materials assigned)
- * indicating that the value table doesn't apply in the context -- for
- * example, an empty ValueTable macro_xs means that the process doesn't have a
- * discrete interaction.
- */
-struct ValueTable
-{
-    ItemRange<ValueGridId> material; //!< Value grid by material index
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -288,19 +306,24 @@ struct PhysicsParamsData
     using Items = Collection<T, W, M>;
     template<class T>
     using ParticleItems = Collection<T, W, M, ParticleId>;
+    template<class T>
+    using ParticleModelItems = Collection<T, W, M, ParticleModelId>;
 
     //// DATA ////
 
     // Backend storage
-    Items<real_type>            reals;
-    Items<ModelId>              model_ids;
-    Items<ValueGrid>            value_grids;
-    Items<ValueGridId>          value_grid_ids;
-    Items<ProcessId>            process_ids;
-    Items<ValueTable>           value_tables;
-    Items<IntegralXsProcess>    integral_xs;
-    Items<ModelGroup>           model_groups;
-    ParticleItems<ProcessGroup> process_groups;
+    Items<real_type>                 reals;
+    Items<ParticleModelId>           pmodel_ids;
+    Items<ValueGrid>                 value_grids;
+    Items<ValueGridId>               value_grid_ids;
+    Items<ProcessId>                 process_ids;
+    Items<ValueTable>                value_tables;
+    Items<ValueTableId>              value_table_ids;
+    Items<IntegralXsProcess>         integral_xs;
+    Items<ModelGroup>                model_groups;
+    ParticleItems<ProcessGroup>      process_groups;
+    ParticleModelItems<ModelId>      model_ids;
+    ParticleModelItems<ModelXsTable> model_xs;
 
     // Special data
     HardwiredModels<W, M> hardwired;
@@ -314,7 +337,7 @@ struct PhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_groups.empty()
+        return !process_groups.empty() && !model_ids.empty()
                && (static_cast<bool>(fluctuation)
                    || !scalars.enable_fluctuation)
                && scalars;
@@ -326,15 +349,18 @@ struct PhysicsParamsData
     {
         CELER_EXPECT(other);
 
-        reals          = other.reals;
-        model_ids      = other.model_ids;
-        value_grids    = other.value_grids;
-        value_grid_ids = other.value_grid_ids;
-        process_ids    = other.process_ids;
-        value_tables   = other.value_tables;
-        integral_xs    = other.integral_xs;
-        model_groups   = other.model_groups;
-        process_groups = other.process_groups;
+        reals           = other.reals;
+        pmodel_ids      = other.pmodel_ids;
+        value_grids     = other.value_grids;
+        value_grid_ids  = other.value_grid_ids;
+        process_ids     = other.process_ids;
+        value_tables    = other.value_tables;
+        value_table_ids = other.value_table_ids;
+        integral_xs     = other.integral_xs;
+        model_groups    = other.model_groups;
+        process_groups  = other.process_groups;
+        model_ids       = other.model_ids;
+        model_xs        = other.model_xs;
 
         hardwired   = other.hardwired;
         fluctuation = other.fluctuation;
@@ -367,8 +393,8 @@ struct PhysicsTrackState
     // TEMPORARY STATE
     real_type macro_xs; //!< Total cross section for discrete interactions
     real_type energy_deposition; //!< Local energy deposition in a step [MeV]
-    Span<Secondary> secondaries; //!< Emitted secondaries
-    ElementComponentId element_id; //!< Selected element during interaction
+    Span<Secondary>    secondaries; //!< Emitted secondaries
+    ElementComponentId element;     //!< Element sampled for interaction
 };
 
 //---------------------------------------------------------------------------//

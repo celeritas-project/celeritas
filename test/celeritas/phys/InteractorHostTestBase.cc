@@ -160,6 +160,17 @@ void InteractorHostTestBase::set_cutoff_params(CutoffParams::Input inp)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set imported processes.
+ */
+void InteractorHostTestBase::set_imported_processes(
+    std::vector<ImportProcess> inp)
+{
+    CELER_EXPECT(!inp.empty());
+    imported_processes_ = std::make_shared<ImportedProcesses>(std::move(inp));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Initialize the incident particle data
  */
 void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)

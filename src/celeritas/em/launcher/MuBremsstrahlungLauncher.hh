@@ -22,18 +22,15 @@ namespace celeritas
 inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
     MuBremsstrahlungData const& model, CoreTrackView const& track)
 {
-    // Select material track view
     auto material_track = track.make_material_view();
     auto material       = material_track.make_material_view();
+    auto particle       = track.make_particle_view();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material.num_elements() == 1);
-    const ElementComponentId elcomp_id{0};
-
+    auto elcomp_id = track.make_physics_step_view().element();
+    CELER_ASSERT(elcomp_id);
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    const auto& dir = track.make_geo_view().dir();
 
     MuBremsstrahlungInteractor interact(
         model, particle, dir, allocate_secondaries, material, elcomp_id);

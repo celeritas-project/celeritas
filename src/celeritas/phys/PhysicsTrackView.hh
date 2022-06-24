@@ -19,6 +19,7 @@
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/mat/TabulatedElementSelector.hh"
 
 #include "PhysicsData.hh"
 
@@ -46,7 +47,7 @@ class PhysicsTrackView
     using UrbanMscRef
         = UrbanMscData<Ownership::const_reference, MemSpace::native>;
     using Energy      = units::MevEnergy;
-    using ModelFinder = GridIdFinder<Energy, ModelId>;
+    using ModelFinder = GridIdFinder<Energy, ParticleModelId>;
     //!@}
 
   public:
@@ -102,6 +103,14 @@ class PhysicsTrackView
     inline CELER_FUNCTION
         ModelFinder make_model_finder(ParticleProcessId) const;
 
+    // Return value table data for the given particle/model/material
+    inline CELER_FUNCTION ValueTableId value_table(ParticleModelId) const;
+
+    // Construct an element selector
+    inline CELER_FUNCTION
+        TabulatedElementSelector make_element_selector(ValueTableId,
+                                                       Energy) const;
+
     // Whether the particle can have a discrete interaction at rest
     inline CELER_FUNCTION bool has_at_rest() const;
 
@@ -112,6 +121,9 @@ class PhysicsTrackView
 
     // Convert a selected model ID into a simulation action ID
     inline CELER_FUNCTION ActionId model_to_action(ModelId) const;
+
+    // Get the model ID corresponding to the given ParticleModelId
+    inline CELER_FUNCTION ModelId model_id(ParticleModelId) const;
 
     // Calculate scaled step range
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
@@ -292,8 +304,8 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
     if (!table)
         return {}; // No table for this process
 
-    CELER_EXPECT(material_ < table.material.size());
-    auto grid_id_ref = table.material[material_.get()];
+    CELER_EXPECT(material_ < table.grids.size());
+    auto grid_id_ref = table.grids[material_.get()];
     if (!grid_id_ref)
         return {}; // No table for this particular material
 
@@ -410,7 +422,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
         || (process == this->eplusgg_process_id()))
     {
         auto find_model = this->make_model_finder(ppid);
-        return find_model(energy);
+        return this->model_id(find_model(energy));
     }
     // Not a hardwired process
     return {};
@@ -445,7 +457,52 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     CELER_EXPECT(ppid < this->num_particle_processes());
     const ModelGroup& md
         = params_.model_groups[this->process_group().models[ppid.get()]];
-    return ModelFinder(params_.reals[md.energy], params_.model_ids[md.model]);
+    return ModelFinder(params_.reals[md.energy], params_.pmodel_ids[md.model]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return value table data for the given particle/model/material.
+ *
+ * A null result means either the model is material independent or the material
+ * only has one element, so no cross section CDF tables are stored.
+ */
+CELER_FUNCTION
+ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
+{
+    CELER_EXPECT(pmid < params_.model_xs.size());
+
+    // Get the model xs table for the given particle/model
+    const ModelXsTable& model_xs = params_.model_xs[pmid];
+    if (!model_xs)
+        return {}; // No tables stored for this model
+
+    // Get the value table for the current material
+    CELER_ASSERT(material_ < model_xs.material.size());
+    const auto& table_id_ref = model_xs.material[material_.get()];
+    if (!table_id_ref)
+        return {}; // Only one element in this material
+
+    CELER_ASSERT(table_id_ref < params_.value_table_ids.size());
+    return params_.value_table_ids[table_id_ref];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an element selector to sample an element from tabulated xs data.
+ */
+CELER_FUNCTION
+TabulatedElementSelector
+PhysicsTrackView::make_element_selector(ValueTableId table_id,
+                                        Energy       energy) const
+{
+    CELER_EXPECT(table_id < params_.value_tables.size());
+    const ValueTable& table = params_.value_tables[table_id];
+    return TabulatedElementSelector{table,
+                                    params_.value_grids,
+                                    params_.value_grid_ids,
+                                    params_.reals,
+                                    energy};
 }
 
 //---------------------------------------------------------------------------//
@@ -483,6 +540,16 @@ CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId model) const
 {
     CELER_ASSERT(model < params_.scalars.num_models);
     return ActionId{model.unchecked_get() + params_.scalars.model_to_action};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the model ID corresponding to the given ParticleModelId.
+ */
+CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
+{
+    CELER_EXPECT(pmid < params_.model_ids.size());
+    return params_.model_ids[pmid];
 }
 
 //---------------------------------------------------------------------------//

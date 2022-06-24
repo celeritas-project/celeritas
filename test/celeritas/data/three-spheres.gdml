@@ -23,11 +23,13 @@
       <D unit="g/cm3" value="1e-19"/>
       <fraction n="1" ref="H"/>
     </material>
-    <material name="solid celerinium" state="solid">
+    <material name="celer composite" state="solid">
       <T unit="K" value="293.15"/>
       <MEE unit="eV" value="173"/>
       <D unit="g/cm3" value="1"/>
-      <fraction n="1" ref="Si"/>
+      <fraction n="0.1" ref="H"/>
+      <fraction n="0.3" ref="C"/>
+      <fraction n="0.6" ref="O"/>
     </material>
   </materials>
     
@@ -45,7 +47,7 @@
     </volume>
     <volume name="middle">
       <solidref ref="middle_sph"/>
-      <materialref ref="solid celerinium"/>
+      <materialref ref="celer composite"/>
     </volume>
     <volume name="outer">
       <solidref ref="outer_sph"/>

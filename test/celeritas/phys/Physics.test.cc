@@ -20,6 +20,7 @@
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
+#include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
 using namespace celeritas;
@@ -121,7 +122,7 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"models":[{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":0},{"label":"mock-model-7","process":1},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":2},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":3},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":4},{"label":"mock-model-15","process":5}],"options":{"enable_fluctuation":true,"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":124,"value_grid_ids":42,"value_grids":42,"value_tables":32}})json",
+            R"json({"models":[{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":0},{"label":"mock-model-7","process":1},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":2},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":3},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":4},{"label":"mock-model-15","process":5}],"options":{"enable_fluctuation":true,"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":43}})json",
             to_string(out));
     }
 }
@@ -132,7 +133,8 @@ TEST_F(PhysicsParamsTest, output)
 
 class PhysicsTrackViewHostTest : public PhysicsParamsTest
 {
-    using Base = PhysicsParamsTest;
+    using Base         = PhysicsParamsTest;
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   public:
     //!@{
@@ -225,9 +227,12 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return {};
     }
 
+    RandomEngine& rng() { return rng_; }
+
     ParamsHostRef                    params_ref;
     StateStore                       state;
     std::map<std::string, ProcessId> process_names;
+    RandomEngine                     rng_;
 };
 
 TEST_F(PhysicsTrackViewHostTest, track_view)
@@ -372,7 +377,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
-    const int expected_grid_ids[]
+    static const int expected_grid_ids[]
         = {0,  -1, -1, -1, 3,  -1, -1, -1, 1,  -1, -1, -1, 4,  -1, -1, -1, 2,
            -1, -1, -1, 5,  -1, -1, -1, 6,  -1, -1, -1, 9,  10, 11, -1, 18, -1,
            -1, -1, 7,  -1, -1, -1, 12, 13, 14, -1, 19, -1, -1, -1, 8,  -1, -1,
@@ -515,17 +520,17 @@ TEST_F(PhysicsTrackViewHostTest, fluctuation)
         EXPECT_EQ(0.5109989461, phys.fluctuation().electron_mass);
     }
     {
-        // Celerinium: Z=4, I=63.7 eV
+        // Celer composite: Z_eff = 10.3, I=150.7 eV
         MaterialId             mat_id{2};
         const PhysicsTrackView phys
             = this->make_track_view("celeriton", mat_id);
 
         // Energy loss fluctuation model parameters
         const auto& params = phys.fluctuation().urban[mat_id];
-        EXPECT_SOFT_EQ(0.5, params.oscillator_strength[0]);
-        EXPECT_SOFT_EQ(0.5, params.oscillator_strength[1]);
-        EXPECT_SOFT_EQ(2.53605625e-5, params.binding_energy[0]);
-        EXPECT_SOFT_EQ(16e-5, params.binding_energy[1]);
+        EXPECT_SOFT_EQ(0.80582524271844658, params.oscillator_strength[0]);
+        EXPECT_SOFT_EQ(0.1941747572815534, params.oscillator_strength[1]);
+        EXPECT_SOFT_EQ(9.4193231228829647e-5, params.binding_energy[0]);
+        EXPECT_SOFT_EQ(1.0609e-3, params.binding_energy[1]);
     }
 }
 
@@ -543,6 +548,46 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
     EXPECT_EQ(4, find_model(MevEnergy{5}).unchecked_get());
     EXPECT_EQ(5, find_model(MevEnergy{50}).unchecked_get());
     EXPECT_FALSE(find_model(MevEnergy{100.1}));
+}
+
+TEST_F(PhysicsTrackViewHostTest, element_selector)
+{
+    MevEnergy  energy{2};
+    MaterialId mid{2};
+
+    // Get the sampled process (constant micro xs)
+    const PhysicsTrackView phys      = this->make_track_view("celeriton", mid);
+    auto                   purr_ppid = this->find_ppid(phys, "purrs");
+    ASSERT_TRUE(purr_ppid);
+
+    // Find the model that applies at the given energy
+    auto find_model = phys.make_model_finder(purr_ppid);
+    auto pmid       = find_model(energy);
+    ASSERT_TRUE(pmid);
+
+    // Sample from material composed of three elements (PMF = [0.1, 0.3, 0.6])
+    {
+        auto table_id = phys.value_table(pmid);
+        EXPECT_TRUE(table_id);
+        auto select_element = phys.make_element_selector(table_id, energy);
+        std::vector<int> counts(this->material()->get(mid).num_elements());
+        for (CELER_MAYBE_UNUSED auto i : range(1e5))
+        {
+            const auto elcomp_id = select_element(this->rng());
+            ASSERT_LT(elcomp_id.get(), counts.size());
+            ++counts[elcomp_id.get()];
+        }
+        static const int expected_counts[] = {10210, 30025, 59765};
+        EXPECT_VEC_EQ(expected_counts, counts);
+    }
+
+    // Material composed of a single element
+    {
+        PhysicsTrackView phys
+            = this->make_track_view("celeriton", MaterialId{1});
+        auto table_id = phys.value_table(pmid);
+        EXPECT_FALSE(table_id);
+    }
 }
 
 TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)

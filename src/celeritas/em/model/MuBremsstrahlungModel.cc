@@ -18,7 +18,13 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
-                                             const ParticleParams& particles)
+                                             const ParticleParams& particles,
+                                             SPConstImported       data)
+    : imported_(data,
+                particles,
+                ImportProcessClass::mu_brems,
+                ImportModelClass::mu_brems,
+                {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
     interface_.ids.action   = id;
@@ -53,6 +59,16 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
     mu_plus_applic.upper    = mu_minus_applic.upper;
 
     return {mu_minus_applic, mu_plus_applic};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
+    -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

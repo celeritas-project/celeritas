@@ -80,12 +80,33 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         std::string         data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
+        // Imported process data needed to construct the model (with empty
+        // physics tables, which are not needed for the interactor)
+        std::vector<celeritas::ImportProcess> imported{
+            {11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}},
+            {-11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}}};
+        this->set_imported_processes(imported);
+
         // Construct SeltzerBergerModel and set host data
-        model_ = std::make_shared<SeltzerBergerModel>(ActionId{0},
-                                                      *this->particle_params(),
-                                                      *this->material_params(),
-                                                      read_element_data);
-        data_  = model_->host_ref();
+        model_
+            = std::make_shared<SeltzerBergerModel>(ActionId{0},
+                                                   *this->particle_params(),
+                                                   *this->material_params(),
+                                                   this->imported_processes(),
+                                                   read_element_data);
+        data_ = model_->host_ref();
 
         // Set cutoffs
         CutoffParams::Input           input;

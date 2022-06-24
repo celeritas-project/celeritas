@@ -9,20 +9,50 @@
 
 #include <sstream>
 
+#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/mat/MaterialView.hh"
+
 namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
-MockModel::MockModel(ActionId id, Applicability applic, ModelCallback cb)
-    : id_(id), applic_(std::move(applic)), cb_(std::move(cb))
+MockModel::MockModel(Input data) : data_(std::move(data))
 {
-    CELER_EXPECT(id_);
-    CELER_EXPECT(applic_);
-    CELER_EXPECT(cb_);
+    CELER_EXPECT(data_.id);
+    CELER_EXPECT(data_.materials);
+    CELER_EXPECT(data_.applic);
+    CELER_EXPECT(data_.cb);
 }
 
 auto MockModel::applicability() const -> SetApplicability
 {
-    return {applic_};
+    return {data_.applic};
+}
+
+auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
+{
+    CELER_EXPECT(range.material);
+    CELER_EXPECT(range.particle);
+
+    MicroXsBuilders builders;
+
+    celeritas::MaterialView mat(data_.materials->host_ref(), range.material);
+    if (!data_.xs.empty())
+    {
+        for (const auto& elcomp : mat.elements())
+        {
+            std::vector<real_type> xs_grid;
+            for (auto xs : data_.xs)
+            {
+                xs_grid.push_back(native_value_from(xs));
+            }
+
+            builders[elcomp.element]
+                = std::make_unique<celeritas::ValueGridLogBuilder>(
+                    range.lower.value(), range.upper.value(), xs_grid);
+        }
+    }
+
+    return builders;
 }
 
 void MockModel::execute(CoreHostRef const&) const
@@ -33,20 +63,21 @@ void MockModel::execute(CoreHostRef const&) const
 void MockModel::execute(CoreDeviceRef const&) const
 {
     // Inform calling test code that we've been launched
-    cb_(this->action_id());
+    data_.cb(this->action_id());
 }
 
 std::string MockModel::label() const
 {
-    return std::string("mock-model-") + std::to_string(id_.get());
+    return std::string("mock-model-") + std::to_string(data_.id.get());
 }
 
 std::string MockModel::description() const
 {
     std::ostringstream os;
-    os << "MockModel(" << id_.get() << ", p=" << applic_.particle.get()
-       << ", emin=" << applic_.lower.value()
-       << ", emax=" << applic_.upper.value() << ")";
+    os << "MockModel(" << data_.id.get()
+       << ", p=" << data_.applic.particle.get()
+       << ", emin=" << data_.applic.lower.value()
+       << ", emax=" << data_.applic.upper.value() << ")";
     return os.str();
 }
 

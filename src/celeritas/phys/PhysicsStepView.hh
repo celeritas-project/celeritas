@@ -55,6 +55,9 @@ class PhysicsStepView
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
+    // Set the sampled element
+    inline CELER_FUNCTION void element(ElementComponentId);
+
     // Save MSC step data
     inline CELER_FUNCTION void msc_step(const MscStep&);
 
@@ -72,6 +75,9 @@ class PhysicsStepView
 
     // Total (process-integrated) macroscopic xs [cm^-1]
     CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
+
+    // Sampled element for discrete interaction
+    CELER_FORCEINLINE_FUNCTION ElementComponentId element() const;
 
     // Retrieve MSC step data
     inline CELER_FUNCTION const MscStep& msc_step() const;
@@ -130,6 +136,15 @@ CELER_FUNCTION void PhysicsStepView::macro_xs(real_type inv_distance)
 {
     CELER_EXPECT(inv_distance >= 0);
     this->state().macro_xs = inv_distance;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the sampled element.
+ */
+CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
+{
+    this->state().element = elcomp_id;
 }
 
 //---------------------------------------------------------------------------//
@@ -194,6 +209,15 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
     real_type xs = this->state().macro_xs;
     CELER_ENSURE(xs >= 0);
     return xs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sampled element for discrete interaction.
+ */
+CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
+{
+    return this->state().element;
 }
 
 //---------------------------------------------------------------------------//

@@ -70,6 +70,16 @@ auto UrbanMscModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto UrbanMscModel::micro_xs(Applicability) const -> MicroXsBuilders
+{
+    // No cross sections for multiple scattering
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 //!@{
 /*!
  * No discrete interaction: it's integrated into along_step.

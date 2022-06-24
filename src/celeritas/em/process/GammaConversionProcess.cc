@@ -41,7 +41,7 @@ auto GammaConversionProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     return {std::make_shared<BetheHeitlerModel>(
-        *start_id++, *particles_, options_.enable_lpm)};
+        *start_id++, *particles_, imported_.processes(), options_.enable_lpm)};
 }
 
 //---------------------------------------------------------------------------//

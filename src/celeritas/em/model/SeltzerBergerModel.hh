@@ -14,6 +14,7 @@
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/io/ImportSBTable.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -54,6 +55,7 @@ class SeltzerBergerModel final : public Model
         = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
     using DeviceRef
         = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
   public:
@@ -61,10 +63,14 @@ class SeltzerBergerModel final : public Model
     SeltzerBergerModel(ActionId              id,
                        const ParticleParams& particles,
                        const MaterialParams& materials,
+                       SPConstImported       data,
                        ReadData              load_sb_table);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on device
     void execute(CoreHostRef const&) const final;
@@ -93,6 +99,8 @@ class SeltzerBergerModel final : public Model
   private:
     // Host/device storage and reference
     CollectionMirror<SeltzerBergerData> data_;
+
+    ImportedModelAdapter imported_;
 
     using HostXsTables
         = SeltzerBergerTableData<Ownership::value, MemSpace::host>;

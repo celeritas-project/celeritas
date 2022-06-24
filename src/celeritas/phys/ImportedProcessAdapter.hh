@@ -96,6 +96,9 @@ class ImportedProcessAdapter
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits(Applicability range) const;
 
+    // Access the imported processes
+    const SPConstImported& processes() const { return imported_; }
+
   private:
     using ImportTableId   = OpaqueId<ImportPhysicsTable>;
     using ImportProcessId = ImportedProcesses::ImportProcessId;

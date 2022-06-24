@@ -10,7 +10,7 @@ global "global"
 comp       : matid
     "lo density celerogen" 0
     "hi density celerogen" 1
-    "solid celerinium" 2
+    "celer composite" 2
 
 [UNIVERSE=general global]
 interior "world_sph"
@@ -40,7 +40,7 @@ comp "lo density celerogen"
 shapes inner_sph
 
 [UNIVERSE][CELL middle]
-comp "solid celerinium"
+comp "celer composite"
 shapes middle_sph ~inner_sph
 
 [UNIVERSE][CELL outer]

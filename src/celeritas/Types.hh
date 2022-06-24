@@ -54,6 +54,9 @@ using ElementComponentId = OpaqueId<struct MatElementComponent>;
 //! Opaque index of a process applicable to a single particle type
 using ParticleProcessId = OpaqueId<ProcessId>;
 
+//! Opaque index of a model applicable to a single particle type
+using ParticleModelId = OpaqueId<ModelId>;
+
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell>;
 

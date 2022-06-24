@@ -8,6 +8,7 @@
 #pragma once
 
 #include "celeritas/em/data/BetheHeitlerData.hh"
+#include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -20,13 +21,23 @@ namespace celeritas
 class BetheHeitlerModel final : public Model
 {
   public:
+    //!@{
+    //! Type aliases
+    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    //!@}
+
+  public:
     // Construct from model ID and other necessary data
     BetheHeitlerModel(ActionId              id,
                       const ParticleParams& particles,
+                      SPConstImported       data,
                       bool                  enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
+
+    // Get the microscopic cross sections for the given particle and material
+    MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel on host
     void execute(CoreHostRef const&) const final;
@@ -47,7 +58,8 @@ class BetheHeitlerModel final : public Model
     }
 
   private:
-    BetheHeitlerData interface_;
+    BetheHeitlerData     interface_;
+    ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//

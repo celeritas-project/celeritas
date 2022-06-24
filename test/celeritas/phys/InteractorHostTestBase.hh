@@ -23,6 +23,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffData.hh"
 #include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -66,6 +67,8 @@ class InteractorHostTestBase : public celeritas_test::Test
 
     using CutoffParams = celeritas::CutoffParams;
 
+    using ImportProcess        = celeritas::ImportProcess;
+    using ImportedProcesses    = celeritas::ImportedProcesses;
     using Interaction          = celeritas::Interaction;
     using Action               = celeritas::Interaction::Action;
     using ParticleId           = celeritas::ParticleId;
@@ -111,6 +114,16 @@ class InteractorHostTestBase : public celeritas_test::Test
     {
         CELER_EXPECT(cutoff_params_);
         return cutoff_params_;
+    }
+    //!@}
+
+    //!@{
+    //! Set and get imported processes
+    void set_imported_processes(std::vector<ImportProcess> inp);
+    const std::shared_ptr<const ImportedProcesses>& imported_processes() const
+    {
+        CELER_EXPECT(imported_processes_);
+        return imported_processes_;
     }
     //!@}
 
@@ -172,10 +185,11 @@ class InteractorHostTestBase : public celeritas_test::Test
     using SecondaryStackData
         = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
-    std::shared_ptr<const MaterialParams> material_params_;
-    std::shared_ptr<const ParticleParams> particle_params_;
-    std::shared_ptr<const CutoffParams>   cutoff_params_;
-    RandomEngine                          rng_;
+    std::shared_ptr<const MaterialParams>    material_params_;
+    std::shared_ptr<const ParticleParams>    particle_params_;
+    std::shared_ptr<const CutoffParams>      cutoff_params_;
+    std::shared_ptr<const ImportedProcesses> imported_processes_;
+    RandomEngine                             rng_;
 
     StateStore<celeritas::MaterialStateData> ms_;
     StateStore<celeritas::ParticleStateData> ps_;

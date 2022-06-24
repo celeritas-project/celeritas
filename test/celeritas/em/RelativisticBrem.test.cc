@@ -55,14 +55,42 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
         // Set default material to potassium
         this->set_material_params(mi);
 
-        const auto& particles = *this->particle_params();
-        // Construct RelativisticBremModel and save the host data reference
-        model_ = std::make_shared<RelativisticBremModel>(
-            ActionId{0}, particles, *this->material_params(), false);
+        // Imported process data needed to construct the model (with empty
+        // physics tables, which are not needed for the interactor)
+        std::vector<celeritas::ImportProcess> imported{
+            {11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}},
+            {-11,
+             celeritas::ImportProcessType::electromagnetic,
+             celeritas::ImportProcessClass::e_brems,
+             {celeritas::ImportModelClass::e_brems_sb,
+              celeritas::ImportModelClass::e_brems_lpm},
+             {},
+             {}}};
+        this->set_imported_processes(imported);
 
-        // Construct RelativisticBremModel and save the host data reference
+        const auto& particles = *this->particle_params();
+
+        // Construct RelativisticBremModel
+        model_ = std::make_shared<RelativisticBremModel>(
+            ActionId{0},
+            particles,
+            *this->material_params(),
+            this->imported_processes(),
+            false);
+
+        // Construct RelativisticBremModel with LPM
         model_lpm_ = std::make_shared<RelativisticBremModel>(
-            ActionId{0}, particles, *this->material_params(), true);
+            ActionId{0},
+            particles,
+            *this->material_params(),
+            this->imported_processes(),
+            true);
 
         // Set cutoffs: photon energy thresholds and range cut for Pb
         CutoffParams::Input           input;

@@ -7,18 +7,21 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
 
 #include "Applicability.hh"
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Abstract base class representing a physics model.
@@ -49,12 +52,17 @@ class Model : public ExplicitActionInterface
   public:
     //@{
     //! Type aliases
+    using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
+    using MicroXsBuilders  = std::unordered_map<ElementId, UPConstGridBuilder>;
     using SetApplicability = std::set<Applicability>;
     //@}
 
   public:
     //! Get the applicable particle type and energy ranges of the model
     virtual SetApplicability applicability() const = 0;
+
+    //! Get the microscopic cross sections for the given particle and material
+    virtual MicroXsBuilders micro_xs(Applicability range) const = 0;
 };
 
 //---------------------------------------------------------------------------//

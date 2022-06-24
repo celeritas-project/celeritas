@@ -65,6 +65,17 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
+{
+    // Aside from the production cut, the discrete interaction is material
+    // independent, so no element is sampled
+    return {};
+}
+
+//---------------------------------------------------------------------------//
 //!@{
 /*!
  * Apply the interaction kernel.

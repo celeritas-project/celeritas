@@ -22,26 +22,18 @@ namespace celeritas
 inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
     SeltzerBergerRef const& model, CoreTrackView const& track)
 {
-    // Select material track view
+    auto cutoff   = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
+    auto particle = track.make_particle_view();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(material.num_elements() == 1);
-    const ElementComponentId selected_element{0};
-
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
-    auto        allocate_secondaries
+    auto elcomp_id = track.make_physics_step_view().element();
+    CELER_ASSERT(elcomp_id);
+    auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        cutoff               = track.make_cutoff_view();
+    const auto& dir = track.make_geo_view().dir();
 
-    SeltzerBergerInteractor interact(model,
-                                     particle,
-                                     dir,
-                                     cutoff,
-                                     allocate_secondaries,
-                                     material,
-                                     selected_element);
+    SeltzerBergerInteractor interact(
+        model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

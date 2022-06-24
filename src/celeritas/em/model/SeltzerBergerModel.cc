@@ -30,7 +30,13 @@ namespace celeritas
 SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
                                        const ParticleParams& particles,
                                        const MaterialParams& materials,
+                                       SPConstImported       data,
                                        ReadData              load_sb_table)
+    : imported_(data,
+                particles,
+                ImportProcessClass::e_brems,
+                ImportModelClass::e_brems_sb,
+                {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_sb_table);
@@ -90,6 +96,15 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
     positron_applic.particle      = this->host_ref().ids.positron;
 
     return {electron_applic, positron_applic};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the microscopic cross sections for the given particle and material.
+ */
+auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+{
+    return imported_.micro_xs(std::move(applic));
 }
 
 //---------------------------------------------------------------------------//

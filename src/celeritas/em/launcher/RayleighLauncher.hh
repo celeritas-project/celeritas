@@ -22,16 +22,17 @@ namespace celeritas
 inline CELER_FUNCTION Interaction
 rayleigh_interact_track(RayleighRef const& model, CoreTrackView const& track)
 {
-    auto        particle = track.make_particle_view();
-    const auto& dir      = track.make_geo_view().dir();
+    auto material = track.make_material_view().make_material_view();
+    auto particle = track.make_particle_view();
 
-    // Assume only a single element in the material, for now
-    CELER_ASSERT(track.make_material_view().make_material_view().num_elements()
-                 == 1);
-    ElementId el_id{0};
+    auto elcomp_id = track.make_physics_step_view().element();
+    CELER_ASSERT(elcomp_id);
+    auto        el_id = material.element_id(elcomp_id);
+    const auto& dir   = track.make_geo_view().dir();
 
     RayleighInteractor interact(model, particle, dir, el_id);
-    auto               rng = track.make_rng_engine();
+
+    auto rng = track.make_rng_engine();
     return interact(rng);
 }
 
