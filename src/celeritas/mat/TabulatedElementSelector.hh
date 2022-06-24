@@ -87,7 +87,7 @@ TabulatedElementSelector::operator()(Engine& rng) const
 {
     size_type i = 0;
     real_type u = generate_canonical(rng);
-    for (; i < table_.grids.size(); ++i)
+    for (; i < table_.grids.size() - 1; ++i)
     {
         ValueGridId grid_id = ids_[table_.grids[i]];
         CELER_ASSERT(grid_id < grids_.size());

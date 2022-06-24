@@ -55,8 +55,7 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 auto KleinNishinaModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
     // Discrete interaction is material independent, so no element is sampled
-    MicroXsBuilders builders;
-    return builders;
+    return {};
 }
 
 //---------------------------------------------------------------------------//

@@ -470,10 +470,9 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
 CELER_FUNCTION
 ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
 {
-    CELER_EXPECT(pmid);
+    CELER_EXPECT(pmid < params_.model_xs.size());
 
     // Get the model xs table for the given particle/model
-    CELER_ASSERT(pmid < params_.model_xs.size());
     const ModelXsTable& model_xs = params_.model_xs[pmid];
     if (!model_xs)
         return {}; // No tables stored for this model

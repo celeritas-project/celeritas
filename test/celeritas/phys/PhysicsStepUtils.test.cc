@@ -247,6 +247,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
 
     // Test a variety of energy ranges and multiple material IDs
     {
+        MaterialView     mat_view(this->material()->host_ref(), MaterialId{0});
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
@@ -258,20 +259,21 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         PhysicsTrackView::PhysicsStateRef state_shortcut(phys_state.ref());
         state_shortcut.state[ThreadId{0}].interaction_mfp = 0;
 
-        auto action
-            = select_discrete_interaction(particle, phys, pstep, this->rng());
+        auto action = select_discrete_interaction(
+            mat_view, particle, phys, pstep, this->rng());
         EXPECT_EQ(action.unchecked_get(), 0 + model_offset);
 
-        action
-            = select_discrete_interaction(particle, phys, pstep, this->rng());
+        action = select_discrete_interaction(
+            mat_view, particle, phys, pstep, this->rng());
         EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
 
-        action
-            = select_discrete_interaction(particle, phys, pstep, this->rng());
+        action = select_discrete_interaction(
+            mat_view, particle, phys, pstep, this->rng());
         EXPECT_EQ(action.unchecked_get(), 2 + model_offset);
     }
 
     {
+        MaterialView     mat_view(this->material()->host_ref(), MaterialId{1});
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
@@ -292,7 +294,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         for (auto i : range(models.size()))
         {
             auto action_id = select_discrete_interaction(
-                particle, phys, pstep, this->rng());
+                mat_view, particle, phys, pstep, this->rng());
             models[i] = action_id.unchecked_get() - model_offset;
         }
 
@@ -314,6 +316,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
 
         for (auto i : range(inc_energy.size()))
         {
+            MaterialView mat_view(this->material()->host_ref(), MaterialId{0});
             PhysicsTrackView  phys = this->init_track(&material,
                                                      MaterialId{0},
                                                      &particle,
@@ -338,7 +341,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
                 pstep.macro_xs(xs_max);
 
                 auto action = select_discrete_interaction(
-                    particle, phys, pstep, this->rng());
+                    mat_view, particle, phys, pstep, this->rng());
                 if (action != reject_action)
                     ++count;
             }

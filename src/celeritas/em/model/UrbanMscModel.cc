@@ -75,9 +75,8 @@ auto UrbanMscModel::applicability() const -> SetApplicability
  */
 auto UrbanMscModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    // No ross sections for multiple scattering
-    MicroXsBuilders builders;
-    return builders;
+    // No cross sections for multiple scattering
+    return {};
 }
 
 //---------------------------------------------------------------------------//

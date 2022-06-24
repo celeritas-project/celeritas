@@ -301,7 +301,8 @@ CELER_FUNCTION ParticleTrackView::Energy
  */
 template<class Engine>
 CELER_FUNCTION ActionId
-select_discrete_interaction(const ParticleTrackView& particle,
+select_discrete_interaction(const MaterialView&      material,
+                            const ParticleTrackView& particle,
                             const PhysicsTrackView&  physics,
                             PhysicsStepView&         pstep,
                             Engine&                  rng)
@@ -345,8 +346,12 @@ select_discrete_interaction(const ParticleTrackView& particle,
     auto find_model = physics.make_model_finder(ppid);
     auto pmid       = find_model(particle.energy());
 
-    ElementComponentId elcomp_id{0};
-    if (auto table_id = physics.value_table(pmid))
+    ElementComponentId elcomp_id{};
+    if (material.num_elements() == 1)
+    {
+        elcomp_id = ElementComponentId{0};
+    }
+    else if (auto table_id = physics.value_table(pmid))
     {
         // Sample an element for discrete interactions that require it and for
         // materials with more than one element

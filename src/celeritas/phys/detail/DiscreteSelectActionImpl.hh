@@ -45,9 +45,11 @@ discrete_select_track(celeritas::CoreTrackView const& track)
     auto particle = track.make_particle_view();
     {
         // Select the action to take
+        auto mat    = track.make_material_view().make_material_view();
         auto rng    = track.make_rng_engine();
         auto step   = track.make_physics_step_view();
-        auto action = select_discrete_interaction(particle, phys, step, rng);
+        auto action
+            = select_discrete_interaction(mat, particle, phys, step, rng);
         CELER_ASSERT(action);
         // Save it as the next kernel
         sim.force_step_limit(action);

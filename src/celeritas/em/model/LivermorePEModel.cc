@@ -92,8 +92,7 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 auto LivermorePEModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
     // Cross sections are calculated on the fly
-    MicroXsBuilders builders;
-    return builders;
+    return {};
 }
 
 //---------------------------------------------------------------------------//

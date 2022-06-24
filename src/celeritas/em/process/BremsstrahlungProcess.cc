@@ -49,28 +49,25 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
     if (options_.combined_model)
     {
         // TODO: import micro xs for combined model
-        return {std::make_shared<CombinedBremModel>(
-            *start_id++,
-            *particles_,
-            *materials_,
-            std::move(imported_.processes()),
-            load_data,
-            options_.enable_lpm)};
+        return {std::make_shared<CombinedBremModel>(*start_id++,
+                                                    *particles_,
+                                                    *materials_,
+                                                    imported_.processes(),
+                                                    load_data,
+                                                    options_.enable_lpm)};
     }
     else
     {
-        return {std::make_shared<SeltzerBergerModel>(
-                    *start_id++,
-                    *particles_,
-                    *materials_,
-                    std::move(imported_.processes()),
-                    load_data),
-                std::make_shared<RelativisticBremModel>(
-                    *start_id++,
-                    *particles_,
-                    *materials_,
-                    std::move(imported_.processes()),
-                    options_.enable_lpm)};
+        return {std::make_shared<SeltzerBergerModel>(*start_id++,
+                                                     *particles_,
+                                                     *materials_,
+                                                     imported_.processes(),
+                                                     load_data),
+                std::make_shared<RelativisticBremModel>(*start_id++,
+                                                        *particles_,
+                                                        *materials_,
+                                                        imported_.processes(),
+                                                        options_.enable_lpm)};
     }
 }
 

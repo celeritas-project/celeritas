@@ -241,8 +241,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     // Note: use map to keep ProcessId sorted
     std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
         particles.size());
-    std::vector<ModelId> temp_model_ids;
-    size_type            pm_idx{0};
+    std::vector<ModelId>       temp_model_ids;
+    ParticleModelId::size_type pm_idx{0};
 
     // Construct particle -> process -> model map
     for (auto model_idx : range(this->num_models()))
@@ -674,7 +674,7 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
     for (auto& model_table : temp_grid_ids)
     {
         std::vector<ValueTableId> temp_table_ids(model_table.size());
-        for (size_type mat_idx : range(model_table.size()))
+        for (auto mat_idx : range<MaterialId::size_type>(model_table.size()))
         {
             auto& grid_ids = model_table[mat_idx];
             if (grid_ids.empty())

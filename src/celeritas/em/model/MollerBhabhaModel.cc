@@ -70,10 +70,9 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
  */
 auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
-    // Aside from the production cut, the iscrete interaction is material
+    // Aside from the production cut, the discrete interaction is material
     // independent, so no element is sampled
-    MicroXsBuilders builders;
-    return builders;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
