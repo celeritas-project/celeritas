@@ -19,9 +19,11 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles)
+EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
+                                                   Options          options)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
+    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_ENSURE(positron_id_);
@@ -54,11 +56,11 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType EPlusAnnihilationProcess::type() const
+bool EPlusAnnihilationProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_discrete;
+    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

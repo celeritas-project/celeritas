@@ -22,7 +22,7 @@
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
+#include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/generated/AlongStepAction.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
@@ -123,7 +123,7 @@ PhysicsParams::PhysicsParams(Input inp)
     this->build_options(inp.options, &host_data);
     this->build_fluct(inp.options, *inp.materials, *inp.particles, &host_data);
     this->build_ids(*inp.particles, &host_data);
-    this->build_xs(inp.options, *inp.materials, &host_data);
+    this->build_xs(*inp.materials, &host_data);
     this->build_model_xs(*inp.materials, &host_data);
 
     // Add step limiter if being used (TODO: remove this hack from physics)
@@ -391,9 +391,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_xs(const Options&        opts,
-                             const MaterialParams& mats,
-                             HostValue*            data) const
+void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
 {
     CELER_EXPECT(*data);
 
@@ -454,6 +452,11 @@ void PhysicsParams::build_xs(const Options&        opts,
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
+            bool                   use_integral_xs = proc.use_integral_xs();
+            if (use_integral_xs)
+            {
+                energy_max_xs.resize(mats.size());
+            }
 
             // Loop over materials
             for (auto mat_id : range(MaterialId{mats.size()}))
@@ -477,18 +480,20 @@ void PhysicsParams::build_xs(const Options&        opts,
                         = build_grid(builders[vgt]);
                 }
 
-                // Check if the particle can have a discrete interaction at
-                // rest for models with on-the-fly cross section calculation
-                auto mat_view = mats.get(mat_id);
                 if (processes[pp_idx] == data->hardwired.positron_annihilation)
                 {
-                    auto calc_xs = EPlusGGMacroXsCalculator(
-                        data->hardwired.eplusgg_data, mat_view);
-                    process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
-                }
+                    // Discrete interaction can occur at rest
+                    process_groups.has_at_rest = true;
 
-                if (auto grid_id
-                    = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()])
+                    if (use_integral_xs)
+                    {
+                        // Annihilation cross section is maximum at zero and
+                        // decreases with increasing energy
+                        energy_max_xs[mat_id.get()] = 0;
+                    }
+                }
+                else if (auto grid_id
+                         = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()])
                 {
                     const auto&        grid_data = data->value_grids[grid_id];
                     auto               data_ref  = make_const_ref(*data);
@@ -499,15 +504,10 @@ void PhysicsParams::build_xs(const Options&        opts,
                     // rest
                     process_groups.has_at_rest |= calc_xs(zero_quantity()) > 0;
 
-                    // If this is an energy loss process, find and store the
-                    // energy of the largest cross section for this material
-                    if (proc.type() == ProcessType::electromagnetic_dedx
-                        && opts.use_integral_xs)
+                    // Find and store the energy of the largest cross section
+                    // for this material if the integral approach is used
+                    if (use_integral_xs)
                     {
-                        // Allocate storage for the energies if we haven't
-                        // already
-                        energy_max_xs.resize(mats.size());
-
                         // Find the energy of the largest cross section
                         real_type xs_max = 0;
                         real_type e_max  = 0;
@@ -537,7 +537,7 @@ void PhysicsParams::build_xs(const Options&        opts,
                 }
 
                 // Index of the electromagnetic msc process
-                if (proc.type() == ProcessType::electromagnetic_msc)
+                if (dynamic_cast<const MultipleScatteringProcess*>(&proc))
                 {
                     process_groups.msc_ppid = ParticleProcessId{pp_idx};
                 }

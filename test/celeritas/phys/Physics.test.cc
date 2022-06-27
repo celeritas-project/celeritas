@@ -470,33 +470,34 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 {
     {
         // No energy loss tables
-        const PhysicsTrackView phys
-            = this->make_track_view("celeriton", MaterialId{2});
-        auto ppid = this->find_ppid(phys, "scattering");
+        const auto phys = this->make_track_view("celeriton", MaterialId{2});
+        auto       ppid = this->find_ppid(phys, "scattering");
         ASSERT_TRUE(ppid);
-        EXPECT_FALSE(phys.use_integral_xs(ppid));
-        auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
-        ASSERT_TRUE(id);
-        EXPECT_SOFT_EQ(0.1, phys.calc_xs(ppid, id, MevEnergy{1.0}));
+        EXPECT_FALSE(phys.integral_xs_process(ppid));
+
+        MaterialView material = this->material()->get(MaterialId{2});
+        EXPECT_SOFT_EQ(0.1, phys.calc_xs(ppid, material, MevEnergy{1.0}));
     }
     {
         // Energy loss tables and energy-dependent macro xs
-        std::vector<real_type> xs;
-        const PhysicsTrackView phys
-            = this->make_track_view("electron", MaterialId{2});
-        auto ppid = this->find_ppid(phys, "barks");
+        std::vector<real_type> xs, max_xs;
+        const auto phys = this->make_track_view("electron", MaterialId{2});
+        auto       ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
-        EXPECT_TRUE(phys.use_integral_xs(ppid));
-        EXPECT_SOFT_EQ(0.8, phys.scalars().energy_fraction);
-        EXPECT_SOFT_EQ(0.1, phys.energy_max_xs(ppid));
-        auto id = phys.value_grid(ValueGridType::macro_xs, ppid);
-        ASSERT_TRUE(id);
+        const auto& integral_proc = phys.integral_xs_process(ppid);
+        EXPECT_TRUE(integral_proc);
+
+        MaterialView material = this->material()->get(MaterialId{2});
         for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})
         {
-            xs.push_back(phys.calc_xs(ppid, id, MevEnergy{energy}));
+            xs.push_back(phys.calc_xs(ppid, material, MevEnergy{energy}));
+            max_xs.push_back(phys.calc_max_xs(
+                integral_proc, ppid, material, MevEnergy{energy}));
         }
-        const double expected_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
+        const double expected_xs[] = {0.6, 36. / 55, 1.2, 1979. / 1650, 0.6};
+        const double expected_max_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
         EXPECT_VEC_SOFT_EQ(expected_xs, xs);
+        EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
     }
 }
 
@@ -753,8 +754,11 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options.enable_fluctuation = false;
     physics_inp.action_manager             = this->action_mgr().get();
 
-    physics_inp.processes.push_back(
-        std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));
+    EPlusAnnihilationProcess::Options epgg_options;
+    epgg_options.use_integral_xs = true;
+
+    physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
+        physics_inp.particles, epgg_options));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 
@@ -790,5 +794,5 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     // Check cross section
     MaterialView material_view = this->material()->get(MaterialId{0});
     EXPECT_SOFT_EQ(5.1172452607412999e-05,
-                   phys.calc_xs_otf(ModelId{0}, material_view, MevEnergy{0.1}));
+                   phys.calc_xs(ppid, material_view, MevEnergy{0.1}));
 }

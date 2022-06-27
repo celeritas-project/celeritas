@@ -83,11 +83,11 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType BremsstrahlungProcess::type() const
+bool BremsstrahlungProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_dedx;
+    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

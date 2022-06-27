@@ -19,12 +19,14 @@ namespace celeritas
  * Construct process from host data.
  */
 EIonizationProcess::EIonizationProcess(SPConstParticles particles,
-                                       SPConstImported  process_data)
+                                       SPConstImported  process_data,
+                                       Options          options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_ioni,
                 {pdg::electron(), pdg::positron()})
+    , options_(options)
 {
     CELER_EXPECT(particles_);
 }
@@ -50,11 +52,11 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType EIonizationProcess::type() const
+bool EIonizationProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_dedx;
+    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

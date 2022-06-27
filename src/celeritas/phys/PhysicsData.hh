@@ -96,13 +96,13 @@ struct ModelGroup
 
 //---------------------------------------------------------------------------//
 /*!
- * Energy loss process that uses MC integration to sample interaction length.
+ * Particle-process that uses MC integration to sample interaction length.
  *
  * This is needed for the integral approach for correctly sampling the discrete
  * interaction length after a particle loses energy along a step. An \c
  * IntegralXsProcess is stored for each particle-process. This will be "false"
- * (i.e. no energy_max assigned) if the process is not continuous-discrete or
- * if \c use_integral_xs is false.
+ * (i.e. no energy_max assigned) if the particle associated with the process
+ * does not have energy loss processes or if \c use_integral_xs is false.
  */
 struct IntegralXsProcess
 {

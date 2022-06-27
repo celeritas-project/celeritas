@@ -52,11 +52,11 @@ auto MultipleScatteringProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType MultipleScatteringProcess::type() const
+bool MultipleScatteringProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_msc;
+    return false;
 }
 
 //---------------------------------------------------------------------------//

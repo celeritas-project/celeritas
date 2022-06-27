@@ -56,11 +56,11 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType GammaConversionProcess::type() const
+bool GammaConversionProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_discrete;
+    return false;
 }
 
 //---------------------------------------------------------------------------//

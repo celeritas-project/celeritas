@@ -47,11 +47,11 @@ auto ComptonProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
+ * Whether to use the integral method to sample discrete interaction length.
  */
-ProcessType ComptonProcess::type() const
+bool ComptonProcess::use_integral_xs() const
 {
-    return ProcessType::electromagnetic_discrete;
+    return false;
 }
 
 //---------------------------------------------------------------------------//
