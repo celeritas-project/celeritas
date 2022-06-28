@@ -38,8 +38,8 @@ class ComptonProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applic) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    //! Get the options for the process
+    const Options& options() const final { return options_; }
 
     // Name of the process
     std::string label() const final;
@@ -47,6 +47,7 @@ class ComptonProcess : public Process
   private:
     SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

@@ -452,7 +452,7 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
-            bool                   use_integral_xs = proc.use_integral_xs();
+            bool use_integral_xs = proc.options().use_integral_xs;
             if (use_integral_xs)
             {
                 energy_max_xs.resize(mats.size());

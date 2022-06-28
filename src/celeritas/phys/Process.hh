@@ -41,6 +41,12 @@ class ValueGridBuilder;
  * - macro_xs:    Cross section [1/cm]
  * - energy_loss: dE/dx [MeV/cm]
  * - range:       Range limit [cm]
+ *
+ * Base input options are:
+ * - \c use_integral_xs: For particles with energy loss processes, the energy
+ *   changes over the step, so the assumption that the cross section is
+ *   constant is no longer valid. Use MC integration to sample the discrete
+ *   interaction length with the correct probability.
  */
 class Process
 {
@@ -55,6 +61,15 @@ class Process
     using Applicability      = ::celeritas::Applicability;
     //!@}
 
+    // TODO: update options based on ImportData
+    struct Options
+    {
+        bool use_integral_xs;
+
+        Options(bool integral_xs) : use_integral_xs{integral_xs} {}
+        Options() : Options(false) {}
+    };
+
   public:
     // Virtual destructor for polymorphic deletion
     virtual ~Process();
@@ -65,8 +80,8 @@ class Process
     //! Get the interaction cross sections for the given energy range
     virtual StepLimitBuilders step_limits(Applicability range) const = 0;
 
-    //! Whether to use the integral method to sample interaction length
-    virtual bool use_integral_xs() const = 0;
+    //! Get the options for the process
+    virtual const Options& options() const = 0;
 
     //! Name of the process
     virtual std::string label() const = 0;

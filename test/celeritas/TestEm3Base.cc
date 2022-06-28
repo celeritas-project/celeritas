@@ -106,19 +106,12 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
     input.options        = this->build_physics_options();
     input.action_manager = this->action_mgr().get();
 
-    BremsstrahlungProcess::Options brem_options;
-    brem_options.combined_model  = true;
-    brem_options.enable_lpm      = true;
-    brem_options.use_integral_xs = true;
+    BremsstrahlungProcess::BremsstrahlungOptions brem_options;
+    brem_options.combined_model = true;
+    brem_options.enable_lpm     = true;
 
-    GammaConversionProcess::Options conv_options;
+    GammaConversionProcess::GammaConversionOptions conv_options;
     conv_options.enable_lpm = true;
-
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
-    EIonizationProcess::Options ioni_options;
-    ioni_options.use_integral_xs = true;
 
     auto process_data
         = std::make_shared<ImportedProcesses>(this->imported_data().processes);
@@ -128,10 +121,10 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
         input.particles, input.materials, process_data));
     input.processes.push_back(std::make_shared<GammaConversionProcess>(
         input.particles, process_data, conv_options));
-    input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        input.particles, epgg_options));
-    input.processes.push_back(std::make_shared<EIonizationProcess>(
-        input.particles, process_data, ioni_options));
+    input.processes.push_back(
+        std::make_shared<EPlusAnnihilationProcess>(input.particles));
+    input.processes.push_back(
+        std::make_shared<EIonizationProcess>(input.particles, process_data));
     input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
         input.particles, input.materials, process_data, brem_options));
     if (this->enable_msc())

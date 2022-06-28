@@ -47,15 +47,6 @@ auto ComptonProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use the integral method to sample discrete interaction length.
- */
-bool ComptonProcess::use_integral_xs() const
-{
-    return false;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string ComptonProcess::label() const

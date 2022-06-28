@@ -92,12 +92,6 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
 }
 
 //---------------------------------------------------------------------------//
-bool MockProcess::use_integral_xs() const
-{
-    return data_.use_integral_xs;
-}
-
-//---------------------------------------------------------------------------//
 std::string MockProcess::label() const
 {
     return data_.label;

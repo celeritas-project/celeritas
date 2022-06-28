@@ -109,10 +109,8 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
         input.materials = this->material();
 
         // Add EIonizationProcess and MultipleScatteringProcess
-        EIonizationProcess::Options ioni_options;
-        ioni_options.use_integral_xs = true;
         input.processes.push_back(std::make_shared<EIonizationProcess>(
-            this->particle(), processes_data_, ioni_options));
+            this->particle(), processes_data_));
         input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
             this->particle(), this->material(), processes_data_));
 

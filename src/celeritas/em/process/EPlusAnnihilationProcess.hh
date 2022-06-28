@@ -26,18 +26,14 @@ class EPlusAnnihilationProcess final : public Process
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     //!@}
 
-    // Options for electron-positron annihilation
-    // TODO: update options based on ImportData
-    struct Options
+    struct EPlusAnnihilationOptions : Options
     {
-        bool use_integral_xs{true}; //!> Use integral method for sampling
-                                    //! discrete interaction length
+        EPlusAnnihilationOptions() : Options(true) {}
     };
 
   public:
     // Construct from particle data
-    explicit EPlusAnnihilationProcess(SPConstParticles particles,
-                                      Options          options);
+    explicit EPlusAnnihilationProcess(SPConstParticles particles);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -45,16 +41,16 @@ class EPlusAnnihilationProcess final : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    //! Get the options for the process
+    const Options& options() const final { return options_; }
 
     // Name of the process
     std::string label() const final;
 
   private:
-    SPConstParticles particles_;
-    ParticleId       positron_id_;
-    Options          options_;
+    SPConstParticles         particles_;
+    ParticleId               positron_id_;
+    EPlusAnnihilationOptions options_;
 };
 
 //---------------------------------------------------------------------------//

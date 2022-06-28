@@ -51,7 +51,7 @@ class MockProcess : public celeritas::Process
     {
         SPConstMaterials materials;
         std::string      label;
-        bool             use_integral_xs;
+        Options          options;
         VecApplicability applic;        //!< Applicablity per model
         ModelCallback    interact;      //!< MockModel::interact callback
         VecMicroXs       xs;            //!< Constant per atom [bn]
@@ -63,7 +63,7 @@ class MockProcess : public celeritas::Process
 
     VecModel          build_models(ActionIdIter start_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
-    bool              use_integral_xs() const final;
+    const Options&    options() const final { return data_.options; }
     std::string       label() const final;
 
   private:
