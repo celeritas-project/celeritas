@@ -289,12 +289,7 @@ if(CELERITAS_USE_HIP)
   # This is a hacky workaround for not having the equivalent of CUDAToolkit: it
   # works on Crusher as of ROCm 5.1.0
   set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
-  target_include_directories(celeritas
-    SYSTEM PUBLIC
-      "${ROCM_PATH}/hiprand/include"
-      "${ROCM_PATH}/rocrand/include"
-      "${ROCM_PATH}/hip/include"
-  )
+  target_include_directories(celeritas SYSTEM PUBLIC "${ROCM_PATH}/include")
 endif()
 
 celeritas_install(TARGETS celeritas
