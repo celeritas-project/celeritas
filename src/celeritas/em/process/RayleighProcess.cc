@@ -51,6 +51,15 @@ auto RayleighProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether to use the integral method to sample discrete interaction length.
+ */
+bool RayleighProcess::use_integral_xs() const
+{
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string RayleighProcess::label() const

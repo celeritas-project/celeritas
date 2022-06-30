@@ -139,57 +139,59 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     inp.materials = this->material();
     inp.interact  = this->make_model_callback();
     {
-        inp.label       = "scattering";
-        inp.applic      = {make_applicability("gamma", 1e-6, 100),
+        inp.label           = "scattering";
+        inp.use_integral_xs = false;
+        inp.applic          = {make_applicability("gamma", 1e-6, 100),
                       make_applicability("celeriton", 1, 100)};
-        inp.xs          = {Barn{1.0}, Barn{1.0}};
-        inp.energy_loss = {};
+        inp.xs              = {Barn{1.0}, Barn{1.0}};
+        inp.energy_loss     = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
-        inp.label       = "absorption";
-        inp.applic      = {make_applicability("gamma", 1e-6, 100)};
-        inp.xs          = {Barn{2.0}, Barn{2.0}};
-        inp.energy_loss = {};
+        inp.label           = "absorption";
+        inp.use_integral_xs = false;
+        inp.applic          = {make_applicability("gamma", 1e-6, 100)};
+        inp.xs              = {Barn{2.0}, Barn{2.0}};
+        inp.energy_loss     = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
         // Three different models for the single process
-        inp.label                   = "purrs";
-        inp.options.use_integral_xs = true;
-        inp.applic      = {make_applicability("celeriton", 1e-3, 1),
+        inp.label           = "purrs";
+        inp.use_integral_xs = true;
+        inp.applic          = {make_applicability("celeriton", 1e-3, 1),
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
-        inp.xs          = {Barn{3.0}, Barn{3.0}};
-        inp.energy_loss = 0.6 * 1e-20; // 0.6 MeV/cm in celerogen
+        inp.xs              = {Barn{3.0}, Barn{3.0}};
+        inp.energy_loss     = 0.6 * 1e-20; // 0.6 MeV/cm in celerogen
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
         // Two models for anti-celeriton
-        inp.label                   = "hisses";
-        inp.options.use_integral_xs = true;
-        inp.applic      = {make_applicability("anti-celeriton", 1e-3, 1),
+        inp.label           = "hisses";
+        inp.use_integral_xs = true;
+        inp.applic          = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
-        inp.xs          = {Barn{4.0}, Barn{4.0}};
-        inp.energy_loss = 0.7 * 1e-20;
+        inp.xs              = {Barn{4.0}, Barn{4.0}};
+        inp.energy_loss     = 0.7 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
-        inp.label                   = "meows";
-        inp.options.use_integral_xs = true;
-        inp.applic      = {make_applicability("celeriton", 1e-3, 10),
+        inp.label           = "meows";
+        inp.use_integral_xs = true;
+        inp.applic          = {make_applicability("celeriton", 1e-3, 10),
                       make_applicability("anti-celeriton", 1e-3, 10)};
-        inp.xs          = {Barn{5.0}, Barn{5.0}};
-        inp.energy_loss = {};
+        inp.xs              = {Barn{5.0}, Barn{5.0}};
+        inp.energy_loss     = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
         // Energy-dependent cross section
-        inp.label                   = "barks";
-        inp.options.use_integral_xs = true;
-        inp.applic      = {make_applicability("electron", 1e-5, 10)};
-        inp.xs          = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
-        inp.energy_loss = 0.5 * 1e-20;
+        inp.label           = "barks";
+        inp.use_integral_xs = true;
+        inp.applic          = {make_applicability("electron", 1e-5, 10)};
+        inp.xs              = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
+        inp.energy_loss     = 0.5 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));

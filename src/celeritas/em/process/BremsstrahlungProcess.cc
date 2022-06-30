@@ -25,7 +25,7 @@ namespace celeritas
 BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                                              SPConstMaterials materials,
                                              SPConstImported  process_data,
-                                             BremsstrahlungOptions options)
+                                             Options          options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -79,6 +79,15 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether to use the integral method to sample discrete interaction length.
+ */
+bool BremsstrahlungProcess::use_integral_xs() const
+{
+    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

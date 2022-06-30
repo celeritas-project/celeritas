@@ -19,11 +19,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Bremsstrahlung process for electrons and positrons.
- *
- * Input options are:
- * - \c combined_model: Use a unified model that applies over the entire energy
- *   range of the process
- * - \c enable_lpm: Account for LPM effect at very high energies
  */
 class BremsstrahlungProcess : public Process
 {
@@ -35,20 +30,24 @@ class BremsstrahlungProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
-    struct BremsstrahlungOptions : Options
+    // Options for the Bremsstrahlung process
+    // TODO: update options based on ImportData
+    struct Options
     {
-        bool combined_model{true};
-        bool enable_lpm{true};
-
-        BremsstrahlungOptions() : Options(true) {}
+        bool combined_model{true};  //!> Use a unified relativistic/SB
+                                    //! interactor
+        bool enable_lpm{true};      //!> Account for LPM effect at very high
+                                    //! energies
+        bool use_integral_xs{true}; //!> Use integral method for sampling
+                                    //! discrete interaction length
     };
 
   public:
     // Construct from Bremsstrahlung data
-    BremsstrahlungProcess(SPConstParticles      particles,
-                          SPConstMaterials      materials,
-                          SPConstImported       process_data,
-                          BremsstrahlungOptions options);
+    BremsstrahlungProcess(SPConstParticles particles,
+                          SPConstMaterials materials,
+                          SPConstImported  process_data,
+                          Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -56,8 +55,8 @@ class BremsstrahlungProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability range) const final;
 
-    //! Get the options for the process
-    const BremsstrahlungOptions& options() const final { return options_; }
+    //! Whether to use the integral method to sample interaction length
+    bool use_integral_xs() const final;
 
     // Name of the process
     std::string label() const final;
@@ -66,7 +65,7 @@ class BremsstrahlungProcess : public Process
     SPConstParticles       particles_;
     SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
-    BremsstrahlungOptions  options_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

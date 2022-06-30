@@ -754,8 +754,11 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.options.enable_fluctuation = false;
     physics_inp.action_manager             = this->action_mgr().get();
 
-    physics_inp.processes.push_back(
-        std::make_shared<EPlusAnnihilationProcess>(physics_inp.particles));
+    EPlusAnnihilationProcess::Options epgg_options;
+    epgg_options.use_integral_xs = true;
+
+    physics_inp.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
+        physics_inp.particles, epgg_options));
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
 }
 

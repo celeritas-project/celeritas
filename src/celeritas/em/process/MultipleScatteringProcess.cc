@@ -52,6 +52,15 @@ auto MultipleScatteringProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether to use the integral method to sample discrete interaction length.
+ */
+bool MultipleScatteringProcess::use_integral_xs() const
+{
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Name of the process.
  */
 std::string MultipleScatteringProcess::label() const

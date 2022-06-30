@@ -40,8 +40,8 @@ class MultipleScatteringProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applicability) const final;
 
-    //! Get the options for the process
-    const Options& options() const final { return options_; }
+    //! Whether to use the integral method to sample interaction length
+    bool use_integral_xs() const final;
 
     // Name of the process
     std::string label() const final;
@@ -50,7 +50,6 @@ class MultipleScatteringProcess : public Process
     SPConstParticles       particles_;
     SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
-    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

@@ -65,9 +65,6 @@ TEST_F(ImportedProcessesTest, compton)
     // Create Compton process
     auto process = std::make_shared<ComptonProcess>(particles_, processes_);
 
-    // Test options
-    EXPECT_FALSE(process->options().use_integral_xs);
-
     // Test model
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
@@ -91,10 +88,10 @@ TEST_F(ImportedProcessesTest, compton)
 TEST_F(ImportedProcessesTest, e_ionization)
 {
     // Create electron ionization process
-    auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
-
-    // Test options
-    EXPECT_TRUE(process->options().use_integral_xs);
+    EIonizationProcess::Options options;
+    options.use_integral_xs = true;
+    auto process            = std::make_shared<EIonizationProcess>(
+        particles_, processes_, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -121,10 +118,10 @@ TEST_F(ImportedProcessesTest, e_ionization)
 TEST_F(ImportedProcessesTest, eplus_annihilation)
 {
     // Create positron annihilation process
-    auto process = std::make_shared<EPlusAnnihilationProcess>(particles_);
-
-    // Test options
-    EXPECT_TRUE(process->options().use_integral_xs);
+    EPlusAnnihilationProcess::Options options;
+    options.use_integral_xs = true;
+    auto process
+        = std::make_shared<EPlusAnnihilationProcess>(particles_, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -150,16 +147,12 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
 
 TEST_F(ImportedProcessesTest, gamma_conversion)
 {
-    GammaConversionProcess::GammaConversionOptions options;
+    GammaConversionProcess::Options options;
     options.enable_lpm = true;
 
     // Create gamma conversion process
     auto process = std::make_shared<GammaConversionProcess>(
         particles_, processes_, options);
-
-    // Test options
-    EXPECT_TRUE(process->options().enable_lpm);
-    EXPECT_TRUE(process->options().use_integral_xs);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -186,9 +179,6 @@ TEST_F(ImportedProcessesTest, msc)
     // Create Multiple scattering process
     auto process = std::make_shared<MultipleScatteringProcess>(
         particles_, materials_, processes_);
-
-    // Test options
-    EXPECT_FALSE(process->options().use_integral_xs);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -222,9 +212,6 @@ TEST_F(ImportedProcessesTest, photoelectric)
         GTEST_SKIP() << "Failed to create process: " << e.what();
     }
 
-    // Test options
-    EXPECT_FALSE(process->options().use_integral_xs);
-
     // Test model
     auto models = process->build_models(ActionIdIter{});
     ASSERT_EQ(1, models.size());
@@ -249,8 +236,9 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
 {
     // Create bremsstrahlung process (requires Geant4 environment variables)
     // with multiple models (SeltzerBergerModel and RelativisticBremModel)
-    BremsstrahlungProcess::BremsstrahlungOptions options;
-    options.combined_model = false;
+    BremsstrahlungProcess::Options options;
+    options.combined_model  = false;
+    options.use_integral_xs = true;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {
@@ -261,11 +249,6 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     {
         GTEST_SKIP() << "Failed to create process: " << e.what();
     }
-
-    // Test options
-    EXPECT_FALSE(process->options().combined_model);
-    EXPECT_TRUE(process->options().enable_lpm);
-    EXPECT_TRUE(process->options().use_integral_xs);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -294,8 +277,9 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
 TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
 {
     // Create the combined bremsstrahlung process
-    BremsstrahlungProcess::BremsstrahlungOptions options;
-    options.combined_model = true;
+    BremsstrahlungProcess::Options options;
+    options.combined_model  = true;
+    options.use_integral_xs = true;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {
@@ -306,11 +290,6 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     {
         GTEST_SKIP() << "Failed to create process: " << e.what();
     }
-
-    // Test options
-    EXPECT_TRUE(process->options().combined_model);
-    EXPECT_TRUE(process->options().enable_lpm);
-    EXPECT_TRUE(process->options().use_integral_xs);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -341,9 +320,6 @@ TEST_F(ImportedProcessesTest, rayleigh)
     // Create Rayleigh scattering process
     auto process = std::make_shared<RayleighProcess>(
         particles_, materials_, processes_);
-
-    // Test options
-    EXPECT_FALSE(process->options().use_integral_xs);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});

@@ -268,12 +268,19 @@ TransporterInput load_input(const LDemoArgs& args)
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
 
-        BremsstrahlungProcess::BremsstrahlungOptions brem_options;
-        brem_options.combined_model = args.brem_combined;
-        brem_options.enable_lpm     = args.brem_lpm;
+        BremsstrahlungProcess::Options brem_options;
+        brem_options.combined_model  = args.brem_combined;
+        brem_options.enable_lpm      = args.brem_lpm;
+        brem_options.use_integral_xs = true;
 
-        GammaConversionProcess::GammaConversionOptions conv_options;
+        GammaConversionProcess::Options conv_options;
         conv_options.enable_lpm = args.conv_lpm;
+
+        EPlusAnnihilationProcess::Options epgg_options;
+        epgg_options.use_integral_xs = true;
+
+        EIonizationProcess::Options ioni_options;
+        ioni_options.use_integral_xs = true;
 
         auto process_data = std::make_shared<ImportedProcesses>(
             std::move(imported_data.processes));
@@ -288,10 +295,10 @@ TransporterInput load_input(const LDemoArgs& args)
         }
         input.processes.push_back(std::make_shared<GammaConversionProcess>(
             params.particle, process_data, conv_options));
-        input.processes.push_back(
-            std::make_shared<EPlusAnnihilationProcess>(params.particle));
+        input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
+            params.particle, epgg_options));
         input.processes.push_back(std::make_shared<EIonizationProcess>(
-            params.particle, process_data));
+            params.particle, process_data, ioni_options));
         input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
             params.particle, params.material, process_data, brem_options));
         if (args.enable_msc)

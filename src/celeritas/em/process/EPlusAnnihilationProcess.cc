@@ -19,9 +19,11 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles)
+EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
+                                                   Options          options)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
+    , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_ENSURE(positron_id_);
@@ -50,6 +52,15 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
     builders[ValueGridType::macro_xs] = std::make_unique<ValueGridOTFBuilder>();
 
     return builders;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether to use the integral method to sample discrete interaction length.
+ */
+bool EPlusAnnihilationProcess::use_integral_xs() const
+{
+    return options_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

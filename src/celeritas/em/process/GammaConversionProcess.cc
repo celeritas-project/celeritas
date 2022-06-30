@@ -22,7 +22,7 @@ namespace celeritas
  */
 GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
                                                SPConstImported  process_data,
-                                               GammaConversionOptions options)
+                                               Options          options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
@@ -52,6 +52,15 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applic));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether to use the integral method to sample discrete interaction length.
+ */
+bool GammaConversionProcess::use_integral_xs() const
+{
+    return false;
 }
 
 //---------------------------------------------------------------------------//

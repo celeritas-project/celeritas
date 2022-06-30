@@ -92,8 +92,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
             process_xs = physics.calc_xs(
                 ppid, material.make_material_view(), particle.energy());
         }
-        // Accumulate process cross section into the total cross section and
-        // save it for later
+        // Accumulate into the total cross section and save it for later
         total_macro_xs += process_xs;
         pstep.per_process_xs(ppid) = process_xs;
     }

@@ -97,7 +97,7 @@ class PhysicsTrackView
                                             const MaterialView& material,
                                             Energy              energy) const;
 
-    // Estimate maximum macroscopic cross section for the process over the step
+    // Estimate maximum macroscopic cross section over the steps
     inline CELER_FUNCTION real_type calc_max_xs(const IntegralXsProcess& process,
                                                 ParticleProcessId        ppid,
                                                 const MaterialView& material,
@@ -348,6 +348,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
                                                    Energy energy) const
 {
     real_type result = 0;
+
     if (auto model_id = this->hardwired_model(ppid, energy))
     {
         // Calculate macroscopic cross section on the fly for special
@@ -371,6 +372,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
         auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
         result       = calc_xs(energy);
     }
+
     CELER_ENSURE(result >= 0);
     return result;
 }

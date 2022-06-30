@@ -18,9 +18,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Conversion of gammas to electrons and positrons.
- *
- * Input options are:
- * - \c enable_lpm: Account for LPM effect at very high energies
  */
 class GammaConversionProcess : public Process
 {
@@ -31,18 +28,17 @@ class GammaConversionProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
-    struct GammaConversionOptions : Options
+    // Options for pair production
+    struct Options
     {
-        bool enable_lpm{true};
-
-        GammaConversionOptions() : Options(true) {}
+        bool enable_lpm{true}; //!< Account for LPM effect at high energies
     };
 
   public:
     // Construct from particle data
-    GammaConversionProcess(SPConstParticles       particles,
-                           SPConstImported        process_data,
-                           GammaConversionOptions options);
+    GammaConversionProcess(SPConstParticles particles,
+                           SPConstImported  process_data,
+                           Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -50,8 +46,8 @@ class GammaConversionProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applic) const final;
 
-    //! Get the options for the process
-    const GammaConversionOptions& options() const final { return options_; }
+    //! Whether to use the integral method to sample interaction length
+    bool use_integral_xs() const final;
 
     // Name of the process
     std::string label() const final;
@@ -59,7 +55,7 @@ class GammaConversionProcess : public Process
   private:
     SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
-    GammaConversionOptions options_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//
