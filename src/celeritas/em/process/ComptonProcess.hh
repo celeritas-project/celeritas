@@ -39,7 +39,7 @@ class ComptonProcess : public Process
     StepLimitBuilders step_limits(Applicability applic) const final;
 
     //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    bool use_integral_xs() const final { return false; }
 
     // Name of the process
     std::string label() const final;

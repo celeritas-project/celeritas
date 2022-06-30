@@ -27,7 +27,6 @@ class EPlusAnnihilationProcess final : public Process
     //!@}
 
     // Options for electron-positron annihilation
-    // TODO: update options based on ImportData
     struct Options
     {
         bool use_integral_xs{true}; //!> Use integral method for sampling
@@ -46,7 +45,7 @@ class EPlusAnnihilationProcess final : public Process
     StepLimitBuilders step_limits(Applicability range) const final;
 
     //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    bool use_integral_xs() const final { return options_.use_integral_xs; }
 
     // Name of the process
     std::string label() const final;

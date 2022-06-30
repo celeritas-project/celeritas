@@ -52,15 +52,6 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use the integral method to sample discrete interaction length.
- */
-bool EIonizationProcess::use_integral_xs() const
-{
-    return options_.use_integral_xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string EIonizationProcess::label() const

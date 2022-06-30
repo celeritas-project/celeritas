@@ -56,15 +56,6 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use the integral method to sample discrete interaction length.
- */
-bool EPlusAnnihilationProcess::use_integral_xs() const
-{
-    return options_.use_integral_xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string EPlusAnnihilationProcess::label() const

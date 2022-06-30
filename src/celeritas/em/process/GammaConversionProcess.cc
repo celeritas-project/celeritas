@@ -56,15 +56,6 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use the integral method to sample discrete interaction length.
- */
-bool GammaConversionProcess::use_integral_xs() const
-{
-    return false;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string GammaConversionProcess::label() const

@@ -97,7 +97,7 @@ class PhysicsTrackView
                                             const MaterialView& material,
                                             Energy              energy) const;
 
-    // Estimate maximum macroscopic cross section over the steps
+    // Estimate maximum macroscopic cross section for the process over the step
     inline CELER_FUNCTION real_type calc_max_xs(const IntegralXsProcess& process,
                                                 ParticleProcessId        ppid,
                                                 const MaterialView& material,

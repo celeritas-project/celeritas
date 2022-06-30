@@ -83,15 +83,6 @@ auto BremsstrahlungProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use the integral method to sample discrete interaction length.
- */
-bool BremsstrahlungProcess::use_integral_xs() const
-{
-    return options_.use_integral_xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string BremsstrahlungProcess::label() const

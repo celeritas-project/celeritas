@@ -56,7 +56,7 @@ class BremsstrahlungProcess : public Process
     StepLimitBuilders step_limits(Applicability range) const final;
 
     //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    bool use_integral_xs() const final { return options_.use_integral_xs; }
 
     // Name of the process
     std::string label() const final;

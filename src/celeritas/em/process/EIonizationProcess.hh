@@ -28,8 +28,7 @@ class EIonizationProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
-    // Options for electron ionization
-    // TODO: update options based on ImportData
+    // Options for electron and positron ionization
     struct Options
     {
         bool use_integral_xs{true}; //!> Use integral method for sampling
@@ -49,7 +48,7 @@ class EIonizationProcess : public Process
     StepLimitBuilders step_limits(Applicability applicability) const final;
 
     //! Whether to use the integral method to sample interaction length
-    bool use_integral_xs() const final;
+    bool use_integral_xs() const final { return options_.use_integral_xs; }
 
     // Name of the process
     std::string label() const final;

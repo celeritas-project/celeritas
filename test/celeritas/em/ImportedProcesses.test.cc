@@ -87,10 +87,11 @@ TEST_F(ImportedProcessesTest, compton)
 
 TEST_F(ImportedProcessesTest, e_ionization)
 {
-    // Create electron ionization process
     EIonizationProcess::Options options;
     options.use_integral_xs = true;
-    auto process            = std::make_shared<EIonizationProcess>(
+
+    // Create electron ionization process
+    auto process = std::make_shared<EIonizationProcess>(
         particles_, processes_, options);
 
     // Test model
@@ -117,9 +118,10 @@ TEST_F(ImportedProcessesTest, e_ionization)
 
 TEST_F(ImportedProcessesTest, eplus_annihilation)
 {
-    // Create positron annihilation process
     EPlusAnnihilationProcess::Options options;
     options.use_integral_xs = true;
+
+    // Create positron annihilation process
     auto process
         = std::make_shared<EPlusAnnihilationProcess>(particles_, options);
 
