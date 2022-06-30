@@ -24,23 +24,27 @@ namespace celeritas
 inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     LivermorePERef const& model, CoreTrackView const& track)
 {
-    // Sample an element (calculating microscopic cross sections on the fly)
-    // and store it
-    auto      particle = track.make_particle_view();
-    auto      rng      = track.make_rng_engine();
-    ElementId el_id;
+    auto particle = track.make_particle_view();
+    auto rng      = track.make_rng_engine();
+
+    // Get the element ID if an element was previously sampled
+    auto elcomp_id = track.make_physics_step_view().element();
+    if (!elcomp_id)
     {
+        // Sample an element (calculating microscopic cross sections on the
+        // fly) and store it
         auto            material_track = track.make_material_view();
         auto            material       = material_track.make_material_view();
         ElementSelector select_el(
             material,
             LivermorePEMicroXsCalculator{model, particle.energy()},
             material_track.element_scratch());
-        ElementComponentId elcomp_id = select_el(rng);
+        elcomp_id = select_el(rng);
         CELER_ASSERT(elcomp_id);
         track.make_physics_step_view().element(elcomp_id);
-        el_id = material.element_id(elcomp_id);
     }
+    auto el_id = track.make_material_view().make_material_view().element_id(
+        elcomp_id);
 
     // Set up photoelectric interactor with the selected element
     auto relaxation

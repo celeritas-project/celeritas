@@ -69,8 +69,6 @@ class UrbanMscHelper
 
     // Shared value of range
     real_type range_;
-    // Process ID of the eletromagnetic_msc process
-    ParticleProcessId msc_pid_;
     // Grid ID of range value of the energy loss
     ValueGridId range_gid_;
     // Grid ID of dedx value of the energy loss
@@ -99,8 +97,7 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
     ParticleProcessId eloss_pid = physics.eloss_ppid();
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
-    msc_pid_   = physics_.msc_ppid();
-    mfp_gid_   = physics_.value_grid(ValueGridType::msc_mfp, msc_pid_);
+    mfp_gid_ = physics_.value_grid(ValueGridType::msc_mfp, physics_.msc_ppid());
     range_ = physics.make_calculator<RangeCalculator>(range_gid_)(inc_energy_);
 }
 
@@ -110,8 +107,8 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
  */
 CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
 {
-    real_type xsec = physics_.calc_xs(msc_pid_, mfp_gid_, energy)
-                     / ipow<2>(energy.value());
+    auto      calc_xs = physics_.make_calculator<XsCalculator>(mfp_gid_);
+    real_type xsec    = calc_xs(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0);
     return 1 / xsec;
 }
