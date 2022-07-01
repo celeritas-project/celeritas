@@ -175,7 +175,7 @@ TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(field_driver_device))
 {
     // Run kernel
     test_params.nstates = 32 * 256;
-    auto output = driver_test(field_params, test_params);
+    auto output         = driver_test(field_params, test_params);
 
     // Check stepper results
     real_type zstep = test_params.delta_z * test_params.revolutions;
@@ -198,7 +198,7 @@ TEST_F(FieldDriverDeviceTest, TEST_IF_CELER_DEVICE(accurate_advance_device))
 {
     // Run kernel
     test_params.nstates = 32 * 256;
-    auto output = accurate_advance_test(field_params, test_params);
+    auto output         = accurate_advance_test(field_params, test_params);
 
     // Check stepper results
     real_type zstep = test_params.delta_z;

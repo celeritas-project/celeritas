@@ -87,10 +87,10 @@ class UserMapFieldTest : public FieldPropagatorTestBase
 
   protected:
     // Test parameters and input
-    GeoStateStore                  geo_state_;
-    UserFieldTestParams            test_param_;
-    std::shared_ptr<MagFieldMap>   map_;
-    FieldMapRef                    ref_;
+    GeoStateStore                geo_state_;
+    UserFieldTestParams          test_param_;
+    std::shared_ptr<MagFieldMap> map_;
+    FieldMapRef                  ref_;
 };
 
 //---------------------------------------------------------------------------//

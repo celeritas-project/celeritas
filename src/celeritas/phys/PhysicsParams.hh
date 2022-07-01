@@ -90,10 +90,10 @@ class PhysicsParams
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles   = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials   = std::shared_ptr<const MaterialParams>;
-    using SPConstProcess     = std::shared_ptr<const Process>;
-    using SPConstRelaxation  = std::shared_ptr<const AtomicRelaxationParams>;
+    using SPConstParticles  = std::shared_ptr<const ParticleParams>;
+    using SPConstMaterials  = std::shared_ptr<const MaterialParams>;
+    using SPConstProcess    = std::shared_ptr<const Process>;
+    using SPConstRelaxation = std::shared_ptr<const AtomicRelaxationParams>;
 
     using VecProcess         = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<const ProcessId>;
@@ -173,8 +173,8 @@ class PhysicsParams
     SPAction fixed_step_action_;
 
     // Host metadata/access
-    VecProcess processes_;
-    VecModel   models_;
+    VecProcess        processes_;
+    VecModel          models_;
     SPConstRelaxation relaxation_;
 
     // Host/device storage and reference

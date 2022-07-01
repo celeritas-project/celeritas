@@ -29,7 +29,7 @@ DetectorConstruction::DetectorConstruction(const std::string& gdml_input)
     // and LabelIdMultiMap. Note that material and element names (at least as
     // of Geant4@11.0) are *always* stripped: only volumes and solids keep
     // their extension.
-    G4GDMLParser   gdml_parser;
+    G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
     constexpr bool validate_gdml_schema = false;

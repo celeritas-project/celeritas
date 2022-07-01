@@ -71,8 +71,8 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         return;
     }
 
-    GeoTrackView     geo(params_.geometry, states_.geometry, tid);
-    PhysicsStepView  phys(params_.physics, states_.physics, tid);
+    GeoTrackView    geo(params_.geometry, states_.geometry, tid);
+    PhysicsStepView phys(params_.physics, states_.physics, tid);
 
     // Offset in the vector of track initializers
     CELER_ASSERT(data_.secondary_counts[tid] <= data_.num_secondaries);

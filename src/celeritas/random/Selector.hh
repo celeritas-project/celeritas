@@ -53,7 +53,7 @@ class Selector
     //! Type aliases
     using value_type = T;
 #if __cplusplus < 201703L
-    using real_type  = typename std::result_of<F(value_type)>::type;
+    using real_type = typename std::result_of<F(value_type)>::type;
 #else
     using real_type = typename std::invoke_result<F, value_type>::type;
 #endif
