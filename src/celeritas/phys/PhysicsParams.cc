@@ -123,7 +123,7 @@ PhysicsParams::PhysicsParams(Input inp)
     this->build_options(inp.options, &host_data);
     this->build_fluct(inp.options, *inp.materials, *inp.particles, &host_data);
     this->build_ids(*inp.particles, &host_data);
-    this->build_xs(*inp.materials, &host_data);
+    this->build_xs(inp.options, *inp.materials, &host_data);
     this->build_model_xs(*inp.materials, &host_data);
 
     // Add step limiter if being used (TODO: remove this hack from physics)
@@ -391,7 +391,9 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
+void PhysicsParams::build_xs(const Options&        opts,
+                             const MaterialParams& mats,
+                             HostValue*            data) const
 {
     CELER_EXPECT(*data);
 
@@ -452,7 +454,8 @@ void PhysicsParams::build_xs(const MaterialParams& mats, HostValue* data) const
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
-            bool                   use_integral_xs = proc.use_integral_xs();
+            bool                   use_integral_xs = !opts.disable_integral_xs
+                                   && proc.use_integral_xs();
             if (use_integral_xs)
             {
                 energy_max_xs.resize(mats.size());

@@ -46,6 +46,12 @@ class ParticleParams;
  *   energy loss.
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
+ * - \c disable_integral_xs: for particles with energy loss processes, the
+ *   particle energy changes over the step, so the assumption that the cross
+ *   section is constant is no longer valid. By default, many charged particle
+ *   processes use MC integration to sample the discrete interaction length
+ *   with the correct probability. Disable this integral approach for all
+ *   processes.
  * - \c enable_fluctuation: enable simulation of energy loss fluctuations.
  */
 struct PhysicsParamsOptions
@@ -56,6 +62,7 @@ struct PhysicsParamsOptions
     real_type fixed_step_limiter     = 0;
     real_type linear_loss_limit      = 0.01;
     real_type secondary_stack_factor = 3;
+    bool      disable_integral_xs    = false;
     bool      enable_fluctuation     = true;
 };
 
@@ -179,7 +186,9 @@ class PhysicsParams
     VecModel build_models(ActionManager*) const;
     void     build_options(const Options& opts, HostValue* data) const;
     void     build_ids(const ParticleParams& particles, HostValue* data) const;
-    void     build_xs(const MaterialParams& mats, HostValue* data) const;
+    void     build_xs(const Options&        opts,
+                      const MaterialParams& mats,
+                      HostValue*            data) const;
     void     build_model_xs(const MaterialParams& mats, HostValue* data) const;
     void     build_fluct(const Options&        opts,
                          const MaterialParams& mats,
