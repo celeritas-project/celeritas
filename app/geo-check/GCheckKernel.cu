@@ -58,6 +58,7 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
     {
         // Propagate Save next-volume ID and distance to travel
         auto step        = propagate();
+        if (step.boundary) geo.cross_boundary();
         ids[istep]       = geo.volume_physid().get();
         distances[istep] = step.distance;
         ++istep;

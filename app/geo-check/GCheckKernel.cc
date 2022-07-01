@@ -48,6 +48,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
     do
     {
         auto step = propagate(); // to next boundary
+        if (step.boundary) geo.cross_boundary();
         result.ids.push_back(geo.volume_physid().get());
         result.distances.push_back(step.distance);
 

@@ -60,7 +60,6 @@ LinearPropagator::result_type LinearPropagator::operator()()
     result_type result = track_.find_next_step();
     CELER_ASSERT(result.boundary);
     track_.move_to_boundary();
-    track_.cross_boundary();
 
     return result;
 }
@@ -79,7 +78,6 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
     if (result.boundary)
     {
         track_.move_to_boundary();
-        track_.cross_boundary();
     }
     else
     {
