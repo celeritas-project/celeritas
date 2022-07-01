@@ -32,7 +32,7 @@
 // Override an undocumented hipRAND API definition to enable usage in host
 // code.
 #    define FQUALIFIERS __forceinline__ __host__ __device__
-#    include <hiprand_kernel.h>
+#    include <hiprand/hiprand_kernel.h>
 #    define CELER_RNG_PREFIX(TOK) hip##TOK
 #else
 // CuHipRng is invalid

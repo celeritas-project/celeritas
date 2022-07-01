@@ -65,7 +65,7 @@ __global__ void fp_test_kernel(const int                       size,
 
     // Tests with input parameters of a electron in a uniform magnetic field
     const double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
-    real_type curved_length = 0;
+    real_type    curved_length = 0;
 
     for (CELER_MAYBE_UNUSED int i : celeritas::range(test.revolutions))
     {
@@ -118,7 +118,7 @@ __global__ void bc_test_kernel(const int                       size,
 
     // Tests with input parameters of a electron in a uniform magnetic field
     const double hstep = (2.0 * constants::pi * test.radius) / test.nsteps;
-    real_type curved_length = 0;
+    real_type    curved_length = 0;
 
     constexpr int num_boundary = 16;
     int           icross       = 0;

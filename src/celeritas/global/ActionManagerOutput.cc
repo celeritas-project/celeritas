@@ -38,7 +38,7 @@ ActionManagerOutput::ActionManagerOutput(SPConstActionManager actions)
 void ActionManagerOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
-    auto obj = nlohmann::json::array();
+    auto obj        = nlohmann::json::array();
     bool has_timing = actions_->sync();
     for (auto id : range(ActionId{actions_->num_actions()}))
     {

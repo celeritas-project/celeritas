@@ -162,7 +162,7 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_helix))
 {
     // Run the ZHelix kernel
     param.nstates = 32 * 512;
-    auto output = helix_test(param);
+    auto output   = helix_test(param);
 
     // Check stepper results
     check_result(output);
@@ -173,7 +173,7 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_classical_rk4))
 {
     // Run the classical Runge-Kutta kernel
     param.nstates = 32 * 512;
-    auto output = rk4_test(param);
+    auto output   = rk4_test(param);
 
     // Check stepper results
     check_result(output);
@@ -184,7 +184,7 @@ TEST_F(SteppersTest, TEST_IF_CELER_DEVICE(device_dormand_prince_547))
 {
     // Run the Dormand-Prince 547(M) kernel
     param.nstates = 32 * 512;
-    auto output = dp547_test(param);
+    auto output   = dp547_test(param);
 
     // Check stepper results
     check_result(output);

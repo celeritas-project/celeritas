@@ -238,7 +238,6 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
     this->state().interaction_mfp = 0;
 }
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Whether the remaining MFP has been calculated.

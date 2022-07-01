@@ -123,8 +123,8 @@ TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, this->field_params, particle_track, &geo_track);
 
-        int                                 icross       = 0;
-        real_type                           total_length = 0;
+        int       icross       = 0;
+        real_type total_length = 0;
 
         for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
         {

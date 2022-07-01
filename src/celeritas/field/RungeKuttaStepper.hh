@@ -90,7 +90,7 @@ RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state) cons
     constexpr real_type fourth_order_correction = 1 / real_type(15);
 
     result_type result;
-    OdeState beg_slope = calc_rhs_(beg_state);
+    OdeState    beg_slope = calc_rhs_(beg_state);
 
     // Do two half steps
     result.mid_state = this->do_step(half_step, beg_state, beg_slope);

@@ -187,7 +187,7 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     size_type remaining_steps = input_.max_steps;
 
     // Copy primaries to device and transport the first step
-    auto      track_counts    = step(std::move(primaries));
+    auto track_counts = step(std::move(primaries));
     append_track_counts(track_counts);
     result.time.steps.push_back(get_step_time());
 

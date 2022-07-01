@@ -62,14 +62,14 @@ struct CoreParamsData
     CoreParamsData& operator=(const CoreParamsData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry   = other.geometry;
-        geo_mats   = other.geo_mats;
-        materials  = other.materials;
-        particles  = other.particles;
-        cutoffs    = other.cutoffs;
-        physics    = other.physics;
-        rng        = other.rng;
-        scalars    = other.scalars;
+        geometry  = other.geometry;
+        geo_mats  = other.geo_mats;
+        materials = other.materials;
+        particles = other.particles;
+        cutoffs   = other.cutoffs;
+        physics   = other.physics;
+        rng       = other.rng;
+        scalars   = other.scalars;
         return *this;
     }
 };
@@ -107,12 +107,12 @@ struct CoreStateData
     CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry    = other.geometry;
-        materials   = other.materials;
-        particles   = other.particles;
-        physics     = other.physics;
-        rng         = other.rng;
-        sim         = other.sim;
+        geometry  = other.geometry;
+        materials = other.materials;
+        particles = other.particles;
+        physics   = other.physics;
+        rng       = other.rng;
+        sim       = other.sim;
         return *this;
     }
 };

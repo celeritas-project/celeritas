@@ -120,9 +120,9 @@ class PhysicsStepView
 /*!
  * Construct from shared and state data.
  */
-PhysicsStepView::PhysicsStepView(const PhysicsParamsRef& params,
-                                 const PhysicsStateRef&  states,
-                                 ThreadId                tid)
+CELER_FUNCTION PhysicsStepView::PhysicsStepView(const PhysicsParamsRef& params,
+                                                const PhysicsStateRef&  states,
+                                                ThreadId                tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(thread_);

@@ -51,7 +51,7 @@ struct FPTestInput
     ParticleStateRef          particle_states;
 
     celeritas::FieldDriverOptions field_params;
-    FieldTestParams            test;
+    FieldTestParams               test;
 };
 
 //---------------------------------------------------------------------------//
