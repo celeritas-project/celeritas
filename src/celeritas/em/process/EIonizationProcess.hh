@@ -28,10 +28,18 @@ class EIonizationProcess : public Process
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
     //!@}
 
+    // Options for electron and positron ionization
+    struct Options
+    {
+        bool use_integral_xs{true}; //!> Use integral method for sampling
+                                    //! discrete interaction length
+    };
+
   public:
     // Construct with imported data
     EIonizationProcess(SPConstParticles particles,
-                       SPConstImported  process_data);
+                       SPConstImported  process_data,
+                       Options          options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -39,8 +47,8 @@ class EIonizationProcess : public Process
     // Get the interaction cross sections for the given energy range
     StepLimitBuilders step_limits(Applicability applicability) const final;
 
-    //! Type of process
-    ProcessType type() const final;
+    //! Whether to use the integral method to sample interaction length
+    bool use_integral_xs() const final { return options_.use_integral_xs; }
 
     // Name of the process
     std::string label() const final;
@@ -48,6 +56,7 @@ class EIonizationProcess : public Process
   private:
     SPConstParticles       particles_;
     ImportedProcessAdapter imported_;
+    Options                options_;
 };
 
 //---------------------------------------------------------------------------//

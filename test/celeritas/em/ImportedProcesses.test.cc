@@ -87,8 +87,12 @@ TEST_F(ImportedProcessesTest, compton)
 
 TEST_F(ImportedProcessesTest, e_ionization)
 {
+    EIonizationProcess::Options options;
+    options.use_integral_xs = true;
+
     // Create electron ionization process
-    auto process = std::make_shared<EIonizationProcess>(particles_, processes_);
+    auto process = std::make_shared<EIonizationProcess>(
+        particles_, processes_, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -114,8 +118,12 @@ TEST_F(ImportedProcessesTest, e_ionization)
 
 TEST_F(ImportedProcessesTest, eplus_annihilation)
 {
+    EPlusAnnihilationProcess::Options options;
+    options.use_integral_xs = true;
+
     // Create positron annihilation process
-    auto process = std::make_shared<EPlusAnnihilationProcess>(particles_);
+    auto process
+        = std::make_shared<EPlusAnnihilationProcess>(particles_, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -231,7 +239,8 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     // Create bremsstrahlung process (requires Geant4 environment variables)
     // with multiple models (SeltzerBergerModel and RelativisticBremModel)
     BremsstrahlungProcess::Options options;
-    options.combined_model = false;
+    options.combined_model  = false;
+    options.use_integral_xs = true;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {
@@ -271,7 +280,8 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
 {
     // Create the combined bremsstrahlung process
     BremsstrahlungProcess::Options options;
-    options.combined_model = true;
+    options.combined_model  = true;
+    options.use_integral_xs = true;
     std::shared_ptr<BremsstrahlungProcess> process;
     try
     {

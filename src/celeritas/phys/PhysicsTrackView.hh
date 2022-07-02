@@ -88,16 +88,20 @@ class PhysicsTrackView
     inline CELER_FUNCTION ValueGridId value_grid(ValueGridType table,
                                                  ParticleProcessId) const;
 
-    // Whether to use integral approach to sample the discrete interaction
-    inline CELER_FUNCTION bool use_integral_xs(ParticleProcessId ppid) const;
-
-    // Energy corresponding to the maximum cross section for the material
-    inline CELER_FUNCTION real_type energy_max_xs(ParticleProcessId ppid) const;
+    // Get data for processes that use the integral approach
+    inline CELER_FUNCTION const IntegralXsProcess&
+    integral_xs_process(ParticleProcessId ppid) const;
 
     // Calculate macroscopic cross section for the process
-    inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
-                                            ValueGridId       grid_id,
-                                            Energy            energy) const;
+    inline CELER_FUNCTION real_type calc_xs(ParticleProcessId   ppid,
+                                            const MaterialView& material,
+                                            Energy              energy) const;
+
+    // Estimate maximum macroscopic cross section for the process over the step
+    inline CELER_FUNCTION real_type calc_max_xs(const IntegralXsProcess& process,
+                                                ParticleProcessId        ppid,
+                                                const MaterialView& material,
+                                                Energy energy) const;
 
     // Models that apply to the given process ID
     inline CELER_FUNCTION
@@ -137,11 +141,6 @@ class PhysicsTrackView
     // Urban multiple scattering data
     inline CELER_FUNCTION const UrbanMscRef& urban_data() const;
 
-    // Calculate macroscopic cross section on the fly for the given model
-    inline CELER_FUNCTION real_type calc_xs_otf(ModelId             model,
-                                                const MaterialView& material,
-                                                Energy energy) const;
-
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
 
@@ -150,12 +149,6 @@ class PhysicsTrackView
     inline CELER_FUNCTION T make_calculator(ValueGridId) const;
 
     //// HACKS ////
-
-    // Process ID for photoelectric effect
-    inline CELER_FUNCTION ProcessId photoelectric_process_id() const;
-
-    // Process ID for positron annihilation
-    inline CELER_FUNCTION ProcessId eplusgg_process_id() const;
 
     // Get hardwired model, null if not present
     inline CELER_FUNCTION ModelId hardwired_model(ParticleProcessId ppid,
@@ -313,12 +306,12 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether to use integral approach to sample the discrete interaction.
+ * Get data for processes that use the integral approach.
  *
- * For energy loss processes, the particle will have a different energy at the
- * pre- and post-step points. This means the assumption that the cross section
- * is constant along the step is no longer valid. Instead, Monte Carlo
- * integration can be used to sample the interaction for the discrete
+ * Particles that have energy loss processes will have a different energy at
+ * the pre- and post-step points. This means the assumption that the cross
+ * section is constant along the step is no longer valid. Instead, Monte Carlo
+ * integration can be used to sample the interaction length for the discrete
  * process with the correct probability from the exact distribution,
  * \f[
      p = 1 - \exp \left( -\int_{E_0}^{E_1} n \sigma(E) \dif s \right),
@@ -337,73 +330,86 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
  *
  * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
  */
-CELER_FUNCTION bool
-PhysicsTrackView::use_integral_xs(ParticleProcessId ppid) const
+CELER_FUNCTION auto
+PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
+    -> const IntegralXsProcess&
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    return this->energy_max_xs(ppid) > 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Energy corresponding to the maximum cross section for the material.
- *
- * If the \c IntegralXsProcess is "true", the integral approach is used and
- * that process has both energy loss and macro xs tables. If \c
- * energy_max_xs[material] is nonzero, both of those tables are present for
- * this material.
- */
-CELER_FUNCTION real_type
-PhysicsTrackView::energy_max_xs(ParticleProcessId ppid) const
-{
-    CELER_EXPECT(ppid < this->num_particle_processes());
-
-    real_type                result = 0;
-    const IntegralXsProcess& process
-        = params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
-    if (process)
-    {
-        CELER_ASSERT(material_ < process.energy_max_xs.size());
-        result = params_.reals[process.energy_max_xs[material_.get()]];
-    }
-    return result;
+    return params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate macroscopic cross section for the process.
- *
- * If this is an energy loss process, this returns the estimate of the maximum
- * cross section over the step. If the energy of the global maximum of the
- * cross section (calculated at initialization) is in the interval \f$ [\xi
- * E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy and \f$ \xi \f$ is
- * \c energy_fraction (defined by default as \f$ \xi = 1 - \alpha \f$, where
- * \f$ \alpha \f$ is \c scaling_fraction),
- * \f$ \sigma_{\max} \f$ is set to the global maximum.
- * Otherwise, \f$ \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$. If
- * the cross section is not monotonic in the interval \f$ [\xi E_0, E_0) \f$
- * and the interval does not contain the global maximum, the post-step cross
- * section \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
-                                                   ValueGridId       grid_id,
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
+                                                   const MaterialView& material,
                                                    Energy energy) const
 {
-    auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
+    real_type result = 0;
 
-    // Check if the integral approach is used (true if \c energy_max_xs > 0).
-    // If so, an estimate of the maximum cross section over the step is used as
-    // the macro xs for this process
-    real_type energy_max_xs = this->energy_max_xs(ppid);
-    if (energy_max_xs > 0)
+    if (auto model_id = this->hardwired_model(ppid, energy))
     {
-        real_type energy_xi = energy.value() * params_.scalars.energy_fraction;
-        if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
-            return calc_xs(Energy{energy_max_xs});
-        return max(calc_xs(energy), calc_xs(Energy{energy_xi}));
+        // Calculate macroscopic cross section on the fly for special
+        // hardwired processes.
+        if (model_id == params_.hardwired.livermore_pe)
+        {
+            auto calc_xs = LivermorePEMacroXsCalculator(
+                params_.hardwired.livermore_pe_data, material);
+            result = calc_xs(energy);
+        }
+        else if (model_id == params_.hardwired.eplusgg)
+        {
+            auto calc_xs = EPlusGGMacroXsCalculator(
+                params_.hardwired.eplusgg_data, material);
+            result = calc_xs(energy);
+        }
+    }
+    else if (auto grid_id = this->value_grid(ValueGridType::macro_xs, ppid))
+    {
+        // Calculate cross section from the tabulated data
+        auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
+        result       = calc_xs(energy);
     }
 
-    return calc_xs(energy);
+    CELER_ENSURE(result >= 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Estimate maximum macroscopic cross section for the process over the step.
+ *
+ * If this is a particle with an energy loss process, this returns the
+ * estimate of the maximum cross section over the step. If the energy of the
+ * global maximum of the cross section (calculated at initialization) is in the
+ * interval \f$ [\xi E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy
+ * and \f$ \xi \f$ is \c energy_fraction (defined by default as \f$ \xi = 1 -
+ * \alpha \f$, where \f$ \alpha \f$ is \c scaling_fraction), \f$ \sigma_{\max}
+ * \f$ is set to the global maximum.  Otherwise, \f$ \sigma_{\max} = \max(
+ * \sigma(E_0), \sigma(\xi E_0) ) \f$. If the cross section is not monotonic in
+ * the interval \f$ [\xi E_0, E_0) \f$ and the interval does not contain the
+ * global maximum, the post-step cross section \f$ \sigma(E_1) \f$ may be
+ * larger than \f$ \sigma_{\max} \f$.
+ */
+CELER_FUNCTION real_type
+PhysicsTrackView::calc_max_xs(const IntegralXsProcess& process,
+                              ParticleProcessId        ppid,
+                              const MaterialView&      material,
+                              Energy                   energy) const
+{
+    CELER_EXPECT(process);
+    CELER_EXPECT(material_ < process.energy_max_xs.size());
+
+    real_type energy_max_xs
+        = params_.reals[process.energy_max_xs[material_.get()]];
+    real_type energy_xi = energy.value() * params_.scalars.energy_fraction;
+    if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
+    {
+        return this->calc_xs(ppid, material, Energy{energy_max_xs});
+    }
+    return max(this->calc_xs(ppid, material, energy),
+               this->calc_xs(ppid, material, Energy{energy_xi}));
 }
 
 //---------------------------------------------------------------------------//
@@ -416,9 +422,9 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
                                                          Energy energy) const
 {
     ProcessId process = this->process(ppid);
-    if ((process == this->photoelectric_process_id()
+    if ((process == params_.hardwired.photoelectric
          && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == this->eplusgg_process_id()))
+        || (process == params_.hardwired.positron_annihilation))
     {
         auto find_model = this->make_model_finder(ppid);
         return this->model_id(find_model(energy));
@@ -608,31 +614,6 @@ CELER_FUNCTION auto PhysicsTrackView::urban_data() const -> const UrbanMscRef&
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate macroscopic cross section on the fly.
- */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs_otf(
-    ModelId model, const MaterialView& material, Energy energy) const
-{
-    real_type result = 0;
-    if (model == params_.hardwired.livermore_pe)
-    {
-        auto calc_xs = LivermorePEMacroXsCalculator(
-            params_.hardwired.livermore_pe_data, material);
-        result = calc_xs(energy);
-    }
-    else if (model == params_.hardwired.eplusgg)
-    {
-        auto calc_xs = EPlusGGMacroXsCalculator(params_.hardwired.eplusgg_data,
-                                                material);
-        result       = calc_xs(energy);
-    }
-
-    CELER_ENSURE(result >= 0);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Number of particle types.
  */
 CELER_FUNCTION size_type PhysicsTrackView::num_particles() const
@@ -652,24 +633,6 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(ValueGridId id) const
 {
     CELER_EXPECT(id < params_.value_grids.size());
     return T{params_.value_grids[id], params_.reals};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Process ID for photoelectric effect.
- */
-CELER_FUNCTION ProcessId PhysicsTrackView::photoelectric_process_id() const
-{
-    return params_.hardwired.photoelectric;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Process ID for positron annihilation.
- */
-CELER_FUNCTION ProcessId PhysicsTrackView::eplusgg_process_id() const
-{
-    return params_.hardwired.positron_annihilation;
 }
 
 //---------------------------------------------------------------------------//

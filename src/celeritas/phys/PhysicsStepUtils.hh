@@ -79,23 +79,22 @@ calc_physics_step_limit(const MaterialTrackView& material,
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         real_type process_xs = 0;
-        if (auto model_id = physics.hardwired_model(ppid, particle.energy()))
+        if (const auto& process = physics.integral_xs_process(ppid))
         {
-            // Calculate macroscopic cross section on the fly for special
-            // hardwired processes.
-            auto material_view = material.make_material_view();
-            process_xs         = physics.calc_xs_otf(
-                model_id, material_view, particle.energy());
-            total_macro_xs += process_xs;
+            // If the integral approach is used and this particle has an energy
+            // loss process, estimate the maximum cross section over the step
+            process_xs = physics.calc_max_xs(
+                process, ppid, material.make_material_view(), particle.energy());
         }
-        else if (auto grid_id = physics.value_grid(VGT::macro_xs, ppid))
+        else
         {
-            // Calculate macroscopic cross section for this process, then
-            // accumulate it into the total cross section and save the cross
-            // section for later.
-            process_xs = physics.calc_xs(ppid, grid_id, particle.energy());
-            total_macro_xs += process_xs;
+            // Calculate the macroscopic cross section for this process
+            process_xs = physics.calc_xs(
+                ppid, material.make_material_view(), particle.energy());
         }
+        // Accumulate process cross section into the total cross section and
+        // save it for later
+        total_macro_xs += process_xs;
         pstep.per_process_xs(ppid) = process_xs;
     }
     pstep.macro_xs(total_macro_xs);
@@ -316,19 +315,12 @@ select_discrete_interaction(const MaterialView&      material,
         ParticleProcessId{physics.num_particle_processes()},
         pstep.macro_xs())(rng);
 
-    // Determine if the discrete interaction occurs for energy loss
-    // processes
-    if (physics.use_integral_xs(ppid))
+    // Determine if the discrete interaction occurs for particles with energy
+    // loss processes
+    if (physics.integral_xs_process(ppid))
     {
-        // This is an energy loss process that was sampled for a
-        // discrete interaction, so it will have macro xs tables
-        auto grid_id = physics.value_grid(ValueGridType::macro_xs, ppid);
-        CELER_ASSERT(grid_id);
-
-        // Recalculate the cross section at the post-step energy \f$
-        // E_1 \f$
-        auto      calc_xs = physics.make_calculator<XsCalculator>(grid_id);
-        real_type xs      = calc_xs(particle.energy());
+        // Recalculate the cross section at the post-step energy \f$ E_1 \f$
+        real_type xs = physics.calc_xs(ppid, material, particle.energy());
 
         // The discrete interaction occurs with probability \f$ \sigma(E_1) /
         // \sigma_{\max} \f$. Note that it's possible for \f$ \sigma(E_1) \f$

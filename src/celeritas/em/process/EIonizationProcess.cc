@@ -19,12 +19,14 @@ namespace celeritas
  * Construct process from host data.
  */
 EIonizationProcess::EIonizationProcess(SPConstParticles particles,
-                                       SPConstImported  process_data)
+                                       SPConstImported  process_data,
+                                       Options          options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::e_ioni,
                 {pdg::electron(), pdg::positron()})
+    , options_(options)
 {
     CELER_EXPECT(particles_);
 }
@@ -46,15 +48,6 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
     -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applicability));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Type of process.
- */
-ProcessType EIonizationProcess::type() const
-{
-    return ProcessType::electromagnetic_dedx;
 }
 
 //---------------------------------------------------------------------------//

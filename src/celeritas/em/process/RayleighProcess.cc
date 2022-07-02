@@ -51,15 +51,6 @@ auto RayleighProcess::step_limits(Applicability applic) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
- */
-ProcessType RayleighProcess::type() const
-{
-    return ProcessType::electromagnetic_discrete;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string RayleighProcess::label() const

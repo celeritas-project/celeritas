@@ -92,9 +92,9 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
 }
 
 //---------------------------------------------------------------------------//
-ProcessType MockProcess::type() const
+bool MockProcess::use_integral_xs() const
 {
-    return data_.type;
+    return data_.use_integral_xs;
 }
 
 //---------------------------------------------------------------------------//

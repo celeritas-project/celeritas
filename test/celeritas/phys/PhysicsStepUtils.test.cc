@@ -323,12 +323,12 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
                                                      "electron",
                                                      MevEnergy{inc_energy[i]});
             ParticleProcessId ppid{0};
-            EXPECT_TRUE(phys.use_integral_xs(ppid));
-            auto grid_id = phys.value_grid(ValueGridType::macro_xs, ppid);
-            CELER_ASSERT(grid_id);
+            const auto& integral_process = phys.integral_xs_process(ppid);
+            EXPECT_TRUE(integral_process);
 
             // Get the estimate of the maximum cross section over the step
-            real_type xs_max = phys.calc_xs(ppid, grid_id, particle.energy());
+            real_type xs_max = phys.calc_max_xs(
+                integral_process, ppid, mat_view, particle.energy());
             pstep.per_process_xs(ppid) = xs_max;
 
             // Set the post-step energy

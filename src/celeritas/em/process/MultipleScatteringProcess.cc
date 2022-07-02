@@ -52,15 +52,6 @@ auto MultipleScatteringProcess::step_limits(Applicability applicability) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Type of process.
- */
-ProcessType MultipleScatteringProcess::type() const
-{
-    return ProcessType::electromagnetic_msc;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Name of the process.
  */
 std::string MultipleScatteringProcess::label() const
