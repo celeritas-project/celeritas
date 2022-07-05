@@ -52,8 +52,8 @@ class CollectionMirror
     //!@{
     //! Type aliases
     using HostValue = P<Ownership::value, MemSpace::host>;
-    using HostRef   = P<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef = P<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = ParamsHostRef<P>;
+    using DeviceRef = ParamsDeviceRef<P>;
     //!@}
 
   public:

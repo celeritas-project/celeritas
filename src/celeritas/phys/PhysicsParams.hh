@@ -102,10 +102,8 @@ class PhysicsParams
     using ActionIdRange      = Range<ActionId>;
     using Options            = PhysicsParamsOptions;
 
-    using HostRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = ParamsHostRef<PhysicsParamsData>;
+    using DeviceRef = ParamsDeviceRef<PhysicsParamsData>;
     //!@}
 
     //! Physics parameter construction arguments
@@ -163,7 +161,7 @@ class PhysicsParams
     using SPConstModel = std::shared_ptr<const Model>;
     using SPAction     = std::shared_ptr<ConcreteAction>;
     using VecModel     = std::vector<std::pair<SPConstModel, ProcessId>>;
-    using HostValue    = PhysicsParamsData<Ownership::value, MemSpace::host>;
+    using HostValue    = ParamsHostVal<PhysicsParamsData>;
 
     // Kernels/actions
     SPAction pre_step_action_;

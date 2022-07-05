@@ -35,13 +35,11 @@ class ParticleTrackView
 {
   public:
     //!@{
-    //! Type aliases
-    using ParticleParamsRef
-        = ParticleParamsData<Ownership::const_reference, MemSpace::native>;
-    using ParticleStateRef
-        = ParticleStateData<Ownership::reference, MemSpace::native>;
-    using Energy        = units::MevEnergy;
-    using Initializer_t = ParticleTrackInitializer;
+    //! \name Type aliases
+    using ParticleParamsRef = ParamsNativeRef<ParticleParamsData>;
+    using ParticleStateRef  = StateNativeRef<ParticleStateData>;
+    using Energy            = units::MevEnergy;
+    using Initializer_t     = ParticleTrackInitializer;
     //!@}
 
   public:
