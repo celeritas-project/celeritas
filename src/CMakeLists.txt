@@ -139,6 +139,7 @@ list(APPEND SOURCES
   orange/surf/SurfaceIO.cc
 
   celeritas/em/AtomicRelaxationParams.cc
+  celeritas/em/FluctuationParams.cc
   celeritas/em/detail/Utils.cc
   celeritas/em/model/BetheHeitlerModel.cc
   celeritas/em/model/CombinedBremModel.cc

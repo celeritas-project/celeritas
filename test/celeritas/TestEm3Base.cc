@@ -146,7 +146,6 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
 auto TestEm3Base::build_physics_options() const -> PhysicsOptions
 {
     PhysicsOptions options;
-    options.enable_fluctuation     = false;
     options.secondary_stack_factor = this->secondary_stack_factor();
     return options;
 }

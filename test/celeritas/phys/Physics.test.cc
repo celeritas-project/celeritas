@@ -501,40 +501,6 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
     }
 }
 
-TEST_F(PhysicsTrackViewHostTest, fluctuation)
-{
-    {
-        // Celerogen: Z=1, I=19.2 eV
-        MaterialId             mat_id{0};
-        const PhysicsTrackView phys
-            = this->make_track_view("celeriton", mat_id);
-
-        // Energy loss fluctuation model parameters
-        const auto& params = phys.fluctuation().urban[mat_id];
-        EXPECT_SOFT_EQ(1, params.oscillator_strength[0]);
-        EXPECT_SOFT_EQ(0, params.oscillator_strength[1]);
-        EXPECT_SOFT_EQ(19.2e-6, params.binding_energy[0]);
-        EXPECT_SOFT_EQ(1e-5, params.binding_energy[1]);
-
-        // Particle properties
-        EXPECT_EQ(ParticleId{3}, phys.fluctuation().electron_id);
-        EXPECT_EQ(0.5109989461, phys.fluctuation().electron_mass);
-    }
-    {
-        // Celer composite: Z_eff = 10.3, I=150.7 eV
-        MaterialId             mat_id{2};
-        const PhysicsTrackView phys
-            = this->make_track_view("celeriton", mat_id);
-
-        // Energy loss fluctuation model parameters
-        const auto& params = phys.fluctuation().urban[mat_id];
-        EXPECT_SOFT_EQ(0.80582524271844658, params.oscillator_strength[0]);
-        EXPECT_SOFT_EQ(0.1941747572815534, params.oscillator_strength[1]);
-        EXPECT_SOFT_EQ(9.4193231228829647e-5, params.binding_energy[0]);
-        EXPECT_SOFT_EQ(1.0609e-3, params.binding_energy[1]);
-    }
-}
-
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
     const PhysicsTrackView phys
@@ -751,7 +717,6 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.materials                  = this->material();
     physics_inp.particles                  = this->particles();
     physics_inp.options                    = this->build_physics_options();
-    physics_inp.options.enable_fluctuation = false;
     physics_inp.action_manager             = this->action_mgr().get();
 
     EPlusAnnihilationProcess::Options epgg_options;

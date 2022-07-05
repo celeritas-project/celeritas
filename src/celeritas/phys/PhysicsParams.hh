@@ -27,6 +27,7 @@ class ActionManager;
 class AtomicRelaxationParams;
 class MaterialParams;
 class ParticleParams;
+class FluctuationParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -52,7 +53,6 @@ class ParticleParams;
  *   processes use MC integration to sample the discrete interaction length
  *   with the correct probability. Disable this integral approach for all
  *   processes.
- * - \c enable_fluctuation: enable simulation of energy loss fluctuations.
  */
 struct PhysicsParamsOptions
 {
@@ -63,7 +63,6 @@ struct PhysicsParamsOptions
     real_type linear_loss_limit      = 0.01;
     real_type secondary_stack_factor = 3;
     bool      disable_integral_xs    = false;
-    bool      enable_fluctuation     = true;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,6 +95,7 @@ class PhysicsParams
     using SPConstMaterials  = std::shared_ptr<const MaterialParams>;
     using SPConstProcess    = std::shared_ptr<const Process>;
     using SPConstRelaxation = std::shared_ptr<const AtomicRelaxationParams>;
+    using SPConstFluct      = std::shared_ptr<const FluctuationParams>;
 
     using VecProcess         = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<const ProcessId>;
@@ -112,7 +112,8 @@ class PhysicsParams
         SPConstParticles  particles;
         SPConstMaterials  materials;
         VecProcess        processes;
-        SPConstRelaxation relaxation; //!< Optional atomic relaxation
+        SPConstRelaxation relaxation;  //!< Optional atomic relaxation
+        SPConstFluct      fluctuation; //!< Optional fluctuation
         ActionManager*    action_manager = nullptr;
 
         Options options;
@@ -176,6 +177,7 @@ class PhysicsParams
     VecProcess        processes_;
     VecModel          models_;
     SPConstRelaxation relaxation_;
+    SPConstFluct      fluctuation_;
 
     // Host/device storage and reference
     CollectionMirror<PhysicsParamsData> data_;
@@ -188,10 +190,6 @@ class PhysicsParams
                       const MaterialParams& mats,
                       HostValue*            data) const;
     void     build_model_xs(const MaterialParams& mats, HostValue* data) const;
-    void     build_fluct(const Options&        opts,
-                         const MaterialParams& mats,
-                         const ParticleParams& particles,
-                         HostValue*            data) const;
 };
 
 //---------------------------------------------------------------------------//

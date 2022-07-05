@@ -18,6 +18,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/VectorUtils.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
@@ -55,6 +56,7 @@ class ImplicitPhysicsAction final : public ImplicitActionInterface,
 PhysicsParams::PhysicsParams(Input inp)
     : processes_(std::move(inp.processes))
     , relaxation_(std::move(inp.relaxation))
+    , fluctuation_(std::move(inp.fluctuation))
 {
     CELER_EXPECT(!processes_.empty());
     CELER_EXPECT(std::all_of(processes_.begin(),
@@ -121,10 +123,17 @@ PhysicsParams::PhysicsParams(Input inp)
     // Construct data
     HostValue host_data;
     this->build_options(inp.options, &host_data);
-    this->build_fluct(inp.options, *inp.materials, *inp.particles, &host_data);
     this->build_ids(*inp.particles, &host_data);
     this->build_xs(inp.options, *inp.materials, &host_data);
     this->build_model_xs(*inp.materials, &host_data);
+
+    // Add fluctuation (TODO: not part of general physics)
+    if (fluctuation_)
+    {
+        // TODO: this makes a copy of all the data rather than a
+        // host/device reference
+        host_data.fluctuation = fluctuation_->host_ref();
+    }
 
     // Add step limiter if being used (TODO: remove this hack from physics)
     if (inp.options.fixed_step_limiter > 0)
@@ -220,7 +229,7 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     data->scalars.scaling_fraction       = opts.max_step_over_range;
     data->scalars.energy_fraction        = opts.min_eprime_over_e;
     data->scalars.linear_loss_limit      = opts.linear_loss_limit;
-    data->scalars.enable_fluctuation     = opts.enable_fluctuation;
+    data->scalars.enable_fluctuation     = static_cast<bool>(fluctuation_);
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }
 
@@ -381,6 +390,8 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
 
     if (relaxation_)
     {
+        // TODO: this makes a copy of all the data rather than a
+        // host/device reference
         data->hardwired.relaxation_data = relaxation_->host_ref();
     }
 
@@ -730,51 +741,6 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
         temp_model_xs.material = value_table_ids.insert_back(
             temp_table_ids.begin(), temp_table_ids.end());
         model_xs.push_back(temp_model_xs);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct energy loss fluctuation model data.
- */
-void PhysicsParams::build_fluct(const Options&        opts,
-                                const MaterialParams& mats,
-                                const ParticleParams& particles,
-                                HostValue*            data) const
-{
-    CELER_EXPECT(data);
-
-    if (!opts.enable_fluctuation)
-        return;
-
-    // Set particle properties
-    data->fluctuation.electron_id = particles.find(pdg::electron());
-    CELER_VALIDATE(data->fluctuation.electron_id,
-                   << "missing electron particle (required for energy loss "
-                      "fluctuations)");
-    data->fluctuation.electron_mass
-        = particles.get(data->fluctuation.electron_id).mass().value();
-
-    // Loop over materials
-    for (auto mat_id : range(MaterialId{mats.size()}))
-    {
-        const auto mat = mats.get(mat_id);
-
-        // Calculate the parameters for the energy loss fluctuation model (see
-        // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)
-        UrbanFluctuationParameters params;
-        const real_type avg_z = mat.electron_density() / mat.number_density();
-        params.oscillator_strength[1] = avg_z > 2 ? 2 / avg_z : 0;
-        params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
-        params.binding_energy[1]      = 1e-5 * ipow<2>(avg_z);
-        params.binding_energy[0]
-            = std::pow(mat.mean_excitation_energy().value()
-                           / std::pow(params.binding_energy[1],
-                                      params.oscillator_strength[1]),
-                       1 / params.oscillator_strength[0]);
-        params.log_binding_energy[1] = std::log(params.binding_energy[1]);
-        params.log_binding_energy[0] = std::log(params.binding_energy[0]);
-        make_builder(&data->fluctuation.urban).push_back(params);
     }
 }
 
