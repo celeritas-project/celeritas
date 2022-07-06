@@ -1,0 +1,5 @@
+[
+  { include: ["\"corecel/cont/detail/RangeImpl.hh\"", private, "\"corecel/cont/Range.hh\"", public ] },
+  { symbol: [ "std::char_traits", private, "\"corecel/Assert.hh\"", public ] },
+  { symbol: [ "std::operator<<", private, "\"corecel/Assert.hh\"", public ] },
+]
