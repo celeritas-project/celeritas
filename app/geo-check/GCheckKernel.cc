@@ -48,8 +48,9 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
     do
     {
         auto step = propagate(); // to next boundary
-        if (step.boundary) geo.cross_boundary();
-        result.ids.push_back(geo.volume_physid().get());
+        if (step.boundary)
+           geo.cross_boundary();
+        result.ids.push_back(physid(geo));
         result.distances.push_back(step.distance);
 
         // tag stuck tracks
@@ -68,7 +69,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
                     geo.pos()[2],
                     step.distance,
                     geo.find_next_step().distance,
-                    geo.volume_physid().get(),
+                    physid(geo),
                     geo.volume_id().get());
             }
         }

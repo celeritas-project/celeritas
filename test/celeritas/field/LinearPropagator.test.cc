@@ -99,7 +99,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state
     EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), geo.pos());
-    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
+    EXPECT_EQ("si_tracker", this->volume_label(geo));
 
     {
         LinearPropagator propagate(&geo);
@@ -116,7 +116,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state
     EXPECT_VEC_SOFT_EQ(Real3({105, 0, 20}), geo.pos());
-    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
+    EXPECT_EQ("si_tracker", this->volume_label(geo));
 
     {
         LinearPropagator propagate(&geo);

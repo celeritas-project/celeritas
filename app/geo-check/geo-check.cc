@@ -34,12 +34,6 @@ void run(std::istream& is, bool use_cuda)
         set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
     }
 
-    // define track(s)
-    // int ntracks = 1;
-
-    // constexpr real_type cm = celeritas::units::centimeter;
-    // constexpr real_type mm = 0.1 * cm;
-
     Real3 pos, dir;
     for (int i = 0; i < 3; ++i)
     {
@@ -109,7 +103,6 @@ int main(int argc, char* argv[])
         if (!celeritas::device())
         {
             CELER_LOG(status) << "CUDA capability is disabled.";
-            //return EXIT_FAILURE;
         }
     }
     catch (const std::exception& e)
@@ -125,7 +118,7 @@ int main(int argc, char* argv[])
     }
     catch (const std::exception& e)
     {
-        CELER_LOG(critical) << "caught exception: " << e.what();
+        CELER_LOG(critical) << "Caught exception: " << e.what();
         return EXIT_FAILURE;
     }
 

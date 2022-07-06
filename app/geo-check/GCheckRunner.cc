@@ -82,7 +82,7 @@ void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
         }
     }
     CELER_ASSERT(cpudata.ids == gpudata.ids);
-    CELER_LOG(status) << "Comparison successful.\n";
+    CELER_LOG(status) << "Comparison successful.";
 }
 //---------------------------------------------------------------------------//
 

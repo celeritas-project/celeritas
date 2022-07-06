@@ -9,6 +9,7 @@
 
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 
 namespace geo_check
 {
@@ -43,6 +44,14 @@ struct GCheckOutput
     std::vector<int>    ids;
     std::vector<double> distances;
 };
+
+//---------------------------------------------------------------------------//
+CELER_FORCEINLINE_FUNCTION int physid(const celeritas::GeoTrackView& geo)
+{
+    if (geo.is_outside())
+        return 0;
+    return geo.volume_physid();
+}
 
 //---------------------------------------------------------------------------//
 //! Run tracking on the CPU

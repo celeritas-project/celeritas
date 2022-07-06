@@ -25,13 +25,6 @@ namespace geo_check
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__device__ int geo_physid(const GeoTrackView& geo)
-{
-    if (geo.is_outside())
-        return -1;
-    return geo.volume_physid().get();
-}
-
 __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
                               const GeoStateRefDevice    state,
                               const GeoTrackInitializer* init,
@@ -58,8 +51,9 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
     {
         // Propagate Save next-volume ID and distance to travel
         auto step        = propagate();
-        if (step.boundary) geo.cross_boundary();
-        ids[istep]       = geo.volume_physid().get();
+        if (step.boundary)
+            geo.cross_boundary();
+        ids[istep]       = physid(geo);
         distances[istep] = step.distance;
         ++istep;
     } while (!geo.is_outside() && istep < max_steps);
@@ -82,10 +76,6 @@ GCheckOutput run_gpu(GCheckInput input)
                                                       input.init.end());
     thrust::device_vector<int>    ids(input.init.size() * input.max_steps, -1);
     thrust::device_vector<double> distances(ids.size(), -1.0);
-
-    // static const KernelParamCalculator calc_kernel_params(gcheck_kernel,
-    // 							  "run_gpu");
-    // auto launch_params = calc_launch_params(init.size());
 
     gcheck_kernel<<<1, 1>>>(input.params,
                             input.state,
