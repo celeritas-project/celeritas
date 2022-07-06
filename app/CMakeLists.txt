@@ -311,3 +311,39 @@ if(CELERITAS_BUILD_DEMOS)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Utility: single-track geometry debugging
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
+  # Since the demo kernel links against VecGeom, which requires CUDA separable
+  # compilation, it cannot be linked directly into an executable.
+  celeritas_add_library(geo_check_cuda
+    geo-check/GCheckRunner.cc
+    geo-check/GCheckKernel.cc
+    geo-check/GCheckKernel.cu
+  )
+  celeritas_target_link_libraries(geo_check_cuda
+    PRIVATE
+      Celeritas::Core
+      nlohmann_json::nlohmann_json
+      VecGeom::vecgeom
+  )
+
+  # Add the executable
+  add_executable(geo-check
+    geo-check/geo-check.cc
+  )
+  celeritas_target_link_libraries(geo-check
+    celeritas
+    VecGeom::vecgeom
+    geo_check_cuda
+    nlohmann_json::nlohmann_json
+  )
+
+  if(CELERITAS_BUILD_TESTS)
+  set(_exe "$<TARGET_FILE:geo-check>")
+  set(_json_inp "${CMAKE_CURRENT_SOURCE_DIR}/geo-check/gcheck-four-levels.json")
+  add_test(NAME "app/geo-check-fourLevels"
+    COMMAND "${_exe}" "${_json_inp}")
+  endif()
+endif()
