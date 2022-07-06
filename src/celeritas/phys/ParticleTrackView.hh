@@ -36,8 +36,8 @@ class ParticleTrackView
   public:
     //!@{
     //! \name Type aliases
-    using ParticleParamsRef = ParamsNativeRef<ParticleParamsData>;
-    using ParticleStateRef  = StateNativeRef<ParticleStateData>;
+    using ParticleParamsRef = celeritas::NativeCRef<ParticleParamsData>;
+    using ParticleStateRef  = celeritas::NativeRef<ParticleStateData>;
     using Energy            = units::MevEnergy;
     using Initializer_t     = ParticleTrackInitializer;
     //!@}

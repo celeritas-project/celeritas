@@ -27,7 +27,7 @@ FluctuationParams::FluctuationParams(SPConstParticles particles,
     CELER_EXPECT(materials);
     CELER_EXPECT(particles);
 
-    ParamsHostVal<FluctuationData> data;
+    celeritas::HostVal<FluctuationData> data;
 
     // Set particle properties
     data.electron_id = particles->find(pdg::electron());

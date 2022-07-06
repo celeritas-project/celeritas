@@ -102,8 +102,8 @@ class PhysicsParams
     using ActionIdRange      = Range<ActionId>;
     using Options            = PhysicsParamsOptions;
 
-    using HostRef   = ParamsHostRef<PhysicsParamsData>;
-    using DeviceRef = ParamsDeviceRef<PhysicsParamsData>;
+    using HostRef   = celeritas::HostCRef<PhysicsParamsData>;
+    using DeviceRef = celeritas::DeviceCRef<PhysicsParamsData>;
     //!@}
 
     //! Physics parameter construction arguments
@@ -162,7 +162,7 @@ class PhysicsParams
     using SPConstModel = std::shared_ptr<const Model>;
     using SPAction     = std::shared_ptr<ConcreteAction>;
     using VecModel     = std::vector<std::pair<SPConstModel, ProcessId>>;
-    using HostValue    = ParamsHostVal<PhysicsParamsData>;
+    using HostValue    = celeritas::HostVal<PhysicsParamsData>;
 
     // Kernels/actions
     SPAction pre_step_action_;

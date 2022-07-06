@@ -27,8 +27,8 @@ class FluctuationParams
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
 
-    using HostRef   = ParamsHostRef<FluctuationData>;
-    using DeviceRef = ParamsDeviceRef<FluctuationData>;
+    using HostRef   = celeritas::HostCRef<FluctuationData>;
+    using DeviceRef = celeritas::DeviceCRef<FluctuationData>;
     //!@}
 
   public:

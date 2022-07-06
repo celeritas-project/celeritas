@@ -63,27 +63,27 @@ enum class Ownership
 
 //! Managed host memory
 template<template<Ownership, MemSpace> class P>
-using ParamsHostVal = P<Ownership::value, MemSpace::host>;
+using HostVal = P<Ownership::value, MemSpace::host>;
 //! Immutable reference to host memory
 template<template<Ownership, MemSpace> class P>
-using ParamsHostRef = P<Ownership::const_reference, MemSpace::host>;
+using HostCRef = P<Ownership::const_reference, MemSpace::host>;
 //! Mutable reference to host memory
 template<template<Ownership, MemSpace> class S>
-using StateHostRef = S<Ownership::reference, MemSpace::host>;
+using HostRef = S<Ownership::reference, MemSpace::host>;
 
 //! Immutable reference to device memory
 template<template<Ownership, MemSpace> class P>
-using ParamsDeviceRef = P<Ownership::const_reference, MemSpace::device>;
+using DeviceCRef = P<Ownership::const_reference, MemSpace::device>;
 //! Mutable reference to device memory
 template<template<Ownership, MemSpace> class S>
-using StateDeviceRef = S<Ownership::reference, MemSpace::device>;
+using DeviceRef = S<Ownership::reference, MemSpace::device>;
 
-//! Immutable reference to device memory
+//! Immutable reference to native memory
 template<template<Ownership, MemSpace> class P>
-using ParamsNativeRef = P<Ownership::const_reference, MemSpace::native>;
-//! Mutable reference to device memory
+using NativeCRef = P<Ownership::const_reference, MemSpace::native>;
+//! Mutable reference to native memory
 template<template<Ownership, MemSpace> class S>
-using StateNativeRef = S<Ownership::reference, MemSpace::native>;
+using NativeRef = S<Ownership::reference, MemSpace::native>;
 
 //!@}
 //---------------------------------------------------------------------------//
