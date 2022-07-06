@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -105,6 +106,10 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
     input.particles      = this->particle();
     input.options        = this->build_physics_options();
     input.action_manager = this->action_mgr().get();
+
+    // For now, always use energy fluctuations
+    input.fluctuation = std::make_shared<FluctuationParams>(input.particles,
+                                                            input.materials);
 
     BremsstrahlungProcess::Options brem_options;
     brem_options.combined_model  = true;

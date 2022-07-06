@@ -133,6 +133,7 @@ PhysicsParams::PhysicsParams(Input inp)
         // TODO: this makes a copy of all the data rather than a
         // host/device reference
         host_data.fluctuation = fluctuation_->host_ref();
+        CELER_ASSERT(host_data.fluctuation);
     }
 
     // Add step limiter if being used (TODO: remove this hack from physics)

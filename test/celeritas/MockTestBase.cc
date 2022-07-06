@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "MockTestBase.hh"
 
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -133,6 +134,10 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     physics_inp.particles      = this->particle();
     physics_inp.options        = this->build_physics_options();
     physics_inp.action_manager = this->action_mgr().get();
+
+    // Enable energy fluctuations through physics (will be removed later)
+    physics_inp.fluctuation = std::make_shared<FluctuationParams>(
+        physics_inp.particles, physics_inp.materials);
 
     // Add a few processes
     MockProcess::Input inp;
