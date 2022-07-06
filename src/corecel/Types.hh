@@ -57,6 +57,7 @@ enum class Ownership
     const_reference, //!< Immutable reference to the data
 };
 
+#if !defined(SWIG) || SWIG_VERSION > 0x040002
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
@@ -86,5 +87,6 @@ template<template<Ownership, MemSpace> class S>
 using NativeRef = S<Ownership::reference, MemSpace::native>;
 
 //!@}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas
