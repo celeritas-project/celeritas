@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 
