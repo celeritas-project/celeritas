@@ -12,6 +12,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -263,7 +264,11 @@ TransporterInput load_input(const LDemoArgs& args)
         PhysicsParams::Input input;
         input.particles                      = params.particle;
         input.materials                      = params.material;
-        input.options.enable_fluctuation     = args.eloss_fluctuation;
+        if (args.eloss_fluctuation)
+        {
+            input.fluctuation = std::make_shared<FluctuationParams>(
+                params.particle, params.material);
+        }
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();

@@ -19,6 +19,7 @@ namespace celeritas
 class ActionManager;
 class AtomicRelaxationParams;
 class CutoffParams;
+class FluctuationParams;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;

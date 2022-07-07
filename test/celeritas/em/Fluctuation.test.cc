@@ -1,11 +1,13 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/EnergyLossFluctuation.test.cc
+//! \file celeritas/em/Fluctuation.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/MockTestBase.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGammaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGaussianDistribution.hh"
@@ -28,6 +30,20 @@ using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
+class MockFluctuationTest : public celeritas_test::MockTestBase
+{
+  protected:
+    void SetUp() override
+    {
+        fluct = std::make_shared<FluctuationParams>(this->particle(),
+                                                    this->material());
+    }
+
+    std::shared_ptr<const FluctuationParams> fluct;
+};
+
+//---------------------------------------------------------------------------//
+
 class EnergyLossDistributionTest : public celeritas_test::Test
 {
   protected:
@@ -37,6 +53,7 @@ class EnergyLossDistributionTest : public celeritas_test::Test
         = CollectionStateStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
+    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 
     void SetUp() override
     {
@@ -82,22 +99,14 @@ class EnergyLossDistributionTest : public celeritas_test::Test
         material_state = MaterialStateStore(*materials, 1);
 
         // Construct energy loss fluctuation model parameters
-        fluct.electron_id   = particles->find(pdg::electron());
-        fluct.electron_mass = particles->get(fluct.electron_id).mass().value();
-        UrbanFluctuationParameters params;
-        params.oscillator_strength = {8. / 9, 1. / 9};
-        params.binding_energy      = {1.317071809191344e-4, 3.24e-3};
-        params.log_binding_energy  = {std::log(params.binding_energy[0]),
-                                     std::log(params.binding_energy[1])};
-        make_builder(&fluct.urban).push_back(params);
-        fluct_ref = fluct;
+        fluct = std::make_shared<FluctuationParams>(particles, materials);
     }
 
-    HostValue                         fluct;
-    HostRef                           fluct_ref;
-    std::shared_ptr<MaterialParams>   materials;
-    std::shared_ptr<ParticleParams>   particles;
-    std::shared_ptr<CutoffParams>     cutoffs;
+    std::shared_ptr<MaterialParams>    materials;
+    std::shared_ptr<ParticleParams>    particles;
+    std::shared_ptr<CutoffParams>      cutoffs;
+    std::shared_ptr<FluctuationParams> fluct;
+
     ParticleStateStore                particle_state;
     MaterialStateStore                material_state;
     DiagnosticRngEngine<std::mt19937> rng;
@@ -105,6 +114,30 @@ class EnergyLossDistributionTest : public celeritas_test::Test
 
 //---------------------------------------------------------------------------//
 // TESTS
+//---------------------------------------------------------------------------//
+
+TEST_F(MockFluctuationTest, data)
+{
+    const auto& urban = fluct->host_ref().urban;
+
+    {
+        // Celerogen: Z=1, I=19.2 eV
+        const auto& params = urban[MaterialId{0}];
+        EXPECT_SOFT_EQ(1, params.oscillator_strength[0]);
+        EXPECT_SOFT_EQ(0, params.oscillator_strength[1]);
+        EXPECT_SOFT_EQ(19.2e-6, params.binding_energy[0]);
+        EXPECT_SOFT_EQ(1e-5, params.binding_energy[1]);
+    }
+    {
+        // Celer composite: Z_eff = 10.3, I=150.7 eV
+        const auto& params = urban[MaterialId{2}];
+        EXPECT_SOFT_EQ(0.80582524271844658, params.oscillator_strength[0]);
+        EXPECT_SOFT_EQ(0.1941747572815534, params.oscillator_strength[1]);
+        EXPECT_SOFT_EQ(9.4193231228829647e-5, params.binding_energy[0]);
+        EXPECT_SOFT_EQ(1.0609e-3, params.binding_energy[1]);
+    }
+}
+
 //---------------------------------------------------------------------------//
 
 TEST_F(EnergyLossDistributionTest, none)
@@ -121,7 +154,7 @@ TEST_F(EnergyLossDistributionTest, none)
     // Tiny step, little energy loss
     double           step = 1e-6;
     EnergyLossHelper helper(
-        fluct_ref, cutoff, material, particle, mean_loss, step);
+        fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
 
     celeritas::EnergyLossDeltaDistribution sample_loss(helper);
@@ -152,7 +185,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         double           sum  = 0;
         double           step = 5e-2;
         EnergyLossHelper helper(
-            fluct_ref, cutoff, material, particle, mean_loss, step);
+            fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_EQ(EnergyLossFluctuationModel::gamma, helper.model());
         EXPECT_SOFT_EQ(0.00019160444039613,
                        value_as<MevEnergy>(helper.max_energy()));
@@ -175,7 +208,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         double           sum  = 0;
         double           step = 5e-4;
         EnergyLossHelper helper(
-            fluct_ref, cutoff, material, particle, mean_loss, step);
+            fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_SOFT_EQ(0.00019160444039613,
                        value_as<MevEnergy>(helper.max_energy()));
         EXPECT_SOFT_EQ(0.00018926243294348, helper.beta_sq());
@@ -221,7 +254,7 @@ TEST_F(EnergyLossDistributionTest, urban)
     double              sum   = 0;
 
     EnergyLossHelper helper(
-        fluct_ref, cutoff, material, particle, mean_loss, step);
+        fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_SOFT_EQ(0.001, value_as<MevEnergy>(helper.max_energy()));
     EXPECT_SOFT_EQ(0.99997415284006, helper.beta_sq());
     EXPECT_SOFT_EQ(1.3819085992495e-05,

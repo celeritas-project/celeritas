@@ -57,5 +57,36 @@ enum class Ownership
     const_reference, //!< Immutable reference to the data
 };
 
+#if !defined(SWIG) || SWIG_VERSION > 0x040002
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Convenience typedefs for params and states.
+
+//! Managed host memory
+template<template<Ownership, MemSpace> class P>
+using HostVal = P<Ownership::value, MemSpace::host>;
+//! Immutable reference to host memory
+template<template<Ownership, MemSpace> class P>
+using HostCRef = P<Ownership::const_reference, MemSpace::host>;
+//! Mutable reference to host memory
+template<template<Ownership, MemSpace> class S>
+using HostRef = S<Ownership::reference, MemSpace::host>;
+
+//! Immutable reference to device memory
+template<template<Ownership, MemSpace> class P>
+using DeviceCRef = P<Ownership::const_reference, MemSpace::device>;
+//! Mutable reference to device memory
+template<template<Ownership, MemSpace> class S>
+using DeviceRef = S<Ownership::reference, MemSpace::device>;
+
+//! Immutable reference to native memory
+template<template<Ownership, MemSpace> class P>
+using NativeCRef = P<Ownership::const_reference, MemSpace::native>;
+//! Mutable reference to native memory
+template<template<Ownership, MemSpace> class S>
+using NativeRef = S<Ownership::reference, MemSpace::native>;
+
+//!@}
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas

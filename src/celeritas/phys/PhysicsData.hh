@@ -338,8 +338,6 @@ struct PhysicsParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return !process_groups.empty() && !model_ids.empty()
-               && (static_cast<bool>(fluctuation)
-                   || !scalars.enable_fluctuation)
                && scalars;
     }
 

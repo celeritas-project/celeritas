@@ -128,13 +128,13 @@ class TestEm3Test : public celeritas_test::TestEm3Base, public StepperTest
 
 TEST_F(TestEm3Test, host)
 {
-    size_type               num_primaries   = 8;
-    size_type               inits_per_track = 32;
+    size_type               num_primaries   = 1;
+    size_type               inits_per_track = 32 * 8;
     size_type               num_tracks      = num_primaries * inits_per_track;
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
 
-    auto counts = step(this->make_primaries(1));
+    auto counts = step(this->make_primaries(num_primaries));
     EXPECT_EQ(1, counts.active);
     EXPECT_EQ(0, counts.queued);
     EXPECT_EQ(1, counts.alive);

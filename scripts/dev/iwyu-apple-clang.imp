@@ -1,0 +1,9 @@
+# Mappings for apple-clang@13 (ish)
+[
+  { include: ["@<__utility/.*>", private, "<utility>", public ] },
+  { include: ["@<__memory/.*>", private, "<memory>", public ] },
+  { symbol: [ "std::char_traits", private, "<string>", public ] },
+  { symbol: [ "std::char_traits", private, "<ostream>", public ] },
+  { symbol: [ "std::char_traits", private, "<istream>", public ] },
+  { ref: iwyu-celeritas.imp },
+]
