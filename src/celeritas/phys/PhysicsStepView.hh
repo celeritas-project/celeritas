@@ -38,10 +38,8 @@ class PhysicsStepView
   public:
     //!@{
     //! Type aliases
-    using PhysicsParamsRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
-    using PhysicsStateRef
-        = PhysicsStateData<Ownership::reference, MemSpace::native>;
+    using PhysicsParamsRef   = ::celeritas::NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef    = ::celeritas::NativeRef<PhysicsStateData>;
     using SecondaryAllocator = StackAllocator<Secondary>;
     using Energy             = units::MevEnergy;
     //!@}

@@ -144,10 +144,8 @@ struct UrbanMscData
     }
 };
 
-using UrbanMscDeviceRef
-    = UrbanMscData<Ownership::const_reference, MemSpace::device>;
-using UrbanMscHostRef
-    = UrbanMscData<Ownership::const_reference, MemSpace::host>;
-using UrbanMscRef = UrbanMscData<Ownership::const_reference, MemSpace::native>;
+using UrbanMscDeviceRef = ::celeritas::DeviceCRef<UrbanMscData>;
+using UrbanMscHostRef   = ::celeritas::HostCRef<UrbanMscData>;
+using UrbanMscRef       = ::celeritas::NativeCRef<UrbanMscData>;
 
 } // namespace celeritas

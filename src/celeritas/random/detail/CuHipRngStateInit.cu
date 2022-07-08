@@ -26,9 +26,9 @@ namespace
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-__global__ void rng_state_init_kernel(
-    CuHipRngStateData<Ownership::reference, MemSpace::device> const      state,
-    CuHipRngInitData<Ownership::const_reference, MemSpace::device> const init)
+__global__ void
+rng_state_init_kernel(::celeritas::DeviceRef<CuHipRngStateData> const state,
+                      ::celeritas::DeviceCRef<CuHipRngInitData> const init)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < state.size())
@@ -47,9 +47,8 @@ __global__ void rng_state_init_kernel(
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-void rng_state_init(
-    const CuHipRngStateData<Ownership::reference, MemSpace::device>&      rng,
-    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>& seeds)
+void rng_state_init(const ::celeritas::DeviceRef<CuHipRngStateData>& rng,
+                    const ::celeritas::DeviceCRef<CuHipRngInitData>& seeds)
 {
     CELER_EXPECT(rng.size() == seeds.size());
     CELER_LAUNCH_KERNEL(rng_state_init,

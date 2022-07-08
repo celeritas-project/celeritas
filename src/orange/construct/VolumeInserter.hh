@@ -33,8 +33,8 @@ class VolumeInserter
   public:
     //!@{
     //! Type aliases
-    using SurfData = SurfaceData<Ownership::const_reference, MemSpace::host>;
-    using Data     = VolumeData<Ownership::value, MemSpace::host>;
+    using SurfData = ::celeritas::HostCRef<SurfaceData>;
+    using Data     = ::celeritas::HostVal<VolumeData>;
     //!@}
 
   public:

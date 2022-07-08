@@ -21,10 +21,10 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void col_cuda_test_kernel(
-    const MockParamsData<Ownership::const_reference, MemSpace::device> params,
-    const MockStateData<Ownership::reference, MemSpace::device>        states,
-    const celeritas::Span<double>                                      results)
+__global__ void
+col_cuda_test_kernel(const ::celeritas::DeviceCRef<MockParamsData> params,
+                     const ::celeritas::DeviceRef<MockStateData>   states,
+                     const celeritas::Span<double>                 results)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())

@@ -139,9 +139,8 @@ struct CuHipRngStateData
  * Resize and initialize with the seed stored in params.
  */
 template<MemSpace M>
-void resize(
-    CuHipRngStateData<Ownership::value, M>* state,
-    const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type size);
+void resize(CuHipRngStateData<Ownership::value, M>*          state,
+            const ::celeritas::HostCRef<CuHipRngParamsData>& params,
+            size_type                                        size);
 
 } // namespace celeritas

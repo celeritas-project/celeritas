@@ -15,7 +15,7 @@ namespace celeritas
  */
 XorwowRngParams::XorwowRngParams(unsigned int seed)
 {
-    XorwowRngParamsData<Ownership::value, MemSpace::host> host_data;
+    ::celeritas::HostVal<XorwowRngParamsData> host_data;
     host_data.seed = {seed};
     CELER_ASSERT(host_data);
     data_ = CollectionMirror<XorwowRngParamsData>{std::move(host_data)};

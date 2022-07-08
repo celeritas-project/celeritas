@@ -34,8 +34,7 @@ class SimpleUnitTracker
   public:
     //!@{
     //! Type aliases
-    using ParamsRef
-        = OrangeParamsData<Ownership::const_reference, MemSpace::native>;
+    using ParamsRef      = ::celeritas::NativeCRef<OrangeParamsData>;
     using Initialization = detail::Initialization;
     using Intersection   = detail::Intersection;
     using LocalState     = detail::LocalState;

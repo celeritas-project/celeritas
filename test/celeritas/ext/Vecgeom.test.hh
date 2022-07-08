@@ -17,10 +17,8 @@ namespace celeritas_test
 using celeritas::MemSpace;
 using celeritas::Ownership;
 
-using GeoParamsCRefDevice
-    = celeritas::VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
-using GeoStateRefDevice
-    = celeritas::VecgeomStateData<Ownership::reference, MemSpace::device>;
+using GeoParamsCRefDevice = celeritas::DeviceCRef<VecgeomParamsData>;
+using GeoStateRefDevice   = celeritas::DeviceRef<VecgeomStateData>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE

@@ -41,8 +41,8 @@ constexpr real_type sqrt_half = sqrt_two / 2;
 class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
 {
   protected:
-    using StateHostValue = OrangeStateData<Ownership::value, MemSpace::host>;
-    using StateHostRef = OrangeStateData<Ownership::reference, MemSpace::host>;
+    using StateHostValue = ::celeritas::HostVal<OrangeStateData>;
+    using StateHostRef   = ::celeritas::HostRef<OrangeStateData>;
     using HostStateStore
         = CollectionStateStore<OrangeStateData, MemSpace::host>;
 

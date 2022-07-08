@@ -44,7 +44,7 @@ class MagFieldMap
     celeritas::CollectionMirror<detail::FieldMapData> mirror_;
 
   private:
-    using HostValue = FieldMapData<Ownership::value, MemSpace::host>;
+    using HostValue = ::celeritas::HostVal<FieldMapData>;
     void build_data(const ReadMap&, HostValue*);
 };
 

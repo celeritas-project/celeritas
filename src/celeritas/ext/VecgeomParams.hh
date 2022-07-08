@@ -28,10 +28,8 @@ class VecgeomParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = VecgeomParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = VecgeomParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef           = ::celeritas::HostCRef<VecgeomParamsData>;
+    using DeviceRef         = ::celeritas::DeviceCRef<VecgeomParamsData>;
     using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 

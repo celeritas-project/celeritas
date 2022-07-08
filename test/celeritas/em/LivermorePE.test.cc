@@ -142,12 +142,9 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    using RelaxParamsRef
-        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
-    using RelaxStatesRef
-        = AtomicRelaxStateData<Ownership::reference, MemSpace::host>;
-    using RelaxStatesValue
-        = AtomicRelaxStateData<Ownership::value, MemSpace::host>;
+    using RelaxParamsRef   = ::celeritas::HostCRef<AtomicRelaxParamsData>;
+    using RelaxStatesRef   = ::celeritas::HostRef<AtomicRelaxStateData>;
+    using RelaxStatesValue = ::celeritas::HostVal<AtomicRelaxStateData>;
 
     std::shared_ptr<LivermorePEModel>       model_;
     AtomicRelaxationParams::Input           relax_inp_;

@@ -42,22 +42,19 @@ struct CuHipRngInitData
 
 //---------------------------------------------------------------------------//
 // Initialize the RNG state on host/device
-void rng_state_init(
-    const CuHipRngStateData<Ownership::reference, MemSpace::device>&      rng,
-    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>& seeds);
+void rng_state_init(const ::celeritas::DeviceRef<CuHipRngStateData>& rng,
+                    const ::celeritas::DeviceCRef<CuHipRngInitData>& seeds);
 
-void rng_state_init(
-    const CuHipRngStateData<Ownership::reference, MemSpace::host>&      rng,
-    const CuHipRngInitData<Ownership::const_reference, MemSpace::host>& seeds);
+void rng_state_init(const ::celeritas::HostRef<CuHipRngStateData>& rng,
+                    const ::celeritas::HostCRef<CuHipRngInitData>& seeds);
 
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-inline void rng_state_init(
-    const CuHipRngStateData<Ownership::reference, MemSpace::device>&,
-    const CuHipRngInitData<Ownership::const_reference, MemSpace::device>&)
+inline void rng_state_init(const ::celeritas::DeviceRef<CuHipRngStateData>&,
+                           const ::celeritas::DeviceCRef<CuHipRngInitData>&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

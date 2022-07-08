@@ -41,10 +41,8 @@ class MaterialTrackView
     //!@{
     //! Type aliases
     using Initializer_t = MaterialTrackState;
-    using MaterialParamsRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
-    using MaterialStateRef
-        = MaterialStateData<Ownership::reference, MemSpace::native>;
+    using MaterialParamsRef = ::celeritas::NativeCRef<MaterialParamsData>;
+    using MaterialStateRef  = ::celeritas::NativeRef<MaterialStateData>;
     //!@}
 
   public:

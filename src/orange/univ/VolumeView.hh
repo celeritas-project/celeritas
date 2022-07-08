@@ -36,7 +36,7 @@ class VolumeView
   public:
     //@{
     //! Type aliases
-    using VolumeRef = VolumeData<Ownership::const_reference, MemSpace::native>;
+    using VolumeRef = ::celeritas::NativeCRef<VolumeData>;
     using Flags     = VolumeRecord::Flags;
     //@}
 

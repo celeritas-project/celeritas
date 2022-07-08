@@ -183,7 +183,7 @@ OrangeParams::OrangeParams(Input input)
                    << "missing connectivity information");
 
     // Construct data
-    OrangeParamsData<Ownership::value, MemSpace::host> host_data;
+    ::celeritas::HostVal<OrangeParamsData> host_data;
     host_data.surfaces = std::move(input.surfaces);
     host_data.volumes  = std::move(input.volumes);
 

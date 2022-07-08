@@ -19,10 +19,8 @@ using namespace celeritas;
 //! Input data
 struct MTestInput
 {
-    using MaterialParamsRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
-    using MaterialStateRef
-        = MaterialStateData<Ownership::reference, MemSpace::device>;
+    using MaterialParamsRef = ::celeritas::DeviceCRef<MaterialParamsData>;
+    using MaterialStateRef  = ::celeritas::DeviceRef<MaterialStateData>;
 
     MaterialParamsRef               params;
     MaterialStateRef                states;

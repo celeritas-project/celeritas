@@ -22,8 +22,7 @@ class Surfaces
   public:
     //@{
     //! Type aliases
-    using SurfaceRef
-        = SurfaceData<Ownership::const_reference, MemSpace::native>;
+    using SurfaceRef = ::celeritas::NativeCRef<SurfaceData>;
     //@}
 
   public:

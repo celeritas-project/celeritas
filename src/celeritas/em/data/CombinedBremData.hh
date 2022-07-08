@@ -53,12 +53,9 @@ struct CombinedBremData
     }
 };
 
-using CombinedBremDeviceRef
-    = CombinedBremData<Ownership::const_reference, MemSpace::device>;
-using CombinedBremHostRef
-    = CombinedBremData<Ownership::const_reference, MemSpace::host>;
-using CombinedBremRef
-    = CombinedBremData<Ownership::const_reference, MemSpace::native>;
+using CombinedBremDeviceRef = ::celeritas::DeviceCRef<CombinedBremData>;
+using CombinedBremHostRef   = ::celeritas::HostCRef<CombinedBremData>;
+using CombinedBremRef       = ::celeritas::NativeCRef<CombinedBremData>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

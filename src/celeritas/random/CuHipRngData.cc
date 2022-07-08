@@ -21,10 +21,9 @@ namespace celeritas
  * Resize and initialize with the seed stored in params.
  */
 template<MemSpace M>
-void resize(
-    CuHipRngStateData<Ownership::value, M>* state,
-    const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                             size)
+void resize(CuHipRngStateData<Ownership::value, M>*          state,
+            const ::celeritas::HostCRef<CuHipRngParamsData>& params,
+            size_type                                        size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
@@ -52,15 +51,13 @@ void resize(
 
 //---------------------------------------------------------------------------//
 // Explicit instantiations
-template void
-resize(CuHipRngStateData<Ownership::value, MemSpace::host>*,
-       const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type);
+template void resize(::celeritas::HostVal<CuHipRngStateData>*,
+                     const ::celeritas::HostCRef<CuHipRngParamsData>&,
+                     size_type);
 
-template void
-resize(CuHipRngStateData<Ownership::value, MemSpace::device>*,
-       const CuHipRngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type);
+template void resize(CuHipRngStateData<Ownership::value, MemSpace::device>*,
+                     const ::celeritas::HostCRef<CuHipRngParamsData>&,
+                     size_type);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

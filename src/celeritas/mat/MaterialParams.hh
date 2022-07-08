@@ -40,10 +40,8 @@ class MaterialParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef             = ::celeritas::HostCRef<MaterialParamsData>;
+    using DeviceRef           = ::celeritas::DeviceCRef<MaterialParamsData>;
     using SpanConstMaterialId = Span<const MaterialId>;
     using SpanConstElementId  = Span<const ElementId>;
     //!@}
@@ -138,7 +136,7 @@ class MaterialParams
     CollectionMirror<MaterialParamsData> data_;
 
     // HELPER FUNCTIONS
-    using HostValue = MaterialParamsData<Ownership::value, MemSpace::host>;
+    using HostValue = ::celeritas::HostVal<MaterialParamsData>;
     void append_element_def(const ElementInput& inp, HostValue*);
     ItemRange<MatElementComponent>
          extend_elcomponents(const MaterialInput& inp, HostValue*) const;

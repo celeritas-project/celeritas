@@ -25,7 +25,7 @@ class SimTrackView
   public:
     //!@{
     //! Type aliases
-    using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
+    using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
     using Initializer_t = SimTrackInitializer;
     //!@}
 

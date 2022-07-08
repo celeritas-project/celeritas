@@ -34,7 +34,7 @@ class SurfaceInserter
   public:
     //!@{
     //! Type aliases
-    using Data         = SurfaceData<Ownership::value, MemSpace::host>;
+    using Data         = ::celeritas::HostVal<SurfaceData>;
     using SurfaceRange = ItemRange<struct Surface>;
     //!@}
 

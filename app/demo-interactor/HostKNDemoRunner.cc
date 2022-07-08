@@ -73,7 +73,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     std::mt19937 rng(args.seed);
 
     // Particle data
-    ParticleStateData<Ownership::value, MemSpace::host> track_states;
+    ::celeritas::HostVal<ParticleStateData> track_states;
     resize(&track_states, pparams_->host_ref(), 1);
 
     // Make secondary store
@@ -83,7 +83,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     // Detector data
     DetectorParamsData detector_params;
     detector_params.tally_grid = args.tally_grid;
-    DetectorStateData<Ownership::value, MemSpace::host> detector_states;
+    ::celeritas::HostVal<DetectorStateData> detector_states;
     resize(&detector_states, detector_params, args.max_steps);
 
     // Construct references

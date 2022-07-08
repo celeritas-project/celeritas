@@ -42,9 +42,8 @@ class VecgeomTrackView
     //!@{
     //! Type aliases
     using Initializer_t = GeoTrackInitializer;
-    using ParamsRef
-        = VecgeomParamsData<Ownership::const_reference, MemSpace::native>;
-    using StateRef = VecgeomStateData<Ownership::reference, MemSpace::native>;
+    using ParamsRef     = ::celeritas::NativeCRef<VecgeomParamsData>;
+    using StateRef      = ::celeritas::NativeRef<VecgeomStateData>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state

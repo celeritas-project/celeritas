@@ -29,9 +29,9 @@ using namespace celeritas;
 class VolumeInserterTest : public celeritas_test::Test
 {
   protected:
-    VolumeData<Ownership::value, MemSpace::host>            volume_data_;
-    SurfaceData<Ownership::value, MemSpace::host>           surface_data_;
-    SurfaceData<Ownership::const_reference, MemSpace::host> surface_ref_;
+    ::celeritas::HostVal<VolumeData>   volume_data_;
+    ::celeritas::HostVal<SurfaceData>  surface_data_;
+    ::celeritas::HostCRef<SurfaceData> surface_ref_;
 
     void SetUp() override
     {

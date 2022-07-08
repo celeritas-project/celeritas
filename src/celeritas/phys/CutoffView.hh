@@ -31,8 +31,7 @@ class CutoffView
     //!@{
     //! Type aliases
     using CutoffId = OpaqueId<ParticleCutoff>;
-    using CutoffData
-        = CutoffParamsData<Ownership::const_reference, MemSpace::native>;
+    using CutoffData = ::celeritas::NativeCRef<CutoffParamsData>;
     using Energy = units::MevEnergy;
     //!@}
 

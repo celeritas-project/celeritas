@@ -72,10 +72,9 @@ struct OrangeMiniStateData
  * Resize states in host code.
  */
 template<MemSpace M>
-inline void
-resize(OrangeMiniStateData<Ownership::value, M>* data,
-       const celeritas::SurfaceData<Ownership::const_reference, MemSpace::host>&,
-       celeritas::size_type size)
+inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
+                   const celeritas::HostCRef<celeritas::SurfaceData>&,
+                   celeritas::size_type size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
@@ -146,10 +145,8 @@ struct CalcSenseDistanceLauncher
 //! Input data
 struct SATestInput
 {
-    using ParamsRef
-        = celeritas::SurfaceData<Ownership::const_reference, MemSpace::device>;
-    using StateRef
-        = OrangeMiniStateData<Ownership::reference, MemSpace::device>;
+    using ParamsRef = celeritas::DeviceCRef<celeritas::SurfaceData>;
+    using StateRef  = ::celeritas::DeviceRef<OrangeMiniStateData>;
 
     ParamsRef params;
     StateRef  states;

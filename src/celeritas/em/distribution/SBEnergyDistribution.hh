@@ -107,8 +107,7 @@ class SBEnergyDistribution
   public:
     //!@{
     //! Type aliases
-    using SBData
-        = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
+    using SBData   = ::celeritas::NativeCRef<SeltzerBergerData>;
     using Energy   = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}

@@ -39,10 +39,8 @@ class GeoMaterialParams
   public:
     //!@{
     //! Type aliases
-    using HostRef
-        = GeoMaterialParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = GeoMaterialParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = ::celeritas::HostCRef<GeoMaterialParamsData>;
+    using DeviceRef = ::celeritas::DeviceCRef<GeoMaterialParamsData>;
     //!@}
 
     //! Input parameters
@@ -67,7 +65,7 @@ class GeoMaterialParams
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
 
-    using HostValue = GeoMaterialParamsData<Ownership::value, MemSpace::host>;
+    using HostValue = ::celeritas::HostVal<GeoMaterialParamsData>;
 };
 
 //---------------------------------------------------------------------------//

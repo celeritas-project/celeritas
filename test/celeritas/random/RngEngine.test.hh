@@ -15,14 +15,11 @@
 
 namespace celeritas_test
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-using RngDeviceRef
-    = celeritas::RngStateData<Ownership::reference, MemSpace::device>;
+using RngDeviceRef = celeritas::DeviceRef<celeritas::RngStateData>;
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results

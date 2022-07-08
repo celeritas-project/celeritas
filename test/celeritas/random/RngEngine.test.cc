@@ -166,7 +166,8 @@ TEST(DiagnosticEngineTest, from_reals)
 class DeviceRngEngineTest : public celeritas_test::Test
 {
   public:
-    using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;
+    using RngDeviceStore
+        = CollectionStateStore<RngStateData, celeritas::MemSpace::device>;
 
     void SetUp() override { params = std::make_shared<RngParams>(12345); }
 

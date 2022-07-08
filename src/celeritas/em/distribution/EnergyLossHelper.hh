@@ -65,8 +65,7 @@ class EnergyLossHelper
   public:
     //!@{
     //! Type aliases
-    using FluctuationRef
-        = FluctuationData<Ownership::const_reference, MemSpace::native>;
+    using FluctuationRef = ::celeritas::NativeCRef<FluctuationData>;
     using Energy   = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     using Mass     = units::MevMass;

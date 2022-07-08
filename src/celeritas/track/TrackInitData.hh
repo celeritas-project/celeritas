@@ -78,8 +78,7 @@ struct TrackInitParamsData<W, MemSpace::host>
     }
 };
 
-using TrackInitParamsHostRef
-    = TrackInitParamsData<Ownership::const_reference, MemSpace::host>;
+using TrackInitParamsHostRef = ::celeritas::HostCRef<TrackInitParamsData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -223,10 +222,8 @@ struct TrackInitStateData
     }
 };
 
-using TrackInitStateDeviceRef
-    = TrackInitStateData<Ownership::reference, MemSpace::device>;
-using TrackInitStateHostRef
-    = TrackInitStateData<Ownership::reference, MemSpace::host>;
+using TrackInitStateDeviceRef = ::celeritas::DeviceRef<TrackInitStateData>;
+using TrackInitStateHostRef   = ::celeritas::HostRef<TrackInitStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -240,10 +237,9 @@ using TrackInitStateHostRef
  * the size, but that might not be the case universally, so it is not asserted.
  */
 template<MemSpace M>
-void resize(
-    TrackInitStateData<Ownership::value, M>* data,
-    const TrackInitParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type size)
+void resize(TrackInitStateData<Ownership::value, M>*          data,
+            const ::celeritas::HostCRef<TrackInitParamsData>& params,
+            size_type                                         size)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
