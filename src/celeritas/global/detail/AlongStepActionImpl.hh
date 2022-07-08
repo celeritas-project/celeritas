@@ -179,9 +179,9 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
 
     // Update track's lab-frame time using the beginning-of-step velocity
     {
-        real_type velocity = native_value_from(particle.speed());
-        CELER_ASSERT(velocity > 0);
-        real_type delta_time = step_limit.step / velocity;
+        real_type speed = native_value_from(particle.speed());
+        CELER_ASSERT(speed > 0);
+        real_type delta_time = step_limit.step / speed;
         sim.add_time(delta_time);
     }
 
