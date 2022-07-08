@@ -145,8 +145,12 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         const auto& urban_data = phys.urban_data();
 
         // Replace step with actual geometry distance traveled
-        auto msc_step_result      = track.make_physics_step_view().msc_step();
-        msc_step_result.geom_path = geo_step;
+        auto msc_step_result = track.make_physics_step_view().msc_step();
+        if (msc_step_result.geom_path != geo_step)
+        {
+            msc_step_result.geom_path   = geo_step;
+            msc_step_result.geo_limited = true;
+        }
 
         UrbanMscScatter msc_scatter(urban_data,
                                     particle,
