@@ -73,6 +73,7 @@ struct Interaction
 struct MscStep
 {
     bool      is_displaced{true}; //!< Flag for the lateral displacement
+    bool      geo_limited{false}; //!< Flag for the geometry limited step
     real_type phys_step{};        //!< Step length from physics processes
     real_type true_path{};        //!< True path length due to the msc
     real_type geom_path{};        //!< Geometrical path length
