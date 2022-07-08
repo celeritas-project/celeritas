@@ -12,6 +12,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -88,6 +89,9 @@ EventReader::result_type EventReader::operator()()
             primary.position = {pos.x() * units::centimeter,
                                 pos.y() * units::centimeter,
                                 pos.z() * units::centimeter};
+
+            // Get the lab-frame time [s]
+            primary.time = pos.t() * units::centimeter / constants::c_light;
 
             // Get the direction of the primary
             primary.direction = {gen_particle->momentum().px(),

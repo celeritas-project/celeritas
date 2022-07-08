@@ -113,6 +113,7 @@ TEST_P(EventReaderTest, read_all_formats)
         EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
         EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
         EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy.value());
+        EXPECT_EQ(0, primary.time);
     }
 }
 

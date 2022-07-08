@@ -61,7 +61,7 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
     init.sim.parent_id        = TrackId{};
     init.sim.event_id         = primary.event_id;
     init.sim.num_steps        = 0;
-    init.sim.time             = 0;
+    init.sim.time             = primary.time;
     init.sim.status           = TrackStatus::alive;
     init.geo.pos              = primary.position;
     init.geo.dir              = primary.direction;
