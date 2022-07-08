@@ -191,7 +191,8 @@ ParticleProcessDiagnostic<M>::particle_processes() const
     std::unordered_map<std::string, size_type> result;
     for (auto model_id : range(celeritas::ModelId{physics_->num_models()}))
     {
-        const auto& process = physics_->process(physics_->process_id(model_id));
+        const celeritas::Process& process
+            = *physics_->process(physics_->process_id(model_id));
         for (auto particle_id :
              range(celeritas::ParticleId{particles_->size()}))
         {

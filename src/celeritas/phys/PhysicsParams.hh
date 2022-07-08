@@ -94,6 +94,7 @@ class PhysicsParams
     using SPConstParticles  = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials  = std::shared_ptr<const MaterialParams>;
     using SPConstProcess    = std::shared_ptr<const Process>;
+    using SPConstModel      = std::shared_ptr<const Model>;
     using SPConstRelaxation = std::shared_ptr<const AtomicRelaxationParams>;
     using SPConstFluct      = std::shared_ptr<const FluctuationParams>;
 
@@ -138,10 +139,10 @@ class PhysicsParams
     inline ProcessId::size_type max_particle_processes() const;
 
     // Get a model
-    inline const Model& model(ModelId) const;
+    inline const SPConstModel& model(ModelId) const;
 
     // Get a process
-    inline const Process& process(ProcessId) const;
+    inline const SPConstProcess& process(ProcessId) const;
 
     // Get the process for the given model
     inline ProcessId process_id(ModelId id) const;
@@ -159,7 +160,6 @@ class PhysicsParams
     const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
-    using SPConstModel = std::shared_ptr<const Model>;
     using SPAction     = std::shared_ptr<ConcreteAction>;
     using VecModel     = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue    = celeritas::HostVal<PhysicsParamsData>;
@@ -216,20 +216,20 @@ auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 /*!
  * Get a model.
  */
-const Model& PhysicsParams::model(ModelId id) const
+auto PhysicsParams::model(ModelId id) const -> const SPConstModel&
 {
     CELER_EXPECT(id < this->num_models());
-    return *models_[id.get()].first;
+    return models_[id.get()].first;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get a process.
  */
-const Process& PhysicsParams::process(ProcessId id) const
+auto PhysicsParams::process(ProcessId id) const -> const SPConstProcess&
 {
     CELER_EXPECT(id < this->num_processes());
-    return *processes_[id.get()];
+    return processes_[id.get()];
 }
 
 //---------------------------------------------------------------------------//

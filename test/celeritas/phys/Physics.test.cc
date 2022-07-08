@@ -49,7 +49,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> process_names;
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(p.process(process_id).label());
+        process_names.push_back(p.process(process_id)->label());
     }
     const std::string expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
@@ -60,7 +60,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> model_desc;
     for (auto model_id : range(ModelId{p.num_models()}))
     {
-        const auto& m = p.model(model_id);
+        const Model& m = *p.model(model_id);
         model_names.push_back(m.label());
         model_desc.push_back(m.description());
     }
@@ -173,7 +173,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         // Save mapping of process label -> ID
         for (auto id : range(ProcessId{this->physics()->num_processes()}))
         {
-            process_names[this->physics()->process(id).label()] = id;
+            process_names[this->physics()->process(id)->label()] = id;
         }
     }
 
