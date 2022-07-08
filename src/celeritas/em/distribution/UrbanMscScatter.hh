@@ -158,9 +158,11 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
 
     lambda_ = helper_.msc_mfp(inc_energy_);
 
-    // Convert the geometry path length to the true path length
-    true_path_ = this->calc_true_path(
-        input_.true_path, input_.geom_path, input_.alpha);
+    // Convert the geometry path length to the true path length, but do not
+    // recalculate the true path if the step is not limited by geometry
+    true_path_ = (input_.geo_limited) ? this->calc_true_path(
+                     input_.true_path, input_.geom_path, input_.alpha)
+                                      : input_.true_path;
 
     // Protect against a wrong true -> geom -> true transformation
     true_path_ = min<real_type>(true_path_, input_.phys_step);
