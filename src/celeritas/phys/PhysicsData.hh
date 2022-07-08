@@ -256,6 +256,13 @@ struct PhysicsParamsScalars
                    == static_cast<bool>(fixed_step_action));
     }
 
+    //! Lowest kinetic energy for e+/e- energy loss calculation: 1keV
+    using Energy = units::MevEnergy;
+    static CELER_CONSTEXPR_FUNCTION Energy eloss_calc_limit()
+    {
+        return Energy{1e-3};
+    }
+
     //! Stop early due to range limitation
     CELER_FORCEINLINE_FUNCTION ActionId range_action() const
     {
@@ -337,8 +344,7 @@ struct PhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_groups.empty() && !model_ids.empty()
-               && scalars;
+        return !process_groups.empty() && !model_ids.empty() && scalars;
     }
 
     //! Assign from another set of data
@@ -451,8 +457,8 @@ struct PhysicsStateData
     PhysicsStateData& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state          = other.state;
-        msc_step       = other.msc_step;
+        state    = other.state;
+        msc_step = other.msc_step;
 
         per_process_xs = other.per_process_xs;
 
