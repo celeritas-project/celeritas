@@ -48,9 +48,9 @@ class SeltzerBergerModel final : public Model
 {
   public:
     //!@{
-    using AtomicNumber = int;
-    using Mass         = units::MevMass;
-    using ReadData     = std::function<ImportSBTable(AtomicNumber)>;
+    using AtomicNumber    = int;
+    using Mass            = units::MevMass;
+    using ReadData        = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef         = ::celeritas::HostCRef<SeltzerBergerData>;
     using DeviceRef       = ::celeritas::DeviceCRef<SeltzerBergerData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;

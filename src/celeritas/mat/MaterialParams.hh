@@ -61,8 +61,8 @@ class MaterialParams
         real_type   temperature;    //!< Temperature [K]
         MatterState matter_state;   //!< Solid, liquid, gas
         std::vector<std::pair<ElementId, real_type>>
-                    elements_fractions; //!< Fraction of number density
-        Label       label;              //!< Material name
+              elements_fractions; //!< Fraction of number density
+        Label label;              //!< Material name
     };
 
     //! Input data to construct this class

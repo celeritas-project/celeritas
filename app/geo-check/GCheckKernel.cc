@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GCheckKernel.hh"
 
-#include "celeritas/field/LinearPropagator.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/field/LinearPropagator.hh"
 
 using namespace celeritas;
 
@@ -49,7 +49,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
     {
         auto step = propagate(); // to next boundary
         if (step.boundary)
-           geo.cross_boundary();
+            geo.cross_boundary();
         result.ids.push_back(physid(geo));
         result.distances.push_back(step.distance);
 

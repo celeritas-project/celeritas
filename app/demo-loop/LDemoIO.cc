@@ -262,8 +262,8 @@ TransporterInput load_input(const LDemoArgs& args)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles                      = params.particle;
-        input.materials                      = params.material;
+        input.particles = params.particle;
+        input.materials = params.material;
         if (args.eloss_fluctuation)
         {
             input.fluctuation = std::make_shared<FluctuationParams>(

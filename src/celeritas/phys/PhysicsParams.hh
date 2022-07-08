@@ -160,9 +160,9 @@ class PhysicsParams
     const DeviceRef& device_ref() const { return data_.device(); }
 
   private:
-    using SPAction     = std::shared_ptr<ConcreteAction>;
-    using VecModel     = std::vector<std::pair<SPConstModel, ProcessId>>;
-    using HostValue    = celeritas::HostVal<PhysicsParamsData>;
+    using SPAction  = std::shared_ptr<ConcreteAction>;
+    using VecModel  = std::vector<std::pair<SPConstModel, ProcessId>>;
+    using HostValue = celeritas::HostVal<PhysicsParamsData>;
 
     // Kernels/actions
     SPAction pre_step_action_;

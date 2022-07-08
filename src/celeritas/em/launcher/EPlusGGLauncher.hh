@@ -23,8 +23,8 @@ eplusgg_interact_track(EPlusGGData const& model, CoreTrackView const& track)
 {
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        particle = track.make_particle_view();
+    const auto& dir      = track.make_geo_view().dir();
 
     EPlusGGInteractor interact(model, particle, dir, allocate_secondaries);
     auto              rng = track.make_rng_engine();

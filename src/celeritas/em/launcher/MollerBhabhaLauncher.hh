@@ -22,9 +22,9 @@ namespace celeritas
 inline CELER_FUNCTION Interaction moller_bhabha_interact_track(
     MollerBhabhaData const& model, CoreTrackView const& track)
 {
-    auto        particle             = track.make_particle_view();
-    auto        cutoff               = track.make_cutoff_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        particle = track.make_particle_view();
+    auto        cutoff   = track.make_cutoff_view();
+    const auto& dir      = track.make_geo_view().dir();
     auto        allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
 

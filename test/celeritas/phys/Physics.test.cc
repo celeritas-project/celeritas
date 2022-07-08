@@ -713,10 +713,10 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
-    physics_inp.materials                  = this->material();
-    physics_inp.particles                  = this->particles();
-    physics_inp.options                    = this->build_physics_options();
-    physics_inp.action_manager             = this->action_mgr().get();
+    physics_inp.materials      = this->material();
+    physics_inp.particles      = this->particles();
+    physics_inp.options        = this->build_physics_options();
+    physics_inp.action_manager = this->action_mgr().get();
 
     EPlusAnnihilationProcess::Options epgg_options;
     epgg_options.use_integral_xs = true;

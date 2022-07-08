@@ -8,9 +8,9 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "nlohmann/json.hpp"
 
 #include "GCheckRunner.hh"
+#include "nlohmann/json.hpp"
 
 using namespace celeritas;
 
@@ -49,8 +49,8 @@ void run(std::istream& is, bool use_cuda)
     std::vector<std::string> vol_names;
     for (auto vol_id : celeritas::range(geo_params->num_volumes()))
     {
-        vol_names.push_back(to_string(
-            geo_params->id_to_label(celeritas::VolumeId(vol_id))));
+        vol_names.push_back(
+            to_string(geo_params->id_to_label(celeritas::VolumeId(vol_id))));
     }
 
     // Construct runner, which takes over geo_params

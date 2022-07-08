@@ -109,7 +109,7 @@ class MockTrackView
   public:
     using ParamsData = ::celeritas::NativeCRef<MockParamsData>;
     using StateData  = ::celeritas::NativeRef<MockStateData>;
-    using ThreadId  = celeritas::ThreadId;
+    using ThreadId   = celeritas::ThreadId;
 
     CELER_FUNCTION MockTrackView(const ParamsData& params,
                                  const StateData&  states,
@@ -153,9 +153,9 @@ class MockTrackView
 //! Input data
 struct CTestInput
 {
-    ::celeritas::DeviceCRef<MockParamsData>                      params;
-    ::celeritas::DeviceRef<MockStateData>                        states;
-    celeritas::Span<double>                                      result;
+    ::celeritas::DeviceCRef<MockParamsData> params;
+    ::celeritas::DeviceRef<MockStateData>   states;
+    celeritas::Span<double>                 result;
 };
 
 //---------------------------------------------------------------------------//

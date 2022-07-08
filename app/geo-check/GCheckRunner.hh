@@ -8,8 +8,9 @@
 #pragma once
 
 #include <memory>
-#include "celeritas/geo/GeoParams.hh"
+
 #include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 using namespace celeritas;
 

@@ -74,7 +74,7 @@ class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
     HeuristicInitResult run_heuristic_init_device(size_type num_tracks) const;
 
   private:
-    StateHostValue      setup_heuristic_states(size_type num_tracks) const;
+    StateHostValue setup_heuristic_states(size_type num_tracks) const;
     HeuristicInitResult
     reduce_heuristic_init(const StateHostRef&, double) const;
 };

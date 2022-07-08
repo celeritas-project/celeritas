@@ -5,16 +5,17 @@
 //---------------------------------------------------------------------------//
 //! \file GCheckKernel.cu
 //---------------------------------------------------------------------------//
-#include "corecel/Assert.hh"
-#include "corecel/sys/KernelParamCalculator.device.hh"
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-
 #include "GCheckKernel.hh"
+
+#include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
+
+#include "corecel/Assert.hh"
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/field/LinearPropagator.hh"
-#include "corecel/data/CollectionStateStore.hh"
 
 using namespace celeritas;
 using thrust::raw_pointer_cast;
@@ -50,7 +51,7 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
     do
     {
         // Propagate Save next-volume ID and distance to travel
-        auto step        = propagate();
+        auto step = propagate();
         if (step.boundary)
             geo.cross_boundary();
         ids[istep]       = physid(geo);
@@ -91,10 +92,11 @@ GCheckOutput run_gpu(GCheckInput input)
     GCheckOutput result;
 
     // figure out how many valid steps returned
-    size_type    nstep = 0;
+    size_type nstep = 0;
     for (auto id : thrust::host_vector<int>(ids))
     {
-        if (id < 0) break;
+        if (id < 0)
+            break;
         ++nstep;
     }
     // Return exact vector size for proper comparison with CPU

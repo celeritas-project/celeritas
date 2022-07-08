@@ -50,8 +50,8 @@ class EnergyLossUrbanDistribution
     //!@{
     //! Type aliases
     using FluctuationRef = ::celeritas::NativeCRef<FluctuationData>;
-    using Energy = units::MevEnergy;
-    using Mass   = units::MevMass;
+    using Energy         = units::MevEnergy;
+    using Mass           = units::MevMass;
     //!@}
 
   public:

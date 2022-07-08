@@ -28,11 +28,11 @@ inline CELER_FUNCTION Interaction combined_brem_interact_track(
     CELER_ASSERT(material.num_elements() == 1);
     const ElementComponentId selected_element{0};
 
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        particle = track.make_particle_view();
+    const auto& dir      = track.make_geo_view().dir();
     auto        allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        cutoff               = track.make_cutoff_view();
+    auto cutoff = track.make_cutoff_view();
 
     CombinedBremInteractor interact(model,
                                     particle,

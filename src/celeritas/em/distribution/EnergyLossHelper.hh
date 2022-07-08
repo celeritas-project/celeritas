@@ -66,11 +66,11 @@ class EnergyLossHelper
     //!@{
     //! Type aliases
     using FluctuationRef = ::celeritas::NativeCRef<FluctuationData>;
-    using Energy   = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
-    using Mass     = units::MevMass;
-    using Model    = EnergyLossFluctuationModel;
-    using Real2    = Array<real_type, 2>;
+    using Energy         = units::MevEnergy;
+    using EnergySq       = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using Mass           = units::MevMass;
+    using Model          = EnergyLossFluctuationModel;
+    using Real2          = Array<real_type, 2>;
     //!@}
 
   public:

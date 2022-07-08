@@ -73,8 +73,8 @@ class SurfaceActionTest : public celeritas_test::Test
 
     void SetUp() override
     {
-        ::celeritas::HostVal<SurfaceData>             surface_data;
-        SurfaceInserter                               insert(&surface_data);
+        ::celeritas::HostVal<SurfaceData> surface_data;
+        SurfaceInserter                   insert(&surface_data);
         insert(PlaneX(1));
         insert(PlaneY(2));
         insert(PlaneZ(3));

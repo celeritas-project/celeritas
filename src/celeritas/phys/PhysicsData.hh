@@ -337,8 +337,7 @@ struct PhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !process_groups.empty() && !model_ids.empty()
-               && scalars;
+        return !process_groups.empty() && !model_ids.empty() && scalars;
     }
 
     //! Assign from another set of data
@@ -451,8 +450,8 @@ struct PhysicsStateData
     PhysicsStateData& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state          = other.state;
-        msc_step       = other.msc_step;
+        state    = other.state;
+        msc_step = other.msc_step;
 
         per_process_xs = other.per_process_xs;
 

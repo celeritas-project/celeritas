@@ -84,8 +84,8 @@ FieldPropagator<DriverT>::FieldPropagator(DriverT&&                driver,
     using MomentumUnits = OdeState::MomentumUnits;
 
     state_.pos = geo_.pos();
-    state_.mom = detail::ax(value_as<MomentumUnits>(particle.momentum()),
-                            geo_.dir());
+    state_.mom
+        = detail::ax(value_as<MomentumUnits>(particle.momentum()), geo_.dir());
 }
 
 //---------------------------------------------------------------------------//

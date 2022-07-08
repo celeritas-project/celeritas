@@ -32,9 +32,9 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        const auto& params  = *this->particle_params();
-        data_.ids.positron  = params.find(pdg::positron());
-        data_.ids.gamma     = params.find(pdg::gamma());
+        const auto& params = *this->particle_params();
+        data_.ids.positron = params.find(pdg::positron());
+        data_.ids.gamma    = params.find(pdg::gamma());
         data_.electron_mass
             = params.get(params.find(pdg::electron())).mass().value();
 
