@@ -24,6 +24,8 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = """\
+#pragma once
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/track/detail/{clsname}Launcher.hh"
