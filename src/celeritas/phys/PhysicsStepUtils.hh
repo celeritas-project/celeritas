@@ -209,6 +209,12 @@ CELER_FUNCTION ParticleTrackView::Energy
         return Energy{0};
     }
 
+    if (particle.energy() < physics.scalars().eloss_calc_limit())
+    {
+        // Energy loss below the lowest e+/e- kinetic energy (1 keV)
+        return particle.energy();
+    }
+
     const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
