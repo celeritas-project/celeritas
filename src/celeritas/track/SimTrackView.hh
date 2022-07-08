@@ -37,6 +37,9 @@ class SimTrackView
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
 
+    // Add the time change over the step
+    inline CELER_FUNCTION void add_time(real_type delta);
+
     // Increment the total number of steps
     CELER_FORCEINLINE_FUNCTION void increment_num_steps();
 
@@ -72,6 +75,9 @@ class SimTrackView
     // Total number of steps taken by the track
     CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
 
+    // Time elapsed in the lab frame since the start of the event [s]
+    CELER_FORCEINLINE_FUNCTION real_type time() const;
+
     // Whether the track is alive or inactive or dying
     CELER_FORCEINLINE_FUNCTION TrackStatus status() const;
 
@@ -104,6 +110,16 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
 {
     states_.state[thread_] = other;
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add the time change over the step.
+ */
+CELER_FUNCTION void SimTrackView::add_time(real_type delta)
+{
+    CELER_EXPECT(delta >= 0);
+    states_.state[thread_].time += delta;
 }
 
 //---------------------------------------------------------------------------//
@@ -236,6 +252,15 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
 CELER_FUNCTION size_type SimTrackView::num_steps() const
 {
     return states_.state[thread_].num_steps;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Time elapsed in the lab frame since the start of the event [s].
+ */
+CELER_FUNCTION real_type SimTrackView::time() const
+{
+    return states_.state[thread_].time;
 }
 
 //---------------------------------------------------------------------------//

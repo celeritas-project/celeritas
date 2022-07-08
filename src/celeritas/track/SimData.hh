@@ -30,6 +30,7 @@ struct SimTrackState
     TrackId   parent_id;    //!< ID of parent that created it
     EventId   event_id;     //!< ID of originating event
     size_type num_steps{0}; //!< Total number of steps taken
+    real_type time; //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};
     StepLimit   step_limit;
