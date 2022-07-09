@@ -26,8 +26,8 @@ class UrbanMscModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef   = ::celeritas::HostCRef<UrbanMscData>;
-    using DeviceRef = ::celeritas::DeviceCRef<UrbanMscData>;
+    using HostRef   = HostCRef<UrbanMscData>;
+    using DeviceRef = DeviceCRef<UrbanMscData>;
     //@}
 
   public:
@@ -74,7 +74,7 @@ class UrbanMscModel final : public Model
 
     //// TYPES ////
 
-    using HostValue    = ::celeritas::HostVal<UrbanMscData>;
+    using HostValue    = HostVal<UrbanMscData>;
     using MaterialData = UrbanMscMaterialData;
 
     //// HELPER FUNCTIONS ////

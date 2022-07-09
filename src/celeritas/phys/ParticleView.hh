@@ -23,7 +23,7 @@ class ParticleView
   public:
     //!@{
     //! Type aliases
-    using ParticleParamsRef = ::celeritas::NativeCRef<ParticleParamsData>;
+    using ParticleParamsRef = NativeCRef<ParticleParamsData>;
     //!@}
 
   public:

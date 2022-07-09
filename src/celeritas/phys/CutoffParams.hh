@@ -47,8 +47,8 @@ class CutoffParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = ::celeritas::HostCRef<CutoffParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<CutoffParamsData>;
+    using HostRef   = HostCRef<CutoffParamsData>;
+    using DeviceRef = DeviceCRef<CutoffParamsData>;
 
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
@@ -85,7 +85,7 @@ class CutoffParams
   private:
     // Host/device storage and reference
     CollectionMirror<CutoffParamsData> data_;
-    using HostValue = ::celeritas::HostVal<CutoffParamsData>;
+    using HostValue = HostVal<CutoffParamsData>;
 
     //// HELPER FUNCTIONS ////
 

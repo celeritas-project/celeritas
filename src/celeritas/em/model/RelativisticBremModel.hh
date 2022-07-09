@@ -27,8 +27,8 @@ class RelativisticBremModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef         = ::celeritas::HostCRef<RelativisticBremData>;
-    using DeviceRef       = ::celeritas::DeviceCRef<RelativisticBremData>;
+    using HostRef         = HostCRef<RelativisticBremData>;
+    using DeviceRef       = DeviceCRef<RelativisticBremData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
@@ -80,7 +80,7 @@ class RelativisticBremModel final : public Model
 
     //// TYPES ////
 
-    using HostValue = ::celeritas::HostVal<RelativisticBremData>;
+    using HostValue = HostVal<RelativisticBremData>;
 
     using AtomicNumber = int;
     using FormFactor   = RelBremFormFactor;

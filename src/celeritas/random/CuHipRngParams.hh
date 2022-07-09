@@ -23,8 +23,8 @@ class CuHipRngParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = ::celeritas::HostCRef<CuHipRngParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<CuHipRngParamsData>;
+    using HostRef   = HostCRef<CuHipRngParamsData>;
+    using DeviceRef = DeviceCRef<CuHipRngParamsData>;
     //!@}
 
   public:

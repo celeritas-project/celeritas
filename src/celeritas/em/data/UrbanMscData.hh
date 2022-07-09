@@ -144,8 +144,8 @@ struct UrbanMscData
     }
 };
 
-using UrbanMscDeviceRef = ::celeritas::DeviceCRef<UrbanMscData>;
-using UrbanMscHostRef   = ::celeritas::HostCRef<UrbanMscData>;
-using UrbanMscRef       = ::celeritas::NativeCRef<UrbanMscData>;
+using UrbanMscDeviceRef = DeviceCRef<UrbanMscData>;
+using UrbanMscHostRef   = HostCRef<UrbanMscData>;
+using UrbanMscRef       = NativeCRef<UrbanMscData>;
 
 } // namespace celeritas

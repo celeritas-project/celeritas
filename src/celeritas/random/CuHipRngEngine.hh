@@ -30,7 +30,7 @@ class CuHipRngEngine
     //! Type aliases
     using result_type   = unsigned int;
     using Initializer_t = CuHipRngInitializer;
-    using StateRef      = ::celeritas::NativeRef<CuHipRngStateData>;
+    using StateRef      = NativeRef<CuHipRngStateData>;
     //!@}
 
   public:

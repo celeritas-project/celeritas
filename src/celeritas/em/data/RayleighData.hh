@@ -79,8 +79,8 @@ struct RayleighData
     }
 };
 
-using RayleighDeviceRef = ::celeritas::DeviceCRef<RayleighData>;
-using RayleighHostRef   = ::celeritas::HostCRef<RayleighData>;
-using RayleighRef       = ::celeritas::NativeCRef<RayleighData>;
+using RayleighDeviceRef = DeviceCRef<RayleighData>;
+using RayleighHostRef   = HostCRef<RayleighData>;
+using RayleighRef       = NativeCRef<RayleighData>;
 
 } // namespace celeritas

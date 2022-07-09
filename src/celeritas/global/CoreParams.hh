@@ -44,8 +44,8 @@ class CoreParams
     using SPConstRng         = std::shared_ptr<const RngParams>;
     using SPActionManager    = std::shared_ptr<ActionManager>;
 
-    using HostRef   = ::celeritas::HostCRef<CoreParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<CoreParamsData>;
+    using HostRef   = HostCRef<CoreParamsData>;
+    using DeviceRef = DeviceCRef<CoreParamsData>;
     //!@}
 
     struct Input

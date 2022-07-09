@@ -20,7 +20,7 @@ class GeoMaterialView
   public:
     //!@{
     //! Type aliases
-    using GeoMaterialData = ::celeritas::NativeCRef<GeoMaterialParamsData>;
+    using GeoMaterialData = NativeCRef<GeoMaterialParamsData>;
     //!@}
 
   public:

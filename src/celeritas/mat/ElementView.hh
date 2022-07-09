@@ -35,7 +35,7 @@ class ElementView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsRef = ::celeritas::NativeCRef<MaterialParamsData>;
+    using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     using AmuMass           = units::AmuMass;
     //!@}
 

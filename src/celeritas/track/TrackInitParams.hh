@@ -32,8 +32,8 @@ class TrackInitParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = ::celeritas::HostCRef<TrackInitParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<TrackInitParamsData>;
+    using HostRef   = HostCRef<TrackInitParamsData>;
+    using DeviceRef = DeviceCRef<TrackInitParamsData>;
     //!@}
 
     //! Track initializer construction arguments
@@ -54,7 +54,7 @@ class TrackInitParams
     const DeviceRef& device_ref() const { return device_ref_; }
 
   private:
-    using HostValue = ::celeritas::HostVal<TrackInitParamsData>;
+    using HostValue = HostVal<TrackInitParamsData>;
 
     HostValue host_value_;
     HostRef   host_ref_;

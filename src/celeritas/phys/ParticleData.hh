@@ -153,7 +153,7 @@ struct ParticleStateData
  */
 template<MemSpace M>
 inline void resize(ParticleStateData<Ownership::value, M>* data,
-                   const ::celeritas::HostCRef<ParticleParamsData>&,
+                   const HostCRef<ParticleParamsData>&,
                    size_type size)
 {
     CELER_EXPECT(size > 0);

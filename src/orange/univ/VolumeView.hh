@@ -36,7 +36,7 @@ class VolumeView
   public:
     //@{
     //! Type aliases
-    using VolumeRef = ::celeritas::NativeCRef<VolumeData>;
+    using VolumeRef = NativeCRef<VolumeData>;
     using Flags     = VolumeRecord::Flags;
     //@}
 

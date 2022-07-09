@@ -37,7 +37,7 @@ class SBEnergySampler
     //! Type aliases
     using Energy  = units::MevEnergy;
     using Mass    = units::MevMass;
-    using SBTable = ::celeritas::NativeCRef<SeltzerBergerTableData>;
+    using SBTable = NativeCRef<SeltzerBergerTableData>;
     //!@}
 
   public:

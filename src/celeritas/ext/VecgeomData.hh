@@ -117,9 +117,9 @@ struct VecgeomStateData
  * Resize geometry states.
  */
 template<MemSpace M>
-void resize(VecgeomStateData<Ownership::value, M>*          data,
-            const ::celeritas::HostCRef<VecgeomParamsData>& params,
-            size_type                                       size)
+void resize(VecgeomStateData<Ownership::value, M>* data,
+            const HostCRef<VecgeomParamsData>&     params,
+            size_type                              size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);

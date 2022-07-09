@@ -26,8 +26,8 @@ class RayleighModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef         = ::celeritas::HostCRef<RayleighData>;
-    using DeviceRef       = ::celeritas::DeviceCRef<RayleighData>;
+    using HostRef         = HostCRef<RayleighData>;
+    using DeviceRef       = DeviceCRef<RayleighData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
@@ -76,7 +76,7 @@ class RayleighModel final : public Model
     //// TYPES ////
 
     using AtomicNumber = int;
-    using HostValue    = ::celeritas::HostVal<RayleighData>;
+    using HostValue    = HostVal<RayleighData>;
     using ElScatParams = RayleighParameters;
 
     //// HELPER FUNCTIONS ////

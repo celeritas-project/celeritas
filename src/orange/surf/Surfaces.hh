@@ -22,7 +22,7 @@ class Surfaces
   public:
     //@{
     //! Type aliases
-    using SurfaceRef = ::celeritas::NativeCRef<SurfaceData>;
+    using SurfaceRef = NativeCRef<SurfaceData>;
     //@}
 
   public:

@@ -33,8 +33,8 @@ class VolumeInserter
   public:
     //!@{
     //! Type aliases
-    using SurfData = ::celeritas::HostCRef<SurfaceData>;
-    using Data     = ::celeritas::HostVal<VolumeData>;
+    using SurfData = HostCRef<SurfaceData>;
+    using Data     = HostVal<VolumeData>;
     //!@}
 
   public:

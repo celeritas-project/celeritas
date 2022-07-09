@@ -35,7 +35,7 @@ class SBEnergyDistHelper
   public:
     //!@{
     //! Type aliases
-    using SBDXsec  = ::celeritas::NativeCRef<SeltzerBergerTableData>;
+    using SBDXsec  = NativeCRef<SeltzerBergerTableData>;
     using Xs       = Quantity<SBElementTableData::XsUnits>;
     using Energy   = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
@@ -65,7 +65,7 @@ class SBEnergyDistHelper
   private:
     //// IMPLEMENTATION TYPES ////
 
-    using SBTables          = ::celeritas::NativeCRef<SeltzerBergerTableData>;
+    using SBTables          = NativeCRef<SeltzerBergerTableData>;
     using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
     struct MaxXs

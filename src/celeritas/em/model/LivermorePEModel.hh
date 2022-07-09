@@ -74,7 +74,7 @@ class LivermorePEModel final : public Model
     // Host/device storage and reference
     CollectionMirror<LivermorePEData> data_;
 
-    using HostXsData = ::celeritas::HostVal<LivermorePEXsData>;
+    using HostXsData = HostVal<LivermorePEXsData>;
     void
     append_element(const ImportLivermorePE& inp, HostXsData* xs_data) const;
 };

@@ -277,9 +277,9 @@ struct OrangeStateData
  * Resize geometry tracking states.
  */
 template<MemSpace M>
-inline void resize(OrangeStateData<Ownership::value, M>*          data,
-                   const ::celeritas::HostCRef<OrangeParamsData>& params,
-                   size_type                                      size)
+inline void resize(OrangeStateData<Ownership::value, M>* data,
+                   const HostCRef<OrangeParamsData>&     params,
+                   size_type                             size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);

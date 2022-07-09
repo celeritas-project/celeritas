@@ -27,8 +27,8 @@ class OrangeTrackView
   public:
     //!@{
     //! Type aliases
-    using ParamsRef     = ::celeritas::NativeCRef<OrangeParamsData>;
-    using StateRef      = ::celeritas::NativeRef<OrangeStateData>;
+    using ParamsRef     = NativeCRef<OrangeParamsData>;
+    using StateRef      = NativeRef<OrangeStateData>;
     using Initializer_t = GeoTrackInitializer;
     //!@}
 

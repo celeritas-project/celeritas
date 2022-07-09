@@ -72,7 +72,7 @@ ParticleParams::ParticleParams(const Input& input)
     md_.reserve(input.size());
 
     // Build elements and materials on host.
-    ::celeritas::HostVal<ParticleParamsData> host_data;
+    HostVal<ParticleParamsData> host_data;
     auto particles = make_builder(&host_data.particles);
     particles.reserve(input.size());
 

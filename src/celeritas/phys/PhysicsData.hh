@@ -467,9 +467,9 @@ struct PhysicsStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>*          state,
-                   const ::celeritas::HostCRef<PhysicsParamsData>& params,
-                   size_type                                       size)
+inline void resize(PhysicsStateData<Ownership::value, M>* state,
+                   const HostCRef<PhysicsParamsData>&     params,
+                   size_type                              size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.scalars.max_particle_processes > 0);

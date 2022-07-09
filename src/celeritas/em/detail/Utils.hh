@@ -30,7 +30,7 @@ class MaxSecondariesCalculator
     //!@{
     //! Type aliases
     using MevEnergy = units::MevEnergy;
-    using Values    = ::celeritas::HostCRef<AtomicRelaxParamsData>;
+    using Values    = HostCRef<AtomicRelaxParamsData>;
     //!@}
 
   public:
@@ -66,7 +66,7 @@ class MaxStackSizeCalculator
   public:
     //!@{
     //! Type aliases
-    using Values = ::celeritas::HostCRef<AtomicRelaxParamsData>;
+    using Values = HostCRef<AtomicRelaxParamsData>;
     //!@}
 
   public:

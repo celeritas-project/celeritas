@@ -34,15 +34,15 @@ class OrangeParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef           = ::celeritas::HostCRef<OrangeParamsData>;
-    using DeviceRef         = ::celeritas::DeviceCRef<OrangeParamsData>;
+    using HostRef           = HostCRef<OrangeParamsData>;
+    using DeviceRef         = DeviceCRef<OrangeParamsData>;
     using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 
     struct Input
     {
-        using Surfaces = ::celeritas::HostVal<SurfaceData>;
-        using Volumes  = ::celeritas::HostVal<VolumeData>;
+        using Surfaces = HostVal<SurfaceData>;
+        using Volumes  = HostVal<VolumeData>;
         using VecLabel = std::vector<Label>;
 
         Surfaces    surfaces;       //!< Surface definitions

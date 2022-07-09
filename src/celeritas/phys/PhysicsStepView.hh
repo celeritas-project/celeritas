@@ -38,8 +38,8 @@ class PhysicsStepView
   public:
     //!@{
     //! Type aliases
-    using PhysicsParamsRef   = ::celeritas::NativeCRef<PhysicsParamsData>;
-    using PhysicsStateRef    = ::celeritas::NativeRef<PhysicsStateData>;
+    using PhysicsParamsRef   = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef    = NativeRef<PhysicsStateData>;
     using SecondaryAllocator = StackAllocator<Secondary>;
     using Energy             = units::MevEnergy;
     //!@}

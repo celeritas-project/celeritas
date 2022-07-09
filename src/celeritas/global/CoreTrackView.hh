@@ -30,8 +30,8 @@ class CoreTrackView
   public:
     //!@{
     //! Type aliases
-    using ParamsRef = ::celeritas::NativeCRef<CoreParamsData>;
-    using StateRef  = ::celeritas::NativeRef<CoreStateData>;
+    using ParamsRef = NativeCRef<CoreParamsData>;
+    using StateRef  = NativeRef<CoreStateData>;
     //!@}
 
   public:

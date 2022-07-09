@@ -38,10 +38,10 @@ class PhysicsTrackView
     //!@{
     //! Type aliases
     using Initializer_t    = PhysicsTrackInitializer;
-    using FluctuationRef   = ::celeritas::NativeCRef<FluctuationData>;
-    using PhysicsParamsRef = ::celeritas::NativeCRef<PhysicsParamsData>;
-    using PhysicsStateRef  = ::celeritas::NativeRef<PhysicsStateData>;
-    using UrbanMscRef      = ::celeritas::NativeCRef<UrbanMscData>;
+    using FluctuationRef   = NativeCRef<FluctuationData>;
+    using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef  = NativeRef<PhysicsStateData>;
+    using UrbanMscRef      = NativeCRef<UrbanMscData>;
     using Energy           = units::MevEnergy;
     using ModelFinder      = GridIdFinder<Energy, ParticleModelId>;
     //!@}

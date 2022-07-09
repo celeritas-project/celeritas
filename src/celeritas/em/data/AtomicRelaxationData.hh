@@ -105,7 +105,7 @@ struct AtomicRelaxParamsData
     }
 };
 
-using AtomicRelaxParamsRef = ::celeritas::NativeCRef<AtomicRelaxParamsData>;
+using AtomicRelaxParamsRef = NativeCRef<AtomicRelaxParamsData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -140,16 +140,16 @@ struct AtomicRelaxStateData
     }
 };
 
-using AtomicRelaxStateRef = ::celeritas::NativeRef<AtomicRelaxStateData>;
+using AtomicRelaxStateRef = NativeRef<AtomicRelaxStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Resize state data in host code.
  */
 template<MemSpace M>
-inline void resize(AtomicRelaxStateData<Ownership::value, M>*          state,
-                   const ::celeritas::HostCRef<AtomicRelaxParamsData>& params,
-                   size_type                                           size)
+inline void resize(AtomicRelaxStateData<Ownership::value, M>* state,
+                   const HostCRef<AtomicRelaxParamsData>&     params,
+                   size_type                                  size)
 {
     CELER_EXPECT(size > 0);
     resize(&state->scratch, size * params.max_stack_size);

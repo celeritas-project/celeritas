@@ -36,7 +36,7 @@ class MaterialView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsRef = ::celeritas::NativeCRef<MaterialParamsData>;
+    using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     //!@}
 
   public:

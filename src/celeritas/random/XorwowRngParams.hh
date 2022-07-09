@@ -23,8 +23,8 @@ class XorwowRngParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = ::celeritas::HostCRef<XorwowRngParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<XorwowRngParamsData>;
+    using HostRef   = HostCRef<XorwowRngParamsData>;
+    using DeviceRef = DeviceCRef<XorwowRngParamsData>;
     //!@}
 
   public:

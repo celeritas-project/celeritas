@@ -45,8 +45,8 @@ class ParticleParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = ::celeritas::HostCRef<ParticleParamsData>;
-    using DeviceRef = ::celeritas::DeviceCRef<ParticleParamsData>;
+    using HostRef   = HostCRef<ParticleParamsData>;
+    using DeviceRef = DeviceCRef<ParticleParamsData>;
     //!@}
 
     //! Define a particle's input data

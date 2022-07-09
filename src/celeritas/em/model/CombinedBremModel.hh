@@ -35,8 +35,8 @@ class CombinedBremModel final : public Model
     //! Type aliases
     using AtomicNumber    = int;
     using ReadData        = std::function<ImportSBTable(AtomicNumber)>;
-    using HostRef         = ::celeritas::HostCRef<CombinedBremData>;
-    using DeviceRef       = ::celeritas::DeviceCRef<CombinedBremData>;
+    using HostRef         = HostCRef<CombinedBremData>;
+    using DeviceRef       = DeviceCRef<CombinedBremData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
