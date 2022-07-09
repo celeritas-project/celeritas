@@ -16,9 +16,9 @@ namespace geo_check
 //---------------------------------------------------------------------------//
 using celeritas::GeoTrackInitializer;
 
-using GeoParamsCRefHost   = celeritas::HostCRef<GeoParamsData>;
-using GeoParamsCRefDevice = celeritas::DeviceCRef<GeoParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<GeoStateData>;
+using GeoParamsCRefHost   = celeritas::HostCRef<celeritas::GeoParamsData>;
+using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
+using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
 
 using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
 
