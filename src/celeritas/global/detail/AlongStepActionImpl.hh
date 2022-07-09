@@ -177,7 +177,13 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         step_limit.step = geo_step;
     }
 
-    // TODO: update track's lab-frame time here
+    // Update track's lab-frame time using the beginning-of-step velocity
+    {
+        real_type speed = native_value_from(particle.speed());
+        CELER_ASSERT(speed > 0);
+        real_type delta_time = step_limit.step / speed;
+        sim.add_time(delta_time);
+    }
 
     using Energy = ParticleTrackView::Energy;
     Energy eloss = calc_energy_loss(

@@ -68,12 +68,15 @@ class TrackInitTest : public celeritas_test::SimpleTestBase
         std::vector<Primary> result;
         for (unsigned int i = 0; i < num_primaries; ++i)
         {
-            result.push_back({ParticleId{0},
-                              units::MevEnergy{1. + i},
-                              {0., 0., 0.},
-                              {0., 0., 1.},
-                              EventId{0},
-                              TrackId{i}});
+            Primary p;
+            p.particle_id = ParticleId{0};
+            p.energy      = units::MevEnergy{1. + i};
+            p.position    = {0, 0, 0};
+            p.direction   = {0, 0, 1};
+            p.time        = 0;
+            p.event_id    = EventId{0};
+            p.track_id    = TrackId{i};
+            result.push_back(p);
         }
         return result;
     }

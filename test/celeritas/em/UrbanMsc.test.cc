@@ -261,6 +261,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                TrackId{i},
                                EventId{1},
                                i % 2,
+                               0,
                                TrackStatus::alive,
                                StepLimit{}};
         sim_state_data.push_back(state);

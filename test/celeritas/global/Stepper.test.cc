@@ -112,6 +112,7 @@ class TestEm3Test : public celeritas_test::TestEm3Base, public StepperTest
         p.track_id  = TrackId{0};
         p.position  = {-22, 0, 0};
         p.direction = {1, 0, 0};
+        p.time      = 0;
 
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
