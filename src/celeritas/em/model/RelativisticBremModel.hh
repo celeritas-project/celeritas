@@ -27,10 +27,8 @@ class RelativisticBremModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef
-        = RelativisticBremData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = RelativisticBremData<Ownership::const_reference, MemSpace::device>;
+    using HostRef         = HostCRef<RelativisticBremData>;
+    using DeviceRef       = DeviceCRef<RelativisticBremData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
@@ -82,7 +80,7 @@ class RelativisticBremModel final : public Model
 
     //// TYPES ////
 
-    using HostValue = RelativisticBremData<Ownership::value, MemSpace::host>;
+    using HostValue = HostVal<RelativisticBremData>;
 
     using AtomicNumber = int;
     using FormFactor   = RelBremFormFactor;

@@ -23,8 +23,7 @@ class ParticleView
   public:
     //!@{
     //! Type aliases
-    using ParticleParamsRef
-        = ParticleParamsData<Ownership::const_reference, MemSpace::native>;
+    using ParticleParamsRef = NativeCRef<ParticleParamsData>;
     //!@}
 
   public:

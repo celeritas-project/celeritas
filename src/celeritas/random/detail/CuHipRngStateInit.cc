@@ -20,9 +20,8 @@ namespace detail
 /*!
  * Initialize the RNG states from seeds randomly generated on host.
  */
-void rng_state_init(
-    const CuHipRngStateData<Ownership::reference, MemSpace::host>&      rng,
-    const CuHipRngInitData<Ownership::const_reference, MemSpace::host>& seeds)
+void rng_state_init(const HostRef<CuHipRngStateData>& rng,
+                    const HostCRef<CuHipRngInitData>& seeds)
 {
     for (auto tid : range(ThreadId{seeds.size()}))
     {

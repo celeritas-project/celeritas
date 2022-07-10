@@ -26,9 +26,8 @@ class RayleighModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef = RayleighData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = RayleighData<Ownership::const_reference, MemSpace::device>;
+    using HostRef         = HostCRef<RayleighData>;
+    using DeviceRef       = DeviceCRef<RayleighData>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
     //@}
 
@@ -77,7 +76,7 @@ class RayleighModel final : public Model
     //// TYPES ////
 
     using AtomicNumber = int;
-    using HostValue    = RayleighData<Ownership::value, MemSpace::host>;
+    using HostValue    = HostVal<RayleighData>;
     using ElScatParams = RayleighParameters;
 
     //// HELPER FUNCTIONS ////

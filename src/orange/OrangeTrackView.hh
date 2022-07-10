@@ -27,9 +27,8 @@ class OrangeTrackView
   public:
     //!@{
     //! Type aliases
-    using ParamsRef
-        = OrangeParamsData<Ownership::const_reference, MemSpace::native>;
-    using StateRef = OrangeStateData<Ownership::reference, MemSpace::native>;
+    using ParamsRef     = NativeCRef<OrangeParamsData>;
+    using StateRef      = NativeRef<OrangeStateData>;
     using Initializer_t = GeoTrackInitializer;
     //!@}
 

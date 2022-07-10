@@ -151,8 +151,8 @@ class ParticleTestHost : public ParticleTest
         state_ref = state_value;
     }
 
-    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
-    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
+    ::celeritas::HostVal<ParticleStateData> state_value;
+    ::celeritas::HostRef<ParticleStateData> state_ref;
 };
 
 TEST_F(ParticleTestHost, electron)

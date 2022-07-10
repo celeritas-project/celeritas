@@ -42,9 +42,8 @@ class VecgeomTrackView
     //!@{
     //! Type aliases
     using Initializer_t = GeoTrackInitializer;
-    using ParamsRef
-        = VecgeomParamsData<Ownership::const_reference, MemSpace::native>;
-    using StateRef = VecgeomStateData<Ownership::reference, MemSpace::native>;
+    using ParamsRef     = NativeCRef<VecgeomParamsData>;
+    using StateRef      = NativeRef<VecgeomStateData>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
@@ -82,7 +81,7 @@ class VecgeomTrackView
 
     // Get the volume ID in the current cell.
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
-    CELER_FORCEINLINE_FUNCTION int volume_physid() const;
+    CELER_FORCEINLINE_FUNCTION int      volume_physid() const;
 
     //! VecGeom states are never "on" a surface
     CELER_FUNCTION SurfaceId surface_id() const { return {}; }

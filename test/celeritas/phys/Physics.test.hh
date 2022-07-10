@@ -40,9 +40,8 @@ struct PhysTestInit
 
 struct PTestInput
 {
-    celeritas::PhysicsParamsData<Ownership::const_reference, MemSpace::device>
-                                                                        params;
-    celeritas::PhysicsStateData<Ownership::reference, MemSpace::device> states;
+    celeritas::DeviceCRef<celeritas::PhysicsParamsData> params;
+    celeritas::DeviceRef<celeritas::PhysicsStateData>   states;
     celeritas::StateCollection<PhysTestInit,
                                Ownership::const_reference,
                                MemSpace::device>

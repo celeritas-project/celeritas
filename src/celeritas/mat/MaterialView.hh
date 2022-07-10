@@ -36,8 +36,7 @@ class MaterialView
   public:
     //!@{
     //! Type aliases
-    using MaterialParamsRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
+    using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     //!@}
 
   public:

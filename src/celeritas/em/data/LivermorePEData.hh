@@ -180,12 +180,9 @@ struct LivermorePEData
     }
 };
 
-using LivermorePEDeviceRef
-    = LivermorePEData<Ownership::const_reference, MemSpace::device>;
-using LivermorePEHostRef
-    = LivermorePEData<Ownership::const_reference, MemSpace::host>;
-using LivermorePERef
-    = LivermorePEData<Ownership::const_reference, MemSpace::native>;
+using LivermorePEDeviceRef = DeviceCRef<LivermorePEData>;
+using LivermorePEHostRef   = HostCRef<LivermorePEData>;
+using LivermorePERef       = NativeCRef<LivermorePEData>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

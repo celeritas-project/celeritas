@@ -47,10 +47,8 @@ class CutoffParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = CutoffParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = CutoffParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = HostCRef<CutoffParamsData>;
+    using DeviceRef = DeviceCRef<CutoffParamsData>;
 
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
@@ -87,7 +85,7 @@ class CutoffParams
   private:
     // Host/device storage and reference
     CollectionMirror<CutoffParamsData> data_;
-    using HostValue = CutoffParamsData<Ownership::value, MemSpace::host>;
+    using HostValue = HostVal<CutoffParamsData>;
 
     //// HELPER FUNCTIONS ////
 

@@ -44,9 +44,8 @@ class CoreParams
     using SPConstRng         = std::shared_ptr<const RngParams>;
     using SPActionManager    = std::shared_ptr<ActionManager>;
 
-    using HostRef = CoreParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = CoreParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = HostCRef<CoreParamsData>;
+    using DeviceRef = DeviceCRef<CoreParamsData>;
     //!@}
 
     struct Input

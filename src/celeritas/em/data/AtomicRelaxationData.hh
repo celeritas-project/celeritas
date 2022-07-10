@@ -105,8 +105,7 @@ struct AtomicRelaxParamsData
     }
 };
 
-using AtomicRelaxParamsRef
-    = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::native>;
+using AtomicRelaxParamsRef = NativeCRef<AtomicRelaxParamsData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -141,19 +140,16 @@ struct AtomicRelaxStateData
     }
 };
 
-using AtomicRelaxStateRef
-    = AtomicRelaxStateData<Ownership::reference, MemSpace::native>;
+using AtomicRelaxStateRef = NativeRef<AtomicRelaxStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Resize state data in host code.
  */
 template<MemSpace M>
-inline void
-resize(AtomicRelaxStateData<Ownership::value, M>* state,
-       const AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>&
-                 params,
-       size_type size)
+inline void resize(AtomicRelaxStateData<Ownership::value, M>* state,
+                   const HostCRef<AtomicRelaxParamsData>&     params,
+                   size_type                                  size)
 {
     CELER_EXPECT(size > 0);
     resize(&state->scratch, size * params.max_stack_size);

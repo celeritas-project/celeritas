@@ -41,7 +41,7 @@ class XorwowRngEngine
     //!@{
     //! Type aliases
     using result_type = unsigned int;
-    using StateRef = XorwowRngStateData<Ownership::reference, MemSpace::native>;
+    using StateRef    = NativeRef<XorwowRngStateData>;
     //!@}
 
   public:

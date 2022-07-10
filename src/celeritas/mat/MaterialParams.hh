@@ -40,10 +40,8 @@ class MaterialParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef             = HostCRef<MaterialParamsData>;
+    using DeviceRef           = DeviceCRef<MaterialParamsData>;
     using SpanConstMaterialId = Span<const MaterialId>;
     using SpanConstElementId  = Span<const ElementId>;
     //!@}
@@ -63,8 +61,8 @@ class MaterialParams
         real_type   temperature;    //!< Temperature [K]
         MatterState matter_state;   //!< Solid, liquid, gas
         std::vector<std::pair<ElementId, real_type>>
-                    elements_fractions; //!< Fraction of number density
-        Label       label;              //!< Material name
+              elements_fractions; //!< Fraction of number density
+        Label label;              //!< Material name
     };
 
     //! Input data to construct this class
@@ -138,7 +136,7 @@ class MaterialParams
     CollectionMirror<MaterialParamsData> data_;
 
     // HELPER FUNCTIONS
-    using HostValue = MaterialParamsData<Ownership::value, MemSpace::host>;
+    using HostValue = HostVal<MaterialParamsData>;
     void append_element_def(const ElementInput& inp, HostValue*);
     ItemRange<MatElementComponent>
          extend_elcomponents(const MaterialInput& inp, HostValue*) const;

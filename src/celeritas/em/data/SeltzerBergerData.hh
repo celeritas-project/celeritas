@@ -132,12 +132,9 @@ struct SeltzerBergerData
     }
 };
 
-using SeltzerBergerDeviceRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::device>;
-using SeltzerBergerHostRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::host>;
-using SeltzerBergerRef
-    = SeltzerBergerData<Ownership::const_reference, MemSpace::native>;
+using SeltzerBergerDeviceRef = DeviceCRef<SeltzerBergerData>;
+using SeltzerBergerHostRef   = HostCRef<SeltzerBergerData>;
+using SeltzerBergerRef       = NativeCRef<SeltzerBergerData>;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -176,7 +176,7 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsRef& params,
     CELER_EXPECT(num_tracks > 0);
     CELER_EXPECT(max_steps > 0);
 
-    StepDiagnosticData<Ownership::value, MemSpace::host> host_data;
+    ::celeritas::HostVal<StepDiagnosticData> host_data;
 
     // Add two extra bins for underflow and overflow
     host_data.num_bins      = max_steps + 2;
@@ -234,7 +234,7 @@ StepDiagnostic<M>::steps()
     using BinId = celeritas::ItemId<size_type>;
 
     // Copy result to host if necessary
-    StepDiagnosticData<Ownership::value, MemSpace::host> data;
+    ::celeritas::HostVal<StepDiagnosticData> data;
     data = data_;
 
     // Map particle ID to particle name and store steps per track distribution

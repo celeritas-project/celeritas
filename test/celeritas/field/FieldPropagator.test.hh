@@ -20,18 +20,11 @@
 
 namespace celeritas_test
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
 
-using GeoParamsCRefDevice
-    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
-using GeoStateRefDevice
-    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
-
-using ParticleParamsRef
-    = celeritas::ParticleParamsData<Ownership::const_reference, MemSpace::device>;
-using ParticleStateRef
-    = celeritas::ParticleStateData<Ownership::reference, MemSpace::device>;
+using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
+using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
+using ParticleParamsRef = celeritas::DeviceCRef<celeritas::ParticleParamsData>;
+using ParticleStateRef  = celeritas::DeviceRef<celeritas::ParticleStateData>;
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE

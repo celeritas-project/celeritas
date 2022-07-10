@@ -41,7 +41,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
     CELER_EXPECT(id);
     CELER_EXPECT(load_sb_table);
 
-    SeltzerBergerData<Ownership::value, MemSpace::host> host_data;
+    HostVal<SeltzerBergerData> host_data;
 
     // Save IDs
     host_data.ids.action   = id;

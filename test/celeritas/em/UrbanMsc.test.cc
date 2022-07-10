@@ -42,13 +42,11 @@ using MevEnergy = units::MevEnergy;
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
-using GeoParamsCRefDevice
-    = celeritas::GeoParamsData<Ownership::const_reference, MemSpace::device>;
-using GeoStateRefDevice
-    = celeritas::GeoStateData<Ownership::reference, MemSpace::device>;
+using GeoParamsCRefDevice = celeritas::DeviceCRef<GeoParamsData>;
+using GeoStateRefDevice   = celeritas::DeviceRef<GeoStateData>;
 
-using SimStateValue = SimStateData<Ownership::value, MemSpace::host>;
-using SimStateRef   = SimStateData<Ownership::reference, MemSpace::native>;
+using SimStateValue = ::celeritas::HostVal<SimStateData>;
+using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -64,8 +62,7 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsParamsHostRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
+    using PhysicsParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:

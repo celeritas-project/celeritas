@@ -178,10 +178,9 @@ struct MaterialStateData
  * Resize a material state in host code.
  */
 template<MemSpace M>
-inline void resize(
-    MaterialStateData<Ownership::value, M>*                               data,
-    const MaterialParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type                                                             size)
+inline void resize(MaterialStateData<Ownership::value, M>* data,
+                   const HostCRef<MaterialParamsData>&     params,
+                   size_type                               size)
 {
     CELER_EXPECT(size > 0);
     resize(&data->state, size);

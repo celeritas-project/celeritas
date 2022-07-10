@@ -31,10 +31,8 @@ class AtomicRelaxationParams
   public:
     //@{
     //! Type aliases
-    using HostRef
-        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = AtomicRelaxParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef        = HostCRef<AtomicRelaxParamsData>;
+    using DeviceRef      = DeviceCRef<AtomicRelaxParamsData>;
     using AtomicNumber   = int;
     using MevEnergy      = units::MevEnergy;
     using ReadData       = std::function<ImportAtomicRelaxation(AtomicNumber)>;
@@ -70,7 +68,7 @@ class AtomicRelaxationParams
     CollectionMirror<AtomicRelaxParamsData> data_;
 
     // HELPER FUNCTIONS
-    using HostData = AtomicRelaxParamsData<Ownership::value, MemSpace::host>;
+    using HostData = HostVal<AtomicRelaxParamsData>;
     void append_element(const ImportAtomicRelaxation& inp,
                         HostData*                     data,
                         MevEnergy                     electron_cutoff,

@@ -117,13 +117,10 @@ struct CoreStateData
     }
 };
 
-using CoreParamsDeviceRef
-    = CoreParamsData<Ownership::const_reference, MemSpace::device>;
-using CoreParamsHostRef
-    = CoreParamsData<Ownership::const_reference, MemSpace::host>;
-using CoreStateDeviceRef
-    = CoreStateData<Ownership::reference, MemSpace::device>;
-using CoreStateHostRef = CoreStateData<Ownership::reference, MemSpace::host>;
+using CoreParamsDeviceRef = DeviceCRef<CoreParamsData>;
+using CoreParamsHostRef   = HostCRef<CoreParamsData>;
+using CoreStateDeviceRef  = DeviceRef<CoreStateData>;
+using CoreStateHostRef    = HostRef<CoreStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -149,10 +146,9 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
  * Resize states in host code.
  */
 template<MemSpace M>
-inline void
-resize(CoreStateData<Ownership::value, M>*                               state,
-       const CoreParamsData<Ownership::const_reference, MemSpace::host>& params,
-       size_type                                                         size)
+inline void resize(CoreStateData<Ownership::value, M>* state,
+                   const HostCRef<CoreParamsData>&     params,
+                   size_type                           size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(params);

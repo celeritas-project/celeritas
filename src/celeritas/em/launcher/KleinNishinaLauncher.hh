@@ -23,8 +23,8 @@ inline CELER_FUNCTION Interaction klein_nishina_interact_track(
 {
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    auto        particle             = track.make_particle_view();
-    const auto& dir                  = track.make_geo_view().dir();
+    auto        particle = track.make_particle_view();
+    const auto& dir      = track.make_geo_view().dir();
 
     KleinNishinaInteractor interact(model, particle, dir, allocate_secondaries);
     auto                   rng = track.make_rng_engine();

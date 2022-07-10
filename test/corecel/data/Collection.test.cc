@@ -194,7 +194,7 @@ class CollectionTest : public celeritas_test::Test
 
     void SetUp() override
     {
-        MockParamsData<Ownership::value, MemSpace::host> host_data;
+        ::celeritas::HostVal<MockParamsData> host_data;
         host_data.max_element_components = 3;
 
         auto el_builder  = make_builder(&host_data.elements);
@@ -282,7 +282,7 @@ resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
 
 TEST_F(CollectionTest, host)
 {
-    MockStateData<Ownership::value, MemSpace::host> host_state;
+    ::celeritas::HostVal<MockStateData> host_state;
     resize(&host_state, 1);
     auto host_state_ref               = celeritas::make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};

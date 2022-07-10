@@ -49,7 +49,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(ModelId{physics_->num_models()}))
         {
-            const Model& m = physics_->model(id);
+            const Model& m = *physics_->model(id);
 
             models.push_back(
                 {{"label", m.label()},
@@ -64,7 +64,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(ProcessId{physics_->num_processes()}))
         {
-            const Process& p = physics_->process(id);
+            const Process& p = *physics_->process(id);
 
             processes.push_back({{"label", p.label()}});
         }

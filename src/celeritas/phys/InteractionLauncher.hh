@@ -26,7 +26,7 @@ namespace celeritas
  *
  * \code
 inline CELER_FUNCTION Interaction foo_interact(
-    FooModelData<Ownership::const_reference, MemSpace::native> const& data,
+    NativeCRef<FooModelData> const& data,
     celeritas::CoreTrackView const& track)
 {
     // ...

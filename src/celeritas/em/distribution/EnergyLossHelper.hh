@@ -65,13 +65,12 @@ class EnergyLossHelper
   public:
     //!@{
     //! Type aliases
-    using FluctuationRef
-        = FluctuationData<Ownership::const_reference, MemSpace::native>;
-    using Energy   = units::MevEnergy;
-    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
-    using Mass     = units::MevMass;
-    using Model    = EnergyLossFluctuationModel;
-    using Real2    = Array<real_type, 2>;
+    using FluctuationRef = NativeCRef<FluctuationData>;
+    using Energy         = units::MevEnergy;
+    using EnergySq       = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using Mass           = units::MevMass;
+    using Model          = EnergyLossFluctuationModel;
+    using Real2          = Array<real_type, 2>;
     //!@}
 
   public:

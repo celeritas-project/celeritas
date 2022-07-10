@@ -65,7 +65,7 @@ namespace celeritas
  * \code
 void resize(
     StateData<Ownership::value, M>*                               data,
-    const ParamsData<Ownership::const_reference, MemSpace::host>& params,
+    const HostCRef<ParamsData>& params,
     size_type                                                     size);
 // or...
 void resize(

@@ -49,7 +49,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> process_names;
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(p.process(process_id).label());
+        process_names.push_back(p.process(process_id)->label());
     }
     const std::string expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
@@ -60,7 +60,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> model_desc;
     for (auto model_id : range(ModelId{p.num_models()}))
     {
-        const auto& m = p.model(model_id);
+        const Model& m = *p.model(model_id);
         model_names.push_back(m.label());
         model_desc.push_back(m.description());
     }
@@ -140,8 +140,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     //!@{
     //! Type aliases
     using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
-    using ParamsHostRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::host>;
+    using ParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
     //!@}
 
     void SetUp() override
@@ -173,7 +172,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         // Save mapping of process label -> ID
         for (auto id : range(ProcessId{this->physics()->num_processes()}))
         {
-            process_names[this->physics()->process(id).label()] = id;
+            process_names[this->physics()->process(id)->label()] = id;
         }
     }
 
@@ -714,10 +713,10 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
-    physics_inp.materials                  = this->material();
-    physics_inp.particles                  = this->particles();
-    physics_inp.options                    = this->build_physics_options();
-    physics_inp.action_manager             = this->action_mgr().get();
+    physics_inp.materials      = this->material();
+    physics_inp.particles      = this->particles();
+    physics_inp.options        = this->build_physics_options();
+    physics_inp.action_manager = this->action_mgr().get();
 
     EPlusAnnihilationProcess::Options epgg_options;
     epgg_options.use_integral_xs = true;
@@ -740,7 +739,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 {
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
         *this->physics(), 1};
-    PhysicsParamsData<Ownership::const_reference, MemSpace::host> params_ref{
+    ::celeritas::HostCRef<PhysicsParamsData> params_ref{
         this->physics()->host_ref()};
 
     const auto pid = this->particles()->find("positron");

@@ -40,11 +40,9 @@ class MaterialTrackView
   public:
     //!@{
     //! Type aliases
-    using Initializer_t = MaterialTrackState;
-    using MaterialParamsRef
-        = MaterialParamsData<Ownership::const_reference, MemSpace::native>;
-    using MaterialStateRef
-        = MaterialStateData<Ownership::reference, MemSpace::native>;
+    using Initializer_t     = MaterialTrackState;
+    using MaterialParamsRef = NativeCRef<MaterialParamsData>;
+    using MaterialStateRef  = NativeRef<MaterialStateData>;
     //!@}
 
   public:

@@ -37,17 +37,13 @@ class PhysicsTrackView
   public:
     //!@{
     //! Type aliases
-    using Initializer_t = PhysicsTrackInitializer;
-    using FluctuationRef
-        = FluctuationData<Ownership::const_reference, MemSpace::native>;
-    using PhysicsParamsRef
-        = PhysicsParamsData<Ownership::const_reference, MemSpace::native>;
-    using PhysicsStateRef
-        = PhysicsStateData<Ownership::reference, MemSpace::native>;
-    using UrbanMscRef
-        = UrbanMscData<Ownership::const_reference, MemSpace::native>;
-    using Energy      = units::MevEnergy;
-    using ModelFinder = GridIdFinder<Energy, ParticleModelId>;
+    using Initializer_t    = PhysicsTrackInitializer;
+    using FluctuationRef   = NativeCRef<FluctuationData>;
+    using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef  = NativeRef<PhysicsStateData>;
+    using UrbanMscRef      = NativeCRef<UrbanMscData>;
+    using Energy           = units::MevEnergy;
+    using ModelFinder      = GridIdFinder<Energy, ParticleModelId>;
     //!@}
 
   public:

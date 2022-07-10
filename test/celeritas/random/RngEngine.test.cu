@@ -28,9 +28,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void
-sample_native_kernel(RngStateData<Ownership::reference, MemSpace::device> view,
-                     RngEngine::result_type* samples)
+__global__ void sample_native_kernel(::celeritas::DeviceRef<RngStateData> view,
+                                     RngEngine::result_type* samples)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size())
@@ -42,8 +41,8 @@ sample_native_kernel(RngStateData<Ownership::reference, MemSpace::device> view,
 
 template<class RealType>
 __global__ void
-sample_canonical_kernel(RngStateData<Ownership::reference, MemSpace::device> view,
-                        RealType* samples)
+sample_canonical_kernel(::celeritas::DeviceRef<RngStateData> view,
+                        RealType*                            samples)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() < view.size())

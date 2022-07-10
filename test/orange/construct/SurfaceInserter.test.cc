@@ -31,7 +31,7 @@ using namespace celeritas;
 class SurfaceInserterTest : public celeritas_test::Test
 {
   protected:
-    SurfaceData<Ownership::value, MemSpace::host> surface_data_;
+    ::celeritas::HostVal<SurfaceData> surface_data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -100,10 +100,9 @@ struct XorwowRngStateData
  * all threads using MT19937.
  */
 template<MemSpace M>
-void resize(
-    XorwowRngStateData<Ownership::value, M>* state,
-    const XorwowRngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type size);
+void resize(XorwowRngStateData<Ownership::value, M>* state,
+            const HostCRef<XorwowRngParamsData>&     params,
+            size_type                                size);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -20,8 +20,7 @@ class GeoMaterialView
   public:
     //!@{
     //! Type aliases
-    using GeoMaterialData
-        = GeoMaterialParamsData<Ownership::const_reference, MemSpace::native>;
+    using GeoMaterialData = NativeCRef<GeoMaterialParamsData>;
     //!@}
 
   public:

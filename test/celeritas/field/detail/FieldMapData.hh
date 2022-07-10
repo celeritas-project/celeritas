@@ -100,11 +100,9 @@ struct FieldMapData
     }
 };
 
-using FieldMapDeviceRef
-    = FieldMapData<Ownership::const_reference, MemSpace::device>;
-using FieldMapHostRef
-    = FieldMapData<Ownership::const_reference, MemSpace::host>;
-using FieldMapRef = FieldMapData<Ownership::const_reference, MemSpace::native>;
+using FieldMapDeviceRef = ::celeritas::DeviceCRef<FieldMapData>;
+using FieldMapHostRef   = ::celeritas::HostCRef<FieldMapData>;
+using FieldMapRef       = ::celeritas::NativeCRef<FieldMapData>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

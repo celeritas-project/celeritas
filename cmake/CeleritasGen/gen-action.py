@@ -23,6 +23,8 @@ CLIKE_TOP = '''\
 '''
 
 HH_TEMPLATE = CLIKE_TOP + """\
+#pragma once
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"

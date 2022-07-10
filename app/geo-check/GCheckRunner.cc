@@ -6,14 +6,15 @@
 //! \file GCheckRunner.cc
 //---------------------------------------------------------------------------//
 #include "GCheckRunner.hh"
-#include "GCheckKernel.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/sys/Stopwatch.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/field/LinearPropagator.hh"
+#include "celeritas/geo/GeoTrackView.hh"
+
+#include "GCheckKernel.hh"
 
 using namespace celeritas;
 
@@ -63,7 +64,7 @@ void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
     auto gpudata = run_gpu(input);
 
     CELER_LOG(status) << " # steps: cpu=" << cpudata.distances.size()
-            << " gpu=" << gpudata.distances.size() << "\n";
+                      << " gpu=" << gpudata.distances.size() << "\n";
     CELER_ASSERT(cpudata.ids.size() == gpudata.ids.size());
 
     if (!(cpudata.ids == gpudata.ids && cpudata.distances == gpudata.distances))

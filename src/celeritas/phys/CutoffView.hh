@@ -30,10 +30,9 @@ class CutoffView
   public:
     //!@{
     //! Type aliases
-    using CutoffId = OpaqueId<ParticleCutoff>;
-    using CutoffData
-        = CutoffParamsData<Ownership::const_reference, MemSpace::native>;
-    using Energy = units::MevEnergy;
+    using CutoffId   = OpaqueId<ParticleCutoff>;
+    using CutoffData = NativeCRef<CutoffParamsData>;
+    using Energy     = units::MevEnergy;
     //!@}
 
   public:

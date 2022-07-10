@@ -73,8 +73,8 @@ class SurfaceActionTest : public celeritas_test::Test
 
     void SetUp() override
     {
-        SurfaceData<Ownership::value, MemSpace::host> surface_data;
-        SurfaceInserter                               insert(&surface_data);
+        ::celeritas::HostVal<SurfaceData> surface_data;
+        SurfaceInserter                   insert(&surface_data);
         insert(PlaneX(1));
         insert(PlaneY(2));
         insert(PlaneZ(3));
@@ -186,9 +186,9 @@ TEST_F(SurfaceActionTest, string)
 TEST_F(SurfaceActionTest, host_distances)
 {
     // Create states and sample uniform box, isotropic direction
-    OrangeMiniStateData<Ownership::value, MemSpace::host> states;
+    ::celeritas::HostVal<OrangeMiniStateData> states;
     resize(&states, surf_params_.host(), 1024);
-    OrangeMiniStateData<Ownership::reference, MemSpace::host> state_ref;
+    ::celeritas::HostRef<OrangeMiniStateData> state_ref;
     state_ref = states;
     this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
@@ -226,7 +226,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
     {
         // Initialize on host
-        OrangeMiniStateData<Ownership::value, MemSpace::host> host_states;
+        ::celeritas::HostVal<OrangeMiniStateData> host_states;
         resize(&host_states, surf_params_.host(), 1024);
         this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
@@ -243,7 +243,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 
     {
         // Copy result back to host
-        OrangeMiniStateData<Ownership::value, MemSpace::host> host_states;
+        ::celeritas::HostVal<OrangeMiniStateData> host_states;
         host_states       = device_states;
         auto test_threads = celeritas::range(ThreadId{10});
 

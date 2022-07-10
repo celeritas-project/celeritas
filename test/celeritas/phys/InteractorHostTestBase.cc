@@ -133,7 +133,7 @@ void InteractorHostTestBase::set_material(const std::string& name)
     MaterialTrackView::Initializer_t init;
     init.material_id = material_params_->find_material(name);
     CELER_VALIDATE(init.material_id, << "no material '" << name << "' exists");
-    *mt_view_        = init;
+    *mt_view_ = init;
 }
 
 //---------------------------------------------------------------------------//

@@ -94,11 +94,8 @@ struct RelativisticBremData
     }
 };
 
-using RelativisticBremDeviceRef
-    = RelativisticBremData<Ownership::const_reference, MemSpace::device>;
-using RelativisticBremHostRef
-    = RelativisticBremData<Ownership::const_reference, MemSpace::host>;
-using RelativisticBremRef
-    = RelativisticBremData<Ownership::const_reference, MemSpace::native>;
+using RelativisticBremDeviceRef = DeviceCRef<RelativisticBremData>;
+using RelativisticBremHostRef   = HostCRef<RelativisticBremData>;
+using RelativisticBremRef       = NativeCRef<RelativisticBremData>;
 
 } // namespace celeritas

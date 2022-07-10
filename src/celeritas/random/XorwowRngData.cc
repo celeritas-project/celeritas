@@ -20,10 +20,9 @@ namespace celeritas
  * Resize and initialize with the seed stored in params.
  */
 template<MemSpace M>
-void resize(
-    XorwowRngStateData<Ownership::value, M>* state,
-    const XorwowRngParamsData<Ownership::const_reference, MemSpace::host>& params,
-    size_type size)
+void resize(XorwowRngStateData<Ownership::value, M>* state,
+            const HostCRef<XorwowRngParamsData>&     params,
+            size_type                                size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params);
@@ -37,7 +36,7 @@ void resize(
     std::uniform_int_distribution<uint_t> sample_uniform_int;
 
     // Create seeds for device in host memory
-    XorwowRngStateData<Ownership::value, MemSpace::host> host_state;
+    HostVal<XorwowRngStateData> host_state;
     resize(&host_state.state, size);
 
     // Fill all seeds with random data. The xorstate is never all
@@ -67,15 +66,13 @@ void resize(
 
 //---------------------------------------------------------------------------//
 // Explicit instantiations
-template void
-resize(XorwowRngStateData<Ownership::value, MemSpace::host>*,
-       const XorwowRngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type);
+template void resize(HostVal<XorwowRngStateData>*,
+                     const HostCRef<XorwowRngParamsData>&,
+                     size_type);
 
-template void
-resize(XorwowRngStateData<Ownership::value, MemSpace::device>*,
-       const XorwowRngParamsData<Ownership::const_reference, MemSpace::host>&,
-       size_type);
+template void resize(XorwowRngStateData<Ownership::value, MemSpace::device>*,
+                     const HostCRef<XorwowRngParamsData>&,
+                     size_type);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -34,17 +34,15 @@ class OrangeParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = OrangeParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = OrangeParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef           = HostCRef<OrangeParamsData>;
+    using DeviceRef         = DeviceCRef<OrangeParamsData>;
     using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 
     struct Input
     {
-        using Surfaces = SurfaceData<Ownership::value, MemSpace::host>;
-        using Volumes  = VolumeData<Ownership::value, MemSpace::host>;
+        using Surfaces = HostVal<SurfaceData>;
+        using Volumes  = HostVal<VolumeData>;
         using VecLabel = std::vector<Label>;
 
         Surfaces    surfaces;       //!< Surface definitions

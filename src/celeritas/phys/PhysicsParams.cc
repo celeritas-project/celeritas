@@ -246,7 +246,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     using ModelRange = std::tuple<real_type, real_type, ParticleModelId>;
 
     // Offset from the index in the list of models to a model's ActionId
-    data->scalars.model_to_action = this->model(ModelId{0}).action_id().get();
+    data->scalars.model_to_action = this->model(ModelId{0})->action_id().get();
 
     // Note: use map to keep ProcessId sorted
     std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
@@ -255,10 +255,10 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     ParticleModelId::size_type pm_idx{0};
 
     // Construct particle -> process -> model map
-    for (auto model_idx : range(this->num_models()))
+    for (auto mid : range(ModelId{this->num_models()}))
     {
-        const Model&    m          = *models_[model_idx].first;
-        const ProcessId process_id = models_[model_idx].second;
+        const Model&    m          = *this->model(mid);
+        const ProcessId process_id = this->process_id(mid);
         for (const Applicability& applic : m.applicability())
         {
             if (applic.material)
@@ -273,7 +273,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 {value_as<ModelGroup::Energy>(applic.lower),
                  value_as<ModelGroup::Energy>(applic.upper),
                  ParticleModelId{pm_idx++}});
-            temp_model_ids.push_back(ModelId{model_idx});
+            temp_model_ids.push_back(mid);
         }
     }
     make_builder(&data->model_ids)
@@ -328,7 +328,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
                 CELER_VALIDATE(
                     temp_energy_grid.back() == std::get<0>(r),
                     << "models for process '"
-                    << this->process(pid_models.first).label()
+                    << this->process(pid_models.first)->label()
                     << "' of particle type '"
                     << particles.id_to_label(ParticleId{particle_idx})
                     << "' has no data between energies of "
@@ -455,7 +455,7 @@ void PhysicsParams::build_xs(const Options&        opts,
             applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
-            const Process& proc = this->process(processes[pp_idx]);
+            const Process& proc = *this->process(processes[pp_idx]);
 
             // Grid IDs for each grid type, each material
             ValueGridArray<std::vector<ValueGridId>> temp_grid_ids;

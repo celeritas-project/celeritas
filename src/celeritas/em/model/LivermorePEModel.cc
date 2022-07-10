@@ -40,7 +40,7 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
 
-    LivermorePEData<Ownership::value, MemSpace::host> host_data;
+    HostVal<LivermorePEData> host_data;
 
     // Save IDs
     host_data.ids.action   = id;

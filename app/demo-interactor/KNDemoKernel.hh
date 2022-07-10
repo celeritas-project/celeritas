@@ -88,9 +88,8 @@ struct ParamsData
     }
 };
 
-using ParamsHostRef = ParamsData<Ownership::const_reference, MemSpace::host>;
-using ParamsDeviceRef
-    = ParamsData<Ownership::const_reference, MemSpace::device>;
+using ParamsHostRef   = ::celeritas::HostCRef<ParamsData>;
+using ParamsDeviceRef = ::celeritas::DeviceCRef<ParamsData>;
 
 //! Initial conditions
 struct InitialData
@@ -105,12 +104,12 @@ struct StateData
     using SecondaryAllocatorData
         = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
-    celeritas::ParticleStateData<W, M>                              particle;
-    celeritas::RngStateData<Ownership::reference, MemSpace::device> rng;
-    celeritas::Span<celeritas::Real3>                               position;
-    celeritas::Span<celeritas::Real3>                               direction;
-    celeritas::Span<celeritas::real_type>                           time;
-    celeritas::Span<bool>                                           alive;
+    celeritas::ParticleStateData<W, M>    particle;
+    celeritas::RngStateData<W, M>         rng;
+    celeritas::Span<celeritas::Real3>     position;
+    celeritas::Span<celeritas::Real3>     direction;
+    celeritas::Span<celeritas::real_type> time;
+    celeritas::Span<bool>                 alive;
 
     SecondaryAllocatorData  secondaries;
     DetectorStateData<W, M> detector;
@@ -128,8 +127,8 @@ struct StateData
     }
 };
 
-using StateHostRef   = StateData<Ownership::reference, MemSpace::host>;
-using StateDeviceRef = StateData<Ownership::reference, MemSpace::device>;
+using StateHostRef   = ::celeritas::HostRef<StateData>;
+using StateDeviceRef = ::celeritas::DeviceRef<StateData>;
 
 //---------------------------------------------------------------------------//
 // Initialize particle states

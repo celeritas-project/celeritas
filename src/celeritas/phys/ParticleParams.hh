@@ -45,10 +45,8 @@ class ParticleParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef
-        = ParticleParamsData<Ownership::const_reference, MemSpace::host>;
-    using DeviceRef
-        = ParticleParamsData<Ownership::const_reference, MemSpace::device>;
+    using HostRef   = HostCRef<ParticleParamsData>;
+    using DeviceRef = DeviceCRef<ParticleParamsData>;
     //!@}
 
     //! Define a particle's input data

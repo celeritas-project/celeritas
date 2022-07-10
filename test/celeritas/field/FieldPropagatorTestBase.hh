@@ -86,8 +86,8 @@ class FieldPropagatorTestBase : public celeritas_test::GlobalGeoTestBase
     }
 
   protected:
-    ParticleStateData<Ownership::value, MemSpace::host>     state_value;
-    ParticleStateData<Ownership::reference, MemSpace::host> state_ref;
+    ::celeritas::HostVal<ParticleStateData> state_value;
+    ::celeritas::HostRef<ParticleStateData> state_ref;
 
     FieldDriverOptions field_params;
 
