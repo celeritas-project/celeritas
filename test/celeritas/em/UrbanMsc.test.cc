@@ -297,7 +297,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                 phys,
                                 material_view,
                                 step_result,
-                                false);
+                                /* geo_limited = */ false);
 
         sample_result = scatter(rng_engine);
 
