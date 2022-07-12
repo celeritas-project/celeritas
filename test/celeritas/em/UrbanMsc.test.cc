@@ -296,7 +296,8 @@ TEST_F(UrbanMscTest, msc_scattering)
                                 &geo_view,
                                 phys,
                                 material_view,
-                                step_result);
+                                step_result,
+                                false);
 
         sample_result = scatter(rng_engine);
 
@@ -307,19 +308,19 @@ TEST_F(UrbanMscTest, msc_scattering)
     static const double expected_fstep[] = {0.0027916899999997,
                                             0.134631648532277,
                                             0.0376414,
-                                            0.035727783460526,
-                                            0.00111391683751815,
-                                            0.000112053935348643,
-                                            0.00028678982069363,
-                                            1.1737319513141e-05};
+                                            0.0781632965764156,
+                                            0.00137047789888519,
+                                            9.65987190264274e-05,
+                                            0.000742152890009348,
+                                            3.1163160031423e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
     static const double expected_angle[] = {0.000314741326035635,
                                             0.738624667826603,
                                             -0.145610123961716,
-                                            -0.657415795200799,
-                                            0.119014628205848,
-                                            -0.216102964881347,
-                                            0.793645871128744,
-                                            -0.98020130119347};
+                                            0,
+                                            -0.326505138945708,
+                                            0.0130719743269634,
+                                            0,
+                                            0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
 }
