@@ -225,6 +225,8 @@ struct HardwiredModels
  */
 struct PhysicsParamsScalars
 {
+    using Energy = units::MevEnergy;
+
     //! Highest number of processes for any particle type
     ProcessId::size_type max_particle_processes{};
     //! Offset to create an ActionId from a ModelId
@@ -236,6 +238,7 @@ struct PhysicsParamsScalars
     real_type scaling_min_range{};  //!< rho [cm]
     real_type scaling_fraction{};   //!< alpha [unitless]
     real_type energy_fraction{};    //!< xi [unitless]
+    Energy    eloss_calc_limit{};   //!< Lowest energy for eloss calculation
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
     bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
@@ -251,6 +254,7 @@ struct PhysicsParamsScalars
         return max_particle_processes > 0 && model_to_action >= 3
                && num_models > 0 && scaling_min_range > 0
                && scaling_fraction > 0 && energy_fraction > 0
+               && value_as<Energy>(eloss_calc_limit) > 0
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action));

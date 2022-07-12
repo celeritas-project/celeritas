@@ -56,10 +56,13 @@ class FluctuationParams;
  */
 struct PhysicsParamsOptions
 {
+    using Energy = units::MevEnergy;
+
     real_type min_range              = 1 * units::millimeter;
     real_type max_step_over_range    = 0.2;
     real_type min_eprime_over_e      = 0.8;
     real_type fixed_step_limiter     = 0;
+    Energy    eloss_calc_limit       = Energy{0.001};
     real_type linear_loss_limit      = 0.01;
     real_type secondary_stack_factor = 3;
     bool      disable_integral_xs    = false;
