@@ -117,18 +117,18 @@
 // HIP "assert" can cause unexpected device failures on AMD (simultaneous
 // writes from multiple threads), plus it will be disabled if NDEBUG -- same
 // with CUDA
-#    define CELER_DEVICE_ASSERT_(COND)                         \
-        do                                                     \
-        {                                                      \
-            if (CELER_UNLIKELY(!(COND)))                       \
-            {                                                  \
-                device_debug_error(#COND, __FILE__, __LINE__); \
-            }                                                  \
+#    define CELER_DEVICE_ASSERT_(COND)                                      \
+        do                                                                  \
+        {                                                                   \
+            if (CELER_UNLIKELY(!(COND)))                                    \
+            {                                                               \
+                ::celeritas::device_debug_error(#COND, __FILE__, __LINE__); \
+            }                                                               \
         } while (0)
 #    define CELER_DEVICE_ASSERT_UNREACHABLE_()                             \
         do                                                                 \
         {                                                                  \
-            device_debug_error(                                            \
+            ::celeritas::device_debug_error(                               \
                 "Unreachable code point encountered", __FILE__, __LINE__); \
             CELER_UNREACHABLE;                                             \
         } while (0)
