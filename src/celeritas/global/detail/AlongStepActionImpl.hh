@@ -151,7 +151,8 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         auto msc_step_result = track.make_physics_step_view().msc_step();
         if (geo_limited)
         {
-            msc_step_result.geom_path = geo_step;
+            msc_step_result.geom_path    = geo_step;
+            msc_step_result.is_displaced = false;
         }
 
         UrbanMscScatter msc_scatter(urban_data,
