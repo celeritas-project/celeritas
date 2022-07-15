@@ -70,7 +70,7 @@
 #    define TEST_IF_CELER_DEVICE(name) DISABLED_##name
 #endif
 
-//! Construct a test name that is disabled when JSON is disabled
+//! Construct a test name that is disabled when Geant4 is disabled
 #if CELERITAS_USE_GEANT4
 #    define TEST_IF_CELERITAS_GEANT(name) name
 #else

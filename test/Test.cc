@@ -115,7 +115,7 @@ std::string Test::make_unique_filename(const char* ext)
 /*!
  * True if strict testing is required.
  *
- * This is set during CI tests to that "loose" tests (which might depend on the
+ * This is set during CI tests so that "loose" tests (which might depend on the
  * environment) are enabled inside the CI.
  */
 bool Test::strict_testing()

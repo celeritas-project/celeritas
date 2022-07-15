@@ -140,7 +140,15 @@ double StepperTestBase::RunResult::calc_avg_steps_per_primary() const
 }
 
 //---------------------------------------------------------------------------//
-//! Index of last non-full step after capacity/maximum is reached
+/*!
+ * Index of step after the final non-full capacity/maximum is reached.
+ *
+ * For example: \verbatim
+    1, 2, 4, 8, 7, 8, 4, 3, 2, 1, 0
+                      ^
+   \endverbatim
+ * returns 6.
+ */
 size_type StepperTestBase::RunResult::calc_emptying_step() const
 {
     CELER_EXPECT(*this);
