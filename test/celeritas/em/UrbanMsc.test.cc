@@ -273,6 +273,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     RandomEngine&       rng_engine = this->rng();
     std::vector<double> fstep;
     std::vector<double> angle;
+    std::vector<double> displace;
     std::vector<char>   action;
     Real3               direction{0, 0, 1};
 
@@ -303,7 +304,12 @@ TEST_F(UrbanMscTest, msc_scattering)
         sample_result = scatter(rng_engine);
 
         fstep.push_back(sample_result.step_length);
-        angle.push_back(sample_result.direction[0]);
+        angle.push_back(sample_result.action != Action::unchanged
+                            ? sample_result.direction[0]
+                            : 0);
+        displace.push_back(sample_result.action == Action::displaced
+                               ? sample_result.displacement[0]
+                               : 0);
         action.push_back(sample_result.action == Action::displaced   ? 'd'
                          : sample_result.action == Action::scattered ? 's'
                                                                      : 'u');
@@ -327,6 +333,15 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0.793645871128744,
                                             -0.98020130119347};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
+    static const double expected_displace[] = {8.1986203515048e-06,
+                                               9.7530617641316e-05,
+                                               -7.1670542039709e-05,
+                                               0,
+                                               1.1960188979908e-05,
+                                               -2.8858960846053e-05,
+                                               0,
+                                               0};
+    EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
     static const char expected_action[]
         = {'d', 'd', 'd', 's', 'd', 'd', 's', 's'};
     EXPECT_VEC_EQ(expected_action, action);
