@@ -50,7 +50,7 @@ struct Interaction
     // Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
 
-    // Return an interaction with no change in the particle's state
+    // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction
     from_unchanged(units::MevEnergy energy, const Real3& direction);
 
@@ -90,9 +90,18 @@ struct MscStep
  */
 struct MscInteraction
 {
-    real_type step_length;  //!< True step length
-    Real3     direction;    //!< Post-step direction
-    Real3     displacement; //!< Lateral displacement
+    //! Interaction result category
+    enum class Action
+    {
+        displaced, //!< Direction and position changed
+        scattered, //!< Only direction changed
+        unchanged  //!< No state change
+    };
+
+    real_type step_length;               //!< True step length
+    Real3     direction;                 //!< Post-step direction
+    Real3     displacement;              //!< Lateral displacement
+    Action    action{Action::unchanged}; //!< Flags for interaction result
 };
 
 //---------------------------------------------------------------------------//

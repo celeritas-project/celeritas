@@ -39,6 +39,7 @@ using namespace celeritas;
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
+using Action    = celeritas::MscInteraction::Action;
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
@@ -272,6 +273,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     RandomEngine&       rng_engine = this->rng();
     std::vector<double> fstep;
     std::vector<double> angle;
+    std::vector<char>   action;
     Real3               direction{0, 0, 1};
 
     for (auto i : celeritas::range(nsamples))
@@ -302,6 +304,9 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         fstep.push_back(sample_result.step_length);
         angle.push_back(sample_result.direction[0]);
+        action.push_back(sample_result.action == Action::displaced   ? 'd'
+                         : sample_result.action == Action::scattered ? 's'
+                                                                     : 'u');
     }
 
     static const double expected_fstep[] = {0.0027916899999997,
@@ -322,4 +327,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0.793645871128744,
                                             -0.98020130119347};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
+    static const char expected_action[]
+        = {'d', 'd', 'd', 's', 'd', 'd', 's', 's'};
+    EXPECT_VEC_EQ(expected_action, action);
 }

@@ -65,9 +65,7 @@ class TestEm3Test : public celeritas_test::TestEm3Base,
 };
 
 //---------------------------------------------------------------------------//
-// XXX: disabled due to MSC errors
-// #define TestEm3MscTest TEST_IF_CELERITAS_GEANT(TestEm3MscTest)
-#define TestEm3MscTest DISABLED_TestEm3MscTest
+#define TestEm3MscTest TEST_IF_CELERITAS_GEANT(TestEm3MscTest)
 class TestEm3MscTest : public TestEm3Test
 {
   public:
@@ -82,9 +80,7 @@ class TestEm3MscTest : public TestEm3Test
 };
 
 //---------------------------------------------------------------------------//
-// XXX: disabled due to MSC errors
-//#define TestEm3MscNofluctTest TEST_IF_CELERITAS_GEANT(TestEm3MscNofluctTest)
-#define TestEm3MscNofluctTest DISABLED_TestEm3MscNofluctTest
+#define TestEm3MscNofluctTest TEST_IF_CELERITAS_GEANT(TestEm3MscNofluctTest)
 class TestEm3MscNofluctTest : public TestEm3Test
 {
   public:
@@ -200,7 +196,16 @@ TEST_F(TestEm3MscTest, host)
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
+    EXPECT_SOFT_NEAR(375, result.calc_avg_steps_per_primary(), 0.10);
 
+    if (this->is_wildstyle_build())
+    {
+        EXPECT_EQ(134, result.num_step_iters());
+        EXPECT_SOFT_EQ(381.25, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(24, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({9, 7}), result.calc_queue_hwm());
+    }
+    else
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
@@ -222,7 +227,15 @@ TEST_F(TestEm3MscTest, device)
     Stepper<MemSpace::device> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
+    EXPECT_SOFT_NEAR(375, result.calc_avg_steps_per_primary(), 0.10);
 
+    if (this->is_wildstyle_build())
+    {
+        EXPECT_EQ(161, result.num_step_iters());
+        EXPECT_SOFT_EQ(374.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(19, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({7, 9}), result.calc_queue_hwm());
+    }
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
