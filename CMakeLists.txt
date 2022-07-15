@@ -154,11 +154,11 @@ elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
 endif()
 
-if(CELERITAS_USE_Doxygen)
+if(CELERITAS_USE_Doxygen AND NOT Doxygen_FOUND)
   find_package(Doxygen REQUIRED)
 endif()
 
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
   # standalone project Celeritas will never have directory-level includes
@@ -167,11 +167,11 @@ if(CELERITAS_USE_Geant4)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
 endif()
 
-if(CELERITAS_USE_HepMC3)
+if(CELERITAS_USE_HepMC3 AND NOT HepMC3_FOUND)
   find_package(HepMC3 REQUIRED)
 endif()
 
-if(CELERITAS_USE_JSON)
+if(CELERITAS_USE_JSON AND NOT nlohmann_json_FOUND)
   find_package(nlohmann_json 3.7.0 REQUIRED)
 endif()
 
@@ -198,7 +198,7 @@ if(CELERITAS_USE_ROOT)
   find_package(ROOT REQUIRED)
 endif()
 
-if(CELERITAS_USE_SWIG)
+if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
   find_package(SWIG 4.0 REQUIRED)
 endif()
 
