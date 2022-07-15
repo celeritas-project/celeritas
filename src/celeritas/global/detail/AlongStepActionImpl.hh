@@ -232,6 +232,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
+            step_limit.action = {};
         }
         else
         {
@@ -245,7 +246,8 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     step.deposit_energy(eloss);
     particle.subtract_energy(eloss);
 
-    if (step_limit.action != phys.scalars().discrete_action())
+    if (step_limit.action != phys.scalars().discrete_action()
+        && sim.status() != TrackStatus::killed)
     {
         // Reduce remaining mean free paths to travel. The 'discrete action'
         // case is launched separately and resets the interaction MFP itself.
