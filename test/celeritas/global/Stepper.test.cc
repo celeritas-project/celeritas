@@ -113,8 +113,10 @@ TEST_F(TestEm3Test, host)
 
     if (this->is_ci_build())
     {
-        result.print_expected();
-        FAIL() << "Add CI data here";
+        EXPECT_EQ(343, result.num_step_iters());
+        EXPECT_SOFT_EQ(63490, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(255, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({108, 1416}), result.calc_queue_hwm());
     }
     else if (this->is_wildstyle_build())
     {
@@ -159,7 +161,14 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(58000, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_wildstyle_build())
+    if (this->is_ci_build())
+    {
+        EXPECT_EQ(218, result.num_step_iters());
+        EXPECT_SOFT_EQ(62756.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(82, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({75, 1450}), result.calc_queue_hwm());
+    }
+    else if (this->is_wildstyle_build())
     {
         EXPECT_EQ(218, result.num_step_iters());
         EXPECT_SOFT_EQ(62756.625, result.calc_avg_steps_per_primary());
