@@ -138,9 +138,6 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     range_ = helper_.range();
     // Mean free path for MSC at current energy
     lambda_ = helper_.msc_mfp(inc_energy_);
-
-    // The slowing down range should already have been applied as a step limit
-    CELER_ENSURE(range_ >= phys_step_);
 }
 
 //---------------------------------------------------------------------------//
