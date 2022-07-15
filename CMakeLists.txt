@@ -217,7 +217,7 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   # TODO: download and build GTest as a subproject if not available
   find_package(GTest)
   if(NOT GTest_FOUND)
