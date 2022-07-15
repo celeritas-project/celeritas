@@ -107,9 +107,11 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
     input.options        = this->build_physics_options();
     input.action_manager = this->action_mgr().get();
 
-    // For now, always use energy fluctuations
-    input.fluctuation = std::make_shared<FluctuationParams>(input.particles,
-                                                            input.materials);
+    if (this->enable_fluctuation())
+    {
+        input.fluctuation = std::make_shared<FluctuationParams>(
+            input.particles, input.materials);
+    }
 
     BremsstrahlungProcess::Options brem_options;
     brem_options.combined_model  = true;

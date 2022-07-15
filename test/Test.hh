@@ -30,6 +30,9 @@ class Test : public ::testing::Test
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
     static std::string test_data_path(const char* subdir, const char* filename);
 
+    // True if CELER_TEST_STRICT is set (under CI)
+    static bool strict_testing();
+
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
 
