@@ -227,7 +227,7 @@ TEST_F(TestEm3MscTest, host)
     }
 }
 
-TEST_F(TestEm3MscTest, device)
+TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries   = 8;
     size_type inits_per_track = 512;
@@ -245,6 +245,7 @@ TEST_F(TestEm3MscTest, device)
         EXPECT_EQ(19, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({7, 9}), result.calc_queue_hwm());
     }
+    else
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
@@ -270,7 +271,16 @@ TEST_F(TestEm3MscNofluctTest, host)
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
+    EXPECT_SOFT_NEAR(300, result.calc_avg_steps_per_primary(), 0.10);
 
+    if (this->is_srj_build())
+    {
+        EXPECT_EQ(131, result.num_step_iters());
+        EXPECT_SOFT_EQ(299.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(35, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({1, 4}), result.calc_queue_hwm());
+    }
+    else
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
@@ -283,7 +293,7 @@ TEST_F(TestEm3MscNofluctTest, host)
     }
 }
 
-TEST_F(TestEm3MscNofluctTest, device)
+TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries   = 8;
     size_type inits_per_track = 512;
@@ -293,6 +303,14 @@ TEST_F(TestEm3MscNofluctTest, device)
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
 
+    if (this->is_wildstyle_build())
+    {
+        EXPECT_EQ(134, result.num_step_iters());
+        EXPECT_SOFT_EQ(521.75, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(52, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({16, 6}), result.calc_queue_hwm());
+    }
+    else
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
