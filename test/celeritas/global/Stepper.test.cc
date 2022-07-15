@@ -213,7 +213,7 @@ TEST_F(TestEm3MscTest, host)
 
     if (this->is_ci_build())
     {
-        if (CELER_USE_VECGEOM)
+        if (CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ(128, result.num_step_iters());
             EXPECT_SOFT_EQ(338.75, result.calc_avg_steps_per_primary());
@@ -261,7 +261,7 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        if (CELER_USE_VECGEOM)
+        if (CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ(171, result.num_step_iters());
             EXPECT_SOFT_EQ(370.375, result.calc_avg_steps_per_primary());
@@ -311,7 +311,7 @@ TEST_F(TestEm3MscNofluctTest, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(360, result.calc_avg_steps_per_primary(), 0.50);
 
-    if (this->is_ci_build() && CELER_USE_VECGEOM)
+    if (this->is_ci_build() && CELERITAS_USE_VECGEOM)
     {
         EXPECT_EQ(153, result.num_step_iters());
         EXPECT_SOFT_EQ(412.625, result.calc_avg_steps_per_primary());
@@ -348,7 +348,7 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build() && CELER_USE_VECGEOM)
+    if (this->is_ci_build() && CELERITAS_USE_VECGEOM)
     {
         EXPECT_EQ(145, result.num_step_iters());
         EXPECT_SOFT_EQ(552, result.calc_avg_steps_per_primary());
