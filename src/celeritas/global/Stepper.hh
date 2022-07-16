@@ -55,6 +55,33 @@ struct StepperResult
 };
 
 //---------------------------------------------------------------------------//
+//! Interface class for stepper classes.
+class StepperInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Input       = StepperInput;
+    using VecPrimary  = std::vector<Primary>;
+    using result_type = StepperResult;
+    //!@}
+
+  public:
+    // Transport existing states
+    virtual StepperResult operator()() = 0;
+
+    // Transport existing states and these new primaries
+    virtual StepperResult operator()(VecPrimary primaries) = 0;
+
+    //! Whether the stepper is assigned/valid
+    virtual explicit operator bool() const = 0;
+
+  protected:
+    // Protected destructor prevents deletion of pointer-to-interface
+    ~StepperInterface() = default;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Manage a state vector and execute a single step on all of them.
  *
@@ -71,11 +98,11 @@ struct StepperResult
    \endcode
  */
 template<MemSpace M>
-class Stepper
+class Stepper : public StepperInterface
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Input       = StepperInput;
     using VecPrimary  = std::vector<Primary>;
     using result_type = StepperResult;
@@ -98,13 +125,13 @@ class Stepper
     ~Stepper();
 
     // Transport existing states
-    StepperResult operator()();
+    StepperResult operator()() final;
 
     // Transport existing states and these new primaries
-    StepperResult operator()(VecPrimary primaries);
+    StepperResult operator()(VecPrimary primaries) final;
 
     //! Whether the stepper is assigned/valid
-    explicit operator bool() const { return static_cast<bool>(states_); }
+    explicit operator bool() const final { return static_cast<bool>(states_); }
 
   private:
     // Params and call sequence

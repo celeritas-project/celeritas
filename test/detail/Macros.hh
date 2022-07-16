@@ -70,11 +70,11 @@
 #    define TEST_IF_CELER_DEVICE(name) DISABLED_##name
 #endif
 
-//! Construct a test name that is disabled when ROOT is disabled
-#if CELERITAS_USE_ROOT
-#    define TEST_IF_CELERITAS_USE_ROOT(name) name
+//! Construct a test name that is disabled when Geant4 is disabled
+#if CELERITAS_USE_GEANT4
+#    define TEST_IF_CELERITAS_GEANT(name) name
 #else
-#    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
+#    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
 #endif
 
 //! Construct a test name that is disabled when JSON is disabled
@@ -82,6 +82,13 @@
 #    define TEST_IF_CELERITAS_JSON(name) name
 #else
 #    define TEST_IF_CELERITAS_JSON(name) DISABLED_##name
+#endif
+
+//! Construct a test name that is disabled when ROOT is disabled
+#if CELERITAS_USE_ROOT
+#    define TEST_IF_CELERITAS_USE_ROOT(name) name
+#else
+#    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
 
 namespace celeritas_test

@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/Environment.hh"
 
 #include "detail/TestConfig.hh"
 
@@ -36,7 +37,7 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Generate test-unique filename.
+ * Generate test-unique filename.
  */
 std::string Test::make_unique_filename(const char* ext)
 {
@@ -108,6 +109,23 @@ std::string Test::make_unique_filename(const char* ext)
     os << ext;
 
     return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if strict testing is required.
+ *
+ * This is set during CI tests so that "loose" tests (which might depend on the
+ * environment) are enabled inside the CI.
+ */
+bool Test::strict_testing()
+{
+    const std::string& envstr = celeritas::getenv("CELER_TEST_STRICT");
+    if (envstr == "0")
+    {
+        return false;
+    }
+    return !envstr.empty();
 }
 
 //---------------------------------------------------------------------------//

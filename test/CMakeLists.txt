@@ -25,6 +25,7 @@ list(APPEND CELER_SOURCES
 
 add_library(CelerTest ${CELER_SOURCES})
 add_library(Celeritas::Test ALIAS CelerTest)
+set_property(TARGET CelerTest PROPERTY CXX_STANDARD 14)
 celeritas_target_link_libraries(CelerTest PRIVATE celeritas PUBLIC GTest::GTest)
 
 target_include_directories(CelerTest
@@ -212,6 +213,7 @@ add_library(CeleritasTest
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/TestEm3Base.cc
+  celeritas/global/StepperTestBase.cc
 )
 celeritas_target_link_libraries(CeleritasTest
   PRIVATE celeritas celeritas_io CelerTest)

@@ -90,19 +90,15 @@ GCheckOutput run_gpu(GCheckInput input)
 
     // Copy result back to CPU
     GCheckOutput result;
+    result.ids.resize(input.max_steps);
+    thrust::copy(ids.begin(), ids.end(), result.ids.begin());
 
-    // figure out how many valid steps returned
-    size_type nstep = 0;
-    for (auto id : thrust::host_vector<int>(ids))
-    {
-        if (id < 0)
-            break;
-        ++nstep;
-    }
-    // Return exact vector size for proper comparison with CPU
-    result.ids.resize(nstep);
-    thrust::copy(ids.begin(), ids.begin() + nstep, result.ids.begin());
+    // find exact vector size for proper comparison with CPU
+    auto end_ids = std::find_if(
+        result.ids.begin(), result.ids.end(), [](int id) { return id < 0; });
+    result.ids.erase(end_ids, result.ids.end());
 
+    size_type nstep = end_ids - result.ids.begin();
     result.distances.resize(nstep);
     thrust::copy(
         distances.begin(), distances.begin() + nstep, result.distances.begin());

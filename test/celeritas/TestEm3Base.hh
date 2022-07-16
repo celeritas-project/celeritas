@@ -29,7 +29,7 @@ class TestEm3Base : virtual public GlobalGeoTestBase
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type      = celeritas::real_type;
     using ImportData     = celeritas::ImportData;
     using PhysicsOptions = celeritas::PhysicsParamsOptions;
@@ -38,6 +38,7 @@ class TestEm3Base : virtual public GlobalGeoTestBase
   protected:
     const char* geometry_basename() const override { return "testem3-flat"; }
 
+    virtual bool      enable_fluctuation() const { return true; }
     virtual bool      enable_msc() const { return false; }
     virtual real_type secondary_stack_factor() const { return 3.0; }
 

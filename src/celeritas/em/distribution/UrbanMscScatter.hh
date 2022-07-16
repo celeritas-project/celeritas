@@ -122,13 +122,13 @@ class UrbanMscScatter
     // Calculate the correction on theta0 for positrons
     inline CELER_FUNCTION real_type calc_correction(real_type tau) const;
 
+    // Calculate the length of the displacement (using geometry safety)
+    inline CELER_FUNCTION real_type calc_displacement_length(real_type rmax2);
+
     // Update direction and position after the multiple scattering
     template<class Engine>
-    inline CELER_FUNCTION Real3 sample_displacement(Engine&   rng,
-                                                    real_type phi) const;
-
-    inline CELER_FUNCTION real_type
-    calc_displacement_scaling(const Real3& displacement, real_type rmax2);
+    inline CELER_FUNCTION Real3 sample_displacement_dir(Engine&   rng,
+                                                        real_type phi) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -197,7 +197,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
-        return MscInteraction{true_path_, inc_direction_, {0, 0, 0}};
+        return {
+            true_path_, {0, 0, 0}, {0, 0, 0}, MscInteraction::Action::unchanged};
     }
 
     // Sample polar angle and update tau_
@@ -208,28 +209,34 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     real_type phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 
+    MscInteraction result;
+    result.action = MscInteraction::Action::scattered;
+    {
+        // This should only be needed to silence compiler warning
+        result.displacement = {0, 0, 0};
+    }
+
     // Calculate displacement
-    Real3 displacement;
     if (is_displaced_ && tau_ >= params_.tau_small)
     {
         // Sample displacement and adjust
-        displacement    = this->sample_displacement(rng, phi);
-        real_type rmax2 = (true_path_ - geom_path_) * (true_path_ + geom_path_);
-        real_type scaling
-            = this->calc_displacement_scaling(displacement, rmax2);
-        for (auto i : range(3))
+        real_type length = this->calc_displacement_length(
+            (true_path_ - geom_path_) * (true_path_ + geom_path_));
+        if (length > 0)
         {
-            displacement[i] *= scaling;
+            result.displacement = this->sample_displacement_dir(rng, phi);
+            for (auto i : range(3))
+            {
+                result.displacement[i] *= length;
+            }
+            result.action = MscInteraction::Action::displaced;
         }
-    }
-    else
-    {
-        displacement = {0, 0, 0};
     }
 
     // Calculate direction and return
-    Real3 direction = rotate(from_spherical(costheta, phi), inc_direction_);
-    return MscInteraction{true_path_, direction, displacement};
+    result.step_length = true_path_;
+    result.direction   = rotate(from_spherical(costheta, phi), inc_direction_);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -528,8 +535,8 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
  * \param phi the azimuthal angle of the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
-                                                          real_type phi) const
+CELER_FUNCTION Real3
+UrbanMscScatter::sample_displacement_dir(Engine& rng, real_type phi) const
 {
     // Sample a unit direction of the displacement
     constexpr real_type cbeta = 2.160;
@@ -550,15 +557,13 @@ CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement(Engine&   rng,
 /*!
  * Scale displacement and correct near the boundary.
  */
-CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
-    const Real3& displacement, real_type rmax2)
+CELER_FUNCTION real_type
+UrbanMscScatter::calc_displacement_length(real_type rmax2)
 {
     CELER_EXPECT(rmax2 >= 0);
-    // Scale with the lateral arm
-    real_type multiplier = real_type(0.73) * std::sqrt(rmax2);
 
+    real_type rho = real_type(0.73) * std::sqrt(rmax2);
     // Do not sample near the boundary
-    real_type rho = multiplier * norm(displacement);
     if (rho > params_.geom_limit)
     {
         real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
@@ -568,16 +573,16 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_displacement_scaling(
         }
         else if (safety > params_.geom_limit)
         {
-            multiplier *= safety / rho;
+            rho *= safety / rho;
         }
         else
         {
             // Otherwise (near a volume boundary), do not change position
-            multiplier = 0;
+            rho = 0;
         }
     }
 
-    return multiplier;
+    return rho;
 }
 
 //---------------------------------------------------------------------------//

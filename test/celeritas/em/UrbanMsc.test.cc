@@ -39,6 +39,7 @@ using namespace celeritas;
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
+using Action    = celeritas::MscInteraction::Action;
 
 using celeritas::MemSpace;
 using celeritas::Ownership;
@@ -272,6 +273,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     RandomEngine&       rng_engine = this->rng();
     std::vector<double> fstep;
     std::vector<double> angle;
+    std::vector<double> displace;
+    std::vector<char>   action;
     Real3               direction{0, 0, 1};
 
     for (auto i : celeritas::range(nsamples))
@@ -302,7 +305,15 @@ TEST_F(UrbanMscTest, msc_scattering)
         sample_result = scatter(rng_engine);
 
         fstep.push_back(sample_result.step_length);
-        angle.push_back(sample_result.direction[0]);
+        angle.push_back(sample_result.action != Action::unchanged
+                            ? sample_result.direction[0]
+                            : 0);
+        displace.push_back(sample_result.action == Action::displaced
+                               ? sample_result.displacement[0]
+                               : 0);
+        action.push_back(sample_result.action == Action::displaced   ? 'd'
+                         : sample_result.action == Action::scattered ? 's'
+                                                                     : 'u');
     }
 
     static const double expected_fstep[] = {0.0027916899999997,
@@ -323,4 +334,16 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0,
                                             0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
+    static const double expected_displace[] = {8.19862035797085e-06,
+                                               9.7530617641316e-05,
+                                               -7.1670542039709e-05,
+                                               0,
+                                               -9.11378237130022e-05,
+                                               9.7877513962823e-06,
+                                               0,
+                                               0};
+    EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
+    static const char expected_action[]
+        = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
+    EXPECT_VEC_EQ(expected_action, action);
 }

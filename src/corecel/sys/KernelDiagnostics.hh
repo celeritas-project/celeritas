@@ -128,9 +128,10 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     value_type& diag = values_[key.get()];
     ++diag.num_launches;
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
-#if CELERITAS_DEBUG
-    this->log_launch(diag, num_threads);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        this->log_launch(diag, num_threads);
+    }
 }
 
 #ifdef CELER_DEVICE_SOURCE
