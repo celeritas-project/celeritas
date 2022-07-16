@@ -213,6 +213,7 @@ add_library(CeleritasTest
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/TestEm3Base.cc
+  celeritas/global/StepperTestBase.cc
 )
 celeritas_target_link_libraries(CeleritasTest
   PRIVATE celeritas celeritas_io CelerTest)

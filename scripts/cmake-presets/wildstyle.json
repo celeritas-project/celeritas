@@ -44,11 +44,12 @@
     },
     {
       "name": "base",
-      "displayName": "Wildstyle default options (GCC, debug)",
+      "displayName": "Wildstyle default options (GCC, debug, no omp)",
       "inherits": [".base"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {

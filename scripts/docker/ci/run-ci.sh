@@ -18,6 +18,9 @@ cmake --preset=${CMAKE_PRESET}
 # Build
 cmake --build --preset=${CMAKE_PRESET}
 
+# Require regression-like tests to be enabled and pass
+export CELER_TEST_STRICT=1
+
 cd build
 # Test
 ctest -T Test ${_ctest_args}

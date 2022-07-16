@@ -99,17 +99,17 @@ int test_main(int argc, char** argv)
         }
 
         // Write diagnostics and overall test result
-        cout << color_code('x');
         if (celeritas::device())
         {
-            cout << "Kernel diagnostics: " << celeritas::kernel_diagnostics()
-                 << endl;
+            CELER_LOG(debug)
+                << "Kernel diagnostics: " << celeritas::kernel_diagnostics();
         }
-        cout << "Celeritas environment variables: " << celeritas::environment()
-             << endl;
+        CELER_LOG(debug) << "Celeritas environment variables: "
+                         << celeritas::environment();
 
-        cout << (argc > 0 ? argv[0] : "UNKNOWN") << ": tests "
-             << (failed ? "FAILED" : "PASSED") << color_code(' ') << endl;
+        cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
+             << ": tests " << (failed ? "FAILED" : "PASSED") << color_code(' ')
+             << endl;
     }
 
     // Return 1 if any failure, 0 if all success

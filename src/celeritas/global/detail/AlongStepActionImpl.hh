@@ -163,13 +163,19 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         step_limit.step = msc_result.step_length;
 
         // Update direction and position
-        geo.set_dir(msc_result.direction);
-        Real3 new_pos;
-        for (int i : range(3))
+        if (msc_result.action != MscInteraction::Action::unchanged)
         {
-            new_pos[i] = geo.pos()[i] + msc_result.displacement[i];
+            geo.set_dir(msc_result.direction);
         }
-        geo.move_internal(new_pos);
+        if (msc_result.action == MscInteraction::Action::displaced)
+        {
+            Real3 new_pos;
+            for (int i : range(3))
+            {
+                new_pos[i] = geo.pos()[i] + msc_result.displacement[i];
+            }
+            geo.move_internal(new_pos);
+        }
     }
     else
     {
