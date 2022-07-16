@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/FluctuationData.hh"
@@ -27,16 +25,14 @@ class FluctuationParams
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-
     using HostRef   = celeritas::HostCRef<FluctuationData>;
     using DeviceRef = celeritas::DeviceCRef<FluctuationData>;
     //!@}
 
   public:
     // Construct with particle and material data
-    FluctuationParams(SPConstParticles particles, SPConstMaterials materials);
+    FluctuationParams(const ParticleParams& particles,
+                      const MaterialParams& materials);
 
     //! Access physics properties on the host
     const HostRef& host_ref() const { return data_.host(); }

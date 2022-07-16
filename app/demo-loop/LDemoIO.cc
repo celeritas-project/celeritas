@@ -267,7 +267,7 @@ TransporterInput load_input(const LDemoArgs& args)
         if (args.eloss_fluctuation)
         {
             input.fluctuation = std::make_shared<FluctuationParams>(
-                params.particle, params.material);
+                *params.particle, *params.material);
         }
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;

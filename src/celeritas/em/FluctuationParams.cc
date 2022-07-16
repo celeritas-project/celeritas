@@ -28,26 +28,23 @@ namespace celeritas
 /*!
  * Construct with particle and material data.
  */
-FluctuationParams::FluctuationParams(SPConstParticles particles,
-                                     SPConstMaterials materials)
+FluctuationParams::FluctuationParams(const ParticleParams& particles,
+                                     const MaterialParams& materials)
 {
-    CELER_EXPECT(materials);
-    CELER_EXPECT(particles);
-
     celeritas::HostVal<FluctuationData> data;
 
     // Set particle properties
-    data.electron_id = particles->find(pdg::electron());
+    data.electron_id = particles.find(pdg::electron());
     CELER_VALIDATE(data.electron_id,
                    << "missing electron particle (required for energy loss "
                       "fluctuations)");
-    data.electron_mass = particles->get(data.electron_id).mass().value();
+    data.electron_mass = particles.get(data.electron_id).mass().value();
 
     // Loop over materials
     auto urban = make_builder(&data.urban);
-    for (auto mat_id : range(MaterialId{materials->size()}))
+    for (auto mat_id : range(MaterialId{materials.size()}))
     {
-        const auto mat = materials->get(mat_id);
+        const auto mat = materials.get(mat_id);
 
         // Calculate the parameters for the energy loss fluctuation model (see
         // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)
