@@ -199,15 +199,8 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     }
 
     using Energy = ParticleTrackView::Energy;
-    Energy eloss
-        = (particle.energy() < phys.scalars().eloss_calc_limit && !geo_limited)
-              ? particle.energy()
-              : calc_energy_loss(track.make_cutoff_view(),
-                                 mat,
-                                 particle,
-                                 phys,
-                                 step_limit.step,
-                                 rng);
+    Energy eloss = calc_energy_loss(
+        track.make_cutoff_view(), mat, particle, phys, step_limit.step, rng);
 
     if (eloss == particle.energy())
     {
