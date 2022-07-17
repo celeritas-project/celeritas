@@ -15,9 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
-#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/XsGridData.hh"
 
@@ -155,7 +153,7 @@ struct ProcessGroup
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
  *
- * TODO: livermore/relaxation/urban data are owned by other classes, but
+ * TODO: livermore/relaxation are owned by other classes, but
  * because we assign <host, value> -> { <host, cref> ; <device, value> ->
  * <device, cref> }
  */
@@ -178,8 +176,6 @@ struct HardwiredModels
 
     // Multiple scattering (data for the mean free path)
     ProcessId          msc;
-    ModelId            urban;
-    UrbanMscData<W, M> urban_data;
 
     //// MEMBER FUNCTIONS ////
 
@@ -202,12 +198,6 @@ struct HardwiredModels
         eplusgg_data          = other.eplusgg_data;
 
         msc = other.msc;
-        if (msc)
-        {
-            // Only assign msc data if that process is present
-            urban      = other.urban;
-            urban_data = other.urban_data;
-        }
 
         return *this;
     }
@@ -238,7 +228,6 @@ struct PhysicsParamsScalars
     real_type energy_fraction{};    //!< xi [unitless]
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
-    bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
 
     real_type secondary_stack_factor = 3; //!< Secondary storage per state size
 
@@ -327,7 +316,6 @@ struct PhysicsParamsData
 
     // Special data
     HardwiredModels<W, M> hardwired;
-    FluctuationData<W, M> fluctuation;
 
     // Non-templated data
     PhysicsParamsScalars scalars;
@@ -360,7 +348,6 @@ struct PhysicsParamsData
         model_xs        = other.model_xs;
 
         hardwired   = other.hardwired;
-        fluctuation = other.fluctuation;
 
         scalars = other.scalars;
 
@@ -474,10 +461,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.scalars.max_particle_processes > 0);
     resize(&state->state, size);
-    if (params.hardwired.msc)
-    {
-        resize(&state->msc_step, size);
-    }
+    resize(&state->msc_step, size);
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
     resize(&state->relaxation, params.hardwired.relaxation_data, size);

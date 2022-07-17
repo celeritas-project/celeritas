@@ -19,6 +19,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
@@ -120,11 +121,11 @@ Transporter<M>::Transporter(TransporterInput inp)
     TransporterBase::input_ = std::move(inp);
     CELER_EXPECT(input_);
 
+    const CoreParams& params = *input_.params;
+
     // Create diagnostics
     if (input_.enable_diagnostics)
     {
-        const CoreParams& params = *input_.params;
-
         diagnostics_ = std::make_shared<DiagnosticStore>();
         auto& diag   = get_diag_ref(*diagnostics_, MemTag<M>{});
         diag.push_back(std::make_unique<StepDiagnostic<M>>(

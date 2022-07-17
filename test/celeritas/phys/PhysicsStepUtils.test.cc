@@ -180,26 +180,28 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     }
 }
 
-TEST_F(PhysicsStepUtilsTest, calc_energy_loss)
+TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
 {
     MaterialTrackView material(
         this->material()->host_ref(), mat_state.ref(), ThreadId{0});
     ParticleTrackView particle(
         this->particle()->host_ref(), par_state.ref(), ThreadId{0});
-    CutoffView cutoffs(this->cutoff()->host_ref(), MaterialId{0});
 
     auto calc_eloss
         = [&](const PhysicsTrackView& phys, real_type step) -> real_type {
-        MevEnergy result = celeritas::calc_energy_loss(
-            cutoffs, material, particle, phys, step, this->rng());
+        MevEnergy result
+            = celeritas::calc_mean_energy_loss(particle, phys, step);
         return result.value();
     };
 
     {
-        // Long step, but gamma means no energy loss
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
-        EXPECT_SOFT_EQ(0, calc_eloss(phys, 1e4));
+        if (CELERITAS_DEBUG)
+        {
+            // Can't calc eloss for photons
+            EXPECT_THROW(calc_eloss(phys, 1e4), celeritas::DebugError);
+        }
     }
     {
         PhysicsTrackView phys = this->init_track(

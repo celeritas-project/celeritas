@@ -62,6 +62,7 @@ struct TransporterInput
     size_type num_track_slots{};  //!< AKA max_num_tracks
     size_type num_initializers{}; //!< AKA initializer_capacity
     size_type max_steps{};
+    bool      eloss_fluctuation{true};
     bool      enable_diagnostics{true};
 
     // Diagnostic setup
@@ -156,8 +157,6 @@ class TransporterBase
   protected:
     // TODO: these protected data are a hack for now
     TransporterInput                 input_;
-    std::shared_ptr<DiagnosticStore> diagnostics_;
-    celeritas::ActionId              diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//
@@ -173,6 +172,10 @@ class Transporter final : public TransporterBase
 
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(VecPrimary primaries) final;
+
+  private:
+    std::shared_ptr<DiagnosticStore> diagnostics_;
+    celeritas::ActionId              diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//

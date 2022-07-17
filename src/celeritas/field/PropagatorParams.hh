@@ -3,28 +3,32 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/distribution/EnergyLossDistribution.hh
+//! \file celeritas/field/PropagatorParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-
-#include "EnergyLossHelper.hh"
-#include "EnergyLossTraits.hh"
+#include "corecel/cont/Array.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Return an energy loss distribution function based on the helper's model.
-template<EnergyLossFluctuationModel M>
-CELER_FUNCTION typename EnergyLossTraits<M>::type
-make_distribution(const EnergyLossHelper& helper)
+/*!
+ * Data for propagation in a straight line (none needed).
+ */
+struct LinearPropagatorParams
 {
-    CELER_EXPECT(helper.model() == M);
+};
 
-    using Distribution = typename EnergyLossTraits<M>::type;
-    return Distribution{helper};
-}
+//---------------------------------------------------------------------------//
+/*!
+ * Data for propagation in a uniform magnetic field.
+ */
+struct UniformMagPropagatorParams
+{
+    Real3              field; //!< Field strength [native units]
+    FieldDriverOptions driver_options;
+};
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

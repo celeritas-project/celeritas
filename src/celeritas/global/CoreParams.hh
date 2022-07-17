@@ -13,6 +13,8 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
+#include "ActionInterface.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -34,7 +36,7 @@ class CoreParams
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstGeo         = std::shared_ptr<const GeoParams>;
     using SPConstMaterial    = std::shared_ptr<const MaterialParams>;
     using SPConstGeoMaterial = std::shared_ptr<const GeoMaterialParams>;
@@ -43,6 +45,7 @@ class CoreParams
     using SPConstPhysics     = std::shared_ptr<const PhysicsParams>;
     using SPConstRng         = std::shared_ptr<const RngParams>;
     using SPActionManager    = std::shared_ptr<ActionManager>;
+    using SPConstAction      = std::shared_ptr<const ExplicitActionInterface>;
 
     using HostRef   = HostCRef<CoreParamsData>;
     using DeviceRef = DeviceCRef<CoreParamsData>;
@@ -58,6 +61,7 @@ class CoreParams
         SPConstPhysics     physics;
         SPConstRng         rng;
 
+        SPConstAction   along_step;
         SPActionManager action_mgr;
 
         //! True if all params are assigned
@@ -83,6 +87,7 @@ class CoreParams
     const SPConstParticle& particle() const { return input_.particle; }
     const SPConstCutoff&   cutoff() const { return input_.cutoff; }
     const SPConstPhysics&  physics() const { return input_.physics; }
+    const SPConstAction&   along_step() const { return input_.along_step; }
     const SPConstRng&      rng() const { return input_.rng; }
     const SPActionManager& action_mgr() const { return input_.action_mgr; }
     //!@}

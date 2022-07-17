@@ -22,6 +22,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -107,12 +108,6 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
     input.options        = this->build_physics_options();
     input.action_manager = this->action_mgr().get();
 
-    if (this->enable_fluctuation())
-    {
-        input.fluctuation = std::make_shared<FluctuationParams>(
-            input.particles, input.materials);
-    }
-
     BremsstrahlungProcess::Options brem_options;
     brem_options.combined_model  = true;
     brem_options.enable_lpm      = true;
@@ -147,6 +142,21 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
             input.particles, input.materials, process_data));
     }
     return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto TestEm3Base::build_along_step() -> SPConstAction
+{
+    auto result
+        = AlongStepGeneralLinearAction::from_params(*this->material(),
+                                                    *this->particle(),
+                                                    *this->physics(),
+                                                    this->enable_fluctuation(),
+                                                    this->action_mgr().get());
+    CELER_ENSURE(result);
+    CELER_ENSURE(result->has_fluct() == this->enable_fluctuation());
+    CELER_ENSURE(result->has_msc() == this->enable_msc());
+    return result;
 }
 
 //---------------------------------------------------------------------------//
