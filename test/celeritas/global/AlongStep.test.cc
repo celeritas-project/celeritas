@@ -81,7 +81,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 0.25};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.46842934015656, result.eloss);
+        EXPECT_SOFT_NEAR(0.46842934015656, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.25, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(8.348974534499e-12, result.time);
@@ -93,7 +93,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 1e-4};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.00018784530172589, result.eloss);
+        EXPECT_SOFT_EQ(0.00018784530172589, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(3.3395898137996e-15, result.time);
@@ -115,11 +115,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 0.25};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.4749606626165, result.eloss);
+        EXPECT_SOFT_EQ(0.4749606626165, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.25, result.displacement);
-        EXPECT_SOFT_EQ(0.86092633070668, result.angle);
-        EXPECT_SOFT_EQ(8.4653845033461e-12, result.time);
-        EXPECT_SOFT_EQ(0.25348575649519, result.step);
+        EXPECT_SOFT_EQ(0.86092633070668, result.angle, 5e-4);
+        EXPECT_SOFT_EQ(8.4653845033461e-12, result.time, 1e-5);
+        EXPECT_SOFT_EQ(0.25348575649519, result.step, 1e-5);
     }
     {
         SCOPED_TRACE("low energy electron far from boundary");
@@ -127,9 +127,9 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.energy      = MevEnergy{1};
         inp.position    = {0.0 - 0.25};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.29099416915603, result.eloss);
-        EXPECT_SOFT_EQ(0.13232372765681, result.displacement);
-        EXPECT_SOFT_EQ(0.5577360891992, result.angle);
+        EXPECT_SOFT_EQ(0.29099416915603, result.eloss, 5e-4);
+        EXPECT_SOFT_EQ(0.13232372765681, result.displacement, 5e-4);
+        EXPECT_SOFT_EQ(0.5577360891992, result.angle, 5e-4);
         EXPECT_SOFT_EQ(5.4180974597247e-12, result.time);
         EXPECT_SOFT_EQ(0.15285994752696, result.step);
     }
@@ -139,11 +139,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 1e-4};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.00018784630366397, result.eloss);
+        EXPECT_SOFT_EQ(0.00018784630366397, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
-        EXPECT_SOFT_EQ(0.86607133776412, result.angle);
-        EXPECT_SOFT_EQ(3.3396076266577e-15, result.time);
-        EXPECT_SOFT_EQ(0.00010000053338461, result.step);
+        EXPECT_SOFT_EQ(0.86607133776412, result.angle, 5e-4);
+        EXPECT_SOFT_EQ(3.3396076266577e-15, result.time, 1e-5);
+        EXPECT_SOFT_EQ(0.00010000053338461, result.step, 1e-5);
     }
 }
 
@@ -161,7 +161,7 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 0.25};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(0.46402579396636, result.eloss);
+        EXPECT_SOFT_EQ(0.46402579396636, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.25, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(8.348974534499e-12, result.time);
