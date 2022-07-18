@@ -30,6 +30,8 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/random/RngParams.hh"
 
+#include "celeritas_cmake_strings.h"
+
 using namespace celeritas;
 
 namespace celeritas_test
@@ -54,7 +56,41 @@ ImportData load_import_data(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
+//! Test for equality of two C strings
+bool cstring_equal(const char* lhs, const char* rhs)
+{
+    return std::strcmp(lhs, rhs) == 0;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
+
+//---------------------------------------------------------------------------//
+//! Whether Geant4 dependencies match those on the CI build
+bool TestEm3Base::is_ci_build()
+{
+    return cstring_equal(celeritas_rng, "XORWOW")
+           && cstring_equal(celeritas_clhep_version, "2.4.4.0")
+           && cstring_equal(celeritas_geant4_version, "10.7.2");
+}
+
+//---------------------------------------------------------------------------//
+//! Whether Geant4 dependencies match those on Wildstyle
+bool TestEm3Base::is_wildstyle_build()
+{
+    return cstring_equal(celeritas_rng, "XORWOW")
+           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
+           && cstring_equal(celeritas_geant4_version, "10.7.3");
+}
+
+//---------------------------------------------------------------------------//
+//! Whether Geant4 dependencies match those on the CI build
+bool TestEm3Base::is_srj_build()
+{
+    return cstring_equal(celeritas_rng, "XORWOW")
+           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
+           && cstring_equal(celeritas_geant4_version, "11.0.0");
+}
 
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
@@ -164,6 +200,15 @@ auto TestEm3Base::imported_data() const -> const ImportData&
     static ImportData imported = load_import_data(this->test_data_path(
         "celeritas", gdml_filename(this->geometry_basename()).c_str()));
     return imported;
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
+{
+    os << "RNG=\"" << celeritas_rng << "\", CLHEP=\""
+       << celeritas_clhep_version << "\", Geant4=\""
+       << celeritas_geant4_version << '"';
+    return os;
 }
 
 //---------------------------------------------------------------------------//

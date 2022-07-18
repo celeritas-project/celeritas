@@ -16,51 +16,11 @@
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/Stepper.hh"
 
-#include "celeritas_cmake_strings.h"
-
 using namespace celeritas;
 using std::cout;
 
 namespace celeritas_test
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Test for equality of two C strings
-bool cstring_equal(const char* lhs, const char* rhs)
-{
-    return std::strcmp(lhs, rhs) == 0;
-}
-//---------------------------------------------------------------------------//
-} // namespace
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on the CI build
-bool StepperTestBase::is_ci_build()
-{
-    return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.4.0")
-           && cstring_equal(celeritas_geant4_version, "10.7.2");
-}
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on Wildstyle
-bool StepperTestBase::is_wildstyle_build()
-{
-    return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
-           && cstring_equal(celeritas_geant4_version, "10.7.3");
-}
-
-//---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on the CI build
-bool StepperTestBase::is_srj_build()
-{
-    return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
-           && cstring_equal(celeritas_geant4_version, "11.0.0");
-}
-
 //---------------------------------------------------------------------------//
 //! Construct dummy action at creation
 StepperTestBase::StepperTestBase()
@@ -202,15 +162,5 @@ void StepperTestBase::RunResult::print_expected() const
          << "}), result.calc_queue_hwm());\n"
             "/*** END CODE ***/\n";
 }
-
-//---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
-{
-    os << "RNG=\"" << celeritas_rng << "\", CLHEP=\""
-       << celeritas_clhep_version << "\", Geant4=\""
-       << celeritas_geant4_version << '"';
-    return os;
-}
-
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

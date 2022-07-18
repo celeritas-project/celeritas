@@ -213,6 +213,7 @@ add_library(CeleritasTest
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/TestEm3Base.cc
+  celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
 )
 celeritas_target_link_libraries(CeleritasTest
@@ -291,6 +292,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 # Global
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionManager.test.cc)
+celeritas_add_test(celeritas/global/AlongStep.test.cc)
 celeritas_add_test(celeritas/global/Stepper.test.cc
   GPU ${_needs_geant4})
 
