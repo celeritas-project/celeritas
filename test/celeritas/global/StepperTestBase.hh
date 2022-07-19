@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -78,13 +77,6 @@ class StepperTestBase : virtual public celeritas_test::GlobalTestBase
     };
 
   public:
-    //!@{
-    //! Whether the Geant4 configuration match a certain machine
-    static bool is_ci_build();
-    static bool is_wildstyle_build();
-    static bool is_srj_build();
-    //!@}
-
     // Add dummy action at construction
     StepperTestBase();
 
@@ -109,13 +101,6 @@ class StepperTestBase : virtual public celeritas_test::GlobalTestBase
   protected:
     std::shared_ptr<DummyAction> dummy_action_;
 };
-
-//---------------------------------------------------------------------------//
-//! Print the current configuration
-struct PrintableBuildConf
-{
-};
-std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
