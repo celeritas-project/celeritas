@@ -139,7 +139,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.energy      = MevEnergy{10};
         inp.position    = {0.0 - 1e-4};
         auto result     = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 1e-4);
+        EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
         EXPECT_SOFT_NEAR(0.87210603989396, result.angle, 1e-3);
         EXPECT_SOFT_EQ(3.3396076266578e-15, result.time);
