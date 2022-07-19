@@ -79,7 +79,7 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
     auto   particle = track.make_particle_view();
     Energy eloss    = calc_mean_energy_loss(particle, phys, step_limit->step);
 
-    if (eloss > zero_quantity() && eloss < particle.energy())
+    if (fluct_params_ && eloss > zero_quantity() && eloss < particle.energy())
     {
         // Apply energy loss fluctuations
         auto cutoffs  = track.make_cutoff_view();
