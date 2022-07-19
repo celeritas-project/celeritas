@@ -262,6 +262,11 @@ TEST_F(TestEm3MscTest, host)
 
 TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 {
+    if (CELERITAS_USE_VECGEOM && this->is_ci_build())
+    {
+        GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
+    }
+
     size_type num_primaries   = 8;
     size_type inits_per_track = 512;
     size_type num_tracks      = 1024;
@@ -269,11 +274,6 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
-
-    if (CELERITAS_USE_VECGEOM && this->is_ci_build())
-    {
-        GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
-    }
 
     if (this->is_ci_build())
     {
