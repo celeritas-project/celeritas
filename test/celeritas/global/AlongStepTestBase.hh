@@ -52,11 +52,12 @@ class AlongStepTestBase : virtual public celeritas_test::GlobalTestBase
 
     struct RunResult
     {
-        real_type eloss{};        //!< Energy loss / MeV
-        real_type displacement{}; //!< Distance from start to end points
-        real_type angle{};        //!< Dot product of in/out direction
-        real_type time{};         //!< Change in time
-        real_type step{};         //!< Physical step length
+        real_type   eloss{};        //!< Energy loss / MeV
+        real_type   displacement{}; //!< Distance from start to end points
+        real_type   angle{};        //!< Dot product of in/out direction
+        real_type   time{};         //!< Change in time
+        real_type   step{};         //!< Physical step length
+        std::string action;         //!< Most likely action to take next
 
         void print_expected() const;
     };
