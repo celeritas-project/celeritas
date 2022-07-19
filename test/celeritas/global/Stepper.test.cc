@@ -277,20 +277,10 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        if (CELERITAS_USE_VECGEOM)
-        {
-            EXPECT_EQ(171, result.num_step_iters());
-            EXPECT_SOFT_EQ(370.375, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(30, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({7, 8}), result.calc_queue_hwm());
-        }
-        else
-        {
-            EXPECT_EQ(61, result.num_step_iters());
-            EXPECT_SOFT_EQ(55.625, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(9, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({7, 8}), result.calc_queue_hwm());
-        }
+        EXPECT_EQ(61, result.num_step_iters());
+        EXPECT_SOFT_EQ(55.625, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(9, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({7, 8}), result.calc_queue_hwm());
     }
     else if (this->is_wildstyle_build())
     {
