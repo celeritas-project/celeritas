@@ -54,8 +54,10 @@ AlongStepGeneralLinearAction::from_params(const MaterialParams& materials,
         }
     }
 
-    return std::make_shared<AlongStepGeneralLinearAction>(
+    auto result = std::make_shared<AlongStepGeneralLinearAction>(
         actions->next_id(), std::move(fluct), std::move(msc));
+    actions->insert(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

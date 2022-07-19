@@ -192,6 +192,8 @@ auto TestEm3Base::build_along_step() -> SPConstAction
     CELER_ENSURE(result);
     CELER_ENSURE(result->has_fluct() == this->enable_fluctuation());
     CELER_ENSURE(result->has_msc() == this->enable_msc());
+    CELER_ENSURE(&this->action_mgr()->action(result->action_id())
+                 == result.get());
     return result;
 }
 

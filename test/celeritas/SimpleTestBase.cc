@@ -145,6 +145,7 @@ auto SimpleTestBase::build_along_step() -> SPConstAction
 {
     auto result = std::make_shared<AlongStepNeutralAction>(
         this->action_mgr()->next_id());
+    this->action_mgr()->insert(result);
     return result;
 }
 
