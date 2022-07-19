@@ -61,7 +61,6 @@ class UrbanMsc
 CELER_FUNCTION UrbanMsc::UrbanMsc(const ParamsRef& params)
     : msc_params_(params)
 {
-    CELER_EXPECT(params);
 }
 
 //---------------------------------------------------------------------------//
@@ -71,6 +70,9 @@ CELER_FUNCTION UrbanMsc::UrbanMsc(const ParamsRef& params)
 CELER_FUNCTION bool
 UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
 {
+    if (!msc_params_)
+        return false;
+
     if (step <= msc_params_.params.geom_limit)
         return false;
 
@@ -89,6 +91,8 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
 CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
                                         AlongStepLocalState* local) const
 {
+    CELER_EXPECT(msc_params_);
+
     auto particle = track.make_particle_view();
     auto geo      = track.make_geo_view();
     auto phys     = track.make_physics_view();
@@ -127,6 +131,8 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
 CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
                                          AlongStepLocalState* local) const
 {
+    CELER_EXPECT(msc_params_);
+
     auto par  = track.make_particle_view();
     auto geo  = track.make_geo_view();
     auto phys = track.make_physics_view();
