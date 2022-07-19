@@ -9,6 +9,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/global/ActionManager.hh"
@@ -38,17 +39,15 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     core_ref.states = states.ref();
     CELER_ASSERT(core_ref);
 
-    // Create primaries
     {
+        // Create primary from input (separate event IDs)
         Primary p;
         p.particle_id = inp.particle_id;
         p.energy      = inp.energy;
         p.position    = inp.position;
         p.direction   = inp.direction;
         p.time        = inp.time;
-        p.track_id    = TrackId{0};
 
-        // Create track initializers and add primaries
         TrackInitParams::Input inp;
         inp.primaries.assign(num_tracks, p);
         inp.capacity = num_tracks;
@@ -57,11 +56,11 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
             inp.primaries[i].event_id = EventId{i};
             inp.primaries[i].track_id = TrackId{i};
         }
-        TrackInitParams init_params{std::move(inp)};
 
+        // Primary -> track initializer -> track
+        TrackInitParams init_params{std::move(inp)};
         TrackInitStateData<Ownership::value, MemSpace::host> init_states;
         resize(&init_states, init_params.host_ref(), num_tracks);
-
         celeritas::extend_from_primaries(init_params.host_ref(), &init_states);
         celeritas::initialize_tracks(core_ref, &init_states);
     }
@@ -74,9 +73,8 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         phys.interaction_mfp(inp.phys_mfp);
     }
 
+    const auto& am = *this->action_mgr();
     {
-        const auto& am = *this->action_mgr();
-
         // Call pre-step action to set range, physics step
         auto prestep_action = am.find_action("pre-step");
         CELER_ASSERT(prestep_action);
@@ -90,6 +88,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
 
     // Process output
     RunResult result;
+    std::map<ActionId, int> actions;
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
@@ -103,6 +102,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         result.angle += celeritas::dot_product(geo.dir(), inp.direction);
         result.time += sim.time();
         result.step += sim.step_limit().step;
+        actions[sim.step_limit().action] += 1;
     }
 
     real_type norm = 1 / real_type(num_tracks);
@@ -111,6 +111,26 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     result.angle *= norm;
     result.time *= norm;
     result.step *= norm;
+
+    if (actions.size() == 1)
+    {
+        result.action = am.id_to_label(actions.begin()->first);
+    }
+    else
+    {
+        // Stochastic action from along-step!
+        std::ostringstream os;
+        os << '{'
+           << join_stream(actions.begin(),
+                          actions.end(),
+                          ", ",
+                          [&am, norm](std::ostream& os, const auto& kv) {
+                              os << '"' << am.id_to_label(kv.first)
+                                 << "\": " << kv.second * norm;
+                          })
+           << '}';
+    }
+
     return result;
 }
 
@@ -132,8 +152,11 @@ void AlongStepTestBase::RunResult::print_expected() const
          << repr(this->time)
          << ", result.time);\n"
             "EXPECT_SOFT_EQ("
-         << repr(this->step)
-         << ", result.step);\n"
+         << repr(this->step) << ", result.step);\n";
+    if (!this->action.empty() && this->action.front() == '{')
+        cout << "// ";
+    cout << "EXPECT_EQ(" << repr(this->action)
+         << ", result.action);\n"
             "/*** END CODE ***/\n";
 }
 
