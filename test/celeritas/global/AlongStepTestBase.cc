@@ -48,16 +48,16 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         p.time        = inp.time;
         p.track_id    = TrackId{0};
 
-    // Create track initializers and add primaries
-    TrackInitParams::Input inp;
-    inp.primaries.assign(num_tracks, p);
-    inp.capacity  = num_tracks;
+        // Create track initializers and add primaries
+        TrackInitParams::Input inp;
+        inp.primaries.assign(num_tracks, p);
+        inp.capacity = num_tracks;
         for (auto i : range(num_tracks))
         {
             inp.primaries[i].event_id = EventId{i};
             inp.primaries[i].track_id = TrackId{i};
         }
-    TrackInitParams init_params{std::move(inp)};
+        TrackInitParams init_params{std::move(inp)};
 
         TrackInitStateData<Ownership::value, MemSpace::host> init_states;
         resize(&init_states, init_params.host_ref(), num_tracks);
