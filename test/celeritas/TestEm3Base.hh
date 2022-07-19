@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
+
 #include "celeritas/Types.hh"
 
 #include "GlobalGeoTestBase.hh"
@@ -24,6 +26,9 @@ namespace celeritas_test
  * Test harness for replicating the AdePT TestEm3 input.
  *
  * This class requires Geant4 to import the data.
+ *
+ * \todo Refactor to allow more generic geant4 problem setup, move similar code
+ * with LDemo and Acceleritas into main library.
  */
 class TestEm3Base : virtual public GlobalGeoTestBase
 {
@@ -33,6 +38,14 @@ class TestEm3Base : virtual public GlobalGeoTestBase
     using real_type      = celeritas::real_type;
     using ImportData     = celeritas::ImportData;
     using PhysicsOptions = celeritas::PhysicsParamsOptions;
+    //!@}
+
+  public:
+    //!@{
+    //! Whether the Geant4 configuration match a certain machine
+    static bool is_ci_build();
+    static bool is_wildstyle_build();
+    static bool is_srj_build();
     //!@}
 
   protected:
@@ -53,6 +66,13 @@ class TestEm3Base : virtual public GlobalGeoTestBase
     // Access lazily loaded static geant4 data
     const celeritas::ImportData& imported_data() const;
 };
+
+//---------------------------------------------------------------------------//
+//! Print the current configuration
+struct PrintableBuildConf
+{
+};
+std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test
