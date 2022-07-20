@@ -23,14 +23,15 @@ struct Primary;
 //---------------------------------------------------------------------------//
 /*!
  * Read an event record file using the HepMC3 event record library and create
- * primary particles. Supported forrmats are Asciiv3, IO_GenEvent, HEPEVT, and
- * LHEF.
+ * primary particles.
+ *
+ * Supported forrmats are Asciiv3, IO_GenEvent, HEPEVT, and LHEF.
  */
 class EventReader
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using result_type      = std::vector<Primary>;
     //!@}

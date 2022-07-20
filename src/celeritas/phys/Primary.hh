@@ -16,7 +16,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Starting "source" particle. One or more of these are emitted by an Event.
+ * Starting "source" particle.
+ *
+ * One or more of these are emitted by an Event.
  */
 struct Primary
 {
