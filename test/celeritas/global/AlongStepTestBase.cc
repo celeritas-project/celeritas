@@ -87,7 +87,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     }
 
     // Process output
-    RunResult result;
+    RunResult               result;
     std::map<ActionId, int> actions;
     for (auto tid : range(ThreadId{num_tracks}))
     {

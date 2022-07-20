@@ -140,7 +140,10 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     lambda_ = helper_.msc_mfp(inc_energy_);
 
     // The slowing down range should already have been applied as a step limit
-    CELER_ENSURE(range_ >= phys_step_);
+    CELER_ENSURE(range_ >= phys_step_ || soft_equal(range_, phys_step_));
+    // TODO: The second condition is to protect rare cases that range_ differs
+    // by ~1ulp from eloss_step in calc_physics_step_limit and may be removed
+    // by caching eloss_step as the value of range.
 }
 
 //---------------------------------------------------------------------------//

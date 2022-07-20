@@ -135,6 +135,9 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         }
     }
 
+    // Set a flag for the gometry limited step
+    bool geo_limited = (step_limit.action == track.boundary_action());
+
     // Calculate energy loss over the step length
     auto mat = track.make_material_view();
     auto rng = track.make_rng_engine();
@@ -145,15 +148,20 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         const auto& urban_data = phys.urban_data();
 
         // Replace step with actual geometry distance traveled
-        auto msc_step_result      = track.make_physics_step_view().msc_step();
-        msc_step_result.geom_path = geo_step;
+        auto msc_step_result = track.make_physics_step_view().msc_step();
+        if (geo_limited)
+        {
+            msc_step_result.geom_path    = geo_step;
+            msc_step_result.is_displaced = false;
+        }
 
         UrbanMscScatter msc_scatter(urban_data,
                                     particle,
                                     &geo,
                                     phys,
                                     mat.make_material_view(),
-                                    msc_step_result);
+                                    msc_step_result,
+                                    geo_limited);
         auto            msc_result = msc_scatter(rng);
 
         // Update full path length traveled along the step based on MSC to
@@ -194,6 +202,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     using Energy = ParticleTrackView::Energy;
     Energy eloss = calc_energy_loss(
         track.make_cutoff_view(), mat, particle, phys, step_limit.step, rng);
+
     if (eloss == particle.energy())
     {
         // Particle lost all energy over the step
@@ -222,6 +231,7 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
         {
             // Immediately kill stopped particles with no at rest processes
             sim.status(TrackStatus::killed);
+            step_limit.action = {};
         }
         else
         {
@@ -235,7 +245,8 @@ inline CELER_FUNCTION void along_step_track(CoreTrackView const& track)
     step.deposit_energy(eloss);
     particle.subtract_energy(eloss);
 
-    if (step_limit.action != phys.scalars().discrete_action())
+    if (step_limit.action
+        && step_limit.action != phys.scalars().discrete_action())
     {
         // Reduce remaining mean free paths to travel. The 'discrete action'
         // case is launched separately and resets the interaction MFP itself.
