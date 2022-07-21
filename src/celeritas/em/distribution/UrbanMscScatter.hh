@@ -46,7 +46,8 @@ class UrbanMscScatter
                                           GeoTrackView*            geometry,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
-                                          const MscStep&           input);
+                                          const MscStep&           input,
+                                          const bool geo_limited);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
@@ -68,7 +69,9 @@ class UrbanMscScatter
     // Urban MSC helper class
     UrbanMscHelper helper_;
     // Results from UrbanMSCStepLimit
-    MscStep input_;
+    bool      is_displaced_;
+    real_type geom_path_;
+    real_type limit_min_;
     // Geomtry track view
     GeoTrackView& geometry_;
 
@@ -140,7 +143,8 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  GeoTrackView*            geometry,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
-                                 const MscStep&           input)
+                                 const MscStep&           input,
+                                 const bool               geo_limited)
     : inc_energy_(particle.energy())
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
@@ -149,22 +153,26 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
-    , input_(input)
+    , is_displaced_(input.is_displaced)
+    , geom_path_(input.geom_path)
+    , limit_min_(input.limit_min)
     , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
-    CELER_EXPECT(input_.geom_path > 0);
+    CELER_EXPECT(geom_path_ > 0);
 
     lambda_ = helper_.msc_mfp(inc_energy_);
 
-    // Convert the geometry path length to the true path length
-    true_path_ = this->calc_true_path(
-        input_.true_path, input_.geom_path, input_.alpha);
+    // Convert the geometry path length to the true path length, but do not
+    // recalculate the true path if the step is not limited by geometry
+    true_path_ = (geo_limited) ? this->calc_true_path(
+                     input.true_path, geom_path_, input.alpha)
+                               : input.true_path;
 
     // Protect against a wrong true -> geom -> true transformation
-    true_path_ = min<real_type>(true_path_, input_.phys_step);
-    CELER_ASSERT(true_path_ >= input_.geom_path);
+    true_path_ = min<real_type>(true_path_, input.phys_step);
+    CELER_ASSERT(true_path_ >= geom_path_);
 
     skip_sampling_ = true;
     if (true_path_ < helper_.range() && true_path_ > params_.geom_limit)
@@ -194,8 +202,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     }
 
     // Sample polar angle and update tau_
-    real_type costheta
-        = this->sample_cos_theta(rng, input_.true_path, input_.limit_min);
+    real_type costheta = this->sample_cos_theta(rng, true_path_, limit_min_);
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Sample azimuthal angle, used for displacement and exiting angle
@@ -210,11 +217,11 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     }
 
     // Calculate displacement
-    if (input_.is_displaced && tau_ >= params_.tau_small)
+    if (is_displaced_ && tau_ >= params_.tau_small)
     {
         // Sample displacement and adjust
         real_type length = this->calc_displacement_length(
-            (true_path_ - input_.geom_path) * (true_path_ + input_.geom_path));
+            (true_path_ - geom_path_) * (true_path_ + geom_path_));
         if (length > 0)
         {
             result.displacement = this->sample_displacement_dir(rng, phi);

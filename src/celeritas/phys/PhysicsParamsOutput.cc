@@ -80,6 +80,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         PPO_SAVE_OPTION(scaling_min_range);
         PPO_SAVE_OPTION(scaling_fraction);
         PPO_SAVE_OPTION(energy_fraction);
+        options["eloss_calc_limit"] = {scalars.eloss_calc_limit.value(), "MeV"};
         PPO_SAVE_OPTION(linear_loss_limit);
         PPO_SAVE_OPTION(fixed_step_limiter);
 #    undef PPO_SAVE_OPTION

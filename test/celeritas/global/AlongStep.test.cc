@@ -163,7 +163,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         auto result     = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
-        EXPECT_SOFT_NEAR(0.85890566074896, result.angle, 1e-3);
+        EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3);
         EXPECT_SOFT_EQ(3.3396076266578e-15, result.time);
         EXPECT_SOFT_NEAR(0.00010000053338476, result.step, 1e-8);
         EXPECT_EQ("geo-boundary", result.action);

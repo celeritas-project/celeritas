@@ -43,8 +43,17 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
         return;
     }
 
-    // Calculate mean energy loss
     auto   particle = track.make_particle_view();
+    if (particle.energy() < phys.scalars().eloss_calc_limit)
+    {
+        // Immediately stop low-energy particles
+        auto step = track.make_physics_step_view();
+        step.deposit_energy(particle.energy());
+        particle.energy(zero_quantity());
+        return;
+    }
+
+    // Calculate mean energy loss
     Energy eloss    = calc_mean_energy_loss(particle, phys, step_limit->step);
     if (eloss > zero_quantity())
     {

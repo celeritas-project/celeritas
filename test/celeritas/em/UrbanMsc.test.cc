@@ -300,7 +300,8 @@ TEST_F(UrbanMscTest, msc_scattering)
                                 &geo_view,
                                 phys,
                                 material_view,
-                                step_result);
+                                step_result,
+                                /* geo_limited = */ false);
 
         sample_result = scatter(rng_engine);
 
@@ -319,31 +320,31 @@ TEST_F(UrbanMscTest, msc_scattering)
     static const double expected_fstep[] = {0.0027916899999997,
                                             0.134631648532277,
                                             0.0376414,
-                                            0.035727783460526,
-                                            0.00111391683751815,
-                                            0.000112053935348643,
-                                            0.00028678982069363,
-                                            1.1737319513141e-05};
+                                            0.0781632965764156,
+                                            0.00137047789888519,
+                                            9.65987190264274e-05,
+                                            0.000742152890009348,
+                                            3.1163160031423e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
     static const double expected_angle[] = {0.000314741326035635,
                                             0.738624667826603,
                                             -0.145610123961716,
-                                            -0.657415795200799,
-                                            0.119014628205848,
-                                            -0.216102964881347,
-                                            0.793645871128744,
-                                            -0.98020130119347};
+                                            0,
+                                            -0.326505138945708,
+                                            0.0130719743269634,
+                                            0,
+                                            0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
-    static const double expected_displace[] = {8.1986203515048e-06,
+    static const double expected_displace[] = {8.19862035797085e-06,
                                                9.7530617641316e-05,
                                                -7.1670542039709e-05,
                                                0,
-                                               1.1960188979908e-05,
-                                               -2.8858960846053e-05,
+                                               -9.11378237130022e-05,
+                                               9.7877513962823e-06,
                                                0,
                                                0};
     EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
     static const char expected_action[]
-        = {'d', 'd', 'd', 's', 'd', 'd', 's', 's'};
+        = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
     EXPECT_VEC_EQ(expected_action, action);
 }

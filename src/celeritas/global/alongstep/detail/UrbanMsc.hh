@@ -142,8 +142,14 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
     auto msc_step_result      = track.make_physics_step_view().msc_step();
     msc_step_result.geom_path = local->geo_step;
 
-    UrbanMscScatter msc_scatter(
-        msc_params_, par, &geo, phys, mat.make_material_view(), msc_step_result);
+    UrbanMscScatter msc_scatter(msc_params_,
+                                par,
+                                &geo,
+                                phys,
+                                mat.make_material_view(),
+                                msc_step_result,
+                                /* geo_limited = */ local->step_limit.action
+                                    == track.boundary_action());
 
     auto rng        = track.make_rng_engine();
     auto msc_result = msc_scatter(rng);
