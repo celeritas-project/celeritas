@@ -90,7 +90,7 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
     }
     else
     {
-        // Step might have changed due to geometry boundary
+        // Step might have been reduced due to geometry boundary
         local.step_limit.step = local.geo_step;
     }
 

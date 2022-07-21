@@ -43,18 +43,33 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
         return;
     }
 
-    auto   particle = track.make_particle_view();
+    auto particle = track.make_particle_view();
     if (particle.energy() < phys.scalars().eloss_calc_limit)
     {
         // Immediately stop low-energy particles
+        // TODO: this should happen before creating tracks from secondaries
+        // *OR* after slowing down tracks: duplicated in
+        // EnergyLossFluctApplier.hh
         auto step = track.make_physics_step_view();
         step.deposit_energy(particle.energy());
         particle.energy(zero_quantity());
+
+        if (!phys.has_at_rest())
+        {
+            // Immediately kill stopped particles with no at rest processes
+            auto sim = track.make_sim_view();
+            sim.status(TrackStatus::killed);
+        }
+        else
+        {
+            // Particle slowed down to zero: force a discrete interaction
+            step_limit->action = phys.scalars().discrete_action();
+        }
         return;
     }
 
     // Calculate mean energy loss
-    Energy eloss    = calc_mean_energy_loss(particle, phys, step_limit->step);
+    Energy eloss = calc_mean_energy_loss(particle, phys, step_limit->step);
     if (eloss > zero_quantity())
     {
         // Deposit energy loss

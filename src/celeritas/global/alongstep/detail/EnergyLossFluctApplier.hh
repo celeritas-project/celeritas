@@ -68,48 +68,56 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
     CELER_EXPECT(step_limit->step > 0);
 
     auto phys = track.make_physics_view();
-    auto ppid = phys.eloss_ppid();
-    if (!ppid)
+    if (!phys.eloss_ppid())
     {
         // No energy loss process for this particle type
         return;
     }
 
+    Energy eloss;
+
     auto particle = track.make_particle_view();
     if (particle.energy() < phys.scalars().eloss_calc_limit)
     {
         // Immediately stop low-energy particles
-        auto step = track.make_physics_step_view();
-        step.deposit_energy(particle.energy());
-        particle.energy(zero_quantity());
-        return;
+        // TODO: this should happen before creating tracks from secondaries
+        // *OR* after slowing down tracks: duplicated in
+        // EnergyLossApplier.hh
+        eloss = particle.energy();
     }
-
-    // Calculate mean energy loss
-    Energy eloss    = calc_mean_energy_loss(particle, phys, step_limit->step);
-
-    if (fluct_params_ && eloss > zero_quantity() && eloss < particle.energy())
+    else
     {
-        // Apply energy loss fluctuations
-        auto cutoffs  = track.make_cutoff_view();
-        auto material = track.make_material_view();
+        // Calculate mean energy loss
+        eloss = calc_mean_energy_loss(particle, phys, step_limit->step);
 
-        EnergyLossHelper loss_helper(
-            fluct_params_, cutoffs, material, particle, eloss, step_limit->step);
-
-        auto rng = track.make_rng_engine();
-        switch (loss_helper.model())
+        if (fluct_params_ && eloss > zero_quantity()
+            && eloss < particle.energy())
         {
+            // Apply energy loss fluctuations
+            auto cutoffs  = track.make_cutoff_view();
+            auto material = track.make_material_view();
+
+            EnergyLossHelper loss_helper(fluct_params_,
+                                         cutoffs,
+                                         material,
+                                         particle,
+                                         eloss,
+                                         step_limit->step);
+
+            auto rng = track.make_rng_engine();
+            switch (loss_helper.model())
+            {
 #define ASU_SAMPLE_ELOSS(MODEL)                                              \
     case EnergyLossFluctuationModel::MODEL:                                  \
         eloss = this->sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
             loss_helper, particle.energy(), rng);                            \
         break
-            ASU_SAMPLE_ELOSS(none);
-            ASU_SAMPLE_ELOSS(gamma);
-            ASU_SAMPLE_ELOSS(gaussian);
-            ASU_SAMPLE_ELOSS(urban);
+                ASU_SAMPLE_ELOSS(none);
+                ASU_SAMPLE_ELOSS(gamma);
+                ASU_SAMPLE_ELOSS(gaussian);
+                ASU_SAMPLE_ELOSS(urban);
 #undef ASU_SAMPLE_ELOSS
+            }
         }
     }
 
@@ -119,7 +127,6 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
         // Particle lost all energy over the step
         if (CELER_UNLIKELY(step_limit->action == track.boundary_action()))
         {
-            auto geo = track.make_geo_view();
             // Particle lost all energy *and* is at a geometry boundary.
             // It therefore physically moved too far over the step, since
             // the range is supposed to be the integral of the inverse
@@ -130,6 +137,7 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
             step_limit->action = phys.scalars().range_action();
             step_limit->step += backward_bump;
 
+            auto  geo = track.make_geo_view();
             Real3 pos = geo.pos();
             axpy(backward_bump, geo.dir(), &pos);
             geo.move_internal(pos);
