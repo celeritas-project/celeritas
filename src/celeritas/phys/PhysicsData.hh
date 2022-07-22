@@ -133,7 +133,7 @@ struct ProcessGroup
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
     ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
-    ParticleProcessId msc_ppid{};   //!< Process of msc
+    ParticleProcessId     msc_ppid{};   //!< Process of msc (TODO: delete me)
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
@@ -174,9 +174,6 @@ struct HardwiredModels
     ModelId     eplusgg;
     EPlusGGData eplusgg_data;
 
-    // Multiple scattering (data for the mean free path)
-    ProcessId          msc;
-
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
@@ -196,8 +193,6 @@ struct HardwiredModels
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
         eplusgg_data          = other.eplusgg_data;
-
-        msc = other.msc;
 
         return *this;
     }

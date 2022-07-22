@@ -50,6 +50,7 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
     AlongStepLocalState local;
     local.step_limit = sim.step_limit();
     CELER_ASSERT(local.step_limit);
+    CELER_ASSERT(local.step_limit.step > 0);
     if (local.step_limit.step == 0)
     {
         // Track is stopped: no movement or energy loss will happen

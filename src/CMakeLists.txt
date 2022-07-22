@@ -269,6 +269,9 @@ celeritas_strip_alias(_TARGET celeritas)
 add_library(Celeritas::Core ALIAS ${_TARGET})
 add_library(Celeritas::celeritas ALIAS ${_TARGET})
 
+# Require at least C++14
+set_property(TARGET ${_TARGET} PROPERTY CXX_STANDARD 14)
+
 if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
   # Must build with -fPIC to link with ROOT
   set_target_properties(celeritas
