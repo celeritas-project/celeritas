@@ -27,7 +27,6 @@ class ActionManager;
 class AtomicRelaxationParams;
 class MaterialParams;
 class ParticleParams;
-class FluctuationParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -99,7 +98,6 @@ class PhysicsParams
     using SPConstProcess    = std::shared_ptr<const Process>;
     using SPConstModel      = std::shared_ptr<const Model>;
     using SPConstRelaxation = std::shared_ptr<const AtomicRelaxationParams>;
-    using SPConstFluct      = std::shared_ptr<const FluctuationParams>;
 
     using VecProcess         = std::vector<SPConstProcess>;
     using SpanConstProcessId = Span<const ProcessId>;
@@ -117,7 +115,6 @@ class PhysicsParams
         SPConstMaterials  materials;
         VecProcess        processes;
         SPConstRelaxation relaxation;  //!< Optional atomic relaxation
-        SPConstFluct      fluctuation; //!< Optional fluctuation
         ActionManager*    action_manager = nullptr;
 
         Options options;
@@ -169,7 +166,6 @@ class PhysicsParams
 
     // Kernels/actions
     SPAction pre_step_action_;
-    SPAction along_step_action_;
     SPAction range_action_;
     SPAction discrete_action_;
     SPAction integral_rejection_action_;
@@ -180,7 +176,6 @@ class PhysicsParams
     VecProcess        processes_;
     VecModel          models_;
     SPConstRelaxation relaxation_;
-    SPConstFluct      fluctuation_;
 
     // Host/device storage and reference
     CollectionMirror<PhysicsParamsData> data_;

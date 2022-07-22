@@ -35,8 +35,8 @@ class MockFluctuationTest : public celeritas_test::MockTestBase
   protected:
     void SetUp() override
     {
-        fluct = std::make_shared<FluctuationParams>(this->particle(),
-                                                    this->material());
+        fluct = std::make_shared<FluctuationParams>(*this->particle(),
+                                                    *this->material());
     }
 
     std::shared_ptr<const FluctuationParams> fluct;
@@ -99,7 +99,7 @@ class EnergyLossDistributionTest : public celeritas_test::Test
         material_state = MaterialStateStore(*materials, 1);
 
         // Construct energy loss fluctuation model parameters
-        fluct = std::make_shared<FluctuationParams>(particles, materials);
+        fluct = std::make_shared<FluctuationParams>(*particles, *materials);
     }
 
     std::shared_ptr<MaterialParams>    materials;

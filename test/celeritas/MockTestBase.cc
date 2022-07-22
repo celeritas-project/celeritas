@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "MockTestBase.hh"
 
-#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -135,10 +135,6 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     physics_inp.options        = this->build_physics_options();
     physics_inp.action_manager = this->action_mgr().get();
 
-    // Enable energy fluctuations through physics (will be removed later)
-    physics_inp.fluctuation = std::make_shared<FluctuationParams>(
-        physics_inp.particles, physics_inp.materials);
-
     // Add a few processes
     MockProcess::Input inp;
     inp.materials = this->material();
@@ -200,6 +196,21 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
+}
+
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_along_step() -> SPConstAction
+{
+    auto result
+        = AlongStepGeneralLinearAction::from_params(*this->material(),
+                                                    *this->particle(),
+                                                    *this->physics(),
+                                                    false,
+                                                    this->action_mgr().get());
+    CELER_ENSURE(result);
+    CELER_ENSURE(!result->has_fluct());
+    CELER_ENSURE(!result->has_msc());
+    return result;
 }
 
 //---------------------------------------------------------------------------//

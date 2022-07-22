@@ -85,6 +85,13 @@ macro(celeritas_gen_trackinit class)
   )
 endmacro()
 
+macro(celeritas_polysource filename_we)
+  list(APPEND SOURCES "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND DEVICE_SOURCES "${filename_we}.cu")
+  endif()
+endmacro()
+
 celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
@@ -96,7 +103,6 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("global" "AlongStepAction" "along_step")
 celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select")
 celeritas_gen_action("phys" "PreStepAction" "pre_step")
 celeritas_gen_action("geo" "BoundaryAction" "boundary")
@@ -190,19 +196,21 @@ list(APPEND SOURCES
   celeritas/random/CuHipRngData.cc
   celeritas/random/XorwowRngData.cc
   celeritas/random/XorwowRngParams.cc
-  celeritas/random/detail/CuHipRngStateInit.cc
   celeritas/track/TrackInitParams.cc
-  celeritas/track/detail/TrackInitAlgorithms.cc
 )
+
+set(DEVICE_SOURCES)
+celeritas_polysource(celeritas/global/alongstep/AlongStepGeneralLinearAction)
+celeritas_polysource(celeritas/global/alongstep/AlongStepNeutralAction)
+celeritas_polysource(celeritas/random/detail/CuHipRngStateInit)
+celeritas_polysource(celeritas/track/detail/TrackInitAlgorithms)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
     corecel/sys/KernelParamCalculator.device.cc
   )
-  set(DEVICE_SOURCES
+  list(APPEND DEVICE_SOURCES
     corecel/data/detail/Filler.cu
-    celeritas/random/detail/CuHipRngStateInit.cu
-    celeritas/track/detail/TrackInitAlgorithms.cu
   )
 endif()
 

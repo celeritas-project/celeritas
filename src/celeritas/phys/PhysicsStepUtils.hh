@@ -14,7 +14,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/distribution/EnergyLossDistribution.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/InverseRangeCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
@@ -32,29 +31,6 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-namespace
-{
-//---------------------------------------------------------------------------//
-template<EnergyLossFluctuationModel M, class Engine>
-CELER_FUNCTION EnergyLossHelper::Energy
-               sample_energy_loss(const EnergyLossHelper&  helper,
-                                  EnergyLossHelper::Energy max_loss,
-                                  Engine&                  rng)
-{
-    using Energy        = EnergyLossHelper::Energy;
-    auto   sample_eloss = make_distribution<M>(helper);
-    Energy result       = sample_eloss(rng);
-
-    // TODO: investigate cases where sampled energy loss is greater than
-    // the track's actual energy, i.e. the range limiter failed.
-    result = Energy{celeritas::min(result.value(), max_loss.value())};
-    return result;
-}
-} // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculate physics step limits based on cross sections and range limiters.
@@ -180,22 +156,18 @@ calc_physics_step_limit(const MaterialTrackView& material,
  * interpolation.
  *
  * Zero energy loss can occur in the following cases:
- * - The particle doesn't have slowing-down energy loss (e.g. photons)
  * - The energy loss value at the given energy is zero (e.g. high energy
  * particles)
  * - The urban model is selected and samples zero collisions (possible in thin
  * materials and/or small steps)
  */
-template<class Engine>
-CELER_FUNCTION ParticleTrackView::Energy
-               calc_energy_loss(const CutoffView&        cutoffs,
-                                const MaterialTrackView& material,
-                                const ParticleTrackView& particle,
-                                const PhysicsTrackView&  physics,
-                                real_type                step,
-                                Engine&                  rng)
+inline CELER_FUNCTION ParticleTrackView::Energy
+                      calc_mean_energy_loss(const ParticleTrackView& particle,
+                                            const PhysicsTrackView&  physics,
+                                            real_type                step)
 {
     CELER_EXPECT(step > 0);
+    CELER_EXPECT(physics.eloss_ppid());
     using Energy = ParticleTrackView::Energy;
     using VGT    = ValueGridType;
     static_assert(Energy::unit_type::value()
@@ -203,18 +175,6 @@ CELER_FUNCTION ParticleTrackView::Energy
                   "Incompatible energy types");
 
     auto ppid = physics.eloss_ppid();
-    if (!ppid)
-    {
-        // No energy loss processes for this particle
-        return Energy{0};
-    }
-
-    // Approximation below the lowest energy limit for the dE/dx calculation
-    if (particle.energy() < physics.scalars().eloss_calc_limit)
-    {
-        return particle.energy();
-    }
-
     const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
@@ -258,33 +218,6 @@ CELER_FUNCTION ParticleTrackView::Energy
         eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
     }
 
-    if (physics.scalars().enable_fluctuation && eloss > 0
-        && eloss < pre_step_energy)
-    {
-        EnergyLossHelper loss_helper(physics.fluctuation(),
-                                     cutoffs,
-                                     material,
-                                     particle,
-                                     Energy{eloss},
-                                     step);
-
-        switch (loss_helper.model())
-        {
-#define PSU_SAMPLE_ELOSS(MODEL)                                    \
-    case EnergyLossFluctuationModel::MODEL:                        \
-        eloss = value_as<Energy>(                                  \
-            sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
-                loss_helper, Energy{pre_step_energy}, rng));       \
-        break
-            PSU_SAMPLE_ELOSS(none);
-            PSU_SAMPLE_ELOSS(gamma);
-            PSU_SAMPLE_ELOSS(gaussian);
-            PSU_SAMPLE_ELOSS(urban);
-#undef PSU_SAMPLE_ELOSS
-        }
-    }
-
-    CELER_ASSERT(eloss >= 0 && eloss <= pre_step_energy);
     return Energy{eloss};
 }
 

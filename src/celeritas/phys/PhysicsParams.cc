@@ -18,14 +18,11 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/VectorUtils.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh"
-#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/model/UrbanMscModel.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionManager.hh"
-#include "celeritas/global/generated/AlongStepAction.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
@@ -56,7 +53,6 @@ class ImplicitPhysicsAction final : public ImplicitActionInterface,
 PhysicsParams::PhysicsParams(Input inp)
     : processes_(std::move(inp.processes))
     , relaxation_(std::move(inp.relaxation))
-    , fluctuation_(std::move(inp.fluctuation))
 {
     CELER_EXPECT(!processes_.empty());
     CELER_EXPECT(std::all_of(processes_.begin(),
@@ -70,22 +66,11 @@ PhysicsParams::PhysicsParams(Input inp)
     {
         using std::make_shared;
         auto& action_mgr = *inp.action_manager;
-        // TODO: add scoped range
-        // auto  get_action_range = action_mgr.scoped_range("physics");
 
         auto pre_step_action = make_shared<generated::PreStepAction>(
             action_mgr.next_id(), "pre-step", "beginning of step physics");
         inp.action_manager->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
-
-        // TODO: this is coupled to geometry and field, so find a better place
-        // for this
-        auto along_step_action = make_shared<generated::AlongStepAction>(
-            action_mgr.next_id(),
-            "along-step",
-            "propagation, multiple scattering, and energy loss");
-        inp.action_manager->insert(along_step_action);
-        along_step_action_ = std::move(along_step_action);
 
         auto range_action = make_shared<ImplicitPhysicsAction>(
             action_mgr.next_id(),
@@ -126,15 +111,6 @@ PhysicsParams::PhysicsParams(Input inp)
     this->build_ids(*inp.particles, &host_data);
     this->build_xs(inp.options, *inp.materials, &host_data);
     this->build_model_xs(*inp.materials, &host_data);
-
-    // Add fluctuation (TODO: not part of general physics)
-    if (fluctuation_)
-    {
-        // TODO: this makes a copy of all the data rather than a
-        // host/device reference
-        host_data.fluctuation = fluctuation_->host_ref();
-        CELER_ASSERT(host_data.fluctuation);
-    }
 
     // Add step limiter if being used (TODO: remove this hack from physics)
     if (inp.options.fixed_step_limiter > 0)
@@ -234,7 +210,6 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     data->scalars.energy_fraction        = opts.min_eprime_over_e;
     data->scalars.eloss_calc_limit       = opts.eloss_calc_limit;
     data->scalars.linear_loss_limit      = opts.linear_loss_limit;
-    data->scalars.enable_fluctuation     = static_cast<bool>(fluctuation_);
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }
 
@@ -384,12 +359,6 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg               = ModelId{model_idx};
             data->hardwired.eplusgg_data          = epgg_model->device_ref();
-        }
-        else if (auto* urban_model = dynamic_cast<const UrbanMscModel*>(&model))
-        {
-            data->hardwired.msc        = process_id;
-            data->hardwired.urban      = ModelId{model_idx};
-            data->hardwired.urban_data = urban_model->host_ref();
         }
     }
 
@@ -569,14 +538,6 @@ void PhysicsParams::build_xs(const Options&        opts,
                                  temp_grid_ids[vgt].end(),
                                  [](ValueGridId id) { return bool(id); }))
                 {
-                    if (vgt == ValueGridType::macro_xs)
-                    {
-                        // Skip this table type since it's not present for any
-                        // material for this particle process
-                        CELER_LOG(debug)
-                            << "No " << to_cstring(ValueGridType(vgt))
-                            << " for process " << proc.label();
-                    }
                     continue;
                 }
 

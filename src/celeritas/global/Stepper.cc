@@ -25,20 +25,17 @@ namespace
 std::vector<ActionId> build_action_vec(const CoreParams& core)
 {
     std::vector<ActionId> actions;
+    auto insert_from_label = [&actions, action_mgr = *core.action_mgr()](
+                                 const std::string& label) {
+        actions.push_back(action_mgr.find_action(label));
+        CELER_VALIDATE(actions.back(), << "missing action '" << label << "'");
+    };
 
-    // TODO: add accessors instead of looking these up as strings
-    const ActionManager& action_mgr = *core.action_mgr();
-    for (const char* action_label : {
-             "pre-step",
-             "along-step",
-             "physics-discrete-select",
-             "geo-boundary",
-         })
-    {
-        actions.push_back(action_mgr.find_action(action_label));
-        CELER_VALIDATE(actions.back(),
-                       << "missing action '" << action_label << "'");
-    }
+    // TODO: add accessors to physics instead of looking these up as strings
+    insert_from_label("pre-step");
+    actions.push_back(core.along_step()->action_id());
+    insert_from_label("physics-discrete-select");
+    actions.push_back(core.host_ref().scalars.boundary_action);
 
     for (ActionId aid : core.physics()->model_actions())
     {
@@ -46,6 +43,9 @@ std::vector<ActionId> build_action_vec(const CoreParams& core)
         actions.push_back(aid);
     }
 
+    CELER_ENSURE(std::all_of(actions.begin(), actions.end(), [](ActionId i) {
+        return static_cast<bool>(i);
+    }));
     return actions;
 }
 //---------------------------------------------------------------------------//

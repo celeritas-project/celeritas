@@ -27,6 +27,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -264,11 +265,6 @@ TransporterInput load_input(const LDemoArgs& args)
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
-        if (args.eloss_fluctuation)
-        {
-            input.fluctuation = std::make_shared<FluctuationParams>(
-                params.particle, params.material);
-        }
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
@@ -313,6 +309,15 @@ TransporterInput load_input(const LDemoArgs& args)
                     params.particle, params.material, process_data));
         }
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
+    }
+    {
+        // Create along-step action
+        params.along_step = AlongStepGeneralLinearAction::from_params(
+            *params.material,
+            *params.particle,
+            *params.physics,
+            args.eloss_fluctuation,
+            params.action_mgr.get());
     }
 
     // Construct RNG params

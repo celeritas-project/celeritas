@@ -61,6 +61,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.particle    = this->particle();
     inp.cutoff      = this->cutoff();
     inp.physics     = this->physics();
+    inp.along_step  = this->along_step();
     inp.rng         = this->rng();
     inp.action_mgr  = this->action_mgr();
     CELER_ASSERT(inp);

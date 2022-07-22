@@ -22,6 +22,7 @@ namespace celeritas
 class ActionManager;
 class AtomicRelaxationParams;
 class CutoffParams;
+class ExplicitActionInterface;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
@@ -56,6 +57,7 @@ class GlobalTestBase : public celeritas_test::Test
     using SPConstParticle    = SP<const celeritas::ParticleParams>;
     using SPConstCutoff      = SP<const celeritas::CutoffParams>;
     using SPConstPhysics     = SP<const celeritas::PhysicsParams>;
+    using SPConstAction      = SP<const celeritas::ExplicitActionInterface>;
     using SPConstRng         = SP<const celeritas::RngParams>;
     using SPConstCore        = SP<const celeritas::CoreParams>;
 
@@ -79,6 +81,7 @@ class GlobalTestBase : public celeritas_test::Test
     inline SPConstParticle const&    particle();
     inline SPConstCutoff const&      cutoff();
     inline SPConstPhysics const&     physics();
+    inline SPConstAction const&      along_step();
     inline SPConstRng const&         rng();
     inline SPActionManager const&    action_mgr();
     inline SPConstCore const&        core();
@@ -89,6 +92,7 @@ class GlobalTestBase : public celeritas_test::Test
     inline SPConstParticle const&    particle() const;
     inline SPConstCutoff const&      cutoff() const;
     inline SPConstPhysics const&     physics() const;
+    inline SPConstAction const&      along_step() const;
     inline SPConstRng const&         rng() const;
     inline SPActionManager const&    action_mgr() const;
     inline SPConstCore const&        core() const;
@@ -110,6 +114,7 @@ class GlobalTestBase : public celeritas_test::Test
     virtual SPConstParticle    build_particle()    = 0;
     virtual SPConstCutoff      build_cutoff()      = 0;
     virtual SPConstPhysics     build_physics()     = 0;
+    virtual SPConstAction      build_along_step()  = 0;
 
   private:
     SPConstRng      build_rng() const;
@@ -122,6 +127,7 @@ class GlobalTestBase : public celeritas_test::Test
     void register_particle_output() {}
     void register_cutoff_output() {}
     void register_physics_output();
+    void register_along_step_output() {}
     void register_rng_output() {}
     void register_action_mgr_output();
     void register_core_output() {}
@@ -134,6 +140,7 @@ class GlobalTestBase : public celeritas_test::Test
     SPConstCutoff      cutoff_;
     SPConstPhysics     physics_;
     SPActionManager    action_mgr_;
+    SPConstAction      along_step_;
     SPConstRng         rng_;
     SPConstCore        core_;
     SPOutputManager    output_;
@@ -166,6 +173,7 @@ DEF_GTB_ACCESSORS(SPConstGeoMaterial, geomaterial)
 DEF_GTB_ACCESSORS(SPConstParticle, particle)
 DEF_GTB_ACCESSORS(SPConstCutoff, cutoff)
 DEF_GTB_ACCESSORS(SPConstPhysics, physics)
+DEF_GTB_ACCESSORS(SPConstAction, along_step)
 DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPActionManager, action_mgr)
 DEF_GTB_ACCESSORS(SPConstCore, core)

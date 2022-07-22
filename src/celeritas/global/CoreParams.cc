@@ -59,7 +59,21 @@ build_params_refs(const CoreParams::Input& p, CoreScalars scalars)
  */
 CoreParams::CoreParams(Input input) : input_(std::move(input))
 {
+#define CP_VALIDATE_INPUT(MEMBER) \
+    CELER_VALIDATE(input_.MEMBER, << "core input is missing " #MEMBER " data")
+    CP_VALIDATE_INPUT(geometry);
+    CP_VALIDATE_INPUT(material);
+    CP_VALIDATE_INPUT(geomaterial);
+    CP_VALIDATE_INPUT(particle);
+    CP_VALIDATE_INPUT(cutoff);
+    CP_VALIDATE_INPUT(physics);
+    CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(along_step);
+    CP_VALIDATE_INPUT(action_mgr);
+#undef CP_VALIDATE_INPUT
+
     CELER_EXPECT(input_);
+
     // Construct geometry action
     scalars_.boundary_action = input_.action_mgr->next_id();
     input_.action_mgr->insert(

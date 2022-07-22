@@ -119,6 +119,7 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 
         return std::make_shared<PhysicsParams>(std::move(input));
     }
+    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
     SPConstGeoMaterial build_geomaterial() override
     {

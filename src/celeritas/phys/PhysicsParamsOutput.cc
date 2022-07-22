@@ -83,7 +83,6 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         options["eloss_calc_limit"] = {scalars.eloss_calc_limit.value(), "MeV"};
         PPO_SAVE_OPTION(linear_loss_limit);
         PPO_SAVE_OPTION(fixed_step_limiter);
-        PPO_SAVE_OPTION(enable_fluctuation);
 #    undef PPO_SAVE_OPTION
         obj["options"] = std::move(options);
     }

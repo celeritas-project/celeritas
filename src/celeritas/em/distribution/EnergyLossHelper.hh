@@ -188,6 +188,7 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
                                    real_type                step_length)
     : shared_(shared), material_(material), mean_loss_(mean_loss.value())
 {
+    CELER_EXPECT(shared_);
     CELER_EXPECT(mean_loss_ > 0);
     CELER_EXPECT(step_length > 0);
 

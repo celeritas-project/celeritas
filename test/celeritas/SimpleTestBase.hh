@@ -35,6 +35,7 @@ class SimpleTestBase : virtual public GlobalGeoTestBase
     SPConstParticle    build_particle() override;
     SPConstCutoff      build_cutoff() override;
     SPConstPhysics     build_physics() override;
+    SPConstAction      build_along_step() override;
 };
 
 //---------------------------------------------------------------------------//

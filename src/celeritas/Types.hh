@@ -108,5 +108,10 @@ struct StepLimit
     }
 };
 
+//! Placeholder for helper functions whose interface requires data
+struct NoData
+{
+};
+
 //---------------------------------------------------------------------------//
 } // namespace celeritas

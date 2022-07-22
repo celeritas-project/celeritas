@@ -13,7 +13,6 @@
 #include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
 #include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
@@ -38,10 +37,8 @@ class PhysicsTrackView
     //!@{
     //! Type aliases
     using Initializer_t    = PhysicsTrackInitializer;
-    using FluctuationRef   = NativeCRef<FluctuationData>;
     using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
     using PhysicsStateRef  = NativeRef<PhysicsStateData>;
-    using UrbanMscRef      = NativeCRef<UrbanMscData>;
     using Energy           = units::MevEnergy;
     using ModelFinder      = GridIdFinder<Energy, ParticleModelId>;
     //!@}
@@ -130,12 +127,6 @@ class PhysicsTrackView
 
     // Access scalar properties
     CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars& scalars() const;
-
-    // Energy loss fluctuation model parameters
-    inline CELER_FUNCTION const FluctuationRef& fluctuation() const;
-
-    // Urban multiple scattering data
-    inline CELER_FUNCTION const UrbanMscRef& urban_data() const;
 
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
@@ -587,25 +578,6 @@ CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars&
 PhysicsTrackView::scalars() const
 {
     return params_.scalars;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Energy loss fluctuation model parameters.
- */
-CELER_FUNCTION auto PhysicsTrackView::fluctuation() const
-    -> const FluctuationRef&
-{
-    return params_.fluctuation;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Urban multiple scattering data
- */
-CELER_FUNCTION auto PhysicsTrackView::urban_data() const -> const UrbanMscRef&
-{
-    return params_.hardwired.urban_data;
 }
 
 //---------------------------------------------------------------------------//

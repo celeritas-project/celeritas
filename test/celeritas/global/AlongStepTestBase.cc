@@ -81,9 +81,8 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         am.invoke(prestep_action, core_ref);
 
         // Call along-step action
-        auto alongstep_action = am.find_action("along-step");
-        CELER_ASSERT(alongstep_action);
-        am.invoke(alongstep_action, core_ref);
+        const auto& along_step = *this->along_step();
+        along_step.execute(core_ref);
     }
 
     // Process output

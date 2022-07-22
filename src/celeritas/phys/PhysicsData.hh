@@ -15,9 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
-#include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/XsGridData.hh"
 
@@ -135,7 +133,7 @@ struct ProcessGroup
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
     ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
-    ParticleProcessId msc_ppid{};   //!< Process of msc
+    ParticleProcessId     msc_ppid{};   //!< Process of msc (TODO: delete me)
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
@@ -155,7 +153,7 @@ struct ProcessGroup
 /*!
  * Model data for special hardwired cases (on-the-fly xs calculations).
  *
- * TODO: livermore/relaxation/urban data are owned by other classes, but
+ * TODO: livermore/relaxation are owned by other classes, but
  * because we assign <host, value> -> { <host, cref> ; <device, value> ->
  * <device, cref> }
  */
@@ -176,11 +174,6 @@ struct HardwiredModels
     ModelId     eplusgg;
     EPlusGGData eplusgg_data;
 
-    // Multiple scattering (data for the mean free path)
-    ProcessId          msc;
-    ModelId            urban;
-    UrbanMscData<W, M> urban_data;
-
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
@@ -200,14 +193,6 @@ struct HardwiredModels
         positron_annihilation = other.positron_annihilation;
         eplusgg               = other.eplusgg;
         eplusgg_data          = other.eplusgg_data;
-
-        msc = other.msc;
-        if (msc)
-        {
-            // Only assign msc data if that process is present
-            urban      = other.urban;
-            urban_data = other.urban_data;
-        }
 
         return *this;
     }
@@ -241,7 +226,6 @@ struct PhysicsParamsScalars
     Energy    eloss_calc_limit{};   //!< Lowest energy for eloss calculation
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
-    bool      enable_fluctuation{}; //!< Enable energy loss fluctuations
 
     real_type secondary_stack_factor = 3; //!< Secondary storage per state size
 
@@ -331,7 +315,6 @@ struct PhysicsParamsData
 
     // Special data
     HardwiredModels<W, M> hardwired;
-    FluctuationData<W, M> fluctuation;
 
     // Non-templated data
     PhysicsParamsScalars scalars;
@@ -364,7 +347,6 @@ struct PhysicsParamsData
         model_xs        = other.model_xs;
 
         hardwired   = other.hardwired;
-        fluctuation = other.fluctuation;
 
         scalars = other.scalars;
 
@@ -478,10 +460,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.scalars.max_particle_processes > 0);
     resize(&state->state, size);
-    if (params.hardwired.msc)
-    {
-        resize(&state->msc_step, size);
-    }
+    resize(&state->msc_step, size);
     resize(&state->per_process_xs,
            size * params.scalars.max_particle_processes);
     resize(&state->relaxation, params.hardwired.relaxation_data, size);

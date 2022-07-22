@@ -30,6 +30,7 @@ class GeoMaterialTest : public celeritas_test::GlobalGeoTestBase
     SPConstParticle build_particle() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstCutoff   build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstPhysics  build_physics() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction   build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
     SPConstMaterial build_material() override
     {
