@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/PhysicsStepUtils.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -17,6 +20,11 @@ namespace detail
  */
 struct EnergyLossApplier
 {
+    //!@{
+    //! \name Type aliases
+    using Energy = ParticleTrackView::Energy;
+    //!@}
+
     //// MEMBER FUNCTIONS ////
 
     // Apply to the track

@@ -202,6 +202,7 @@ list(APPEND SOURCES
 set(DEVICE_SOURCES)
 celeritas_polysource(celeritas/global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepNeutralAction)
+celeritas_polysource(celeritas/global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(celeritas/random/detail/CuHipRngStateInit)
 celeritas_polysource(celeritas/track/detail/TrackInitAlgorithms)
 
