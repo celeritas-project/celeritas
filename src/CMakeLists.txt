@@ -244,6 +244,7 @@ if(CELERITAS_USE_JSON)
     corecel/sys/KernelDiagnosticsIO.json.cc
     orange/construct/SurfaceInputIO.json.cc
     orange/construct/VolumeInputIO.json.cc
+    celeritas/field/FieldDriverOptionsIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()
