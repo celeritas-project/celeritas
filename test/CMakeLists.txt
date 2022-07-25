@@ -208,11 +208,11 @@ add_library(CeleritasTest
   celeritas/phys/SecondaryIO.cc
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
+  celeritas/GeantTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
-  celeritas/TestEm3Base.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
 )

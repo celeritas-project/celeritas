@@ -7,17 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
-
-#include "celeritas/Types.hh"
-
-#include "GlobalGeoTestBase.hh"
-
-namespace celeritas
-{
-struct ImportData;
-struct PhysicsParamsOptions;
-} // namespace celeritas
+#include "GeantTestBase.hh"
 
 namespace celeritas_test
 {
@@ -30,50 +20,14 @@ namespace celeritas_test
  * \todo Refactor to allow more generic geant4 problem setup, move similar code
  * with LDemo and Acceleritas into main library.
  */
-class TestEm3Base : virtual public GlobalGeoTestBase
+class TestEm3Base : public GeantTestBase
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using real_type      = celeritas::real_type;
-    using ImportData     = celeritas::ImportData;
-    using PhysicsOptions = celeritas::PhysicsParamsOptions;
-    //!@}
-
-  public:
-    //!@{
-    //! Whether the Geant4 configuration match a certain machine
-    static bool is_ci_build();
-    static bool is_wildstyle_build();
-    static bool is_srj_build();
-    //!@}
-
   protected:
     const char* geometry_basename() const override { return "testem3-flat"; }
-
-    virtual bool      enable_fluctuation() const { return true; }
-    virtual bool      enable_msc() const { return false; }
-    virtual real_type secondary_stack_factor() const { return 3.0; }
-
-    SPConstMaterial    build_material() override;
-    SPConstGeoMaterial build_geomaterial() override;
-    SPConstParticle    build_particle() override;
-    SPConstCutoff      build_cutoff() override;
-    SPConstPhysics     build_physics() override;
-    SPConstAction      build_along_step() override;
-
-    virtual PhysicsOptions build_physics_options() const;
-
-    // Access lazily loaded static geant4 data
-    const celeritas::ImportData& imported_data() const;
+    bool        enable_fluctuation() const override { return true; }
+    bool        enable_msc() const override { return false; }
+    real_type   secondary_stack_factor() const override { return 3.0; }
 };
-
-//---------------------------------------------------------------------------//
-//! Print the current configuration
-struct PrintableBuildConf
-{
-};
-std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas_test

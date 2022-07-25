@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/TestEm3Base.cc
+//! \file celeritas/GeantTestBase.cc
 //---------------------------------------------------------------------------//
-#include "TestEm3Base.hh"
+#include "GeantTestBase.hh"
 
 #include <string>
 
@@ -68,7 +68,7 @@ bool cstring_equal(const char* lhs, const char* rhs)
 
 //---------------------------------------------------------------------------//
 //! Whether Geant4 dependencies match those on the CI build
-bool TestEm3Base::is_ci_build()
+bool GeantTestBase::is_ci_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
            && cstring_equal(celeritas_clhep_version, "2.4.4.0")
@@ -77,7 +77,7 @@ bool TestEm3Base::is_ci_build()
 
 //---------------------------------------------------------------------------//
 //! Whether Geant4 dependencies match those on Wildstyle
-bool TestEm3Base::is_wildstyle_build()
+bool GeantTestBase::is_wildstyle_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
            && cstring_equal(celeritas_clhep_version, "2.4.5.1")
@@ -86,7 +86,7 @@ bool TestEm3Base::is_wildstyle_build()
 
 //---------------------------------------------------------------------------//
 //! Whether Geant4 dependencies match those on the CI build
-bool TestEm3Base::is_srj_build()
+bool GeantTestBase::is_srj_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
            && cstring_equal(celeritas_clhep_version, "2.4.5.1")
@@ -96,13 +96,13 @@ bool TestEm3Base::is_srj_build()
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_material() -> SPConstMaterial
+auto GeantTestBase::build_material() -> SPConstMaterial
 {
     return MaterialParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_geomaterial() -> SPConstGeoMaterial
+auto GeantTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
     input.geometry       = this->geometry();
@@ -123,20 +123,20 @@ auto TestEm3Base::build_geomaterial() -> SPConstGeoMaterial
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_particle() -> SPConstParticle
+auto GeantTestBase::build_particle() -> SPConstParticle
 {
     return ParticleParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_cutoff() -> SPConstCutoff
+auto GeantTestBase::build_cutoff() -> SPConstCutoff
 {
     return CutoffParams::from_import(
         this->imported_data(), this->particle(), this->material());
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_physics() -> SPConstPhysics
+auto GeantTestBase::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input input;
     input.materials      = this->material();
@@ -181,7 +181,7 @@ auto TestEm3Base::build_physics() -> SPConstPhysics
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_along_step() -> SPConstAction
+auto GeantTestBase::build_along_step() -> SPConstAction
 {
     auto result
         = AlongStepGeneralLinearAction::from_params(*this->material(),
@@ -198,7 +198,7 @@ auto TestEm3Base::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto TestEm3Base::build_physics_options() const -> PhysicsOptions
+auto GeantTestBase::build_physics_options() const -> PhysicsOptions
 {
     PhysicsOptions options;
     options.secondary_stack_factor = this->secondary_stack_factor();
@@ -207,11 +207,22 @@ auto TestEm3Base::build_physics_options() const -> PhysicsOptions
 
 //---------------------------------------------------------------------------//
 // Lazily set up and load geant4
-auto TestEm3Base::imported_data() const -> const ImportData&
+auto GeantTestBase::imported_data() const -> const ImportData&
 {
-    static ImportData imported = load_import_data(this->test_data_path(
-        "celeritas", gdml_filename(this->geometry_basename()).c_str()));
-    return imported;
+    static struct
+    {
+        ImportData  imported;
+        std::string geometry_basename;
+    } i;
+    std::string cur_basename = this->geometry_basename();
+    if (i.geometry_basename != cur_basename)
+    {
+        i.imported          = load_import_data(this->test_data_path(
+            "celeritas", gdml_filename(cur_basename.c_str()).c_str()));
+        i.geometry_basename = cur_basename;
+    }
+    CELER_ENSURE(i.imported);
+    return i.imported;
 }
 
 //---------------------------------------------------------------------------//
