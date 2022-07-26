@@ -7,15 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/global/Stepper.hh"
 
+#include <random>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/SimpleTestBase.hh"
-#include "celeritas/TestEm3Base.hh"
+#include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/random/distribution/IsotropicDistribution.hh"
 
+#include "../SimpleTestBase.hh"
+#include "../TestEm15Base.hh"
+#include "../TestEm3Base.hh"
 #include "DummyAction.hh"
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
@@ -47,7 +54,7 @@ class TestEm3Test : public celeritas_test::TestEm3Base,
     make_primaries_with_energy(size_type count, MevEnergy energy) const
     {
         Primary p;
-        p.particle_id = this->particle()->find("e-");
+        p.particle_id = this->particle()->find(pdg::electron());
         CELER_ASSERT(p.particle_id);
         p.energy    = energy;
         p.track_id  = TrackId{0};
@@ -59,6 +66,7 @@ class TestEm3Test : public celeritas_test::TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].track_id = TrackId{i};
         }
         return result;
     }
@@ -79,6 +87,8 @@ class TestEm3MscTest : public TestEm3Test
     {
         return this->make_primaries_with_energy(count, MevEnergy{10});
     }
+
+    size_type max_average_steps() const override { return 100; }
 };
 
 //---------------------------------------------------------------------------//
@@ -98,6 +108,57 @@ class TestEm3MscNofluctTest : public TestEm3Test
     {
         return this->make_primaries_with_energy(count, MevEnergy{10});
     }
+
+    size_type max_average_steps() const override { return 100; }
+};
+
+#define TestEm15Test TEST_IF_CELERITAS_GEANT(TestEm15Test)
+class TestEm15FieldTest : public celeritas_test::TestEm15Base,
+                          public celeritas_test::StepperTestBase
+{
+    bool enable_fluctuation() const override { return false; }
+
+    SPConstAction build_along_step() override
+    {
+        CELER_EXPECT(!this->enable_fluctuation());
+        UniformFieldParams field_params;
+        field_params.field = {0, 0, 1};
+        auto result        = AlongStepUniformMscAction::from_params(
+            *this->physics(), field_params, this->action_mgr().get());
+        CELER_ENSURE(result);
+        CELER_ENSURE(result->has_msc() == this->enable_msc());
+        return result;
+    }
+
+    //! Make isotropic 10MeV electron/positron mix
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        Primary p;
+        p.energy   = MevEnergy{10};
+        p.position = {0, 0, 0};
+        p.time     = 0;
+
+        const Array<ParticleId, 2> particles = {
+            this->particle()->find(pdg::electron()),
+            this->particle()->find(pdg::positron()),
+        };
+        CELER_ASSERT(particles[0] && particles[1]);
+
+        std::vector<Primary>    result(count, p);
+        IsotropicDistribution<> sample_dir;
+        std::mt19937            rng;
+
+        for (auto i : range(count))
+        {
+            result[i].event_id    = EventId{i};
+            result[i].track_id    = TrackId{i};
+            result[i].direction   = sample_dir(rng);
+            result[i].particle_id = particles[i % particles.size()];
+        }
+        return result;
+    }
+
+    size_type max_average_steps() const override { return 500; }
 };
 
 //---------------------------------------------------------------------------//
@@ -401,4 +462,20 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
             FAIL() << "Updated stepper results are required for CI tests";
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM15_MSC_FIELD
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm15FieldTest, host)
+{
+    size_type num_primaries   = 4;
+    size_type inits_per_track = 32 * 8;
+    size_type num_tracks      = num_primaries * inits_per_track;
+
+    Stepper<MemSpace::host> step(
+        this->make_stepper_input(num_tracks, inits_per_track));
+    auto result = this->run(step, num_primaries);
+    result.print_expected();
 }

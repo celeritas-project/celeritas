@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/TestEm3Base.hh
+//! \file celeritas/TestEm15Base.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,17 +13,15 @@ namespace celeritas_test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test harness for replicating the AdePT TestEm3 input.
- *
- * This class requires Geant4 to import the data.
+ * Test harness for "infinite" geometry.
  */
-class TestEm3Base : public GeantTestBase
+class TestEm15Base : public GeantTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "testem3-flat"; }
+    const char* geometry_basename() const override { return "testem15"; }
     bool        enable_fluctuation() const override { return true; }
-    bool        enable_msc() const override { return false; }
-    bool        combined_brems() const override { return true; }
+    bool        enable_msc() const override { return true; }
+    bool        combined_brems() const override { return false; }
     real_type   secondary_stack_factor() const override { return 3.0; }
 };
 

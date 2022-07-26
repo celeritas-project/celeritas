@@ -46,6 +46,7 @@ class GeantTestBase : virtual public GlobalGeoTestBase
   protected:
     virtual bool      enable_fluctuation() const     = 0;
     virtual bool      enable_msc() const             = 0;
+    virtual bool      combined_brems() const         = 0;
     virtual real_type secondary_stack_factor() const = 0;
 
     SPConstMaterial    build_material() override;

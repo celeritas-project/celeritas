@@ -145,7 +145,7 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
     input.action_manager = this->action_mgr().get();
 
     BremsstrahlungProcess::Options brem_options;
-    brem_options.combined_model  = true;
+    brem_options.combined_model  = this->combined_brems();
     brem_options.enable_lpm      = true;
     brem_options.use_integral_xs = true;
 
@@ -217,9 +217,12 @@ auto GeantTestBase::imported_data() const -> const ImportData&
     std::string cur_basename = this->geometry_basename();
     if (i.geometry_basename != cur_basename)
     {
+        CELER_VALIDATE(i.geometry_basename.empty(),
+                       << "Geant4 currently crashes on second G4RunManager "
+                          "instantiation (see issue #462)");
+        i.geometry_basename = cur_basename;
         i.imported          = load_import_data(this->test_data_path(
             "celeritas", gdml_filename(cur_basename.c_str()).c_str()));
-        i.geometry_basename = cur_basename;
     }
     CELER_ENSURE(i.imported);
     return i.imported;
