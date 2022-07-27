@@ -21,8 +21,14 @@ namespace celeritas
  */
 PrimaryGenerator::PrimaryGenerator(SPConstParticles        particles,
                                    PrimaryGeneratorOptions options)
-    : particles_(std::move(particles)), options_(options)
+    : num_events_(options.num_events)
+    , primaries_per_event_(options.primaries_per_event)
 {
+    primary_.particle_id = particles->find(PDGNumber{options.pdg});
+    primary_.energy      = units::MevEnergy{options.energy};
+    primary_.position    = options.position;
+    primary_.direction   = options.direction;
+    primary_.time        = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -31,22 +37,15 @@ PrimaryGenerator::PrimaryGenerator(SPConstParticles        particles,
  */
 auto PrimaryGenerator::operator()() -> VecPrimary
 {
-    Primary p;
-    p.particle_id = particles_->find(PDGNumber{options_.pdg});
-    p.energy      = units::MevEnergy{options_.energy};
-    p.position    = options_.position;
-    p.direction   = options_.direction;
-    p.time        = 0;
-
     VecPrimary result;
-    result.reserve(options_.num_events * options_.primaries_per_event);
-    for (auto i : range(options_.num_events))
+    result.reserve(num_events_ * primaries_per_event_);
+    for (auto i : range(num_events_))
     {
-        for (auto j : range(options_.primaries_per_event))
+        for (auto j : range(primaries_per_event_))
         {
-            p.event_id = EventId{i};
-            p.track_id = TrackId{j};
-            result.push_back(p);
+            primary_.event_id = EventId{i};
+            primary_.track_id = TrackId{j};
+            result.push_back(primary_);
         }
     }
     return result;

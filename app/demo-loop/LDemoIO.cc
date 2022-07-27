@@ -144,6 +144,9 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     {
         j.at("primary_gen_options").get_to(v.primary_gen_options);
     }
+    CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
+                   << "either a HepMC3 filename or options to generate "
+                      "primaries must be provided (but not both)");
 
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);

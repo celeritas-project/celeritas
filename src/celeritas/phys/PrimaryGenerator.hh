@@ -58,8 +58,9 @@ class PrimaryGenerator
     VecPrimary operator()();
 
   private:
-    SPConstParticles        particles_;
-    PrimaryGeneratorOptions options_;
+    size_type num_events_;
+    size_type primaries_per_event_;
+    Primary   primary_;
 };
 
 //---------------------------------------------------------------------------//
