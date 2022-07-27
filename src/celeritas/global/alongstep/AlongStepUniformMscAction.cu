@@ -14,7 +14,7 @@
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
 #include "AlongStepLauncher.hh"
-#include "detail/AlongStepGeneralLinear.hh"
+#include "detail/AlongStepUniformMsc.hh"
 
 namespace celeritas
 {
