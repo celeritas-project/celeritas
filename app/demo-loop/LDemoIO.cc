@@ -34,6 +34,7 @@
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
@@ -95,7 +96,6 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
                        {"physics_filename", v.physics_filename},
-                       {"hepmc3_filename", v.hepmc3_filename},
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
@@ -122,13 +122,31 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["geant_options"] = v.geant_options;
     }
+    if (v.primary_gen_options)
+    {
+        j["primary_gen_options"] = v.primary_gen_options;
+    }
+    if (!v.hepmc3_filename.empty())
+    {
+        j["hepmc3_filename"] = v.hepmc3_filename;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
 {
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
-    j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    if (j.contains("hepmc3_filename"))
+    {
+        j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    }
+    if (j.contains("primary_gen_options"))
+    {
+        j.at("primary_gen_options").get_to(v.primary_gen_options);
+    }
+    CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
+                   << "either a HepMC3 filename or options to generate "
+                      "primaries must be provided (but not both)");
 
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
