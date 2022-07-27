@@ -66,7 +66,6 @@ class TestEm3Test : public celeritas_test::TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
-            result[i].track_id = TrackId{i};
         }
         return result;
     }
@@ -137,6 +136,7 @@ class TestEm15FieldTest : public celeritas_test::TestEm15Base,
         p.energy   = MevEnergy{10};
         p.position = {0, 0, 0};
         p.time     = 0;
+        p.track_id = TrackId{0};
 
         const Array<ParticleId, 2> particles = {
             this->particle()->find(pdg::electron()),
@@ -151,7 +151,6 @@ class TestEm15FieldTest : public celeritas_test::TestEm15Base,
         for (auto i : range(count))
         {
             result[i].event_id    = EventId{i};
-            result[i].track_id    = TrackId{i};
             result[i].direction   = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
