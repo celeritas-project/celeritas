@@ -105,6 +105,18 @@ calc_physics_step_limit(const MaterialTrackView& material,
             }
         }
     }
+    else
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_VALIDATE(total_macro_xs > 0,
+                       << "non-positive cross section (" << total_macro_xs
+                       << ") for stopped particle of type "
+                       << particle.particle_id().get() << " in material "
+                       << material.material_id().get() << " with "
+                       << physics.num_particle_processes()
+                       << " possible processes");
+#endif
+    }
 
     return limit;
 }
@@ -247,6 +259,7 @@ select_discrete_interaction(const MaterialView&      material,
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
+    CELER_EXPECT(pstep.macro_xs() > 0);
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(

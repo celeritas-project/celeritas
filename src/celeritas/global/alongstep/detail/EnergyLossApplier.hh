@@ -52,15 +52,27 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
     }
 
     auto particle = track.make_particle_view();
+    Energy eloss;
     if (particle.energy() < phys.scalars().eloss_calc_limit)
     {
         // Immediately stop low-energy particles
         // TODO: this should happen before creating tracks from secondaries
         // *OR* after slowing down tracks: duplicated in
-        // EnergyLossFluctApplier.hh
-        auto step = track.make_physics_step_view();
-        step.deposit_energy(particle.energy());
-        particle.energy(zero_quantity());
+        // EnergyLossApplier.hh
+        eloss = particle.energy();
+    }
+    else
+    {
+        // Calculate mean energy loss
+        eloss = calc_mean_energy_loss(particle, phys, step_limit->step);
+    }
+
+    CELER_ASSERT(eloss <= particle.energy());
+    if (eloss == particle.energy())
+    {
+        // Particle lost all energy over the step: this can happen if we're
+        // range limited *or* if below the hard cutoff
+        CELER_ASSERT(step_limit->action != track.boundary_action());
 
         if (!phys.has_at_rest())
         {
@@ -73,11 +85,8 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
             // Particle slowed down to zero: force a discrete interaction
             step_limit->action = phys.scalars().discrete_action();
         }
-        return;
     }
 
-    // Calculate mean energy loss
-    Energy eloss = calc_mean_energy_loss(particle, phys, step_limit->step);
     if (eloss > zero_quantity())
     {
         // Deposit energy loss

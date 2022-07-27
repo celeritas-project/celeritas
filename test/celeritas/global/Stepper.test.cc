@@ -477,5 +477,25 @@ TEST_F(TestEm15FieldTest, host)
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
-    result.print_expected();
+    EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.50);
+
+    if (this->is_srj_build())
+    {
+        EXPECT_EQ(14, result.num_step_iters());
+        EXPECT_SOFT_EQ(35.5, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(6, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << celeritas_test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
+}
 }
