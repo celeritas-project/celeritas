@@ -486,6 +486,13 @@ TEST_F(TestEm15FieldTest, host)
         EXPECT_EQ(6, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
     }
+    else if (this->is_wildstyle_build())
+    {
+        EXPECT_EQ(14, result.num_step_iters());
+        EXPECT_SOFT_EQ(35, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(6, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
+    }
     else
     {
         cout << "No output saved for combination of "
@@ -509,6 +516,14 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
 
+    if (this->is_wildstyle_build())
+    {
+        EXPECT_EQ(14, result.num_step_iters());
+        EXPECT_SOFT_EQ(29.75, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(5, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({2, 11}), result.calc_queue_hwm());
+    }
+    else
     {
         cout << "No output saved for combination of "
              << celeritas_test::PrintableBuildConf{} << std::endl;
