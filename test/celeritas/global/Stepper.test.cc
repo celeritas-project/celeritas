@@ -498,4 +498,25 @@ TEST_F(TestEm15FieldTest, host)
         }
     }
 }
+
+TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    size_type num_primaries   = 8;
+    size_type inits_per_track = 512;
+    size_type num_tracks      = 1024;
+
+    Stepper<MemSpace::device> step(
+        this->make_stepper_input(num_tracks, inits_per_track));
+    auto result = this->run(step, num_primaries);
+
+    {
+        cout << "No output saved for combination of "
+             << celeritas_test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
 }

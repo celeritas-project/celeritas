@@ -252,6 +252,10 @@ function(celeritas_add_test SOURCE_FILE)
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
+  if(PARSE_UNPARSED_ARGUMENTS)
+    message(SEND_ERROR "Unknown keywords given to scale_add_regression_tests(): "
+            "\"${PARSE_UNPARSED_ARGUMENTS}\"")
+  endif()
 
   if(NOT CELERITASTEST_HARNESS OR CELERITASTEST_HARNESS STREQUAL "gtest")
     set(_CELERITASTEST_IS_GTEST TRUE)
