@@ -69,7 +69,6 @@ MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
     , coeffi_{native_value_from(charge)
               / native_value_from(units::MevMomentum{1})}
 {
-    CELER_EXPECT(charge != zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
