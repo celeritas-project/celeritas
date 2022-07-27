@@ -46,6 +46,8 @@ TEST(UnitsTest, equivalence)
 
     EXPECT_EQ(real_type(1), erg);
     EXPECT_EQ(1e7 * erg, joule);
+
+    EXPECT_DOUBLE_EQ(1e3, tesla);
 }
 
 //! Test that no precision is lost for cm<->m and other integer factors.
