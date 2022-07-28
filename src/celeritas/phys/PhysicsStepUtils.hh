@@ -74,6 +74,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
         pstep.per_process_xs(ppid) = process_xs;
     }
     pstep.macro_xs(total_macro_xs);
+    CELER_ASSERT(total_macro_xs > 0 || !particle.is_stopped());
 
     // Determine limits from discrete interactions
     StepLimit limit;
@@ -104,18 +105,6 @@ calc_physics_step_limit(const MaterialTrackView& material,
                 limit.action = physics.scalars().fixed_step_action;
             }
         }
-    }
-    else
-    {
-#if !CELER_DEVICE_COMPILE
-        CELER_VALIDATE(total_macro_xs > 0,
-                       << "non-positive cross section (" << total_macro_xs
-                       << ") for stopped particle of type "
-                       << particle.particle_id().get() << " in material "
-                       << material.material_id().get() << " with "
-                       << physics.num_particle_processes()
-                       << " possible processes");
-#endif
     }
 
     return limit;
