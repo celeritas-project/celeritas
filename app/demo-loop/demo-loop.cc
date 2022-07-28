@@ -33,6 +33,7 @@
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/phys/PrimaryGenerator.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -90,6 +91,13 @@ void run(std::istream* is, OutputManager* output)
 
     // Run all the primaries
     TransporterResult result;
+    if (run_args.primary_gen_options)
+    {
+        PrimaryGenerator generate_primaries(transport_ptr->params().particle(),
+                                            run_args.primary_gen_options);
+        result = (*transport_ptr)(generate_primaries());
+    }
+    else
     {
         EventReader read_all_events(run_args.hepmc3_filename.c_str(),
                                     transport_ptr->params().particle());

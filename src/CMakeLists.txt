@@ -192,6 +192,7 @@ list(APPEND SOURCES
   celeritas/phys/ParticleParams.cc
   celeritas/phys/PhysicsParams.cc
   celeritas/phys/PhysicsParamsOutput.cc
+  celeritas/phys/PrimaryGenerator.cc
   celeritas/phys/Process.cc
   celeritas/random/CuHipRngData.cc
   celeritas/random/XorwowRngData.cc
@@ -243,6 +244,7 @@ if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     corecel/sys/DeviceIO.json.cc
     corecel/sys/KernelDiagnosticsIO.json.cc
+    celeritas/phys/PrimaryGeneratorOptionsIO.json.cc
     orange/construct/SurfaceInputIO.json.cc
     orange/construct/VolumeInputIO.json.cc
     celeritas/field/FieldDriverOptionsIO.json.cc
