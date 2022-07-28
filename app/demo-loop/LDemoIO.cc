@@ -26,10 +26,12 @@
 #include "celeritas/ext/GeantSetupOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
+#include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -344,7 +346,7 @@ TransporterInput load_input(const LDemoArgs& args)
         field_params.field   = args.mag_field;
         field_params.options = args.field_options;
 
-        aparams.along_step = AlongStepUniformMscAction::from_params(
+        params.along_step = AlongStepUniformMscAction::from_params(
             *params.physics, field_params, params.action_mgr.get());
     }
 

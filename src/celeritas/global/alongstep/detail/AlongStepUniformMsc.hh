@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/AlongStepGeneralLinear.hh
+//! \file celeritas/global/alongstep/detail/AlongStepUniformMsc.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -25,7 +25,8 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Implementation of the "along step" action with MSC and eloss fluctuation.
+ * Implementation of the "along step" action with Urban MSC and a uniform
+ * magnetic field.
  */
 inline CELER_FUNCTION void
 along_step_uniform_msc(const NativeCRef<UrbanMscData>& msc,
