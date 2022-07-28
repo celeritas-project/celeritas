@@ -219,6 +219,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     normalize_direction(&dir);
     geo_.set_dir(dir);
 
+    CELER_ENSURE(result.distance >= 0 && result.distance <= step);
     return result;
 }
 
