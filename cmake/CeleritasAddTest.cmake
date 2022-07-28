@@ -194,7 +194,7 @@ else()
     elseif(np GREATER 1)
       set(_name "${test_name}/${np}${suffix}")
     else()
-      set(_name "${test_name}")
+      set(_name "${test_name}${suffix}")
     endif()
     set(${outvar} "${_name}" PARENT_SCOPE)
   endfunction()
@@ -252,6 +252,10 @@ function(celeritas_add_test SOURCE_FILE)
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
+  if(PARSE_UNPARSED_ARGUMENTS)
+    message(SEND_ERROR "Unknown keywords given to scale_add_regression_tests(): "
+            "\"${PARSE_UNPARSED_ARGUMENTS}\"")
+  endif()
 
   if(NOT CELERITASTEST_HARNESS OR CELERITASTEST_HARNESS STREQUAL "gtest")
     set(_CELERITASTEST_IS_GTEST TRUE)

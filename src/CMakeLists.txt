@@ -203,6 +203,7 @@ list(APPEND SOURCES
 set(DEVICE_SOURCES)
 celeritas_polysource(celeritas/global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepNeutralAction)
+celeritas_polysource(celeritas/global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(celeritas/random/detail/CuHipRngStateInit)
 celeritas_polysource(celeritas/track/detail/TrackInitAlgorithms)
 
@@ -246,6 +247,7 @@ if(CELERITAS_USE_JSON)
     celeritas/phys/PrimaryGeneratorOptionsIO.json.cc
     orange/construct/SurfaceInputIO.json.cc
     orange/construct/VolumeInputIO.json.cc
+    celeritas/field/FieldDriverOptionsIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()

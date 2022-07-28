@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <G4EmParameters.hh>
+#include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4MaterialTable.hh>
 #include <G4ParticleTable.hh>
@@ -24,6 +25,7 @@
 #include <G4RToEConvForProton.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Transportation.hh>
+#include <G4VSolid.hh>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"

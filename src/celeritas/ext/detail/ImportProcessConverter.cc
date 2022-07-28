@@ -401,13 +401,14 @@ void ImportProcessConverter::store_energy_loss_tables(
         this->add_table(process.IonisationTableForSubsec(),
                         ImportTableType::ionization_subsec);
         this->add_table(process.SubLambdaTable(), ImportTableType::sublambda);
+        // Secondary range is removed in 11.1
+        this->add_table(process.SecondaryRangeTable(),
+                        ImportTableType::secondary_range);
 #endif
 
         this->add_table(process.DEDXunRestrictedTable(),
                         ImportTableType::dedx_unrestricted);
         this->add_table(process.CSDARangeTable(), ImportTableType::csda_range);
-        this->add_table(process.SecondaryRangeTable(),
-                        ImportTableType::secondary_range);
     }
 }
 

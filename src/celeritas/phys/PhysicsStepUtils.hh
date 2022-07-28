@@ -74,6 +74,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
         pstep.per_process_xs(ppid) = process_xs;
     }
     pstep.macro_xs(total_macro_xs);
+    CELER_ASSERT(total_macro_xs > 0 || !particle.is_stopped());
 
     // Determine limits from discrete interactions
     StepLimit limit;
@@ -247,6 +248,7 @@ select_discrete_interaction(const MaterialView&      material,
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
+    CELER_EXPECT(pstep.macro_xs() > 0);
 
     // Sample ParticleProcessId from physics.per_process_xs()
     ParticleProcessId ppid = celeritas::make_selector(

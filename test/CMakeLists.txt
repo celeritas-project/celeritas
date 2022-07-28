@@ -208,11 +208,11 @@ add_library(CeleritasTest
   celeritas/phys/SecondaryIO.cc
   celeritas/phys/MockModel.cc
   celeritas/phys/MockProcess.cc
+  celeritas/GeantTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
-  celeritas/TestEm3Base.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
 )
@@ -295,7 +295,12 @@ celeritas_add_test(celeritas/global/ActionManager.test.cc)
 celeritas_add_test(celeritas/global/AlongStep.test.cc
   ${_optional_geant4_env})
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU ${_needs_geant4})
+  GPU ${_needs_geant4}
+  FILTER
+    # NOTE: these can be run in the same invocation once Geant4 reload is fixed
+    "TestEm3*"
+    "TestEm15FieldTest.*"
+)
 
 #-------------------------------------#
 # Grid

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <string>
 
+#include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "celeritas/em/FluctuationParams.hh"
@@ -24,10 +25,13 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetupOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/field/FieldDriverOptionsIO.json.hh"
+#include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -104,12 +108,17 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
                        {"sync", v.sync},
+                       {"mag_field", v.mag_field},
                        {"rayleigh", v.rayleigh},
                        {"eloss_fluctuation", v.eloss_fluctuation},
                        {"brem_combined", v.brem_combined},
                        {"brem_lpm", v.brem_lpm},
                        {"conv_lpm", v.conv_lpm},
                        {"enable_msc", v.enable_msc}};
+    if (v.mag_field != LDemoArgs::no_field())
+    {
+        j["field_options"] = v.field_options;
+    }
     if (v.enable_diagnostics)
     {
         j["energy_diag"] = v.energy_diag;
@@ -159,6 +168,14 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
     j.at("sync").get_to(v.sync);
+    if (j.contains("mag_field"))
+    {
+        j.at("mag_field").get_to(v.mag_field);
+    }
+    if (v.mag_field != LDemoArgs::no_field() && j.contains("field_options"))
+    {
+        j.at("field_options").get_to(v.field_options);
+    }
     if (j.contains("step_limiter"))
     {
         j.at("step_limiter").get_to(v.step_limiter);
@@ -328,6 +345,7 @@ TransporterInput load_input(const LDemoArgs& args)
         }
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
+    if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
         params.along_step = AlongStepGeneralLinearAction::from_params(
@@ -336,6 +354,18 @@ TransporterInput load_input(const LDemoArgs& args)
             *params.physics,
             args.eloss_fluctuation,
             params.action_mgr.get());
+    }
+    else
+    {
+        CELER_VALIDATE(!args.eloss_fluctuation,
+                       << "energy loss fluctuations are not supported "
+                          "simultaneoulsy with magnetic field");
+        UniformFieldParams field_params;
+        field_params.field   = args.mag_field;
+        field_params.options = args.field_options;
+
+        params.along_step = AlongStepUniformMscAction::from_params(
+            *params.physics, field_params, params.action_mgr.get());
     }
 
     // Construct RNG params

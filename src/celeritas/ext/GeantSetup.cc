@@ -142,6 +142,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
  */
 void GeantSetup::RMDeleter::operator()(G4RunManager* rm) const
 {
+    CELER_LOG(debug) << "Clearing Geant4 state";
     delete rm;
 }
 

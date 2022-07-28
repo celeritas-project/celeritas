@@ -1,36 +1,24 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/UniformField.hh
+//! \file celeritas/field/FieldDriverOptionsIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Array.hh"
-#include "celeritas/Types.hh"
+#include <nlohmann/json.hpp>
 
 namespace celeritas
 {
+struct FieldDriverOptions;
 //---------------------------------------------------------------------------//
-/*!
- * A uniform field.
- */
-class UniformField
-{
-  public:
-    //! Construct with a field vector
-    explicit CELER_FUNCTION UniformField(const Real3& value) : value_(value) {}
 
-    //! Return the field at the given position
-    CELER_FUNCTION const Real3& operator()(const Real3&) const
-    {
-        return value_;
-    }
+// Read options from JSON
+void from_json(const nlohmann::json& j, FieldDriverOptions& opts);
 
-  private:
-    Real3 value_;
-};
+// Write options to JSON
+void to_json(nlohmann::json& j, const FieldDriverOptions& opts);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
