@@ -100,10 +100,6 @@ struct FieldMapData
     }
 };
 
-using FieldMapDeviceRef = ::celeritas::DeviceCRef<FieldMapData>;
-using FieldMapHostRef   = ::celeritas::HostCRef<FieldMapData>;
-using FieldMapRef       = ::celeritas::NativeCRef<FieldMapData>;
-
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas_test

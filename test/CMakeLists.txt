@@ -268,17 +268,15 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
-celeritas_device_test(celeritas/field/Steppers)
-celeritas_device_test(celeritas/field/FieldDriver)
-celeritas_device_test(celeritas/field/FieldPropagator ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
-celeritas_device_test(celeritas/field/UserParamField ${_needs_geo})
-celeritas_device_test(celeritas/field/UserMapField
-  SOURCES
-    celeritas/field/detail/MagFieldMap.cc
-    celeritas/field/detail/CMSFieldMapReader.cc
-  ${_needs_geo}
+celeritas_add_test(celeritas/field/Fields.test.cc
+SOURCES
+  celeritas/field/detail/MagFieldMap.cc
+  celeritas/field/detail/CMSFieldMapReader.cc
 )
+celeritas_add_test(celeritas/field/Steppers.test.cc)
+celeritas_add_test(celeritas/field/FieldDriver.test.cc)
+celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
 
 #-------------------------------------#
 # Geo

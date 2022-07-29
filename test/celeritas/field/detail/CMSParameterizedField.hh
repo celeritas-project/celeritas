@@ -16,8 +16,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
-using celeritas::Real3;
-
 namespace celeritas_test
 {
 namespace detail
@@ -32,9 +30,12 @@ namespace detail
  */
 class CMSParameterizedField
 {
+  public:
     //!@{
-    //! Type aliases
-    using Real4 = celeritas::Array<celeritas::real_type, 4>;
+    //! \name Type aliases
+    using real_type = celeritas::real_type;
+    using Real3     = celeritas::Array<real_type, 3>;
+    using Real4     = celeritas::Array<real_type, 4>;
     //!@}
 
   public:
@@ -90,7 +91,8 @@ auto CMSParameterizedField::operator()(const Real3& pos) const -> Real3
  * TODO: simplify and optimize
  */
 CELER_FUNCTION
-Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z) const
+auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
+    -> Real3
 {
     using celeritas::ipow;
     using celeritas::units::meter;
@@ -147,8 +149,7 @@ Real3 CMSParameterizedField::evaluate_field(real_type r, real_type z) const
  * Evaluate the parameterization function and its 3 derivatives.
  */
 CELER_FUNCTION
-CMSParameterizedField::Real4
-CMSParameterizedField::evaluate_parameters(real_type x) const
+auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 {
     using celeritas::ipow;
 

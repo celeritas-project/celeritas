@@ -7,227 +7,218 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/FieldPropagator.hh"
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
+#include "celeritas/field/detail/CMSParameterizedField.hh"
+#include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
-#include "FieldPropagator.test.hh"
-#include "FieldPropagatorTestBase.hh"
+#include "celeritas_test.hh"
+
+using namespace celeritas;
+using namespace celeritas_test;
+using celeritas::constants::pi;
+using celeritas::units::MevEnergy;
 
 //---------------------------------------------------------------------------//
-// HOST TESTS
+// TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorHostTest : public FieldPropagatorTestBase
+class FieldPropagatorTestBase : public GlobalGeoTestBase
 {
   public:
-    using Initializer_t = ParticleTrackView::Initializer_t;
-    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
-
-    void SetUp()
+    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstGeoMaterial build_geomaterial() override
     {
-        FieldPropagatorTestBase::SetUp();
+        CELER_ASSERT_UNREACHABLE();
+    }
+    SPConstCutoff  build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics build_physics() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction  build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
+
+    SPConstParticle build_particle() override
+    {
+        using namespace celeritas::units;
+        namespace pdg = celeritas::pdg;
+
+        // Create particle defs
+        constexpr auto        stable = ParticleRecord::stable_decay_constant();
+        ParticleParams::Input defs   = {
+              {"electron",
+               pdg::electron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{-1},
+               stable},
+              {"positron",
+               pdg::positron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{1},
+               stable},
+              {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+        return std::make_shared<ParticleParams>(std::move(defs));
+    }
+
+    void SetUp() override
+    {
         geo_state_ = GeoStateStore(*this->geometry(), 1);
+        par_state_ = ParStateStore(*this->particle(), 1);
     }
 
-  protected:
+    ParticleTrackView init_particle(ParticleId id, MevEnergy energy)
+    {
+        CELER_EXPECT(id && energy > zero_quantity());
+        ParticleTrackView view{
+            this->particle()->host_ref(), par_state_.ref(), ThreadId{0}};
+        view = {id, energy};
+        return view;
+    }
+
+    GeoTrackView init_geo(const Real3& pos, Real3 dir)
+    {
+        normalize_direction(&dir);
+        GeoTrackView view{
+            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0}};
+        view = {pos, dir};
+        return view;
+    }
+
+  private:
+    //// TYPE ALIASES ////
+    template<template<Ownership, MemSpace> class T>
+    using HostStateStore = CollectionStateStore<T, MemSpace::host>;
+    using GeoStateStore  = HostStateStore<GeoStateData>;
+    using ParStateStore  = HostStateStore<ParticleStateData>;
+
+    //// DATA ////
+
     GeoStateStore geo_state_;
+    ParStateStore par_state_;
 };
 
-TEST_F(FieldPropagatorHostTest, field_propagator_host)
+class TwoBoxTest : public FieldPropagatorTestBase
 {
-    // Construct GeoTrackView and ParticleTrackView
-    GeoTrackView geo_track = GeoTrackView(
-        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
-    ParticleTrackView particle_track(
-        this->particle()->host_ref(), state_ref, ThreadId(0));
-    UniformField field({0, 0, test.field_value});
+    const char* geometry_basename() const override { return "two-boxes"; }
+};
 
-    // Test parameters and the sub-step size
-    double step = (2.0 * constants::pi * test.radius) / test.nsteps;
+class LayersTest : public FieldPropagatorTestBase
+{
+    const char* geometry_basename() const override { return "field-test"; }
+};
 
-    particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
-    OdeState beg_state;
-    beg_state.mom                   = {0, test.momentum_y, 0};
-    real_type expected_total_length = 2 * constants::pi * test.radius
-                                      * test.revolutions;
+TEST_F(TwoBoxTest, interior_stepping)
+{
+    // Initialize particle state
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
 
-    for (unsigned int i : celeritas::range(test.nstates))
+    // Calculate expected radius of curvature
+    const real_type field_strength{1.0 * units::tesla};
+    const real_type radius
+        = native_value_from(particle.momentum())
+          / (std::fabs(native_value_from(particle.charge())) * field_strength);
+    EXPECT_SOFT_EQ(3.8085385437789383, radius);
+
+    // Initialize position and direction so its curved track is centered about
+    // the origin, moving counterclockwise from the right
+    auto geo = this->init_geo({radius, 0, 0}, {0, 1, 0});
+    EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
+
+    // Construct field (uniform along +Z)
+    UniformField field({0, 0, field_strength});
+    // Default driver options
+    FieldDriverOptions driver_options;
+
+    // Build propagator
+    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        field, driver_options, particle, &geo);
+
+    // Test step that's smaller than driver's minimum (won't actually alter geo
+    // state but should return the distance as if it were moved)
+    Propagation result = propagate(1e-10);
+    EXPECT_DOUBLE_EQ(1e-10, result.distance);
+    EXPECT_FALSE(result.boundary);
+    EXPECT_VEC_SOFT_EQ(Real3({radius, 0, 0}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
+
+    // Test a short step
+    result = propagate(1e-2);
+    EXPECT_SOFT_EQ(1e-2, result.distance);
+    EXPECT_VEC_SOFT_EQ(Real3({3.80852541539105, 0.0099999885096862, 0}),
+                       geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
+                       geo.dir());
+
+    // Test the remaining quarter-turn divided into 20 steps
     {
-        // Initial state and the expected state after each revolution
-        geo_track     = {{test.radius, -10, i * 1.0e-6}, {0, 1, 0}};
-        beg_state.pos = {test.radius, -10, i * 1.0e-6};
-
-        // Check GeoTrackView
-        EXPECT_SOFT_EQ(5.5, geo_track.find_next_step().distance);
-
-        // Construct FieldPropagator
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, this->field_params, particle_track, &geo_track);
-
-        real_type total_length = 0;
-
-        for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
+        real_type step = 0.5 * pi * radius - 1e-2;
+        for (auto i : range(25))
         {
-            for (CELER_MAYBE_UNUSED int j : celeritas::range(test.nsteps))
-            {
-                auto result = propagate(step);
-                EXPECT_FALSE(result.boundary);
-                EXPECT_DOUBLE_EQ(step, result.distance);
-                total_length += result.distance;
-            }
+            SCOPED_TRACE(i);
+            result = propagate(step / 25);
+            EXPECT_SOFT_EQ(step / 25, result.distance);
+            EXPECT_FALSE(result.boundary)
+                << "At " << geo.pos() << " along " << geo.dir();
         }
-
-        // Check input after num_revolutions
-        EXPECT_VEC_NEAR(beg_state.pos, geo_track.pos(), test.epsilon);
-        Real3 final_dir = beg_state.mom;
-        normalize_direction(&final_dir);
-        EXPECT_VEC_NEAR(final_dir, geo_track.dir(), test.epsilon);
-        EXPECT_SOFT_NEAR(total_length, expected_total_length, test.epsilon);
+        EXPECT_SOFT_NEAR(0, distance(Real3({0, radius, 0}), geo.pos()), 1e-8);
+        EXPECT_SOFT_EQ(1.0, dot_product(Real3({-1, 0, 0}), geo.dir()));
     }
-}
 
-TEST_F(FieldPropagatorHostTest, boundary_crossing_host)
-{
-    // Construct GeoTrackView and ParticleTrackView
-    GeoTrackView geo_track = GeoTrackView(
-        this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
-    ParticleTrackView particle_track(
-        this->particle()->host_ref(), state_ref, ThreadId(0));
-    UniformField field({0, 0, test.field_value});
-
-    // clang-format off
-    static const real_type expected_y[]
-        = { 0.5,  1.5,  2.5,  3.5,  3.5,  2.5,  1.5,  0.5,
-           -0.5, -1.5, -2.5, -3.5, -3.5, -2.5, -1.5, -0.5};
-    // clang-format on
-    const int num_boundary = sizeof(expected_y) / sizeof(real_type);
-
-    // Test parameters and the sub-step size
-    double step = (2.0 * constants::pi * test.radius) / test.nsteps;
-
-    for (auto i : celeritas::range(test.nstates))
+    // Test a very long (next quarter-turn) step
     {
-        // Initialize GeoTrackView and ParticleTrackView
-        geo_track      = {{test.radius, 0, i * 1.0e-6}, {0, 1, 0}};
-        particle_track = Initializer_t{ParticleId{0}, MevEnergy{test.energy}};
+        SCOPED_TRACE("Quarter turn");
+        result = propagate(0.5 * pi * radius);
+        EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
+        EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
+        EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
+    }
 
-        EXPECT_SOFT_EQ(0.5, geo_track.find_next_step().distance);
-
-        // Construct FieldPropagator
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, this->field_params, particle_track, &geo_track);
-
-        int       icross       = 0;
-        real_type total_length = 0;
-
-        for (CELER_MAYBE_UNUSED int ir : celeritas::range(test.revolutions))
-        {
-            for (CELER_MAYBE_UNUSED auto k : celeritas::range(test.nsteps))
-            {
-                auto result = propagate(step);
-                total_length += result.distance;
-
-                if (result.boundary)
-                {
-                    icross++;
-                    int j = (icross - 1) % num_boundary;
-                    EXPECT_DOUBLE_EQ(expected_y[j], geo_track.pos()[1]);
-                    geo_track.cross_boundary();
-                }
-            }
-        }
-
-        // Check stepper results with boundary crossings
-        EXPECT_SOFT_NEAR(-0.13150565, geo_track.pos()[0], test.epsilon);
-        EXPECT_SOFT_NEAR(-0.03453068, geo_track.dir()[1], test.epsilon);
-        EXPECT_SOFT_NEAR(221.48171708, total_length, test.epsilon);
+    // Test a ridiculously long (half-turn) step to put us back at the start
+    {
+        SCOPED_TRACE("Half turn");
+        result = propagate(pi * radius);
+        EXPECT_SOFT_EQ(pi * radius, result.distance);
+        EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
+        EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
     }
 }
 
 //---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
 
-#define FieldPropagatorDeviceTest \
-    TEST_IF_CELER_DEVICE(FieldPropagatorDeviceTest)
-class FieldPropagatorDeviceTest : public FieldPropagatorTestBase
+TEST_F(LayersTest, uniform)
 {
-  public:
-    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
-};
-
-TEST_F(FieldPropagatorDeviceTest, field_propagator_device)
-{
-    // Set up test input
-    FPTestInput input;
-    for (unsigned int i : celeritas::range(test.nstates))
-    {
-        input.init_geo.push_back({{test.radius, -10, i * 1.0e-6}, {0, 1, 0}});
-        input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
-    }
-    input.geo_params = this->geometry()->device_ref();
-    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
-    input.geo_states = device_states.ref();
-
-    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *this->particle(), input.init_track.size());
-
-    input.particle_params = this->particle()->device_ref();
-    input.particle_states = pstates.ref();
-
-    input.field_params = this->field_params;
-    input.test         = this->test;
-
-    // Run kernel
-    auto output = fp_test(input);
-
-    // Check stepper results
-    real_type step_length = 2 * constants::pi * test.radius * test.revolutions;
-    for (unsigned int i = 0; i < output.pos.size(); ++i)
-    {
-        EXPECT_SOFT_NEAR(output.pos[i], test.radius, test.epsilon);
-        EXPECT_SOFT_NEAR(output.dir[i], 1.0, test.epsilon);
-        EXPECT_SOFT_NEAR(output.step[i], step_length, test.epsilon);
-    }
+#if 0
+        FieldTestParams test
+        // Input parameters of an electron in a uniform magnetic field
+        test.nstates     = 128;
+        test.nsteps      = 100;
+        test.revolutions = 10;
+        test.field_value = 1.0 * units::tesla;
+        test.radius      = 3.8085386036;
+        test.delta_z     = 6.7003310629;
+        test.energy      = 10.9181415106;
+        test.momentum_y  = 11.4177114158018;
+        test.momentum_z  = 0.0;
+        test.epsilon     = 1.0e-5;
+#endif
 }
 
-TEST_F(FieldPropagatorDeviceTest, boundary_crossing_device)
+//---------------------------------------------------------------------------//
+
+TEST_F(LayersTest, cms_parameterized_field)
 {
-    // Set up test input
-    FPTestInput input;
-    for (unsigned int i : celeritas::range(test.nstates))
-    {
-        input.init_geo.push_back({{test.radius, 0, i * 1.0e-6}, {0, 1, 0}});
-        input.init_track.push_back({ParticleId{0}, MevEnergy{test.energy}});
-    }
-
-    input.geo_params = this->geometry()->device_ref();
-    GeoStateStore device_states(*this->geometry(), input.init_geo.size());
-    input.geo_states = device_states.ref();
-
-    CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *this->particle(), input.init_track.size());
-
-    input.particle_params = this->particle()->device_ref();
-    input.particle_states = pstates.ref();
-
-    input.field_params = this->field_params;
-    input.test         = this->test;
-
-    // Run kernel
-    auto output = bc_test(input);
-
-    // Check stepper results
-    for (unsigned int i = 0; i < output.pos.size(); ++i)
-    {
-        EXPECT_SOFT_NEAR(output.pos[i], -0.13150565, test.epsilon);
-        EXPECT_SOFT_NEAR(output.dir[i], -0.03453068, test.epsilon);
-        EXPECT_SOFT_NEAR(output.step[i], 221.48171708, test.epsilon);
-    }
+#if 0
+    celeritas_test::detail::CMSParameterizedField calc_field;
+#endif
 }
