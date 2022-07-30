@@ -78,9 +78,10 @@ class UrbanMscStepLimit
     UrbanMscHelper helper_;
 
     bool      on_boundary_{};
-    real_type range_{};
     real_type lambda_{};
     real_type phys_step_{};
+    // Mean slowing-down distance from current energy to zero
+    real_type range_{};
 
     //// HELPER TYPES ////
 
@@ -128,22 +129,18 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , helper_(shared, particle, physics)
     , on_boundary_(is_first_step || safety_ <= 0)
     , phys_step_(phys_step)
+    , range_(physics.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(phys_step > 0);
 
-    // Mean slowing-down distance from current energy to zero
-    range_ = helper_.range();
     // Mean free path for MSC at current energy
     lambda_ = helper_.msc_mfp(inc_energy_);
 
     // The slowing down range should already have been applied as a step limit
-    CELER_ENSURE(range_ >= phys_step_ || soft_equal(range_, phys_step_));
-    // TODO: The second condition is to protect rare cases that range_ differs
-    // by ~1ulp from eloss_step in calc_physics_step_limit and may be removed
-    // by caching eloss_step as the value of range.
+    CELER_ENSURE(range_ >= phys_step_);
 }
 
 //---------------------------------------------------------------------------//

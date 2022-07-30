@@ -43,9 +43,6 @@ class UrbanMscHelper
 
     //// HELPER FUNCTIONS ////
 
-    //! The slowing-down range for the starting particle energy
-    CELER_FUNCTION real_type range() const { return range_; }
-
     // The mean free path of the multiple scattering for a given energy
     inline CELER_FUNCTION real_type msc_mfp(Energy energy) const;
 
@@ -67,8 +64,6 @@ class UrbanMscHelper
     // Range scaling factor
     const real_type dtrl_;
 
-    // Shared value of range
-    real_type range_;
     // Grid ID of range value of the energy loss
     ValueGridId range_gid_;
     // Grid ID of dedx value of the energy loss
@@ -98,7 +93,6 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
     mfp_gid_ = physics_.value_grid(ValueGridType::msc_mfp, physics_.msc_ppid());
-    range_ = physics.make_calculator<RangeCalculator>(range_gid_)(inc_energy_);
 }
 
 //---------------------------------------------------------------------------//
@@ -132,7 +126,8 @@ CELER_FUNCTION auto UrbanMscHelper::calc_eloss(real_type step) const -> Energy
 CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     -> Energy
 {
-    if (step <= range_ * dtrl_)
+    real_type range = physics_.dedx_range();
+    if (step <= range * dtrl_)
     {
         // Short step can be approximated with linear extrapolation.
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
@@ -143,7 +138,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     else
     {
         // Longer step is calculated exactly with inverse range
-        return this->calc_eloss(range_ - step);
+        return this->calc_eloss(range - step);
     }
 }
 
