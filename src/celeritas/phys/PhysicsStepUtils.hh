@@ -209,10 +209,7 @@ inline CELER_FUNCTION ParticleTrackView::Energy
             // range-to-step conversion was 1.
             return Energy{pre_step_energy};
         }
-        step = celeritas::min<real_type>(range, step);
-        // TODO: replace this temporary tweak with CELER_ASSERT(range > step)
-        // when numerical instability (off by 1 ulp) of the conversion from
-        // range to step is fixed.
+        CELER_ASSERT(range > step);
 
         // Calculate energy along the range curve corresponding to the actual
         // step taken: this gives the exact energy loss over the step due to

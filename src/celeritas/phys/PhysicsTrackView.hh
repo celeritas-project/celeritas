@@ -594,9 +594,12 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
         return range;
 
     const real_type alpha = params_.scalars.scaling_fraction;
-    range = alpha * range + rho * (1 - alpha) * (2 - rho / range);
-    CELER_ENSURE(range > 0);
-    return range;
+    real_type step = alpha * range + rho * (1 - alpha) * (2 - rho / range);
+    step           = celeritas::min<real_type>(range, step);
+    // TODO: drop this temporary tweak when numerical instability (off by 1ulp)
+    // of the range scaling calculation.
+    CELER_ENSURE(step > 0 && step <= range);
+    return step;
 }
 
 //---------------------------------------------------------------------------//
