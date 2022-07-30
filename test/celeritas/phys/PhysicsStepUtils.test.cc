@@ -187,8 +187,14 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     ParticleTrackView particle(
         this->particle()->host_ref(), par_state.ref(), ThreadId{0});
 
-    auto calc_eloss
-        = [&](const PhysicsTrackView& phys, real_type step) -> real_type {
+    auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
+        // Calculate and store the energy loss range to PhysicsTrackView
+        auto      ppid       = phys.eloss_ppid();
+        auto      grid_id    = phys.value_grid(ValueGridType::range, ppid);
+        auto      calc_range = phys.make_calculator<RangeCalculator>(grid_id);
+        real_type range      = calc_range(particle.energy());
+        phys.dedx_range(range);
+
         MevEnergy result
             = celeritas::calc_mean_energy_loss(particle, phys, step);
         return result.value();
