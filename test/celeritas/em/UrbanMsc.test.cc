@@ -128,7 +128,8 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
     SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
 
     // Make physics track view
-    PhysicsTrackView make_track_view(const char* particle, MaterialId mid)
+    PhysicsTrackView
+    make_track_view(const char* particle, MaterialId mid, MevEnergy energy)
     {
         CELER_EXPECT(particle && mid);
 
@@ -142,6 +143,14 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
         PhysicsTrackView phys_view(
             params_ref_, physics_state_.ref(), pid, mid, tid);
         phys_view = PhysicsTrackInitializer{};
+
+        // Calculate and store the energy loss (dedx) range limit
+        auto ppid       = phys_view.eloss_ppid();
+        auto grid_id    = phys_view.value_grid(VGT::range, ppid);
+        auto calc_range = phys_view.make_calculator<RangeCalculator>(grid_id);
+        real_type range = calc_range(energy);
+        phys_view.dedx_range(range);
+
         return phys_view;
     }
 
@@ -197,8 +206,7 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 TEST_F(UrbanMscTest, msc_scattering)
 {
     // Views
-    PhysicsTrackView   phys     = this->make_track_view("e-", MaterialId{1});
-    GeoTrackView       geo_view = this->make_geo_track_view();
+    GeoTrackView       geo_view      = this->make_geo_track_view();
     const MaterialView material_view = this->material()->get(MaterialId{1});
 
     // Create the model
@@ -283,7 +291,10 @@ TEST_F(UrbanMscTest, msc_scattering)
         real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};
 
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy[i]});
+        MevEnergy inc_energy = MevEnergy{energy[i]};
+        this->set_inc_particle(pdg::electron(), inc_energy);
+        PhysicsTrackView phys
+            = this->make_track_view("e-", MaterialId{1}, inc_energy);
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,

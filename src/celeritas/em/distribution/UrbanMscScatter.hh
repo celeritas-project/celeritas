@@ -60,6 +60,7 @@ class UrbanMscScatter
     Real3     inc_direction_;
     bool      is_positron_;
     real_type rad_length_;
+    real_type range_;
     real_type mass_;
 
     // Urban MSC parameters
@@ -149,6 +150,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , rad_length_(material.radiation_length())
+    , range_(physics.dedx_range())
     , mass_(shared.electron_mass.value())
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
@@ -175,7 +177,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     CELER_ASSERT(true_path_ >= geom_path_);
 
     skip_sampling_ = true;
-    if (true_path_ < helper_.range() && true_path_ > params_.geom_limit)
+    if (true_path_ < range_ && true_path_ > params_.geom_limit)
     {
         end_energy_    = helper_.calc_end_energy(true_path_);
         skip_sampling_ = (end_energy_ < params_.min_sampling_energy()
@@ -628,8 +630,7 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
         {
             real_type w = 1 + 1 / (alpha * lambda_);
             real_type x = alpha * w * geom_path;
-            length      = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha
-                                  : helper_.range();
+            length = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha : range_;
         }
 
         length = clamp(length, geom_path, true_path);

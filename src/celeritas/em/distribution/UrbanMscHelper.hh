@@ -43,9 +43,6 @@ class UrbanMscHelper
 
     //// HELPER FUNCTIONS ////
 
-    //! The slowing-down range for the starting particle energy
-    CELER_FUNCTION real_type range() const { return range_; }
-
     // The mean free path of the multiple scattering for a given energy
     inline CELER_FUNCTION real_type msc_mfp(Energy energy) const;
 
@@ -90,6 +87,7 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
     : inc_energy_(particle.energy())
     , physics_(physics)
     , dtrl_(shared.params.dtrl())
+    , range_(physics.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -98,7 +96,6 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
     mfp_gid_ = physics_.value_grid(ValueGridType::msc_mfp, physics_.msc_ppid());
-    range_ = physics.make_calculator<RangeCalculator>(range_gid_)(inc_energy_);
 }
 
 //---------------------------------------------------------------------------//
