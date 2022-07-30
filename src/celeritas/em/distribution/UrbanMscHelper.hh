@@ -64,8 +64,6 @@ class UrbanMscHelper
     // Range scaling factor
     const real_type dtrl_;
 
-    // Shared value of range
-    real_type range_;
     // Grid ID of range value of the energy loss
     ValueGridId range_gid_;
     // Grid ID of dedx value of the energy loss
@@ -87,7 +85,6 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
     : inc_energy_(particle.energy())
     , physics_(physics)
     , dtrl_(shared.params.dtrl())
-    , range_(physics.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -129,7 +126,8 @@ CELER_FUNCTION auto UrbanMscHelper::calc_eloss(real_type step) const -> Energy
 CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     -> Energy
 {
-    if (step <= range_ * dtrl_)
+    real_type range = physics_.dedx_range();
+    if (step <= range * dtrl_)
     {
         // Short step can be approximated with linear extrapolation.
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
@@ -140,7 +138,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     else
     {
         // Longer step is calculated exactly with inverse range
-        return this->calc_eloss(range_ - step);
+        return this->calc_eloss(range - step);
     }
 }
 
