@@ -129,15 +129,16 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
 
     // Make physics track view
     PhysicsTrackView
-    make_track_view(const char* particle, MaterialId mid, MevEnergy energy)
+    make_track_view(PDGNumber pdg, MaterialId mid, MevEnergy energy)
     {
-        CELER_EXPECT(particle && mid);
+        CELER_EXPECT(mid);
 
-        auto pid = this->particle()->find(particle);
+        auto pid = this->particle()->find(pdg);
         CELER_ASSERT(pid);
         CELER_ASSERT(pid.get() < physics_state_.size());
-
         ThreadId tid((pid.get() + 1) % physics_state_.size());
+
+        this->set_inc_particle(pdg::electron(), energy);
 
         // Construct and initialize
         PhysicsTrackView phys_view(
@@ -291,10 +292,9 @@ TEST_F(UrbanMscTest, msc_scattering)
         real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};
 
-        MevEnergy inc_energy = MevEnergy{energy[i]};
-        this->set_inc_particle(pdg::electron(), inc_energy);
-        PhysicsTrackView phys
-            = this->make_track_view("e-", MaterialId{1}, inc_energy);
+        MevEnergy        inc_energy = MevEnergy{energy[i]};
+        PhysicsTrackView phys       = this->make_track_view(
+            pdg::electron(), MaterialId{1}, inc_energy);
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,
