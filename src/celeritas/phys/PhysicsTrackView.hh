@@ -60,6 +60,9 @@ class PhysicsTrackView
     // Reset the remaining MFP to interaction
     inline CELER_FUNCTION void reset_interaction_mfp();
 
+    // Set the energy loss range for the current material and particle energy
+    inline CELER_FUNCTION void dedx_range(real_type);
+
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Whether the remaining MFP has been calculated
@@ -67,6 +70,9 @@ class PhysicsTrackView
 
     // Remaining MFP to interaction [1]
     CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
+
+    // Energy loss range for the current material and particle energy
+    CELER_FORCEINLINE_FUNCTION real_type dedx_range() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -220,6 +226,18 @@ CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the energy loss range for the current material and particle energy.
+ *
+ * This value will be calculated once at the beginning of each step.
+ */
+CELER_FUNCTION void PhysicsTrackView::dedx_range(real_type range)
+{
+    CELER_EXPECT(range > 0);
+    this->state().dedx_range = range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the remaining MFP has been calculated.
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
@@ -236,6 +254,17 @@ CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
     real_type mfp = this->state().interaction_mfp;
     CELER_ENSURE(mfp >= 0);
     return mfp;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Energy loss range.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::dedx_range() const
+{
+    real_type range = this->state().dedx_range;
+    CELER_ENSURE(range > 0);
+    return range;
 }
 
 //---------------------------------------------------------------------------//
