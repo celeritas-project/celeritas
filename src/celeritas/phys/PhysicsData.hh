@@ -133,7 +133,7 @@ struct ProcessGroup
     ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
     ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
     ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
-    ParticleProcessId     msc_ppid{};   //!< Process of msc (TODO: delete me)
+    ParticleProcessId msc_ppid{};   //!< Process of msc (TODO: delete me)
     bool has_at_rest{}; //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
@@ -346,7 +346,7 @@ struct PhysicsParamsData
         model_ids       = other.model_ids;
         model_xs        = other.model_xs;
 
-        hardwired   = other.hardwired;
+        hardwired = other.hardwired;
 
         scalars = other.scalars;
 
@@ -366,6 +366,7 @@ struct PhysicsParamsData
  * State that is reset at every step:
  * - Current macroscopic cross section
  * - Within-step energy deposition
+ * - Within-step energy loss range
  * - Secondaries emitted from an interaction
  * - Discrete process element selection
  */
@@ -376,6 +377,7 @@ struct PhysicsTrackState
     // TEMPORARY STATE
     real_type macro_xs; //!< Total cross section for discrete interactions
     real_type energy_deposition; //!< Local energy deposition in a step [MeV]
+    real_type dedx_range;        //!< Local energy loss range [cm]
     Span<Secondary>    secondaries; //!< Emitted secondaries
     ElementComponentId element;     //!< Element sampled for interaction
 };
