@@ -38,7 +38,7 @@ namespace celeritas
 inline CELER_FUNCTION StepLimit
 calc_physics_step_limit(const MaterialTrackView& material,
                         const ParticleTrackView& particle,
-                        const PhysicsTrackView&  physics,
+                        PhysicsTrackView&        physics,
                         PhysicsStepView&         pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
@@ -89,7 +89,10 @@ calc_physics_step_limit(const MaterialTrackView& material,
             auto grid_id    = physics.value_grid(VGT::range, ppid);
             auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
             real_type range = calc_range(particle.energy());
-            // TODO: save range ?
+            // Save range for the current step and reuse it elsewhere
+            physics.dedx_range(range);
+
+            // Convert to the scaled range
             real_type eloss_step = physics.range_to_step(range);
             if (eloss_step <= limit.step)
             {
@@ -175,7 +178,7 @@ inline CELER_FUNCTION ParticleTrackView::Energy
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
 
-    auto ppid = physics.eloss_ppid();
+    auto            ppid            = physics.eloss_ppid();
     const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
@@ -197,9 +200,8 @@ inline CELER_FUNCTION ParticleTrackView::Energy
         auto grid_id = physics.value_grid(VGT::range, ppid);
         CELER_ASSERT(grid_id);
 
-        // Recalculate beginning-of-step range (instead of storing)
-        auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
-        real_type range = calc_range(Energy{pre_step_energy});
+        // Use the range limit stored from calc_physics_step_limit
+        real_type range = physics.dedx_range();
         if (step == range)
         {
             // TODO: eloss should be pre_step_energy at this point only if the
@@ -207,7 +209,10 @@ inline CELER_FUNCTION ParticleTrackView::Energy
             // range-to-step conversion was 1.
             return Energy{pre_step_energy};
         }
-        CELER_ASSERT(range > step);
+        step = celeritas::min<real_type>(range, step);
+        // TODO: replace this temporary tweak with CELER_ASSERT(range > step)
+        // when numerical instability (off by 1 ulp) of the conversion from
+        // range to step is fixed.
 
         // Calculate energy along the range curve corresponding to the actual
         // step taken: this gives the exact energy loss over the step due to
