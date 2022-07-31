@@ -104,7 +104,7 @@ Device& global_device()
  * Get the number of available devices.
  *
  * This is nonzero if and only if CUDA support is built-in, if at least one
- * CUDA-capable device is present, and if the 'CELER_DISABLE_DEVICE'
+ * CUDA-capable device is present, and if the \c CELER_DISABLE_DEVICE
  * environment variable is not set.
  */
 int Device::num_devices()

@@ -35,7 +35,6 @@ if(NOT CELERITAS_USE_CUDA)
 endif()
 
 # Dependencies
-celeritas_optional_package(Doxygen "Generate code documentation")
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
 celeritas_optional_package(JSON nlohmann_json "Enable JSON I/O")
@@ -50,6 +49,7 @@ if(CELERITAS_USE_Python)
 endif()
 
 # Components
+option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps"
   ${CELERITAS_USE_JSON})
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
@@ -154,10 +154,6 @@ elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
 endif()
 
-if(CELERITAS_USE_Doxygen AND NOT Doxygen_FOUND)
-  find_package(Doxygen REQUIRED)
-endif()
-
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
@@ -228,6 +224,28 @@ if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
   endif()
 endif()
 
+if(CELERITAS_BUILD_DOCS)
+  if(NOT Doxygen_FOUND)
+    find_package(Doxygen REQUIRED)
+  endif()
+
+  if(Python_FOUND)
+    celeritas_check_python_module(CELERITAS_USE_Sphinx sphinx)
+  endif()
+  set(Sphinx_FOUND ${CELERITAS_USE_Sphinx})
+  if(Sphinx_FOUND)
+    celeritas_check_python_module(CELERITAS_USE_Breathe breathe)
+    celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
+    find_program(LATEXMK_EXECUTABLE latexmk)
+  endif()
+  if(NOT Sphinx_FOUND AND NOT Doxygen_FOUND)
+    message(SEND_ERROR "Sphinx and/or Doxygen are required for testing: setting "
+      "CELERITAS_BUILD_TESTS=OFF for next build")
+    set(CELERITAS_BUILD_DOCS OFF CACHE BOOL
+      "Disabled because of missing Doxygen/Sphinx" FORCE)
+  endif()
+endif()
+
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
@@ -261,7 +279,8 @@ add_subdirectory(app)
 # DOCUMENTATION
 #----------------------------------------------------------------------------#
 
-if(CELERITAS_USE_Doxygen)
+if(CELERITAS_BUILD_DOCS)
+  include(ExternalProject)
   add_subdirectory(doc)
 endif()
 
@@ -294,11 +313,11 @@ endif()
 
 install(FILES ${_cmake_files}
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT devel
+  COMPONENT development
 )
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT devel
+  COMPONENT development
 )
 
 # Export all cache variables that start with CELERITAS_
@@ -354,6 +373,7 @@ install(FILES
   "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
   "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   DESTINATION ${CELER_INSTALL_CMAKECONFIGDIR}
+  COMPONENT development
 )
 
 # Install 'CeleritasTargets.cmake', included by CeleritasConfig.cmake, which
@@ -362,6 +382,7 @@ install(EXPORT celeritas-targets
   FILE CeleritasTargets.cmake
   NAMESPACE Celeritas::
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  COMPONENT development
 )
 
 #----------------------------------------------------------------------------#

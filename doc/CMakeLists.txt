@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 #-----------------------------------------------------------------------------#
-# DOXYGEN
+# DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
 
 # File setup
@@ -68,34 +68,33 @@ doxygen_add_docs(doxygen
 )
 
 #-----------------------------------------------------------------------------#
-# SPHINX/BREATHE
+# USER MANUAL (Sphinx/Breathe)
 #-----------------------------------------------------------------------------#
 
-if(Python_FOUND)
-  celeritas_check_python_module(CELERITAS_USE_SPHINX sphinx)
-endif()
-if(CELERITAS_USE_SPHINX)
-  celeritas_check_python_module(CELERITAS_USE_BREATHE breathe)
-  celeritas_check_python_module(CELERITAS_USE_SPHINXBIBTEX "sphinxcontrib.bibtex")
+if(CELERITAS_PYTHONPATH_RERUN)
+  message(SEND_ERROR "The last command must be manually rerun because "
+    "Sphinx was not found.")
+  unset(CELERITAS_PYTHONPATH_RERUN CACHE)
 endif()
 
-#-----------------------------------------------------------------------------#
-
-if(NOT CELERITAS_USE_SPHINX)
+if(NOT Sphinx_FOUND)
   function(celeritas_build_sphinx type output)
-    add_custom_command(OUTPUT "${output}"
+    add_custom_command(
+      OUTPUT "${output}"
       VERBATIM COMMAND
         "${CMAKE_COMMAND}"
         -UCELERITAS_PYTHONPATH
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
+        -DCELERITAS_PYTHONPATH_RERUN
         "${CMAKE_BINARY_DIR}"
-        COMMENT "Rerunning CMake because Sphinx was not found"
+      COMMENT "Rerunning CMake because Sphinx was not found"
       ${ARGN}
     )
   endfunction()
 else()
   function(celeritas_build_sphinx type output)
-    add_custom_command(OUTPUT "${output}"
+    add_custom_command(
+      OUTPUT "${output}"
       VERBATIM COMMAND
         "${CMAKE_COMMAND}" -E env
           "PYTHONPATH=${CELERITAS_PYTHONPATH}"
@@ -113,9 +112,29 @@ else()
   endfunction()
 endif()
 
+set(_ORNLTM_BASE "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm")
+function(celeritas_build_latex input output)
+  set(_texenv
+    "LATEXOPTS="
+    "TEXINPUTS=${_ORNLTM_BASE}/ornltm:"
+  )
+  if(NOT LATEXMK_EXECUTABLE)
+    set(LATEXMK_EXECUTABLE "latexmk")
+  endif()
+  add_custom_command(OUTPUT "${output}"
+    VERBATIM COMMAND
+      "${CMAKE_COMMAND}" -E env ${_texenv}
+        "${LATEXMK_EXECUTABLE}" -pdf "${input}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/latex"
+    ${ARGN}
+  )
+endfunction()
+
 #-----------------------------------------------------------------------------#
 
 # Define a configure file with version and configuration info
+set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
+set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 configure_file("config.json.in" "config.json" @ONLY)
 
 set(DOXYGEN_GENERATE_HTML NO)
@@ -142,11 +161,64 @@ doxygen_add_docs(doxygen_xml
   COMMENT "Generating Doxygen XML"
 )
 
+#-----------------------------------------------------------------------------#
+# HTML
+
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
 celeritas_build_sphinx(html "${_doc_html}")
 add_custom_target(doc DEPENDS "${_doc_html}")
 if(CELERITAS_USE_BREATHE)
   add_dependencies(doc doxygen_xml)
 endif()
+
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+  DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+  COMPONENT documentation
+)
+
+#-----------------------------------------------------------------------------#
+# PDF
+
+set(_doc_tex "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.tex")
+celeritas_build_sphinx(latex "${_doc_tex}")
+
+# Download ornltm class
+ExternalProject_Add(ornltm
+  GIT_REPOSITORY https://code.ornl.gov/s3j/ornltm.git
+  GIT_TAG 05a4b22f104abd53ac7cae72fe03768710b56b86
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+  SOURCE_DIR "${_ORNLTM_BASE}"
+)
+
+# Generate header
+set(_header_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-header-celeritas.pdf")
+celeritas_build_latex(
+  "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-header-celeritas.tex"
+  "${_header_pdf}"
+  COMMENT "Building tech memo header"
+  DEPENDS ornltm
+)
+
+# Generate header
+set(_footer_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/ornltm-footer.pdf")
+celeritas_build_latex(
+  "${CMAKE_CURRENT_SOURCE_DIR}/_static/ornltm-footer.tex"
+  "${_footer_pdf}"
+  COMMENT "Building tech memo footer"
+  DEPENDS ornltm
+)
+
+# Generate PDF
+set(_doc_pdf "${CMAKE_CURRENT_BINARY_DIR}/latex/Celeritas.pdf")
+celeritas_build_latex(
+  Celeritas
+  "${_doc_pdf}"
+  COMMENT "Building PDF documentation from LaTeX"
+  DEPENDS "${_doc_tex}" "${_header_pdf}" "${_footer_pdf}" ornltm
+)
+
+add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
 
 #-----------------------------------------------------------------------------#

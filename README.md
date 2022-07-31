@@ -11,7 +11,7 @@ However, any combination of these requirements can be omitted to enable
 limited development on personal machines with fewer available components.
 
 - [CUDA](https://developer.nvidia.com/cuda-toolkit): on-device computation
-- an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): shared-memory parallelism
+- an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): distributed-memory parallelism
 - [ROOT](https://root.cern): I/O
 - [nljson](https://github.com/nlohmann/json): simple text-based I/O for
   diagnostics and program setup

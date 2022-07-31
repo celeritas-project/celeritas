@@ -12,7 +12,7 @@
         "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}"
       },
       "cacheVariables": {
-        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},

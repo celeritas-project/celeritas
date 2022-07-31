@@ -24,7 +24,8 @@ spack:
     - vecgeom +gdml cxxstd=17
     - $platspecs
   view: true
-  concretization: together
+  concretizer:
+    unify: true
   packages:
     root:
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb ~math ~gsl

@@ -30,10 +30,6 @@ struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Data management for material, element, and nuclide properties.
- *
- * \todo Currently, different materials sharing the same name will be
- * "deduplicated" by adding a suffix. Instead, we should allow a "multimap" so
- * that multiple materials can safely share a name.
  */
 class MaterialParams
 {

@@ -20,7 +20,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Replace/extend <utility>
 //---------------------------------------------------------------------------//
-//!@{
 //! Implement perfect forwarding with device-friendly functions.
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
@@ -29,13 +28,14 @@ forward(typename std::remove_reference<T>::type& v) noexcept
     return static_cast<T&&>(v);
 }
 
+//! \cond
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
 forward(typename std::remove_reference<T>::type&& v) noexcept
 {
     return static_cast<T&&>(v);
 }
-//!@}
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -123,7 +123,7 @@ inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 /*!
  * Return the value or (if it's negative) then zero.
  *
- * This is constructed to correctly propagate NaN.
+ * This is constructed to correctly propagate \c NaN.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept

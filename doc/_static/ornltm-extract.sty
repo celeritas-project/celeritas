@@ -1,0 +1,64 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% File  : doc/_sphinx/latex/ornltm-extract.sty
+% Author: Seth R Johnson
+% Date  : Sat Oct 13 13:04:10 2018
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{ornltm-extract}[2018/11/13 package ORNL Technical Memorandum
+commands]
+
+\ProcessOptions\relax
+
+\RequirePackage{emptypage} % hide footers on blank pages
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FRONT MATTER
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\if@mainmatter
+\@mainmattertrue
+\def\@cleariffrontmatter{\if@mainmatter\relax\else{\clearpage}\fi}
+\def\@cleardbliffrontmatter{\if@mainmatter\relax\else{\cleardoublepage}\fi}
+
+\newcommand\frontmatter{%
+  \@mainmatterfalse%
+  % Reset page numbering for user-added front matter
+  \pagenumbering{roman}%
+  \setcounter{page}{3}%
+}
+
+% Abstract gets a new page if it's in the front matter; otherwise it's just at
+% the top of the page.
+\renewenvironment{abstract}{%
+\if@mainmatter\relax\else
+  \cleardoublepage
+	\pagenumbering{arabic}
+	\setcounter{page}{1}
+\fi
+	\addcontentsline{toc}{section}{Abstract}
+	\phantomsection
+  \section*{Abstract}%
+}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MAIN MATTER
+%
+% not quite the same as in ornltm.cls
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\mainmatter{%
+  \cleardoublepage%
+  \@mainmattertrue%
+  \pagenumbering{arabic}%
+	\setcounter{page}{1}
+  \renewcommand{\sectionbreak}{\renewcommand\sectionbreak\cleardoublepage}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\endinput
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end of ornltm/ornltm/ornltm-style.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

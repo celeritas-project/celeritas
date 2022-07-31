@@ -25,8 +25,8 @@
       "inherits": "default",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
@@ -44,8 +44,8 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "OFF"},

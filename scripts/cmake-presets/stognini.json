@@ -9,8 +9,8 @@
       "generator": "Ninja",
       "inherits": ["default"],
       "cacheVariables": {
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},

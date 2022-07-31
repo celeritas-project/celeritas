@@ -54,23 +54,6 @@ pipeline {
              }
            }
          }
-         stage('vecgeom-demos') {
-           agent {
-             docker {
-               image 'celeritas/ci-focal-cuda11:2021-12-18'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && persistent-tmp'
-               args '-v persistent-tmp:/tmp/persistent'
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh vecgeom-demos'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
          stage('vecgeom-tests') {
            agent {
              docker {
