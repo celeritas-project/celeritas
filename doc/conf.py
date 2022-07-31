@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 # -- Path setup --------------------------------------------------------------
 

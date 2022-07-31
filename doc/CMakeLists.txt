@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 #-----------------------------------------------------------------------------#
-# DOXYGEN
+# DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
 
 # File setup
@@ -68,17 +68,7 @@ doxygen_add_docs(doxygen
 )
 
 #-----------------------------------------------------------------------------#
-# SPHINX/BREATHE
-#-----------------------------------------------------------------------------#
-
-if(Python_FOUND)
-  celeritas_check_python_module(CELERITAS_USE_SPHINX sphinx)
-endif()
-if(CELERITAS_USE_SPHINX)
-  celeritas_check_python_module(CELERITAS_USE_BREATHE breathe)
-  celeritas_check_python_module(CELERITAS_USE_SPHINXBIBTEX "sphinxcontrib.bibtex")
-endif()
-
+# USER MANUAL (Sphinx/Breathe)
 #-----------------------------------------------------------------------------#
 
 if(NOT CELERITAS_USE_SPHINX)
@@ -116,6 +106,8 @@ endif()
 #-----------------------------------------------------------------------------#
 
 # Define a configure file with version and configuration info
+set(CELERITAS_USE_BREATHE CELERITAS_USE_Breathe)
+set(CELERITAS_USE_SPHINXBIBTEX CELERITAS_USE_SphinxBibtex)
 configure_file("config.json.in" "config.json" @ONLY)
 
 set(DOXYGEN_GENERATE_HTML NO)
@@ -141,6 +133,9 @@ doxygen_add_docs(doxygen_xml
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating Doxygen XML"
 )
+
+#-----------------------------------------------------------------------------#
+# HTML
 
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
 celeritas_build_sphinx(html "${_doc_html}")

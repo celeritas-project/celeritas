@@ -9,7 +9,7 @@
       "binaryDir": "$env{PROJWORK}/csc404/celeritas/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "CELERITAS_USE_Doxygen": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
