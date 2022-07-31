@@ -294,11 +294,11 @@ endif()
 
 install(FILES ${_cmake_files}
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT devel
+  COMPONENT development
 )
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT devel
+  COMPONENT development
 )
 
 # Export all cache variables that start with CELERITAS_
@@ -354,6 +354,7 @@ install(FILES
   "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
   "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   DESTINATION ${CELER_INSTALL_CMAKECONFIGDIR}
+  COMPONENT development
 )
 
 # Install 'CeleritasTargets.cmake', included by CeleritasConfig.cmake, which
@@ -362,6 +363,7 @@ install(EXPORT celeritas-targets
   FILE CeleritasTargets.cmake
   NAMESPACE Celeritas::
   DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  COMPONENT development
 )
 
 #----------------------------------------------------------------------------#

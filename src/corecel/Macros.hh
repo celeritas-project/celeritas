@@ -78,7 +78,7 @@
  * \def CELER_MAYBE_UNUSED
  *
  * Mark a function, type, or variable as being potentially unused. This is
- * especially useful for debug-only variables and "celeritas::range" loop
+ * especially useful for debug-only variables and \c celeritas::range loop
  * variables where the index is left unused.
  *
  * \code
@@ -86,7 +86,7 @@
    {
        do_noop();
    }
-   \endcode
+ * \endcode
  */
 #if __cplusplus >= 201710L
 #    define CELER_MAYBE_UNUSED [[maybe_unused]]
@@ -107,9 +107,9 @@
  * or
  * https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#__builtin_unreachable
  *
- * (The 'unreachable' and 'assume' compiler optimizations for CUDA are only
- * available in API version 11.3 or higher, which is encoded as major*1000 +
- * minor*10).
+ * (The "unreachable" and "assume" compiler optimizations for CUDA are only
+ * available in API version 11.3 or higher, which is encoded as
+ * \code major*1000 + minor*10 \endcode).
  *
  * \note This macro should not generally be used; instead, the macro \c
  * CELER_ASSERT_UNREACHABLE() defined in base/Assert.hh should be used instead

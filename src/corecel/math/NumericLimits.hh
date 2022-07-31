@@ -20,9 +20,9 @@ namespace celeritas
 /*!
  * Subset of numeric limits compatible with both host and device.
  *
- * \note CUDART_NAN* and \c CUDART_INF* are not constexpr in CUDA 10 at least,
- *   so we have replaced those with compiler built-ins that work in GCC, Clang,
- *   and MSVC.
+ * \note \c CUDART_NAN* and \c CUDART_INF* are not \c constexpr in CUDA 10 at
+ *   least, so we have replaced those with compiler built-ins that work in GCC,
+ *   Clang, and MSVC.
  */
 template<class Numeric>
 struct numeric_limits;

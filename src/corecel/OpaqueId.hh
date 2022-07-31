@@ -33,7 +33,7 @@ class OpaqueId
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = ValueT;
     using size_type  = SizeT;
     //!@}

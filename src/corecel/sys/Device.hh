@@ -35,7 +35,7 @@ namespace celeritas
  * unit. Each compute unit can execute one or more blocks: the higher the
  * number of blocks resident, the more latency can be hidden.
  *
- * \todo The active CUDA device is a global property -- so this should probably
+ * \todo The active CUDA device is a global property---so this should probably
  * be a singleton, or we could use lower-level API calls.
  */
 class Device

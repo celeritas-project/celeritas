@@ -57,10 +57,9 @@
  * message that is streamed as the second argument. This macro cannot be used
  * in \c __device__ -annotated code.
  *
- * The error message should read:
-   ```
+ * The error message should read: \verbatim
    <PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?
-   ```
+  \endverbatim
  *
  * Examples with correct casing and punctuation:
  * - failed to open '{filename}' (should contain relaxation data)
@@ -73,14 +72,14 @@
  *
  * \code
  * CELER_VALIDATE(file_stream,
- *                << "failed to open " << filename "
- *                << " (should contain relaxation data)");
+ *                << "failed to open '" << filename
+ *                << "' (should contain relaxation data)");
  * \endcode
  *
  * An always-on debug-type assertion without a detailed message can be
  * constructed by omitting the stream (but leaving the comma):
  * \code
-    CELER_VALIDATE(file_stream,)
+    CELER_VALIDATE(file_stream,);
  * \endcode
  */
 /*!
@@ -220,8 +219,8 @@
  * If it fails, we call \c cudaGetLastError to clear the error code.
  *
  * \code
- *     CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
- *     CELER_CUDA_CALL(cudaDeviceSynchronize());
+       CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
+       CELER_CUDA_CALL(cudaDeviceSynchronize());
  * \endcode
  *
  * \note A file that uses this macro must include \c
@@ -261,8 +260,8 @@
  * If it fails, we call \c hipGetLastError to clear the error code.
  *
  * \code
- *     CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
- *     CELER_HIP_CALL(hipDeviceSynchronize());
+       CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
+       CELER_HIP_CALL(hipDeviceSynchronize());
  * \endcode
  *
  * \note A file that uses this macro must include \c hip_runtime_api.h or be
@@ -300,8 +299,8 @@
  * Example:
  *
  * \code
- *     CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
- *     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+       CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
+       CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
  * \endcode
  *
  */
@@ -409,9 +408,11 @@ enum class DebugErrorType
 class DebugError : public std::logic_error
 {
   public:
-    // Delegating constructors
+    //!@{
+    //! \name Delegating constructors
     explicit DebugError(const char* msg);
     explicit DebugError(const std::string& msg);
+    //!@}
 };
 
 //---------------------------------------------------------------------------//
@@ -421,9 +422,11 @@ class DebugError : public std::logic_error
 class RuntimeError : public std::runtime_error
 {
   public:
-    // Delegating constructor
+    //!@{
+    //! \name Delegating constructors
     explicit RuntimeError(const char* msg);
     explicit RuntimeError(const std::string& msg);
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

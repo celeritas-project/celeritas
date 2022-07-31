@@ -149,4 +149,9 @@ if(CELERITAS_USE_BREATHE)
   add_dependencies(doc doxygen_xml)
 endif()
 
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+  DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+  COMPONENT documentation
+)
+
 #-----------------------------------------------------------------------------#

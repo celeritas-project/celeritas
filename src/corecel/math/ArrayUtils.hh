@@ -171,15 +171,15 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
 /*!
  * Rotate the direction about the given Z-based scatter direction.
  *
- * The equivalent to Shift's \code
- * void cartesian_vector_transform(
-    double      costheta,
-    double      phi,
-    Vector_View vector)
+ * The equivalent to calling the Shift transport code's \code
+    void cartesian_vector_transform(
+        double      costheta,
+        double      phi,
+        Vector_View vector);
  * \endcode
  * is the call
  * \code
-   vector = rotate(from_spherical(costheta, phi), vector);
+    vector = rotate(from_spherical(costheta, phi), vector);
  * \endcode
  *
  * This code effectively decomposes the given rotation vector \c rot into two
@@ -198,11 +198,11 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  * This function is often used for calculating exiting scattering angles. In
  * that case, \c dir is the exiting angle from the scattering calculation, and
  * \c rot is the original direction of the particle. The direction vectors are
- * defined
+ * defined as
  * \f[
    \Omega =   \sin\theta\cos\phi\mathbf{i}
             + \sin\theta\sin\phi\mathbf{j}
-            + \cos\theta\mathbf{k}
+            + \cos\theta\mathbf{k} \,.
  * \f]
  */
 template<class T>
@@ -263,8 +263,8 @@ inline CELER_FUNCTION Array<T, 3>
  *
  * Example:
  * \code
-  CELER_EXPECT(is_soft_unit_vector(v))
-  \endcode
+    CELER_EXPECT(is_soft_unit_vector(v));
+ * \endcode
  */
 template<class T, size_type N>
 CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v)
