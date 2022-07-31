@@ -100,7 +100,8 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         // Guard against segfaults due to bad Geant4 global cleanup
         static int geant_launch_count = 0;
         CELER_VALIDATE(geant_launch_count == 0,
-                       << "Geant4 cannot be 'run' more than once per execution");
+                       << "Geant4 cannot be 'run' more than once per "
+                          "execution");
         ++geant_launch_count;
 
 #if CELERITAS_G4_V10

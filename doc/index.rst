@@ -50,5 +50,6 @@ requirements of LHC-HL upgrade.
    :maxdepth: 2
    :caption: Appendices
 
+   appendices/release-history.rst
    appendices/development.rst
    appendices/license.rst

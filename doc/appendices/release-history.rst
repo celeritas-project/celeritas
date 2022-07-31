@@ -1,0 +1,74 @@
+.. Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+.. See the doc/COPYRIGHT file for details.
+.. SPDX-License-Identifier: CC-BY-4.0
+
+.. _release_history:
+
+***************
+Release History
+***************
+
+v0.1.0
+======
+
+Initial "stable enough for external development" release of Celeritas. This
+release is focused on unit testing and stabilizing the API. Some initial code
+verification problems (looking at energy and step distributions for simple
+problems such as TestEM3) are promising, but the code is far from validated.
+
+New features
+------------
+
+- Standard EM physics including multiple scattering and energy loss
+  fluctuations
+- VecGeom for GDML navigation, ORANGE for testing
+- Support for CUDA, HIP, and CPU (with and without OpenMP)
+- Magnetic field support with runtime-swappable field types
+
+Known bugs
+----------
+
+- Magnetic field propagation fails at geometry boundaries
+- Multiple scattering requires more steps than expected compared to Geant4
+
+Contributors
+------------
+
+Thanks to the contributors at Argonne National Lab, Lawrence Berkeley Lab,
+Fermilab, Oak Ridge National Laboratory, and other collaborating institutions.
+
+- Philippe Canal (@pcanal): #115, #119, #130, #171, #172, #166, #222, #239,
+  #242, #243, #254, #338
+- Doaa Deeb (@DoaaDeeb): #257
+- Tom Evans (@tmdelellis): #57, #65, #112
+- Seth R Johnson (@sethrj): #4, #8, #13, #16, #15, #21, #24, #25, #32, #17,
+  #35, #39, #36, #40, #45, #44, #50, #51, #61, #59, #62, #63, #64, #69, #78,
+  #80, #79, #76, #73, #82, #83, #84, #85, #86, #87, #88, #91, #92, #93, #95,
+  #99, #98, #106, #104, #108, #114, #116, #105, #117, #118, #122, #120, #124,
+  #128, #129, #133, #135, #131, #136, #137, #138, #139, #142, #143, #144, #141,
+  #147, #148, #151, #149, #153, #150, #156, #157, #162, #160, #170, #168, #174,
+  #169, #177, #178, #179, #184, #189, #190, #193, #195, #191, #199, #204, #196,
+  #205, #201, #207, #208, #211, #218, #217, #219, #220, #224, #225, #226, #228,
+  #235, #237, #236, #238, #247, #276, #292, #293, #294, #296, #298, #291, #306,
+  #301, #307, #311, #313, #314, #315, #312, #321, #322, #325, #329, #331, #332,
+  #335, #333, #336, #337, #340, #339, #343, #344, #342, #345, #347, #348, #349,
+  #351, #359, #360, #364, #365, #366, #378, #374, #373, #379, #381, #384, #380,
+  #387, #386, #388, #389, #391, #394, #393, #395, #397, #398, #399, #400, #405,
+  #403, #404, #410, #408, #406, #411, #402, #414, #415, #417, #416, #422, #424,
+  #426, #427, #428, #433, #432, #435, #436, #434, #437, #441, #439, #445, #443,
+  #448, #449, #453, #456, #455, #458, #457, #464, #465
+- Soon Yung Jun (@whokion): #41, #70, #173, #200, #214, #221, #230, #250, #259,
+  #258, #260, #316, #317, #320, #324, #370, #375, #390, #396, #407, #413, #430,
+  #454, #467
+- Guilherme Lima (@mrguilima): #42, #38, #109, #90, #167, #229, #234, #232,
+  #328, #383, #446, #452
+- Amanda Lund (@amandalund): #6, #20, #47, #52, #89, #100, #113, #134, #154,
+  #159, #161, #186, #185, #198, #216, #215, #209, #227, #240, #245, #255, #251,
+  #264, #274, #269, #285, #290, #297, #304, #309, #319, #323, #330, #346, #350,
+  #353, #362, #368, #369, #372, #376, #382, #385, #401, #440, #444, #450, #463
+- Ben Morgan (@drbenmorgan): #53, #56, #110, #121, #367, #371
+- Vincent R Pascuzzi (@vrpascuzzi): #68, #72, #111, #241, #248, #246, #287
+- Paul Romano (@paulromano): #107, #197, #265, #268, #270, #275, #273, #289,
+  #299, #303, #305, #308, #310, #318
+- Stefano C Tognini (@stognini): #30, #55, #81, #132, #175, #188, #194, #203,
+  #210, #231, #244, #271, #302, #327, #326, #341, #423
