@@ -236,6 +236,7 @@ if(CELERITAS_BUILD_DOCS)
   if(Sphinx_FOUND)
     celeritas_check_python_module(CELERITAS_USE_Breathe breathe)
     celeritas_check_python_module(CELERITAS_USE_SphinxBibtex "sphinxcontrib.bibtex")
+    find_program(LATEXMK_EXECUTABLE latexmk)
   endif()
   if(NOT Sphinx_FOUND AND NOT Doxygen_FOUND)
     message(SEND_ERROR "Sphinx and/or Doxygen are required for testing: setting "

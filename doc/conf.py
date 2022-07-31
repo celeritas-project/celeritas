@@ -4,17 +4,10 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
 import datetime
 import os
 import json
-
+from pathlib import Path
 
 # -- Project information -----------------------------------------------------
 
@@ -35,12 +28,9 @@ copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
     datetime.datetime.today()
 )
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
 try:
-    build_dir = os.environ['CMAKE_CURRENT_BINARY_DIR']
-    with open(os.path.join(build_dir, 'config.json'), 'r') as f:
+    build_dir = Path(os.environ['CMAKE_CURRENT_BINARY_DIR'])
+    with open(build_dir / 'config.json', 'r') as f:
         celer_config = json.load(f)
 except (KeyError, IOError) as e:
     print("Failed to load config data:", e)
@@ -69,14 +59,15 @@ for (opt, val) in celer_config['options'].items():
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinx.ext.todo'
+    'sphinx.ext.todo',
+    'sphinx.ext.githubpages',
 ]
 
 if celer_config['options']['breathe']:
     extensions.append('breathe')
     breathe_default_project = project
     breathe_projects = {
-        project: os.path.join(build_dir, 'xml')
+        project: build_dir / 'xml'
     }
     breathe_default_members = ('members',)
 
@@ -119,3 +110,78 @@ html_theme_options = {
     'show_powered_by': False,
 }
 
+# -- Options for LaTeX output ------------------------------------------------
+
+
+latex_elements = {
+# The paper size ('letterpaper' or 'a4paper').
+'papersize': 'letterpaper',
+
+'extraclassoptions': 'oneside',
+
+# The font size ('10pt', '11pt' or '12pt').
+'pointsize': '11pt',
+
+# Additional stuff for the LaTeX preamble.
+'preamble': r"""
+% Reset styles changed by sphinx.sty
+\usepackage{ornltm-style}
+\usepackage{ornltm-extract}
+\usepackage{sphinxcustom}
+\usepackage{microtype}
+\usepackage{pdfpages}
+\input{./macros.tex}
+""",
+
+# Table of contents
+'tableofcontents': r"""
+\frontmatter
+% Plain page
+\thispagestyle{plain}%
+\phantomsection\addcontentsline{toc}{section}{Contents}
+\tableofcontents
+% %
+% \cleardoublepage
+% \thispagestyle{plain}%
+% \phantomsection\addcontentsline{toc}{section}{List of Figures}
+% \listoffigures
+% %
+% \cleardoublepage
+% \thispagestyle{plain}%
+% \phantomsection\addcontentsline{toc}{section}{List of Tables}
+% \listoftables
+% \cleardoublepage
+% \pagestyle{normal}
+""",
+# No chapter styles needed
+'fncychap': "",
+# Make references more robust to renumbering
+'hyperref': r"""
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{hypcap}
+\urlstyle{same}
+""",
+# Replace maketitle with generated title page:
+# see http://texdoc.net/texmf-dist/doc/latex/pdfpages/pdfpages.pdf
+# and documents repo:
+ 'maketitle': r"\includepdf[pages=-]{ornltm-header-celeritas.pdf}",
+ 'atendofbody': r"\includepdf[pages=-]{ornltm-footer.pdf}",
+ # NOTE: '\titleclass{\section}{top}' breaks \printindex with a message about
+ # "sphinxtheappendix" not being defined... since we don't care about the index
+ # anyway, suppress it.
+ 'makeindex': "",
+ 'printindex': "",
+}
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title,
+#  author, documentclass [howto, manual, or own class]).
+latex_documents = [
+    ('index', 'Celeritas.tex', 'Celeritas User Manual',
+     author, 'howto'),
+]
+
+latex_additional_files = [
+    str(p) for p in Path('_static').iterdir()
+    if p.suffix in ('.tex', '.sty', '.cls')
+]
