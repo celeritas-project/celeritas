@@ -11,10 +11,11 @@ Release History
 v0.1.0
 ======
 
-Initial "stable enough for external development" release of Celeritas. This
-release is focused on unit testing and stabilizing the API. Some initial code
-verification problems (looking at energy and step distributions for simple
-problems such as TestEM3) are promising, but the code is far from validated.
+”Initial viable product" release of Celeritas. This release is focused on unit
+testing and stabilizing the API for exploratory use by downstream applications
+and frameworks. Some initial code verification problems (looking at energy and
+step distributions for simple problems such as TestEM3) are promising, but the
+code is far from validated.
 
 New features
 ------------
@@ -28,8 +29,8 @@ New features
 Known bugs
 ----------
 
-- Magnetic field propagation fails at geometry boundaries
-- Multiple scattering requires more steps than expected compared to Geant4
+- Magnetic field propagation fails at geometry boundaries.
+- Multiple scattering requires more steps than expected compared to Geant4.
 
 Contributors
 ------------
@@ -56,7 +57,7 @@ Fermilab, Oak Ridge National Laboratory, and other collaborating institutions.
   #387, #386, #388, #389, #391, #394, #393, #395, #397, #398, #399, #400, #405,
   #403, #404, #410, #408, #406, #411, #402, #414, #415, #417, #416, #422, #424,
   #426, #427, #428, #433, #432, #435, #436, #434, #437, #441, #439, #445, #443,
-  #448, #449, #453, #456, #455, #458, #457, #464, #465
+  #448, #449, #453, #456, #455, #458, #457, #464, #465, #468
 - Soon Yung Jun (@whokion): #41, #70, #173, #200, #214, #221, #230, #250, #259,
   #258, #260, #316, #317, #320, #324, #370, #375, #390, #396, #407, #413, #430,
   #454, #467
