@@ -96,37 +96,37 @@ TEST_F(FieldDriverTest, field_driver_host)
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep         = circumference / test_params.nsteps;
 
-        // Initial state and the epected state after revolutions
-        OdeState y;
-        y.pos = {test_params.radius, 0, 0};
-        y.mom = {0, test_params.momentum_y, test_params.momentum_z};
+    // Initial state and the epected state after revolutions
+    OdeState y;
+    y.pos = {test_params.radius, 0, 0};
+    y.mom = {0, test_params.momentum_y, test_params.momentum_z};
 
-        OdeState y_expected = y;
+    OdeState y_expected = y;
 
-        real_type total_step_length{0};
+    real_type total_step_length{0};
 
-        // Try the stepper by hstep for (num_revolutions * num_steps) times
-        real_type delta = field_params.errcon;
-        for (int nr = 0; nr < test_params.revolutions; ++nr)
+    // Try the stepper by hstep for (num_revolutions * num_steps) times
+    real_type delta = field_params.errcon;
+    for (int nr = 0; nr < test_params.revolutions; ++nr)
+    {
+        y_expected.pos
+            = {test_params.radius, 0, (nr + 1) * test_params.delta_z};
+
+        // Travel hstep for num_steps times in the field
+        for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
         {
-            y_expected.pos
-                = {test_params.radius, 0, (nr + 1) * test_params.delta_z};
-
-            // Travel hstep for num_steps times in the field
-            for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
-            {
-                auto end = driver.advance(hstep, y);
-                total_step_length += end.step;
-                y = end.state;
-            }
-
-            // Check the total error and the state (position, momentum)
-            EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+            auto end = driver.advance(hstep, y);
+            total_step_length += end.step;
+            y = end.state;
         }
 
-        // Check the total error, step/curve length
-        EXPECT_SOFT_NEAR(
-            total_step_length, circumference * test_params.revolutions, delta);
+        // Check the total error and the state (position, momentum)
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+    }
+
+    // Check the total error, step/curve length
+    EXPECT_SOFT_NEAR(
+        total_step_length, circumference * test_params.revolutions, delta);
 }
 
 TEST_F(FieldDriverTest, accurate_advance_host)
@@ -140,35 +140,35 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     real_type circumference = 2 * constants::pi * test_params.radius;
     real_type hstep         = circumference / test_params.nsteps;
 
-        // Initial state and the epected state after revolutions
-        OdeState y;
-        y.pos = {test_params.radius, 0, 0};
-        y.mom = {0, test_params.momentum_y, test_params.momentum_z};
+    // Initial state and the epected state after revolutions
+    OdeState y;
+    y.pos = {test_params.radius, 0, 0};
+    y.mom = {0, test_params.momentum_y, test_params.momentum_z};
 
-        OdeState y_expected = y;
+    OdeState y_expected = y;
 
-        // Try the stepper by hstep for (num_revolutions * num_steps) times
-        real_type total_curved_length{0};
-        real_type delta = field_params.errcon;
+    // Try the stepper by hstep for (num_revolutions * num_steps) times
+    real_type total_curved_length{0};
+    real_type delta = field_params.errcon;
 
-        for (int nr = 0; nr < test_params.revolutions; ++nr)
+    for (int nr = 0; nr < test_params.revolutions; ++nr)
+    {
+        // test one_good_step
+        OdeState y_accurate = y;
+
+        // Travel hstep for num_steps times in the field
+        for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
         {
-            // test one_good_step
-            OdeState y_accurate = y;
+            auto end = driver.accurate_advance(hstep, y_accurate, .001);
 
-            // Travel hstep for num_steps times in the field
-            for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
-            {
-                auto end = driver.accurate_advance(hstep, y_accurate, .001);
-
-                total_curved_length += end.step;
-                y_accurate = end.state;
-            }
-            // Check the total error and the state (position, momentum)
-            EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+            total_curved_length += end.step;
+            y_accurate = end.state;
         }
+        // Check the total error and the state (position, momentum)
+        EXPECT_VEC_NEAR(y_expected.pos, y.pos, delta);
+    }
 
-        // Check the total error, step/curve length
-        EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
-                  delta);
+    // Check the total error, step/curve length
+    EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
+              delta);
 }
