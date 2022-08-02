@@ -26,6 +26,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "celeritas_test.hh"
+#include "detail/CMSParameterizedField.hh"
 
 using namespace celeritas;
 using namespace celeritas_test;
@@ -475,7 +476,7 @@ TEST_F(TwoBoxTest, DISABLED_nonuniform_field)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(LayersTest, uniform_revolutions)
+TEST_F(LayersTest, revolutions_through_layers)
 {
     const real_type radius{3.8085385437789383};
     auto            particle = this->init_particle(
@@ -496,7 +497,7 @@ TEST_F(LayersTest, uniform_revolutions)
     const int    num_boundary = sizeof(expected_y) / sizeof(real_type);
     const int    num_revs     = 10;
     const int    num_steps    = 100;
-    const double step         = (2.0 * pi * radius) / num_steps;
+    const double step         = (2 * pi * radius) / num_steps;
 
     int       icross       = 0;
     real_type total_length = 0;
@@ -521,4 +522,43 @@ TEST_F(LayersTest, uniform_revolutions)
     EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], 1e-6);
     EXPECT_SOFT_NEAR(221.48171708, total_length, 1e-6);
     EXPECT_EQ(148, icross);
+}
+
+TEST_F(LayersTest, revolutions_through_cms_field)
+{
+    // Scale the test radius with the approximated center value of the
+    // parameterized field (3.8 units::tesla)
+    real_type radius   = 3.8085386036 / 3.8;
+    auto      particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
+    auto geo = this->init_geo({radius, -10, 0}, {0, 1, 0});
+
+    celeritas_test::detail::CMSParameterizedField field;
+    FieldDriverOptions                            driver_options;
+
+    EXPECT_SOFT_NEAR(
+        radius, this->calc_field_curvature(particle, geo, field), 5e-3);
+
+    // Build propagator
+    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+        field, driver_options, particle, &geo);
+
+    const int    num_revs  = 10;
+    const int    num_steps = 100;
+    const double step      = (2 * pi * radius) / num_steps;
+
+    real_type total_length = 0;
+
+    for (CELER_MAYBE_UNUSED int ir : celeritas::range(num_revs))
+    {
+        for (CELER_MAYBE_UNUSED auto k : celeritas::range(num_steps))
+        {
+            auto result = propagate(step);
+            total_length += result.distance;
+            EXPECT_DOUBLE_EQ(step, result.distance);
+            ASSERT_FALSE(result.boundary);
+            EXPECT_DOUBLE_EQ(step, result.distance);
+        }
+    }
+    EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
 }
