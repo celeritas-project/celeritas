@@ -448,10 +448,7 @@ TEST_F(TwoBoxTest, DISABLED_electron_tangent_cross)
     }
 }
 
-// TODO: clamp assertion failure because
-// (end_curve_length - curve_length ~= 2e-17) < (options_.minimum_step ~= 1e-6)
-// for proposed step = 0.22
-TEST_F(TwoBoxTest, DISABLED_nonuniform_field)
+TEST_F(TwoBoxTest, nonuniform_field)
 {
     auto particle = this->init_particle(
         this->particle()->find(pdg::electron()), MevEnergy{10});
