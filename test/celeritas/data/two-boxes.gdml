@@ -16,6 +16,6 @@
     </volume>
   </structure>
   <setup name="default" version="1.0">
-    <world ref="inner"/>
+    <world ref="world"/>
   </setup>
 </gdml>
