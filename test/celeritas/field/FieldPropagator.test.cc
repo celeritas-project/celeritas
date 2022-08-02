@@ -58,17 +58,17 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
         // Create particle defs
         constexpr auto        stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input defs   = {
-              {"electron",
-               pdg::electron(),
-               MevMass{0.5109989461},
-               ElementaryCharge{-1},
-               stable},
-              {"positron",
-               pdg::positron(),
-               MevMass{0.5109989461},
-               ElementaryCharge{1},
-               stable},
-              {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+            {"electron",
+             pdg::electron(),
+             MevMass{0.5109989461},
+             ElementaryCharge{-1},
+             stable},
+            {"positron",
+             pdg::positron(),
+             MevMass{0.5109989461},
+             ElementaryCharge{1},
+             stable},
+            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
         return std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -96,7 +96,7 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
     {
         normalize_direction(&dir);
         GeoTrackView view = this->make_geo_view();
-        view = {pos, dir};
+        view              = {pos, dir};
         return view;
     }
 
@@ -169,7 +169,7 @@ TEST_F(TwoBoxTest, electron_interior)
     const real_type radius{3.8085385437789383};
     auto            particle = this->init_particle(
         this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
-    auto geo = this->init_geo({radius, 0, 0}, {0, 1, 0});
+    auto          geo = this->init_geo({radius, 0, 0}, {0, 1, 0});
     UniformZField field(1.0 * units::tesla);
 
     // Check expected field curvature and geometry cell
