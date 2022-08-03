@@ -76,7 +76,7 @@ class OrangeTrackView
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
     // Find the distance to the nearest boundary in any direction
-    inline CELER_FUNCTION real_type find_safety();
+    inline CELER_FUNCTION real_type find_safety() const;
 
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
@@ -290,7 +290,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 /*!
  * Find the distance to the nearest boundary in any direction.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_safety()
+CELER_FUNCTION real_type OrangeTrackView::find_safety() const
 {
     if (states_.surf[thread_])
     {
