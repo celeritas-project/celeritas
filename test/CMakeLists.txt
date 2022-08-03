@@ -339,6 +339,7 @@ celeritas_device_test(celeritas/phys/Particle
   LINK_LIBRARIES Celeritas::IO)
 celeritas_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
+celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Random

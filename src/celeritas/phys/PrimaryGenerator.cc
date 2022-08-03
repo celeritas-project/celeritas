@@ -20,10 +20,11 @@ namespace celeritas
  * Construct with options and shared particle data.
  */
 PrimaryGenerator::PrimaryGenerator(SPConstParticles        particles,
-                                   PrimaryGeneratorOptions options)
+                                   const PrimaryGeneratorOptions& options)
     : num_events_(options.num_events)
     , primaries_per_event_(options.primaries_per_event)
 {
+    CELER_EXPECT(options);
     primary_.particle_id = particles->find(PDGNumber{options.pdg});
     primary_.energy      = units::MevEnergy{options.energy};
     primary_.position    = options.position;

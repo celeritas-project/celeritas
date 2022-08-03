@@ -11,6 +11,8 @@
 
 #include "ParticleParams.hh"
 #include "Primary.hh"
+#include "PDGNumber.hh"
+#include "celeritas/Units.hh"
 
 namespace celeritas
 {
@@ -20,17 +22,17 @@ namespace celeritas
  */
 struct PrimaryGeneratorOptions
 {
-    int       pdg;      //!< Primary PDG number
-    real_type energy;   //!< [MeV]
-    Real3     position; //!< [cm]
-    Real3     direction;
-    size_type num_events;
-    size_type primaries_per_event;
+    PDGNumber        pdg;
+    units::MevEnergy energy{0};
+    Real3            position{0,0,0};
+    Real3            direction{0,0,1};
+    size_type        num_events{};
+    size_type        primaries_per_event{};
 
     //! Whether the options are valid
     explicit operator bool() const
     {
-        return pdg != 0 && energy >= 0 && num_events > 0
+        return pdg && energy >= zero_quantity() && num_events > 0
                && primaries_per_event > 0;
     }
 };
@@ -52,7 +54,7 @@ class PrimaryGenerator
 
   public:
     // Construct with options and shared particle data
-    PrimaryGenerator(SPConstParticles, PrimaryGeneratorOptions);
+    PrimaryGenerator(SPConstParticles, const PrimaryGeneratorOptions&);
 
     // Generate primary particles
     VecPrimary operator()();
