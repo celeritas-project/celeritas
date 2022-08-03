@@ -43,7 +43,7 @@ class UrbanMscScatter
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscScatter(const UrbanMscRef&       shared,
                                           const ParticleTrackView& particle,
-                                          GeoTrackView*            geometry,
+                                          const GeoTrackView&      geometry,
                                           const PhysicsTrackView&  physics,
                                           const MaterialView&      material,
                                           const MscStep&           input,
@@ -73,8 +73,8 @@ class UrbanMscScatter
     bool      is_displaced_;
     real_type geom_path_;
     real_type limit_min_;
-    // Geomtry track view
-    GeoTrackView& geometry_;
+    // Safety from the current position
+    real_type safety_;
 
     Energy    end_energy_;
     real_type lambda_;
@@ -141,13 +141,13 @@ class UrbanMscScatter
 CELER_FUNCTION
 UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  const ParticleTrackView& particle,
-                                 GeoTrackView*            geometry,
+                                 const GeoTrackView&      geometry,
                                  const PhysicsTrackView&  physics,
                                  const MaterialView&      material,
                                  const MscStep&           input,
                                  const bool               geo_limited)
     : inc_energy_(particle.energy())
-    , inc_direction_(geometry->dir())
+    , inc_direction_(geometry.dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , rad_length_(material.radiation_length())
     , range_(physics.dedx_range())
@@ -158,7 +158,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , is_displaced_(input.is_displaced)
     , geom_path_(input.geom_path)
     , limit_min_(input.limit_min)
-    , geometry_(*geometry)
+    , safety_(geometry.find_safety())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -568,7 +568,7 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
     // Do not sample near the boundary
     if (rho > params_.geom_limit)
     {
-        real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
+        real_type safety = (1 - params_.safety_tol) * safety_;
         if (rho <= safety)
         {
             // No scaling needed
