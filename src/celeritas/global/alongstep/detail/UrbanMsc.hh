@@ -144,7 +144,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
 
     UrbanMscScatter msc_scatter(msc_params_,
                                 par,
-                                &geo,
+                                geo,
                                 phys,
                                 mat.make_material_view(),
                                 msc_step_result,
