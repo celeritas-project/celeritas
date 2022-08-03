@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "corecel/data/CollectionMirror.hh"
 
 #include "FieldMapData.hh"
@@ -25,13 +27,13 @@ class MagFieldMap
     //@{
     //! Type aliases
     using ReadMap   = std::function<detail::FieldMapInput()>;
-    using HostRef   = detail::FieldMapHostRef;
-    using DeviceRef = detail::FieldMapDeviceRef;
+    using HostRef   = ::celeritas::HostCRef<FieldMapData>;
+    using DeviceRef = ::celeritas::DeviceCRef<FieldMapData>;
     //@}
 
   public:
     // Construct with a magnetic field map
-    MagFieldMap(ReadMap load_map);
+    explicit MagFieldMap(ReadMap load_map);
 
     //! Access field map data on the host
     const HostRef& host_ref() const { return mirror_.host(); }
@@ -41,7 +43,7 @@ class MagFieldMap
 
   private:
     // Host/device storage and reference
-    celeritas::CollectionMirror<detail::FieldMapData> mirror_;
+    celeritas::CollectionMirror<FieldMapData> mirror_;
 
   private:
     using HostValue = ::celeritas::HostVal<FieldMapData>;
