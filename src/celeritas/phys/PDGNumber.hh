@@ -41,20 +41,28 @@ class PDGNumber
     //! Get the PDG value
     constexpr int unchecked_get() const { return value_; }
 
-    //! Get the PDG value
+    // Get the PDG value
     inline int get() const;
 
   private:
     int value_{0};
 };
 
-//! Get the PDG value
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get the PDG value.
+ */
 inline int PDGNumber::get() const
 {
     CELER_ENSURE(*this);
     return value_;
 }
 
+//---------------------------------------------------------------------------//
+// COMPARATORS
+//---------------------------------------------------------------------------//
 //! Test equality
 inline constexpr bool operator==(PDGNumber lhs, PDGNumber rhs)
 {
