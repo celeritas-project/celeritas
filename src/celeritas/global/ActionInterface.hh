@@ -78,6 +78,9 @@ class ExplicitActionInterface : public virtual ActionInterface
     //! Execute the action with device data
     virtual void execute(CoreDeviceRef const&) const = 0;
 
+    //! Dependency ordering of the action
+    virtual ActionOrder order() const = 0;
+
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~ExplicitActionInterface() = default;
@@ -98,6 +101,8 @@ class ExplicitActionInterface : public virtual ActionInterface
 
       void execute(CoreHostRef const&) const final;
       void execute(CoreDeviceRef const&) const final;
+
+      ActionOrder order() const final { return ActionOrder::post; }
   };
 
   class PlaceholderPhysicsAction final : public ImplicitActionInterface,

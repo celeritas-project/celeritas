@@ -77,6 +77,9 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
         return "along-step for particles with no field";
     }
 
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::along; }
+
     //// ACCESSORS ////
 
     //! Whether energy flucutation is in use

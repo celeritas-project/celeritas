@@ -69,6 +69,9 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
         return "along-step in a uniform field with Urban MSC";
     }
 
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::along; }
+
     //// ACCESSORS ////
 
     //! Whether MSC is in use

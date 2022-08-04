@@ -39,6 +39,8 @@ class MyExplicitAction final : public ExplicitActionInterface
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
 
+    ActionOrder order() const final { return ActionOrder::along; }
+
   private:
     ActionId    action_id_;
     mutable int host_count_{0};
@@ -98,6 +100,8 @@ TEST_F(ActionManagerTest, accessors)
     // Access an action
     EXPECT_EQ("explicit action test", mgr.action(expl_id).description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
+
+    EXPECT_STREQ("along", to_cstring(expl_action->order()));
 }
 
 TEST_F(ActionManagerTest, output)

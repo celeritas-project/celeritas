@@ -54,6 +54,7 @@ void ActionManagerOutput::output(JsonPimpl* j) const
         }
         if (has_timing)
         {
+            // TODO: only output if explicit
             entry["time"] = actions_->accum_time(id);
         }
         obj.push_back(entry);

@@ -71,9 +71,7 @@ enum class Interp
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Physical state of matter.
- */
+//! Physical state of matter.
 enum class MatterState
 {
     unspecified = 0,
@@ -84,11 +82,25 @@ enum class MatterState
 
 //---------------------------------------------------------------------------//
 //! Whether a track slot is alive, inactive, or dying
-enum class TrackStatus : signed char
+enum class TrackStatus : std::int_least8_t
 {
     killed   = -1, //!< Killed inside the step, awaiting replacement
     inactive = 0,  //!< No tracking in this thread slot
     alive    = 1   //!< Track is active and alive
+};
+
+//---------------------------------------------------------------------------//
+//! Within-step ordering of explicit actions
+enum class ActionOrder
+{
+    start,     //!< Initialize tracks
+    pre,       //!< Pre-step physics and setup
+    along,     //!< Along-step
+    pre_post,  //!< Discrete selection kernel
+    post,      //!< After step
+    post_post, //!< User actions after boundary crossing, collision
+    end,       //!< Processing secondaries, including replacing primaries
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -112,6 +124,13 @@ struct StepLimit
 struct NoData
 {
 };
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+// Get a string corresponding to a surface type
+const char* to_cstring(ActionOrder);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

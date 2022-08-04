@@ -84,6 +84,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     {
         return "diagnostics after post-step";
     }
+    ActionOrder order() const final { return ActionOrder::post_post; }
     //!@}
 
   private:
