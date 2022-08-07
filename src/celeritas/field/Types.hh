@@ -35,8 +35,8 @@ struct OdeState
  */
 struct StepperResult
 {
-    OdeState end_state; //!< OdeState at the end
     OdeState mid_state; //!< OdeState at the middle
+    OdeState end_state; //!< OdeState at the end
     OdeState err_state; //!< Delta between one full step and two half steps
 };
 

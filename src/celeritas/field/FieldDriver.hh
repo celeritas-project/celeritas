@@ -344,7 +344,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
         {
             // Step failed; compute the size of re-trial step.
             real_type htemp = options_.safety * step
-                              * std::pow(errmax2, half() * options_.pshrink);
+                              * fastpow(errmax2, half() * options_.pshrink);
 
             // Truncation error too large, reduce stepsize with a low bound
             step = max(htemp, options_.max_stepping_decrease * step);
@@ -360,7 +360,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     output.proposed_step
         = (errmax2 > ipow<2>(options_.errcon))
               ? options_.safety * step
-                    * std::pow(errmax2, half() * options_.pgrow)
+                    * fastpow(errmax2, half() * options_.pgrow)
               : options_.max_stepping_increase * step;
 
     return output;
@@ -375,7 +375,7 @@ CELER_FUNCTION real_type
 FieldDriver<StepperT>::new_step_size(real_type step, real_type rel_error) const
 {
     CELER_ASSERT(rel_error > 0);
-    real_type scale_factor = std::pow(
+    real_type scale_factor = fastpow(
         rel_error, rel_error > 1 ? options_.pshrink : options_.pgrow);
     return options_.safety * step * scale_factor;
 }
