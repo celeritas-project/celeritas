@@ -33,8 +33,9 @@ class UrbanMscScatter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy        = units::MevEnergy;
+    using Mass          = units::MevMass;
     using MscParameters = UrbanMscParameters;
     using MaterialData  = UrbanMscMaterialData;
     //!@}
@@ -56,7 +57,7 @@ class UrbanMscScatter
   private:
     //// DATA ////
 
-    Energy    inc_energy_;
+    real_type inc_energy_;
     Real3     inc_direction_;
     bool      is_positron_;
     real_type rad_length_;
@@ -76,7 +77,7 @@ class UrbanMscScatter
     // Geomtry track view
     GeoTrackView& geometry_;
 
-    Energy    end_energy_;
+    real_type end_energy_;
     real_type lambda_;
     real_type true_path_;
     bool      skip_sampling_;
@@ -92,10 +93,10 @@ class UrbanMscScatter
         return 5e-9 * units::centimeter;
     }
 
-    //! The constant in the Highland theta0 formula: 13.6 MeV
+    //! The constant in the Highland theta0 formula
     static CELER_CONSTEXPR_FUNCTION Energy c_highland()
     {
-        return Energy{13.6};
+        return units::MevEnergy{13.6};
     }
 
     //// HELPER FUNCTIONS ////
@@ -146,12 +147,12 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                                  const MaterialView&      material,
                                  const MscStep&           input,
                                  const bool               geo_limited)
-    : inc_energy_(particle.energy())
+    : inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , rad_length_(material.radiation_length())
     , range_(physics.dedx_range())
-    , mass_(shared.electron_mass.value())
+    , mass_(value_as<Mass>(shared.electron_mass))
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
@@ -164,7 +165,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
                  || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(geom_path_ > 0);
 
-    lambda_ = helper_.msc_mfp(inc_energy_);
+    lambda_ = helper_.msc_mfp(Energy{inc_energy_});
 
     // Convert the geometry path length to the true path length, but do not
     // recalculate the true path if the step is not limited by geometry
@@ -179,10 +180,11 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     skip_sampling_ = true;
     if (true_path_ < range_ && true_path_ > params_.geom_limit)
     {
-        end_energy_    = helper_.calc_end_energy(true_path_);
-        skip_sampling_ = (end_energy_ < params_.min_sampling_energy()
-                          || true_path_ <= shared.params.limit_min_fix()
-                          || true_path_ < lambda_ * params_.tau_small);
+        end_energy_ = value_as<Energy>(helper_.calc_end_energy(true_path_));
+        skip_sampling_
+            = (end_energy_ < value_as<Energy>(params_.min_sampling_energy())
+               || true_path_ <= shared.params.limit_min_fix()
+               || true_path_ < lambda_ * params_.tau_small);
     }
 }
 
@@ -276,7 +278,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
 
     real_type result = 1;
 
-    real_type lambda_end = helper_.msc_mfp(end_energy_);
+    real_type lambda_end = helper_.msc_mfp(Energy{end_energy_});
 
     tau_ = true_path
            / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
@@ -296,7 +298,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
         real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
 
         // Too large step of the low energy particle
-        if (end_energy_.value() < real_type(0.5) * inc_energy_.value())
+        if (end_energy_ < real_type(0.5) * inc_energy_)
         {
             return this->simple_scattering(rng, xmean, x2mean);
         }
@@ -452,23 +454,22 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
 CELER_FUNCTION
 real_type UrbanMscScatter::compute_theta0(real_type true_path) const
 {
-    real_type energy     = end_energy_.value();
-    real_type inc_energy = inc_energy_.value();
-
-    real_type invbetacp = std::sqrt((inc_energy + mass_) * (energy + mass_)
-                                    / (inc_energy * (inc_energy + 2 * mass_)
-                                       * energy * (energy + 2 * mass_)));
-    real_type y         = true_path / rad_length_;
+    real_type invbetacp
+        = std::sqrt((inc_energy_ + mass_) * (end_energy_ + mass_)
+                    / (inc_energy_ * (inc_energy_ + 2 * mass_) * end_energy_
+                       * (end_energy_ + 2 * mass_)));
+    real_type y = true_path / rad_length_;
 
     // Correction for the positron
     if (is_positron_)
     {
-        real_type tau = std::sqrt(inc_energy * energy) / mass_;
+        real_type tau = std::sqrt(inc_energy_ * end_energy_) / mass_;
         y *= this->calc_correction(tau);
     }
 
     // Note: multiply abs(charge) if the charge number is not unity
-    real_type theta0 = c_highland().value() * std::sqrt(y) * invbetacp;
+    real_type theta0 = value_as<Energy>(c_highland()) * std::sqrt(y)
+                       * invbetacp;
 
     // Correction factor from e- scattering data
     theta0 *= (msc_.coeffth1 + msc_.coeffth2 * std::log(y));

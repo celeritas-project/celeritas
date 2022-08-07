@@ -149,12 +149,14 @@ struct LivermorePEIds
 template<Ownership W, MemSpace M>
 struct LivermorePEData
 {
+    using Mass = units::MevMass;
+
     //// MEMBER DATA ////
 
     //! IDs in a separate struct for readability/easier copying
     LivermorePEIds ids;
 
-    //! 1 / electron mass [1 / MevMass]
+    //! 1 / electron mass [1 / Mass]
     real_type inv_electron_mass;
 
     //! Livermore EPICS2014 photoelectric data

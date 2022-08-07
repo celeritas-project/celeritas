@@ -41,6 +41,7 @@ class UrbanMscStepLimit
     //!@{
     //! Type aliases
     using Energy        = units::MevEnergy;
+    using Mass          = units::MevMass;
     using MscParameters = UrbanMscParameters;
     using MaterialData  = UrbanMscMaterialData;
     //!@}
@@ -64,8 +65,8 @@ class UrbanMscStepLimit
 
     // Shared constant data
     const UrbanMscRef& shared_;
-    // Incident particle energy
-    const Energy inc_energy_;
+    // Incident particle energy [Energy]
+    const real_type inc_energy_;
     // Incident particle flag for positron
     const bool is_positron_;
     // Incident particle safety
@@ -121,7 +122,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
-    , inc_energy_(particle.energy())
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , safety_(safety)
     , params_(shared.params)
@@ -137,7 +138,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     CELER_EXPECT(phys_step > 0);
 
     // Mean free path for MSC at current energy
-    lambda_ = helper_.msc_mfp(inc_energy_);
+    lambda_ = helper_.msc_mfp(Energy{inc_energy_});
 
     // The slowing down range should already have been applied as a step limit
     CELER_ENSURE(range_ >= phys_step_);
@@ -282,7 +283,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
                                ? true_path * (1 - tau / 2)
                                : lambda_ * (1 - std::exp(-tau));
     }
-    else if (inc_energy_.value() < shared_.electron_mass.value()
+    else if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
              || true_path == range_)
     {
         result.alpha = 1 / range_;
@@ -320,9 +321,8 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     // Calculate minimum step
-    real_type xm
-        = lambda_
-          / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_.value());
+    real_type xm = lambda_
+                   / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_);
 
     // Scale based on particle type and effective atomic number:
     // 0.7 * z^{1/2} for positrons, otherwise 0.87 * z^{2/3}
@@ -330,11 +330,11 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     xm *= is_positron_ ? real_type(0.70) * std::sqrt(msc_.zeff)
                        : real_type(0.87) * msc_.z23;
 
-    if (inc_energy_ < this->tlow())
+    if (inc_energy_ < value_as<Energy>(this->tlow()))
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
-               + real_type(0.5) * inc_energy_.value() / this->tlow().value());
+               + real_type(0.5) * inc_energy_ / this->tlow().value());
     }
 
     return max<real_type>(xm, shared_.params.limit_min_fix());
