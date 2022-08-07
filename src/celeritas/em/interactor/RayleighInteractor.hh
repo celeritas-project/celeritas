@@ -187,7 +187,8 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
         input.weight[i] = (x[i] > this->fit_slice())
                               ? 1 - fastpow(1 + x[i], -n[i])
                               : n[i] * x[i]
-                                    * (1 - (n[i] - 1) / 2 * x[i]
+                                    * (1
+                                       - (n[i] - 1) / 2 * x[i]
                                              * (1 - (n[i] - 2) / 3 * x[i]));
 
         prob[i] = input.weight[i] * a[i] / (b[i] * n[i]);

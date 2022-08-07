@@ -200,7 +200,6 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
     const real_type delta = real_type(0.5) * inc_mass_sq * rel_energy_transfer
                             / (inc_total_energy - gamma_energy);
 
-
     // TODO: precalculate these data per element
     real_type       d_n_prime, b, b1;
     const real_type d_n = real_type(1.54)

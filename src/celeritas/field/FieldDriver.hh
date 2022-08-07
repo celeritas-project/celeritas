@@ -357,11 +357,10 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step  = step;
-    output.proposed_step
-        = (errmax2 > ipow<2>(options_.errcon))
-              ? options_.safety * step
-                    * fastpow(errmax2, half() * options_.pgrow)
-              : options_.max_stepping_increase * step;
+    output.proposed_step = (errmax2 > ipow<2>(options_.errcon))
+                               ? options_.safety * step
+                                     * fastpow(errmax2, half() * options_.pgrow)
+                               : options_.max_stepping_increase * step;
 
     return output;
 }
