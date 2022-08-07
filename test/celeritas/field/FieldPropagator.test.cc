@@ -473,7 +473,7 @@ TEST_F(TwoBoxTest, nonuniform_field)
         auto geo       = this->make_geo_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
-        auto result = propagate(1.0);
+        propagate(1.0);
         EXPECT_VEC_SOFT_EQ(pos, geo.pos());
     }
 }

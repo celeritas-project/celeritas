@@ -272,6 +272,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
                         real_type(1 + 10 * eps) * rho,
                         real_type(1 + 100 * eps) * rho,
                         real_type(1.00000001) * rho,
+                        real_type(1.000001) * rho,
                         1.5 * rho,
                         10 * rho,
                         100 * rho})
@@ -287,6 +288,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
                                            0.1,
                                            0.1,
                                            0.100000001,
+                                           0.1000001,
                                            0.13666666666667,
                                            0.352,
                                            2.1592};
