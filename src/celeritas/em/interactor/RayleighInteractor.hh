@@ -174,8 +174,9 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
     const Real3& n = shared_.params[element_id_].n;
 
     SampleInput input;
-    input.factor = ipow<2>(units::centimeter * native_value_from(inc_energy_)
-                           / (constants::c_light * constants::h_planck));
+    input.factor = ipow<2>(units::centimeter
+                           / (constants::c_light * constants::h_planck)
+                           * native_value_from(inc_energy_));
 
     Real3 x = b;
     axpy(input.factor, b, &x);
