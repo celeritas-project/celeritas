@@ -64,8 +64,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         const auto& params = *this->particle_params();
         data_.ids.electron = params.find(pdg::electron());
         data_.ids.positron = params.find(pdg::positron());
-        data_.electron_mass_c_sq
-            = params.get(data_.ids.electron).mass().value();
+        data_.electron_mass = params.get(data_.ids.electron).mass();
     }
 
     void sanity_check(const Interaction& interaction) const

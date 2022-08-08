@@ -30,8 +30,8 @@ class EPlusGGMacroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
-    using XsUnits   = units::NativeUnit;
+    using Energy  = units::MevEnergy;
+    using XsUnits = units::NativeUnit;
     //!@}
 
   public:
@@ -41,12 +41,12 @@ class EPlusGGMacroXsCalculator
                              const MaterialView& material);
 
     // Compute cross section on the fly at the given energy
-    inline CELER_FUNCTION real_type operator()(MevEnergy energy) const;
+    inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
     //! Minimum energy for Heitler formula validity
-    static CELER_CONSTEXPR_FUNCTION MevEnergy min_energy()
+    static CELER_CONSTEXPR_FUNCTION Energy min_energy()
     {
-        return MevEnergy{1e-6};
+        return units::MevEnergy{1e-6};
     }
 
   private:
@@ -63,7 +63,7 @@ class EPlusGGMacroXsCalculator
 CELER_FUNCTION
 EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(const EPlusGGData&  shared,
                                                    const MaterialView& material)
-    : electron_mass_(shared.electron_mass)
+    : electron_mass_(value_as<units::MevMass>(shared.electron_mass))
     , electron_density_(material.electron_density())
 {
 }
@@ -76,15 +76,14 @@ EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(const EPlusGGData&  shared,
  * Release 10.6) is used to compute the macroscopic cross section for positron
  * annihilation on the fly at the given energy.
  */
-CELER_FUNCTION real_type
-EPlusGGMacroXsCalculator::operator()(MevEnergy energy) const
+CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(Energy energy) const
 {
     using constants::pi;
     using constants::r_electron;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     const real_type gamma
-        = celeritas::max(energy.value(), this->min_energy().value())
+        = celeritas::max(energy.value(), value_as<Energy>(this->min_energy()))
           / electron_mass_;
     const real_type sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
 

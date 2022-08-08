@@ -33,13 +33,13 @@ class AtomicRelaxation
   public:
     //!@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    using Energy = units::MevEnergy;
     //!@}
 
     struct result_type
     {
         size_type count{};  //!< Number of secondaries created
-        real_type energy{}; //!< Sum of the energies of the secondaries
+        Energy    energy{}; //!< Sum of the energies of the secondaries
     };
 
   public:
@@ -59,9 +59,9 @@ class AtomicRelaxation
     // Shared EADL atomic relaxation data
     const AtomicRelaxParamsRef& shared_;
     // Photon production threshold [MeV]
-    real_type gamma_cutoff_;
+    Energy gamma_cutoff_;
     // Electron production threshold [MeV]
-    real_type electron_cutoff_;
+    Energy electron_cutoff_;
     // Index in MaterialParams elements
     ElementId el_id_;
     // Shell ID of the initial vacancy
@@ -104,8 +104,8 @@ AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsRef& shared,
                                    Span<Secondary>             secondaries,
                                    Span<SubshellId>            vacancies)
     : shared_(shared)
-    , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma).value())
-    , electron_cutoff_(cutoffs.energy(shared_.ids.electron).value())
+    , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma))
+    , electron_cutoff_(cutoffs.energy(shared_.ids.electron))
     , el_id_(el_id)
     , shell_id_(shell_id)
     , secondaries_(secondaries)
@@ -166,11 +166,11 @@ AtomicRelaxation::operator()(Engine& rng)
                 CELER_ASSERT(count < secondaries_.size());
                 Secondary& secondary  = secondaries_[count++];
                 secondary.direction   = sample_direction_(rng);
-                secondary.energy      = MevEnergy{transition.energy};
+                secondary.energy      = transition.energy;
                 secondary.particle_id = shared_.ids.electron;
 
                 // Accumulate the energy carried away by secondaries
-                sum_energy += transition.energy;
+                sum_energy += value_as<Energy>(transition.energy);
             }
         }
         else if (transition.energy >= gamma_cutoff_)
@@ -179,17 +179,17 @@ AtomicRelaxation::operator()(Engine& rng)
             CELER_ASSERT(count < secondaries_.size());
             Secondary& secondary  = secondaries_[count++];
             secondary.direction   = sample_direction_(rng);
-            secondary.energy      = MevEnergy{transition.energy};
+            secondary.energy      = transition.energy;
             secondary.particle_id = shared_.ids.gamma;
 
             // Accumulate the energy carried away by secondaries
-            sum_energy += transition.energy;
+            sum_energy += value_as<Energy>(transition.energy);
         }
     }
 
     result_type result;
     result.count  = count;
-    result.energy = sum_energy;
+    result.energy = Energy{sum_energy};
     return result;
 }
 

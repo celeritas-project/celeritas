@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -44,7 +45,7 @@ struct BetheHeitlerData
     //! Model/particle IDs
     BetheHeitlerIds ids;
     //! Electron mass [MevMass]
-    real_type electron_mass{0};
+    units::MevMass electron_mass;
     //! LPM flag
     bool enable_lpm{false};
 
@@ -57,7 +58,7 @@ struct BetheHeitlerData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > 0;
+        return ids && electron_mass > zero_quantity();
     }
 };
 

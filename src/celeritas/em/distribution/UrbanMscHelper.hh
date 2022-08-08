@@ -58,7 +58,7 @@ class UrbanMscHelper
     //// DATA ////
 
     // Incident particle energy
-    const Energy inc_energy_;
+    const real_type inc_energy_;
     // PhysicsTrackView
     const PhysicsTrackView& physics_;
     // Range scaling factor
@@ -82,7 +82,7 @@ CELER_FUNCTION
 UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
                                const ParticleTrackView& particle,
                                const PhysicsTrackView&  physics)
-    : inc_energy_(particle.energy())
+    : inc_energy_(value_as<Energy>(particle.energy()))
     , physics_(physics)
     , dtrl_(shared.params.dtrl())
 {
@@ -131,9 +131,9 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     {
         // Short step can be approximated with linear extrapolation.
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
-            eloss_gid_)(inc_energy_);
+            eloss_gid_)(Energy{inc_energy_});
 
-        return Energy{inc_energy_.value() - step * dedx};
+        return Energy{inc_energy_ - step * dedx};
     }
     else
     {

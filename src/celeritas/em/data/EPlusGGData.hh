@@ -32,13 +32,14 @@ struct EPlusGGData
         ParticleId gamma;
     } ids;
 
-    //! electron mass [MevMass]
-    real_type electron_mass;
+    //! Electron mass
+    units::MevMass electron_mass;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.action && ids.positron && ids.gamma && electron_mass > 0;
+        return ids.action && ids.positron && ids.gamma
+               && electron_mass > zero_quantity();
     }
 };
 

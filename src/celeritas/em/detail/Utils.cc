@@ -23,12 +23,12 @@ namespace detail
 MaxSecondariesCalculator::MaxSecondariesCalculator(
     const Values&                         data,
     const ItemRange<AtomicRelaxSubshell>& shells,
-    MevEnergy                             electron_cut,
-    MevEnergy                             gamma_cut)
+    Energy                                electron_cut,
+    Energy                                gamma_cut)
     : data_(data)
     , shells_(data.shells[shells])
-    , electron_cut_(electron_cut.value())
-    , gamma_cut_(gamma_cut.value())
+    , electron_cut_(electron_cut)
+    , gamma_cut_(gamma_cut)
 {
 }
 

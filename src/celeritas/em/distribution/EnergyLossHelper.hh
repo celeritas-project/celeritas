@@ -64,11 +64,12 @@ class EnergyLossHelper
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using FluctuationRef = NativeCRef<FluctuationData>;
     using Energy         = units::MevEnergy;
     using EnergySq       = Quantity<UnitProduct<units::Mev, units::Mev>>;
     using Mass           = units::MevMass;
+    using Charge         = units::ElementaryCharge;
     using Model          = EnergyLossFluctuationModel;
     using Real2          = Array<real_type, 2>;
     //!@}
@@ -186,7 +187,9 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
                                    const ParticleTrackView& particle,
                                    Energy                   mean_loss,
                                    real_type                step_length)
-    : shared_(shared), material_(material), mean_loss_(mean_loss.value())
+    : shared_(shared)
+    , material_(material)
+    , mean_loss_(value_as<Energy>(mean_loss))
 {
     CELER_EXPECT(shared_);
     CELER_EXPECT(mean_loss_ > 0);
@@ -201,7 +204,8 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
     constexpr real_type half  = 0.5;
     const real_type     gamma = particle.lorentz_factor();
     beta_sq_                  = particle.beta_sq();
-    two_mebsgs_ = 2 * shared_.electron_mass * beta_sq_ * ipow<2>(gamma);
+    two_mebsgs_ = 2 * value_as<Mass>(shared_.electron_mass) * beta_sq_
+                  * ipow<2>(gamma);
 
     // Maximum possible energy transfer to an electron in a single collision
     real_type max_energy_transfer;
@@ -212,8 +216,8 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
     }
     else
     {
-        mass_ratio = shared_.electron_mass
-                     / value_as<units::MevMass>(particle.mass());
+        mass_ratio = value_as<Mass>(shared_.electron_mass)
+                     / value_as<Mass>(particle.mass());
         max_energy_transfer = two_mebsgs_
                               / (1 + mass_ratio * (2 * gamma + mass_ratio));
     }
@@ -229,10 +233,10 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
     // Units: [cm^2][MeV c^2][1/cm^3][e-][MeV][cm] = MeV^2
     // assuming implicit 1/c^2 in the formula
     bohr_var_ = 2 * constants::pi * ipow<2>(constants::r_electron)
-                * shared_.electron_mass
+                * value_as<Mass>(shared_.electron_mass)
                 * material_.make_material_view().electron_density()
-                * ipow<2>(value_as<units::ElementaryCharge>(particle.charge()))
-                * max_energy_ * step_length * (1 / beta_sq_ - half);
+                * ipow<2>(value_as<Charge>(particle.charge())) * max_energy_
+                * step_length * (1 / beta_sq_ - half);
 
     if (mass_ratio >= 1 || mean_loss_ < this->min_kappa() * max_energy_
         || max_energy_transfer > 2 * max_energy_)

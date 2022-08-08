@@ -30,7 +30,9 @@ KleinNishinaModel::KleinNishinaModel(ActionId              id,
                       "(required for "
                    << this->description() << ")");
     interface_.inv_electron_mass
-        = 1 / particles.get(interface_.ids.electron).mass().value();
+        = 1
+          / value_as<KleinNishinaData::Mass>(
+              particles.get(interface_.ids.electron).mass());
     CELER_ENSURE(interface_);
 }
 

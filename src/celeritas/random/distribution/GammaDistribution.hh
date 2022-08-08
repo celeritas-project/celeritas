@@ -117,7 +117,7 @@ CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
 
     result_type result = d_ * v * beta_;
     if (alpha_ != alpha_p_)
-        result *= std::pow(generate_canonical(rng), 1 / alpha_);
+        result *= fastpow(generate_canonical(rng), 1 / alpha_);
     return result;
 }
 
