@@ -53,7 +53,9 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
 
     // Save particle properties
     host_data.inv_electron_mass
-        = 1 / particles.get(host_data.ids.electron).mass().value();
+        = 1
+          / value_as<LivermorePERef::Mass>(
+              particles.get(host_data.ids.electron).mass());
 
     // Load Livermore cross section data
     CELER_LOG(status) << "Reading and building Livermore PE model data";

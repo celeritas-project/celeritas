@@ -334,7 +334,7 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
-               + real_type(0.5) * inc_energy_ / this->tlow().value());
+               + real_type(0.5) * inc_energy_ / value_as<Energy>(this->tlow()));
     }
 
     return max<real_type>(xm, shared_.params.limit_min_fix());

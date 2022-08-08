@@ -35,8 +35,7 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
                       "(required for "
                    << this->description() << ")");
 
-    interface_.electron_mass_c_sq
-        = particles.get(interface_.ids.electron).mass().value(); // [MeV]
+    interface_.electron_mass = particles.get(interface_.ids.electron).mass();
 
     CELER_ENSURE(interface_);
 }

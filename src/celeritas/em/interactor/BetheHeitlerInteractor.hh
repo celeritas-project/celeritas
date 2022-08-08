@@ -44,8 +44,9 @@ class BetheHeitlerInteractor
 {
   public:
     //!@{
-    //! Type aliases
-    using MevMass = units::MevMass;
+    //! \name Type aliases
+    using Mass   = units::MevMass;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
@@ -77,7 +78,7 @@ class BetheHeitlerInteractor
     // Shared model data
     const BetheHeitlerData& shared_;
     // Incident gamma energy
-    const units::MevEnergy inc_energy_;
+    const real_type inc_energy_;
     // Incident direction
     const Real3& inc_direction_;
     // Allocate space for a secondary particle
@@ -94,13 +95,13 @@ class BetheHeitlerInteractor
     //// CONSTANTS ////
 
     //! Energy above which the Coulomb correction is applied [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy coulomb_corr_threshold()
+    static CELER_CONSTEXPR_FUNCTION Energy coulomb_corr_threshold()
     {
         return units::MevEnergy{50};
     }
 
     //! Energy above which LPM suppression is applied, if enabled [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy lpm_threshold()
+    static CELER_CONSTEXPR_FUNCTION Energy lpm_threshold()
     {
         return units::MevEnergy{1e5};
     }
@@ -137,18 +138,21 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     const MaterialView&        material,
     const ElementView&         element)
     : shared_(shared)
-    , inc_energy_(particle.energy())
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
     , allocate_(allocate)
     , element_(element)
-    , enable_lpm_(shared.enable_lpm && inc_energy_ > lpm_threshold())
-    , calc_lpm_functions_(
-          material, element_, shared_.dielectric_suppression(), inc_energy_)
+    , enable_lpm_(shared.enable_lpm
+                  && inc_energy_ > value_as<Energy>(lpm_threshold()))
+    , calc_lpm_functions_(material,
+                          element_,
+                          shared_.dielectric_suppression(),
+                          Energy{inc_energy_})
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
-    CELER_EXPECT(inc_energy_.value() > 2 * shared_.electron_mass);
+    CELER_EXPECT(inc_energy_ > 2 * value_as<Mass>(shared_.electron_mass));
 
-    epsilon0_ = shared_.electron_mass / inc_energy_.value();
+    epsilon0_ = value_as<Mass>(shared_.electron_mass) / inc_energy_;
 }
 
 //---------------------------------------------------------------------------//
@@ -160,8 +164,6 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 {
-    using Energy = units::MevEnergy;
-
     // Allocate space for the electron/positron pair
     Secondary* secondaries = this->allocate_(2);
     if (secondaries == nullptr)
@@ -174,7 +176,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
     real_type epsilon;
-    if (inc_energy_ < Energy{2})
+    if (inc_energy_ < value_as<Energy>(units::MevEnergy{2}))
     {
         UniformRealDistribution<real_type> sample_eps(epsilon0_, half);
         epsilon = sample_eps(rng);
@@ -185,10 +187,11 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
         const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
-        const real_type f_z
-            = inc_energy_ > coulomb_corr_threshold()
-                  ? 8 * (element_.log_z() / 3 + element_.coulomb_correction())
-                  : 8 * element_.log_z() / 3;
+        real_type       f_z = real_type(8) / real_type(3) * element_.log_z();
+        if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
+        {
+            f_z += 8 * element_.coulomb_correction();
+        }
         const real_type delta_max
             = std::exp((real_type(42.038) - f_z) / real_type(8.29))
               - real_type(0.958);
@@ -285,10 +288,11 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Outgoing secondaries are electron and positron
     secondaries[0].particle_id = shared_.ids.electron;
     secondaries[1].particle_id = shared_.ids.positron;
-    secondaries[0].energy
-        = Energy{(1 - epsilon) * inc_energy_.value() - shared_.electron_mass};
-    secondaries[1].energy
-        = Energy{epsilon * inc_energy_.value() - shared_.electron_mass};
+
+    secondaries[0].energy = Energy{(1 - epsilon) * inc_energy_
+                                   - value_as<Mass>(shared_.electron_mass)};
+    secondaries[1].energy = Energy{epsilon * inc_energy_
+                                   - value_as<Mass>(shared_.electron_mass)};
 
     // Select charges for child particles (e-, e+) randomly
     if (BernoulliDistribution(half)(rng))
@@ -302,14 +306,14 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     real_type                          phi = sample_phi(rng);
 
     // Electron
-    TsaiUrbanDistribution sample_electron_angle(
-        secondaries[0].energy, MevMass{shared_.electron_mass});
+    TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
+                                                shared_.electron_mass);
     real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
-    TsaiUrbanDistribution sample_positron_angle(
-        secondaries[1].energy, MevMass{shared_.electron_mass});
+    TsaiUrbanDistribution sample_positron_angle(secondaries[1].energy,
+                                                shared_.electron_mass);
     cost = sample_positron_angle(rng);
     secondaries[1].direction
         = rotate(from_spherical(cost, phi + constants::pi), inc_direction_);

@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -36,22 +37,19 @@ struct MollerBhabhaIds
  */
 struct MollerBhabhaData
 {
-    using Energy = units::MevEnergy;
-    using Mass   = units::MevMass;
-
     //! Model and particle IDs
     MollerBhabhaIds ids;
 
     //! Electron mass * c^2 [MeV]
-    real_type electron_mass;
+    units::MevMass electron_mass;
 
     //! Model's mininum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy min_valid_energy()
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
     {
         return units::MevEnergy{1e-3};
     }
     //! Model's maximum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy max_valid_energy()
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
     {
         return units::MevEnergy{100e6};
     }
@@ -59,7 +57,7 @@ struct MollerBhabhaData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass_c_sq > zero_quantity();
+        return ids && electron_mass > zero_quantity();
     }
 };
 

@@ -41,7 +41,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         data_.ids.electron  = params.find(pdg::electron());
         data_.ids.positron  = params.find(pdg::positron());
         data_.ids.gamma     = params.find(pdg::gamma());
-        data_.electron_mass = params.get(data_.ids.electron).mass().value();
+        data_.electron_mass = params.get(data_.ids.electron).mass();
         data_.enable_lpm    = true;
 
         // Set default particle to photon with energy of 100 MeV
@@ -243,7 +243,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
             // Bin the electron reduced energy \epsilon = (E_e + m_e c^2 /
             // E_{\gamma}
             const auto electron = out.secondaries.front();
-            double     eps = (electron.energy.value() + data_.electron_mass)
+            double eps = (electron.energy.value() + data_.electron_mass.value())
                          / inc_energy;
             int eps_bin = eps * nbins;
             if (eps_bin >= 0 && eps_bin < nbins)

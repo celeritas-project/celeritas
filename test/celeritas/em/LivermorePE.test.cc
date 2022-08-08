@@ -52,6 +52,7 @@ using celeritas::PhotoelectricProcess;
 using celeritas::SubshellId;
 using celeritas::ThreadId;
 using celeritas::ValueGridInserter;
+using celeritas::units::MevEnergy;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -567,8 +568,8 @@ TEST_F(LivermorePETest, utils)
         {
             // One radiative transition per subshell, each one originating in
             // the next subshell up
-            std::vector<AtomicRelaxTransition> transitions
-                = {{SubshellId{i + 1}, SubshellId{}, 1, 1}};
+            std::vector<AtomicRelaxTransition> transitions = {
+                {SubshellId{i + 1}, SubshellId{}, real_type{1}, MevEnergy{1}}};
             shells[i].transitions
                 = make_builder(&data.transitions)
                       .insert_back(transitions.begin(), transitions.end());
@@ -602,7 +603,7 @@ TEST_F(LivermorePETest, utils)
                 transitions.push_back({SubshellId{j + 1},
                                        SubshellId{j + 1},
                                        1. / (num_shells - i),
-                                       1});
+                                       MevEnergy{1}});
             }
             shells[i].transitions
                 = make_builder(&data.transitions)

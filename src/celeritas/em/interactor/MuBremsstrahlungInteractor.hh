@@ -42,8 +42,9 @@ class MuBremsstrahlungInteractor
 {
     //!@{
     //! \name Type aliases
-    using Energy = units::MevEnergy;
-    using Mass   = units::MevMass;
+    using Energy   = units::MevEnergy;
+    using Mass     = units::MevMass;
+    using Momentum = units::MevMomentum;
     //!@}
 
   public:
@@ -146,7 +147,8 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     Real3 inc_direction;
     for (int i : range(3))
     {
-        inc_direction[i] = particle_.momentum().value() * inc_direction_[i]
+        inc_direction[i] = value_as<Momentum>(particle_.momentum())
+                               * inc_direction_[i]
                            - epsilon * gamma_dir[i];
     }
     normalize_direction(&inc_direction);
@@ -199,7 +201,8 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
     }
 
     const int       atomic_number    = element_.atomic_number();
-    const real_type atomic_mass      = element_.atomic_mass().value();
+    const real_type atomic_mass
+        = value_as<units::AmuMass>(element_.atomic_mass());
     const real_type sqrt_e           = std::sqrt(constants::euler);
     const real_type inc_total_energy = value_as<Mass>(particle_.mass())
                                        + value_as<Energy>(particle_.energy());

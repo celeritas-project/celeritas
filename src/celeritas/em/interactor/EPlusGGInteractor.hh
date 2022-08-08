@@ -39,6 +39,13 @@ namespace celeritas
 class EPlusGGInteractor
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Mass   = units::MevMass;
+    using Energy = units::MevEnergy;
+    //!@}
+
+  public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     EPlusGGInteractor(const EPlusGGData&         shared,
@@ -73,7 +80,7 @@ EPlusGGInteractor::EPlusGGInteractor(const EPlusGGData&         shared,
                                      const Real3&               inc_direction,
                                      StackAllocator<Secondary>& allocate)
     : shared_(shared)
-    , inc_energy_(value_as<units::MevEnergy>(particle.energy()))
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
     , allocate_(allocate)
 {
@@ -108,7 +115,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     {
         // Save outgoing secondary data
         secondaries[0].energy = secondaries[1].energy
-            = units::MevEnergy{shared_.electron_mass};
+            = Energy{value_as<Mass>(shared_.electron_mass)};
 
         IsotropicDistribution<real_type> gamma_dir;
         secondaries[0].direction = gamma_dir(rng);
@@ -120,7 +127,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     else
     {
         constexpr real_type half    = 0.5;
-        const real_type     tau     = inc_energy_ / shared_.electron_mass;
+        const real_type     tau     = inc_energy_
+                              / value_as<Mass>(shared_.electron_mass);
         const real_type     tau2    = tau + 2;
         const real_type     sqgrate = std::sqrt(tau / tau2) * half;
 
@@ -143,18 +151,19 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         CELER_ASSERT(std::fabs(cost) <= 1);
 
         // Kinematic of the gamma pair
-        const real_type total_energy = inc_energy_ + 2 * shared_.electron_mass;
+        const real_type total_energy
+            = inc_energy_ + 2 * value_as<Mass>(shared_.electron_mass);
         const real_type gamma_energy = epsil * total_energy;
         const real_type eplus_moment = std::sqrt(inc_energy_ * total_energy);
 
         // Sample and save outgoing secondary data
         UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
 
-        secondaries[0].energy = units::MevEnergy{gamma_energy};
+        secondaries[0].energy = Energy{gamma_energy};
         secondaries[0].direction
             = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
-        secondaries[1].energy = units::MevEnergy{total_energy - gamma_energy};
+        secondaries[1].energy = Energy{total_energy - gamma_energy};
         for (int i = 0; i < 3; ++i)
         {
             secondaries[1].direction[i] = eplus_moment * inc_direction_[i]

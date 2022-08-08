@@ -38,7 +38,7 @@ FluctuationParams::FluctuationParams(const ParticleParams& particles,
     CELER_VALIDATE(data.electron_id,
                    << "missing electron particle (required for energy loss "
                       "fluctuations)");
-    data.electron_mass = particles.get(data.electron_id).mass().value();
+    data.electron_mass = particles.get(data.electron_id).mass();
 
     // Loop over materials
     auto urban = make_builder(&data.urban);
@@ -54,7 +54,7 @@ FluctuationParams::FluctuationParams(const ParticleParams& particles,
         params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
         params.binding_energy[1]      = 1e-5 * ipow<2>(avg_z);
         params.binding_energy[0]
-            = std::pow(mat.mean_excitation_energy().value()
+            = std::pow(value_as<units::MevEnergy>(mat.mean_excitation_energy())
                            / std::pow(params.binding_energy[1],
                                       params.oscillator_strength[1]),
                        1 / params.oscillator_strength[0]);

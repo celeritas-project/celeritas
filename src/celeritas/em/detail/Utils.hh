@@ -29,7 +29,7 @@ class MaxSecondariesCalculator
   public:
     //!@{
     //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    using Energy    = units::MevEnergy;
     using Values    = HostCRef<AtomicRelaxParamsData>;
     //!@}
 
@@ -37,8 +37,8 @@ class MaxSecondariesCalculator
     // Construct with EADL transition data and production thresholds
     MaxSecondariesCalculator(const Values&                         data,
                              const ItemRange<AtomicRelaxSubshell>& shells,
-                             MevEnergy electron_cut,
-                             MevEnergy gamma_cut);
+                             Energy electron_cut,
+                             Energy gamma_cut);
 
     // Calculate the maximum possible number of secondaries produced
     size_type operator()();
@@ -46,8 +46,8 @@ class MaxSecondariesCalculator
   private:
     const Values&                             data_;
     Span<const AtomicRelaxSubshell>           shells_;
-    const real_type                           electron_cut_;
-    const real_type                           gamma_cut_;
+    const Energy                              electron_cut_;
+    const Energy                              gamma_cut_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS

@@ -58,7 +58,7 @@ struct BetheHeitlerData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > 0;
+        return ids && electron_mass > zero_quantity();
     }
 };
 
