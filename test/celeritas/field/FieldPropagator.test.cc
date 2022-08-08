@@ -421,8 +421,6 @@ TEST_F(TwoBoxTest, electron_cross)
 }
 
 // Electron barely crosses boundary
-// TODO: fails to hit boundary: it just does a whole turn "interior" to the
-// inner volume
 TEST_F(TwoBoxTest, DISABLED_electron_tangent_cross)
 {
     auto particle = this->init_particle(
@@ -436,15 +434,34 @@ TEST_F(TwoBoxTest, DISABLED_electron_tangent_cross)
     {
         SCOPED_TRACE("Barely hits boundary");
 
-        auto geo       = this->init_geo({1, 4 + 1e-3, 0}, {0, 1, 0});
+        real_type dy = 1.1 * driver_options.delta_chord;
+
+        auto geo       = this->init_geo({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
 
-        EXPECT_SOFT_EQ(circ / 4, result.distance);
+        EXPECT_SOFT_NEAR(circ / 4, result.distance, .025);
         EXPECT_TRUE(result.boundary);
-        EXPECT_LT(distance(Real3({0, 5, 0}), geo.pos()), 1e-5);
-        EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
+        EXPECT_LT(distance(Real3({1, 5, 0}), geo.pos()), 1e-5)
+            << "Actually stopped at " << geo.pos();
+        EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5)
+            << "Ending direction at " << geo.dir();
+    }
+    {
+        SCOPED_TRACE("Barely misses boundary");
+
+        real_type dy = 0.9 * driver_options.delta_chord;
+
+        auto geo       = this->init_geo({1, 4 + dy, 0}, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(circ);
+
+        EXPECT_SOFT_EQ(circ, result.distance);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 1e-5);
+        EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
     }
 }
 
