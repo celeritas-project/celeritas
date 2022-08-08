@@ -489,13 +489,13 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
                                             1.4285714285714,
                                             142.85714285714};
     static const double expected_step[]  = {5.2704627669473e-05,
-                                           0.016666666666667,
-                                           0.48853333333333,
-                                           33.493285333333,
-                                           4.5175395145263e-05,
-                                           0.014285714285714,
-                                           0.44011428571429,
-                                           28.731372571429};
+                                            0.016666666666667,
+                                            0.48853333333333,
+                                            33.493285333333,
+                                            4.5175395145263e-05,
+                                            0.014285714285714,
+                                            0.44011428571429,
+                                            28.731372571429};
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
