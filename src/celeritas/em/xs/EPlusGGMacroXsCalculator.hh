@@ -30,8 +30,8 @@ class EPlusGGMacroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy    = units::MevEnergy;
-    using XsUnits   = units::NativeUnit;
+    using Energy  = units::MevEnergy;
+    using XsUnits = units::NativeUnit;
     //!@}
 
   public:

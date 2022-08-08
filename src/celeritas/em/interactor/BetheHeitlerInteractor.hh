@@ -308,7 +308,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Electron
     TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
                                                 shared_.electron_mass);
-    real_type cost = sample_electron_angle(rng);
+    real_type             cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron

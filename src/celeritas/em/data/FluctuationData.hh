@@ -23,7 +23,7 @@ namespace celeritas
 struct UrbanFluctuationParameters
 {
     using Energy = units::MevEnergy;
-    using Real2 = Array<real_type, 2>;
+    using Real2  = Array<real_type, 2>;
 
     Real2 binding_energy;      //!< Binding energies E_1 and E_2 [MeV]
     Real2 log_binding_energy;  //!< Log of binding energies [LogMevEnergy]
@@ -43,8 +43,8 @@ struct FluctuationData
 
     //// MEMBER DATA ////
 
-    ParticleId electron_id;   //!< ID of an electron
-    Mass       electron_mass; //!< Electron mass
+    ParticleId electron_id;                          //!< ID of an electron
+    Mass       electron_mass;                        //!< Electron mass
     MaterialItems<UrbanFluctuationParameters> urban; //!< Model parameters
 
     //// MEMBER FUNCTIONS ////

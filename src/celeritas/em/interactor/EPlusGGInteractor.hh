@@ -126,11 +126,11 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     }
     else
     {
-        constexpr real_type half    = 0.5;
-        const real_type     tau     = inc_energy_
+        constexpr real_type half = 0.5;
+        const real_type     tau  = inc_energy_
                               / value_as<Mass>(shared_.electron_mass);
-        const real_type     tau2    = tau + 2;
-        const real_type     sqgrate = std::sqrt(tau / tau2) * half;
+        const real_type tau2    = tau + 2;
+        const real_type sqgrate = std::sqrt(tau / tau2) * half;
 
         // Evaluate limits of the energy sampling
         ReciprocalDistribution<real_type> sample_eps(half - sqgrate,

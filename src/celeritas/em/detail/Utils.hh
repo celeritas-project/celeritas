@@ -29,8 +29,8 @@ class MaxSecondariesCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy    = units::MevEnergy;
-    using Values    = HostCRef<AtomicRelaxParamsData>;
+    using Energy = units::MevEnergy;
+    using Values = HostCRef<AtomicRelaxParamsData>;
     //!@}
 
   public:

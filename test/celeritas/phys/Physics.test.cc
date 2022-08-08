@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Physics.test.hh"
 
+#include <limits>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/MockTestBase.hh"
@@ -91,7 +93,6 @@ TEST_F(PhysicsParamsTest, accessors)
            "MockModel(13, p=2, emin=0.001, emax=10)",
            "MockModel(14, p=3, emin=1e-05, emax=10)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
-    PRINT_EXPECTED(model_names);
 
     // Test host-accessible process map
     std::vector<std::string> process_map;
@@ -258,6 +259,40 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
         EXPECT_EQ(m.unchecked_get(),
                   gamma_cref.action_to_model(a).unchecked_get());
     }
+
+    // Range-to-step for different ranges
+    // (additionally tested in calc_eloss_range)
+    real_type              rho = params_ref.scalars.scaling_min_range;
+    std::vector<real_type> step;
+    const real_type        eps = std::numeric_limits<real_type>::epsilon();
+
+    for (real_type r : {real_type(0.1) * rho,
+                        real_type(1 - 1000 * eps) * rho,
+                        real_type(1 - 100 * eps) * rho,
+                        real_type(1 + 10 * eps) * rho,
+                        real_type(1 + 100 * eps) * rho,
+                        real_type(1.00000001) * rho,
+                        real_type(1.000001) * rho,
+                        1.5 * rho,
+                        10 * rho,
+                        100 * rho})
+    {
+        auto s = celer.range_to_step(r);
+        EXPECT_GT(s, real_type(0));
+        EXPECT_LE(s, r) << "s - r == " << s - r;
+        step.push_back(s);
+    }
+    static const double expected_step[] = {0.01,
+                                           0.099999999999978,
+                                           0.099999999999998,
+                                           0.1,
+                                           0.1,
+                                           0.100000001,
+                                           0.1000001,
+                                           0.13666666666667,
+                                           0.352,
+                                           2.1592};
+    EXPECT_VEC_SOFT_EQ(expected_step, step);
 }
 
 TEST_F(PhysicsTrackViewHostTest, step_view)
@@ -454,13 +489,13 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
                                             1.4285714285714,
                                             142.85714285714};
     static const double expected_step[]  = {5.2704627669473e-05,
-                                           0.016666666666667,
-                                           0.48853333333333,
-                                           33.493285333333,
-                                           4.5175395145263e-05,
-                                           0.014285714285714,
-                                           0.44011428571429,
-                                           28.731372571429};
+                                            0.016666666666667,
+                                            0.48853333333333,
+                                            33.493285333333,
+                                            4.5175395145263e-05,
+                                            0.014285714285714,
+                                            0.44011428571429,
+                                            28.731372571429};
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);

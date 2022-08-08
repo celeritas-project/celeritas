@@ -157,7 +157,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     Interaction result;
     result.energy
         = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
-    result.direction = inc_direction;
+    result.direction   = inc_direction;
     result.secondaries = {secondaries, 1};
 
     // Save outgoing secondary data
@@ -200,7 +200,7 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
         return dxsection;
     }
 
-    const int       atomic_number    = element_.atomic_number();
+    const int       atomic_number = element_.atomic_number();
     const real_type atomic_mass
         = value_as<units::AmuMass>(element_.atomic_mass());
     const real_type sqrt_e           = std::sqrt(constants::euler);

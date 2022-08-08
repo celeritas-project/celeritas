@@ -102,8 +102,6 @@ class FieldDriver
     //// COMMON PROPERTIES ////
 
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
-
-    static CELER_CONSTEXPR_FUNCTION real_type ppm() { return 1e-6; }
 };
 
 //---------------------------------------------------------------------------//
@@ -188,7 +186,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
-        if (dchord <= (options_.delta_chord + FieldDriver::ppm()))
+        if (dchord <= options_.delta_chord + options_.dchord_tol)
         {
             succeeded    = true;
             output.error = detail::truncation_error(
@@ -232,7 +230,7 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     // step length and larger than the permillion fraction of the step length.
     // Otherwise, use the input step length for the first trial.
     // TODO: review whether this approach is an efficient bootstrapping.
-    real_type h = ((hinitial > FieldDriver::ppm() * step) && (hinitial < step))
+    real_type h = ((hinitial > options_.initial_step_tol * step) && (hinitial < step))
                       ? hinitial
                       : step;
     real_type h_threshold = options_.epsilon_step * step;
@@ -357,10 +355,11 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
     output.end.step  = step;
-    output.proposed_step = (errmax2 > ipow<2>(options_.errcon))
-                               ? options_.safety * step
-                                     * fastpow(errmax2, half() * options_.pgrow)
-                               : options_.max_stepping_increase * step;
+    output.proposed_step
+        = (errmax2 > ipow<2>(options_.errcon))
+              ? options_.safety * step
+                    * fastpow(errmax2, half() * options_.pgrow)
+              : options_.max_stepping_increase * step;
 
     return output;
 }

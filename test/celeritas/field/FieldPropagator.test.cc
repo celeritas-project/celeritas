@@ -448,6 +448,8 @@ TEST_F(TwoBoxTest, DISABLED_electron_tangent_cross)
     }
 }
 
+// Heuristic test: plotting points with finer propagation distance show a track
+// with decreasing radius
 TEST_F(TwoBoxTest, nonuniform_field)
 {
     auto particle = this->init_particle(
@@ -457,18 +459,23 @@ TEST_F(TwoBoxTest, nonuniform_field)
 
     this->init_geo({-2.0, 0, 0}, {0, 1, 1});
 
-    std::vector<Real3>     all_pos(100);
-    std::vector<real_type> steps;
-    for (Real3& pos : all_pos)
+    static const Real3 expected_all_pos[]
+        = {{-2.082588410019, 0.698321021704, 0.70710499699532},
+           {-2.5772835670309, 1.1563856325251, 1.414208222427},
+           {-3.0638597406072, 0.77477344365218, 2.1213130872532},
+           {-2.5584323246703, 0.58519068474743, 2.8284269544184},
+           {-2.904435093832, 0.86378022294055, 3.5355750279272},
+           {-2.5804988125119, 0.7657810943241, 4.242802666321},
+           {-2.7424915491399, 0.60277842755393, 4.9501038870007},
+           {-2.6941223485135, 0.6137455428308, 5}};
+    for (const Real3& pos : expected_all_pos)
     {
         auto geo       = this->make_geo_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
-        auto result = propagate(0.5);
-        steps.push_back(result.distance);
-        pos = geo.pos();
+        propagate(1.0);
+        EXPECT_VEC_SOFT_EQ(pos, geo.pos());
     }
-    PRINT_EXPECTED(all_pos);
 }
 
 //---------------------------------------------------------------------------//
