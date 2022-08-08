@@ -9,6 +9,7 @@
 
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
@@ -441,14 +442,17 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
             field, driver_options, particle, &geo);
         auto result = propagate(circ);
 
-        EXPECT_SOFT_NEAR(circ / 4, result.distance, .025);
+        // Trigonometry to find actual intersection point and length along arc
+        real_type theta = std::asin(1 - dy);
+        real_type x     = std::sqrt(2 * dy - ipow<2>(dy));
+
+        EXPECT_SOFT_NEAR(theta, result.distance, .025);
         EXPECT_TRUE(result.boundary);
-        EXPECT_LT(distance(Real3({1, 5, 0}), geo.pos()), 1e-5)
+        EXPECT_LT(distance(Real3({x, 5, 0}), geo.pos()), 1e-5)
             << "Actually stopped at " << geo.pos();
-        EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5)
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
             << "Ending direction at " << geo.dir();
     }
-    return;
     {
         SCOPED_TRACE("Barely misses boundary");
 
