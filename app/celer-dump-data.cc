@@ -370,7 +370,7 @@ void print_sb_data(ImportData::ImportSBMap& sb_map)
     cout << R"gfm(
 # Seltzer-Berger data
 
-| Atomic number | Endpoints (x, y, value [mb])                               |
+| Atomic number | Endpoints (x, y, value [mb]) |
 | ------------- | ---------------------------------------------------------- |
 )gfm";
 
@@ -385,6 +385,58 @@ void print_sb_data(ImportData::ImportSBMap& sb_map)
              << setw(7) << table.x.back() << ", " << setprecision(3) << setw(7)
              << table.y.back() << ", " << setprecision(3) << setw(7)
              << table.value.back() << ") |\n";
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print Livermore PE map.
+ */
+void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
+{
+    CELER_LOG(info) << "Loaded " << lpe_map.size() << " Livermore PE data";
+
+    cout << R"gfm(
+# Livermore PE data
+
+| Atomic number | Thresolds (low, high) [MeV] | Subshell size |
+| ------------- | --------------------------- | ------------- |
+)gfm";
+
+    for (const auto& key : lpe_map)
+    {
+        const auto& ilpe = key.second;
+
+        cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
+             << setw(11) << ilpe.thresh_lo << ", " << setprecision(3)
+             << setw(12) << ilpe.thresh_hi << ") | " << setw(13)
+             << ilpe.shells.size() << " |\n";
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print atomic relaxation map.
+ */
+void print_atomic_relaxation_data(ImportData::ImportAtomicRelaxationMap& ar_map)
+{
+    CELER_LOG(info) << "Loaded " << ar_map.size() << " atomic relaxation data";
+
+    cout << R"gfm(
+# Atomic relaxation data
+
+| Atomic number | Subshell size |
+| ------------- | ------------- |
+)gfm";
+
+    for (const auto& key : ar_map)
+    {
+        const auto& iar = key.second;
+
+        cout << "| " << setw(13) << key.first << " | " << setw(13)
+             << iar.shells.size() << " |\n";
     }
     cout << endl;
 }
@@ -436,6 +488,8 @@ int main(int argc, char* argv[])
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
     print_sb_data(data.sb_data);
+    print_livermore_pe_data(data.livermore_pe_data);
+    print_atomic_relaxation_data(data.atomic_relaxation_data);
 
     return EXIT_SUCCESS;
 }

@@ -442,7 +442,7 @@ ImportData::ImportLivermorePEMap store_livermore_pe_data()
  */
 ImportData::ImportAtomicRelaxationMap store_atomic_relaxation_data()
 {
-    AtomicRelaxationReader at_rel_read;
+    AtomicRelaxationReader atom_rel_read;
     const auto             elements = store_elements();
 
     ImportData::ImportAtomicRelaxationMap at_rel_map;
@@ -450,7 +450,7 @@ ImportData::ImportAtomicRelaxationMap store_atomic_relaxation_data()
     for (const auto& element : elements)
     {
         ImportData::AtomicNumber z = element.atomic_number;
-        at_rel_map.insert({z, at_rel_read(z)});
+        at_rel_map.insert({z, atom_rel_read(z)});
     }
 
     return at_rel_map;
