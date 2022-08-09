@@ -404,13 +404,16 @@ ImportData::ImportEmParamsMap store_em_parameters()
 template<class ImportReader, class ImportMap>
 ImportMap build_import_map(const ImportReader& reader, ImportMap& map)
 {
+    CELER_EXPECT(map.empty());
     const auto elements = store_elements();
+    CELER_EXPECT(!elements.empty());
 
     for (const auto& element : elements)
     {
         ImportData::AtomicNumber z = element.atomic_number;
         map.insert({z, reader(z)});
     }
+
     return map;
 }
 
