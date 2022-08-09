@@ -361,10 +361,18 @@ TEST_F(RootImporterTest, volumes)
     }
 
     const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
-    const std::string  expected_names[]
-        = {"box", "boxReplica", "boxReplica", "boxReplica", "World"};
-    const std::string expected_solids[]
-        = {"box", "boxReplica", "boxReplica2", "boxReplica3", "World"};
+
+    const std::string expected_names[] = {"box0x125555be0",
+                                          "boxReplica0x125556d20",
+                                          "boxReplica0x125557160",
+                                          "boxReplica0x1255575a0",
+                                          "World0x125555f10"};
+
+    const std::string expected_solids[] = {"box0x125555b70",
+                                           "boxReplica0x125556c70",
+                                           "boxReplica20x1255570a0",
+                                           "boxReplica30x125557500",
+                                           "World0x125555ea0"};
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);
@@ -399,4 +407,258 @@ TEST_F(RootImporterTest, em_params)
 
     EXPECT_VEC_EQ(expected_enum_string, enum_string);
     EXPECT_VEC_EQ(expected_value, value);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, sb_data)
+{
+    const auto& sb_map = data_.sb_data;
+    EXPECT_EQ(4, sb_map.size());
+
+    std::vector<int>    atomic_numbers;
+    std::vector<double> sb_table_x;
+    std::vector<int>    sb_table_y;
+    std::vector<int>    sb_table_value;
+
+    for (const auto& key : sb_map)
+    {
+        atomic_numbers.push_back(key.first);
+
+        const auto& sb_table = key.second;
+        sb_table_x.push_back(sb_table.x.front());
+        sb_table_y.push_back(sb_table.y.front());
+        sb_table_value.push_back(sb_table.value.front());
+        sb_table_x.push_back(sb_table.x.back());
+        sb_table_y.push_back(sb_table.y.back());
+        sb_table_value.push_back(sb_table.value.back());
+    }
+
+    const int    expected_atomic_numbers[] = {1, 24, 26, 28};
+    const double expected_sb_table_x[]
+        = {-6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103};
+    const int expected_sb_table_y[]     = {0, 1, 0, 1, 0, 1, 0, 1};
+    const int expected_sb_table_value[] = {7, 0, 2, 0, 2, 0, 2, 0};
+
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_EQ(expected_sb_table_x, sb_table_x);
+    EXPECT_VEC_EQ(expected_sb_table_y, sb_table_y);
+    EXPECT_VEC_EQ(expected_sb_table_value, sb_table_value);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, livermore_pe_data)
+{
+    const auto& lpe_map = data_.livermore_pe_data;
+    EXPECT_EQ(4, lpe_map.size());
+
+    std::vector<int>    atomic_numbers;
+    std::vector<size_t> shell_sizes;
+    std::vector<double> thresh_lo;
+    std::vector<double> thresh_hi;
+
+    std::vector<double> shell_binding_energy;
+    std::vector<double> shell_xs;
+    std::vector<double> shell_energy;
+
+    for (const auto& key : lpe_map)
+    {
+        atomic_numbers.push_back(key.first);
+
+        const auto& ilpe = key.second;
+
+        shell_sizes.push_back(ilpe.shells.size());
+
+        const auto& shells_front = ilpe.shells.front();
+        const auto& shells_back  = ilpe.shells.back();
+
+        thresh_lo.push_back(ilpe.thresh_lo);
+        thresh_hi.push_back(ilpe.thresh_hi);
+
+        shell_binding_energy.push_back(shells_front.binding_energy);
+        shell_binding_energy.push_back(shells_back.binding_energy);
+
+        shell_xs.push_back(shells_front.xs.front());
+        shell_xs.push_back(shells_front.xs.back());
+        shell_energy.push_back(shells_front.energy.front());
+        shell_energy.push_back(shells_front.energy.back());
+
+        shell_xs.push_back(shells_back.xs.front());
+        shell_xs.push_back(shells_back.xs.back());
+        shell_energy.push_back(shells_back.energy.front());
+        shell_energy.push_back(shells_back.energy.back());
+    }
+
+    const int           expected_atomic_numbers[] = {1, 24, 26, 28};
+    const unsigned long expected_shell_sizes[]    = {1ul, 10ul, 10ul, 10ul};
+    const double        expected_thresh_lo[]
+        = {0.00537032, 0.00615, 0.0070834, 0.0083028};
+    const double expected_thresh_hi[]
+        = {0.0609537, 0.0616595, 0.0616595, 0.0595662};
+
+    const double expected_shell_binding_energy[] = {1.361e-05,
+                                                    1.361e-05,
+                                                    0.0059576,
+                                                    5.96e-06,
+                                                    0.0070834,
+                                                    7.53e-06,
+                                                    0.0083028,
+                                                    8.09e-06};
+
+    const double expected_shell_xs[] = {1.58971e-08,
+                                        1.6898e-09,
+                                        1.58971e-08,
+                                        1.6898e-09,
+                                        0.00839767,
+                                        0.0122729,
+                                        1.39553e-10,
+                                        4.05087e-06,
+                                        0.0119194,
+                                        0.0173188,
+                                        7.35358e-10,
+                                        1.46397e-05,
+                                        0.0162052,
+                                        0.0237477,
+                                        1.20169e-09,
+                                        1.91543e-05};
+
+    const double expected_shell_energy[] = {1.361e-05,
+                                            0.0933254,
+                                            1.361e-05,
+                                            0.0933254,
+                                            0.0059576,
+                                            0.0831764,
+                                            5.96e-06,
+                                            0.0630957,
+                                            0.0070834,
+                                            0.081283,
+                                            7.53e-06,
+                                            0.0653131,
+                                            0.0083028,
+                                            0.0776247,
+                                            8.09e-06,
+                                            0.0676083};
+
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_EQ(expected_shell_sizes, shell_sizes);
+    EXPECT_VEC_SOFT_EQ(expected_thresh_lo, thresh_lo);
+    EXPECT_VEC_SOFT_EQ(expected_thresh_hi, thresh_hi);
+    EXPECT_VEC_SOFT_EQ(expected_shell_binding_energy, shell_binding_energy);
+    EXPECT_VEC_SOFT_EQ(expected_shell_xs, shell_xs);
+    EXPECT_VEC_SOFT_EQ(expected_shell_energy, shell_energy);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, atomic_relaxation_data)
+{
+    const auto& ar_map = data_.atomic_relaxation_data;
+    EXPECT_EQ(4, ar_map.size());
+
+    std::vector<int>    atomic_numbers;
+    std::vector<size_t> shell_sizes;
+    std::vector<int>    designator;
+    std::vector<double> auger_probability;
+    std::vector<double> auger_energy;
+    std::vector<double> fluor_probability;
+    std::vector<double> fluor_energy;
+
+    for (const auto& key : ar_map)
+    {
+        atomic_numbers.push_back(key.first);
+
+        const auto& shells = key.second.shells;
+        shell_sizes.push_back(shells.size());
+
+        if (shells.empty())
+        {
+            continue;
+        }
+
+        const auto& shells_front = shells.front();
+        const auto& shells_back  = shells.back();
+
+        designator.push_back(shells_front.designator);
+        designator.push_back(shells_back.designator);
+
+        auger_probability.push_back(shells_front.auger.front().probability);
+        auger_probability.push_back(shells_front.auger.back().probability);
+        auger_probability.push_back(shells_back.auger.front().probability);
+        auger_probability.push_back(shells_back.auger.back().probability);
+        auger_energy.push_back(shells_front.auger.front().energy);
+        auger_energy.push_back(shells_front.auger.back().energy);
+        auger_energy.push_back(shells_back.auger.front().energy);
+        auger_energy.push_back(shells_back.auger.back().energy);
+
+        fluor_probability.push_back(shells_front.fluor.front().probability);
+        fluor_probability.push_back(shells_front.fluor.back().probability);
+        fluor_probability.push_back(shells_back.fluor.front().probability);
+        fluor_probability.push_back(shells_back.fluor.back().probability);
+        fluor_energy.push_back(shells_front.fluor.front().energy);
+        fluor_energy.push_back(shells_front.fluor.back().energy);
+        fluor_energy.push_back(shells_back.fluor.front().energy);
+        fluor_energy.push_back(shells_back.fluor.back().energy);
+    }
+
+    const int           expected_atomic_numbers[] = {1, 24, 26, 28};
+    const unsigned long expected_shell_sizes[]    = {0ul, 7ul, 7ul, 7ul};
+    const int           expected_designator[]     = {1, 11, 1, 11, 1, 11};
+
+    const double expected_auger_probability[] = {0.048963695828293,
+                                                 2.787499762505e-06,
+                                                 0.015819909422702,
+                                                 0.047183428103535,
+                                                 0.044703908588515,
+                                                 3.5127206748639e-06,
+                                                 0.018361911975474,
+                                                 0.076360349801533,
+                                                 0.040678795307701,
+                                                 3.1360396382578e-06,
+                                                 0.021880812772728,
+                                                 0.057510033570965};
+
+    const double expected_auger_energy[] = {0.00458292,
+                                            0.00594477,
+                                            3.728e-05,
+                                            3.787e-05,
+                                            0.00539748,
+                                            0.00706313,
+                                            4.063e-05,
+                                            4.618e-05,
+                                            0.0062898,
+                                            0.00828005,
+                                            4.837e-05,
+                                            5.546e-05};
+
+    const double expected_fluor_probability[] = {0.082575892964534,
+                                                 3.6954996851434e-06,
+                                                 6.8993041093842e-08,
+                                                 1.9834011813594e-08,
+                                                 0.10139101947924,
+                                                 8.7722616853269e-06,
+                                                 3.4925922778373e-07,
+                                                 1.158600755629e-07,
+                                                 0.12105998603573,
+                                                 1.8444997872369e-05,
+                                                 1.0946006389633e-06,
+                                                 5.1065929809277e-07};
+
+    const double expected_fluor_energy[] = {0.00536786,
+                                            0.00595123,
+                                            4.374e-05,
+                                            4.424e-05,
+                                            0.00634985,
+                                            0.00707066,
+                                            5.354e-05,
+                                            5.892e-05,
+                                            0.00741782,
+                                            0.00828814,
+                                            6.329e-05,
+                                            7.012e-05};
+
+    EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
+    EXPECT_VEC_EQ(expected_shell_sizes, shell_sizes);
+    EXPECT_VEC_EQ(expected_designator, designator);
+    EXPECT_VEC_SOFT_EQ(expected_auger_probability, auger_probability);
+    EXPECT_VEC_SOFT_EQ(expected_auger_energy, auger_energy);
+    EXPECT_VEC_SOFT_EQ(expected_fluor_probability, fluor_probability);
+    EXPECT_VEC_SOFT_EQ(expected_fluor_energy, fluor_energy);
 }

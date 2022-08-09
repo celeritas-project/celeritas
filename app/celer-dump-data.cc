@@ -395,7 +395,8 @@ void print_sb_data(ImportData::ImportSBMap& sb_map)
  */
 void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
 {
-    CELER_LOG(info) << "Loaded " << lpe_map.size() << " Livermore PE data";
+    CELER_LOG(info) << "Loaded Livermore PE data map with size "
+                    << lpe_map.size();
 
     cout << R"gfm(
 # Livermore PE data
@@ -422,7 +423,8 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
  */
 void print_atomic_relaxation_data(ImportData::ImportAtomicRelaxationMap& ar_map)
 {
-    CELER_LOG(info) << "Loaded " << ar_map.size() << " atomic relaxation data";
+    CELER_LOG(info) << "Loaded atomic relaxation data map with size "
+                    << ar_map.size();
 
     cout << R"gfm(
 # Atomic relaxation data
