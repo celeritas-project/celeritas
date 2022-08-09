@@ -326,6 +326,7 @@ TEST_F(TwoBoxTest, electron_tangent)
             field, driver_options, particle, &geo);
         auto result = propagate(0.49 * pi);
 
+        EXPECT_FALSE(result.boundary);
         EXPECT_SOFT_EQ(0.49 * pi, result.distance);
         EXPECT_LT(
             distance(Real3({std::cos(0.49 * pi), 4 + std::sin(0.49 * pi), 0}),
@@ -340,6 +341,7 @@ TEST_F(TwoBoxTest, electron_tangent)
             field, driver_options, particle, &geo);
         auto result = propagate(0.02 * pi);
 
+        EXPECT_FALSE(result.boundary);
         EXPECT_SOFT_EQ(0.02 * pi, result.distance);
         EXPECT_LT(
             distance(Real3({std::cos(0.51 * pi), 4 + std::sin(0.51 * pi), 0}),
@@ -452,6 +454,10 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
             << "Actually stopped at " << geo.pos();
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
             << "Ending direction at " << geo.dir();
+
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_FALSE(geo.is_outside());
     }
     {
         SCOPED_TRACE("Barely misses boundary");
