@@ -398,22 +398,31 @@ ImportData::ImportEmParamsMap store_em_parameters()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a \c ImportData::ImportSBMap .
+ * Return a templated map object. This is done to reduce code duplication for
+ * storing SB, Livermore PE, and atomic relaxation maps in ImportData.
  */
-ImportData::ImportSBMap store_sb_data()
+template<class ImportReader, class ImportMap>
+ImportMap build_import_map(const ImportReader& reader, ImportMap& map)
 {
-    SeltzerBergerReader sb_read;
-    const auto          elements = store_elements();
-
-    ImportData::ImportSBMap sb_map;
+    const auto elements = store_elements();
 
     for (const auto& element : elements)
     {
         ImportData::AtomicNumber z = element.atomic_number;
-        sb_map.insert({z, sb_read(z)});
+        map.insert({z, reader(z)});
     }
+    return map;
+}
 
-    return sb_map;
+//---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::ImportSBMap .
+ */
+ImportData::ImportSBMap store_sb_data()
+{
+    SeltzerBergerReader     sb_read;
+    ImportData::ImportSBMap sb_map;
+    return build_import_map(sb_read, sb_map);
 }
 
 //---------------------------------------------------------------------------//
@@ -422,18 +431,9 @@ ImportData::ImportSBMap store_sb_data()
  */
 ImportData::ImportLivermorePEMap store_livermore_pe_data()
 {
-    LivermorePEReader lpe_read;
-    const auto        elements = store_elements();
-
+    LivermorePEReader                lpe_read;
     ImportData::ImportLivermorePEMap lpe_map;
-
-    for (const auto& element : elements)
-    {
-        ImportData::AtomicNumber z = element.atomic_number;
-        lpe_map.insert({z, lpe_read(z)});
-    }
-
-    return lpe_map;
+    return build_import_map(lpe_read, lpe_map);
 }
 
 //---------------------------------------------------------------------------//
@@ -442,18 +442,9 @@ ImportData::ImportLivermorePEMap store_livermore_pe_data()
  */
 ImportData::ImportAtomicRelaxationMap store_atomic_relaxation_data()
 {
-    AtomicRelaxationReader atom_rel_read;
-    const auto             elements = store_elements();
-
-    ImportData::ImportAtomicRelaxationMap at_rel_map;
-
-    for (const auto& element : elements)
-    {
-        ImportData::AtomicNumber z = element.atomic_number;
-        at_rel_map.insert({z, atom_rel_read(z)});
-    }
-
-    return at_rel_map;
+    AtomicRelaxationReader                atom_rel_read;
+    ImportData::ImportAtomicRelaxationMap atom_rel_map;
+    return build_import_map(atom_rel_read, atom_rel_map);
 }
 
 //---------------------------------------------------------------------------//
