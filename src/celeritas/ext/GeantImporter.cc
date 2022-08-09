@@ -33,6 +33,7 @@
 #include "celeritas/io/ImportParticle.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/GeantExceptionHandler.hh"
@@ -394,6 +395,28 @@ ImportData::ImportEmParamsMap store_em_parameters()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::SBMap .
+ *
+ * Use store_elements() or pass a vector<AtomicNumber> to store_sb_data()?
+ */
+ImportData::SBMap store_sb_data()
+{
+    SeltzerBergerReader sb_read;
+    const auto          elements = store_elements();
+
+    ImportData::SBMap sb_map;
+
+    for (const auto& element : elements)
+    {
+        SeltzerBergerReader::AtomicNumber z = element.atomic_number;
+        sb_map.insert({z, sb_read(z)});
+    }
+
+    return sb_map;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -429,6 +452,7 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.processes = store_processes();
     import_data.volumes   = store_volumes(world_);
     import_data.em_params = store_em_parameters();
+    import_data.sb_data   = store_sb_data();
 
     CELER_ENSURE(import_data);
     return import_data;

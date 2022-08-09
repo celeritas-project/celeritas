@@ -13,6 +13,7 @@
 #include "ImportMaterial.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
+#include "ImportSBTable.hh"
 #include "ImportVolume.hh"
 
 namespace celeritas
@@ -68,6 +69,9 @@ struct ImportData
     //! Type aliases
     // EM parameters map
     using ImportEmParamsMap = std::map<ImportEmParameter, double>;
+    // Seltzer-Berger map
+    using AtomicNumber = int;
+    using SBMap        = std::map<AtomicNumber, ImportSBTable>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -76,11 +80,12 @@ struct ImportData
     std::vector<ImportProcess>  processes;
     std::vector<ImportVolume>   volumes;
     ImportEmParamsMap           em_params;
+    SBMap                       sb_data;
 
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
-               && !volumes.empty() && !em_params.empty();
+               && !volumes.empty() && !em_params.empty() && !sb_data.empty();
     }
 };
 
