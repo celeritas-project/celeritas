@@ -455,6 +455,10 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
         EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
             << "Ending direction at " << geo.dir();
 
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+        }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
         EXPECT_FALSE(geo.is_outside());
@@ -473,6 +477,100 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
         EXPECT_FALSE(result.boundary);
         EXPECT_LT(distance(Real3({1, 4 + dy, 0}), geo.pos()), 1e-5);
         EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
+    }
+}
+
+TEST_F(TwoBoxTest, electron_corner_hit)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10});
+    UniformZField      field(unit_radius_field_strength);
+    FieldDriverOptions driver_options;
+
+    // Circumference
+    const real_type circ = 2 * pi;
+
+    {
+        SCOPED_TRACE("Barely hits y boundary");
+
+        real_type dy = 1.1 * driver_options.delta_chord;
+
+        auto geo       = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(circ);
+
+        // Trigonometry to find actual intersection point and length along arc
+        real_type theta = std::asin(1 - dy);
+        real_type x     = std::sqrt(2 * dy - ipow<2>(dy));
+
+        EXPECT_SOFT_NEAR(theta, result.distance, .025);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-5)
+            << "Actually stopped at " << geo.pos();
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-5)
+            << "Ending direction at " << geo.dir();
+
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("inner_box.py",
+                      this->geometry()->id_to_label(geo.surface_id()));
+        }
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_FALSE(geo.is_outside());
+    }
+    {
+        SCOPED_TRACE("Hits y because the chord goes through x first");
+
+        real_type dy = 0.001 * driver_options.delta_chord;
+
+        auto geo       = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(circ);
+
+        // Trigonometry to find actual intersection point and length along arc
+        real_type theta = std::asin(1 - dy);
+        real_type x     = std::sqrt(2 * dy - ipow<2>(dy));
+
+        EXPECT_SOFT_NEAR(theta, result.distance, .025);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-4)
+            << "Actually stopped at " << geo.pos();
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1e-4)
+            << "Ending direction at " << geo.dir();
+
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+        }
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_FALSE(geo.is_outside());
+    }
+    {
+        SCOPED_TRACE("Barely (correctly) misses y");
+
+        real_type dy = -0.001 * driver_options.delta_chord;
+
+        auto geo       = this->init_geo({-4, 4 + dy, 0}, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(circ);
+
+        EXPECT_SOFT_NEAR(circ * .25, result.distance, 1e-5);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_LT(distance(Real3({-5, 5 + dy, 0}), geo.pos()), 1e-5);
+        EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
+
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("inner_box.mx", this->geometry()->id_to_label(geo.surface_id()));
+        }
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_FALSE(geo.is_outside());
     }
 }
 
