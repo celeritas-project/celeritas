@@ -88,7 +88,7 @@ class OrangeParams
     SurfaceId find_surface(const std::string& name) const;
 
     //! Number of distinct surfaces
-    size_type num_surfaces() const { return surf_labels_.size(); }
+    SurfaceId::size_type num_surfaces() const { return surf_labels_.size(); }
 
     //// DATA ACCESS ////
 
