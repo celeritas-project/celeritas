@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
@@ -72,6 +73,8 @@ struct ImportData
     using ImportEmParamsMap    = std::map<ImportEmParameter, double>;
     using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;
     using ImportLivermorePEMap = std::map<AtomicNumber, ImportLivermorePE>;
+    using ImportAtomicRelaxationMap
+        = std::map<AtomicNumber, ImportAtomicRelaxation>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -82,13 +85,15 @@ struct ImportData
     ImportEmParamsMap           em_params;
     ImportSBMap                 sb_data;
     ImportLivermorePEMap        livermore_pe_data;
+    ImportAtomicRelaxationMap   atomic_relaxation_data;
 
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
                && !volumes.empty() && !em_params.empty()
                && sb_data.size() == elements.size()
-               && livermore_pe_data.size() == elements.size();
+               && livermore_pe_data.size() == elements.size()
+               && atomic_relaxation_data.size() == elements.size();
     }
 };
 

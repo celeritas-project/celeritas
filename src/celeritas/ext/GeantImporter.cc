@@ -29,6 +29,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportParticle.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
@@ -436,6 +437,26 @@ ImportData::ImportLivermorePEMap store_livermore_pe_data()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::ImportAtomicRelaxationMap .
+ */
+ImportData::ImportAtomicRelaxationMap store_atomic_relaxation_data()
+{
+    AtomicRelaxationReader at_rel_read;
+    const auto             elements = store_elements();
+
+    ImportData::ImportAtomicRelaxationMap at_rel_map;
+
+    for (const auto& element : elements)
+    {
+        ImportData::AtomicNumber z = element.atomic_number;
+        at_rel_map.insert({z, at_rel_read(z)});
+    }
+
+    return at_rel_map;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -465,14 +486,15 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 ImportData GeantImporter::operator()(const DataSelection&)
 {
     ImportData import_data;
-    import_data.particles         = store_particles();
-    import_data.elements          = store_elements();
-    import_data.materials         = store_materials();
-    import_data.processes         = store_processes();
-    import_data.volumes           = store_volumes(world_);
-    import_data.em_params         = store_em_parameters();
-    import_data.sb_data           = store_sb_data();
-    import_data.livermore_pe_data = store_livermore_pe_data();
+    import_data.particles              = store_particles();
+    import_data.elements               = store_elements();
+    import_data.materials              = store_materials();
+    import_data.processes              = store_processes();
+    import_data.volumes                = store_volumes(world_);
+    import_data.em_params              = store_em_parameters();
+    import_data.sb_data                = store_sb_data();
+    import_data.livermore_pe_data      = store_livermore_pe_data();
+    import_data.atomic_relaxation_data = store_atomic_relaxation_data();
 
     CELER_ENSURE(import_data);
     return import_data;
