@@ -356,6 +356,36 @@ void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
         cout << "| " << setw(18) << to_cstring(key.first) << " | " << setw(7)
              << key.second << " |\n";
     }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print Seltzer-Berger map.
+ */
+void print_sb_data(ImportData::SBMap& sb_map)
+{
+    CELER_LOG(info) << "Loaded " << sb_map.size() << " SB tables";
+
+    cout << R"gfm(
+# Seltzer-Berger data
+
+| Atomic number | Endpoints (x, y, value [mb])                               |
+| ------------- | ---------------------------------------------------------- |
+)gfm";
+
+    for (const auto& key : sb_map)
+    {
+        const auto& table = key.second;
+
+        cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
+             << setw(7) << table.x.front() << ", " << setprecision(3)
+             << setw(7) << table.y.front() << ", " << setprecision(3)
+             << setw(7) << table.value.front() << ") -> (" << setprecision(3)
+             << setw(7) << table.x.back() << ", " << setprecision(3) << setw(7)
+             << table.y.back() << ", " << setprecision(3) << setw(7)
+             << table.value.back() << ") |\n";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -404,6 +434,7 @@ int main(int argc, char* argv[])
     print_processes(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
+    print_sb_data(data.sb_data);
 
     return EXIT_SUCCESS;
 }

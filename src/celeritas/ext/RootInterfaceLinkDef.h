@@ -18,6 +18,7 @@
 #pragma link C++ class celeritas::ImportMatElemComponent+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
+#pragma link C++ class celeritas::ImportSBTable+;
 #pragma link C++ class celeritas::ImportData+;
 // clang-format on
 
