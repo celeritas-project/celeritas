@@ -33,6 +33,7 @@
 #include "celeritas/io/ImportParticle.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -396,24 +397,42 @@ ImportData::ImportEmParamsMap store_em_parameters()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a \c ImportData::SBMap .
- *
- * Use store_elements() or pass a vector<AtomicNumber> to store_sb_data()?
+ * Return a \c ImportData::ImportSBMap .
  */
-ImportData::SBMap store_sb_data()
+ImportData::ImportSBMap store_sb_data()
 {
     SeltzerBergerReader sb_read;
     const auto          elements = store_elements();
 
-    ImportData::SBMap sb_map;
+    ImportData::ImportSBMap sb_map;
 
     for (const auto& element : elements)
     {
-        SeltzerBergerReader::AtomicNumber z = element.atomic_number;
+        ImportData::AtomicNumber z = element.atomic_number;
         sb_map.insert({z, sb_read(z)});
     }
 
     return sb_map;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a \c ImportData::ImportLivermorePEMap .
+ */
+ImportData::ImportLivermorePEMap store_livermore_pe_data()
+{
+    LivermorePEReader lpe_read;
+    const auto        elements = store_elements();
+
+    ImportData::ImportLivermorePEMap lpe_map;
+
+    for (const auto& element : elements)
+    {
+        ImportData::AtomicNumber z = element.atomic_number;
+        lpe_map.insert({z, lpe_read(z)});
+    }
+
+    return lpe_map;
 }
 
 //---------------------------------------------------------------------------//
@@ -446,13 +465,14 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 ImportData GeantImporter::operator()(const DataSelection&)
 {
     ImportData import_data;
-    import_data.particles = store_particles();
-    import_data.elements  = store_elements();
-    import_data.materials = store_materials();
-    import_data.processes = store_processes();
-    import_data.volumes   = store_volumes(world_);
-    import_data.em_params = store_em_parameters();
-    import_data.sb_data   = store_sb_data();
+    import_data.particles         = store_particles();
+    import_data.elements          = store_elements();
+    import_data.materials         = store_materials();
+    import_data.processes         = store_processes();
+    import_data.volumes           = store_volumes(world_);
+    import_data.em_params         = store_em_parameters();
+    import_data.sb_data           = store_sb_data();
+    import_data.livermore_pe_data = store_livermore_pe_data();
 
     CELER_ENSURE(import_data);
     return import_data;

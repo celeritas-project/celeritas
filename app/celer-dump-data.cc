@@ -363,7 +363,7 @@ void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
 /*!
  * Print Seltzer-Berger map.
  */
-void print_sb_data(ImportData::SBMap& sb_map)
+void print_sb_data(ImportData::ImportSBMap& sb_map)
 {
     CELER_LOG(info) << "Loaded " << sb_map.size() << " SB tables";
 
@@ -386,6 +386,7 @@ void print_sb_data(ImportData::SBMap& sb_map)
              << table.y.back() << ", " << setprecision(3) << setw(7)
              << table.value.back() << ") |\n";
     }
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//

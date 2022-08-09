@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "ImportElement.hh"
+#include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
@@ -67,11 +68,10 @@ struct ImportData
 {
     //!@{
     //! Type aliases
-    // EM parameters map
-    using ImportEmParamsMap = std::map<ImportEmParameter, double>;
-    // Seltzer-Berger map
-    using AtomicNumber = int;
-    using SBMap        = std::map<AtomicNumber, ImportSBTable>;
+    using AtomicNumber         = int;
+    using ImportEmParamsMap    = std::map<ImportEmParameter, double>;
+    using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;
+    using ImportLivermorePEMap = std::map<AtomicNumber, ImportLivermorePE>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -80,13 +80,15 @@ struct ImportData
     std::vector<ImportProcess>  processes;
     std::vector<ImportVolume>   volumes;
     ImportEmParamsMap           em_params;
-    SBMap                       sb_data;
+    ImportSBMap                 sb_data;
+    ImportLivermorePEMap        livermore_pe_data;
 
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
                && !volumes.empty() && !em_params.empty()
-               && sb_data.size() == elements.size();
+               && sb_data.size() == elements.size()
+               && livermore_pe_data.size() == elements.size();
     }
 };
 
