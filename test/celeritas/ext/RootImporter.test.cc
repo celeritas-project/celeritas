@@ -417,8 +417,8 @@ TEST_F(RootImporterTest, sb_data)
 
     std::vector<int>    atomic_numbers;
     std::vector<double> sb_table_x;
-    std::vector<int>    sb_table_y;
-    std::vector<int>    sb_table_value;
+    std::vector<double> sb_table_y;
+    std::vector<double> sb_table_value;
 
     for (const auto& key : sb_map)
     {
@@ -436,8 +436,16 @@ TEST_F(RootImporterTest, sb_data)
     const int    expected_atomic_numbers[] = {1, 24, 26, 28};
     const double expected_sb_table_x[]
         = {-6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103};
-    const int expected_sb_table_y[]     = {0, 1, 0, 1, 0, 1, 0, 1};
-    const int expected_sb_table_value[] = {7, 0, 2, 0, 2, 0, 2, 0};
+    const double expected_sb_table_y[]
+        = {1e-12, 1, 1e-12, 1, 1e-12, 1, 1e-12, 1};
+    const double expected_sb_table_value[] = {7.85327,
+                                              0.046875,
+                                              2.33528,
+                                              0.717773,
+                                              2.18202,
+                                              0.748535,
+                                              2.05115,
+                                              0.776611};
 
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
     EXPECT_VEC_EQ(expected_sb_table_x, sb_table_x);

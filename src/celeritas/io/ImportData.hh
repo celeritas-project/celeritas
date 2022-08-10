@@ -94,10 +94,7 @@ struct ImportData
     explicit operator bool() const
     {
         return !particles.empty() && !elements.empty() && !materials.empty()
-               && !volumes.empty() && !em_params.empty()
-               && sb_data.size() == elements.size()
-               && livermore_pe_data.size() == elements.size()
-               && atomic_relaxation_data.size() == elements.size();
+               && !volumes.empty();
     }
 };
 

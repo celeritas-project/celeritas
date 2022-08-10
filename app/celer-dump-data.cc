@@ -401,8 +401,8 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
     cout << R"gfm(
 # Livermore PE data
 
-| Atomic number | Thresolds (low, high) [MeV] | Subshell size |
-| ------------- | --------------------------- | ------------- |
+| Atomic number | Thresholds (low, high) [MeV] | Subshell size |
+| ------------- | ---------------------------- | ------------- |
 )gfm";
 
     for (const auto& key : lpe_map)
@@ -410,7 +410,7 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
         const auto& ilpe = key.second;
 
         cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
-             << setw(11) << ilpe.thresh_lo << ", " << setprecision(3)
+             << setw(12) << ilpe.thresh_lo << ", " << setprecision(3)
              << setw(12) << ilpe.thresh_hi << ") | " << setw(13)
              << ilpe.shells.size() << " |\n";
     }

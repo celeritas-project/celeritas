@@ -33,7 +33,10 @@ class AllElementReader
 
   public:
     //! Construct from vector of imported elements
-    explicit AllElementReader(const VecElements& els) : elements_(els) {}
+    explicit AllElementReader(const VecElements& els) : elements_(els)
+    {
+        CELER_EXPECT(!elements_.empty());
+    }
 
     //! Load a map of data for all stored elements
     template<class ReadOneElement>
