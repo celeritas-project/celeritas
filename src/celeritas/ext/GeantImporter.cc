@@ -38,6 +38,7 @@
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "detail/AllElementReader.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/ImportProcessConverter.hh"
@@ -396,59 +397,31 @@ ImportData::ImportEmParamsMap store_em_parameters()
     return import_em_params;
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Return a templated map object. This is done to reduce code duplication for
- * storing SB, Livermore PE, and atomic relaxation maps in ImportData.
- */
-template<class ImportReader, class ImportMap>
-ImportMap build_import_map(const ImportReader& reader, ImportMap& map)
+struct AllElementReader
 {
-    CELER_EXPECT(map.empty());
-    const auto elements = store_elements();
-    CELER_EXPECT(!elements.empty());
+    //// DATA ////
 
-    for (const auto& element : elements)
+    const std::vector<ImportElement>& elements;
+
+    //// MEMBER FUNCTIONS ////
+
+    //! Return a map of element -> data
+    template<class ReadOneElement>
+    auto operator()(ReadOneElement&& read_el) const -> decltype(auto)
     {
-        ImportData::AtomicNumber z = element.atomic_number;
-        map.insert({z, reader(z)});
+        using AtomicNumber = ImportData::AtomicNumber;
+        using result_type  = typename ReadOneElement::result_type;
+
+        std::map<AtomicNumber, result_type> result_map;
+
+        for (const auto& element : this->elements)
+        {
+            AtomicNumber z = element.atomic_number;
+            result_map.insert({z, read_el(z)});
+        }
+        return result_map;
     }
-
-    return map;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a \c ImportData::ImportSBMap .
- */
-ImportData::ImportSBMap store_sb_data()
-{
-    SeltzerBergerReader     sb_read;
-    ImportData::ImportSBMap sb_map;
-    return build_import_map(sb_read, sb_map);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a \c ImportData::ImportLivermorePEMap .
- */
-ImportData::ImportLivermorePEMap store_livermore_pe_data()
-{
-    LivermorePEReader                lpe_read;
-    ImportData::ImportLivermorePEMap lpe_map;
-    return build_import_map(lpe_read, lpe_map);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a \c ImportData::ImportAtomicRelaxationMap .
- */
-ImportData::ImportAtomicRelaxationMap store_atomic_relaxation_data()
-{
-    AtomicRelaxationReader                atom_rel_read;
-    ImportData::ImportAtomicRelaxationMap atom_rel_map;
-    return build_import_map(atom_rel_read, atom_rel_map);
-}
+};
 
 //---------------------------------------------------------------------------//
 } // namespace
@@ -486,9 +459,12 @@ ImportData GeantImporter::operator()(const DataSelection&)
     import_data.processes              = store_processes();
     import_data.volumes                = store_volumes(world_);
     import_data.em_params              = store_em_parameters();
-    import_data.sb_data                = store_sb_data();
-    import_data.livermore_pe_data      = store_livermore_pe_data();
-    import_data.atomic_relaxation_data = store_atomic_relaxation_data();
+
+    detail::AllElementReader load_data{import_data.elements};
+    // TODO: load only conditionally based on processes in use
+    import_data.sb_data                = load_data(SeltzerBergerReader{});
+    import_data.livermore_pe_data      = load_data(LivermorePEReader{});
+    import_data.atomic_relaxation_data = load_data(AtomicRelaxationReader{});
 
     CELER_ENSURE(import_data);
     return import_data;
