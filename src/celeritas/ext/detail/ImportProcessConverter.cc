@@ -661,12 +661,15 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
-    auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
-    CELER_ASSERT(cutoff_iter != material.pdg_cutoffs.end());
-
+    double min_energy = model.LowEnergyLimit() / MeV;
+    {
+        auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
+        if (cutoff_iter != material.pdg_cutoffs.end())
+        {
+            min_energy = std::max(cutoff_iter->second.energy, min_energy);
+        }
+    }
     const double max_energy = model.HighEnergyLimit() / MeV;
-    const double min_energy
-        = std::max(cutoff_iter->second.energy, model.LowEnergyLimit() / MeV);
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
