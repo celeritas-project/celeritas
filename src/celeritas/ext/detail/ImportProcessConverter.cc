@@ -33,17 +33,6 @@
 
 #include "GeantVersion.hh"
 
-using celeritas::ImportModelClass;
-using celeritas::ImportPhysicsTable;
-using celeritas::ImportPhysicsVector;
-using celeritas::ImportPhysicsVectorType;
-using celeritas::ImportProcessClass;
-using celeritas::ImportProcessType;
-using celeritas::ImportTableType;
-using celeritas::ImportUnits;
-using celeritas::PDGNumber;
-using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
-
 namespace celeritas
 {
 namespace detail
@@ -130,7 +119,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
 /*!
  * Safely retrieve the correct model enum from a given string.
  */
-ImportModelClass to_import_model(const std::string& g4_model_name)
+ImportModelClass to_import_model(const G4VEmModel& model)
 {
     static const std::unordered_map<std::string, ImportModelClass> model_map = {
         // clang-format off
@@ -157,11 +146,14 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
         {"muPairProd",          ImportModelClass::mu_pair_prod},
         // clang-format on
     };
-    auto iter = model_map.find(g4_model_name);
+    const std::string& name = model.GetName();
+    auto iter = model_map.find(name);
     if (iter == model_map.end())
     {
-        CELER_LOG(warning) << "Encountered unknown model '" << g4_model_name
-                           << "'";
+        static celeritas::TypeDemangler<G4VEmModel> demangle_model;
+        CELER_LOG(warning) << "Encountered unknown model '" << name
+                           << "' (RTTI: " << demangle_model(model)
+                           << ")";
         return ImportModelClass::unknown;
     }
     return iter->second;
@@ -257,12 +249,14 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                                    const G4VProcess&           process)
 {
     // Check for duplicate processes
-    auto iter_ok = written_processes_.insert({&process, {&particle}});
-    if (!iter_ok.second)
+    auto iter_inserted = written_processes_.insert({&process, {&particle}});
+
+    if (!iter_inserted.second)
     {
-        const PrevProcess& prev = iter_ok.first->second;
-        CELER_LOG(warning) << "Skipping process '" << process.GetProcessName()
-                           << "' (" << ProcessTypeDemangler()(process)
+        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+        const PrevProcess& prev = iter_inserted.first->second;
+        CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
+                           << "' (RTTI: " << demangle_process(process)
                            << ") for particle " << particle.GetParticleName()
                            << ": duplicate of particle "
                            << prev.particle->GetParticleName();
@@ -300,9 +294,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
     else
     {
+        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
         CELER_LOG(error) << "Cannot export unknown process '"
-                         << process.GetProcessName() << "' ("
-                         << ProcessTypeDemangler()(process) << ")";
+                         << process.GetProcessName() << "' (RTTI: "
+                         << demangle_process(process) << ")";
     }
 
     return process_;
@@ -311,10 +306,8 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 //---------------------------------------------------------------------------//
 // PRIVATE
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
- * Store EM XS tables to this->process_.
+ * Store EM cross section tables for the current process.
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
@@ -324,8 +317,8 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        auto&      model          = *process.GetModelByIndex(i);
-        const auto model_class_id = to_import_model(model.GetName());
+        G4VEmModel& model = *process.GetModelByIndex(i);
+        auto model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
@@ -353,8 +346,8 @@ void ImportProcessConverter::store_energy_loss_tables(
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        auto&      model          = *process.GetModelByIndex(i);
-        const auto model_class_id = to_import_model(model.GetName());
+        G4VEmModel& model          = *process.GetModelByIndex(i);
+        auto        model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
@@ -438,13 +431,12 @@ void ImportProcessConverter::store_multiple_scattering_tables(
                 // model. Skipping any further model for now
                 CELER_LOG(warning)
                     << "Cannot store multiple scattering table for process "
-                    << process.GetProcessName() << ", model "
-                    << process.GetModelByIndex(i)->GetName()
-                    << ". Model index is > 0.";
+                    << process.GetProcessName() << ": skipping model "
+                    << process.GetModelByIndex(i)->GetName();
                 continue;
             }
 
-            process_.models.push_back(to_import_model(model->GetName()));
+            process_.models.push_back(to_import_model(*model));
             this->add_table(model->GetCrossSectionTable(),
                             ImportTableType::lambda);
         }
@@ -465,24 +457,17 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     }
 
     // Check for duplicate tables
-    auto iter_ok = written_tables_.insert(
+    auto iter_inserted = written_tables_.insert(
         {g4table, {process_.particle_pdg, process_.process_class, table_type}});
-    if (!iter_ok.second)
-    {
-        const PrevTable& prev = iter_ok.first->second;
-        CELER_LOG(warning) << "Skipping table " << process_.particle_pdg << '.'
-                           << to_cstring(process_.process_class) << '.'
-                           << to_cstring(table_type) << ": duplicate of "
-                           << prev.particle_pdg << '.'
-                           << to_cstring(prev.process_class) << '.'
-                           << to_cstring(prev.table_type);
-        return;
-    }
 
-    CELER_LOG(debug) << "Saving table " << process_.particle_pdg << '.'
-                     << to_cstring(process_.process_type) << '.'
+    CELER_LOG(debug) << (iter_inserted.second ? "Saving" : "Skipping duplicate")
+                     << " physics table " << process_.particle_pdg << '.'
                      << to_cstring(process_.process_class) << '.'
                      << to_cstring(table_type);
+    if (!iter_inserted.second)
+    {
+        return;
+    }
 
     ImportPhysicsTable table;
     table.table_type = table_type;
