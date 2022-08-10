@@ -194,6 +194,7 @@ list(APPEND SOURCES
   celeritas/phys/PhysicsParamsOutput.cc
   celeritas/phys/PrimaryGenerator.cc
   celeritas/phys/Process.cc
+  celeritas/phys/ProcessBuilder.cc
   celeritas/random/CuHipRngData.cc
   celeritas/random/XorwowRngData.cc
   celeritas/random/XorwowRngParams.cc
