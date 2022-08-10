@@ -147,13 +147,12 @@ ImportModelClass to_import_model(const G4VEmModel& model)
         // clang-format on
     };
     const std::string& name = model.GetName();
-    auto iter = model_map.find(name);
+    auto               iter = model_map.find(name);
     if (iter == model_map.end())
     {
         static celeritas::TypeDemangler<G4VEmModel> demangle_model;
         CELER_LOG(warning) << "Encountered unknown model '" << name
-                           << "' (RTTI: " << demangle_model(model)
-                           << ")";
+                           << "' (RTTI: " << demangle_model(model) << ")";
         return ImportModelClass::unknown;
     }
     return iter->second;
@@ -256,10 +255,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
         const PrevProcess& prev = iter_inserted.first->second;
         CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
-                           << "' (RTTI: " << demangle_process(process)
-                           << ") for particle " << particle.GetParticleName()
-                           << ": duplicate of particle "
-                           << prev.particle->GetParticleName();
+                         << "' (RTTI: " << demangle_process(process)
+                         << ") for particle " << particle.GetParticleName()
+                         << ": duplicate of particle "
+                         << prev.particle->GetParticleName();
         return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
@@ -296,8 +295,8 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     {
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
         CELER_LOG(error) << "Cannot export unknown process '"
-                         << process.GetProcessName() << "' (RTTI: "
-                         << demangle_process(process) << ")";
+                         << process.GetProcessName()
+                         << "' (RTTI: " << demangle_process(process) << ")";
     }
 
     return process_;
@@ -317,8 +316,8 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        G4VEmModel& model = *process.GetModelByIndex(i);
-        auto model_class_id = to_import_model(model);
+        G4VEmModel& model          = *process.GetModelByIndex(i);
+        auto        model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
@@ -460,10 +459,10 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     auto iter_inserted = written_tables_.insert(
         {g4table, {process_.particle_pdg, process_.process_class, table_type}});
 
-    CELER_LOG(debug) << (iter_inserted.second ? "Saving" : "Skipping duplicate")
-                     << " physics table " << process_.particle_pdg << '.'
-                     << to_cstring(process_.process_class) << '.'
-                     << to_cstring(table_type);
+    CELER_LOG(debug)
+        << (iter_inserted.second ? "Saving" : "Skipping duplicate")
+        << " physics table " << process_.particle_pdg << '.'
+        << to_cstring(process_.process_class) << '.' << to_cstring(table_type);
     if (!iter_inserted.second)
     {
         return;
