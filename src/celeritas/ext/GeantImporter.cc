@@ -397,32 +397,6 @@ ImportData::ImportEmParamsMap store_em_parameters()
     return import_em_params;
 }
 
-struct AllElementReader
-{
-    //// DATA ////
-
-    const std::vector<ImportElement>& elements;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Return a map of element -> data
-    template<class ReadOneElement>
-    auto operator()(ReadOneElement&& read_el) const -> decltype(auto)
-    {
-        using AtomicNumber = ImportData::AtomicNumber;
-        using result_type  = typename ReadOneElement::result_type;
-
-        std::map<AtomicNumber, result_type> result_map;
-
-        for (const auto& element : this->elements)
-        {
-            AtomicNumber z = element.atomic_number;
-            result_map.insert({z, read_el(z)});
-        }
-        return result_map;
-    }
-};
-
 //---------------------------------------------------------------------------//
 } // namespace
 
