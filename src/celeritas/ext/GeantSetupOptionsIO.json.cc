@@ -7,10 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantSetupOptionsIO.json.hh"
 
-#include <unordered_map>
-
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
+#include "corecel/io/StringEnumMap.hh"
 
 namespace celeritas
 {
@@ -39,31 +37,7 @@ const char* to_cstring(GeantSetupPhysicsList value)
 
     return strings[static_cast<int>(value)];
 }
-
 //---------------------------------------------------------------------------//
-// TODO: template and rewrite these as a helper class
-using StrPhysMap = std::unordered_map<std::string, GeantSetupPhysicsList>;
-
-StrPhysMap make_reverse_mapping()
-{
-    StrPhysMap result;
-    result.reserve(static_cast<int>(GeantSetupPhysicsList::size_));
-    for (auto v : celeritas::range(GeantSetupPhysicsList::size_))
-    {
-        auto iter_inserted = result.insert({to_cstring(v), v});
-        CELER_ASSERT(iter_inserted.second);
-    }
-    return result;
-}
-
-GeantSetupPhysicsList gspl_from_string(const std::string& s)
-{
-    static StrPhysMap reverse_mapping = make_reverse_mapping();
-    auto              result          = reverse_mapping.find(s);
-    CELER_VALIDATE(result != reverse_mapping.end(),
-                   << "invalid physics list name '" << s << "'");
-    return result->second;
-}
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -72,6 +46,9 @@ GeantSetupPhysicsList gspl_from_string(const std::string& s)
  */
 void from_json(const nlohmann::json& j, GeantSetupOptions& opts)
 {
+    static auto gspl_from_string
+        = StringEnumMap<GeantSetupPhysicsList>::from_cstring_func(
+            to_cstring, "physics list");
     opts.physics = gspl_from_string(j.at("physics").get<std::string>());
     j.at("em_bins_per_decade").get_to(opts.em_bins_per_decade);
 }
