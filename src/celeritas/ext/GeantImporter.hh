@@ -39,15 +39,20 @@ namespace celeritas
 class GeantImporter
 {
   public:
-    //!@{
-    //! Type aliases
-    //!@}
-
-    //! Only import a subset of available Geant4 data (TODO)
+    //! Only import a subset of available Geant4 data
     struct DataSelection
     {
-        // Particle types for processes: std::function<bool(PDGNumber)>
-        // Process selection (full or minimal)
+        //! Bit flags for selecting particles and process types
+        using Flags = unsigned int;
+        enum : unsigned int
+        {
+            dummy  = 0x1, //!< Dummy particles+processes
+            em     = 0x2, //!< EM particles and fundamental proceses
+            hadron = 0x4, //!< Hadronic particles and processes
+        };
+
+        Flags particles = em;
+        Flags processes = em;
     };
 
   public:
