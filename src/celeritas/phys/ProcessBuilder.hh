@@ -42,7 +42,7 @@ class ProcessBuilder
     };
 
   public:
-    // Construct from shared data
+    // Construct from imported and shared data
     ProcessBuilder(const ImportData& data,
                    Options           options,
                    SPConstParticle   particle,

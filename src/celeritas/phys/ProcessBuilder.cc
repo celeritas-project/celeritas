@@ -37,7 +37,8 @@ T import_em_parameter(const ImportData::ImportEmParamsMap& params,
         return default_value;
     }
     auto result = static_cast<T>(iter->second);
-    // Since the map is storing everything as a double, check
+    // Since the map is storing everything as a double, check that the value
+    // round-trips
     CELER_VALIDATE(static_cast<double>(result) == iter->second,
                    << "type conversion failed for '" << to_cstring(key)
                    << '\'');
@@ -47,6 +48,9 @@ T import_em_parameter(const ImportData::ImportEmParamsMap& params,
 } // namespace
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct imported process data.
+ */
 ProcessBuilder::ProcessBuilder(const ImportData& data,
                                Options           options,
                                SPConstParticle   particle,
@@ -66,9 +70,13 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
 }
 
 //---------------------------------------------------------------------------//
+//! Default destructor
 ProcessBuilder::~ProcessBuilder() = default;
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a \c Process from a given processs class.
+ */
 auto ProcessBuilder::operator()(ImportProcessClass ipc) -> SPProcess
 {
     using IPC          = ImportProcessClass;
