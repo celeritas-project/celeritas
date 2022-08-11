@@ -35,7 +35,7 @@ class BVHNavigator
     using Vector3D           = vecgeom::Vector3D<vecgeom::Precision>;
     using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
 
-    static constexpr Precision kBoundaryPush = 10. * vecgeom::kTolerance;
+    static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
 
     CELER_FUNCTION static VPlacedVolumePtr_t
     LocatePointIn(vecgeom::VPlacedVolume const* vol,
@@ -109,12 +109,12 @@ class BVHNavigator
                       vecgeom::NavigationState&       out_state,
                       VPlacedVolumePtr_t&             hitcandidate)
     {
-        if (step_limit <= 0.)
+        if (step_limit <= 0)
         {
             // We don't need to ask any solid, step not limited by geometry.
             in_state.CopyTo(&out_state);
             out_state.SetBoundaryState(false);
-            return 0.;
+            return 0;
         }
 
         Precision          step = step_limit;
@@ -123,8 +123,8 @@ class BVHNavigator
         // need to calc DistanceToOut first
         step = pvol->DistanceToOut(localpoint, localdir, step_limit);
 
-        if (step < 0.)
-            step = 0.;
+        if (step < 0)
+            step = 0;
 
         if (pvol->GetDaughters().size() > 0)
         {
@@ -136,7 +136,7 @@ class BVHNavigator
 
         // now we have the candidates and we prepare the out_state
         in_state.CopyTo(&out_state);
-        if (step == vecgeom::kInfLength && step_limit > 0.)
+        if (step == vecgeom::kInfLength && step_limit > 0)
         {
             out_state.SetBoundaryState(true);
             do
@@ -159,9 +159,9 @@ class BVHNavigator
         // boundary.
         out_state.SetBoundaryState(true);
 
-        if (step < 0.)
+        if (step < 0)
         {
-            step = 0.;
+            step = 0;
         }
 
         return step;
@@ -186,11 +186,11 @@ class BVHNavigator
             // pvol, hitcandidate);
             bvh->ApproachNextDaughter(localpoint, localdir, step, pvol);
             // Make sure we don't "step" on next boundary
-            step -= 10. * vecgeom::kTolerance;
+            step -= 10 * vecgeom::kTolerance;
         }
 
-        if (step == vecgeom::kInfLength && step_limit > 0.)
-            return 0.;
+        if (step == vecgeom::kInfLength && step_limit > 0)
+            return 0;
 
         // Is geometry further away than physics step?
         if (step > step_limit)
@@ -199,9 +199,9 @@ class BVHNavigator
             return step_limit;
         }
 
-        if (step < 0.)
+        if (step < 0)
         {
-            step = 0.;
+            step = 0;
         }
 
         return step;
@@ -241,7 +241,7 @@ class BVHNavigator
                                   Precision                       step_limit,
                                   vecgeom::NavigationState const& in_state,
                                   vecgeom::NavigationState&       out_state,
-                                  Precision                       push = 0.)
+                                  Precision                       push = 0)
     {
         // If we are on the boundary, push a bit more
         if (in_state.IsOnBoundary())
@@ -326,7 +326,7 @@ class BVHNavigator
                              Precision                       step_limit,
                              vecgeom::NavigationState const& in_state,
                              vecgeom::NavigationState&       out_state,
-                             Precision                       push = 0.)
+                             Precision                       push = 0)
     {
         // If we are on the boundary, push a bit more
         if (in_state.IsOnBoundary())
