@@ -7,7 +7,7 @@
  * \brief Bounding Volume Hierarchy navigator directly derived from AdePT
  *
  * Original source:
- * https://github.com/apt-sim/AdePT/blob/586a9c43915818bdf764b7315c3dbde7e63a34b8/base/inc/AdePT/BVHNavigator.h
+ * https://github.com/apt-sim/AdePT/blob/bafab78519faafde0b8e5055128c2a3610d43d77/base/inc/AdePT/BVHNavigator.h
  */
 //---------------------------------------------------------------------------//
 #pragma once
