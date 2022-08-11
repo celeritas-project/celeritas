@@ -19,11 +19,12 @@
 #include <G4GenericPhysicsList.hh>
 #include <G4ParticleTable.hh>
 #include <G4VModularPhysicsList.hh>
+#include <G4VUserDetectorConstruction.hh>
 
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 
+#include "LoadGdml.hh"
 #include "detail/ActionInitialization.hh"
-#include "detail/DetectorConstruction.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -78,6 +79,38 @@ void load_physics(const GeantSetupOptions& options, G4RunManager* run_manager)
     CELER_ASSERT(physics_list);
     run_manager->SetUserInitialization(physics_list.release());
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load the detector geometry from a GDML input file.
+ */
+class DetectorConstruction : public G4VUserDetectorConstruction
+{
+  public:
+    // Construct from a GDML filename
+    explicit DetectorConstruction(const std::string& filename)
+    {
+        phys_vol_world_ = load_gdml(filename);
+        CELER_ENSURE(phys_vol_world_);
+    }
+
+    G4VPhysicalVolume* Construct() override
+    {
+        CELER_EXPECT(phys_vol_world_);
+        return phys_vol_world_.release();
+    }
+
+    const G4VPhysicalVolume* world_volume() const
+    {
+        CELER_EXPECT(phys_vol_world_);
+        return phys_vol_world_.get();
+    }
+
+  private:
+    UPG4PhysicalVolume phys_vol_world_;
+};
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -118,12 +151,10 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     // Initialize geometry
     {
-        auto detector
-            = std::make_unique<detail::DetectorConstruction>(gdml_filename);
+        auto detector = std::make_unique<DetectorConstruction>(gdml_filename);
 
         // Get world_volume for store_geometry() before releasing detector ptr
-        world_ = detector->get_world_volume();
-        CELER_ASSERT(world_);
+        world_ = detector->world_volume();
 
         run_manager_->SetUserInitialization(detector.release());
     }
@@ -141,6 +172,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         run_manager_->BeamOn(1);
     }
 
+    CELER_ENSURE(world_);
     CELER_ENSURE(*this);
 }
 

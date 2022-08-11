@@ -23,7 +23,6 @@ namespace celeritas
 //! Selection of physics processes
 enum class GeantSetupPhysicsList
 {
-    none,        //!< Do not load any physics (for geometry-only testing?)
     em_basic,    //!< Celeritas demo loop
     em_standard, //!< G4EmStandardPhysics
     ftfp_bert,   //!< Full physics

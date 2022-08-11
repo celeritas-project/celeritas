@@ -358,10 +358,10 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   list(APPEND _IO_SOURCES
+    celeritas/ext/LoadGdml.cc
     celeritas/ext/GeantImporter.cc
     celeritas/ext/GeantSetup.cc
     celeritas/ext/detail/ActionInitialization.cc
-    celeritas/ext/detail/DetectorConstruction.cc
     celeritas/ext/detail/GeantBremsstrahlungProcess.cc
     celeritas/ext/detail/GeantExceptionHandler.cc
     celeritas/ext/detail/GeantLoggerAdapter.cc
