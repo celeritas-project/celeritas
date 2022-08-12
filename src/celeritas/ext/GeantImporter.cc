@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include <G4EmParameters.hh>
 #include <G4LogicalVolume.hh>
@@ -17,6 +18,7 @@
 #include <G4MaterialTable.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
+#include <G4ProcessType.hh>
 #include <G4ProcessVector.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4RToEConvForElectron.hh>
@@ -24,7 +26,7 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 #include <G4SystemOfUnits.hh>
-#include <G4Transportation.hh>
+#include <G4VProcess.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/cont/Range.hh"
@@ -50,6 +52,65 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
+decltype(auto) em_particles()
+{
+    static const std::unordered_set<PDGNumber> particles = {pdg::electron(),
+                                                            pdg::positron(),
+                                                            pdg::gamma(),
+                                                            pdg::mu_minus(),
+                                                            pdg::mu_plus()};
+    return particles;
+}
+
+//---------------------------------------------------------------------------//
+//! Filter for desired particle types
+struct ParticleFilter
+{
+    using DataSelection = celeritas::GeantImporter::DataSelection;
+
+    DataSelection::Flags which;
+
+    bool operator()(PDGNumber pdgnum)
+    {
+        if (!pdgnum)
+        {
+            return (which & DataSelection::dummy);
+        }
+        else if (em_particles().count(pdgnum))
+        {
+            return (which & DataSelection::em);
+        }
+        else
+        {
+            // XXX assume non-dummy and non-em are hadronic?
+            return (which & DataSelection::hadron);
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Filter for desired processes
+struct ProcessFilter
+{
+    using DataSelection = celeritas::GeantImporter::DataSelection;
+
+    DataSelection::Flags which;
+
+    bool operator()(G4ProcessType pt)
+    {
+        switch (pt)
+        {
+            case G4ProcessType::fElectromagnetic:
+                return (which & DataSelection::em);
+            case G4ProcessType::fHadronic:
+                return (which & DataSelection::hadron);
+            default:
+                return false;
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -74,18 +135,18 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
  * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to the
  * particle's pdg encoding.
  */
-int to_pdg(const G4ProductionCutsIndex& index)
+PDGNumber to_pdg(const G4ProductionCutsIndex& index)
 {
     switch (index)
     {
         case idxG4GammaCut:
-            return pdg::gamma().get();
+            return pdg::gamma();
         case idxG4ElectronCut:
-            return pdg::electron().get();
+            return pdg::electron();
         case idxG4PositronCut:
-            return pdg::positron().get();
+            return pdg::positron();
         case idxG4ProtonCut:
-            return pdg::proton().get();
+            return pdg::proton();
         case NumberOfG4CutIndex:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -123,7 +184,8 @@ void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
 /*!
  * Return a populated \c ImportParticle vector.
  */
-std::vector<ImportParticle> store_particles()
+std::vector<ImportParticle>
+store_particles(GeantImporter::DataSelection::Flags particle_flags)
 {
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -131,21 +193,21 @@ std::vector<ImportParticle> store_particles()
 
     std::vector<ImportParticle> particles;
 
+    ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
         const G4ParticleDefinition& g4_particle_def
             = *(particle_iterator.value());
 
         PDGNumber pdg{g4_particle_def.GetPDGEncoding()};
-        if (!pdg)
+        if (!include_particle(pdg))
         {
-            // Skip "dummy" particles: generic ion and geantino
             continue;
         }
 
         ImportParticle particle;
         particle.name      = g4_particle_def.GetParticleName();
-        particle.pdg       = g4_particle_def.GetPDGEncoding();
+        particle.pdg       = pdg.unchecked_get();
         particle.mass      = g4_particle_def.GetPDGMass();
         particle.charge    = g4_particle_def.GetPDGCharge();
         particle.spin      = g4_particle_def.GetPDGSpin();
@@ -198,13 +260,25 @@ std::vector<ImportElement> store_elements()
 /*!
  * Return a populated \c ImportMaterial vector.
  */
-std::vector<ImportMaterial> store_materials()
+std::vector<ImportMaterial>
+store_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
-    const auto& g4production_cuts_table
+    ParticleFilter include_particle{particle_flags};
+    const auto&    g4production_cuts_table
         = *G4ProductionCutsTable::GetProductionCutsTable();
 
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
+
+    std::vector<G4ProductionCutsIndex> particle_cuts;
+    for (auto gi : range(NumberOfG4CutIndex))
+    {
+        PDGNumber pdg = to_pdg(gi);
+        if (include_particle(pdg))
+        {
+            particle_cuts.push_back(gi);
+        }
+    }
 
     // Loop over material data
     for (int i : range(g4production_cuts_table.GetTableSize()))
@@ -247,9 +321,8 @@ std::vector<ImportMaterial> store_materials()
             = std::make_unique<G4RToEConvForProton>();
 
         // Populate material production cut values
-        for (int i : range(NumberOfG4CutIndex))
+        for (G4ProductionCutsIndex g4i : particle_cuts)
         {
-            const auto   g4i   = static_cast<G4ProductionCutsIndex>(i);
             const double range = g4prod_cuts->GetProductionCut(g4i);
             const double energy
                 = range_to_e_converters[g4i]->Convert(range, g4material);
@@ -258,7 +331,7 @@ std::vector<ImportMaterial> store_materials()
             cutoffs.energy = energy / MeV;
             cutoffs.range  = range / cm;
 
-            material.pdg_cutoffs.insert({to_pdg(g4i), cutoffs});
+            material.pdg_cutoffs.insert({to_pdg(g4i).get(), cutoffs});
         }
 
         // Populate element information for this material
@@ -292,56 +365,41 @@ std::vector<ImportMaterial> store_materials()
 /*!
  * Return a populated \c ImportProcess vector.
  */
-std::vector<ImportProcess> store_processes()
+std::vector<ImportProcess>
+store_processes(GeantImporter::DataSelection::Flags process_flags,
+                const std::vector<ImportParticle>&  particles,
+                const std::vector<ImportElement>&   elements,
+                const std::vector<ImportMaterial>&  materials)
 {
+    ProcessFilter include_process{process_flags};
+
     std::vector<ImportProcess>     processes;
     detail::ImportProcessConverter load_process(
-        detail::TableSelection::minimal, store_materials(), store_elements());
+        detail::TableSelection::minimal, materials, elements);
 
-    G4ParticleTable::G4PTblDicIterator& particle_iterator
-        = *(G4ParticleTable::GetParticleTable()->GetIterator());
-    particle_iterator.reset();
-
-    // XXX To reduce ROOT file data size in repo, only export processes for
-    // electron/positron/gamma for now. Allow this as user input later.
-    auto include_process = [](PDGNumber pdgnum) -> bool {
-        return pdgnum == pdg::electron() || pdgnum == pdg::positron()
-               || pdgnum == pdg::gamma();
-    };
-
-    while (particle_iterator())
+    for (const auto& p : particles)
     {
-        const G4ParticleDefinition& g4_particle_def
-            = *(particle_iterator.value());
-
-        PDGNumber pdgnum(g4_particle_def.GetPDGEncoding());
-        if (!pdgnum)
-        {
-            // Skip "dummy" particles: generic ion and geantino
-            continue;
-        }
-
-        if (!include_process(pdgnum))
-        {
-            continue;
-        }
+        const G4ParticleDefinition* g4_particle_def
+            = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
+        CELER_ASSERT(g4_particle_def);
 
         const G4ProcessVector& process_list
-            = *g4_particle_def.GetProcessManager()->GetProcessList();
+            = *g4_particle_def->GetProcessManager()->GetProcessList();
 
         for (auto j : range(process_list.size()))
         {
-            if (dynamic_cast<const G4Transportation*>(process_list[j]))
+            const G4VProcess& process = *process_list[j];
+            if (!include_process(process.GetProcessType()))
             {
-                // Skip transportation process
+                CELER_LOG(debug)
+                    << "Filtered process '" << process.GetProcessName() << "'";
                 continue;
             }
 
-            if (ImportProcess process
-                = load_process(g4_particle_def, *process_list[j]))
+            if (ImportProcess ip = load_process(*g4_particle_def, process))
             {
                 // Not an empty process, so it was not added in a previous loop
-                processes.push_back(std::move(process));
+                processes.push_back(std::move(ip));
             }
         }
     }
@@ -424,21 +482,22 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 /*!
  * Load data from Geant4.
  */
-ImportData GeantImporter::operator()(const DataSelection&)
+ImportData GeantImporter::operator()(const DataSelection& selected)
 {
     ImportData import_data;
-    import_data.particles              = store_particles();
-    import_data.elements               = store_elements();
-    import_data.materials              = store_materials();
-    import_data.processes              = store_processes();
-    import_data.volumes                = store_volumes(world_);
-    import_data.em_params              = store_em_parameters();
 
-    detail::AllElementReader load_data{import_data.elements};
-    // TODO: load only conditionally based on processes in use
-    import_data.sb_data                = load_data(SeltzerBergerReader{});
-    import_data.livermore_pe_data      = load_data(LivermorePEReader{});
-    import_data.atomic_relaxation_data = load_data(AtomicRelaxationReader{});
+    import_data.particles = store_particles(selected.particles);
+    import_data.elements  = store_elements();
+    import_data.materials = store_materials(selected.particles);
+    import_data.processes = store_processes(selected.processes,
+                                            import_data.particles,
+                                            import_data.elements,
+                                            import_data.materials);
+    import_data.volumes   = store_volumes(world_);
+    if (selected.processes & DataSelection::em)
+    {
+        import_data.em_params = store_em_parameters();
+    }
 
     CELER_ENSURE(import_data);
     return import_data;

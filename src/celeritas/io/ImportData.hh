@@ -24,8 +24,7 @@ namespace celeritas
 /*!
  * Enumerator for EM parameters (see G4EmParameters.hh).
  *
- * \note
- * Geant4 v11 removed the Spline() option from G4EmParameters.hh.
+ * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
  */
 enum class ImportEmParameter
 {
@@ -60,14 +59,13 @@ enum class ImportEmParameter
  *
  * The "processes" field may be empty for testing applications.
  *
- * \sa base/Units
+ * \sa celeritas::units
  * \sa ImportParticle
  * \sa ImportElement
  * \sa ImportMaterial
  * \sa ImportProcess
  * \sa ImportVolume
  * \sa RootImporter
- * \sa app/celer-export-geant
  */
 struct ImportData
 {

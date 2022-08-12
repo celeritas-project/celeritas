@@ -8,20 +8,12 @@
 #include "LDemoIO.hh"
 
 #include <algorithm>
+#include <set>
 #include <string>
 
 #include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/process/BremsstrahlungProcess.hh"
-#include "celeritas/em/process/ComptonProcess.hh"
-#include "celeritas/em/process/EIonizationProcess.hh"
-#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
-#include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/em/process/PhotoelectricProcess.hh"
-#include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetupOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -35,10 +27,10 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
@@ -88,6 +80,19 @@ bool volumes_are_consistent(const GeoParams&                 geo,
                                      == Label::from_geant(
                                          imported[vol.unchecked_get()].name);
                           });
+}
+
+//---------------------------------------------------------------------------//
+//! Get the set of all process classes in the input
+auto get_all_process_classes(const std::vector<ImportProcess>& processes)
+    -> decltype(auto)
+{
+    std::set<ImportProcessClass> result;
+    for (const auto& p : processes)
+    {
+        result.insert(p.process_class);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -304,45 +309,23 @@ TransporterInput load_input(const LDemoArgs& args)
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
 
-        BremsstrahlungProcess::Options brem_options;
-        brem_options.combined_model  = args.brem_combined;
-        brem_options.enable_lpm      = args.brem_lpm;
-        brem_options.use_integral_xs = true;
-
-        GammaConversionProcess::Options conv_options;
-        conv_options.enable_lpm = args.conv_lpm;
-
-        EPlusAnnihilationProcess::Options epgg_options;
-        epgg_options.use_integral_xs = true;
-
-        EIonizationProcess::Options ioni_options;
-        ioni_options.use_integral_xs = true;
-
-        auto process_data = std::make_shared<ImportedProcesses>(
-            std::move(imported_data.processes));
-        input.processes.push_back(
-            std::make_shared<ComptonProcess>(params.particle, process_data));
-        input.processes.push_back(std::make_shared<PhotoelectricProcess>(
-            params.particle, params.material, process_data));
-        if (args.rayleigh)
+        // TODO: assert that input args are consistent, or only check input
+        // args when building GDML
         {
-            input.processes.push_back(std::make_shared<RayleighProcess>(
-                params.particle, params.material, process_data));
+            ProcessBuilder::Options opts;
+            opts.brem_combined = args.brem_combined;
+
+            ProcessBuilder build_process(
+                imported_data, opts, params.particle, params.material);
+            // TODO: there's got to be a cleaner way to get the set of all
+            // processes: maybe better to change how the ImportData is
+            // structured
+            for (auto p : get_all_process_classes(imported_data.processes))
+            {
+                input.processes.push_back(build_process(p));
+            }
         }
-        input.processes.push_back(std::make_shared<GammaConversionProcess>(
-            params.particle, process_data, conv_options));
-        input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-            params.particle, epgg_options));
-        input.processes.push_back(std::make_shared<EIonizationProcess>(
-            params.particle, process_data, ioni_options));
-        input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
-            params.particle, params.material, process_data, brem_options));
-        if (args.enable_msc)
-        {
-            input.processes.push_back(
-                std::make_shared<MultipleScatteringProcess>(
-                    params.particle, params.material, process_data));
-        }
+
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
     if (args.mag_field == LDemoArgs::no_field())

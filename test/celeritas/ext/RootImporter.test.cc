@@ -32,7 +32,6 @@ using namespace celeritas;
  * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
  * values for steel, failing \c processes test.
  */
-
 class RootImporterTest : public celeritas_test::Test
 {
   protected:
@@ -54,7 +53,7 @@ class RootImporterTest : public celeritas_test::Test
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, particles)
 {
-    const auto particles = data_.particles;
+    const auto& particles = data_.particles;
     EXPECT_EQ(4, particles.size());
 
     // Check all names/PDG codes
@@ -80,7 +79,7 @@ TEST_F(RootImporterTest, particles)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, elements)
 {
-    const auto elements = data_.elements;
+    const auto& elements = data_.elements;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
@@ -117,7 +116,7 @@ TEST_F(RootImporterTest, elements)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, materials)
 {
-    const auto materials = data_.materials;
+    const auto& materials = data_.materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
@@ -196,7 +195,7 @@ TEST_F(RootImporterTest, materials)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, processes)
 {
-    const auto processes = data_.processes;
+    const auto& processes = data_.processes;
 
     auto iter = std::find_if(
         processes.begin(), processes.end(), [](const ImportProcess& proc) {
@@ -347,7 +346,7 @@ TEST_F(RootImporterTest, processes)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, volumes)
 {
-    const auto volumes = data_.volumes;
+    const auto& volumes = data_.volumes;
     EXPECT_EQ(5, volumes.size());
 
     std::vector<unsigned int> material_ids;
