@@ -14,11 +14,7 @@
 #    include <G4RunManagerFactory.hh>
 #endif
 
-#include <FTFP_BERT.hh>
-#include <G4EmParameters.hh>
-#include <G4GenericPhysicsList.hh>
 #include <G4ParticleTable.hh>
-#include <G4VModularPhysicsList.hh>
 #include <G4VUserDetectorConstruction.hh>
 
 #include "corecel/io/ScopedTimeAndRedirect.hh"
@@ -33,53 +29,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Set up global geant4 physics.
- */
-void load_physics(const GeantSetupOptions& options, G4RunManager* run_manager)
-{
-    std::unique_ptr<G4VUserPhysicsList> physics_list;
-
-    using PL = GeantSetupPhysicsList;
-    switch (options.physics)
-    {
-        case PL::none:
-            // Do not load any physics (possibly for geometry-only testing or
-            // visualization)
-            return;
-        case PL::em_basic:
-            physics_list = std::make_unique<detail::GeantPhysicsList>();
-            break;
-        case PL::em_standard: {
-            auto physics_constructor
-                = std::make_unique<std::vector<G4String>>();
-            physics_constructor->push_back("G4EmStandardPhysics");
-            physics_list = std::make_unique<G4GenericPhysicsList>(
-                physics_constructor.release());
-            break;
-        }
-        case PL::ftfp_bert:
-            // Full Physics
-            physics_list = std::make_unique<FTFP_BERT>();
-            break;
-        default:
-            CELER_VALIDATE(false, << "invalid physics list");
-    }
-
-    {
-        // Set EM options
-        auto& em_parameters = *G4EmParameters::Instance();
-        CELER_VALIDATE(options.em_bins_per_decade > 0,
-                       << "number of EM bins per decade="
-                       << options.em_bins_per_decade << " (must be positive)");
-        em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
-    }
-
-    CELER_ASSERT(physics_list);
-    run_manager->SetUserInitialization(physics_list.release());
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Load the detector geometry from a GDML input file.
@@ -160,10 +109,12 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
     }
 
     // Construct the physics
-    load_physics(options, run_manager_.get());
+    {
+        auto physics_list = std::make_unique<detail::GeantPhysicsList>(options);
+        run_manager_->SetUserInitialization(physics_list.release());
+    }
 
     // Generate physics tables
-    if (options.physics != GeantSetupPhysicsList::none)
     {
         auto action_initialization
             = std::make_unique<detail::ActionInitialization>();

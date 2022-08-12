@@ -51,7 +51,7 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
 
   add_test(NAME "app/celer-export-geant"
     COMMAND "$<TARGET_FILE:celer-export-geant>"
-    "${_geant_test_inp}" "test-data.root"
+    "${_geant_test_inp}" "" "test-data.root"
   )
   set_tests_properties("app/celer-export-geant" PROPERTIES
     ENVIRONMENT "${_geant_test_env}"

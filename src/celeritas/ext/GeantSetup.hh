@@ -13,6 +13,8 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
+#include "GeantPhysicsOptions.hh"
+
 // Geant4 forward declarations
 class G4VPhysicalVolume;
 class G4RunManager;
@@ -20,38 +22,21 @@ class G4RunManager;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Selection of physics processes
-enum class GeantSetupPhysicsList
-{
-    em_basic,    //!< Celeritas demo loop
-    em_standard, //!< G4EmStandardPhysics
-    ftfp_bert,   //!< Full physics
-    size_
-};
-
-//---------------------------------------------------------------------------//
-//! Construction options for geant
-struct GeantSetupOptions
-{
-    using PhysicsList = GeantSetupPhysicsList;
-
-    PhysicsList physics{PhysicsList::em_standard};
-    int         em_bins_per_decade{7};
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct a Geant 4 run manager and populate internal Geant4 physics.
  *
- * This is usually passed directly into \c GeantImporter . It hides geant
- * includes from the rest of the code.
+ * This is usually passed directly into \c GeantImporter . It hides Geant4
+ * implementation details (including header files) from the rest of the code.
+ * It is safe to include even when Geant4 is unavailable!
+ *
+ * The setup is targeted specifically for physics that Celeritas supports.
  */
 class GeantSetup
 {
   public:
     //!@{
     //! Type aliases
-    using Options = GeantSetupOptions;
+    using Options = GeantPhysicsOptions;
     //!@}
 
   public:

@@ -376,7 +376,7 @@ if(CELERITAS_USE_Geant4)
 endif()
 if(CELERITAS_USE_JSON)
   list(APPEND _IO_SOURCES
-    celeritas/ext/GeantSetupOptionsIO.json.cc
+    celeritas/ext/GeantPhysicsOptionsIO.json.cc
   )
 endif()
 

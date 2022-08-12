@@ -24,12 +24,15 @@ use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
 run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
+geant_options = {}
+
 geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 
 if geant_exp_exe:
     physics_filename = run_name + ".root"
     result_ge = subprocess.run([geant_exp_exe,
                                 geometry_filename,
+                                "",
                                 physics_filename])
     if result_ge.returncode:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")

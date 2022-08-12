@@ -60,18 +60,15 @@ struct LDemoArgs
     real_type step_limiter{};
 
     // Options for physics
-    bool rayleigh{true};
     bool eloss_fluctuation{true};
     bool brem_combined{true};
-    bool brem_lpm{true};
-    bool conv_lpm{true};
     bool enable_msc{false};
 
     // Diagnostic input
     EnergyDiagInput energy_diag;
 
     // Optional setup options if loading directly from Geant4
-    celeritas::GeantSetupOptions geant_options;
+    celeritas::GeantPhysicsOptions geant_options;
 
     //! Whether the run arguments are valid
     explicit operator bool() const

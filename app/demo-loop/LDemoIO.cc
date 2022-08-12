@@ -15,7 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -114,11 +114,8 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"use_device", v.use_device},
                        {"sync", v.sync},
                        {"mag_field", v.mag_field},
-                       {"rayleigh", v.rayleigh},
                        {"eloss_fluctuation", v.eloss_fluctuation},
                        {"brem_combined", v.brem_combined},
-                       {"brem_lpm", v.brem_lpm},
-                       {"conv_lpm", v.conv_lpm},
                        {"enable_msc", v.enable_msc}};
     if (v.mag_field != LDemoArgs::no_field())
     {
@@ -186,11 +183,8 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
         j.at("step_limiter").get_to(v.step_limiter);
     }
 
-    j.at("rayleigh").get_to(v.rayleigh);
     j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
     j.at("brem_combined").get_to(v.brem_combined);
-    j.at("brem_lpm").get_to(v.brem_lpm);
-    j.at("conv_lpm").get_to(v.conv_lpm);
     j.at("enable_msc").get_to(v.enable_msc);
 
     if (j.contains("energy_diag"))
