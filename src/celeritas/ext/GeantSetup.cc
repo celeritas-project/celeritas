@@ -7,6 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "GeantSetup.hh"
 
+#include <memory>
+#include <G4Event.hh>
+#include <G4ParticleGun.hh>
+#include <G4ParticleTable.hh>
+#include <G4SystemOfUnits.hh>
+#include <G4VUserActionInitialization.hh>
+#include <G4VUserDetectorConstruction.hh>
+#include <G4VUserPrimaryGeneratorAction.hh>
+
 #include "detail/GeantVersion.hh"
 #if CELERITAS_G4_V10
 #    include <G4RunManager.hh>
@@ -14,13 +23,9 @@
 #    include <G4RunManagerFactory.hh>
 #endif
 
-#include <G4ParticleTable.hh>
-#include <G4VUserDetectorConstruction.hh>
-
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 
 #include "LoadGdml.hh"
-#include "detail/ActionInitialization.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -60,6 +65,60 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a particle gun and generate one primary for a minimal simulation run.
+ */
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
+{
+  public:
+    PrimaryGeneratorAction();
+
+    //! Generate a priary at the beginning of each event
+    void GeneratePrimaries(G4Event* event) override
+    {
+        CELER_EXPECT(particle_gun_);
+        particle_gun_->GeneratePrimaryVertex(event);
+    }
+
+  private:
+    std::unique_ptr<G4ParticleGun> particle_gun_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a particle gun for the minimal simulation run.
+ */
+PrimaryGeneratorAction::PrimaryGeneratorAction() : particle_gun_(nullptr)
+{
+    // Select particle type
+    G4ParticleDefinition* particle;
+    particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+    CELER_ASSERT(particle);
+
+    // Create and set up particle gun
+    const int number_of_particles = 1;
+    particle_gun_ = std::make_unique<G4ParticleGun>(number_of_particles);
+    particle_gun_->SetParticleDefinition(particle);
+    particle_gun_->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+    particle_gun_->SetParticleEnergy(10 * GeV);
+    particle_gun_->SetParticlePosition(G4ThreeVector(0, 0, 0));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize Geant4.
+ */
+class ActionInitialization : public G4VUserActionInitialization
+{
+  public:
+    void Build() const override
+    {
+        auto action = std::make_unique<PrimaryGeneratorAction>();
+        this->SetUserAction(action.release());
+    }
+};
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -87,7 +146,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         ++geant_launch_count;
 
 #if CELERITAS_G4_V10
-        run_manager_.reset(new G4RunManager);
+        run_manager_ = std::make_unique<G4RunManager>();
 #else
         run_manager_.reset(
             G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
@@ -116,9 +175,8 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     // Generate physics tables
     {
-        auto action_initialization
-            = std::make_unique<detail::ActionInitialization>();
-        run_manager_->SetUserInitialization(action_initialization.release());
+        auto init = std::make_unique<ActionInitialization>();
+        run_manager_->SetUserInitialization(init.release());
         run_manager_->Initialize();
         run_manager_->BeamOn(1);
     }

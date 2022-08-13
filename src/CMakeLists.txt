@@ -361,13 +361,11 @@ if(CELERITAS_USE_Geant4)
     celeritas/ext/LoadGdml.cc
     celeritas/ext/GeantImporter.cc
     celeritas/ext/GeantSetup.cc
-    celeritas/ext/detail/ActionInitialization.cc
     celeritas/ext/detail/GeantBremsstrahlungProcess.cc
     celeritas/ext/detail/GeantExceptionHandler.cc
     celeritas/ext/detail/GeantLoggerAdapter.cc
     celeritas/ext/detail/GeantPhysicsList.cc
     celeritas/ext/detail/ImportProcessConverter.cc
-    celeritas/ext/detail/PrimaryGeneratorAction.cc
   )
   list(APPEND _IO_PRIVATE_DEPS
     XercesC::XercesC
