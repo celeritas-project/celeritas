@@ -342,6 +342,12 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
  */
 void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
 {
+    if (em_params_map.empty())
+    {
+        CELER_LOG(info) << "EM Parameters not available";
+        return;
+    }
+
     CELER_LOG(info) << "Loaded " << em_params_map.size() << " EM parameters";
 
     cout << R"gfm(
@@ -363,8 +369,14 @@ void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
 /*!
  * Print Seltzer-Berger map.
  */
-void print_sb_data(ImportData::ImportSBMap& sb_map)
+void print_sb_data(const ImportData::ImportSBMap& sb_map)
 {
+    if (sb_map.empty())
+    {
+        CELER_LOG(info) << "Seltzer-Berger data not available";
+        return;
+    }
+
     CELER_LOG(info) << "Loaded " << sb_map.size() << " SB tables";
 
     cout << R"gfm(
@@ -393,8 +405,14 @@ void print_sb_data(ImportData::ImportSBMap& sb_map)
 /*!
  * Print Livermore PE map.
  */
-void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
+void print_livermore_pe_data(const ImportData::ImportLivermorePEMap& lpe_map)
 {
+    if (lpe_map.empty())
+    {
+        CELER_LOG(info) << "Livermore PE data not available";
+        return;
+    }
+
     CELER_LOG(info) << "Loaded Livermore PE data map with size "
                     << lpe_map.size();
 
@@ -421,8 +439,15 @@ void print_livermore_pe_data(ImportData::ImportLivermorePEMap& lpe_map)
 /*!
  * Print atomic relaxation map.
  */
-void print_atomic_relaxation_data(ImportData::ImportAtomicRelaxationMap& ar_map)
+void print_atomic_relaxation_data(
+    const ImportData::ImportAtomicRelaxationMap& ar_map)
 {
+    if (ar_map.empty())
+    {
+        CELER_LOG(info) << "Atomic relaxation data not available";
+        return;
+    }
+
     CELER_LOG(info) << "Loaded atomic relaxation data map with size "
                     << ar_map.size();
 

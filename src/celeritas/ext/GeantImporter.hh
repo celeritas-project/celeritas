@@ -53,6 +53,9 @@ class GeantImporter
 
         Flags particles = em;
         Flags processes = em;
+
+        // TODO expand/set reader flags automatically based on loaded processes
+        bool reader_data = true;
     };
 
   public:

@@ -499,6 +499,16 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
         import_data.em_params = store_em_parameters();
     }
 
+    if (selected.reader_data)
+    {
+        detail::AllElementReader load_data{import_data.elements};
+        // TODO: load only conditionally based on processes in use
+        import_data.sb_data           = load_data(SeltzerBergerReader{});
+        import_data.livermore_pe_data = load_data(LivermorePEReader{});
+        import_data.atomic_relaxation_data
+            = load_data(AtomicRelaxationReader{});
+    }
+
     CELER_ENSURE(import_data);
     return import_data;
 }
