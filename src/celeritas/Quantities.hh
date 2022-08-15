@@ -33,6 +33,8 @@ struct Mev
     {
         return 1e6 * constants::e_electron * units::volt;
     }
+    //! Text label for output
+    static const char* label() { return "MeV"; }
 };
 
 //! Unit for annotating the logarithm of (E/MeV)
