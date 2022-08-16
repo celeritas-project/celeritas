@@ -146,7 +146,8 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         ++geant_launch_count;
 
 #if CELERITAS_G4_V10
-        run_manager_ = std::make_unique<G4RunManager>();
+        // Note: custom deleter means `unique_ptr` won't work
+        run_manager_.reset(new G4RunManager);
 #else
         run_manager_.reset(
             G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial));
