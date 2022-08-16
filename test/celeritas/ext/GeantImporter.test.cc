@@ -7,11 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
+#include "celeritas_config.h"
 #include "corecel/io/Repr.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "celeritas_test.hh"
+#if CELERITAS_USE_JSON
+#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+#endif
 
 using namespace celeritas;
 
@@ -106,6 +110,13 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     GeantSetup setup_geant() override
     {
         GeantSetup::Options opts;
+#if CELERITAS_USE_JSON
+        {
+        nlohmann::json out = opts;
+        static const char expected[] = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true})json";
+        EXPECT_EQ(std::string(expected), std::string(out.dump()));
+        }
+#endif
         return GeantSetup(
             this->test_data_path("celeritas", "four-steel-slabs.gdml"), opts);
     }

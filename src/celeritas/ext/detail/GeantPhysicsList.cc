@@ -50,7 +50,16 @@ GeantPhysicsList::GeantPhysicsList(const Options& options) : options_(options)
     CELER_VALIDATE(options_.em_bins_per_decade > 0,
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be positive)");
+
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
+    em_parameters.SetLossFluctuations(options.eloss_fluctuation);
+    em_parameters.SetMinEnergy(value_as<units::MevEnergy>(options.min_energy)
+                               * CLHEP::MeV);
+    em_parameters.SetMaxEnergy(value_as<units::MevEnergy>(options.max_energy)
+                               * CLHEP::MeV);
+    em_parameters.SetLPM(options.lpm);
+    em_parameters.SetIntegral(options.integral_approach);
+    em_parameters.SetLinearLossLimit(options.linear_loss_limit);
 }
 
 //---------------------------------------------------------------------------//

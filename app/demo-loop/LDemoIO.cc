@@ -114,9 +114,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"use_device", v.use_device},
                        {"sync", v.sync},
                        {"mag_field", v.mag_field},
-                       {"eloss_fluctuation", v.eloss_fluctuation},
-                       {"brem_combined", v.brem_combined},
-                       {"enable_msc", v.enable_msc}};
+                       {"brem_combined", v.brem_combined}};
     if (v.mag_field != LDemoArgs::no_field())
     {
         j["field_options"] = v.field_options;
@@ -183,9 +181,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
         j.at("step_limiter").get_to(v.step_limiter);
     }
 
-    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
     j.at("brem_combined").get_to(v.brem_combined);
-    j.at("enable_msc").get_to(v.enable_msc);
 
     if (j.contains("energy_diag"))
     {
@@ -303,8 +299,6 @@ TransporterInput load_input(const LDemoArgs& args)
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
 
-        // TODO: assert that input args are consistent, or only check input
-        // args when building GDML
         {
             ProcessBuilder::Options opts;
             opts.brem_combined = args.brem_combined;
@@ -322,6 +316,17 @@ TransporterInput load_input(const LDemoArgs& args)
 
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
+
+    bool eloss = false;
+    {
+        // TODO: use a struct for import em parameters rather than a map
+        auto iter = imported_data.em_params.find(
+            ImportEmParameter::energy_loss_fluct);
+        if (iter != imported_data.em_params.end())
+        {
+            eloss = static_cast<bool>(iter->second);
+        }
+    }
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
@@ -329,12 +334,12 @@ TransporterInput load_input(const LDemoArgs& args)
             *params.material,
             *params.particle,
             *params.physics,
-            args.eloss_fluctuation,
+            eloss,
             params.action_mgr.get());
     }
     else
     {
-        CELER_VALIDATE(!args.eloss_fluctuation,
+        CELER_VALIDATE(!eloss,
                        << "energy loss fluctuations are not supported "
                           "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;

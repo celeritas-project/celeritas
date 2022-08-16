@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/StringEnumMap.hh"
+#include "corecel/math/QuantityIO.json.hh"
 
 namespace celeritas
 {
@@ -62,36 +63,81 @@ const char* to_cstring(MscModelSelection value)
 } // namespace
 
 //---------------------------------------------------------------------------//
+// JSON serializers
+//---------------------------------------------------------------------------//
+void from_json(const nlohmann::json& j, MscModelSelection& value)
+{
+    static auto from_string
+        = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
+                                                              "msc model");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, const MscModelSelection& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+void from_json(const nlohmann::json& j, BremsModelSelection& value)
+{
+    static auto from_string
+        = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
+                                                                "brems model");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, const BremsModelSelection& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
  */
-void from_json(const nlohmann::json& j, GeantPhysicsOptions& opts)
+void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
 {
-    static auto brems_from_string
-        = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
-                                                                "brems model");
-    static auto msc_from_string
-        = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
-                                                              "msc model");
-
-    j.at("coulomb_scattering").get_to(opts.coulomb_scattering);
-    j.at("rayleigh_scattering").get_to(opts.rayleigh_scattering);
-    opts.brems = brems_from_string(j.at("brems").get<std::string>());
-    opts.msc   = msc_from_string(j.at("msc").get<std::string>());
-    j.at("em_bins_per_decade").get_to(opts.em_bins_per_decade);
+    options = {};
+#define GPO_LOAD_OPTION(NAME)                 \
+    do                                        \
+    {                                         \
+        if (j.count(#NAME))                   \
+            j.at(#NAME).get_to(options.NAME); \
+    } while (0)
+    GPO_LOAD_OPTION(coulomb_scattering);
+    GPO_LOAD_OPTION(rayleigh_scattering);
+    GPO_LOAD_OPTION(eloss_fluctuation);
+    GPO_LOAD_OPTION(lpm);
+    GPO_LOAD_OPTION(integral_approach);
+    GPO_LOAD_OPTION(brems);
+    GPO_LOAD_OPTION(msc);
+    GPO_LOAD_OPTION(em_bins_per_decade);
+    GPO_LOAD_OPTION(min_energy);
+    GPO_LOAD_OPTION(max_energy);
+    GPO_LOAD_OPTION(linear_loss_limit);
+#undef GPO_LOAD_OPTION
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, const GeantPhysicsOptions& opts)
+void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
 {
-    j = nlohmann::json{{"coulomb_scattering", opts.coulomb_scattering},
-                       {"rayleigh_scattering", opts.rayleigh_scattering},
-                       {"brems", std::string{to_cstring(opts.brems)}},
-                       {"msc", std::string{to_cstring(opts.msc)}},
-                       {"em_bins_per_decade", opts.em_bins_per_decade}};
+    j = nlohmann::json::object();
+#define GPO_SAVE_OPTION(NAME) j[#NAME] = options.NAME
+    GPO_SAVE_OPTION(coulomb_scattering);
+    GPO_SAVE_OPTION(rayleigh_scattering);
+    GPO_SAVE_OPTION(eloss_fluctuation);
+    GPO_SAVE_OPTION(lpm);
+    GPO_SAVE_OPTION(integral_approach);
+    GPO_SAVE_OPTION(brems);
+    GPO_SAVE_OPTION(msc);
+    GPO_SAVE_OPTION(em_bins_per_decade);
+    GPO_SAVE_OPTION(min_energy);
+    GPO_SAVE_OPTION(max_energy);
+    GPO_SAVE_OPTION(linear_loss_limit);
+#undef GPO_SAVE_OPTION
 }
 
 //---------------------------------------------------------------------------//

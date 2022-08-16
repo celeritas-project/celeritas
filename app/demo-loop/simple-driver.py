@@ -21,19 +21,28 @@ except ValueError:
 # We reuse the "disable device" environment variable, which prevents the GPU
 # from being initialized at runtime.
 use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
+use_vecgeom = not strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false'))
+geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
+
 run_name = (path.splitext(path.basename(geometry_filename))[0]
             + ('-gpu' if use_device else '-cpu'))
 
-geant_options = {}
-
-geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
+geant_options = {
+    'rayleigh': True,
+    'eloss_fluctuation': True,
+    'brems': "all",
+    'lpm': True,
+    'msc': "urban" if use_vecgeom else "none",
+}
 
 if geant_exp_exe:
     physics_filename = run_name + ".root"
-    result_ge = subprocess.run([geant_exp_exe,
-                                geometry_filename,
-                                "",
-                                physics_filename])
+    print("Running", geant_exp_exe)
+    result_ge = subprocess.run(
+        [geant_exp_exe, geometry_filename, "-", physics_filename],
+        input=json.dumps(geant_options).encode()
+    )
+
     if result_ge.returncode:
         print(f"fatal: {geant_exp_exe} failed with error {result_ge.returncode}")
         exit(result_ge.returncode)
@@ -41,19 +50,13 @@ else:
     # Load directly from Geant4 rather than ROOT file
     physics_filename = geometry_filename
 
-use_vecgeom = not strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false'))
 if not use_vecgeom:
     print("Replacing .gdml extension since VecGeom is disabled")
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 num_tracks = 128*32 if use_device else 32
 num_primaries = 3 * 15 # assuming test hepmc input
-
-if use_vecgeom:
-    # More steps needed for MSC
-    max_steps = 512
-else:
-    max_steps = 128
+max_steps = 512 if geant_options['msc'] else 128
 
 if not use_device:
     # Way more steps are needed since we're not tracking in parallel, but
@@ -72,20 +75,13 @@ inp = {
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
     'sync': True,
-    # Physics options
-    'rayleigh': True,
-    'eloss_fluctuation': True,
     'brem_combined': True,
-    'brem_lpm': True,
-    'conv_lpm': True,
-    'enable_msc': use_vecgeom,
+    'geant_options': geant_options,
 }
 
 
-print("Input:")
 with open(f'{run_name}.inp.json', 'w') as f:
     json.dump(inp, f, indent=1)
-print(json.dumps(inp, indent=1))
 
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-loop')
 print("Running", exe)
