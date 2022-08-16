@@ -126,7 +126,7 @@ class Span
     template<std::size_t Count>
     CELER_FUNCTION Span<T, Count> first() const
     {
-        CELER_EXPECT(Count <= this->size());
+        CELER_EXPECT(Count == 0 || Count <= this->size());
         return {s_.data, Count};
     }
     CELER_FUNCTION
@@ -140,7 +140,8 @@ class Span
     CELER_FUNCTION Span<T, detail::subspan_extent(Extent, Offset, Count)>
                    subspan() const
     {
-        CELER_EXPECT(Offset + Count <= this->size());
+        CELER_EXPECT(Count == dynamic_extent || Offset == 0 && Count == 0
+                     || Offset + Count <= this->size());
         return {s_.data + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
@@ -156,7 +157,7 @@ class Span
     template<std::size_t Count>
     CELER_FUNCTION Span<T, Count> last() const
     {
-        CELER_EXPECT(Count <= this->size());
+        CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data() + this->size() - Count, Count};
     }
     CELER_FUNCTION

@@ -25,12 +25,14 @@ TEST(PolyEvaluatorTest, make_eval)
     EXPECT_TRUE(
         (std::is_same<decltype(eval_poly), PolyEvaluator<double, 3>>()));
     EXPECT_EQ(4 * sizeof(double), sizeof(eval_poly));
+    EXPECT_DOUBLE_EQ(63.0, eval_poly(2.0));
 
     // Second-order int poly: 3 x^2 + 1
     auto eval_int_poly = make_poly_evaluator(1, 0, 3);
     EXPECT_TRUE(
         (std::is_same<decltype(eval_int_poly), PolyEvaluator<int, 2>>()));
     EXPECT_EQ(3 * sizeof(int), sizeof(eval_int_poly));
+    EXPECT_EQ(13, eval_int_poly(2));
 }
 
 TEST(PolyEvaluatorTest, degenerate)

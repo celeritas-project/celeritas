@@ -404,7 +404,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
                 for (ValueGridType vgt : range(ValueGridType::size_))
                 {
                     auto id = phys.value_grid(vgt, pp_id);
-                    grid_ids.push_back(id ? id.get() : -1);
+                    grid_ids.push_back(id ? static_cast<int>(id.get()) : -1);
                 }
             }
         }
