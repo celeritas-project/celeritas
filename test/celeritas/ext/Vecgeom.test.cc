@@ -445,5 +445,5 @@ class GeantBuilderTest : public VecgeomTestBase,
     }
 
   private:
-    UPPhysicalVolume world_volume_;
+    celeritas::UPG4PhysicalVolume world_volume_;
 };
