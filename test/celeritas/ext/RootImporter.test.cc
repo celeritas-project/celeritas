@@ -8,6 +8,7 @@
 #include "celeritas/ext/RootImporter.hh"
 
 #include <algorithm>
+#include <unordered_map>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -54,7 +55,7 @@ class RootImporterTest : public celeritas_test::Test
 TEST_F(RootImporterTest, particles)
 {
     const auto& particles = data_.particles;
-    EXPECT_EQ(4, particles.size());
+    EXPECT_EQ(3, particles.size());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
@@ -67,9 +68,9 @@ TEST_F(RootImporterTest, particles)
 
     // Particle ordering is the same as in the ROOT file
     // clang-format off
-    const std::string expected_loaded_names[] = {"e+", "e-", "gamma", "proton"};
+    const std::string expected_loaded_names[] = {"e+", "e-", "gamma"};
 
-    const int expected_loaded_pdgs[] = {-11, 11, 22, 2212};
+    const int expected_loaded_pdgs[] = {-11, 11, 22};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
@@ -156,11 +157,11 @@ TEST_F(RootImporterTest, materials)
     // clang-format off
     const std::string expected_names[]  = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     const int         expected_states[] = {3, 1};
-    const int    expected_pdgs[] = {-11, 11, 22, 2212, -11, 11, 22, 2212};
-    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099, 0.1,
-        1.22808845964606, 1.31345289979559, 0.0209231725658313, 0.1};
+    const int    expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
+    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099,
+        1.22808845964606, 1.31345289979559, 0.0209231725658313};
     const double expected_cutoff_ranges[]
-        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     const double expected_densities[] = {1e-25, 8};
     const double expected_e_densities[]
         = {0.05974697167543, 2.244432022882e+24};
@@ -197,18 +198,27 @@ TEST_F(RootImporterTest, processes)
 {
     const auto& processes = data_.processes;
 
-    auto iter = std::find_if(
-        processes.begin(), processes.end(), [](const ImportProcess& proc) {
-            return PDGNumber{proc.particle_pdg} == celeritas::pdg::electron()
-                   && proc.process_class == ImportProcessClass::e_ioni;
-        });
-    ASSERT_NE(processes.end(), iter);
+    auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
+        return std::find_if(processes.begin(),
+                            processes.end(),
+                            [&pdg, &ipc](const ImportProcess& proc) {
+                                return PDGNumber{proc.particle_pdg} == pdg
+                                       && proc.process_class == ipc;
+                            });
+    };
 
-    EXPECT_EQ(ImportProcessType::electromagnetic, iter->process_type);
-    ASSERT_EQ(1, iter->models.size());
-    EXPECT_EQ(ImportModelClass::moller_bhabha, iter->models.front());
+    auto ioni
+        = find_process(celeritas::pdg::electron(), ImportProcessClass::e_ioni);
+    ASSERT_NE(processes.end(), ioni);
 
-    const auto& tables = iter->tables;
+    EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
+    ASSERT_EQ(1, ioni->models.size());
+    EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
+
+    // No ionization micro xs
+    EXPECT_EQ(0, ioni->micro_xs.size());
+
+    const auto& tables = ioni->tables;
     ASSERT_EQ(3, tables.size());
     {
         // Test energy loss table
@@ -263,82 +273,108 @@ TEST_F(RootImporterTest, processes)
         EXPECT_SOFT_EQ(0.43566778103861714, steel.y.back());
     }
     {
-        // Test element selector cross-section table
-        EXPECT_EQ(iter->models.size(), iter->micro_xs.size());
+        // Test model microscopic cross sections
+        auto get_values = [](const ImportProcess::ElementPhysicsVectorMap& xs) {
+            std::unordered_map<std::string, std::vector<double>> result;
+            for (const auto& kv : xs)
+            {
+                const auto& vec = kv.second;
+                result["x_size"].push_back(vec.x.size());
+                result["y_size"].push_back(vec.y.size());
+                result["x_front"].push_back(vec.x.front());
+                result["y_front"].push_back(vec.y.front());
+                result["x_back"].push_back(vec.x.back());
+                result["y_back"].push_back(vec.y.back());
+                result["element_id"].push_back(kv.first);
+            }
+            return result;
+        };
 
-        // Current iter points to process class e_ioni
-        // Process e_ioni currently has only one available model: Moller-Bhabha
-        EXPECT_EQ(1, iter->micro_xs.size());
-
-        const auto& mb_pair = iter->micro_xs.find(iter->models.front());
-        EXPECT_EQ(ImportModelClass::moller_bhabha, mb_pair->first);
-
-        // Fetch vector of materials
-        const auto& mb_micro_xs = mb_pair->second;
-
-        // Expect 2 materials
-        EXPECT_EQ(2, mb_micro_xs.size());
-
-        // Second material is stainless steel, with 3 elements
-        const auto& steel_physvec_map = mb_micro_xs.back();
-        EXPECT_EQ(3, steel_physvec_map.size());
-
-        std::vector<double> element_id_list;
-        std::vector<double> element_physvec_x_size, element_physvec_y_size;
-        std::vector<double> element_physvec_x_front, element_physvec_y_front;
-        std::vector<double> element_physvec_x_back, element_physvec_y_back;
-        for (const auto& pair : steel_physvec_map)
+        auto brem = find_process(celeritas::pdg::electron(),
+                                 ImportProcessClass::e_brems);
+        ASSERT_NE(processes.end(), brem);
+        EXPECT_EQ(2, brem->micro_xs.size());
+        EXPECT_EQ(brem->models.size(), brem->micro_xs.size());
         {
-            const auto& phys_vec = pair.second;
+            // Check Seltzer-Berger electron micro xs
+            const auto& sb = brem->micro_xs.find(brem->models[0]);
+            EXPECT_EQ(ImportModelClass::e_brems_sb, sb->first);
 
-            element_id_list.push_back(pair.first);
+            // 2 materials; seccond material is stainless steel with 3 elements
+            EXPECT_EQ(2, sb->second.size());
+            EXPECT_EQ(3, sb->second.back().size());
 
-            element_physvec_x_size.push_back(phys_vec.x.size());
-            element_physvec_y_size.push_back(phys_vec.y.size());
+            // TODO: why is the SB electron micro xs zero?
+            static const double expected_size[] = {3, 3, 3};
+            static const double expected_x_front[]
+                = {1.3134528997956, 1.3134528997956, 1.3134528997956};
+            static const double expected_y_front[]    = {0, 0, 0};
+            static const double expected_x_back[]     = {1000, 1000, 1000};
+            static const double expected_y_back[]     = {0, 0, 0};
+            static const double expected_element_id[] = {0, 1, 2};
 
-            element_physvec_x_front.push_back(phys_vec.x.front());
-            element_physvec_y_front.push_back(phys_vec.y.front());
-
-            element_physvec_x_back.push_back(phys_vec.x.back());
-            element_physvec_y_back.push_back(phys_vec.y.back());
+            auto actual = get_values(sb->second.back());
+            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
+            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
         }
-
-        static const double expected_element_id_list[] = {0, 1, 2};
-
-        // expected_element_physvec_y_size is not needed: x.size() == y.size()
-        static const double expected_element_physvec_x_size[] = {9, 9, 9};
-
-        static const double expected_element_physvec_x_front[]
-            = {1.31345289979559, 1.31345289979559, 1.31345289979559};
-        static const double expected_element_physvec_y_front[]
-            = {4.57705e-24, 4.22497e-24, 4.92913e-24};
-
-        static const double expected_element_physvec_x_back[]
-            = {1e+08, 1e+08, 1e+08};
-        static const double expected_element_physvec_y_back[] = {
-            5.04687252343649e-24, 4.65865156009522e-24, 5.43509348677776e-24};
-
-        EXPECT_VEC_EQ(expected_element_id_list, element_id_list);
-        EXPECT_VEC_EQ(element_physvec_x_size, element_physvec_y_size);
-        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_size,
-                           element_physvec_x_size);
-
-        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_front,
-                           element_physvec_x_front);
-        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_front,
-                           element_physvec_y_front);
-
-        EXPECT_VEC_SOFT_EQ(expected_element_physvec_x_back,
-                           element_physvec_x_back);
-        EXPECT_VEC_SOFT_EQ(expected_element_physvec_y_back,
-                           element_physvec_y_back);
-
-        for (auto i : celeritas::range(3))
         {
-            EXPECT_GT(element_physvec_x_back[i], 0);
-            EXPECT_GT(element_physvec_x_front[i], 0);
-            EXPECT_GT(element_physvec_y_back[i], 0);
-            EXPECT_GT(element_physvec_y_front[i], 0);
+            // Check relativistic brems electron micro xs
+            const auto& rb = brem->micro_xs.find(brem->models[1]);
+            EXPECT_EQ(ImportModelClass::e_brems_lpm, rb->first);
+
+            static const double expected_size[]    = {5, 5, 5};
+            static const double expected_x_front[] = {1000, 1000, 1000};
+            static const double expected_y_front[] = {
+                5.4636008878252e-23, 4.7094861168004e-23, 6.2690207991257e-23};
+            static const double expected_x_back[]
+                = {100000000, 100000000, 100000000};
+            static const double expected_y_back[] = {
+                5.4636008878252e-23, 4.7094861168004e-23, 6.2690207991257e-23};
+            static const double expected_element_id[] = {0, 1, 2};
+
+            auto actual = get_values(rb->second.back());
+            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
+            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
+        }
+        {
+            // Check Klein-Nishina micro xs
+            auto comp = find_process(celeritas::pdg::gamma(),
+                                     ImportProcessClass::compton);
+            ASSERT_NE(processes.end(), comp);
+            EXPECT_EQ(1, comp->micro_xs.size());
+            EXPECT_EQ(comp->models.size(), comp->micro_xs.size());
+
+            const auto& kn = comp->micro_xs.find(comp->models[0]);
+            EXPECT_EQ(ImportModelClass::klein_nishina, kn->first);
+
+            static const double expected_size[]    = {13, 13, 13};
+            static const double expected_x_front[] = {0.0001, 0.0001, 0.0001};
+            static const double expected_y_front[] = {
+                1.0069880589339e-24, 9.6395721121544e-25, 1.042982687407e-24};
+            static const double expected_x_back[]
+                = {100000000, 100000000, 100000000};
+            static const double expected_y_back[] = {
+                7.3005460134493e-31, 6.7387221120147e-31, 7.8623296376253e-31};
+            static const double expected_element_id[] = {0, 1, 2};
+
+            auto actual = get_values(kn->second.back());
+            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
+            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
+            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
+            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
         }
     }
 }
@@ -360,10 +396,17 @@ TEST_F(RootImporterTest, volumes)
     }
 
     const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
-    const std::string  expected_names[]
-        = {"box", "boxReplica", "boxReplica", "boxReplica", "World"};
-    const std::string expected_solids[]
-        = {"box", "boxReplica", "boxReplica2", "boxReplica3", "World"};
+
+    static const std::string expected_names[]  = {"box0x125555be0",
+                                                 "box0x125556d20",
+                                                 "box0x125557160",
+                                                 "box0x1255575a0",
+                                                 "World0x125555f10"};
+    static const std::string expected_solids[] = {"box0x125555b70",
+                                                  "box0x125556c70",
+                                                  "box0x1255570a0",
+                                                  "box0x125557500",
+                                                  "World0x125555ea0"};
 
     EXPECT_VEC_EQ(expected_material_ids, material_ids);
     EXPECT_VEC_EQ(expected_names, names);

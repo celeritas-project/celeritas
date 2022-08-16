@@ -14,6 +14,7 @@
 #include <G4ParticleTable.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
+#include <G4ProductionCutsTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
@@ -323,7 +324,13 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
         process_.models.push_back(model_class_id);
 
         // Save element-selector data
-        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
+        if (model_class_id == ImportModelClass::bethe_heitler_lpm
+            || model_class_id == ImportModelClass::klein_nishina
+            || model_class_id == ImportModelClass::livermore_rayleigh)
+        {
+            process_.micro_xs.insert(
+                {model_class_id, this->add_micro_xs(model)});
+        }
     }
 
     // Save potential tables
@@ -352,7 +359,13 @@ void ImportProcessConverter::store_energy_loss_tables(
         process_.models.push_back(model_class_id);
 
         // Save element-selector data
-        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
+        if (model_class_id == ImportModelClass::e_brems_sb
+            || model_class_id == ImportModelClass::e_brems_lpm
+            || model_class_id == ImportModelClass::mu_brems)
+        {
+            process_.micro_xs.insert(
+                {model_class_id, this->add_micro_xs(model)});
+        }
     }
 
     if (process.IsIonisationProcess())
@@ -549,7 +562,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
             process_.particle_pdg);
     ImportProcess::ModelMicroXS model_micro_xs;
 
-    for (int mat_id : celeritas::range(materials_.size()))
+    for (unsigned int mat_id : celeritas::range(materials_.size()))
     {
         const auto& material = materials_.at(mat_id);
 
@@ -559,7 +572,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         for (const auto& elem_comp : material.elements)
         {
             ImportPhysicsVector physics_vector
-                = this->initialize_micro_xs_physics_vector(model, material);
+                = this->initialize_micro_xs_physics_vector(model, mat_id);
             element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
@@ -637,9 +650,11 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
  * The energy grid is calculated in the same way as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
-ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
-    G4VEmModel& model, const ImportMaterial& material)
+ImportPhysicsVector
+ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
+                                                           unsigned int mat_id)
 {
+    const auto& material = materials_.at(mat_id);
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
@@ -650,7 +665,19 @@ ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
         auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
         if (cutoff_iter != material.pdg_cutoffs.end())
         {
-            min_energy = std::max(cutoff_iter->second.energy, min_energy);
+            const auto& g4_cuts_table
+                = *G4ProductionCutsTable::GetProductionCutsTable();
+            CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
+            const auto& g4_material
+                = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
+            const auto g4_particle
+                = G4ParticleTable::GetParticleTable()->FindParticle(
+                    process_.particle_pdg);
+            double min_primary_energy
+                = model.MinPrimaryEnergy(
+                      g4_material, g4_particle, cutoff_iter->second.energy)
+                  / MeV;
+            min_energy = std::max(min_primary_energy, min_energy);
         }
     }
     const double max_energy = model.HighEnergyLimit() / MeV;

@@ -277,7 +277,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     }
 
     // Loop over material data
-    for (int i : range(g4production_cuts_table.GetTableSize()))
+    for (unsigned int i : range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material, element, and production cuts lists
         const auto& g4material_cuts_couple
@@ -350,7 +350,8 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
         // Add material to vector
         const unsigned int material_id = g4material_cuts_couple->GetIndex();
         CELER_ASSERT(material_id < materials.size());
-        materials[g4material_cuts_couple->GetIndex()] = material;
+        CELER_ASSERT(material_id == i);
+        materials[material_id] = material;
     }
 
     CELER_LOG(debug) << "Loaded " << materials.size() << " materials";

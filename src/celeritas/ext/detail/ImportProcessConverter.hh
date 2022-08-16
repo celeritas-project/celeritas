@@ -115,8 +115,7 @@ class ImportProcessConverter
 
     // Set up the physics vector energy grid for add_micro_xs(...)
     ImportPhysicsVector
-    initialize_micro_xs_physics_vector(G4VEmModel&           model,
-                                       const ImportMaterial& material);
+    initialize_micro_xs_physics_vector(G4VEmModel& model, unsigned int mat_id);
 
   private:
     // Store material and element information for the element selector tables
