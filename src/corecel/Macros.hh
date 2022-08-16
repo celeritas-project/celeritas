@@ -116,6 +116,7 @@
  * (to provide a more detailed error message in case the point *is* reached).
  */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
+    || defined(__NVCOMPILER)                                               \
     || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)                 \
     || defined(__HIP_DEVICE_COMPILE__)
 #    define CELER_UNREACHABLE __builtin_unreachable()
