@@ -76,7 +76,7 @@ struct StaticSurfaceAction
 
 #define ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, TYPE) \
     case SurfaceType::TYPE:                        \
-        FUNC(typename SurfaceTypeTraits<SurfaceType::TYPE>::type) break
+        FUNC(typename SurfaceTypeTraits<SurfaceType::TYPE>::type)
 
 #define ORANGE_SURF_DISPATCH_IMPL(FUNC, ST)                 \
     do                                                      \
