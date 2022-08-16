@@ -74,10 +74,21 @@ struct StaticSurfaceAction
 // PRIVATE MACRO DEFINITIONS
 //---------------------------------------------------------------------------//
 
+//! Call a function for the given type, using the type as the argument.
 #define ORANGE_SURF_DISPATCH_CASE_IMPL(FUNC, TYPE) \
     case SurfaceType::TYPE:                        \
         FUNC(typename SurfaceTypeTraits<SurfaceType::TYPE>::type)
 
+/*!
+ * Expand a macro to a switch statement over all possible surface types.
+ *
+ * The \c FUNC argument should be a macro that:
+ * - takes a single argument which is a surface class identifier (e.g.
+ *   \c GeneralQuadric)
+ * - calls \c return or \c break
+ *
+ * The \c ST argument must be a value of type \c SurfaceType.
+ */
 #define ORANGE_SURF_DISPATCH_IMPL(FUNC, ST)                 \
     do                                                      \
     {                                                       \
