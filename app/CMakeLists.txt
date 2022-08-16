@@ -238,7 +238,8 @@ if(CELERITAS_BUILD_DEMOS)
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
 
   if(NOT CELERITAS_USE_OpenMP AND
-      (CMAKE_CXX_COMPILER STREQUAL "GNU" OR CMAKE_CXX_COMPILER MATCHES "Clang"))
+      (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
     celeritas_target_compile_options(demo-loop
       PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
     )
