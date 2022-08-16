@@ -142,7 +142,7 @@
         do                                     \
         {                                      \
             assert(false);                     \
-            celeritas::unreachable();          \
+            ::celeritas::unreachable();        \
         } while (0)
 #endif
 
