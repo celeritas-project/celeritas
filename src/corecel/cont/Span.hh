@@ -140,7 +140,7 @@ class Span
     CELER_FUNCTION Span<T, detail::subspan_extent(Extent, Offset, Count)>
                    subspan() const
     {
-        CELER_EXPECT(Count == dynamic_extent || Offset == 0 && Count == 0
+        CELER_EXPECT(Count == dynamic_extent || (Offset == 0 && Count == 0)
                      || Offset + Count <= this->size());
         return {s_.data + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
