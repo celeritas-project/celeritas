@@ -83,7 +83,7 @@ TestOutput curand_test(TestParams params)
 
     curand_setup_kernel<<<params.nblocks, params.nthreads>>>(devStates,
                                                              time(NULL));
-    CELER_CUDA_CALL(cudaThreadSynchronize());
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Output data for kernel
     thrust::device_vector<double> sum(params.nthreads * params.nblocks, 0.0);

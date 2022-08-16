@@ -286,8 +286,11 @@ endif()
 
 if(CELERITAS_USE_OpenMP)
   celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
-else()
-  celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
+  celeritas_target_compile_options(celeritas
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+  )
 endif()
 
 celeritas_target_link_libraries(celeritas

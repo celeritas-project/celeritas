@@ -32,6 +32,7 @@ class OpaqueIdTest : public celeritas_test::Test
 TEST(OpaqueIdTest, operations)
 {
     using Id_t = OpaqueId<TestInstantiator, std::size_t>;
+    constexpr auto sizemax = static_cast<std::size_t>(-1);
 
     Id_t unassigned;
     EXPECT_FALSE(unassigned);
@@ -41,8 +42,8 @@ TEST(OpaqueIdTest, operations)
 #if CELERITAS_DEBUG
     EXPECT_THROW(unassigned.get(), celeritas::DebugError);
 #endif
-    EXPECT_EQ(static_cast<size_t>(-1), Id_t{}.unchecked_get());
-    EXPECT_EQ(std::hash<std::size_t>()(-1), std::hash<Id_t>()(unassigned));
+    EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
+    EXPECT_EQ(std::hash<std::size_t>()(sizemax), std::hash<Id_t>()(unassigned));
 
     Id_t assigned{123};
     EXPECT_TRUE(assigned);

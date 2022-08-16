@@ -298,7 +298,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         // random number generator and by the energy of particle.
         // The number of tries is picked so that each process is selected at
         // least once.
-        std::vector<ActionId::size_type> models(13, -1);
+        std::vector<ActionId::size_type> models(13, ActionId::size_type(-1));
         for (auto i : range(models.size()))
         {
             auto action_id = select_discrete_interaction(
