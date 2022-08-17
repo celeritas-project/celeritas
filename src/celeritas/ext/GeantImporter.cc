@@ -267,7 +267,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     materials.resize(g4production_cuts_table.GetTableSize());
 
     using CutRange = std::pair<G4ProductionCutsIndex,
-                               std::unique_ptr<G4VRangeToEnergyConverter> >;
+                               std::unique_ptr<G4VRangeToEnergyConverter>>;
 
     std::vector<CutRange> cut_converters;
     for (auto gi : range(NumberOfG4CutIndex))
