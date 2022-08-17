@@ -112,9 +112,10 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         GeantSetup::Options opts;
 #if CELERITAS_USE_JSON
         {
-        nlohmann::json out = opts;
-        static const char expected[] = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true})json";
-        EXPECT_EQ(std::string(expected), std::string(out.dump()));
+            nlohmann::json    out = opts;
+            static const char expected[]
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true})json";
+            EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
 #endif
         return GeantSetup(

@@ -60,7 +60,7 @@ struct GeantPhysicsOptions
     BremsModelSelection brems{BremsModelSelection::all};
     MscModelSelection   msc{MscModelSelection::urban};
 
-    int em_bins_per_decade{7};
+    int              em_bins_per_decade{7};
     units::MevEnergy min_energy{0.1 * 1e-3}; // 0.1 keV
     units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
     real_type        linear_loss_limit{0.01};

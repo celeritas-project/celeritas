@@ -67,7 +67,8 @@ int main(int argc, char* argv[])
     {
         auto inp = nlohmann::json::parse(std::cin);
         inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options: " << nlohmann::json{options}.dump();
+        CELER_LOG(info) << "Loaded Geant4 setup options: "
+                        << nlohmann::json{options}.dump();
     }
     else
     {
@@ -79,7 +80,9 @@ int main(int argc, char* argv[])
         }
         auto inp = nlohmann::json::parse(infile);
         inp.get_to(options);
-        CELER_LOG(info) << "Loaded Geant4 setup options from " << option_filename << ": " << nlohmann::json{options}.dump();
+        CELER_LOG(info) << "Loaded Geant4 setup options from "
+                        << option_filename << ": "
+                        << nlohmann::json{options}.dump();
     }
 #else
     else

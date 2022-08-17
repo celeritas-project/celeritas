@@ -260,7 +260,7 @@ std::vector<ImportMaterial>
 store_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
-    const auto& g4production_cuts_table
+    const auto&    g4production_cuts_table
         = *G4ProductionCutsTable::GetProductionCutsTable();
 
     std::vector<ImportMaterial> materials;
@@ -331,10 +331,10 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
         // Populate material production cut values
         for (const auto& idx_convert : cut_converters)
         {
-            G4ProductionCutsIndex g4i = idx_convert.first;
+            G4ProductionCutsIndex      g4i       = idx_convert.first;
             G4VRangeToEnergyConverter& converter = *idx_convert.second;
 
-            const double range = g4prod_cuts->GetProductionCut(g4i);
+            const double range  = g4prod_cuts->GetProductionCut(g4i);
             const double energy = converter.Convert(range, g4material);
 
             ImportProductionCut cutoffs;
