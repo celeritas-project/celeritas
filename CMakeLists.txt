@@ -211,6 +211,15 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_GDML_FOUND)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
+  if(CELERITAS_USE_CUDA AND VecGeom_VERSION VERSION_GREATER_EQUAL 1.2
+      AND BUILD_SHARED_LIBS)
+    message(SEND_ERROR "VecGeom 1.2+ is incompatible with a Celeritas shared "
+      "library build (BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}); "
+      "overriding for next configure"
+    )
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL
+      "Disabled due to VecGeom CUDA requirements" FORCE)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_TESTS AND NOT GTest_FOUND)
