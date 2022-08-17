@@ -44,7 +44,7 @@ EventReader::~EventReader() = default;
 /*!
  * Read a single event from the event record.
  */
-auto EventReader::operator()() -> VecPrimary
+auto EventReader::operator()() -> result_type
 {
     // Parse the next event from the record
     HepMC3::GenEvent gen_event;
@@ -59,8 +59,8 @@ auto EventReader::operator()() -> VecPrimary
     // Convert the energy units to MeV and the length units to cm
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
 
-    VecPrimary result;
-    int        track_id = 0;
+    result_type result;
+    int         track_id = 0;
     for (auto gen_particle : gen_event.particles())
     {
         // Get the PDG code and check if this particle type is defined for

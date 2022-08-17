@@ -27,8 +27,8 @@ struct Primary;
  * Read a HepMC3 event record file and create primary particles.
  *
  * Each \c operator() call returns a vector of primaries from a single event
- * until all events have been read. Supported forrmats are Asciiv3,
- * IO_GenEvent, HEPEVT, and LHEF.
+ * until all events have been read. Supported formats are Asciiv3, IO_GenEvent,
+ * HEPEVT, and LHEF.
  */
 class EventReader
 {
@@ -36,18 +36,18 @@ class EventReader
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using VecPrimary       = std::vector<Primary>;
+    using result_type      = std::vector<Primary>;
     //!@}
 
   public:
     // Construct from a filename
-    explicit EventReader(const char* filename, SPConstParticles params);
+    EventReader(const char* filename, SPConstParticles params);
 
     // Default destructor in .cc
     ~EventReader();
 
     // Read a single event from the event record
-    VecPrimary operator()();
+    result_type operator()();
 
   private:
     // Shared standard model particle data
