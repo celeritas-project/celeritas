@@ -42,7 +42,9 @@ struct PrimaryGeneratorOptions
  * Generate a vector of primaries.
  *
  * This simple helper class can be used to generate primary particles of a
- * single particle type with a fixed energy, position, and direction.
+ * single particle type with a fixed energy, position, and direction. Each \c
+ * operator() call will return a single event until \c num_events events have
+ * been generated.
  */
 class PrimaryGenerator
 {
@@ -56,13 +58,14 @@ class PrimaryGenerator
     // Construct with options and shared particle data
     PrimaryGenerator(SPConstParticles, const PrimaryGeneratorOptions&);
 
-    // Generate primary particles
+    // Generate primary particles from a single event
     VecPrimary operator()();
 
   private:
     size_type num_events_;
     size_type primaries_per_event_;
     Primary   primary_;
+    size_type event_count_{0};
 };
 
 //---------------------------------------------------------------------------//
