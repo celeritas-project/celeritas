@@ -255,10 +255,10 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         if (options_.msc == MscModelSelection::urban)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
-            model->SetLowEnergyLimit(msc_energy_limit);
+            model->SetHighEnergyLimit(msc_energy_limit);
             process->SetEmModel(model.release());
 
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Loaded low-energy multiple scattering with "
                                 "G4UrbanMscModel";
         }
 
@@ -268,7 +268,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
             model->SetLowEnergyLimit(msc_energy_limit);
             process->SetEmModel(model.release());
 
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
                                 "G4WentzelVIModel";
         }
 
