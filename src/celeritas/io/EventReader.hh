@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/Types.hh"
+
 namespace HepMC3
 {
 class Reader;
@@ -22,10 +24,11 @@ struct Primary;
 
 //---------------------------------------------------------------------------//
 /*!
- * Read an event record file using the HepMC3 event record library and create
- * primary particles.
+ * Read a HepMC3 event record file and create primary particles.
  *
- * Supported forrmats are Asciiv3, IO_GenEvent, HEPEVT, and LHEF.
+ * Each \c operator() call returns a vector of primaries from a single event
+ * until all events have been read. Supported forrmats are Asciiv3,
+ * IO_GenEvent, HEPEVT, and LHEF.
  */
 class EventReader
 {
@@ -33,7 +36,7 @@ class EventReader
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using result_type      = std::vector<Primary>;
+    using VecPrimary       = std::vector<Primary>;
     //!@}
 
   public:
@@ -43,8 +46,8 @@ class EventReader
     // Default destructor in .cc
     ~EventReader();
 
-    // Generate primary particles from the event record
-    result_type operator()();
+    // Read a single event from the event record
+    VecPrimary operator()();
 
   private:
     // Shared standard model particle data
@@ -52,6 +55,9 @@ class EventReader
 
     // HepMC3 event record reader
     std::shared_ptr<HepMC3::Reader> input_file_;
+
+    // Number of events read
+    size_type event_count_{0};
 };
 
 //---------------------------------------------------------------------------//
