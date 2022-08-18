@@ -201,8 +201,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
-        return {
-            true_path_, {0, 0, 0}, {0, 0, 0}, MscInteraction::Action::unchanged};
+        return {true_path_,
+                inc_direction_,
+                {0, 0, 0},
+                MscInteraction::Action::unchanged};
     }
 
     // Sample polar angle and update tau_
