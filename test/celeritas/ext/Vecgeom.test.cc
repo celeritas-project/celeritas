@@ -62,7 +62,7 @@ class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
     //! Construct host state (and load geometry) during steup
     void SetUp() override
     {
-        host_state = HostStateStore(*this->geometry(), 1);
+        host_state = HostStateStore(this->geometry()->host_ref(), 1);
     }
 
     //! Create a host track view
@@ -395,7 +395,7 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
                   {{-10, 10, -10}, {-1, 0, 0}},
                   {{-10, -10, 10}, {-1, 0, 0}},
                   {{-10, -10, -10}, {-1, 0, 0}}};
-    StateStore device_states(*this->geometry(), input.init.size());
+    StateStore device_states(this->geometry()->host_ref(), input.init.size());
     input.max_segments = 5;
     input.params       = this->geometry()->device_ref();
     input.state        = device_states.ref();

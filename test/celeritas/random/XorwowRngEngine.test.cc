@@ -196,7 +196,7 @@ class XorwowRngEngineTest : public celeritas_test::Test
 TEST_F(XorwowRngEngineTest, host)
 {
     // Construct and initialize
-    HostStore states(*params, 8);
+    HostStore states(params->host_ref(), 8);
 
     Span<XorwowState> state_ref = states.ref().state[AllItems<XorwowState>{}];
 
@@ -230,7 +230,7 @@ TEST_F(XorwowRngEngineTest, moments)
     unsigned int num_samples = 1 << 12;
     unsigned int num_seeds   = 1 << 8;
 
-    HostStore states(*params, num_seeds);
+    HostStore states(params->host_ref(), num_seeds);
     RngTally  tally;
 
     for (unsigned int i = 0; i < num_seeds; ++i)
@@ -247,7 +247,7 @@ TEST_F(XorwowRngEngineTest, moments)
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states
-    DeviceStore rng_store(*params, 1024);
+    DeviceStore rng_store(params->host_ref(), 1024);
     // Copy to host and check
     StateCollection<XorwowState, Ownership::value, MemSpace::host> host_state;
     host_state = rng_store.ref().state;

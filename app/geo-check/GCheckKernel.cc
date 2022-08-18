@@ -25,7 +25,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
 {
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
-    StateStore state = StateStore(*params, 1);
+    StateStore state = StateStore(params->host_ref(), 1);
 
     GeoTrackView geo(params->host_ref(), state.ref(), ThreadId(0));
     geo = GeoTrackInitializer{init->pos, init->dir};

@@ -65,7 +65,7 @@ Stepper<M>::Stepper(Input input)
                    << "number of track slots has not been set");
     CELER_VALIDATE(input.num_initializers > 0,
                    << "number of initializers has not been set");
-    states_ = CollectionStateStore<CoreStateData, M>(*params_,
+    states_ = CollectionStateStore<CoreStateData, M>(params_->host_ref(),
                                                      input.num_track_slots);
 
     // Construct main actions

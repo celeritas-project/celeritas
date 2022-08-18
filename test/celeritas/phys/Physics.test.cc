@@ -154,7 +154,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
         CELER_ASSERT(this->physics());
         params_ref = this->physics()->host_ref();
-        state      = StateStore(*this->physics(), state_size);
+        state      = StateStore(params_ref, state_size);
 
         // Clear secondary data (done in pre-step kernel)
         {
@@ -672,7 +672,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
         this->inits = temp_inits;
     }
 
-    states = StateStore(*this->physics(), this->inits.size());
+    states = StateStore(this->physics()->host_ref(), this->inits.size());
     celeritas::DeviceVector<real_type> step(this->states.size());
 
     PTestInput inp;
@@ -774,7 +774,7 @@ TEST_F(EPlusAnnihilationTest, accessors)
 TEST_F(EPlusAnnihilationTest, host_track_view)
 {
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
-        *this->physics(), 1};
+        this->physics()->host_ref(), 1};
     ::celeritas::HostCRef<PhysicsParamsData> params_ref{
         this->physics()->host_ref()};
 

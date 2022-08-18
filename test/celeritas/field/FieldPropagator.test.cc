@@ -75,8 +75,8 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
 
     void SetUp() override
     {
-        geo_state_ = GeoStateStore(*this->geometry(), 1);
-        par_state_ = ParStateStore(*this->particle(), 1);
+        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
+        par_state_ = ParStateStore(this->particle()->host_ref(), 1);
     }
 
     ParticleTrackView init_particle(ParticleId id, MevEnergy energy)

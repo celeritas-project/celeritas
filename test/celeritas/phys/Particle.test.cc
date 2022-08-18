@@ -222,7 +222,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
                   {ParticleId{2}, MevEnergy{20}}};
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init.size());
+        particle_params->host_ref(), input.init.size());
     input.params = particle_params->device_ref();
     input.states = pstates.ref();
 

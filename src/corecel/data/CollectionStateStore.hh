@@ -46,7 +46,7 @@ class CollectionStateStore
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Value     = S<Ownership::value, M>;
     using Ref       = S<Ownership::reference, M>;
     using size_type = ThreadId::size_type;
@@ -56,8 +56,8 @@ class CollectionStateStore
     CollectionStateStore() = default;
 
     // Construct from parameters
-    template<class Params>
-    inline CollectionStateStore(const Params& p, size_type size);
+    template<template<Ownership, MemSpace> class P>
+    inline CollectionStateStore(const HostCRef<P>& p, size_type size);
 
     // Construct without parameters
     explicit inline CollectionStateStore(size_type size);
@@ -100,15 +100,15 @@ class CollectionStateStore
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from parameters.
+ * Construct from parameter data.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-template<class Params>
-CollectionStateStore<S, M>::CollectionStateStore(const Params& p,
-                                                 size_type     size)
+template<template<Ownership, MemSpace> class P>
+CollectionStateStore<S, M>::CollectionStateStore(const HostCRef<P>& p,
+                                                 size_type          size)
 {
     CELER_EXPECT(size > 0);
-    resize(&val_, p.host_ref(), size);
+    resize(&val_, p, size);
 
     // Save reference
     ref_ = val_;
