@@ -104,8 +104,6 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
-    CELER_EXPECT(electron_cutoff_
-                 >= value_as<Energy>(shared_.min_valid_energy()));
 }
 
 //---------------------------------------------------------------------------//
