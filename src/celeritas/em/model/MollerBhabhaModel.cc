@@ -46,12 +46,12 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
  */
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
+    // TODO: potentially set lower energy bound based on (material-dependent)
+    // IonizationProcess lambda table energy grid to avoid invoking the
+    // interactor for tracks with energy below the interaction threshold
+
     Applicability electron_applic, positron_applic;
 
-    // The electron applicability.lower is twice the one for positrons due to
-    // its maximum transferable energy fraction being 0.5 (which is 1/2 the
-    // positron's). This prevents it to run an infinite number of Moller
-    // sampling loops.
     electron_applic.particle = interface_.ids.electron;
     electron_applic.lower    = zero_quantity();
     electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
