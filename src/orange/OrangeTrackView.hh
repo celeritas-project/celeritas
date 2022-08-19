@@ -20,7 +20,26 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operate on the device with shared (persistent) params and local state.
+ * Navigate through a geometry on a single thread.
+ *
+ * Ordering requirements:
+ * - initialize (through assignment) must come first
+ * - access (pos, dir, volume/surface/is_outside) good at any time
+ * - \c find_safety (fine at any time)
+ * - \c find_next_step
+ * - \c move_internal or \c move_to_boundary
+ * - if on boundary, \c cross_boundary
+ * - at any time, \c set_dir , but then must do \c find_next_step before any
+ *   following action above
+ *
+ * The main point is that \c find_next_step depends on the current
+ * straight-line direction, \c move_to_boundary and \c move_internal (with
+ * a step length) depends on that distance, and
+ * \c cross_boundary depends on being on the boundary with a knowledge of the
+ * post-boundary state.
+ *
+ * \c move_internal with a position \em should depend on the safety distance
+ * but that's not yet implemented.
  */
 class OrangeTrackView
 {

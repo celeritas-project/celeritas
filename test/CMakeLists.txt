@@ -53,6 +53,7 @@ if(CELERITAS_USE_HIP)
     orange/univ/SimpleUnitTracker.test.cu
     celeritas/phys/Particle.test.cu
     celeritas/phys/Physics.test.cu
+    celeritas/geo/Geometry.test.cu
     celeritas/mat/Material.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
@@ -108,7 +109,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTING ADDITION TESTS
 #-----------------------------------------------------------------------------#
-celeritas_setup_tests(SERIAL PREFIX test/detail)
+celeritas_setup_tests(SERIAL PREFIX detail)
 
 celeritas_add_test(detail/Macros.test.cc)
 
@@ -283,6 +284,8 @@ celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
 #-------------------------------------#
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
+
+celeritas_device_test(celeritas/geo/Geometry ${_needs_geo})
 
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
   ${_needs_root} ${_needs_geo}
