@@ -214,6 +214,7 @@ TEST_F(RootImporterTest, processes)
     EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
     ASSERT_EQ(1, ioni->models.size());
     EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
+    EXPECT_EQ(celeritas::pdg::electron().get(), ioni->secondary_pdg);
 
     // No ionization micro xs
     EXPECT_EQ(0, ioni->micro_xs.size());
@@ -293,6 +294,7 @@ TEST_F(RootImporterTest, processes)
         auto brem = find_process(celeritas::pdg::electron(),
                                  ImportProcessClass::e_brems);
         ASSERT_NE(processes.end(), brem);
+        EXPECT_EQ(celeritas::pdg::gamma().get(), brem->secondary_pdg);
         EXPECT_EQ(2, brem->micro_xs.size());
         EXPECT_EQ(brem->models.size(), brem->micro_xs.size());
         {
@@ -305,9 +307,9 @@ TEST_F(RootImporterTest, processes)
             EXPECT_EQ(3, sb->second.back().size());
 
             // TODO: why is the SB electron micro xs zero?
-            static const double expected_size[] = {3, 3, 3};
+            static const double expected_size[] = {5, 5, 5};
             static const double expected_x_front[]
-                = {1.3134528997956, 1.3134528997956, 1.3134528997956};
+                = {0.0209231725658313, 0.0209231725658313, 0.0209231725658313};
             static const double expected_y_front[]    = {0, 0, 0};
             static const double expected_x_back[]     = {1000, 1000, 1000};
             static const double expected_y_back[]     = {0, 0, 0};
@@ -351,6 +353,7 @@ TEST_F(RootImporterTest, processes)
             auto comp = find_process(celeritas::pdg::gamma(),
                                      ImportProcessClass::compton);
             ASSERT_NE(processes.end(), comp);
+            EXPECT_EQ(celeritas::pdg::electron().get(), comp->secondary_pdg);
             EXPECT_EQ(1, comp->micro_xs.size());
             EXPECT_EQ(comp->models.size(), comp->micro_xs.size());
 

@@ -128,6 +128,7 @@ struct ImportProcess
     //!@}
 
     int                                      particle_pdg;
+    int                                      secondary_pdg{0};
     ImportProcessType                        process_type;
     ImportProcessClass                       process_class;
     std::vector<ImportModelClass>            models;

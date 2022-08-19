@@ -275,6 +275,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
         // G4VEmProcess tables
+        if (const auto* secondary = em_process->SecondaryParticle())
+        {
+            process_.secondary_pdg = secondary->GetPDGEncoding();
+        }
         this->store_em_tables(*em_process);
     }
 
@@ -282,6 +286,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
+        if (const auto* secondary = energy_loss->SecondaryParticle())
+        {
+            process_.secondary_pdg = secondary->GetPDGEncoding();
+        }
         this->store_energy_loss_tables(*energy_loss);
     }
 
@@ -587,11 +595,18 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 
             const G4Element& g4_element
                 = *g4_nist_manager.FindOrBuildElement(element.atomic_number);
-            const double particle_cutoff
-                = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
-
             auto& physics_vector
                 = element_physvec_map.find(elem_comp.element_id)->second;
+
+            // Get the secondary production cut
+            double secondary_cutoff = 0;
+            if (process_.secondary_pdg != 0)
+            {
+                auto cutoffs
+                    = material.pdg_cutoffs.find(process_.secondary_pdg);
+                CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
+                secondary_cutoff = cutoffs->second.energy;
+            }
 
             for (int bin_idx : celeritas::range(energy_grid.size()))
             {
@@ -604,7 +619,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
                           model.ComputeCrossSectionPerAtom(&g4_particle_def,
                                                            &g4_element,
                                                            energy_bin_value,
-                                                           particle_cutoff,
+                                                           secondary_cutoff,
                                                            energy_bin_value))
                       / cm2;
 
@@ -660,25 +675,28 @@ ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
+    double secondary_cutoff = 0;
+    if (process_.secondary_pdg != 0)
+    {
+        auto cutoffs = material.pdg_cutoffs.find(process_.secondary_pdg);
+        CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
+        secondary_cutoff = cutoffs->second.energy;
+    }
+
     double min_energy = model.LowEnergyLimit() / MeV;
     {
-        auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
-        if (cutoff_iter != material.pdg_cutoffs.end())
-        {
-            const auto& g4_cuts_table
-                = *G4ProductionCutsTable::GetProductionCutsTable();
-            CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
-            const auto& g4_material
-                = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
-            const auto g4_particle
-                = G4ParticleTable::GetParticleTable()->FindParticle(
-                    process_.particle_pdg);
-            double min_primary_energy
-                = model.MinPrimaryEnergy(
-                      g4_material, g4_particle, cutoff_iter->second.energy)
-                  / MeV;
-            min_energy = std::max(min_primary_energy, min_energy);
-        }
+        const auto& g4_cuts_table
+            = *G4ProductionCutsTable::GetProductionCutsTable();
+        CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
+        const auto& g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
+        const auto g4_particle
+            = G4ParticleTable::GetParticleTable()->FindParticle(
+                process_.particle_pdg);
+        const double min_primary_energy
+            = model.MinPrimaryEnergy(g4_material, g4_particle, secondary_cutoff)
+              / MeV;
+        min_energy = std::max(min_primary_energy, min_energy);
     }
     const double max_energy = model.HighEnergyLimit() / MeV;
 
