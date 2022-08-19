@@ -369,6 +369,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     // Move next step
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
+    vgstate_.SetBoundaryState(true); // XXX
 }
 
 //---------------------------------------------------------------------------//
@@ -410,6 +411,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
     // Move and update next_step_
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
+    vgstate_.SetBoundaryState(false);
 }
 
 //---------------------------------------------------------------------------//
@@ -423,6 +425,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
 {
     pos_       = pos;
     next_step_ = 0;
+    vgstate_.SetBoundaryState(false);
 }
 
 //---------------------------------------------------------------------------//

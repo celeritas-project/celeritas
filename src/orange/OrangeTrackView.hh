@@ -24,7 +24,8 @@ namespace celeritas
  *
  * Ordering requirements:
  * - initialize (through assignment) must come first
- * - access (pos, dir, volume/surface/is_outside/is_on_surface) good at any time
+ * - access (pos, dir, volume/surface/is_outside/is_on_surface) good at any
+ * time
  * - \c find_safety (fine at any time)
  * - \c find_next_step
  * - \c move_internal or \c move_to_boundary
