@@ -24,7 +24,7 @@ namespace celeritas
  *
  * Ordering requirements:
  * - initialize (through assignment) must come first
- * - access (pos, dir, volume/surface/is_outside) good at any time
+ * - access (pos, dir, volume/surface/is_outside/is_on_surface) good at any time
  * - \c find_safety (fine at any time)
  * - \c find_next_step
  * - \c move_internal or \c move_to_boundary
@@ -85,6 +85,8 @@ class OrangeTrackView
     }
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
+    // Whether the track is exactly on a surface
+    CELER_FORCEINLINE_FUNCTION bool is_on_surface() const;
 
     //// OPERATIONS ////
 
@@ -234,6 +236,15 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     return states_.vol[thread_] == VolumeId{0};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is exactly on a surface.
+ */
+CELER_FUNCTION bool OrangeTrackView::is_on_surface() const
+{
+    return static_cast<bool>(this->surface_id());
 }
 
 //---------------------------------------------------------------------------//

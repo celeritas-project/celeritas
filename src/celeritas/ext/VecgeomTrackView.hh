@@ -88,6 +88,8 @@ class VecgeomTrackView
 
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
+    // Whether the track is exactly on a surface
+    CELER_FORCEINLINE_FUNCTION bool is_on_surface() const;
 
     //// OPERATIONS ////
 
@@ -247,6 +249,15 @@ CELER_FUNCTION int VecgeomTrackView::volume_physid() const
 CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 {
     return vgstate_.IsOutside();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track is on the boundary of a volume.
+ */
+CELER_FUNCTION bool VecgeomTrackView::is_on_surface() const
+{
+    return vgstate_.IsOnBoundary();
 }
 
 //---------------------------------------------------------------------------//

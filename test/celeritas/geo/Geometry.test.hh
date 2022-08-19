@@ -211,6 +211,7 @@ CELER_FUNCTION void GeoTestLauncher::operator()(ThreadId tid) const
     if (prop.boundary)
     {
         geo.move_to_boundary();
+        CELER_ASSERT(geo.is_on_surface());
     }
     else
     {
@@ -218,6 +219,7 @@ CELER_FUNCTION void GeoTestLauncher::operator()(ThreadId tid) const
         // this one!
         CELER_ASSERT(prop.distance == step);
         geo.move_internal(prop.distance);
+        CELER_ASSERT(!geo.is_on_surface());
     }
 
     BernoulliDistribution do_scatter(0.1);
@@ -238,6 +240,7 @@ CELER_FUNCTION void GeoTestLauncher::operator()(ThreadId tid) const
     if (prop.boundary)
     {
         geo.cross_boundary();
+        CELER_ASSERT(geo.is_on_surface());
     }
 
     if (geo.is_outside())

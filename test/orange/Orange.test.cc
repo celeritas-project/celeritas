@@ -105,6 +105,7 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     EXPECT_TRUE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_surface());
 
     // Try a boundary
     auto next = geo.find_next_step();
@@ -156,6 +157,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_surface());
 
     // Try a boundary; second call should be cached
     auto next = geo.find_next_step();
@@ -180,6 +182,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_FALSE(geo.is_outside());
+    EXPECT_TRUE(geo.is_on_surface());
     EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
 
     // Logically flip the surface into the new volume
@@ -187,12 +190,15 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     EXPECT_TRUE(geo.is_outside());
+    EXPECT_TRUE(geo.is_on_surface());
     EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
 
     // Move internally to an arbitrary position
     geo.find_next_step();
+    EXPECT_TRUE(geo.is_on_surface());
     geo.move_internal({2, 2, 0});
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    EXPECT_FALSE(geo.is_on_surface());
     geo.set_dir({0, 1, 0});
     EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, geo.find_safety());
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
