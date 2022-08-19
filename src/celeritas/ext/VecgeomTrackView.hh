@@ -69,7 +69,7 @@ class VecgeomTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-16; }
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
     //// ACCESSORS ////
 
