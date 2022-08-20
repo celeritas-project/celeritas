@@ -75,7 +75,7 @@ struct HexRepr
 template<class T>
 std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
 {
-    celeritas::detail::ScopedStreamFormat save_fmt(&os);
+    celeritas::ScopedStreamFormat save_fmt(&os);
 
     os << std::hexfloat << h.value;
     return os;
