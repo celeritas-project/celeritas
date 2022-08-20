@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/Geometry.test.cu
+//! \file celeritas/geo/HeuristicGeoTestBase.cu
 //---------------------------------------------------------------------------//
-#include "Geometry.test.hh"
-
 #include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
 #include "corecel/data/detail/Filler.device.t.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+
+#include "HeuristicGeoLauncher.hh"
 
 namespace celeritas
 {
@@ -22,15 +22,15 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-
-__global__ void g_test_kernel(const DeviceCRef<GeoTestParamsData> params,
-                              const DeviceRef<GeoTestStateData>   state)
+__global__ void
+heuristic_test_kernel(const DeviceCRef<HeuristicGeoParamsData> params,
+                      const DeviceRef<HeuristicGeoStateData>   state)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= state.size())
         return;
 
-    GeoTestLauncher launch{params, state};
+    HeuristicGeoLauncher launch{params, state};
     launch(tid);
 }
 } // namespace
@@ -39,11 +39,14 @@ __global__ void g_test_kernel(const DeviceCRef<GeoTestParamsData> params,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void g_test(const DeviceCRef<GeoTestParamsData>& params,
-            const DeviceRef<GeoTestStateData>&   state)
+void heuristic_test_launch(const DeviceCRef<HeuristicGeoParamsData>& params,
+                           const DeviceRef<HeuristicGeoStateData>&   state)
 {
-    CELER_LAUNCH_KERNEL(
-        g_test, device().default_block_size(), state.size(), params, state);
+    CELER_LAUNCH_KERNEL(heuristic_test,
+                        device().default_block_size(),
+                        state.size(),
+                        params,
+                        state);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
