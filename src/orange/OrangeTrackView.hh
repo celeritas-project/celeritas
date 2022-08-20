@@ -20,7 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Navigate through a geometry on a single thread.
+ * Navigate through an ORANGE geometry on a single thread.
  *
  * Ordering requirements:
  * - initialize (through assignment) must come first

@@ -139,7 +139,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         }
         CELER_ENSURE(device_ref_);
 
-        CELER_LOG(debug) << "Initailizing BVH on GPU";
+        CELER_LOG(debug) << "Initializing BVH on GPU";
         {
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();

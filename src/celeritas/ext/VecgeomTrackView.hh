@@ -30,7 +30,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operate on the device with shared (persistent) data and local state.
+ * Navigate through a VecGeom geometry on a single thread.
+ *
+ * For a description of ordering requirements, see:
+ * \sa OrangeTrackView
  *
  * \code
     VecgeomTrackView geom(vg_params_ref, vg_state_ref, thread_id);
@@ -349,6 +352,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
+    CELER_EXPECT(!this->is_outside());
     real_type safety = detail::BVHNavigator::ComputeSafety(
         detail::to_vector(this->pos()), vgstate_);
 
