@@ -84,7 +84,8 @@ GeoMaterialParams::GeoMaterialParams(Input input)
                 if (!label.name.empty()
                     && !(label.name.front() == '[' && label.name.back() == ']'))
                 {
-                    // Skip "[unused]" that we set for vecgeom empty labels, "[EXTERIOR]" from ORANGE
+                    // Skip "[unused]" that we set for vecgeom empty labels,
+                    // "[EXTERIOR]" from ORANGE
                     missing_volumes.push_back(label);
                 }
             }
