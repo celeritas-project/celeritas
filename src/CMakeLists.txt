@@ -217,19 +217,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
-if(CELERITAS_USE_CUDA)
-  if(CELERITAS_RNG STREQUAL "CURAND")
-    list(APPEND PUBLIC_DEPS CUDA::cudart)
-  else()
-    list(APPEND PRIVATE_DEPS CUDA::cudart)
-  endif()
-elseif(CELERITAS_USE_HIP)
-  set_source_files_properties(
-    ${DEVICE_SOURCES}
-    PROPERTIES LANGUAGE HIP
-  )
-endif()
-
 if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES
     celeritas/io/EventReader.cc
@@ -305,11 +292,34 @@ celeritas_target_include_directories(celeritas
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-if(CELERITAS_USE_HIP)
-  # This is a hacky workaround for not having the equivalent of CUDAToolkit: it
-  # works on Crusher as of ROCm 5.1.0
-  set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
+if(CELERITAS_USE_CUDA)
+  # Add the CUDA include directories to allow API calls. Rely on the CUDA
+  # linker to bring in the correct libraries, because mistakenly linking
+  # against both cudart and cudart_static (one of which might come from upstream
+  # libraries such as vecgeom) can cause nasty link- and run-time errors.
+  set(_cuda_access PRIVATE)
+  if(CELERITAS_RNG STREQUAL "CURAND")
+    set(_cuda_access PUBLIC)
+  endif()
+  celeritas_target_include_directories(celeritas
+    ${_cuda_access} $<$<COMPILE_LANGUAGE:CXX>:${CUDAToolkit_INCLUDE_DIRS}>
+  )
+elseif(CELERITAS_USE_HIP)
+  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
+    # Undocumented CMake variable
+    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
+  else()
+    # This hack works on Crusher as of ROCm 5.1.0
+    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
+  endif()
   target_include_directories(celeritas SYSTEM PUBLIC "${ROCM_PATH}/include")
+
+  # Compile with HIP instead of CUDA (since we don't change our source
+  # extensions)
+  set_source_files_properties(
+    ${DEVICE_SOURCES}
+    PROPERTIES LANGUAGE HIP
+  )
 endif()
 
 celeritas_install(TARGETS celeritas
