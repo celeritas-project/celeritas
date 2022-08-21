@@ -55,6 +55,7 @@ configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 #----------------------------------------------------------------------------#
 
 set(SOURCES)
+set(DEVICE_SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
 
@@ -201,7 +202,6 @@ list(APPEND SOURCES
   celeritas/track/TrackInitParams.cc
 )
 
-set(DEVICE_SOURCES)
 celeritas_polysource(celeritas/global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepUniformMscAction)
@@ -240,8 +240,18 @@ if(CELERITAS_USE_JSON)
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()
 
+if(CELERITAS_RNG STREQUAL "CURAND")
+  list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
+else()
+  list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
+endif()
+
 if(CELERITAS_USE_MPI)
   list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
+endif()
+
+if(CELERITAS_USE_OpenMP)
+  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -254,6 +264,15 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbol generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+endif()
+
+if(CELERITAS_USE_HIP)
+  # Compile with HIP instead of CUDA (since we don't change our source
+  # extensions)
+  set_source_files_properties(
+    ${DEVICE_SOURCES}
+    PROPERTIES LANGUAGE HIP
+  )
 endif()
 
 celeritas_add_library(celeritas ${SOURCES} ${DEVICE_SOURCES})
@@ -271,10 +290,9 @@ if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
   )
 endif()
 
-if(CELERITAS_USE_OpenMP)
-  celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
+if(NOT CELERITAS_USE_OpenMP
+    AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+         OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
   celeritas_target_compile_options(celeritas
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
   )
@@ -291,36 +309,6 @@ celeritas_target_include_directories(celeritas
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-if(CELERITAS_USE_CUDA)
-  # Add the CUDA include directories to allow API calls. Rely on the CUDA
-  # linker to bring in the correct libraries, because mistakenly linking
-  # against both cudart and cudart_static (one of which might come from upstream
-  # libraries such as vecgeom) can cause nasty link- and run-time errors.
-  set(_cuda_access PRIVATE)
-  if(CELERITAS_RNG STREQUAL "CURAND")
-    set(_cuda_access PUBLIC)
-  endif()
-  celeritas_target_include_directories(celeritas
-    ${_cuda_access} $<$<COMPILE_LANGUAGE:CXX>:${CUDAToolkit_INCLUDE_DIRS}>
-  )
-elseif(CELERITAS_USE_HIP)
-  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
-    # Undocumented CMake variable
-    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
-  else()
-    # This hack works on Crusher as of ROCm 5.1.0
-    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
-  endif()
-  target_include_directories(celeritas SYSTEM PUBLIC "${ROCM_PATH}/include")
-
-  # Compile with HIP instead of CUDA (since we don't change our source
-  # extensions)
-  set_source_files_properties(
-    ${DEVICE_SOURCES}
-    PROPERTIES LANGUAGE HIP
-  )
-endif()
 
 celeritas_install(TARGETS celeritas
   EXPORT celeritas-targets

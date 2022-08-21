@@ -221,6 +221,7 @@ if(CELERITAS_BUILD_DEMOS)
     Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::IO
+    Celeritas::DeviceToolkit
   )
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
@@ -232,12 +233,6 @@ if(CELERITAS_BUILD_DEMOS)
   # Add the executable
   add_executable(demo-loop ${_demo_loop_src})
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
-  if(CELERITAS_USE_CUDA)
-    # Transporter calls deviceSync
-    celeritas_target_include_directories(demo-loop
-      PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CUDAToolkit_INCLUDE_DIRS}>
-    )
-  endif()
 
   if(NOT CELERITAS_USE_OpenMP AND
       (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
