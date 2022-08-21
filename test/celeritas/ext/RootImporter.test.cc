@@ -283,9 +283,9 @@ TEST_F(RootImporterTest, processes)
                 result["x_size"].push_back(vec.x.size());
                 result["y_size"].push_back(vec.y.size());
                 result["x_front"].push_back(vec.x.front());
-                result["y_front"].push_back(vec.y.front());
+                result["y_front"].push_back(vec.y.front() / units::barn);
                 result["x_back"].push_back(vec.x.back());
-                result["y_back"].push_back(vec.y.back());
+                result["y_back"].push_back(vec.y.back() / units::barn);
                 result["element_id"].push_back(kv.first);
             }
             return result;
@@ -306,13 +306,14 @@ TEST_F(RootImporterTest, processes)
             EXPECT_EQ(2, sb->second.size());
             EXPECT_EQ(3, sb->second.back().size());
 
-            // TODO: why is the SB electron micro xs zero?
             static const double expected_size[] = {5, 5, 5};
             static const double expected_x_front[]
                 = {0.0209231725658313, 0.0209231725658313, 0.0209231725658313};
-            static const double expected_y_front[]    = {0, 0, 0};
-            static const double expected_x_back[]     = {1000, 1000, 1000};
-            static const double expected_y_back[]     = {0, 0, 0};
+            static const double expected_y_front[]
+                = {21.593095647662, 18.362410072285, 25.07684489812};
+            static const double expected_x_back[] = {1000, 1000, 1000};
+            static const double expected_y_back[]
+                = {21.593095647662, 18.362410072285, 25.07684489812};
             static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(sb->second.back());
@@ -331,12 +332,12 @@ TEST_F(RootImporterTest, processes)
 
             static const double expected_size[]    = {5, 5, 5};
             static const double expected_x_front[] = {1000, 1000, 1000};
-            static const double expected_y_front[] = {
-                5.4636008878252e-23, 4.7094861168004e-23, 6.2690207991257e-23};
+            static const double expected_y_front[]
+                = {77.090693786342, 66.451355931551, 88.453775970669};
             static const double expected_x_back[]
                 = {100000000, 100000000, 100000000};
-            static const double expected_y_back[] = {
-                5.4636008878252e-23, 4.7094861168004e-23, 6.2690207991257e-23};
+            static const double expected_y_back[]
+                = {77.090693786342, 66.451355931551, 88.453775970669};
             static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(rb->second.back());
@@ -362,12 +363,12 @@ TEST_F(RootImporterTest, processes)
 
             static const double expected_size[]    = {13, 13, 13};
             static const double expected_x_front[] = {0.0001, 0.0001, 0.0001};
-            static const double expected_y_front[] = {
-                1.0069880589339e-24, 9.6395721121544e-25, 1.042982687407e-24};
+            static const double expected_y_front[]
+                = {1.0069880589339, 0.96395721121544, 1.042982687407};
             static const double expected_x_back[]
                 = {100000000, 100000000, 100000000};
             static const double expected_y_back[] = {
-                7.3005460134493e-31, 6.7387221120147e-31, 7.8623296376253e-31};
+                7.3005460134493e-07, 6.7387221120147e-07, 7.8623296376253e-07};
             static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(kn->second.back());
