@@ -85,7 +85,7 @@ TEST_F(RootImporterTest, elements)
 
     std::vector<std::string> names;
     std::vector<int>         atomic_numbers;
-    std::vector<double>      atomic_masses, rad_lenghts_tsai, coulomb_factors;
+    std::vector<double> atomic_masses, inv_rad_lengths_tsai, coulomb_factors;
 
     for (const auto& element : elements)
     {
@@ -93,25 +93,29 @@ TEST_F(RootImporterTest, elements)
         atomic_masses.push_back(element.atomic_mass);
         atomic_numbers.push_back(element.atomic_number);
         coulomb_factors.push_back(element.coulomb_factor);
-        rad_lenghts_tsai.push_back(element.radiation_length_tsai);
+        inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
     }
 
-    // clang-format off
-    const std::string  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
-    const int          expected_atomic_numbers[] = {26, 24, 28, 1};
-    const double       expected_atomic_masses[]  = {55.845110798, 51.996130137,
-        58.6933251009, 1.007940752665}; // [AMU]
-    const double expected_coulomb_factors[] = {0.04197339849163,
-        0.03592322294658, 0.04844802666907, 6.400838295295e-05};
-    const double expected_rad_lenghts_tsai[] = {1.073632177106e-41,
-        9.256561295161e-42, 1.231638535009e-41, 4.253575226044e-44};
-    // clang-format on
+    static const std::string expected_names[] = {"Fe", "Cr", "Ni", "H"};
+    static const int         expected_atomic_numbers[] = {26, 24, 28, 1};
+    static const double      expected_atomic_masses[]
+        = {55.845110798, 51.996130137, 58.6933251009, 1.007940752665}; // [AMU]
+    static const double expected_coulomb_factors[] = {0.04197339849163,
+                                                      0.03592322294658,
+                                                      0.04844802666907,
+                                                      6.400838295295e-05};
+    // Check inverse radiation length since soft equal comparison is useless
+    // for extremely small values
+    static const double expected_inv_rad_lengths_tsai[] = {9.3141768784882e+40,
+                                                           1.0803147822537e+41,
+                                                           8.1192652842163e+40,
+                                                           2.3509634762707e+43};
 
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
     EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
     EXPECT_VEC_SOFT_EQ(expected_coulomb_factors, coulomb_factors);
-    EXPECT_VEC_SOFT_EQ(expected_rad_lenghts_tsai, rad_lenghts_tsai);
+    EXPECT_VEC_SOFT_EQ(expected_inv_rad_lengths_tsai, inv_rad_lengths_tsai);
 }
 
 //---------------------------------------------------------------------------//
@@ -126,7 +130,7 @@ TEST_F(RootImporterTest, materials)
     std::vector<double>      cutoff_energies, cutoff_ranges;
     std::vector<double> el_comps_ids, el_comps_mass_frac, el_comps_num_fracs;
     std::vector<double> densities, num_densities, e_densities, temperatures,
-        rad_lengths, nuc_int_lenghts;
+        rad_lengths, nuc_int_lengths;
 
     for (const auto& material : materials)
     {
@@ -135,7 +139,7 @@ TEST_F(RootImporterTest, materials)
         densities.push_back(material.density);
         e_densities.push_back(material.electron_density);
         num_densities.push_back(material.number_density);
-        nuc_int_lenghts.push_back(material.nuclear_int_length);
+        nuc_int_lengths.push_back(material.nuclear_int_length);
         rad_lengths.push_back(material.radiation_length);
         temperatures.push_back(material.temperature);
 
@@ -167,7 +171,7 @@ TEST_F(RootImporterTest, materials)
         = {0.05974697167543, 2.244432022882e+24};
     const double expected_num_densities[]
         = {0.05974697167543, 8.699348925899e+22};
-    const double expected_nuc_int_lenghts[]
+    const double expected_nuc_int_lengths[]
         = {3.500000280825e+26, 16.67805709739};
     const double expected_rad_lengths[] = {6.304350904227e+26, 1.738067064483};
     const double expected_temperatures[] = {2.73, 293.15};
@@ -185,7 +189,7 @@ TEST_F(RootImporterTest, materials)
     EXPECT_VEC_SOFT_EQ(expected_densities, densities);
     EXPECT_VEC_SOFT_EQ(expected_e_densities, e_densities);
     EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
-    EXPECT_VEC_SOFT_EQ(expected_nuc_int_lenghts, nuc_int_lenghts);
+    EXPECT_VEC_SOFT_EQ(expected_nuc_int_lengths, nuc_int_lengths);
     EXPECT_VEC_SOFT_EQ(expected_rad_lengths, rad_lengths);
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
     EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
