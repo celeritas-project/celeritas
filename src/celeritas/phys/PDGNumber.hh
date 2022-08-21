@@ -30,7 +30,7 @@ class PDGNumber
 {
   public:
     //! Construct with an invalid/unassigned value of zero
-    explicit constexpr PDGNumber() = default;
+    constexpr PDGNumber() = default;
 
     //! Construct with the PDG value
     explicit constexpr PDGNumber(int val) : value_(val) {}
