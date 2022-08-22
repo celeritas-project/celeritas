@@ -138,7 +138,7 @@ ImportModelClass to_import_model(const G4VEmModel& model)
         {"eBremLPM",            ImportModelClass::e_brems_lpm},
         {"eplus2gg",            ImportModelClass::e_plus_to_gg},
         {"LivermorePhElectric", ImportModelClass::livermore_photoelectric},
-        {"KleinNishina",        ImportModelClass::klein_nishina},
+        {"Klein-Nishina",       ImportModelClass::klein_nishina},
         {"BetheHeitler",        ImportModelClass::bethe_heitler},
         {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
         {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
