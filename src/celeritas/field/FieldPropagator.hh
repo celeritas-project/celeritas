@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -141,7 +142,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
-        CELER_ASSERT(substep.step <= remaining);
+        CELER_ASSERT(substep.step <= remaining
+                     || soft_equal(substep.step, remaining));
 
         // TODO: use safety distance to reduce number of calls to
         // find_next_step
@@ -160,7 +162,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // distance so we can continue toward the next boundary or end of
             // caller-requested step.
             state_ = substep.state;
-            result.distance += substep.step;
+            result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
         }
