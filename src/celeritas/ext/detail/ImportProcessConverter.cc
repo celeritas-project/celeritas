@@ -573,6 +573,11 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
     for (unsigned int mat_id : celeritas::range(materials_.size()))
     {
         const auto& material = materials_.at(mat_id);
+        const auto& g4_cuts_table
+            = *G4ProductionCutsTable::GetProductionCutsTable();
+        CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
+        const auto g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
 
         ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
@@ -611,6 +616,10 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
             for (int bin_idx : celeritas::range(energy_grid.size()))
             {
                 const double energy_bin_value = energy_grid.at(bin_idx);
+
+                // Set kinematic and material-dependent quantities
+                model.SetupForMaterial(
+                    &g4_particle_def, g4_material, energy_bin_value);
 
                 // Calculate microscopic cross-section
                 const double xs_per_atom
@@ -688,7 +697,7 @@ ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
         const auto& g4_cuts_table
             = *G4ProductionCutsTable::GetProductionCutsTable();
         CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
-        const auto& g4_material
+        const auto g4_material
             = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
         const auto g4_particle
             = G4ParticleTable::GetParticleTable()->FindParticle(

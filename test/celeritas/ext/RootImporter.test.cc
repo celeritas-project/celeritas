@@ -314,10 +314,10 @@ TEST_F(RootImporterTest, processes)
             static const double expected_x_front[]
                 = {0.0209231725658313, 0.0209231725658313, 0.0209231725658313};
             static const double expected_y_front[]
-                = {21.593095647662, 18.362410072285, 25.07684489812};
+                = {19.855602934384, 16.824420929076, 23.159721368813};
             static const double expected_x_back[] = {1000, 1000, 1000};
             static const double expected_y_back[]
-                = {21.593095647662, 18.362410072285, 25.07684489812};
+                = {77.270585225307, 66.692872575545, 88.395455128585};
             static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(sb->second.back());
@@ -337,11 +337,11 @@ TEST_F(RootImporterTest, processes)
             static const double expected_size[]    = {5, 5, 5};
             static const double expected_x_front[] = {1000, 1000, 1000};
             static const double expected_y_front[]
-                = {77.090693786342, 66.451355931551, 88.453775970669};
+                = {77.085320789881, 66.446696755766, 88.447643447573};
             static const double expected_x_back[]
                 = {100000000, 100000000, 100000000};
             static const double expected_y_back[]
-                = {77.090693786342, 66.451355931551, 88.453775970669};
+                = {14.346956760121, 12.347642615031, 16.486026316006};
             static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(rb->second.back());
