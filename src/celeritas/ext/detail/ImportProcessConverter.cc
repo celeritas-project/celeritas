@@ -333,10 +333,11 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 
         // Save microscopic cross sections for models that need to sample a
         // random element from a material in an interaction
+        // TODO: include e_coulomb_scattering, and if protons are filtered from
+        // the imported data set infinite proton secondary production cuts
         if (model_class_id == ImportModelClass::bethe_heitler_lpm
             || model_class_id == ImportModelClass::klein_nishina
-            || model_class_id == ImportModelClass::livermore_rayleigh
-            || model_class_id == ImportModelClass::e_coulomb_scattering)
+            || model_class_id == ImportModelClass::livermore_rayleigh)
         {
             process_.micro_xs.insert(
                 {model_class_id, this->add_micro_xs(model)});
