@@ -34,7 +34,7 @@ class OrangeTest : public OrangeGeoTestBase
     {
         if (!host_state_)
         {
-            host_state_ = HostStateStore(this->params(), 1);
+            host_state_ = HostStateStore(this->params().host_ref(), 1);
         }
 
         return OrangeTrackView(

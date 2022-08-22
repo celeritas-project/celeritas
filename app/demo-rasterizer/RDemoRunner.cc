@@ -40,7 +40,7 @@ void RDemoRunner::operator()(ImageStore* image, int ntimes) const
     CELER_EXPECT(image);
 
     CollectionStateStore<GeoStateData, MemSpace::device> geo_state(
-        *geo_params_, image->dims()[0]);
+        geo_params_->host_ref(), image->dims()[0]);
 
     CELER_LOG(status) << "Tracing geometry";
     // do it ntimes+1 as first one tends to be a warm-up run (slightly longer)

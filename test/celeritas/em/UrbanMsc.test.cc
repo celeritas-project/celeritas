@@ -84,10 +84,12 @@ class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
         // Make one state per particle
         auto state_size = this->particle()->size();
 
-        params_ref_     = this->physics()->host_ref();
-        physics_state_  = PhysicsStateStore(*this->physics(), state_size);
-        particle_state_ = ParticleStateStore(*this->particle(), state_size);
-        geo_state_      = GeoStateStore(*this->geometry(), 1);
+        params_ref_ = this->physics()->host_ref();
+        physics_state_
+            = PhysicsStateStore(this->physics()->host_ref(), state_size);
+        particle_state_
+            = ParticleStateStore(this->particle()->host_ref(), state_size);
+        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
     }
 
     SPConstParticle build_particle() override

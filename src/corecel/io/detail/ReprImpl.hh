@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/ScopedStreamFormat.hh"
 
 namespace celeritas
 {
@@ -31,34 +32,6 @@ struct Repr
 {
     const T&    obj;
     const char* name = nullptr;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Save a stream's state and restore on destruction.
- *
- * Example:
- * \code
-     {
-         ScopedStreamFormat save_fmt(&std::cout);
-         std::cout << setprecision(16) << 1.0;
-     }
- * \endcode
- */
-class ScopedStreamFormat
-{
-  public:
-    explicit ScopedStreamFormat(std::ios* s) : stream_{s}, orig_{nullptr}
-    {
-        CELER_EXPECT(s);
-        orig_.copyfmt(*s);
-    }
-
-    ~ScopedStreamFormat() { stream_->copyfmt(orig_); }
-
-  private:
-    std::ios* stream_;
-    std::ios  orig_;
 };
 
 //---------------------------------------------------------------------------//

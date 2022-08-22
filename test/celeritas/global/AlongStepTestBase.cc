@@ -32,8 +32,8 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     CELER_EXPECT(num_tracks > 0);
 
     // Create states
-    CollectionStateStore<CoreStateData, MemSpace::host> states{*this->core(),
-                                                               num_tracks};
+    CollectionStateStore<CoreStateData, MemSpace::host> states{
+        this->core()->host_ref(), num_tracks};
     CoreRef<MemSpace::host>                             core_ref;
     core_ref.params = this->core()->host_ref();
     core_ref.states = states.ref();

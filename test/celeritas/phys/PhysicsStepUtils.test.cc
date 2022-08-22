@@ -47,9 +47,9 @@ class PhysicsStepUtilsTest : public MockTestBase
         Base::SetUp();
 
         // Construct state for a single host thread
-        mat_state  = MaterialStateStore(*this->material(), 1);
-        par_state  = ParticleStateStore(*this->particle(), 1);
-        phys_state = PhysicsStateStore(*this->physics(), 1);
+        mat_state  = MaterialStateStore(this->material()->host_ref(), 1);
+        par_state  = ParticleStateStore(this->particle()->host_ref(), 1);
+        phys_state = PhysicsStateStore(this->physics()->host_ref(), 1);
     }
 
     //!@{
