@@ -127,7 +127,7 @@ struct ImportProcess
     using ModelMicroXS = std::vector<ElementPhysicsVectorMap>;
     //!@}
 
-    int                                      particle_pdg;
+    int                                      particle_pdg{0};
     int                                      secondary_pdg{0};
     ImportProcessType                        process_type;
     ImportProcessClass                       process_class;

@@ -331,10 +331,12 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
         // Save model list
         process_.models.push_back(model_class_id);
 
-        // Save element-selector data
+        // Save microscopic cross sections for models that need to sample a
+        // random element from a material in an interaction
         if (model_class_id == ImportModelClass::bethe_heitler_lpm
             || model_class_id == ImportModelClass::klein_nishina
-            || model_class_id == ImportModelClass::livermore_rayleigh)
+            || model_class_id == ImportModelClass::livermore_rayleigh
+            || model_class_id == ImportModelClass::e_coulomb_scattering)
         {
             process_.micro_xs.insert(
                 {model_class_id, this->add_micro_xs(model)});
@@ -366,10 +368,12 @@ void ImportProcessConverter::store_energy_loss_tables(
         // Save model list
         process_.models.push_back(model_class_id);
 
-        // Save element-selector data
+        // Save microscopic cross sections for models that need to sample a
+        // random element from a material in an interaction
         if (model_class_id == ImportModelClass::e_brems_sb
             || model_class_id == ImportModelClass::e_brems_lpm
-            || model_class_id == ImportModelClass::mu_brems)
+            || model_class_id == ImportModelClass::mu_brems
+            || model_class_id == ImportModelClass::mu_pair_prod)
         {
             process_.micro_xs.insert(
                 {model_class_id, this->add_micro_xs(model)});
@@ -570,14 +574,14 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
             process_.particle_pdg);
     ImportProcess::ModelMicroXS model_micro_xs;
 
-    for (unsigned int mat_id : celeritas::range(materials_.size()))
+    for (unsigned int mat_idx : celeritas::range(materials_.size()))
     {
-        const auto& material = materials_.at(mat_id);
+        const auto& material = materials_.at(mat_idx);
         const auto& g4_cuts_table
             = *G4ProductionCutsTable::GetProductionCutsTable();
-        CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
-        const auto g4_material
-            = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
+        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
+        const auto* g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
 
         ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
@@ -585,7 +589,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         for (const auto& elem_comp : material.elements)
         {
             ImportPhysicsVector physics_vector
-                = this->initialize_micro_xs_physics_vector(model, mat_id);
+                = this->initialize_micro_xs_physics_vector(model, mat_idx);
             element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
@@ -676,9 +680,9 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
  */
 ImportPhysicsVector
 ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
-                                                           unsigned int mat_id)
+                                                           unsigned int mat_idx)
 {
-    const auto& material = materials_.at(mat_id);
+    const auto& material = materials_.at(mat_idx);
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
@@ -696,10 +700,10 @@ ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
     {
         const auto& g4_cuts_table
             = *G4ProductionCutsTable::GetProductionCutsTable();
-        CELER_ASSERT(mat_id < g4_cuts_table.GetTableSize());
-        const auto g4_material
-            = g4_cuts_table.GetMaterialCutsCouple(mat_id)->GetMaterial();
-        const auto g4_particle
+        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
+        const auto* g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
+        const auto* g4_particle
             = G4ParticleTable::GetParticleTable()->FindParticle(
                 process_.particle_pdg);
         const double min_primary_energy

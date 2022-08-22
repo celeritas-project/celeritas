@@ -255,8 +255,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     // Calculate range instead of hardcoding to ensure step and range values
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
+    constexpr double    step_is_range = -1;
     std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
-    step.reserve(nsamples);
+    step.resize(nsamples, step_is_range);
 
     for (unsigned int i : celeritas::range(nsamples))
     {
@@ -269,17 +270,17 @@ TEST_F(UrbanMscTest, msc_scattering)
                                StepLimit{}};
         sim_state_data.push_back(state);
 
-        if (i == step.size())
+        if (step[i] == step_is_range)
         {
             PhysicsTrackView phys = this->make_track_view(
                 pdg::electron(), MaterialId{1}, MevEnergy{energy[i]});
-            step.push_back(phys.dedx_range());
+            step[i] = phys.dedx_range();
         }
     }
     const SimStateRef& states = make_ref(states_ref);
     SimTrackView       sim_track_view(states, ThreadId{0});
 
-    EXPECT_EQ(nsamples, step.size());
+    ASSERT_EQ(nsamples, step.size());
     EXPECT_EQ(nsamples, sim_state_data.size());
     EXPECT_EQ(0, sim_track_view.num_steps());
 
