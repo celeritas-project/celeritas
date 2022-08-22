@@ -595,6 +595,10 @@ function(celeritas_target_link_libraries target)
           # but we get
           #   You have used file(GET_RUNTIME_DEPENDENCIES) in project mode.  This is
           #     probably not what you intended to do.
+          # On the other hand, if the library is using (relocatable) CUDA code and
+          # the shared run-time library and we don't have the scafolding libraries
+          # (shared/static/final) then this won't work well. i.e. if we were to detect this
+          # case we probably need to 'error out'.
           #get_property(_lib_loc TARGET ${_lib} PROPERTY LOCATION)
           #if(NOT _lib_loc)
           #  message(WARNING "Setting to None for ${_lib}")
