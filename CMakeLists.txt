@@ -212,13 +212,16 @@ if(CELERITAS_USE_VecGeom)
     message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
   endif()
   if(CELERITAS_USE_CUDA AND VecGeom_VERSION VERSION_GREATER_EQUAL 1.2
-      AND BUILD_SHARED_LIBS)
+      AND BUILD_SHARED_LIBS
+      AND NOT CMAKE_CUDA_RUNTIME_LIBRARY STREQUAL "Shared")
     message(SEND_ERROR "VecGeom 1.2+ is incompatible with a Celeritas shared "
-      "library build (BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}); "
-      "overriding for next configure"
+      "library build (BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}) unless; "
+      "CMAKE_CUDA_RUNTIME_LIBRARY is set to Shared as well. Forcing the "
+      "CUDA runtime libraries to change for the next configure."
     )
-    set(BUILD_SHARED_LIBS OFF CACHE BOOL
-      "Disabled due to VecGeom CUDA requirements" FORCE)
+    set(CMAKE_CUDA_RUNTIME_LIBRARY "Shared" CACHE STRING
+      "Forcibly enabled due to VecGeom CUDA requirements" FORCE
+    )
   endif()
 endif()
 
@@ -259,6 +262,37 @@ endif()
 # LIBRARY
 #----------------------------------------------------------------------------#
 
+# Define an interface library for propagating include paths for GPU compilers.
+# This allow API calls, so long as the compiler or linker implicitly bring in
+# the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
+# because mistakenly linking against both cudart and cudart_static (one of which
+# might come from upstream libraries such as vecgeom) can cause nasty link- and
+# run-time errors.
+add_library(celeritas_device_toolkit INTERFACE)
+add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
+
+if(CELERITAS_USE_CUDA)
+  target_include_directories(celeritas_device_toolkit
+    SYSTEM INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:${CUDAToolkit_INCLUDE_DIRS}>
+  )
+elseif(CELERITAS_USE_HIP)
+  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
+    # Undocumented CMake variable
+    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
+  else()
+    # This hack works on Crusher as of ROCm 5.1.0
+    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
+  endif()
+  target_include_directories(celeritas_device_toolkit
+    SYSTEM INTERFACE "${ROCM_PATH}/include"
+  )
+endif()
+
+install(TARGETS celeritas_device_toolkit
+  EXPORT celeritas-targets
+)
+
+# Add the main libraries
 add_subdirectory(src)
 
 #----------------------------------------------------------------------------#
