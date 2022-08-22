@@ -567,9 +567,19 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
 {
     CELER_EXPECT(rmax2 >= 0);
 
-    real_type rho = real_type(0.73) * std::sqrt(rmax2);
-    // Do not sample near the boundary
-    if (rho > params_.geom_limit)
+    // 0.73 is (roughly) the expected value of a distribution of the mean
+    // radius given rmax "based on single scattering results"
+    // https://github.com/Geant4/geant4/blame/28a70706e0edf519b16e864ebf1d2f02a00ba596/source/processes/electromagnetic/standard/src/G4UrbanMscModel.cc#L1142
+    constexpr real_type mean_radius_frac{0.73};
+
+    real_type rho = mean_radius_frac * std::sqrt(rmax2);
+
+    if (rho <= params_.geom_limit)
+    {
+        // Displacement is too small to bother with
+        rho = 0;
+    }
+    else
     {
         real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
         if (rho <= safety)
