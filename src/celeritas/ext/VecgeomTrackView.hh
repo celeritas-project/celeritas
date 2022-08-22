@@ -374,6 +374,8 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
     vgstate_.SetBoundaryState(true); // XXX
+
+    CELER_ENSURE(this->is_on_surface());
 }
 
 //---------------------------------------------------------------------------//
