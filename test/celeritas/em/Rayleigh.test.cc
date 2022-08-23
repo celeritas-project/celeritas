@@ -69,6 +69,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {22,
+             0,
              celeritas::ImportProcessType::electromagnetic,
              celeritas::ImportProcessClass::rayleigh,
              {celeritas::ImportModelClass::livermore_rayleigh},

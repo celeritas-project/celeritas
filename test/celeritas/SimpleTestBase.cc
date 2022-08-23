@@ -93,6 +93,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 
     ImportProcess compton_data;
     compton_data.particle_pdg  = pdg::gamma().get();
+    compton_data.secondary_pdg = pdg::electron().get();
     compton_data.process_type  = ImportProcessType::electromagnetic;
     compton_data.process_class = ImportProcessClass::compton;
     compton_data.models        = {ImportModelClass::klein_nishina};

@@ -57,7 +57,7 @@ void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
     input.max_steps = this->max_steps_;
     input.params    = this->geo_params_->device_ref();
 
-    StateStore states(*this->geo_params_, 1);
+    StateStore states(this->geo_params_->host_ref(), 1);
     input.state = states.ref();
 
     CELER_LOG(status) << "Propagating track(s) on GPU";

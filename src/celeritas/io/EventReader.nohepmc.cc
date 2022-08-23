@@ -20,7 +20,7 @@ EventReader::EventReader(const char*, SPConstParticles)
 
 EventReader::~EventReader() = default;
 
-EventReader::result_type EventReader::operator()()
+auto EventReader::operator()() -> result_type
 {
     CELER_ASSERT_UNREACHABLE();
 }

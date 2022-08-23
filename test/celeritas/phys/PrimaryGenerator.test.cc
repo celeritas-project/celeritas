@@ -51,20 +51,28 @@ TEST_F(PrimaryGeneratorTest, host)
     opts.primaries_per_event = 3;
 
     PrimaryGenerator generate_primaries(particles_, opts);
-
-    auto             primaries = generate_primaries();
     std::vector<int> event_id;
     std::vector<int> track_id;
-    for (const auto& p : primaries)
+
+    for (size_type i = 0; i < opts.num_events; ++i)
     {
-        EXPECT_EQ(ParticleId{0}, p.particle_id);
-        EXPECT_EQ(MevEnergy{10}, p.energy);
-        EXPECT_DOUBLE_EQ(0.0, p.time);
-        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), p.position);
-        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), p.direction);
-        event_id.push_back(p.event_id.unchecked_get());
-        track_id.push_back(p.track_id.unchecked_get());
+        auto primaries = generate_primaries();
+        EXPECT_EQ(opts.primaries_per_event, primaries.size());
+
+        for (const auto& p : primaries)
+        {
+            EXPECT_EQ(ParticleId{0}, p.particle_id);
+            EXPECT_EQ(MevEnergy{10}, p.energy);
+            EXPECT_DOUBLE_EQ(0.0, p.time);
+            EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), p.position);
+            EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), p.direction);
+            event_id.push_back(p.event_id.unchecked_get());
+            track_id.push_back(p.track_id.unchecked_get());
+        }
     }
+    auto primaries = generate_primaries();
+    EXPECT_TRUE(primaries.empty());
+
     static const int expected_event_id[] = {0, 0, 0, 1, 1, 1};
     static const int expected_track_id[] = {0, 1, 2, 0, 1, 2};
 

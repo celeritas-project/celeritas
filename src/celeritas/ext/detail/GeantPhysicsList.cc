@@ -12,7 +12,6 @@
 #include <G4CoulombScattering.hh>
 #include <G4EmParameters.hh>
 #include <G4GammaConversion.hh>
-#include <G4KleinNishinaModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LivermoreRayleighModel.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -109,7 +108,7 @@ void GeantPhysicsList::ConstructProcess()
  *
  * | Processes            | Model classes                 |
  * | -------------------- | ----------------------------- |
- * | Compton scattering   | G4KleinNishinaModel           |
+ * | Compton scattering   | G4KleinNishinaCompton         |
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
  * | Gamma conversion     | G4PairProductionRelModel      |
@@ -120,13 +119,12 @@ void GeantPhysicsList::add_gamma_processes()
     auto* gamma        = G4Gamma::Gamma();
 
     {
-        // Compton Scattering: G4KleinNishinaModel
+        // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
-        compton_scattering->SetEmModel(new G4KleinNishinaModel());
         physics_list->RegisterProcess(compton_scattering.release(), gamma);
 
         CELER_LOG(debug) << "Loaded Compton scattering with "
-                            "G4KleinNishinaModel";
+                            "G4KleinNishinaCompton";
     }
 
     if (true)

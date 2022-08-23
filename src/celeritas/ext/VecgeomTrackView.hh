@@ -69,7 +69,7 @@ class VecgeomTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-16; }
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
     //// ACCESSORS ////
 
@@ -390,7 +390,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT((dist > 0 && dist < next_step_)
+                 || soft_equal(dist, next_step_));
     CELER_EXPECT(dist != next_step_ || !vgnext_.IsOnBoundary());
 
     // Move and update next_step_

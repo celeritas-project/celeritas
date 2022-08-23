@@ -167,4 +167,21 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 
     static const char* expected_particles[] = {"e+", "e-", "gamma", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
+    static const char* expected_processes[] = {"msc",
+                                               "e_ioni",
+                                               "e_brems",
+                                               "photoelectric",
+                                               "compton",
+                                               "conversion",
+                                               "rayleigh"};
+    EXPECT_VEC_EQ(expected_processes, summary.processes);
+    static const char* expected_models[] = {"urban_msc",
+                                            "moller_bhabha",
+                                            "e_brems_sb",
+                                            "e_brems_lpm",
+                                            "livermore_photoelectric",
+                                            "klein_nishina",
+                                            "bethe_heitler_lpm",
+                                            "livermore_rayleigh"};
+    EXPECT_VEC_EQ(expected_models, summary.models);
 }

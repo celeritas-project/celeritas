@@ -340,7 +340,7 @@ CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
 {
     const real_type energy = this->energy().value();
     real_type result = energy * energy + 2 * this->mass().value() * energy;
-    CELER_ENSURE(result > 0);
+    CELER_ENSURE(result >= 0);
     return units::MevMomentumSq{result};
 }
 

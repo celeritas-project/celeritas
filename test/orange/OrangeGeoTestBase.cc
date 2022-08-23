@@ -171,7 +171,7 @@ auto OrangeGeoTestBase::host_state() -> const HostStateRef&
     CELER_EXPECT(params_);
     if (!host_state_)
     {
-        host_state_ = HostStateStore(this->params(), 1);
+        host_state_ = HostStateStore(this->params().host_ref(), 1);
     }
     return host_state_.ref();
 }

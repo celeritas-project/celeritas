@@ -90,19 +90,33 @@ void run(std::istream* is, OutputManager* output)
     }
 
     // Run all the primaries
-    TransporterResult result;
+    TransporterResult    result;
+    std::vector<Primary> primaries;
     if (run_args.primary_gen_options)
     {
-        PrimaryGenerator generate_primaries(transport_ptr->params().particle(),
-                                            run_args.primary_gen_options);
-        result = (*transport_ptr)(generate_primaries());
+        PrimaryGenerator generate_event(transport_ptr->params().particle(),
+                                        run_args.primary_gen_options);
+
+        auto event = generate_event();
+        while (!event.empty())
+        {
+            primaries.insert(primaries.end(), event.begin(), event.end());
+            event = generate_event();
+        }
     }
     else
     {
-        EventReader read_all_events(run_args.hepmc3_filename.c_str(),
-                                    transport_ptr->params().particle());
-        result = (*transport_ptr)(read_all_events());
+        EventReader read_event(run_args.hepmc3_filename.c_str(),
+                               transport_ptr->params().particle());
+
+        auto event = read_event();
+        while (!event.empty())
+        {
+            primaries.insert(primaries.end(), event.begin(), event.end());
+            event = read_event();
+        }
     }
+    result = (*transport_ptr)(std::move(primaries));
 
     result.time.setup = setup_time;
 
