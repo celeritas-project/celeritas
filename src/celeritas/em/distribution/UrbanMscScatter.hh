@@ -156,7 +156,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
-    , is_displaced_(input.is_displaced)
+    , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
     , limit_min_(input.limit_min)
     , geometry_(*geometry)
@@ -167,11 +167,10 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
 
     lambda_ = helper_.msc_mfp(Energy{inc_energy_});
 
-    // Convert the geometry path length to the true path length, but do not
-    // recalculate the true path if the step is not limited by geometry
-    true_path_ = (geo_limited) ? this->calc_true_path(
-                     input.true_path, geom_path_, input.alpha)
-                               : input.true_path;
+    // Convert the geometry path length to the true path length if needed
+    true_path_ = !geo_limited ? input.true_path
+                              : this->calc_true_path(
+                                  input.true_path, geom_path_, input.alpha);
 
     // Protect against a wrong true -> geom -> true transformation
     true_path_ = min<real_type>(true_path_, input.phys_step);
@@ -561,6 +560,12 @@ UrbanMscScatter::sample_displacement_dir(Engine& rng, real_type phi) const
 //---------------------------------------------------------------------------//
 /*!
  * Scale displacement and correct near the boundary.
+ *
+ * This is a transformation of the logic in geant4, with \c fPositionChanged
+ * being equal to `rho == 0`. The key takeaway for the displacement calculation
+ * is that for small displacement values, *or* for small safety distances, we
+ * do not displace. For large safety distances we do not displace further than
+ * the safety.
  */
 CELER_FUNCTION real_type
 UrbanMscScatter::calc_displacement_length(real_type rmax2)
