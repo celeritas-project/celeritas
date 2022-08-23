@@ -562,6 +562,12 @@ function(celeritas_target_link_libraries target)
           CUDA_RESOLVE_DEVICE_SYMBOLS OFF
         )
         get_target_property(_final_target_type ${target} TYPE)
+
+        get_target_property(_final_runtime ${_finallibs} CUDA_RUNTIME_LIBRARY)
+        if ("${_final_runtime}" STREQUAL "Shared")
+          set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+        endif()
+
         if(${_final_target_type} STREQUAL "STATIC_LIBRARY")
           # for static libraries we need to list the libraries a second time (to resolve symbol from the final library)
           get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
