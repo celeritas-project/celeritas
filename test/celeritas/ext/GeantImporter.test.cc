@@ -139,8 +139,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                                "mu_brems",
                                                "mu_pair_prod"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"unknown",
-                                            "bethe_bloch",
+    static const char* expected_models[] = {"bethe_bloch",
                                             "urban_msc",
                                             "icru_73_qo",
                                             "wentzel_VI_uni",
@@ -150,6 +149,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                             "e_brems_sb",
                                             "e_brems_lpm",
                                             "livermore_photoelectric",
+                                            "klein_nishina",
                                             "bethe_heitler_lpm",
                                             "livermore_rayleigh",
                                             "mu_bethe_bloch",
@@ -203,8 +203,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                                "mu_brems",
                                                "mu_pair_prod"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"unknown",
-                                            "bragg_ion",
+    static const char* expected_models[] = {"bragg_ion",
                                             "bethe_bloch",
                                             "urban_msc",
                                             "icru_73_qo",
@@ -217,6 +216,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                             "e_brems_sb",
                                             "e_brems_lpm",
                                             "livermore_photoelectric",
+                                            "klein_nishina",
                                             "bethe_heitler_lpm",
                                             "livermore_rayleigh",
                                             "mu_bethe_bloch",

@@ -247,23 +247,19 @@ TEST_F(UrbanMscTest, msc_scattering)
                                        0.0465336,
                                        0.00708839};
 
-    static const real_type step[] = {0.00279169,
-                                     0.412343,
-                                     0.0376414,
-                                     0.078163296576415602,
-                                     0.031624394625545782,
-                                     0.002779271697902872,
-                                     0.00074215289000934838,
-                                     0.000031163160031423049};
-
-    constexpr unsigned int nsamples = std::end(step) - std::begin(step);
-    static_assert(nsamples == std::end(energy) - std::begin(energy),
-                  "Input sizes do not match");
+    constexpr unsigned int nsamples = std::end(energy) - std::begin(energy);
 
     // Mock SimStateData
     SimStateValue states_ref;
     auto          sim_state_data = make_builder(&states_ref.state);
     sim_state_data.reserve(nsamples);
+
+    // Calculate range instead of hardcoding to ensure step and range values
+    // are bit-for-bit identical when range limits the step. The first three
+    // steps are not limited by range
+    constexpr double    step_is_range = -1;
+    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
+    step.resize(nsamples, step_is_range);
 
     for (unsigned int i : celeritas::range(nsamples))
     {
@@ -275,10 +271,18 @@ TEST_F(UrbanMscTest, msc_scattering)
                                TrackStatus::alive,
                                StepLimit{}};
         sim_state_data.push_back(state);
+
+        if (step[i] == step_is_range)
+        {
+            PhysicsTrackView phys = this->make_track_view(
+                pdg::electron(), MaterialId{1}, MevEnergy{energy[i]});
+            step[i] = phys.dedx_range();
+        }
     }
     const SimStateRef& states = make_ref(states_ref);
     SimTrackView       sim_track_view(states, ThreadId{0});
 
+    ASSERT_EQ(nsamples, step.size());
     EXPECT_EQ(nsamples, sim_state_data.size());
     EXPECT_EQ(0, sim_track_view.num_steps());
 
