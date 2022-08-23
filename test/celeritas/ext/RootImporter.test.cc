@@ -68,9 +68,9 @@ TEST_F(RootImporterTest, particles)
 
     // Particle ordering is the same as in the ROOT file
     // clang-format off
-    const std::string expected_loaded_names[] = {"e+", "e-", "gamma"};
+    static const char* expected_loaded_names[] = {"e+", "e-", "gamma"};
 
-    const int expected_loaded_pdgs[] = {-11, 11, 22};
+    static const int expected_loaded_pdgs[] = {-11, 11, 22};
     // clang-format on
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
@@ -96,7 +96,7 @@ TEST_F(RootImporterTest, elements)
         inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
     }
 
-    static const std::string expected_names[] = {"Fe", "Cr", "Ni", "H"};
+    static const char* expected_names[] = {"Fe", "Cr", "Ni", "H"};
     static const int         expected_atomic_numbers[] = {26, 24, 28, 1};
     static const double      expected_atomic_masses[]
         = {55.845110798, 51.996130137, 58.6933251009, 1.007940752665}; // [AMU]
@@ -158,42 +158,44 @@ TEST_F(RootImporterTest, materials)
         }
     }
 
-    // clang-format off
-    const std::string expected_names[]  = {"G4_Galactic", "G4_STAINLESS-STEEL"};
-    const int         expected_states[] = {3, 1};
-    const int    expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
-    const double expected_cutoff_energies[] = {0.00099, 0.00099, 0.00099,
-        1.22808845964606, 1.31345289979559, 0.0209231725658313};
-    const double expected_cutoff_ranges[]
-        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    const double expected_densities[] = {1e-25, 8};
-    const double expected_e_densities[]
-        = {0.05974697167543, 2.244432022882e+24};
-    const double expected_num_densities[]
-        = {0.05974697167543, 8.699348925899e+22};
-    const double expected_nuc_int_lengths[]
-        = {3.500000280825e+26, 16.67805709739};
-    const double expected_rad_lengths[] = {6.304350904227e+26, 1.738067064483};
-    const double expected_temperatures[] = {2.73, 293.15};
-    const double expected_el_comps_ids[] = {3, 0, 1, 2};
-    const double expected_el_comps_mass_frac[]
-        = {1, 0.7462128746215, 0.1690010443115, 0.08478608106695};
-    const double expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
-    // clang-format on
-
+    static const char* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     EXPECT_VEC_EQ(expected_names, names);
+    static const int expected_states[] = {3, 1};
     EXPECT_VEC_EQ(expected_states, states);
+    static const int expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdgs, pdgs);
+    static const double expected_cutoff_energies[] = {0.00099,
+                                                      0.00099,
+                                                      0.00099,
+                                                      1.22808845964606,
+                                                      1.31345289979559,
+                                                      0.0209231725658313};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_energies, cutoff_energies);
+    static const double expected_cutoff_ranges[]
+        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
+    static const double expected_densities[] = {1e-25, 8};
     EXPECT_VEC_SOFT_EQ(expected_densities, densities);
+    static const double expected_e_densities[]
+        = {0.05974697167543, 2.244432022882e+24};
     EXPECT_VEC_SOFT_EQ(expected_e_densities, e_densities);
+    static const double expected_num_densities[]
+        = {0.05974697167543, 8.699348925899e+22};
     EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
+    static const double expected_nuc_int_lengths[]
+        = {3.500000280825e+26, 16.67805709739};
     EXPECT_VEC_SOFT_EQ(expected_nuc_int_lengths, nuc_int_lengths);
+    static const double expected_rad_lengths[]
+        = {6.304350904227e+26, 1.738067064483};
     EXPECT_VEC_SOFT_EQ(expected_rad_lengths, rad_lengths);
+    static const double expected_temperatures[] = {2.73, 293.15};
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
+    static const double expected_el_comps_ids[] = {3, 0, 1, 2};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
+    static const double expected_el_comps_mass_frac[]
+        = {1, 0.7462128746215, 0.1690010443115, 0.08478608106695};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_mass_frac, el_comps_mass_frac);
+    static const double expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
 }
 
