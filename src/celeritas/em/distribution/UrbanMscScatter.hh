@@ -582,18 +582,15 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
     else
     {
         real_type safety = (1 - params_.safety_tol) * geometry_.find_safety();
-        if (rho <= safety)
+        if (safety <= params_.geom_limit)
         {
-            // No scaling needed
-        }
-        else if (safety > params_.geom_limit)
-        {
-            rho *= safety / rho;
+            // We're near a volume boundary so do not displace at all
+            rho = 0;
         }
         else
         {
-            // Otherwise (near a volume boundary), do not change position
-            rho = 0;
+            // Do not displace further than safety
+            rho = min(rho, safety);
         }
     }
 
