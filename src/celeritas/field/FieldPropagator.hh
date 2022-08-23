@@ -192,9 +192,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.boundary = true;
             real_type miss_distance = detail::calc_miss_distance(
                 state_.pos, chord.dir, linear_step.distance, substep.state.pos);
-            // The distance to boundary will be less than the chord distance,
-            // and the chord distance is less than
-            CELER_ASSERT(miss_distance < substep.step);
+            CELER_ASSERT(miss_distance >= 0 && miss_distance < substep.step);
             result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
             remaining  = 0;

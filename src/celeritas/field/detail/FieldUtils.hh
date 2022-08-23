@@ -17,10 +17,6 @@
 #include "celeritas/Types.hh"
 
 #include "../Types.hh"
-using std::cout;
-using std::endl;
-#include "corecel/cont/ArrayIO.hh"
-#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
