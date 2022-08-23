@@ -312,7 +312,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
             // Soft equivalence between distance and max step is because the
             // BVH navigator subtracts and then re-adds a bump distance to the
             // step
-            CELER_ASSERT(soft_equiv(next_step_, max_step));
+            CELER_ASSERT(soft_equal(next_step_, max_step));
             next_step_ = max_step;
         }
         next_step_ = max(next_step_, this->extra_push());
