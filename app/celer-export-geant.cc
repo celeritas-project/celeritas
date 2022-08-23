@@ -28,6 +28,15 @@ using namespace celeritas;
 using std::cout;
 using std::endl;
 
+namespace
+{
+void print_usage(const char* exec_name)
+{
+    cout << "Usage: " << exec_name
+         << " input.gdml [options.json, -, ''] output.root" << endl;
+}
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * This application exports particles, processes, models, XS physics
@@ -46,16 +55,32 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (argc != 4)
+    std::vector<std::string> args(argv + 1, argv + argc);
+    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
+    {
+        print_usage(argv[0]);
+        return 0;
+    }
+    if (args.size() == 1 && args.front() == "--options")
+    {
+#if CELERITAS_USE_JSON
+        GeantPhysicsOptions options;
+        constexpr int       indent = 1;
+        std::cout << nlohmann::json{options}.dump(indent) << endl;
+#else
+        CELER_LOG(error) << "JSON is unavailable: can't output geant options";
+#endif
+        return 0;
+    }
+    if (args.size() != 3)
     {
         // Incorrect number of arguments: print help and exit
-        cout << "Usage: " << argv[0]
-             << " input.gdml [options.json, -, ''] output.root" << endl;
+        print_usage(argv[0]);
         return 2;
     }
-    std::string gdml_input_filename  = argv[1];
-    std::string option_filename      = argv[2];
-    std::string root_output_filename = argv[3];
+    const std::string& gdml_input_filename  = args[0];
+    const std::string& option_filename      = args[1];
+    const std::string& root_output_filename = args[2];
 
     GeantPhysicsOptions options;
     if (option_filename.empty())
