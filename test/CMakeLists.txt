@@ -373,3 +373,26 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
+
+#-----------------------------------------------------------------------------#
+# DATA UPDATE
+#-----------------------------------------------------------------------------#
+
+set(_fourslabs "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/four-steel-slabs")
+set(_cmake_env)
+if(CELERITAS_USE_Geant4)
+  set(_cmake_env
+    "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+  )
+endif()
+add_custom_target(update-four-slabs
+  COMMAND
+    ${_cmake_env}
+    "$<TARGET_FILE:celer-export-geant>"
+    "${_fourslabs}.gdml"
+    "${_fourslabs}.geant.json"
+    "${_fourslabs}.root"
+  VERBATIM
+)
+add_dependencies(update-four-slabs celer-export-geant)
+
