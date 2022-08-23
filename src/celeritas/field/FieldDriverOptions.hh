@@ -22,7 +22,7 @@ struct FieldDriverOptions
     //! The minimum length of the field step
     real_type minimum_step = 1.0e-5 * units::millimeter;
 
-    //! The closest miss distrance
+    //! The closest miss distance
     real_type delta_chord = 0.25 * units::millimeter;
 
     //! Accuracy of intersection of the boundary crossing
@@ -67,7 +67,7 @@ struct FieldDriverOptions
         // clang-format off
       return  (minimum_step > 0)
 	       && (delta_chord > 0)
-	       && (delta_intersection > 0)
+	       && (delta_intersection > minimum_step)
 	       && (epsilon_step > 0 && epsilon_step < 1)
 	       && (epsilon_rel_max > 0)
 	       && (errcon > 0)

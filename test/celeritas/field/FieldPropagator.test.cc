@@ -574,6 +574,76 @@ TEST_F(TwoBoxTest, electron_corner_hit)
     }
 }
 
+// Endpoint of a step is very close to the boundary.
+TEST_F(TwoBoxTest, electron_step_endpoint)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10});
+    UniformZField      field(unit_radius_field_strength);
+    FieldDriverOptions driver_options;
+    driver_options.delta_intersection = 0.1;
+
+    // First step length and position from starting at {0,0,0} along {0,1,0}
+    static constexpr real_type first_step = 0.44815869703174;
+    static constexpr Real3     first_pos
+        = {-0.098753281951459, 0.43330671122068, 0};
+
+    {
+        SCOPED_TRACE("First step ends barely closer than boundary");
+        // Note: this ends up being the !linear_step.boundary case
+
+        real_type dx = 0.1 * driver_options.delta_intersection;
+        Real3     start_pos{-5 + dx, 0, 0};
+        axpy(real_type(-1), first_pos, &start_pos);
+
+        auto geo       = this->init_geo(start_pos, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(first_step);
+
+        EXPECT_FALSE(result.boundary);
+        EXPECT_SOFT_EQ(result.distance, first_step);
+        EXPECT_VEC_SOFT_EQ((Real3{-4.99000022992164, 8.24444331692931e-08, 0}),
+                           geo.pos());
+    }
+    {
+        SCOPED_TRACE("First step ends on boundary");
+        // Note: hard to tell without debug code, but this does end up with a
+        // single substep
+
+        real_type dx = 0;
+        Real3     start_pos{-5 - dx, 0, 0};
+        axpy(real_type(-1), first_pos, &start_pos);
+
+        auto geo       = this->init_geo(start_pos, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(first_step);
+
+        EXPECT_TRUE(result.boundary);
+        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-10);
+        // Y position suffers from roundoff
+        EXPECT_VEC_SOFT_EQ((Real3{-5.0, -9.26396730438483e-07, 0}), geo.pos());
+    }
+    {
+        SCOPED_TRACE("First step is a slightly further than boundary");
+
+        real_type dx = 0.1 * driver_options.delta_intersection;
+        Real3     start_pos{-5 - dx, 0, 0};
+        axpy(real_type(-1), first_pos, &start_pos);
+
+        auto geo       = this->init_geo(start_pos, {0, 1, 0});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(first_step);
+
+        EXPECT_TRUE(result.boundary);
+        EXPECT_LT(result.distance, first_step);
+        EXPECT_SOFT_EQ(0.44613335936932041, result.distance);
+        EXPECT_VEC_SOFT_EQ((Real3{-5, -0.0438785349441534, 0}), geo.pos());
+    }
+}
+
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
 TEST_F(TwoBoxTest, nonuniform_field)
