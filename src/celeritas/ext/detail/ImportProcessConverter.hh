@@ -96,15 +96,15 @@ class ImportProcessConverter
                              const G4VProcess&           process);
 
   private:
-    // Loop over EM processes and store them in this->process_
-    void store_em_tables(const G4VEmProcess& em_process);
-
-    // Loop over energy loss processes and store them in this->process_
-    void store_energy_loss_tables(const G4VEnergyLossProcess& eloss_process);
-
-    // Loop over multiple scattering processes and store them in this->process_
-    void
-    store_multiple_scattering_tables(const G4VMultipleScattering& msc_process);
+    // Save common process attributes
+    template<class T>
+    void store_common_process(const T& process);
+    // Save "discrete" process
+    void store_em_process(const G4VEmProcess& em_process);
+    // Save "continuous/discrete" process
+    void store_eloss_process(const G4VEnergyLossProcess& eloss_process);
+    // Save multiple scattering data to this->process_
+    void store_msc_process(const G4VMultipleScattering& msc_process);
 
     // Write the remaining elements of this->process_
     void add_table(const G4PhysicsTable*      table,
