@@ -391,7 +391,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
-    CELER_EXPECT(this->surface_id());
+    CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
     // Flip current sense from "before crossing" to "after"
@@ -410,6 +410,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     states_.vol[thread_]   = init.volume;
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
+
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
