@@ -621,7 +621,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
-        EXPECT_SOFT_EQ(result.distance, first_step);
+        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-10);
         // Y position suffers from roundoff
         EXPECT_VEC_SOFT_EQ((Real3{-5.0, -9.26396730438483e-07, 0}), geo.pos());
     }
@@ -638,7 +638,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
-        EXPECT_SOFT_EQ(result.distance, first_step);
+        EXPECT_LT(result.distance, first_step);
+        EXPECT_SOFT_EQ(0.44613335936932041, result.distance);
         EXPECT_VEC_SOFT_EQ((Real3{-5, -0.0438785349441534, 0}), geo.pos());
     }
 }

@@ -185,10 +185,17 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         {
             // The straight-line intersection point is a distance less than
             // `delta_intersection` from the substep's end position.
-            // Commit the proposed state's momentum but use the
-            // post-boundary-crossing track position for consistency
+            // Commit the proposed state's momentum, use the
+            // post-boundary-crossing track position for consistency, and
+            // conservatively reduce the *reported* traveled distance to avoid
+            // coincident boundary crossings.
             result.boundary = true;
-            result.distance += substep.step;
+            real_type miss_distance = detail::calc_miss_distance(
+                state_.pos, chord.dir, linear_step.distance, substep.state.pos);
+            // The distance to boundary will be less than the chord distance,
+            // and the chord distance is less than
+            CELER_ASSERT(miss_distance < substep.step);
+            result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
             remaining  = 0;
         }

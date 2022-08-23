@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
@@ -16,43 +17,25 @@
 #include "celeritas/Types.hh"
 
 #include "../Types.hh"
+using std::cout;
+using std::endl;
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Return y <- ax for a real variable
-template<class T>
-inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x);
-
+// HELPER STRUCTS
 //---------------------------------------------------------------------------//
-// Calculate the direction between the source and destination
+
+//! Calculated line segment between two points
 struct Chord
 {
     real_type length;
     Real3     dir;
 };
-inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst);
-
-//---------------------------------------------------------------------------//
-inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
-                                              const Real3& dir,
-                                              real_type    distance,
-                                              const Real3& target,
-                                              real_type    tolerance);
-
-//---------------------------------------------------------------------------//
-// Evaluate the stepper truncation error
-inline CELER_FUNCTION real_type truncation_error(real_type       step,
-                                                 real_type       eps_rel_max,
-                                                 const OdeState& beg_state,
-                                                 const OdeState& err_state);
-
-// Closest distance between the chord and the mid-state
-inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
-                                               const OdeState& mid_state,
-                                               const OdeState& end_state);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -61,7 +44,7 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
  * Return y <- ax for a real variable
  */
 template<class T>
-CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
+inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 {
     Array<T, 3> result;
     for (size_type i = 0; i != 3; ++i)
@@ -75,7 +58,7 @@ CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 /*!
  * Calculate the direction between the source and destination.
  */
-CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
+inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
 {
     Chord result;
     for (size_type i = 0; i != 3; ++i)
@@ -93,6 +76,31 @@ CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the distance between a target point and a line segment's endpoint.
+ *
+ * This is equivalent to:
+ * \code
+     Real3 temp = pos;
+     axpy(distance, dir, &pos);
+
+     return ipow<2>(distance(pos, target));
+ * \endcode
+ */
+inline CELER_FUNCTION real_type calc_miss_distance(const Real3& pos,
+                                                   const Real3& dir,
+                                                   real_type    distance,
+                                                   const Real3& target)
+{
+    real_type delta_sq = 0;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
+    }
+    return delta_sq;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the straight-line position is within a distance of the target.
  *
  * This is equivalent to:
@@ -103,18 +111,13 @@ CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
      return distance(pos, target) <= tolerance;
  * \endcode
  */
-CELER_FUNCTION bool is_intercept_close(const Real3& pos,
-                                       const Real3& dir,
-                                       real_type    distance,
-                                       const Real3& target,
-                                       real_type    tolerance)
+inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
+                                              const Real3& dir,
+                                              real_type    distance,
+                                              const Real3& target,
+                                              real_type    tolerance)
 {
-    real_type delta_sq = 0;
-    for (size_type i = 0; i != 3; ++i)
-    {
-        delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
-    }
-    return delta_sq <= ipow<2>(tolerance);
+    return calc_miss_distance(pos, dir, distance, target) <= ipow<2>(tolerance);
 }
 
 //---------------------------------------------------------------------------//
@@ -122,10 +125,10 @@ CELER_FUNCTION bool is_intercept_close(const Real3& pos,
  * Evaluate the stepper truncation error square:
  * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
  */
-CELER_FUNCTION real_type truncation_error(real_type       step,
-                                          real_type       eps_rel_max,
-                                          const OdeState& beg_state,
-                                          const OdeState& err_state)
+inline CELER_FUNCTION real_type truncation_error(real_type       step,
+                                                 real_type       eps_rel_max,
+                                                 const OdeState& beg_state,
+                                                 const OdeState& err_state)
 {
     // Evaluate tolerance and squre of the position and momentum accuracy
     real_type eps_pos = eps_rel_max * step;
@@ -153,9 +156,9 @@ CELER_FUNCTION real_type truncation_error(real_type       step,
  *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
  * \f]
  */
-CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
-                                        const OdeState& mid_state,
-                                        const OdeState& end_state)
+inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
+                                               const OdeState& mid_state,
+                                               const OdeState& end_state)
 {
     Real3 beg_mid = mid_state.pos;
     Real3 beg_end = end_state.pos;
