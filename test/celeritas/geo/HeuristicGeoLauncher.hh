@@ -101,7 +101,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
     if (prop.boundary)
     {
         geo.move_to_boundary();
-        CELER_ASSERT(geo.is_on_surface());
+        CELER_ASSERT(geo.is_on_boundary());
     }
     else
     {
@@ -109,7 +109,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
         // this one!
         CELER_ASSERT(prop.distance == step);
         geo.move_internal(prop.distance);
-        CELER_ASSERT(!geo.is_on_surface());
+        CELER_ASSERT(!geo.is_on_boundary());
     }
 
     CELER_ASSERT(geo.volume_id() < state.accum_path.size());
@@ -133,7 +133,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
     if (prop.boundary)
     {
         geo.cross_boundary();
-        CELER_ASSERT(geo.is_on_surface());
+        CELER_ASSERT(geo.is_on_boundary());
 
         if (geo.is_outside())
         {

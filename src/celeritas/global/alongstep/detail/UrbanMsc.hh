@@ -148,7 +148,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
                                 phys,
                                 mat.make_material_view(),
                                 msc_step_result,
-                                /* geo_limited = */ geo.is_on_surface());
+                                /* geo_limited = */ geo.is_on_boundary());
 
     auto rng        = track.make_rng_engine();
     auto msc_result = msc_scatter(rng);
@@ -168,7 +168,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
     if (msc_result.action == MscInteraction::Action::displaced)
     {
         // Displacment during a boundary crossing is *not* OK
-        CELER_ASSERT(!geo.is_on_surface());
+        CELER_ASSERT(!geo.is_on_boundary());
         Real3 new_pos;
         for (int i : range(3))
         {

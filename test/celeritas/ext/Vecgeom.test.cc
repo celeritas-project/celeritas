@@ -110,7 +110,7 @@ auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
         {
             geo.move_to_boundary();
             geo.cross_boundary();
-            EXPECT_TRUE(geo.is_on_surface());
+            EXPECT_TRUE(geo.is_on_boundary());
         }
     }
 
@@ -176,7 +176,7 @@ TEST_F(FourLevelsTest, detailed_track)
     VecgeomTrackView geo = this->make_geo_track_view();
     geo                  = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
-    EXPECT_FALSE(geo.is_on_surface());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Check for surfaces up to a distance of 4 units away
     auto next = geo.find_next_step(4.0);
@@ -186,7 +186,7 @@ TEST_F(FourLevelsTest, detailed_track)
     EXPECT_SOFT_EQ(4.0, next.distance);
     EXPECT_FALSE(next.boundary);
     geo.move_internal(3.5);
-    EXPECT_FALSE(geo.is_on_surface());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Find one a bit further, then cross it
     next = geo.find_next_step(4.0);
@@ -196,14 +196,14 @@ TEST_F(FourLevelsTest, detailed_track)
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     geo.cross_boundary();
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
-    EXPECT_TRUE(geo.is_on_surface());
+    EXPECT_TRUE(geo.is_on_boundary());
 
     // Find the next boundary and make sure that nearer distances aren't
     // accepted
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(1.0, next.distance);
     EXPECT_TRUE(next.boundary);
-    EXPECT_TRUE(geo.is_on_surface());
+    EXPECT_TRUE(geo.is_on_boundary());
     next = geo.find_next_step(0.5);
     EXPECT_SOFT_EQ(0.5, next.distance);
     EXPECT_FALSE(next.boundary);
