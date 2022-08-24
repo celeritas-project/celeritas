@@ -121,14 +121,14 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
     static const real_type paths[]
-        = {32.85, 133.7, 59.85, 104.9, 80.73, 71.22, 40.84};
+        = {32.85, 133.6, 59.78, 104.5, 79.35, 64.29, 38.84};
     return make_span(paths);
 }
 
 //---------------------------------------------------------------------------//
 
 #if CELERITAS_USE_VECGEOM
-// For some reason, the geometry seems to be "outside" when initializing?
+// TODO: ORANGE and VecGeom disagree on path lengths only for this geometry...
 #    define ThreeSpheresTest DISABLED_ThreeSpheresTest
 #endif
 
@@ -168,6 +168,14 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, host)
 {
+    if (CELERITAS_USE_VECGEOM)
+    {
+        EXPECT_TRUE(this->geometry()->supports_safety());
+    }
+    else
+    {
+        EXPECT_FALSE(this->geometry()->supports_safety());
+    }
     this->run_host(512, 1e-3);
 }
 
@@ -198,6 +206,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(ThreeSpheresTest, host)
 {
+    EXPECT_TRUE(this->geometry()->supports_safety());
     this->run_host(512, 1e-3);
 }
 

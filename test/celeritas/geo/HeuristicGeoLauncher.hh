@@ -79,48 +79,52 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
         step = std::exp(sample_logstep(rng));
     }
 
-    // Calculate safety and truncate estimated step length
+    // Calculate latest safety and truncate estimated step length (MSC-like)
+    // half the time
     {
-        real_type safety = geo.find_safety();
+        real_type           safety     = geo.find_safety();
+        constexpr real_type safety_tol = 0.01;
+        constexpr real_type geom_limit = 5e-8 * units::millimeter;
         CELER_ASSERT(safety >= 0);
-        if (params.s.ignore_zero_safety && safety == 0)
+        if (safety > geom_limit)
         {
-            safety = numeric_limits<real_type>::infinity();
+            BernoulliDistribution truncate_to_safety(0.5);
+            if (truncate_to_safety(rng))
+            {
+                // Safety scaling factor is like "safety_tol" in MSC
+                step = min(step, safety * (1 - safety_tol));
+            }
+        }
+    }
+
+    // Move to boundary and accumulate step
+    {
+        Propagation prop = geo.find_next_step(step);
+
+        if (prop.boundary)
+        {
+            geo.move_to_boundary();
+            CELER_ASSERT(geo.is_on_boundary());
+        }
+        else
+        {
+            // Check for similar assertions in FieldPropagator before loosening
+            // this one!
+            CELER_ASSERT(prop.distance == step);
+            geo.move_internal(prop.distance);
+            CELER_ASSERT(!geo.is_on_boundary());
         }
 
-        BernoulliDistribution truncate_to_safety(0.5);
-        if (truncate_to_safety(rng))
-        {
-            step = min(step, safety * real_type(1.5) + real_type(1e-9));
-        }
+        CELER_ASSERT(geo.volume_id() < state.accum_path.size());
+        atomic_add(&state.accum_path[geo.volume_id()], prop.distance);
     }
-
-    // Find step length
-    Propagation prop = geo.find_next_step(step);
-
-    if (prop.boundary)
-    {
-        geo.move_to_boundary();
-        CELER_ASSERT(geo.is_on_boundary());
-    }
-    else
-    {
-        // Check for similar assertions in FieldPropagator before loosening
-        // this one!
-        CELER_ASSERT(prop.distance == step);
-        geo.move_internal(prop.distance);
-        CELER_ASSERT(!geo.is_on_boundary());
-    }
-
-    CELER_ASSERT(geo.volume_id() < state.accum_path.size());
-    atomic_add(&state.accum_path[geo.volume_id()], prop.distance);
 
     BernoulliDistribution do_scatter(0.1);
     if (do_scatter(rng))
     {
         // Forward scatter: anything up to a 90 degree angle if not on a
         // boundary, otherwise pretty close to forward peaked
-        real_type min_angle = (prop.boundary ? real_type(0.9) : 0);
+        real_type min_angle = (geo.is_on_boundary() ? real_type(0.9) : 0);
         real_type mu        = UniformRealDistribution<>{min_angle, 1}(rng);
         real_type phi
             = UniformRealDistribution<real_type>{0, 2 * constants::pi}(rng);
@@ -130,7 +134,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
         geo.set_dir(dir);
     }
 
-    if (prop.boundary)
+    if (geo.is_on_boundary())
     {
         geo.cross_boundary();
         CELER_ASSERT(geo.is_on_boundary());

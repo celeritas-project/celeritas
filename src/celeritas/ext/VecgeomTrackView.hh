@@ -394,6 +394,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
+    CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(vgnext_.IsOnBoundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
