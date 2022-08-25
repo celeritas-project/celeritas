@@ -39,8 +39,7 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
     StateStore<MemSpace::host> state{params, num_states};
 
     HeuristicGeoLauncher launch{params, state.ref()};
-    // for (auto tid : range(ThreadId{num_states}))
-    ThreadId tid{28};
+    for (auto tid : range(ThreadId{num_states}))
     {
         for (CELER_MAYBE_UNUSED auto step : range(num_steps))
         {
@@ -103,7 +102,6 @@ auto HeuristicGeoTestBase::reference_volumes() const -> SpanConstStr
     for (auto vid : range(VolumeId{geo.num_volumes()}))
     {
         const std::string& vol_name = geo.id_to_label(vid).name;
-        std::cout << vid.get() << ": " << vol_name << std::endl;
         if (vol_name != "[EXTERIOR]")
         {
             temp_str_.push_back(vol_name);
