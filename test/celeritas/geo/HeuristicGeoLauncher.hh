@@ -162,7 +162,8 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
 
     if (geo.is_on_boundary())
     {
-        cout << " - cross_boundary ==> ";
+        cout << " - cross_boundary from VolumeId{"
+             << geo.volume_id().unchecked_get() << "} ==> ";
         geo.cross_boundary();
         if (geo.is_outside())
         {
