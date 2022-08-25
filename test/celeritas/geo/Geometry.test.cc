@@ -70,18 +70,18 @@ auto TestEm3Test::reference_volumes() const -> SpanConstStr
 auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 {
     static const real_type paths[] = {
-        8.265,  0.1061, 0.2384, 0.1297, 0.2994, 0.124,  0.3086, 0.1157, 0.2718,
-        0.1735, 0.3806, 0.1685, 0.3884, 0.1712, 0.398,  0.1677, 0.499,  0.2431,
-        0.6357, 0.2107, 0.4141, 0.1788, 0.5612, 0.3101, 0.5513, 0.2539, 0.579,
-        0.2249, 0.531,  0.2885, 0.6549, 0.3089, 0.7117, 0.2505, 0.6564, 0.3055,
-        0.647,  0.2944, 0.6914, 0.3151, 0.8069, 0.3401, 0.802,  0.3504, 0.771,
-        0.376,  0.9649, 0.3929, 0.8178, 0.3676, 0.895,  0.424,  0.9008, 0.3821,
-        0.8925, 0.4202, 0.764,  0.3841, 0.7901, 0.3464, 0.747,  0.2901, 0.6771,
-        0.2334, 0.5833, 0.2591, 0.659,  0.2893, 0.6955, 0.317,  0.7173, 0.3035,
-        0.6043, 0.2588, 0.5531, 0.2089, 0.6115, 0.3052, 0.6891, 0.3069, 0.7394,
-        0.2706, 0.6481, 0.2451, 0.504,  0.1975, 0.5367, 0.2372, 0.557,  0.2162,
-        0.5028, 0.2771, 0.4707, 0.2246, 0.4944, 0.1799, 0.5255, 0.2078, 0.3951,
-        0.171,  0.274};
+        8.617,  0.1079, 0.2445, 0.1325, 0.3059, 0.1198, 0.3179, 0.1258, 0.2803,
+        0.1793, 0.4181, 0.1638, 0.3871, 0.1701, 0.3309, 0.1706, 0.4996, 0.217,
+        0.5396, 0.188,  0.3784, 0.1758, 0.5439, 0.3073, 0.558,  0.2541, 0.5678,
+        0.2246, 0.5444, 0.3164, 0.6882, 0.3186, 0.6383, 0.2305, 0.6078, 0.2813,
+        0.6735, 0.278,  0.6635, 0.2961, 0.751,  0.3612, 0.7456, 0.319,  0.7395,
+        0.3557, 0.9123, 0.4129, 0.7772, 0.3561, 0.8535, 0.4207, 0.8974, 0.3674,
+        0.9314, 0.4164, 0.802,  0.3904, 0.7931, 0.3276, 0.712,  0.3259, 0.7212,
+        0.2625, 0.6184, 0.2654, 0.6822, 0.3073, 0.7249, 0.3216, 0.8117, 0.3101,
+        0.6056, 0.2372, 0.5184, 0.1985, 0.636,  0.3183, 0.6663, 0.2881, 0.725,
+        0.2805, 0.6565, 0.2635, 0.529,  0.2416, 0.5596, 0.2547, 0.5676, 0.2178,
+        0.5719, 0.2943, 0.5682, 0.2161, 0.4803, 0.1719, 0.4611, 0.1928, 0.3685,
+        0.1554, 0.2443};
     return make_span(paths);
 }
 
@@ -122,7 +122,7 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
     static const real_type paths[]
-        = {57.5, 406, 271, 534, 486, 1.16e+03, 1.7e+03};
+        = {58.02, 408.3, 274.9, 540.9, 496.3, 1134, 1694};
     return make_span(paths);
 }
 
@@ -154,7 +154,7 @@ auto ThreeSpheresTest::reference_volumes() const -> SpanConstStr
 
 auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 {
-    static const real_type paths[] = {126, 342, 22.6, 3.69, 0, 0, 7.88};
+    static const real_type paths[] = {0.2013, 3.346, 6.696, 375.5};
     return make_span(paths);
 }
 
@@ -172,12 +172,14 @@ TEST_F(TestEm3Test, host)
     {
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    this->run_host(512, 1e-3);
+    // Results were generated with ORANGE
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.25 : 1e-3;
+    this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    this->run_device(512, 1e-3);
+    this->run_device(512, 0.1);
 }
 
 //---------------------------------------------------------------------------//
@@ -186,13 +188,15 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(SimpleCmsTest, host)
 {
-    real_type tol = (CELERITAS_USE_VECGEOM ? 2e-2 : 1e-3);
+    // Results were generated with ORANGE
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.01 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = (CELERITAS_USE_VECGEOM ? 2e-2 : 1e-3);
+    // Results were generated with ORANGE
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.01 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -202,13 +206,17 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(ThreeSpheresTest, host)
 {
+    // Results were generated with ORANGE
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.01 : 1e-3;
     EXPECT_TRUE(this->geometry()->supports_safety());
-    this->run_host(512, 1e-3);
+    this->run_host(512, tol);
 }
 
 TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 {
-    this->run_device(512, 1e-3);
+    // Results were generated with ORANGE
+    real_type tol = CELERITAS_USE_VECGEOM ? 0.01 : 1e-3;
+    this->run_device(512, tol);
 }
 
 //---------------------------------------------------------------------------//
