@@ -347,6 +347,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Move to the inside of the surface
     states_.surf[thread_]  = next_surface_.id();
     states_.sense[thread_] = next_surface_.unchecked_sense();
+    states_.boundary[thread_] = BoundaryResult::exiting;
     this->clear_next_step();
 }
 
@@ -387,12 +388,20 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position *must* be on the boundary following a move-to-boundary. This
+ * should only be called once per boundary crossing.
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
+
+    if (states_.boundary[thread_] == BoundaryResult::reentrant)
+    {
+        // Direction changed while on boundary leading to no change in
+        // volume/surface. This is logically equivalent to a reflection.
+        return;
+    }
 
     // Flip current sense from "before crossing" to "after"
     detail::LocalState local;
@@ -411,6 +420,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
 
+    // Reset boundary crossing state: though cross boundary should only ever be
+    // called once, and this value should only ever be checked after a call to
+    // move-to-boundary?
+    states_.boundary[thread_] = BoundaryResult::reentrant;
+
     CELER_ENSURE(this->is_on_boundary());
 }
 
@@ -419,12 +433,40 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * Change the track's direction.
  *
  * This happens after a scattering event or movement inside a magnetic field.
- * It resets the calculated distance-to-boundary.
+ * It resets the calculated distance-to-boundary. It is allowed to happen on
+ * the boundary, but changing direction so that it goes from pointing outward
+ * to inward (or vice versa) will mean that \c cross_boundary will be a
+ * null-op.
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    bool orig_dot_product = false;
+    if (this->is_on_boundary())
+    {
+        // Changing direction on a boundary is dangerous!
+        SimpleUnitTracker tracker(params_);
+        Real3 normal     = tracker.normal(this->pos(), this->surface_id());
+        orig_dot_product = dot_product(normal, this->dir()) >= 0;
+    }
+
     states_.dir[thread_] = newdir;
+
+    if (this->is_on_boundary())
+    {
+        SimpleUnitTracker tracker(params_);
+        Real3 normal = tracker.normal(this->pos(), this->surface_id());
+        if (orig_dot_product != (dot_product(normal, this->dir()) >= 0))
+        {
+            // Direction change means we don't cross the boundary! (Or maybe we
+            // already uncrossed it due to mag field and are re-crossing due to
+            // some other reason?)
+            states_.boundary[thread_]
+                = flip_boundary(states_.boundary[thread_]);
+        }
+    }
+
     this->clear_next_step();
 }
 
