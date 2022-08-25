@@ -130,7 +130,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
             = UniformRealDistribution<real_type>{0, 2 * constants::pi}(rng);
 
         Real3 dir = geo.dir();
-        rotate(from_spherical(mu, phi), dir);
+        dir       = rotate(from_spherical(mu, phi), dir);
         geo.set_dir(dir);
     }
 
