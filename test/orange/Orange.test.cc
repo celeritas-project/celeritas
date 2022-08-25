@@ -212,6 +212,76 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
 }
 
+// Leaving the voume almost at a tangent, but magnetic field changes direction
+// on boundary so it ends up heading back in
+TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
+{
+    auto geo = this->make_track_view();
+    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+
+    {
+        // Find distance
+        Propagation next = geo.find_next_step();
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
+    }
+    {
+        // Move to boundary
+        geo.move_to_boundary();
+        EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Scatter on boundary so we're heading back into volume 0
+        geo.set_dir({-1, 0, 0});
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Cross into new volume
+        geo.cross_boundary();
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+}
+
+TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
+{
+    auto geo = this->make_track_view();
+    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+
+    {
+        // Find distance
+        Propagation next = geo.find_next_step();
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
+    }
+    {
+        // Move to boundary
+        geo.move_to_boundary();
+        EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Scatter on boundary so we're still leaving volume 0
+        geo.set_dir({1, 0, 0});
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Cross into new volume
+        geo.cross_boundary();
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+}
+
 TEST_F(TwoVolumeTest, persistence)
 {
     {
