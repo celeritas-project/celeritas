@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iostream>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -21,6 +23,10 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "HeuristicGeoData.hh"
+using std::cout;
+using std::endl;
+#include "corecel/cont/ArrayIO.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
@@ -61,7 +67,13 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
         GeoTrackView::Initializer_t init;
         init.pos = sample_pos(rng);
         init.dir = sample_dir(rng);
+
+        cout << "Initializing at " << repr(init.pos)
+             << " (r = " << repr(norm(init.pos)) << ")"
+             << " along " << init.dir;
         geo      = init;
+        cout << " ==> VolumeId{" << geo.volume_id().unchecked_get() << "}"
+             << endl;
         CELER_ASSERT(!geo.is_outside());
 
         state.status[tid] = LifeStatus::alive;
@@ -99,10 +111,13 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
 
     // Move to boundary and accumulate step
     {
+        cout << " - find_next_step(" << repr(step) << ") ==> ";
         Propagation prop = geo.find_next_step(step);
+        cout << repr(prop.distance) << endl;
 
         if (prop.boundary)
         {
+            cout << " - move_to_boundary";
             geo.move_to_boundary();
             CELER_ASSERT(geo.is_on_boundary());
         }
@@ -111,9 +126,17 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
             // Check for similar assertions in FieldPropagator before loosening
             // this one!
             CELER_ASSERT(prop.distance == step);
+            cout << " - move_internal";
             geo.move_internal(prop.distance);
             CELER_ASSERT(!geo.is_on_boundary());
         }
+        cout << " ==> " << repr(geo.pos()) << " (r = " << repr(norm(geo.pos()))
+             << ")";
+        if (prop.boundary)
+        {
+            cout << ", SurfaceId{" << geo.surface_id().unchecked_get() << "}";
+        }
+        cout << endl;
 
         CELER_ASSERT(geo.volume_id() < state.accum_path.size());
         atomic_add(&state.accum_path[geo.volume_id()], prop.distance);
@@ -131,12 +154,25 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
 
         Real3 dir = geo.dir();
         dir       = rotate(from_spherical(mu, phi), dir);
+        cout << " - set_dir (mu=" << repr(mu) << ") ==> " << repr(dir)
+             << "dot_norm = "
+             << repr(dot_product(dir, geo.pos()) / norm(geo.pos())) << endl;
         geo.set_dir(dir);
     }
 
     if (geo.is_on_boundary())
     {
+        cout << " - cross_boundary ==> ";
         geo.cross_boundary();
+        if (geo.is_outside())
+        {
+            cout << "outside" << endl;
+        }
+        else
+        {
+            cout << "VolumeId{" << geo.volume_id().unchecked_get() << "}"
+                 << endl;
+        }
         CELER_ASSERT(geo.is_on_boundary());
 
         if (geo.is_outside())
