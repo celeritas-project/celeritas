@@ -128,11 +128,6 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 
 //---------------------------------------------------------------------------//
 
-#if CELERITAS_USE_VECGEOM
-// TODO: ORANGE and VecGeom disagree on path lengths only for this geometry...
-#    define ThreeSpheresTest DISABLED_ThreeSpheresTest
-#endif
-
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:

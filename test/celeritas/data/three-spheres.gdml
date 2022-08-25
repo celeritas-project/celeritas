@@ -35,9 +35,9 @@
     
   <solids>
     <sphere lunit="cm" name="inner_sph" rmax="1.0" deltaphi="360" deltatheta="180" aunit="deg"/>
-    <sphere lunit="cm" name="middle_sph" rmax="3.0" deltaphi="360" deltatheta="180" aunit="deg"/>
-    <sphere lunit="cm" name="outer_sph" rmax="6.0" deltaphi="360" deltatheta="180" aunit="deg"/>
-    <sphere lunit="cm" name="world_sph" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="middle_sph" rmin="1.0" rmax="3.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="outer_sph" rmin="3.0" rmax="6.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="world_sph" rmin="0.0" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
   </solids>
 
   <structure>
