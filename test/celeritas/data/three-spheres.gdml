@@ -34,10 +34,10 @@
   </materials>
     
   <solids>
-    <sphere lunit="cm" name="inner_sph" rmax="1.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
-    <sphere lunit="cm" name="middle_sph" rmax="3.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
-    <sphere lunit="cm" name="outer_sph" rmax="6.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
-    <sphere lunit="cm" name="world_sph" rmax="100.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
+    <sphere lunit="cm" name="inner_sph" rmax="1.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="middle_sph" rmax="3.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="outer_sph" rmax="6.0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <sphere lunit="cm" name="world_sph" rmax="100.0" deltaphi="360" deltatheta="180" aunit="deg"/>
   </solids>
 
   <structure>
