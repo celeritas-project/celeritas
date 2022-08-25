@@ -69,8 +69,20 @@ auto TestEm3Test::reference_volumes() const -> SpanConstStr
 
 auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 {
-    return {};
-    // return make_span(paths);
+    static const real_type paths[] = {
+        8.265,  0.1061, 0.2384, 0.1297, 0.2994, 0.124,  0.3086, 0.1157, 0.2718,
+        0.1735, 0.3806, 0.1685, 0.3884, 0.1712, 0.398,  0.1677, 0.499,  0.2431,
+        0.6357, 0.2107, 0.4141, 0.1788, 0.5612, 0.3101, 0.5513, 0.2539, 0.579,
+        0.2249, 0.531,  0.2885, 0.6549, 0.3089, 0.7117, 0.2505, 0.6564, 0.3055,
+        0.647,  0.2944, 0.6914, 0.3151, 0.8069, 0.3401, 0.802,  0.3504, 0.771,
+        0.376,  0.9649, 0.3929, 0.8178, 0.3676, 0.895,  0.424,  0.9008, 0.3821,
+        0.8925, 0.4202, 0.764,  0.3841, 0.7901, 0.3464, 0.747,  0.2901, 0.6771,
+        0.2334, 0.5833, 0.2591, 0.659,  0.2893, 0.6955, 0.317,  0.7173, 0.3035,
+        0.6043, 0.2588, 0.5531, 0.2089, 0.6115, 0.3052, 0.6891, 0.3069, 0.7394,
+        0.2706, 0.6481, 0.2451, 0.504,  0.1975, 0.5367, 0.2372, 0.557,  0.2162,
+        0.5028, 0.2771, 0.4707, 0.2246, 0.4944, 0.1799, 0.5255, 0.2078, 0.3951,
+        0.171,  0.274};
+    return make_span(paths);
 }
 
 //---------------------------------------------------------------------------//
@@ -85,6 +97,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-30, -30, -700};
         result.upper = {30, 30, 700};
+        result.log_min_step = std::log(1e-4);
+        result.log_max_step = std::log(1e2);
         return result;
     }
 
@@ -107,8 +121,9 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
-    return {};
-    // return make_span(paths);
+    static const real_type paths[]
+        = {57.5, 406, 271, 534, 486, 1.16e+03, 1.7e+03};
+    return make_span(paths);
 }
 
 //---------------------------------------------------------------------------//
@@ -144,7 +159,8 @@ auto ThreeSpheresTest::reference_volumes() const -> SpanConstStr
 
 auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 {
-    return {}; // make_span(paths);
+    static const real_type paths[] = {126, 342, 22.6, 3.69, 0, 0, 7.88};
+    return make_span(paths);
 }
 
 //---------------------------------------------------------------------------//
