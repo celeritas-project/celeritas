@@ -519,17 +519,12 @@ function(celeritas_check_cuda_runtime OUTVAR library)
     # the shared run-time library and we don't have the scafolding libraries
     # (shared/static/final) then this won't work well. i.e. if we were to detect this
     # case we probably need to 'error out'.
-    #get_property(_lib_loc TARGET ${_lib} PROPERTY LOCATION)
-    #if(NOT _lib_loc)
-    #  message(WARNING "Setting to None for ${_lib}")
-    #  set_target_properties(${_lib} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
-    #endi()/else()
     get_target_property(_cuda_library_type ${library} CELERITAS_CUDA_LIBRARY_TYPE)
     get_target_property(_cuda_find_library ${library} CELERITAS_CUDA_FINAL_LIBRARY)
     if ("${_cuda_library_type}" STREQUAL "Shared")
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
       set(_runtime "Shared")
-    elseif(NOT _cuda_find_library) # ${_cuda_find_library}" STREQUAL "_cuda_find_library-NOTFOUND")
+    elseif(NOT _cuda_find_library)
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
       set(_runtime "None")
     else()
@@ -692,8 +687,6 @@ function(celeritas_target_link_libraries target)
           endif()
         endif()
       endif()
-      #message(STATUS "We  should have failed for ${target} ${_target_type}")
-
     endif()
   endif()
 
