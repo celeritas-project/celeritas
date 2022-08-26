@@ -442,30 +442,27 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
 
-    bool orig_dot_product = false;
     if (this->is_on_boundary())
     {
-        // Changing direction on a boundary is dangerous!
+        // Changing direction on a boundary is dangerous, as it could mean we
+        // don't leave the volume after all. Evaluate whether the direction
+        // dotted with the surface normal changes (i.e. heading from inside to
+        // outside or vice versa).
         SimpleUnitTracker tracker(params_);
-        Real3 normal     = tracker.normal(this->pos(), this->surface_id());
-        orig_dot_product = dot_product(normal, this->dir()) >= 0;
-    }
+        const Real3 normal = tracker.normal(this->pos(), this->surface_id());
 
-    states_.dir[thread_] = newdir;
-
-    if (this->is_on_boundary())
-    {
-        SimpleUnitTracker tracker(params_);
-        Real3 normal = tracker.normal(this->pos(), this->surface_id());
-        if (orig_dot_product != (dot_product(normal, this->dir()) >= 0))
+        if ((dot_product(normal, newdir) >= 0)
+            != (dot_product(normal, this->dir()) >= 0))
         {
-            // Direction change means we don't cross the boundary! (Or maybe we
-            // already uncrossed it due to mag field and are re-crossing due to
-            // some other reason?)
+            // The boundary crossing direction has changed! Reverse our plans
+            // to change the logical state and move to a new volume.
             states_.boundary[thread_]
                 = flip_boundary(states_.boundary[thread_]);
         }
     }
+
+    // Complete direction setting
+    states_.dir[thread_] = newdir;
 
     this->clear_next_step();
 }
