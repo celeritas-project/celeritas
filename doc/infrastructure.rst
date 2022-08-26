@@ -21,7 +21,7 @@ Installation
 
 This project requires external dependencies to build with full functionality.
 However, any combination of these requirements can be omitted to enable
-limited development experimental HPC systems or personal machines with
+limited development on experimental HPC systems or personal machines with
 fewer available components.
 
 .. tabularcolumns:: lll

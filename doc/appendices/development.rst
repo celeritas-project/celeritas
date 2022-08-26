@@ -68,7 +68,7 @@ Prefer single-state classes
 
 As much as possible, make classes "complete" and valid after calling the
 constructor. Don't have a series of functions that have to be called in a
-specific order to put the class in a workable state.
+specific order to put the class in a workable state.  (And when it is not possible,  code must be put in place to automatically detect (and warn the developer) if the specific order is not respected).
 
 When a class has a single function (especially if you name that function
 ``operator()``), its usage is obvious. The reader also doesn't have to know
@@ -175,7 +175,7 @@ a tag struct can be be defined inline::
 File names
 ----------
 
-Finally, we choose the convention of ``.cc`` for C++ translation units and
+We choose the convention of ``.cc`` for C++ translation units and
 corresponding ``.hh`` files for C++ headers.
 
 Thus we have the following rules:
@@ -227,7 +227,7 @@ its inclusion must be very carefully managed.
 Since NVCC is slower and other compilers' warning/error output is more
 readable, it's preferable to use NVCC for as little compilation as possible.
 Furthermore, not requiring NVCC lets us play nicer with downstream libraries
-and front-end apps. Host code will not be restricted to the minimum version
+and front-end apps. Host code will not be restricted to the maximum C++ standard version
 supported by NVCC.
 
 Of course, the standard compilers cannot include any CUDA code containing
@@ -302,7 +302,7 @@ Device code has exceptions from the rules above:
   memory, and in some accessors where the result is optional.
 - The rule of passing references to complex data does not apply to CUDA
   ``__global__`` kernels, because device code cannot accept references to host
-  memory. Instead, kernels parameters should copy by value or provide raw
+  memory. Instead, kernel parameters should copy by value or provide raw
   pointers to device memory. Indicate that the argument should not be used
   inside the kernel can prefix it with ``const``, so the CUDA compiler places
   the argument in ``__constant__`` memory rather than taking up register space.

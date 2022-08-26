@@ -40,8 +40,9 @@ followed for all new code and code changes. This includes the use of the
 correct formatting as well as the addition of new unit tests for new code or
 bug fixes.
 
-All tests must pass before a PR can be merged. (Currently the CI is not very
-stable due to disk space issues, so this rule can be bent a little bit.)
+All tests must pass before a PR can be merged. (Unless the failure are clearly unrelated 
+to the changes and enough tests and/or configuration are passing to show the PR code
+is working.  For example some of the configuration currently fail due to disk space issues.)
 
 Since there are few enough merge requests these days, only Maintainers may
 commit a merge.
