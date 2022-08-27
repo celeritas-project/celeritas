@@ -221,29 +221,6 @@ TransporterInput load_input(const LDemoArgs& args)
                        << "' (expected gdml or root)");
     }
 
-    // TODO: delete when #485 is merged
-    auto is_msc = [](const ImportProcess& p) {
-        return p.process_class == ImportProcessClass::msc;
-    };
-    if (!args.enable_msc)
-    {
-        // Delete MSC data
-        auto iter = std::remove_if(imported_data.processes.begin(),
-                                   imported_data.processes.end(),
-                                   is_msc);
-        imported_data.processes.erase(iter, imported_data.processes.end());
-    }
-    else
-    {
-        // Make sure MSC data is there
-        CELER_VALIDATE(std::find_if(imported_data.processes.begin(),
-                                    imported_data.processes.end(),
-                                    is_msc)
-                           != imported_data.processes.end(),
-                       << "multiple scattering data is not available but "
-                          "input requested 'enable_msc=true'");
-    }
-
     // Create action manager
     {
         ActionManager::Options opts;
@@ -359,8 +336,6 @@ TransporterInput load_input(const LDemoArgs& args)
             *params.physics,
             eloss,
             params.action_mgr.get());
-        CELER_ASSERT(args.enable_msc == along_step->has_msc());
-        CELER_ASSERT(args.eloss_fluctuation == along_step->has_fluct());
         params.along_step = std::move(along_step);
     }
     else
@@ -374,7 +349,6 @@ TransporterInput load_input(const LDemoArgs& args)
 
         auto along_step = AlongStepUniformMscAction::from_params(
             *params.physics, field_params, params.action_mgr.get());
-        CELER_ASSERT(args.enable_msc == along_step->has_msc());
         CELER_ASSERT(args.mag_field == along_step->field());
         params.along_step = std::move(along_step);
     }
