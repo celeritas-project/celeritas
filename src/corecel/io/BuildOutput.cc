@@ -51,6 +51,10 @@ void BuildOutput::output(JsonPimpl* j) const
             cfg["CLHEP_VERSION"]  = celeritas_clhep_version;
             cfg["Geant4_VERSION"] = celeritas_geant4_version;
         }
+        if (CELERITAS_USE_VECGEOM)
+        {
+            cfg["VecGeom_VERSION"] = celeritas_vecgeom_version;
+        }
 
         obj["config"] = std::move(cfg);
     }

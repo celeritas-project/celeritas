@@ -136,11 +136,11 @@
   </materials>
 
   <solids>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="lhc_vacuum_tube" rmax="299.9999999999" rmin="0" startphi="0" z="14000"/>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="silicon_tracker" rmax="1249.9999999999" rmin="300" startphi="0" z="14000"/>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="crystal_em_calorimeter" rmax="1749.9999999999" rmin="1250" startphi="0" z="14000"/>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="hadron_calorimeter" rmax="2749.9999999999" rmin="1750" startphi="0" z="14000"/>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="superconducting_solenoid" rmax="3749.9999999999" rmin="2750" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="lhc_vacuum_tube" rmax="300" rmin="0" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="silicon_tracker" rmax="1250" rmin="300" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="crystal_em_calorimeter" rmax="1750" rmin="1250" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="hadron_calorimeter" rmax="2750" rmin="1750" startphi="0" z="14000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="superconducting_solenoid" rmax="3750" rmin="2750" startphi="0" z="14000"/>
     <tube aunit="deg" deltaphi="360" lunit="mm" name="iron_muon_chambers" rmax="7000" rmin="3750" startphi="0" z="14000"/>
     <box lunit="mm" name="world_box" x="20000" y="20000" z="40000"/>
   </solids>

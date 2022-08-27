@@ -30,7 +30,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operate on the device with shared (persistent) data and local state.
+ * Navigate through a VecGeom geometry on a single thread.
+ *
+ * For a description of ordering requirements, see:
+ * \sa OrangeTrackView
  *
  * \code
     VecgeomTrackView geom(vg_params_ref, vg_state_ref, thread_id);
@@ -88,6 +91,8 @@ class VecgeomTrackView
 
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
+    // Whether the track is exactly on a surface
+    CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
 
     //// OPERATIONS ////
 
@@ -251,6 +256,15 @@ CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the track is on the boundary of a volume.
+ */
+CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
+{
+    return vgstate_.IsOnBoundary();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the distance to the next geometric boundary.
  */
 CELER_FUNCTION Propagation VecgeomTrackView::find_next_step()
@@ -293,6 +307,14 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
             max_step,
             vgstate_,
             vgnext_);
+        if (!vgnext_.IsOnBoundary())
+        {
+            // Soft equivalence between distance and max step is because the
+            // BVH navigator subtracts and then re-adds a bump distance to the
+            // step
+            CELER_ASSERT(soft_equal(next_step_, max_step));
+            next_step_ = max_step;
+        }
         next_step_ = max(next_step_, this->extra_push());
     }
     else
@@ -327,6 +349,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
     CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
+    CELER_ENSURE(result.boundary || result.distance == max_step
+                 || max_step < this->extra_push());
     return result;
 }
 
@@ -336,6 +360,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION real_type VecgeomTrackView::find_safety()
 {
+    CELER_EXPECT(!this->is_outside());
     real_type safety = detail::BVHNavigator::ComputeSafety(
         detail::to_vector(this->pos()), vgstate_);
 
@@ -356,6 +381,9 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     // Move next step
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
+    vgstate_.SetBoundaryState(true); // XXX
+
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
@@ -366,6 +394,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
+    CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(vgnext_.IsOnBoundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
@@ -390,13 +419,13 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT((dist > 0 && dist < next_step_)
-                 || soft_equal(dist, next_step_));
+    CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !vgnext_.IsOnBoundary());
 
     // Move and update next_step_
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
+    vgstate_.SetBoundaryState(false);
 }
 
 //---------------------------------------------------------------------------//
@@ -410,6 +439,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
 {
     pos_       = pos;
     next_step_ = 0;
+    vgstate_.SetBoundaryState(false);
 }
 
 //---------------------------------------------------------------------------//

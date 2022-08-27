@@ -81,6 +81,7 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
     }
     else
     {
+        CELER_ASSERT(dist == result.distance);
         track_.move_internal(dist);
     }
 

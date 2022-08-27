@@ -137,6 +137,21 @@ enum class SurfaceState : bool
 
 //---------------------------------------------------------------------------//
 /*!
+ * When crossing a boundary, whether the track exits the current volume.
+ *
+ * This is necessary due to changes in direction on the boundary due to
+ * magnetic field and/or multiple scattering. We could extend this later to a
+ * flag set of "volume changed" (internal non-reflective crossing), "direction
+ * changed" (reflecting/periodic), "position changed" (bump/periodic).
+ */
+enum class BoundaryResult : bool
+{
+    reentrant = false,
+    exiting   = true
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Volume logic encoding.
  *
  * This uses an *unscoped* enum inside a *namespace* so that its values can be
@@ -200,6 +215,15 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Change whether a boundary crossing is reentrant or exiting.
+ */
+CELER_CONSTEXPR_FUNCTION BoundaryResult flip_boundary(BoundaryResult orig)
+{
+    return static_cast<BoundaryResult>(!static_cast<bool>(orig));
 }
 
 //---------------------------------------------------------------------------//

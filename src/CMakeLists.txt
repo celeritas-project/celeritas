@@ -40,7 +40,7 @@ set(CELERITAS_CMAKE_STRINGS
     "static const char celeritas_rng[] = \"${CELERITAS_RNG}\";\n"
 )
 set(BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION)
+foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
     "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"

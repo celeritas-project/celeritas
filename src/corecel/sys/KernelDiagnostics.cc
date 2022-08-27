@@ -31,8 +31,8 @@ void KernelDiagnostics::log_launch(value_type& diag, unsigned int num_threads)
         return;
 
     CELER_LOG(debug) << "Launching '" << diag.name << "' on "
-                     << diag.threads_per_block << " blocks with "
-                     << num_threads << " threads";
+                     << diag.threads_per_block << " threads per block with "
+                     << num_threads << " total threads";
 
     if (--remaining_log_msg == 0)
     {

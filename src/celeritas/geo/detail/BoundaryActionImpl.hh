@@ -28,9 +28,10 @@ inline CELER_FUNCTION void boundary_track(celeritas::CoreTrackView const& track)
         // Not undergoing a boundary crossing
         return;
     }
-    CELER_ASSERT(sim.status() == TrackStatus::alive);
+    CELER_EXPECT(sim.status() == TrackStatus::alive);
 
     auto geo = track.make_geo_view();
+    CELER_EXPECT(geo.is_on_boundary());
 
     // Particle entered a new volume before reaching the interaction point
     geo.cross_boundary();
@@ -42,6 +43,8 @@ inline CELER_FUNCTION void boundary_track(celeritas::CoreTrackView const& track)
         CELER_ASSERT(matid);
         auto mat = track.make_material_view();
         mat      = {matid};
+
+        CELER_ENSURE(geo.is_on_boundary());
     }
     else
     {
