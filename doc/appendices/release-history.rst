@@ -8,8 +8,51 @@
 Release History
 ***************
 
-v0.1.0
-======
+Version 0.1.1
+=============
+
+This is a bug-fixing patch that addresses numerous outstanding issues with the
+transport loop.
+
+New features
+------------
+
+* Filter imported data from Geant4 based on user options by @sethrj in #482
+* Add contributing guide and development docs by @sethrj in #502
+
+Bug fixes
+---------
+
+* Fix uninitialized data access in primary generator by @sethrj in #472
+* Build processes based on exported data by @sethrj in #483
+* NVHPC: silence warnings by @sethrj in #486
+* Bring latest upstream updates to the BVHNavigator by @mrguilima in #484
+* Force disabling of shared libs for VecGeom 1.2.0+ by @sethrj in #489
+* Add minor fixes for UrbanMsc by @whokion in #492
+* Set remaining model lower limits to zero and make sure demo loop runs with integral approach off by @amandalund in #490
+* Fix VecGeomTrack::move_internal assertion failure by @mrguilima in #493
+* Fix clang-14/ROCM build with JSON enabled by @sethrj in #496
+* Better workaround for VecGeom 1.2 crashes by @sethrj in #495
+* Fix imported model microscopic cross sections by @amandalund in #487
+* Fix unintentional MSC enable and some displacement logic by @sethrj in #500
+* Fix unusual errors in field propagation by @sethrj in #499
+* Fix vecgeom boundary state and add more thorough testing by @sethrj in #494
+* Improve static/shared CUDA library choice when linking VecGeom by @pcanal in #497
+* Fix ORANGE reentrant boundary crossings by @sethrj in #501
+
+Internal changes
+----------------
+
+* Rewrite field tests by @sethrj in #471
+* Add range-to-step tests and remove min by @sethrj in #479
+* Add unit tests and make minor changes to FieldDriver by @sethrj in #478
+* Unify units in EM interactors/data by @sethrj in #477
+* Add tests for field propagator near boundaries by @sethrj in #480
+* Return one event at a time from EventReader and PrimaryGenerator by @amandalund in #488
+* Infrastructure changes for geo heuristic test by @sethrj in #498
+
+Version 0.1.0
+=============
 
 "Initial viable product" release of Celeritas. This release is focused on unit
 testing and stabilizing the API for exploratory use by downstream applications
@@ -29,7 +72,8 @@ New features
 Known bugs
 ----------
 
-- Magnetic field propagation fails at geometry boundaries.
+- Magnetic field propagation can fail at geometry boundaries, especially with
+  ORANGE.
 - Multiple scattering requires more steps than expected compared to Geant4.
 
 Contributors
