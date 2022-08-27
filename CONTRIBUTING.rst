@@ -40,9 +40,10 @@ followed for all new code and code changes. This includes the use of the
 correct formatting as well as the addition of new unit tests for new code or
 bug fixes.
 
-All tests must pass before a PR can be merged. (Unless the failures are clearly unrelated 
-to the changes and enough tests and/or configurations are passing to show the PR code
-is working.  For example some of the configurations currently fail due to disk space issues.)
+All tests must pass on the CI runner before a PR can be merged. (Exceptions
+will be made if any failures are clearly unrelated to the changes and enough
+tests and/or configuration are passing to show that the new code is working.
+For example, some of the configurations currently fail due to disk space issues.)
 
 Since there are few enough merge requests these days, only Maintainers may
 commit a merge.
@@ -52,4 +53,6 @@ Ownership and Authorship
 
 The person who writes a line of code is its author. However, Celeritas is a
 collaborative project with collective ownership: as much as possible, there
-should be a shared responsibility for the code.
+should be a shared responsibility for the code. If the code is reviewed
+according to the guidelines above, at least two people should always be
+comfortable modifying any piece of code.

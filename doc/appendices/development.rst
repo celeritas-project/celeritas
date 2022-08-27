@@ -28,7 +28,7 @@ Motivation:
 - Good encapsulation allows components to be interchanged easily because they
   have well-defined interfaces.
 - Pausing to think about how to minimize input and output from an algorithm can
-  improve make it easier to write.
+  improve it *and* make it easier to write.
 
 Applications:
 
@@ -151,7 +151,8 @@ Symbol names
 
 Functions should be verbs; classes should be names. As in standard Python
 (PEP-8-compliant) code, classes should use ``CapWordsStyle`` and variables use
-``snake_case_style``.
+``snake_case_style``. Private data should have trailing underscores, and public
+member data in structs should not have trailing underscores.
 
 Functors (classes whose instances act like a function) should be an *agent
 noun*: the noun form of an action verb. Instances of a functor should be a
@@ -186,7 +187,9 @@ Thus we have the following rules:
 - ``.cc`` is for C++ code that will invariably be compiled by the host
   compiler.
 - ``.cu`` is for ``__global__`` kernels and functions that launch them,
-  including code that initializes device memory.
+  including code that initializes device memory. Despite the filename, these
+  files should generally also be HIP-compatible using Celeritas abstraction
+  macros.
 - ``.cuda.hh`` and ``.cuda.cc`` require CUDA to be enabled and use CUDA runtime
   libraries and headers, but they do not execute any device code and thus can
   be built by a host compiler. If the CUDA-related code is guarded by ``#if
@@ -204,11 +207,6 @@ Some files have special extensions:
   should be provided there as well.
 - ``.test.cc`` are unit test executables corresponding to the main ``.cc``
   file. These should only be in the main ``/test`` directory.
-
-If there are only a few short inline methods (and especially if it's for a small
-class) they can be included at the bottom of the main header file under a
-suitable
-separator that demarcates the declarations from the definitions.
 
 Device compilation
 ------------------
@@ -326,6 +324,10 @@ where ``typename`` *doesn't* mean a class: namely,
 Data management
 ===============
 
+.. todo::
+   This section needs updating to more accurately describe the Collection
+   paradigm used by Celeritas for data management.
+
 Data management must be isolated from data use for any code that is to run on
 the device. This
 allows low-level physics classes to operate on references to data using the
@@ -333,44 +335,20 @@ exact same device/host code. Furthermore, state data (one per track) and
 shared data (definitions, persistent data, model data) should be separately
 allocated and managed.
 
-Store
-  Generic name for a class that manages GPU data by means of a host class,
-  using ``celeritas::DeviceVector`` (or ``thrust`` or ``VecGeom`` wrappers as
-  needed) to manage the on-device data. Use DeviceVectors for containers that
-  don't need special initialization (i.e. have "plain old data").
-
 Params (model parameters)
   Provide a CPU-based interface to manage and provide access to constant shared
   GPU data, usually model parameters or the like. The Params class itself can
-  only be accessed via host code, but it should use the
-  ``celeritas::DeviceVector`` or ``thrust`` or ``VecGeom`` wrappers to manage
-  on-device data. A params class can contain metadata (string
+  only be accessed via host code. A params class can contain metadata (string
   names, etc.) suitable for host-side debug output and for helping related
   classes convert from user-friendly input (e.g. particle name) to
   device-friendly IDs (e.g. particle def ID).
 
 State (state variables)
   Thread-local data specifying the state of a single particle track with
-  respect to a corresponding model (``FooParams``). The state
-  data resides on device but is managed by a host class ``FooStateStore`` using
-  ``DeviceVector`` or the like. It is an implementation detail whether the
-  state data is stored as a struct of arrays (SOA) or an array of structs
-  (AOS), but if stored as AOS then the per-track state struct should be named
-  ``TrackFooState``.
-
-Data
-  A standalone, plain-old-data struct to data owned by another class (e.g., a
-  Params class) but stored on the GPU. This struct is used to transfer GPU
-  pointers and other kernel parameters between host and device. A Data
-  struct can hold other Data structs as data members. Inside unit tests for
-  debugging, Data can reference *host* data if the corresponding functions
-  being called are also on-host. Defining Data structs in separate files
-  from the memory management classes means that NVCC doesn't have to include
-  those headers, speeding up compilation and perhaps allowing the host code to
-  use newer implementations of the C++ standard.
+  respect to a corresponding model (``FooParams``).
 
 TrackView
-  Device-instantiated class that provides read/write access to the data for a
+  Device-instantiable class that provides read/write access to the data for a
   single track, in the spirit of `std::string_view` which adds functionality to
   data owned by someone else. It combines the state variables and model
   parameters into a single class. The constructor always takes const references
@@ -379,10 +357,9 @@ TrackView
   is cached in the state.
 
 View
-  Device-instantiated class with read/write access for data shared across
-  threads.
-  For example, allocation for Secondary particles is performed on device, but the
-  data is not specific to a thread.
+  Device-instantiable class with read/write access for data shared across
+  threads.  For example, allocation for Secondary particles is performed on
+  device, but the data is not specific to a thread.
 
 .. hint::
 
