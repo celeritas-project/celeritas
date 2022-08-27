@@ -32,7 +32,7 @@ Motivation:
 
 Applications:
 
-- Refactor large functions (> 50 statements ish?) into small functors that take
+- Refactor large functions (> 50-ish statements?) into small functors that take
   "invariant" values (the larger context) for constructors and use
   ``operator()`` to transform some input into the desired output
 - Use only ``const`` data when sharing. Non-const shared data is almost like
@@ -43,9 +43,9 @@ Applications:
 Examples:
 
 - Random number sampling: write a unit sphere sampling functor instead of
-  replicating a polar-to-cartesian transform in a thousand places
+  replicating a polar-to-cartesian transform in a thousand places.
 - Cell IDs: Opaque IDs add type safety so that you can't accidentally convert a
-  cell identifier into a double or switch a cell and material ID. Also makes
+  cell identifier into a double or switch a cell and material ID. It also makes
   code more readable of course.
 
 
@@ -58,7 +58,7 @@ No explanation needed.
 Minimize compile time
 ---------------------
 
-Code performance is important, but so is developer time. When possible,
+Code performance is important but so is developer time. When possible,
 minimize the amount of code touched by NVCC. (NVCC's error output is also
 rudimentary compared to modern clang/gcc, so that's another reason to prefer
 them compiling your code.)
@@ -98,7 +98,7 @@ Functions should use programmatic assertions whenever assumptions are made:
 
 - Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
   incoming data or initial internal states
-- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.
+- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
   "this index is not out of range of the array")
 - Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
   function and side effects resulting from the function.

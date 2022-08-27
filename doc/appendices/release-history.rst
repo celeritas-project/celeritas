@@ -11,7 +11,7 @@ Release History
 v0.1.0
 ======
 
-”Initial viable product" release of Celeritas. This release is focused on unit
+"Initial viable product" release of Celeritas. This release is focused on unit
 testing and stabilizing the API for exploratory use by downstream applications
 and frameworks. Some initial code verification problems (looking at energy and
 step distributions for simple problems such as TestEM3) are promising, but the
