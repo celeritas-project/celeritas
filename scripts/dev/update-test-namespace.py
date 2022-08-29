@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -12,28 +11,69 @@ import os
 import os.path
 import re
 
-# REPLACE = {
-#     'ParamPointers.hh': 'MaterialInterface',
-# }
-#
-# def replace_macro_names(matchobj):
-#     return REPLACE[matchobj.group(1)]
-#
-#
-# RE_REPLACE = re.compile(r'(' + '|'.join(REPLACE.keys()) + r')\b')
+DESCRIPTION = "Put all tests in celeritas::test namespace"
+USING_RE = re.compile(r"^(\s*)using (namespace )?([^=]+);$")
+CELER_RE = re.compile(r"^celeritas::")
 
-replace_macro_names = "InteractorPointers.hh"
-RE_REPLACE = re.compile(r"InteractorInterface\.hh")
+NS_OPEN = """\
+namespace celeritas
+{
+namespace test
+{
+"""
+NS_SEP = "//---------------------------------------------------------------------------//\n"
+NS_CLOSE = """\
+} // namespace test
+} // namespace celeritas
+"""
 
-def update_macros(filename):
+def update(filename):
     with ReWriter(filename) as rewriter:
         (old, new) = rewriter.files
+        has_right_ns = False
+        needs_closing = False
         for line in old:
             orig_line = line
-            line = RE_REPLACE.sub(replace_macro_names, line)
+
+            # Check using declarations
+            match = USING_RE.match(line)
+            if match is not None:
+                (ws, ns, name) = match.groups()
+                if ns and name in ("celeritas", "celeritas_test"):
+                    # replace with namespace
+                    line = NS_OPEN + NS_SEP
+                    rewriter.dirty = True
+                    if not has_right_ns:
+                        has_right_ns = True
+                        needs_closing = True
+                    else:
+                        # Skip since we already have the namespace
+                        continue
+                else:
+                    name = CELER_RE.sub("", name)
+                    if not ns and ":" not in name:
+                        # Skip direct "using celeritas::blah"
+                        rewriter.dirty = True
+                        continue
+                    line = "".join([ws, "using ", ns or "", name, ";\n"])
+
+            if line == "namespace celeritas\n":
+                has_right_ns = True
+            elif line == "namespace celeritas_test\n":
+                has_right_ns = True
+                needs_closing = True
+                line = NS_OPEN
+                next(old) # Skip following brace
+            elif line == "} // namespace celeritas_test\n":
+                needs_closing = True
+                continue
+
             if line != orig_line:
                 rewriter.dirty = True
             new.write(line)
+        if needs_closing:
+            new.write(NS_SEP + NS_CLOSE)
+            rewriter.dirty = True
 
 
 class HasExtension(object):
@@ -148,7 +188,7 @@ class ReWriter(object):
 def main(argv=None):
     from argparse import ArgumentParser
     parser = ArgumentParser(
-        description="Update assertion macros"
+        description=DESCRIPTION
     )
     parser.add_argument(
         '-r', dest="recursive",
@@ -178,7 +218,7 @@ def main(argv=None):
 
     for filename in paths:
         try:
-            update_macros(filename)
+            update(filename)
         except Exception as e:
             log.error("While processing %s:", filename)
             log.exception(e)
