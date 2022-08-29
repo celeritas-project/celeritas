@@ -26,7 +26,11 @@ using namespace celeritas;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
-
+/*!
+ * \note
+ * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
+ * values for steel, failing \c processes test.
+ */
 class ImportDataTest : public celeritas_test::Test
 {
   protected:
