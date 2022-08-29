@@ -122,8 +122,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
     }
@@ -131,23 +131,22 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1.e-4 / 9.e-3, step.step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
-        step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.48853333333333326, step.step);
     }
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-2});
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.0016666666666666663, step.step);
     }
@@ -158,15 +157,14 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
                                                  "anti-celeriton",
                                                  MevEnergy{1e-2});
         phys.interaction_mfp(1e-6);
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1.e-6 / 9.e-1, step.step);
 
         // Increase the distance to interaction so range limits the step length
         phys.interaction_mfp(1);
-        step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(1.4285714285714282e-5, step.step);
     }
@@ -176,8 +174,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
                                                  &particle,
                                                  "anti-celeriton",
                                                  MevEnergy{10});
-        StepLimit        step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit        step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.014285714285714284, step.step);
     }
@@ -198,8 +196,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         real_type range      = calc_range(particle.energy());
         phys.dedx_range(range);
 
-        MevEnergy result
-            = celeritas::calc_mean_energy_loss(particle, phys, step);
+        MevEnergy result = calc_mean_energy_loss(particle, phys, step);
         return result.value();
     };
 
@@ -209,7 +206,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
         if (CELERITAS_DEBUG)
         {
             // Can't calc eloss for photons
-            EXPECT_THROW(calc_eloss(phys, 1e4), celeritas::DebugError);
+            EXPECT_THROW(calc_eloss(phys, 1e4), DebugError);
         }
     }
     {
@@ -262,8 +259,8 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
 
         // Testing cheat.
@@ -289,8 +286,8 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
 
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_SOFT_EQ(0.48853333333333326, step.step);
 
         // Testing cheat.
@@ -402,8 +399,8 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1. / 3.e-4, step.step);
     }
@@ -412,14 +409,13 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-3});
 
         // Small energy: still range action
-        StepLimit step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.00016666666666666663, step.step);
 
         particle.energy(MevEnergy{1e-1});
-        step = celeritas::calc_physics_step_limit(
-            material, particle, phys, pstep);
+        step = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(fixed_step_action, step.action);
         EXPECT_SOFT_EQ(0.001, step.step);
     }

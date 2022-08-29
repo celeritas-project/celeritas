@@ -28,12 +28,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
 {
     output_ = std::make_shared<OutputManager>();
@@ -118,7 +112,6 @@ void GlobalTestBase::register_action_mgr_output()
     output_->insert(std::make_shared<ActionManagerOutput>(action_mgr_));
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

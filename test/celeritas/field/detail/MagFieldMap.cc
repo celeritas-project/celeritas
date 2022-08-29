@@ -16,10 +16,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-namespace test
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -62,6 +58,5 @@ void MagFieldMap::build_data(const ReadMap& load_map, HostValue* host_data)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

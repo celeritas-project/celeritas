@@ -13,10 +13,13 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
+namespace
+{
 //---------------------------------------------------------------------------//
-// Helper classes
-//---------------------------------------------------------------------------//
-
 struct Moveable
 {
     std::string msg;
@@ -41,7 +44,7 @@ struct Moveable
     }
 
     // Delete copy and copy assign
-    Moveable(const Moveable& rhs) = delete;
+    Moveable(const Moveable& rhs)            = delete;
     Moveable& operator=(const Moveable& rhs) = delete;
 };
 
@@ -62,20 +65,11 @@ struct transform_functor
         return rhs + 1;
     }
 };
+//---------------------------------------------------------------------------//
+} // namespace
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
+using JoinTest = Test;
 
-class JoinTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 // Typical use case
 TEST_F(JoinTest, typical)
 {
@@ -91,17 +85,15 @@ TEST_F(JoinTest, typical)
     EXPECT_EQ("101, 202, 303!", os.str());
 }
 
-//---------------------------------------------------------------------------//
 // Demonstrates that Join doesn't have to allocate the joined string
 TEST_F(JoinTest, DISABLED_ginormous)
 {
     std::ofstream out(this->make_unique_filename(".txt"));
 
-    auto r = celeritas::range<std::size_t>(1e7);
+    auto r = range<std::size_t>(1e7);
     out << join(r.begin(), r.end(), "\n");
 }
 
-//---------------------------------------------------------------------------//
 TEST_F(JoinTest, transformed)
 {
     std::vector<int> vals = {3, 4, 5};
@@ -118,7 +110,6 @@ TEST_F(JoinTest, transformed)
     EXPECT_EQ(3, transform_ctr);
 }
 
-//---------------------------------------------------------------------------//
 TEST_F(JoinTest, streamed)
 {
     // Join using stream operator
@@ -160,3 +151,5 @@ TEST_F(JoinTest, streamed)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

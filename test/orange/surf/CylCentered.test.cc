@@ -15,6 +15,12 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 using Intersections = CCylX::Intersections;
 using VecReal       = std::vector<real_type>;
 
@@ -363,7 +369,7 @@ TEST(TestCCylZ, multi_intersect)
 /*!
  * Test initialization on or near boundary
  */
-class DegenerateBoundaryTest : public celeritas_test::Test
+class DegenerateBoundaryTest : public Test
 {
   protected:
     void run(real_type xdir) const;
@@ -432,3 +438,6 @@ TEST_F(DegenerateBoundaryTest, pos)
     eps = 1.e-8;
     run_all();
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

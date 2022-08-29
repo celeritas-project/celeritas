@@ -35,9 +35,9 @@ class CMSParameterizedField
   public:
     //!@{
     //! \name Type aliases
-    using real_type = celeritas::real_type;
-    using Real3     = celeritas::Array<real_type, 3>;
-    using Real4     = celeritas::Array<real_type, 4>;
+
+    using Real3 = Array<real_type, 3>;
+    using Real4 = Array<real_type, 4>;
     //!@}
 
   public:
@@ -165,6 +165,5 @@ auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

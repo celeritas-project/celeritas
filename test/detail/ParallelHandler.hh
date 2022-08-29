@@ -27,7 +27,7 @@ namespace detail
 class ParallelHandler : public ::testing::EmptyTestEventListener
 {
   public:
-    using Comm = celeritas::MpiCommunicator;
+    using Comm = MpiCommunicator;
 
     // Construct with communicator
     explicit ParallelHandler(const Comm& comm);
@@ -43,6 +43,5 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

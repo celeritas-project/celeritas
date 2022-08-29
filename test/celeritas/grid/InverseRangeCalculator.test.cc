@@ -12,11 +12,13 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-class InverseRangeCalculatorTest : public celeritas_test::CalculatorTestBase
+class InverseRangeCalculatorTest : public CalculatorTestBase
 {
   protected:
     using Energy = InverseRangeCalculator::Energy;
@@ -39,10 +41,6 @@ class InverseRangeCalculatorTest : public celeritas_test::CalculatorTestBase
     }
 };
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
 // Note: these are all the same values as the RangeCalculator test.
 TEST_F(InverseRangeCalculatorTest, all)
 {
@@ -62,6 +60,10 @@ TEST_F(InverseRangeCalculatorTest, all)
 
 #if CELERITAS_DEBUG
     // Above range
-    EXPECT_THROW(calc_energy(500.1), celeritas::DebugError);
+    EXPECT_THROW(calc_energy(500.1), DebugError);
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

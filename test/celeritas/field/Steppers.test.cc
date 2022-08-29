@@ -31,9 +31,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using detail::truncation_error;
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
@@ -79,7 +76,7 @@ class SteppersTest : public Test
         // Test parameters and the sub-step size
         real_type hstep = 2.0 * constants::pi * param.radius / param.nsteps;
 
-        for (unsigned int i : celeritas::range(param.nstates))
+        for (unsigned int i : range(param.nstates))
         {
             // Initial state and the epected state after revolutions
             OdeState y;
@@ -94,13 +91,13 @@ class SteppersTest : public Test
             {
                 // Travel hstep for num_steps times in the field
                 expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
-                for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
+                for (CELER_MAYBE_UNUSED int j : range(param.nsteps))
                 {
                     StepperResult result = stepper(hstep, y);
                     y                    = result.end_state;
 
-                    total_err2
-                        += truncation_error(hstep, 0.001, y, result.err_state);
+                    total_err2 += ::celeritas::detail::truncation_error(
+                        hstep, 0.001, y, result.err_state);
                 }
                 // Check the state after each revolution and the total error
                 EXPECT_VEC_NEAR(expected_y.pos, y.pos, sqrt(total_err2));
@@ -114,7 +111,7 @@ class SteppersTest : public Test
     {
         // Check gpu stepper results
         real_type zstep = param.delta_z * param.revolutions;
-        for (auto i : celeritas::range(output.pos_x.size()))
+        for (auto i : range(output.pos_x.size()))
         {
             real_type error = std::sqrt(output.error[i]);
             EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);

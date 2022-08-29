@@ -12,21 +12,16 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class GammaDistributionTest : public celeritas_test::Test
+class GammaDistributionTest : public Test
 {
   protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
+    test::DiagnosticRngEngine<std::mt19937> rng;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(GammaDistributionTest, bin_large_alpha)
 {
@@ -38,7 +33,7 @@ TEST_F(GammaDistributionTest, bin_large_alpha)
     GammaDistribution<double> sample_gamma{alpha, beta};
 
     std::vector<int> counters(7);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         double x = sample_gamma(rng);
         if (x < 2.0)
@@ -72,7 +67,7 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
     GammaDistribution<double> sample_gamma{alpha, beta};
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         double x = sample_gamma(rng);
         if (x < 1.0)
@@ -91,3 +86,7 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(61136, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

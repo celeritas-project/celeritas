@@ -33,6 +33,5 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

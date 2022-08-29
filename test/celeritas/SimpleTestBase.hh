@@ -21,12 +21,6 @@ namespace test
  */
 class SimpleTestBase : virtual public GlobalGeoTestBase
 {
-  public:
-    //!@{
-    //! Type aliases
-    using real_type = celeritas::real_type;
-    //!@}
-
   protected:
     const char* geometry_basename() const override { return "two-boxes"; }
 
@@ -40,7 +34,6 @@ class SimpleTestBase : virtual public GlobalGeoTestBase
     SPConstAction      build_along_step() override;
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

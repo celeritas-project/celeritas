@@ -20,21 +20,18 @@ namespace test
 /*!
  * Test harness base class for interpolating values on grids.
  */
-class CalculatorTestBase : public celeritas_test::Test
+class CalculatorTestBase : public Test
 {
   public:
     //!@{
     //! Type aliases
-    using real_type  = celeritas::real_type;
-    using size_type  = celeritas::size_type;
-    using XsGridData = celeritas::XsGridData;
-    using Values     = celeritas::Collection<real_type,
-                                         celeritas::Ownership::value,
-                                         celeritas::MemSpace::host>;
-    using Data       = celeritas::Collection<real_type,
-                                       celeritas::Ownership::const_reference,
-                                       celeritas::MemSpace::host>;
-    using SpanReal   = celeritas::Span<real_type>;
+    using real_type = real_type;
+    using size_type = size_type;
+
+    using Values = Collection<real_type, Ownership::value, MemSpace::host>;
+    using Data
+        = Collection<real_type, Ownership::const_reference, MemSpace::host>;
+    using SpanReal = Span<real_type>;
     //!@}
 
   public:
@@ -52,7 +49,6 @@ class CalculatorTestBase : public celeritas_test::Test
     Data       value_ref_;
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

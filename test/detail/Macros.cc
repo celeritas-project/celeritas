@@ -65,6 +65,5 @@ trunc_string(unsigned int digits, const char* str, const char* trunc)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

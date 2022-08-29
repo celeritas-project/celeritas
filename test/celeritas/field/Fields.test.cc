@@ -21,8 +21,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -44,7 +42,7 @@ TEST(UniformFieldTest, all)
 TEST(CMSParameterizedFieldTest, all)
 {
     // Create the magnetic field with a parameterized field
-    celeritas_test::detail::CMSParameterizedField calc_field;
+    detail::CMSParameterizedField calc_field;
 
     const int nsamples = 8;
     real_type delta_z  = 25.0;
@@ -60,7 +58,7 @@ TEST(CMSParameterizedFieldTest, all)
            {21.253065, 21.253065, 3777.244454},
            {28.935544, 28.935544, 3765.695087}};
 
-    for (int i : celeritas::range(nsamples))
+    for (int i : range(nsamples))
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};
@@ -70,26 +68,21 @@ TEST(CMSParameterizedFieldTest, all)
 
 TEST(CMSMapField, all)
 {
-    using celeritas_test::detail::CMSFieldMapReader;
-    using celeritas_test::detail::CMSMapField;
-    using celeritas_test::detail::FieldMapParameters;
-    using celeritas_test::detail::MagFieldMap;
-
-    std::unique_ptr<MagFieldMap> field_map;
+    std::unique_ptr<detail::MagFieldMap> field_map;
     {
-        FieldMapParameters params;
+        detail::FieldMapParameters params;
         params.delta_grid = units::meter;
         params.num_grid_r = 9 + 1;      //! [0:9]
         params.num_grid_z = 2 * 16 + 1; //! [-16:16]
         params.offset_z   = 16 * units::meter;
 
-        CMSFieldMapReader load_map(params,
-                                   celeritas_test::Test::test_data_path(
-                                       "celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<MagFieldMap>(load_map);
+        detail::CMSFieldMapReader load_map(
+            params,
+            test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
+        field_map = std::make_unique<detail::MagFieldMap>(load_map);
     }
 
-    CMSMapField calc_field(field_map->host_ref());
+    detail::CMSMapField calc_field(field_map->host_ref());
 
     const int nsamples = 8;
     real_type delta_z  = 25.0;
@@ -105,7 +98,7 @@ TEST(CMSMapField, all)
            {14.241, 14.241, 3771.88},
            {16.6149, 16.6149, 3757.2}};
 
-    for (int i : celeritas::range(nsamples))
+    for (int i : range(nsamples))
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};

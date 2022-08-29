@@ -13,21 +13,17 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-class UniformRealDistributionTest : public celeritas_test::Test
+class UniformRealDistributionTest : public Test
 {
   protected:
-    void SetUp() override {}
-
     std::mt19937 rng;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(UniformRealDistributionTest, constructors)
 {
@@ -44,7 +40,7 @@ TEST_F(UniformRealDistributionTest, constructors)
     if (CELERITAS_DEBUG)
     {
         // b < a is not allowed
-        EXPECT_THROW(UniformRealDistribution<>(3, 2), celeritas::DebugError);
+        EXPECT_THROW(UniformRealDistribution<>(3, 2), DebugError);
     }
 }
 
@@ -57,7 +53,7 @@ TEST_F(UniformRealDistributionTest, bin)
     UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         double r = sample_uniform(rng);
         ASSERT_GE(r, min);
@@ -69,3 +65,7 @@ TEST_F(UniformRealDistributionTest, bin)
     const int expected_counters[] = {2071, 1955, 1991, 2013, 1970};
     EXPECT_VEC_EQ(expected_counters, counters);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

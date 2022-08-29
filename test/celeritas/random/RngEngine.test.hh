@@ -21,7 +21,7 @@ namespace test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-using RngDeviceRef = celeritas::DeviceRef<celeritas::RngStateData>;
+using RngDeviceRef = DeviceRef<celeritas::RngStateData>;
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
@@ -43,7 +43,6 @@ inline std::vector<T> re_test_canonical(RngDeviceRef)
 }
 #endif
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

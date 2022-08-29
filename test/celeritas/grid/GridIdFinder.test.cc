@@ -12,26 +12,22 @@
 
 #include "celeritas_test.hh"
 
-// using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
 
-class GridIdFinderTest : public celeritas_test::Test
+class GridIdFinderTest : public Test
 {
   protected:
-    using Energy  = celeritas::units::MevEnergy;
-    using IdT     = celeritas::OpaqueId<struct Foo>;
+    using Energy  = units::MevEnergy;
+    using IdT     = OpaqueId<struct Foo>;
     using FinderT = GridIdFinder<Energy, IdT>;
 
     std::vector<Energy::value_type> grid;
     std::vector<IdT>                ids;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(GridIdFinderTest, all)
 {
@@ -50,3 +46,7 @@ TEST_F(GridIdFinderTest, all)
     EXPECT_EQ(7, find_id(Energy{11}).unchecked_get());
     EXPECT_EQ(invalid, find_id(Energy{100}).unchecked_get());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

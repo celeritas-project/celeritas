@@ -45,7 +45,7 @@ class MagFieldMap
 
   private:
     // Host/device storage and reference
-    celeritas::CollectionMirror<FieldMapData> mirror_;
+    CollectionMirror<FieldMapData> mirror_;
 
   private:
     using HostValue = ::celeritas::HostVal<FieldMapData>;
@@ -54,6 +54,5 @@ class MagFieldMap
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

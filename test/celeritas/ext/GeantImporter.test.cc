@@ -22,8 +22,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // Helper functions
 namespace
 {
@@ -43,7 +41,7 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeantImporterTest : public celeritas_test::Test
+class GeantImporterTest : public Test
 {
   protected:
     using DataSelection = GeantImporter::DataSelection;

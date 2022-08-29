@@ -15,24 +15,24 @@
 
 #include "celeritas_test.hh"
 
-using namespace units;
-namespace pdg = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
 
-class EventReaderTest : public celeritas_test::Test,
-                        public testing::WithParamInterface<const char*>
+class EventReaderTest : public Test,
+                        public ::testing::WithParamInterface<const char*>
 {
   protected:
     void SetUp() override
     {
         using units::ElementaryCharge;
         using units::MevMass;
-        auto           zero = celeritas::zero_quantity();
-        constexpr auto stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        using units::second;
+
+        auto           zero   = zero_quantity();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create shared standard model particle data
         particle_params_ = std::make_shared<ParticleParams>(
@@ -96,7 +96,7 @@ TEST_P(EventReaderTest, read_all_formats)
     while (!primaries.empty())
     {
         EXPECT_EQ(8, primaries.size());
-        for (auto i : celeritas::range(primaries.size()))
+        for (auto i : range(primaries.size()))
         {
             const auto& primary = primaries[i];
 
@@ -127,3 +127,7 @@ INSTANTIATE_TEST_SUITE_P(EventReaderTests,
                          testing::Values("event-record.hepmc3",
                                          "event-record.hepmc2",
                                          "event-record.hepevt"));
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

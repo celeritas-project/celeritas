@@ -19,31 +19,26 @@
 
 #include "celeritas_test.hh"
 
-using units::MevEnergy;
-
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS BASE
 //---------------------------------------------------------------------------//
 
-class ParticleTest : public celeritas_test::Test
+class ParticleTest : public Test
 {
   protected:
     using Initializer_t = ParticleTrackView::Initializer_t;
+    using MevEnergy     = units::MevEnergy;
 
     void SetUp() override
     {
-        namespace pdg = celeritas::pdg;
         using namespace units;
 
-        constexpr auto zero = celeritas::zero_quantity();
-        constexpr auto stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        constexpr auto zero   = zero_quantity();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;
@@ -85,7 +80,7 @@ TEST_F(ParticleTest, params_accessors)
 // IMPORT PARTICLE DATA TEST
 //---------------------------------------------------------------------------//
 
-class ParticleImportTest : public celeritas_test::Test
+class ParticleImportTest : public Test
 {
   protected:
     void SetUp() override
@@ -161,8 +156,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
-    EXPECT_SOFT_EQ(25867950886.882648,
-                   celeritas::native_value_from(particle.speed()));
+    EXPECT_SOFT_EQ(25867950886.882648, native_value_from(particle.speed()));
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
     EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
     EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());

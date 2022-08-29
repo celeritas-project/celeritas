@@ -156,7 +156,7 @@ class TransporterBase
 
   protected:
     // TODO: these protected data are a hack for now
-    TransporterInput                 input_;
+    TransporterInput input_;
 };
 
 //---------------------------------------------------------------------------//

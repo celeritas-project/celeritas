@@ -18,12 +18,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ValueGridInserterTest : public celeritas_test::Test
+class ValueGridInserterTest : public Test
 {
   protected:
     Collection<real_type, Ownership::value, MemSpace::host>  real_storage;

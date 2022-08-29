@@ -9,10 +9,12 @@
 
 #include "celeritas_test.hh"
 
-using detail::QuadraticSolver;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(SolveNonsurface, no_roots)
@@ -160,3 +162,8 @@ TEST(SolveGeneral, one_root)
     EXPECT_SOFT_EQ(no_intersection(), x[0]);
     EXPECT_SOFT_NEAR(1.0e3, x[1], 1e-7);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+} // namespace celeritas

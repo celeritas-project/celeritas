@@ -43,10 +43,10 @@ namespace test
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
-using Action    = celeritas::MscInteraction::Action;
+using Action    = MscInteraction::Action;
 
-using GeoParamsCRefDevice = celeritas::DeviceCRef<GeoParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<GeoStateData>;
+using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
+using GeoStateRefDevice   = DeviceRef<GeoStateData>;
 
 using SimStateValue = ::celeritas::HostVal<SimStateData>;
 using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
@@ -55,10 +55,10 @@ using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
+class UrbanMscTest : public GlobalGeoTestBase
 {
   protected:
-    using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;
+    using RandomEngine    = DiagnosticRngEngine<std::mt19937>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
 
     using PhysicsStateStore
@@ -260,10 +260,10 @@ TEST_F(UrbanMscTest, msc_scattering)
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
     constexpr double    step_is_range = -1;
-    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
+    std::vector<double> step          = {0.00279169, 0.412343, 0.0376414};
     step.resize(nsamples, step_is_range);
 
-    for (unsigned int i : celeritas::range(nsamples))
+    for (unsigned int i : range(nsamples))
     {
         SimTrackState state = {TrackId{i},
                                TrackId{i},
@@ -295,7 +295,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<char>   action;
     Real3               direction{0, 0, 1};
 
-    for (auto i : celeritas::range(nsamples))
+    for (auto i : range(nsamples))
     {
         real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};

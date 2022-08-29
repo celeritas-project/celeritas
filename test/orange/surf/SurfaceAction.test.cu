@@ -23,7 +23,7 @@ namespace
 
 __global__ void sa_test_kernel(SATestInput input)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= input.states.size())
         return;
 
@@ -39,14 +39,11 @@ __global__ void sa_test_kernel(SATestInput input)
 //! Run on device and return results
 void sa_test(SATestInput input)
 {
-    CELER_LAUNCH_KERNEL(sa_test,
-                        celeritas::device().default_block_size(),
-                        input.states.size(),
-                        input);
+    CELER_LAUNCH_KERNEL(
+        sa_test, device().default_block_size(), input.states.size(), input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

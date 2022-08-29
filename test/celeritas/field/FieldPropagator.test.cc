@@ -57,22 +57,21 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
     SPConstParticle build_particle() override
     {
         using namespace units;
-        namespace pdg = celeritas::pdg;
 
         // Create particle defs
         constexpr auto        stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input defs   = {
-            {"electron",
-             pdg::electron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{-1},
-             stable},
-            {"positron",
-             pdg::positron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{1},
-             stable},
-            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+              {"electron",
+               pdg::electron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{-1},
+               stable},
+              {"positron",
+               pdg::positron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{1},
+               stable},
+              {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
         return std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -150,7 +149,7 @@ struct ReluZField
 
     Real3 operator()(const Real3& pos) const
     {
-        return {0, 0, this->strength * celeritas::max<real_type>(0, pos[2])};
+        return {0, 0, this->strength * max<real_type>(0, pos[2])};
     }
 };
 
@@ -460,7 +459,8 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.py",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
@@ -546,7 +546,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.py",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
@@ -569,7 +570,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.mx", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.mx",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
@@ -705,9 +707,9 @@ TEST_F(LayersTest, revolutions_through_layers)
     int       icross       = 0;
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : celeritas::range(num_revs))
+    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : celeritas::range(num_steps))
+        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;
@@ -736,8 +738,8 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
     auto geo = this->init_geo({radius, -10, 0}, {0, 1, 0});
 
-    celeritas_test::detail::CMSParameterizedField field;
-    FieldDriverOptions                            driver_options;
+    detail::CMSParameterizedField field;
+    FieldDriverOptions            driver_options;
 
     EXPECT_SOFT_NEAR(
         radius, this->calc_field_curvature(particle, geo, field), 5e-3);
@@ -752,9 +754,9 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : celeritas::range(num_revs))
+    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : celeritas::range(num_steps))
+        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;

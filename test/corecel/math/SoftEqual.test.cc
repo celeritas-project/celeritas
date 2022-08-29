@@ -13,6 +13,10 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(SoftEqual, default_precisions)
@@ -33,7 +37,7 @@ TEST(SoftEqual, default_precisions)
 // Test fixture
 //---------------------------------------------------------------------------//
 template<class T>
-class FloatingTest : public celeritas_test::Test
+class FloatingTest : public Test
 {
   protected:
     using value_type = T;
@@ -139,3 +143,7 @@ TYPED_TEST(FloatingTest, soft_mod)
     EXPECT_TRUE(soft_mod(value_type(3.6) + tol, value_type(1.2)));
     EXPECT_TRUE(soft_mod(value_type(3.6) - tol, value_type(1.2)));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

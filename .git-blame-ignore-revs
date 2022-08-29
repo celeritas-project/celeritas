@@ -7,3 +7,5 @@ c93d9582552e2d7ad4e18d9d74b7e9e62de53c0e
 # consolidate .hh, i.hh
 128b0eff32a159005019a8f18619e3630181d9d0
 d90f9cb55c0df92e36ccfd0646f9ffd1a51bbd14
+# update test namespaces and clang-format repo
+# FIXME test namespace and clang-format

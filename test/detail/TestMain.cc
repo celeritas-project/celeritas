@@ -31,10 +31,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-namespace test
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -105,13 +101,12 @@ int test_main(int argc, char** argv)
         }
 
         // Write diagnostics and overall test result
-        if (celeritas::device())
+        if (device())
         {
-            CELER_LOG(debug)
-                << "Kernel diagnostics: " << celeritas::kernel_diagnostics();
+            CELER_LOG(debug) << "Kernel diagnostics: " << kernel_diagnostics();
         }
         CELER_LOG(debug) << "Celeritas environment variables: "
-                         << celeritas::environment();
+                         << environment();
 
         cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
              << ": tests " << (failed ? "FAILED" : "PASSED") << color_code(' ')
@@ -124,6 +119,5 @@ int test_main(int argc, char** argv)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

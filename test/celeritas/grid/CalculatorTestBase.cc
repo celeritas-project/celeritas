@@ -20,12 +20,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
 {
     CELER_EXPECT(count >= 2);
@@ -72,7 +66,6 @@ auto CalculatorTestBase::mutable_values() -> SpanReal
     return value_storage_[data_.value];
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

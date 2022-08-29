@@ -24,28 +24,24 @@
 #include "Main.hh"
 #include "celeritas_test.hh"
 
-using units::AmuMass;
-using units::MevMass;
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
-using Energy   = celeritas::units::MevEnergy;
-using EnergySq = SBEnergyDistHelper::EnergySq;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
+class SeltzerBergerTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
+    using Energy   = units::MevEnergy;
+    using EnergySq = SBEnergyDistHelper::EnergySq;
+
     void SetUp() override
     {
-        using namespace constants;
-        using namespace units;
-
         const auto& particles = *this->particle_params();
         data_.ids.electron    = particles.find(pdg::electron());
         data_.ids.positron    = particles.find(pdg::positron());
@@ -54,9 +50,9 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
+        mat_inp.elements  = {{29, units::AmuMass{63.546}, "Cu"}};
         mat_inp.materials = {
-            {0.141 * na_avogadro,
+            {0.141 * constants::na_avogadro,
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},
@@ -73,18 +69,18 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         std::vector<celeritas::ImportProcess> imported{
             {11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+              ImportModelClass::e_brems_lpm},
              {},
              {}},
             {-11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+              ImportModelClass::e_brems_lpm},
              {},
              {}}};
         this->set_imported_processes(imported);
@@ -116,7 +112,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     EnergySq density_correction(MaterialId matid, Energy e) const
     {
         CELER_EXPECT(matid);
-        CELER_EXPECT(e > celeritas::zero_quantity());
+        CELER_EXPECT(e > zero_quantity());
         using namespace constants;
 
         auto           mat    = this->material_params()->get(matid);
@@ -136,12 +132,12 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         }
 
         EXPECT_EQ(Action::scattered, interaction.action);
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
+        EXPECT_SOFT_EQ(1.0, norm(interaction.direction));
     }
 
   protected:
     std::shared_ptr<SeltzerBergerModel> model_;
-    celeritas::SeltzerBergerRef         data_;
+    SeltzerBergerRef                    data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -166,8 +162,9 @@ TEST_F(SeltzerBergerTest, sb_tables)
 
 TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 {
-    const ParticleParams& pp        = *this->particle_params();
-    const MevMass     positron_mass = pp.get(pp.find(pdg::positron())).mass();
+    const ParticleParams& pp = *this->particle_params();
+    const units::MevMass  positron_mass
+        = pp.get(pp.find(pdg::positron())).mass();
     const MevEnergy   gamma_cutoff{0.01};
     const ElementView el = this->material_params()->get(ElementId{0});
 
@@ -257,7 +254,7 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         {
             struct ScaleXs
             {
-                using Xs = celeritas::Quantity<celeritas::units::Millibarn>;
+                using Xs = Quantity<celeritas::units::Millibarn>;
 
                 real_type operator()(Energy) const { return 0.5; }
 
@@ -335,7 +332,7 @@ TEST_F(SeltzerBergerTest, basic)
     std::vector<double> energy;
 
     // Loop number of samples
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -441,3 +438,6 @@ TEST_F(SeltzerBergerTest, stress_test)
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

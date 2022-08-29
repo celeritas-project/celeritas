@@ -19,9 +19,6 @@ namespace test
 
 struct FieldTestParams
 {
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
     size_type nstates{};     //! number of states (tracks)
     int       nsteps{};      //! number of steps/revolution
     int       revolutions{}; //! number of revolutions
@@ -34,7 +31,6 @@ struct FieldTestParams
     real_type epsilon{};     //! tolerance error
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

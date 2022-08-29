@@ -16,11 +16,6 @@
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/Stepper.hh"
 
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 using std::cout;
 
 namespace celeritas
@@ -128,7 +123,7 @@ size_type StepperTestBase::RunResult::calc_emptying_step() const
     size_type max_cap = 0;
     while (iter != this->active.end())
     {
-        max_cap = celeritas::max(prev, max_cap);
+        max_cap = max(prev, max_cap);
         if (prev == max_cap && *iter < max_cap)
         {
             result = iter;
@@ -168,7 +163,6 @@ void StepperTestBase::RunResult::print_expected() const
          << "}), result.calc_queue_hwm());\n"
             "/*** END CODE ***/\n";
 }
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

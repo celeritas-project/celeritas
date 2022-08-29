@@ -21,12 +21,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 // PUBLIC MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 auto MockTestBase::make_applicability(const char* name,
@@ -98,10 +92,9 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 auto MockTestBase::build_particle() -> SPConstParticle
 {
     using namespace units;
-    namespace pdg = celeritas::pdg;
 
-    constexpr auto zero   = celeritas::zero_quantity();
-    constexpr auto stable = celeritas::ParticleRecord::stable_decay_constant();
+    constexpr auto zero   = zero_quantity();
+    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     ParticleParams::Input inp;
     inp.push_back({"gamma", pdg::gamma(), zero, zero, stable});
@@ -149,7 +142,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.label           = "scattering";
         inp.use_integral_xs = false;
         inp.applic          = {make_applicability("gamma", 1e-6, 100),
-                      make_applicability("celeriton", 1, 100)};
+                               make_applicability("celeriton", 1, 100)};
         inp.xs              = {Barn{1.0}, Barn{1.0}};
         inp.energy_loss     = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
@@ -167,8 +160,8 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.label           = "purrs";
         inp.use_integral_xs = true;
         inp.applic          = {make_applicability("celeriton", 1e-3, 1),
-                      make_applicability("celeriton", 1, 10),
-                      make_applicability("celeriton", 10, 100)};
+                               make_applicability("celeriton", 1, 10),
+                               make_applicability("celeriton", 10, 100)};
         inp.xs              = {Barn{3.0}, Barn{3.0}};
         inp.energy_loss     = 0.6 * 1e-20; // 0.6 MeV/cm in celerogen
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
@@ -178,7 +171,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.label           = "hisses";
         inp.use_integral_xs = true;
         inp.applic          = {make_applicability("anti-celeriton", 1e-3, 1),
-                      make_applicability("anti-celeriton", 1, 100)};
+                               make_applicability("anti-celeriton", 1, 100)};
         inp.xs              = {Barn{4.0}, Barn{4.0}};
         inp.energy_loss     = 0.7 * 1e-20;
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
@@ -187,7 +180,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.label           = "meows";
         inp.use_integral_xs = true;
         inp.applic          = {make_applicability("celeriton", 1e-3, 10),
-                      make_applicability("anti-celeriton", 1e-3, 10)};
+                               make_applicability("anti-celeriton", 1e-3, 10)};
         inp.xs              = {Barn{5.0}, Barn{5.0}};
         inp.energy_loss     = {};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
@@ -225,7 +218,6 @@ auto MockTestBase::build_physics_options() const -> PhysicsOptions
     return {};
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

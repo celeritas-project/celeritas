@@ -16,17 +16,17 @@
 
 #include "celeritas_test.hh"
 
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuBremsstrahlungInteractorTest
-    : public celeritas_test::InteractorHostTestBase
+class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
@@ -49,7 +49,7 @@ class MuBremsstrahlungInteractorTest
         EXPECT_GT(this->particle_track().energy().value(),
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
+        EXPECT_SOFT_EQ(1.0, norm(interaction.direction));
         EXPECT_EQ(Action::scattered, interaction.action);
 
         // Check secondaries
@@ -61,7 +61,7 @@ class MuBremsstrahlungInteractorTest
         EXPECT_GT(this->particle_track().energy().value(),
                   gamma.energy.value());
         EXPECT_LT(0, gamma.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma.direction));
+        EXPECT_SOFT_EQ(1.0, norm(gamma.direction));
 
         // Check conservation between primary and secondaries
         // To be determined: Not sure if momentum is conserved.
@@ -70,7 +70,7 @@ class MuBremsstrahlungInteractorTest
     }
 
   protected:
-    celeritas::MuBremsstrahlungData data_;
+    MuBremsstrahlungData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -91,14 +91,14 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
                                         this->direction(),
                                         this->secondary_allocator(),
                                         material,
-                                        celeritas::ElementComponentId{0});
+                                        ElementComponentId{0});
     RandomEngine&              rng_engine = this->rng();
 
     std::vector<double> energy;
     std::vector<double> costheta;
 
     // Produce four samples from the original incident energy
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -161,13 +161,12 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                 auto material = this->material_track().make_material_view();
 
                 // Create interactor
-                MuBremsstrahlungInteractor interact(
-                    data_,
-                    this->particle_track(),
-                    this->direction(),
-                    this->secondary_allocator(),
-                    material,
-                    celeritas::ElementComponentId{0});
+                MuBremsstrahlungInteractor interact(data_,
+                                                    this->particle_track(),
+                                                    this->direction(),
+                                                    this->secondary_allocator(),
+                                                    material,
+                                                    ElementComponentId{0});
 
                 for (unsigned int i = 0; i < num_samples; i++)
                 {
@@ -198,3 +197,7 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

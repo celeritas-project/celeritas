@@ -15,12 +15,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -60,7 +54,7 @@ void ParallelHandler::OnTestProgramEnd(const ::testing::UnitTest&) {}
  */
 void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 {
-    celeritas::barrier(comm_);
+    barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
@@ -70,11 +64,10 @@ void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
 {
     std::cout << std::flush;
-    celeritas::barrier(comm_);
+    barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

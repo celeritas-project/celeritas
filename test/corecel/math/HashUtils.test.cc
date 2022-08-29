@@ -10,17 +10,13 @@
 #include <cstdint>
 
 #include "celeritas_test.hh"
-// #include "HashUtils.test.hh"
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
-//---------------------------------------------------------------------------//
-using detail::make_fast_hasher;
-
-//---------------------------------------------------------------------------//
-// TESTS
 //---------------------------------------------------------------------------//
 
 TEST(FastHasherTest, four_byte)
@@ -45,6 +41,14 @@ TEST(FastHasherTest, eight_byte)
     EXPECT_EQ(0x679fea1a6fe6ebb4ull, result);
 }
 
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 TEST(HashUtilsTest, hash_combine)
 {
     const std::string foo{"foo"};
@@ -55,6 +59,7 @@ TEST(HashUtilsTest, hash_combine)
     EXPECT_NE(hash_combine(0, 1), hash_combine(1, 0));
     EXPECT_NE(hash_combine(foo, bar), hash_combine(bar, foo));
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

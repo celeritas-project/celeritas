@@ -55,6 +55,5 @@ void NonMasterResultPrinter::OnTestPartResult(
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

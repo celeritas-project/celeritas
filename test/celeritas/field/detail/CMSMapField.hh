@@ -30,8 +30,8 @@ class CMSMapField
   public:
     //!@{
     //! \name Type aliases
-    using real_type   = celeritas::real_type;
-    using Real3       = celeritas::Array<real_type, 3>;
+    using real_type   = real_type;
+    using Real3       = Array<real_type, 3>;
     using FieldMapRef = ::celeritas::NativeCRef<FieldMapData>;
     //!@}
 
@@ -105,6 +105,5 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

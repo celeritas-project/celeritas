@@ -35,8 +35,8 @@ namespace test
  *
  * Example:
  * \code
-    class TestEm3Test : public celeritas_test::TestEm3Base,
-                        public celeritas_test::StepperTestBase
+    class TestEm3Test : public TestEm3Base,
+                        public StepperTestBase
     {
       public:
         //! Make 10GeV electrons along +x
@@ -44,12 +44,12 @@ namespace test
     };
  * \endcode
  */
-class StepperTestBase : virtual public celeritas_test::GlobalTestBase
+class StepperTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using size_type = celeritas::size_type;
+
     //!@}
 
     struct RunResult
@@ -83,8 +83,7 @@ class StepperTestBase : virtual public celeritas_test::GlobalTestBase
     StepperTestBase();
 
     // Construct the setup values for Stepper
-    celeritas::StepperInput
-    make_stepper_input(size_type tracks, size_type init_scaling);
+    StepperInput make_stepper_input(size_type tracks, size_type init_scaling);
 
     //! Create a vector of primaries inside the 'run' function
     virtual std::vector<celeritas::Primary>
@@ -104,7 +103,6 @@ class StepperTestBase : virtual public celeritas_test::GlobalTestBase
     std::shared_ptr<DummyAction> dummy_action_;
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

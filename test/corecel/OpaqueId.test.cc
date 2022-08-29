@@ -12,17 +12,13 @@
 
 #include "celeritas_test.hh"
 
-struct TestInstantiator;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class OpaqueIdTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
+namespace test
+{
+//---------------------------------------------------------------------------//
+
+struct TestInstantiator;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -30,7 +26,7 @@ class OpaqueIdTest : public celeritas_test::Test
 
 TEST(OpaqueIdTest, operations)
 {
-    using Id_t = OpaqueId<TestInstantiator, std::size_t>;
+    using Id_t             = OpaqueId<TestInstantiator, std::size_t>;
     constexpr auto sizemax = static_cast<std::size_t>(-1);
 
     Id_t unassigned;
@@ -39,7 +35,7 @@ TEST(OpaqueIdTest, operations)
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
 #if CELERITAS_DEBUG
-    EXPECT_THROW(unassigned.get(), celeritas::DebugError);
+    EXPECT_THROW(unassigned.get(), DebugError);
 #endif
     EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
     EXPECT_EQ(std::hash<std::size_t>()(sizemax), std::hash<Id_t>()(unassigned));
@@ -74,3 +70,7 @@ TEST(OpaqueIdTest, multi_int)
     EXPECT_TRUE(UId8{254} < Uint32(255));
     EXPECT_TRUE(UId8{10} < Uint32(15));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

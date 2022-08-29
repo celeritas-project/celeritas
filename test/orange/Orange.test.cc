@@ -11,7 +11,6 @@
 
 #include "OrangeGeoTestBase.hh"
 #include "celeritas_test.hh"
-// #include "Orange.test.hh"
 
 namespace celeritas
 {
@@ -29,8 +28,6 @@ class OrangeTest : public OrangeGeoTestBase
 {
   protected:
     using Initializer_t = GeoTrackInitializer;
-
-    void SetUp() override {}
 
     //! Create a host track view
     OrangeTrackView make_track_view()
@@ -81,8 +78,6 @@ class Geant4Testem15Test : public OrangeTest
     void SetUp() override { this->build_geometry("geant4-testem15.org.json"); }
 };
 
-//---------------------------------------------------------------------------//
-// TESTS
 //---------------------------------------------------------------------------//
 
 TEST_F(OneVolumeTest, params)
@@ -407,7 +402,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
     EXPECT_FALSE(next.boundary);
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(geo.move_to_boundary(), celeritas::DebugError);
+        EXPECT_THROW(geo.move_to_boundary(), DebugError);
     }
 
     // Move almost to that point, nearby step should be the same

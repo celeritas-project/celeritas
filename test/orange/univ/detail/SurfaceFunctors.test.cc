@@ -16,15 +16,15 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceFunctorsTest : public celeritas_test::Test
+class SurfaceFunctorsTest : public ::celeritas::test::Test
 {
   protected:
     void SetUp() override
@@ -57,7 +57,6 @@ class SurfaceFunctorsTest : public celeritas_test::Test
 
 TEST_F(SurfaceFunctorsTest, calc_sense)
 {
-    using detail::CalcSense;
     Real3     pos{0.9, 0, 0};
     CalcSense calc{pos};
 
@@ -79,8 +78,7 @@ TEST_F(SurfaceFunctorsTest, calc_sense)
 
 TEST_F(SurfaceFunctorsTest, num_intersections)
 {
-    auto num_intersections
-        = make_static_surface_action<celeritas::detail::NumIntersections>();
+    auto num_intersections = make_static_surface_action<NumIntersections>();
     EXPECT_EQ(1, num_intersections(PlaneX::surface_type()));
     EXPECT_EQ(2, num_intersections(Sphere::surface_type()));
 }
@@ -90,8 +88,7 @@ TEST_F(SurfaceFunctorsTest, num_intersections)
 TEST_F(SurfaceFunctorsTest, calc_normal)
 {
     Real3 pos;
-    auto  calc_normal
-        = make_surface_action(*surfaces_, celeritas::detail::CalcNormal{pos});
+    auto  calc_normal = make_surface_action(*surfaces_, CalcNormal{pos});
 
     pos = {1.25, 1, 1};
     EXPECT_EQ(Real3({1, 0, 0}), calc_normal(SurfaceId{0}));
@@ -105,8 +102,8 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 {
     Real3 pos;
 
-    auto calc_distance = make_surface_action(
-        *surfaces_, celeritas::detail::CalcSafetyDistance{pos});
+    auto calc_distance
+        = make_surface_action(*surfaces_, CalcSafetyDistance{pos});
 
     real_type eps = 1e-4;
     pos           = {1.25 + eps, 1, 0};
@@ -135,4 +132,5 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 }
 //---------------------------------------------------------------------------//
 } // namespace test
+} // namespace detail
 } // namespace celeritas

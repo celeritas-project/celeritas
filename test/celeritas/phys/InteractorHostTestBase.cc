@@ -21,12 +21,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 /*!
  * Initialize secondary allocation on construction.
  */
@@ -34,7 +28,7 @@ InteractorHostTestBase::InteractorHostTestBase()
 {
     using namespace constants;
     using namespace units;
-    constexpr auto zero   = celeritas::zero_quantity();
+    constexpr auto zero   = zero_quantity();
     auto           stable = ParticleRecord::stable_decay_constant();
 
     constexpr MevMass emass{0.5109989461};
@@ -53,14 +47,14 @@ InteractorHostTestBase::InteractorHostTestBase()
     // Default material params
     MaterialParams::Input mat_inp;
     mat_inp.elements  = {{29, AmuMass{63.546}, Label{"Cu"}},
-                        {19, AmuMass{39.0983}, Label{"K"}},
-                        {8, AmuMass{15.999}, Label{"O"}},
-                        {74, AmuMass{183.84}, Label{"W"}},
-                        {82, AmuMass{207.2}, Label{"Pb"}}};
+                         {19, AmuMass{39.0983}, Label{"K"}},
+                         {8, AmuMass{15.999}, Label{"O"}},
+                         {74, AmuMass{183.84}, Label{"W"}},
+                         {82, AmuMass{207.2}, Label{"Pb"}}};
     mat_inp.materials = {
         {0.141 * na_avogadro,
          293.0,
-         celeritas::MatterState::solid,
+         MatterState::solid,
          {{celeritas::ElementId{0}, 1.0}},
          Label{"Cu"}},
         {0.05477 * na_avogadro,
@@ -75,12 +69,12 @@ InteractorHostTestBase::InteractorHostTestBase()
          Label{"K"}},
         {1.0 * na_avogadro,
          293.0,
-         celeritas::MatterState::solid,
+         MatterState::solid,
          {{celeritas::ElementId{0}, 1.0}},
          Label{"Cu-1.0"}},
         {1.0 * constants::na_avogadro,
          293.0,
-         celeritas::MatterState::solid,
+         MatterState::solid,
          {{celeritas::ElementId{2}, 0.5},
           {celeritas::ElementId{3}, 0.3},
           {celeritas::ElementId{4}, 0.2}},
@@ -272,8 +266,8 @@ void InteractorHostTestBase::check_energy_conservation(
 void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
-    CollectionStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
-                      temp_store(particle_params_->host_ref(), 1);
+    CollectionStateStore<celeritas::ParticleStateData, MemSpace::host> temp_store(
+        particle_params_->host_ref(), 1);
     ParticleTrackView temp_track(
         particle_params_->host_ref(), temp_store.ref(), ThreadId{0});
 
@@ -317,7 +311,6 @@ void InteractorHostTestBase::check_momentum_conservation(
     }
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

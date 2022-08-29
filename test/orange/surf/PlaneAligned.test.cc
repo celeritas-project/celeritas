@@ -15,13 +15,19 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 using VecReal = std::vector<real_type>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PlaneAlignedTest : public celeritas_test::Test
+class PlaneAlignedTest : public Test
 {
   protected:
     template<class S>
@@ -118,3 +124,6 @@ TEST_F(PlaneAlignedTest, plane_z)
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, 0.01}, mz));
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -22,39 +22,39 @@
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
-    EXPECT_PRED_FORMAT2(::celeritas_test::detail::IsVecEq, expected, actual)
+    EXPECT_PRED_FORMAT2(::celeritas::test::detail::IsVecEq, expected, actual)
 
 //! Soft equivalence macro
 #define EXPECT_SOFT_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(                 \
-        ::celeritas_test::detail::IsSoftEquiv, expected, actual)
+        ::celeritas::test::detail::IsSoftEquiv, expected, actual)
 
 //! Soft equivalence macro with relative error
 #define EXPECT_SOFT_NEAR(expected, actual, rel_error) \
     EXPECT_PRED_FORMAT3(                              \
-        ::celeritas_test::detail::IsSoftEquiv, expected, actual, rel_error)
+        ::celeritas::test::detail::IsSoftEquiv, expected, actual, rel_error)
 
 //! Container soft equivalence macro
 #define EXPECT_VEC_SOFT_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(                     \
-        ::celeritas_test::detail::IsVecSoftEquiv, expected, actual)
+        ::celeritas::test::detail::IsVecSoftEquiv, expected, actual)
 
 //! Container soft equivalence macro with relative error
 #define EXPECT_VEC_NEAR(expected, actual, rel_error) \
     EXPECT_PRED_FORMAT3(                             \
-        ::celeritas_test::detail::IsVecSoftEquiv, expected, actual, rel_error)
+        ::celeritas::test::detail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Container soft equivalence macro with relative and absolute error
-#define EXPECT_VEC_CLOSE(expected, actual, rel_error, abs_thresh) \
-    EXPECT_PRED_FORMAT4(::celeritas_test::detail::IsVecSoftEquiv, \
-                        expected,                                 \
-                        actual,                                   \
-                        rel_error,                                \
+#define EXPECT_VEC_CLOSE(expected, actual, rel_error, abs_thresh)  \
+    EXPECT_PRED_FORMAT4(::celeritas::test::detail::IsVecSoftEquiv, \
+                        expected,                                  \
+                        actual,                                    \
+                        rel_error,                                 \
                         abs_thresh)
 
 //! Print the given container as an array for regression testing
 #define PRINT_EXPECTED(data) \
-    ::celeritas_test::detail::print_expected(data, #data)
+    ::celeritas::test::detail::print_expected(data, #data)
 
 //! Construct a test name that is disabled when assertions are enabled
 #if CELERITAS_DEBUG
@@ -168,7 +168,7 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
            << "\nExpected: " << expected_expr << "\nWhich is: " << expected
            << '\n';
 
-    celeritas::SoftZero<value_type> is_soft_zero(comp.abs());
+    SoftZero<value_type> is_soft_zero(comp.abs());
     if (is_soft_zero(expected))
     {
         // Avoid divide by zero errors
@@ -198,7 +198,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = celeritas::SoftEqual<ValueT>;
+    using BinaryOp = SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp());
@@ -221,7 +221,7 @@ template<class Value_E, class Value_A>
 
     // Construct with automatic or specified tolerances
     using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
-    using BinaryOp = celeritas::SoftEqual<ValueT>;
+    using BinaryOp = SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
         expected, expected_expr, actual, actual_expr, BinaryOp(rel));
@@ -248,7 +248,7 @@ template<class C1, class C2>
 struct TCT
 {
     template<class C>
-    using value_type_ = typename celeritas::ContTraits<C>::value_type;
+    using value_type_ = typename ContTraits<C>::value_type;
     template<class C>
     using nc_value_type_ = typename std::remove_const<value_type_<C>>::type;
 
@@ -370,7 +370,7 @@ template<class ContainerE, class ContainerA, class BinaryOp>
         if (failures.empty())
         {
             // Size was different; print the actual vector
-            result << "Actual values: " << celeritas::repr(actual) << ";\n";
+            result << "Actual values: " << repr(actual) << ";\n";
         }
         else
         {
@@ -394,8 +394,8 @@ std::string failure_msg(const char*                             expected_expr,
                         const char*                             actual_expr,
                         const std::vector<FailedValue<T1, T2>>& failures)
 {
-    using RT1 = celeritas::ReprTraits<T1>;
-    using RT2 = celeritas::ReprTraits<T2>;
+    using RT1 = ReprTraits<T1>;
+    using RT2 = ReprTraits<T2>;
     using std::setw;
 
     // Calculate how many digits we need to space out
@@ -487,8 +487,8 @@ std::string float_failure_msg(const char* expected_expr,
 template<class Container>
 void print_expected(const Container& data, std::string label)
 {
-    using RT  = celeritas::ReprTraits<Container>;
-    using VRT = celeritas::ReprTraits<typename RT::value_type>;
+    using RT  = ReprTraits<Container>;
+    using VRT = ReprTraits<typename RT::value_type>;
 
     std::cout << "static const ";
     label.insert(0, "expected_");
@@ -533,7 +533,7 @@ template<class ContainerE, class ContainerA>
         if (failures.empty())
         {
             // Size was different; print the actual vector
-            result << "Actual values: " << celeritas::repr(actual) << ";\n";
+            result << "Actual values: " << repr(actual) << ";\n";
         }
         else
         {
@@ -565,7 +565,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = celeritas::SoftEqual<ValueT>;
+    using BinaryOp = SoftEqual<ValueT>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(
@@ -595,7 +595,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = celeritas::SoftEqual<ValueT>;
+    using BinaryOp = SoftEqual<ValueT>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -626,7 +626,7 @@ template<class ContainerE, class ContainerA>
                   "Invalid types for soft equivalence");
 
     using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = celeritas::SoftEqual<ValueT>;
+    using BinaryOp = SoftEqual<ValueT>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -635,6 +635,5 @@ template<class ContainerE, class ContainerA>
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -30,7 +30,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using MevEnergy = celeritas::units::MevEnergy;
+using MevEnergy = units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // PHYSICS BASE CLASS
@@ -605,8 +605,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
-            step.push_back(
-                celeritas_test::calc_step(phys, pstep, MevEnergy{energy}));
+            step.push_back(test::calc_step(phys, pstep, MevEnergy{energy}));
         }
     }
 
@@ -645,17 +644,15 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
         CELER_ASSERT(this->physics());
     }
 
-    StateStore states;
-    celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::device>
-        inits;
+    StateStore                                                        states;
+    StateCollection<PhysTestInit, Ownership::value, MemSpace::device> inits;
 };
 
 TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
-            temp_inits;
+        StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
 
         auto         init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;
@@ -676,7 +673,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
     }
 
     states = StateStore(this->physics()->host_ref(), this->inits.size());
-    celeritas::DeviceVector<real_type> step(this->states.size());
+    DeviceVector<real_type> step(this->states.size());
 
     PTestInput inp;
     inp.params = this->physics()->device_ref();
@@ -734,10 +731,9 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
     using namespace units;
-    namespace pdg = celeritas::pdg;
 
-    constexpr auto zero   = celeritas::zero_quantity();
-    constexpr auto stable = celeritas::ParticleRecord::stable_decay_constant();
+    constexpr auto zero   = zero_quantity();
+    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
         ParticleParams::Input{{"positron",

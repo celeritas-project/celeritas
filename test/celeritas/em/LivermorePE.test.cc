@@ -32,18 +32,18 @@
 
 #include "celeritas_test.hh"
 
-using units::MevEnergy;
-namespace pdg = celeritas::pdg;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class LivermorePETest : public celeritas_test::InteractorHostTestBase
+namespace celeritas
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+namespace test
+{
+//---------------------------------------------------------------------------//
+class LivermorePETest : public InteractorHostTestBase
+{
+    using Base = InteractorHostTestBase;
 
   protected:
+    using MevEnergy = units::MevEnergy;
+
     void set_relaxation_params(AtomicRelaxationParams::Input inp)
     {
         relax_params_
@@ -112,7 +112,7 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
             EXPECT_GT(this->particle_track().energy().value(),
                       electron.energy.value());
             EXPECT_LT(0, electron.energy.value());
-            EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+            EXPECT_SOFT_EQ(1.0, norm(electron.direction));
         }
 
         // Check conservation between primary and secondaries. Since momentum
@@ -122,16 +122,12 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    using RelaxParamsRef   = ::celeritas::HostCRef<AtomicRelaxParamsData>;
-    using RelaxStatesRef   = ::celeritas::HostRef<AtomicRelaxStateData>;
-    using RelaxStatesValue = ::celeritas::HostVal<AtomicRelaxStateData>;
-
     std::shared_ptr<LivermorePEModel>       model_;
     AtomicRelaxationParams::Input           relax_inp_;
     std::shared_ptr<AtomicRelaxationParams> relax_params_;
-    RelaxStatesValue                        relax_states_;
-    RelaxParamsRef                          relax_params_ref_;
-    RelaxStatesRef                          relax_states_ref_;
+    HostVal<AtomicRelaxStateData>           relax_states_;
+    HostCRef<AtomicRelaxParamsData>         relax_params_ref_;
+    HostRef<AtomicRelaxStateData>           relax_states_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -170,7 +166,7 @@ TEST_F(LivermorePETest, basic)
     std::vector<double> energy_deposition;
 
     // Produce four samples from the original incident energy/dir
-    for (int i : celeritas::range(4))
+    for (int i : range(4))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -180,7 +176,7 @@ TEST_F(LivermorePETest, basic)
 
         // Add actual results to vector
         energy_electron.push_back(result.secondaries.front().energy.value());
-        costheta_electron.push_back(celeritas::dot_product(
+        costheta_electron.push_back(dot_product(
             result.secondaries.front().direction, this->direction()));
         energy_deposition.push_back(result.energy_deposition.value());
     }
@@ -261,8 +257,7 @@ TEST_F(LivermorePETest, stress_test)
                 this->sanity_check(result);
                 for (const auto& sec : result.secondaries)
                 {
-                    tot_cosine
-                        += celeritas::dot_product(inc_dir, sec.direction);
+                    tot_cosine += dot_product(inc_dir, sec.direction);
                     tot_energy += sec.energy.value();
                 }
                 num_secondaries += result.secondaries.size();
@@ -317,7 +312,7 @@ TEST_F(LivermorePETest, distributions_all)
 
     // Load atomic relaxation data
     relax_inp_.is_auger_enabled = true;
-    set_relaxation_params(relax_inp_);
+    this->set_relaxation_params(relax_inp_);
     EXPECT_EQ(3, relax_params_ref_.max_stack_size);
 
     // Allocate scratch space for vacancy stack
@@ -359,8 +354,8 @@ TEST_F(LivermorePETest, distributions_all)
         num_secondaries += out.secondaries.size();
 
         // Bin directional change of the photoelectron
-        double costheta = celeritas::dot_product(
-            inc_direction, out.secondaries.front().direction);
+        double costheta
+            = dot_product(inc_direction, out.secondaries.front().direction);
         int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
         if (ct_bin >= 0 && ct_bin < nbins)
         {
@@ -413,7 +408,7 @@ TEST_F(LivermorePETest, distributions_radiative)
 
     // Load atomic relaxation data
     relax_inp_.is_auger_enabled = false;
-    set_relaxation_params(relax_inp_);
+    this->set_relaxation_params(relax_inp_);
     EXPECT_EQ(1, relax_params_ref_.max_stack_size);
 
     // Allocate scratch space for vacancy stack
@@ -488,8 +483,6 @@ TEST_F(LivermorePETest, distributions_radiative)
 
 TEST_F(LivermorePETest, macro_xs)
 {
-    using units::MevEnergy;
-
     auto material = this->material_track().make_material_view();
     LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
 
@@ -520,107 +513,126 @@ TEST_F(LivermorePETest, macro_xs)
            4.594922185898e-14, 1.367605938008e-14};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
 
-TEST_F(LivermorePETest, utils)
+namespace detail
 {
-    using detail::calc_max_secondaries;
-    using detail::calc_max_stack_size;
-    using Values = celeritas::AtomicRelaxParamsData<celeritas::Ownership::value,
-                                                    celeritas::MemSpace::host>;
+namespace test
+{
+//---------------------------------------------------------------------------//
+// For an element with n shells of transition data, the maximum number of
+// secondaries created can be upper-bounded as n if there are only
+// radiative transitions and 2^n - 1 if there are non-radiative transitions
+// for the hypothetical worst case where for a given vacancy the
+// transitions always originate from the next subshell up
+class LivermorePEUtilsTest : public ::celeritas::test::LivermorePETest
+{
+  public:
+    using Values = AtomicRelaxParamsData<Ownership::value, MemSpace::host>;
 
-    // For an element with n shells of transition data, the maximum number of
-    // secondaries created can be upper-bounded as n if there are only
-    // radiative transitions and 2^n - 1 if there are non-radiative transitions
-    // for the hypothetical worst case where for a given vacancy the
-    // transitions always originate from the next subshell up
-    unsigned int num_shells = 20;
+    static const unsigned int num_shells;
+};
+const unsigned int LivermorePEUtilsTest::num_shells = 20;
+
+/*!
+ * One radiative transition per subshell, each one originating in the next
+ * subshell up.
+ */
+TEST_F(LivermorePEUtilsTest, one_neighbor)
+{
+    Values data;
+    resize(&data.elements, 1);
+    AtomicRelaxElement& el = data.elements[ElementId(0)];
+
+    std::vector<AtomicRelaxSubshell> shells(num_shells);
+    for (auto i : range(num_shells))
     {
-        Values data;
-        resize(&data.elements, 1);
-        AtomicRelaxElement& el = data.elements[ElementId(0)];
-
-        std::vector<AtomicRelaxSubshell> shells(num_shells);
-        for (auto i : celeritas::range(num_shells))
-        {
-            // One radiative transition per subshell, each one originating in
-            // the next subshell up
-            std::vector<AtomicRelaxTransition> transitions = {
-                {SubshellId{i + 1}, SubshellId{}, real_type{1}, MevEnergy{1}}};
-            shells[i].transitions
-                = make_builder(&data.transitions)
-                      .insert_back(transitions.begin(), transitions.end());
-        }
-        el.shells = make_builder(&data.shells)
-                        .insert_back(shells.begin(), shells.end());
-
-        auto max_secondaries = calc_max_secondaries(
-            make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
-        EXPECT_EQ(num_shells, max_secondaries);
-
-        // If there are only radiative transitions, there will only ever be one
-        // vacancy on the stack
-        auto max_stack_size
-            = calc_max_stack_size(make_const_ref(data), el.shells);
-        EXPECT_EQ(1, max_stack_size);
+        std::vector<AtomicRelaxTransition> transitions
+            = {{SubshellId{i + 1}, SubshellId{}, real_type{1}, MevEnergy{1}}};
+        shells[i].transitions
+            = make_builder(&data.transitions)
+                  .insert_back(transitions.begin(), transitions.end());
     }
-    {
-        Values data;
-        resize(&data.elements, 1);
-        AtomicRelaxElement& el = data.elements[ElementId(0)];
+    el.shells
+        = make_builder(&data.shells).insert_back(shells.begin(), shells.end());
 
-        std::vector<AtomicRelaxSubshell> shells(num_shells);
-        for (auto i : celeritas::range(num_shells))
-        {
-            // num_shells - subshell_id non-radiative transitions per subshell,
-            // one originating in each of the higher subshells
-            std::vector<AtomicRelaxTransition> transitions;
-            for (auto j : celeritas::range(i, num_shells))
-            {
-                transitions.push_back({SubshellId{j + 1},
-                                       SubshellId{j + 1},
-                                       1. / (num_shells - i),
-                                       MevEnergy{1}});
-            }
-            shells[i].transitions
-                = make_builder(&data.transitions)
-                      .insert_back(transitions.begin(), transitions.end());
-        }
-        el.shells = make_builder(&data.shells)
-                        .insert_back(shells.begin(), shells.end());
+    auto max_secondaries = calc_max_secondaries(
+        make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
+    EXPECT_EQ(num_shells, max_secondaries);
 
-        auto max_secondaries = calc_max_secondaries(
-            make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
-        EXPECT_EQ(std::exp2(num_shells) - 1, max_secondaries);
-
-        // With non-radiative transitions in every shell, the maximum stack
-        // size will be one more than the number of shells with transition data
-        auto max_stack_size
-            = calc_max_stack_size(make_const_ref(data), el.shells);
-        EXPECT_EQ(num_shells + 1, max_stack_size);
-    }
-    {
-        relax_inp_.is_auger_enabled = true;
-        CutoffParams::Input ci;
-        ci.materials = this->material_params();
-        ci.particles = this->particle_params();
-
-        // Test 1 keV electron/photon cutoff
-        ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-3}, 0}};
-        ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-3}, 0}};
-        this->set_cutoff_params(ci);
-
-        ElementId el{0};
-        relax_inp_.cutoffs = this->cutoff_params();
-        this->set_relaxation_params(relax_inp_);
-        EXPECT_EQ(1, relax_params_ref_.elements[el].max_secondary);
-
-        // Test 0.1 keV electron/photon cutoff
-        ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-4}, 0}};
-        ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-4}, 0}};
-        this->set_cutoff_params(ci);
-
-        relax_inp_.cutoffs = this->cutoff_params();
-        this->set_relaxation_params(relax_inp_);
-        EXPECT_EQ(3, relax_params_ref_.elements[el].max_secondary);
-    }
+    // If there are only radiative transitions, there will only ever be one
+    // vacancy on the stack
+    auto max_stack_size = calc_max_stack_size(make_const_ref(data), el.shells);
+    EXPECT_EQ(1, max_stack_size);
 }
+
+/*!
+ * num_shells - subshell_id non-radiative transitions per subshell, one
+ * originating in each of the higher subshells
+ */
+TEST_F(LivermorePEUtilsTest, one_per_previous)
+{
+    Values data;
+    resize(&data.elements, 1);
+    AtomicRelaxElement& el = data.elements[ElementId(0)];
+
+    std::vector<AtomicRelaxSubshell> shells(num_shells);
+    for (auto i : range(num_shells))
+    {
+        std::vector<AtomicRelaxTransition> transitions;
+        for (auto j : range(i, num_shells))
+        {
+            transitions.push_back({SubshellId{j + 1},
+                                   SubshellId{j + 1},
+                                   1. / (num_shells - i),
+                                   MevEnergy{1}});
+        }
+        shells[i].transitions
+            = make_builder(&data.transitions)
+                  .insert_back(transitions.begin(), transitions.end());
+    }
+    el.shells
+        = make_builder(&data.shells).insert_back(shells.begin(), shells.end());
+
+    auto max_secondaries = calc_max_secondaries(
+        make_const_ref(data), el.shells, MevEnergy{0}, MevEnergy{0});
+    EXPECT_EQ(std::exp2(num_shells) - 1, max_secondaries);
+
+    // With non-radiative transitions in every shell, the maximum stack
+    // size will be one more than the number of shells with transition data
+    auto max_stack_size = calc_max_stack_size(make_const_ref(data), el.shells);
+    EXPECT_EQ(num_shells + 1, max_stack_size);
+}
+
+TEST_F(LivermorePEUtilsTest, auger)
+{
+    relax_inp_.is_auger_enabled = true;
+    CutoffParams::Input ci;
+    ci.materials = this->material_params();
+    ci.particles = this->particle_params();
+
+    // Test 1 keV electron/photon cutoff
+    ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-3}, 0}};
+    ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-3}, 0}};
+    this->set_cutoff_params(ci);
+
+    ElementId el{0};
+    relax_inp_.cutoffs = this->cutoff_params();
+    this->set_relaxation_params(relax_inp_);
+    EXPECT_EQ(1, relax_params_ref_.elements[el].max_secondary);
+
+    // Test 0.1 keV electron/photon cutoff
+    ci.cutoffs[pdg::electron()] = {{MevEnergy{1.e-4}, 0}};
+    ci.cutoffs[pdg::gamma()]    = {{MevEnergy{1.e-4}, 0}};
+    this->set_cutoff_params(ci);
+
+    relax_inp_.cutoffs = this->cutoff_params();
+    this->set_relaxation_params(relax_inp_);
+    EXPECT_EQ(3, relax_params_ref_.elements[el].max_secondary);
+}
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+} // namespace celeritas

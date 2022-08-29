@@ -18,12 +18,18 @@
 #    include "corecel/math/QuantityIO.json.hh"
 #endif
 
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 using constants::pi;
 
 // One revolution = 2pi radians
 struct TwoPi
 {
-    static double value() { return 2 * celeritas::constants::pi; }
+    static double value() { return 2 * constants::pi; }
 };
 using Revolution = Quantity<TwoPi, double>;
 
@@ -113,7 +119,7 @@ TEST(QuantityTest, swappiness)
     using Dozen = Quantity<DozenUnit, int>;
     Dozen dozen{1}, gross{12};
     {
-        // ADL should prefer celeritas::swap implementation
+        // ADL should prefer swap implementation
         using std::swap;
         swap(dozen, gross);
         EXPECT_EQ(1, gross.value());
@@ -149,12 +155,12 @@ TEST(QuantityTest, io)
     {
         SCOPED_TRACE("Invalid array size");
         nlohmann::json inp{{123, 456, 789}};
-        EXPECT_THROW(inp.get<Dozen>(), celeritas::RuntimeError);
+        EXPECT_THROW(inp.get<Dozen>(), RuntimeError);
     }
     {
         SCOPED_TRACE("Invalid unit");
         nlohmann::json inp = {123, "baker's dozen"};
-        EXPECT_THROW(inp.get<Dozen>(), celeritas::RuntimeError);
+        EXPECT_THROW(inp.get<Dozen>(), RuntimeError);
     }
     {
         SCOPED_TRACE("Output");
@@ -166,3 +172,7 @@ TEST(QuantityTest, io)
     GTEST_SKIP() << "JSON is disabled";
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

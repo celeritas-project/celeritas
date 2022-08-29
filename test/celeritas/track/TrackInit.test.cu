@@ -26,7 +26,7 @@ namespace test
 __global__ void
 interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
 {
-    auto thread_id = celeritas::KernelParamCalculator::thread_id();
+    auto thread_id = KernelParamCalculator::thread_id();
     if (thread_id < states.size())
     {
         SimTrackView sim(states.sim, thread_id);
@@ -65,14 +65,10 @@ void interact(CoreStateDeviceRef states, ITTestInputData input)
     CELER_EXPECT(states.size() > 0);
     CELER_EXPECT(states.size() == input.alloc_size.size());
 
-    CELER_LAUNCH_KERNEL(interact,
-                        celeritas::device().default_block_size(),
-                        states.size(),
-                        states,
-                        input);
+    CELER_LAUNCH_KERNEL(
+        interact, device().default_block_size(), states.size(), states, input);
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

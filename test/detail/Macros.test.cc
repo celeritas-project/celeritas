@@ -13,14 +13,20 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas_test::detail;
-
 using VecInt = std::vector<int>;
 using VecDbl = std::vector<double>;
 using VecFlt = std::vector<float>;
 
 constexpr double inf = std::numeric_limits<double>::infinity();
 
+namespace celeritas
+{
+namespace test
+{
+namespace detail
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -29,7 +35,7 @@ TEST(PrintExpected, example)
 {
     std::string out_result;
     {
-        celeritas::ScopedStreamRedirect redirect_out(&std::cout);
+        ScopedStreamRedirect redirect_out(&std::cout);
         std::cout << '\n';
 
         std::vector<int> values = {1, 2, 3};
@@ -349,3 +355,8 @@ TEST(IsVecEq, failures)
     actual[150] = 2;
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+} // namespace test
+} // namespace celeritas

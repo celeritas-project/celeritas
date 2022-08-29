@@ -28,7 +28,7 @@ class InitializedValue
 
     //!@{
     //! Default copy assign and construct
-    InitializedValue(const InitializedValue&) noexcept = default;
+    InitializedValue(const InitializedValue&) noexcept            = default;
     InitializedValue& operator=(const InitializedValue&) noexcept = default;
     //!@}
 

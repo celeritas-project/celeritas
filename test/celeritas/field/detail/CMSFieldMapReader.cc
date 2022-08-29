@@ -21,10 +21,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-namespace test
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -77,6 +73,5 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

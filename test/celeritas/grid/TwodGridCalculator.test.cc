@@ -14,14 +14,16 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 TEST(Detail, FindInterp)
 {
-    namespace celeritas
-    {
-    namespace test
-    {
-    //---------------------------------------------------------------------------//
-
     auto              data = UniformGridData::from_bounds(1.0, 5.0, 3);
     const UniformGrid grid(data);
 
@@ -41,29 +43,30 @@ TEST(Detail, FindInterp)
         EXPECT_SOFT_EQ(0.5, interp.fraction);
     }
 #if CELERITAS_DEBUG
-    EXPECT_THROW(detail::find_interp(grid, 0.999), celeritas::DebugError);
-    EXPECT_THROW(detail::find_interp(grid, 5.0), celeritas::DebugError);
-    EXPECT_THROW(detail::find_interp(grid, 5.001), celeritas::DebugError);
+    EXPECT_THROW(detail::find_interp(grid, 0.999), DebugError);
+    EXPECT_THROW(detail::find_interp(grid, 5.0), DebugError);
+    EXPECT_THROW(detail::find_interp(grid, 5.001), DebugError);
 #endif
-    } // namespace test
-
+} // namespace test
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
 
-class TwodGridCalculatorTest : public celeritas_test::Test
+namespace test
+{
+//---------------------------------------------------------------------------//
+class TwodGridCalculatorTest : public Test
 {
   protected:
     template<Ownership W>
-    using RealData
-        = celeritas::Collection<real_type, W, celeritas::MemSpace::host>;
+    using RealData = Collection<real_type, W, MemSpace::host>;
 
     void SetUp() override
     {
         xgrid_ = {-1, 0, 1, 3};
         ygrid_ = {0, 0.5, 1.5, 3.5};
 
-        auto build   = celeritas::make_builder(&values_);
+        auto build   = make_builder(&values_);
         grid_data_.x = build.insert_back(xgrid_.begin(), xgrid_.end()); // X
         grid_data_.y = build.insert_back(ygrid_.begin(), ygrid_.end()); // Y
 
@@ -84,7 +87,8 @@ class TwodGridCalculatorTest : public celeritas_test::Test
         ref_ = values_;
     }
 
-    // Bilinear function of (x, y) should exactly reproduce with interpolation
+    // Bilinear function of (x, y) should exactly reproduce with
+    // interpolation
     real_type calc_expected(real_type x, real_type y) const
     {
         return 1 + x + 2 * y - 0.5 * x * y;
@@ -93,14 +97,10 @@ class TwodGridCalculatorTest : public celeritas_test::Test
     std::vector<real_type> xgrid_;
     std::vector<real_type> ygrid_;
 
-    celeritas::TwodGridData              grid_data_;
+    TwodGridData                         grid_data_;
     RealData<Ownership::value>           values_;
     RealData<Ownership::const_reference> ref_;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(TwodGridCalculatorTest, whole_grid)
 {
@@ -148,5 +148,5 @@ TEST_F(TwodGridCalculatorTest, subgrid)
     EXPECT_VEC_SOFT_EQ(expected_frac, frac);
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace test
 } // namespace celeritas

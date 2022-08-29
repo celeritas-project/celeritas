@@ -21,16 +21,12 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GenericXsCalculatorTest : public celeritas_test::CalculatorTestBase
+class GenericXsCalculatorTest : public CalculatorTestBase
 {
   protected:
-    using GenericGridData = celeritas::GenericGridData;
-
     void SetUp() override
     {
         std::vector<real_type> grid{1.0, 2.0, 1e2, 1e4};

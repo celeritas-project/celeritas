@@ -15,23 +15,23 @@ namespace celeritas
 {
 namespace test
 {
-using LocalState = celeritas::detail::LocalState;
+using LocalState = detail::LocalState;
 
 template<MemSpace M>
-using ParamsRef = celeritas::OrangeParamsData<Ownership::const_reference, M>;
+using ParamsRef = OrangeParamsData<Ownership::const_reference, M>;
 template<MemSpace M>
-using StateRef = celeritas::OrangeStateData<Ownership::reference, M>;
+using StateRef = OrangeStateData<Ownership::reference, M>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 
 template<class T>
-CELER_CONSTEXPR_FUNCTION celeritas::ItemRange<T>
+CELER_CONSTEXPR_FUNCTION ItemRange<T>
                          build_range(celeritas::size_type stride, ThreadId tid)
 {
     CELER_EXPECT(tid);
-    using IdT = celeritas::ItemId<T>;
+    using IdT = ItemId<T>;
     auto t    = tid.unchecked_get();
     return {IdT{t * stride}, IdT{(t + 1) * stride}};
 }
@@ -72,9 +72,9 @@ struct InitializingLauncher
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
         // Instantiate tracker and initialize
-        celeritas::SimpleUnitTracker tracker(this->params);
-        auto lstate = build_local_state(params, states, tid);
-        auto init   = tracker.initialize(lstate);
+        SimpleUnitTracker tracker(this->params);
+        auto              lstate = build_local_state(params, states, tid);
+        auto              init   = tracker.initialize(lstate);
 
         // Update state with post-initialization result
         states.vol[tid]   = init.volume;
@@ -106,7 +106,6 @@ inline void test_initialize(const ParamsRef<MemSpace::device>&,
 
 #endif
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

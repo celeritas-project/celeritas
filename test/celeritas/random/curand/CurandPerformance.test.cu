@@ -163,7 +163,7 @@ template TestOutput curand_test<curandStatePhilox4_32_10_t>(TestParams);
 template TestOutput curand_test<curandStateMtgp32>(TestParams);
 
 //---------------------------------------------------------------------------//
-} // Namespace celeritas_test
+} // Namespace test
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -9,8 +9,10 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 TEST(InterpolateTest, lin_lin)
 {
@@ -23,7 +25,6 @@ TEST(InterpolateTest, lin_lin)
     EXPECT_DOUBLE_EQ(20., interp(1.1));
 }
 
-//---------------------------------------------------------------------------//
 TEST(InterpolateTest, lin_log)
 {
     using Interpolator_t = Interpolator<Interp::log, Interp::linear, double>;
@@ -33,7 +34,6 @@ TEST(InterpolateTest, lin_log)
     EXPECT_DOUBLE_EQ(1.1, interp(100.));
 }
 
-//---------------------------------------------------------------------------//
 TEST(InterpolateTest, log_lin)
 {
     using Interpolator_t = Interpolator<Interp::linear, Interp::log, double>;
@@ -43,7 +43,6 @@ TEST(InterpolateTest, log_lin)
     EXPECT_DOUBLE_EQ(100., interp(1.1));
 }
 
-//---------------------------------------------------------------------------//
 TEST(InterpolateTest, log_log)
 {
     using Interpolator_t = Interpolator<Interp::log, Interp::log, double>;
@@ -52,3 +51,7 @@ TEST(InterpolateTest, log_log)
     EXPECT_DOUBLE_EQ(1e6, interp(10.));
     EXPECT_SOFT_EQ(1e7, interp(100.));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -122,7 +122,7 @@ std::string Test::make_unique_filename(const char* ext)
  */
 bool Test::strict_testing()
 {
-    const std::string& envstr = celeritas::getenv("CELER_TEST_STRICT");
+    const std::string& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
     if (envstr == "0")
     {
         return false;
@@ -135,7 +135,6 @@ bool Test::strict_testing()
 // that the adddress off the static value can be taken.)
 constexpr double Test::inf;
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

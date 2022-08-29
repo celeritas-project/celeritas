@@ -22,12 +22,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CurandTest : public celeritas_test::Test
+class CurandTest : public Test
 {
   protected:
     void SetUp() override
@@ -98,7 +96,7 @@ TEST_F(CurandTest, std_mt19937_host)
     double sum2 = 0;
     for (CELER_MAYBE_UNUSED auto i : range(test_params.nsamples))
     {
-        double u01 = celeritas::generate_canonical<double>(rng);
+        double u01 = generate_canonical<double>(rng);
         sum += u01;
         sum2 += u01 * u01;
     }

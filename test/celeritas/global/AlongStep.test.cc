@@ -18,20 +18,16 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class KnAlongStepTest : public celeritas_test::SimpleTestBase,
-                        public celeritas_test::AlongStepTestBase
+class KnAlongStepTest : public SimpleTestBase, public AlongStepTestBase
 {
   public:
 };
 
 #define Em3AlongStepTest TEST_IF_CELERITAS_GEANT(Em3AlongStepTest)
-class Em3AlongStepTest : public celeritas_test::TestEm3Base,
-                         public celeritas_test::AlongStepTestBase
+class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
 {
   public:
     bool enable_msc() const override { return msc_; }

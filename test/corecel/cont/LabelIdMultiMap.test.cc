@@ -15,7 +15,15 @@
 
 #include "celeritas_test.hh"
 
-using CatId       = celeritas::OpaqueId<struct Cat>;
+namespace celeritas
+{
+namespace test
+{
+namespace
+{
+//---------------------------------------------------------------------------//
+
+using CatId       = OpaqueId<struct Cat>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
 using VecLabel    = CatMultiMap::VecLabel;
 
@@ -27,6 +35,9 @@ std::ostream& operator<<(std::ostream& os, const CatId& cat)
     os << "}";
     return os;
 }
+
+//---------------------------------------------------------------------------//
+} // namespace
 
 TEST(LabelTest, ordering)
 {
@@ -61,20 +72,7 @@ TEST(LabelTest, output)
 }
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class LabelIdMultiMapTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(LabelIdMultiMapTest, empty)
+TEST(LabelIdMultiMapTest, empty)
 {
     const CatMultiMap default_cats;
     const CatMultiMap empty_cats(VecLabel{});
@@ -84,12 +82,12 @@ TEST_F(LabelIdMultiMapTest, empty)
         EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
         EXPECT_EQ(0, cats->find_all("pippin").size());
 #if CELERITAS_DEBUG
-        EXPECT_THROW(cats->get(CatId{0}), celeritas::DebugError);
+        EXPECT_THROW(cats->get(CatId{0}), DebugError);
 #endif
     }
 }
 
-TEST_F(LabelIdMultiMapTest, no_ext_with_duplicates)
+TEST(LabelIdMultiMapTest, no_ext_with_duplicates)
 {
     CatMultiMap cats{VecLabel{{"dexter", "andy", "loki", "", "", ""}}};
     EXPECT_EQ(6, cats.size());
@@ -103,7 +101,7 @@ TEST_F(LabelIdMultiMapTest, no_ext_with_duplicates)
     EXPECT_VEC_EQ(expected_duplicates, cats.duplicates());
 }
 
-TEST_F(LabelIdMultiMapTest, some_labels)
+TEST(LabelIdMultiMapTest, some_labels)
 {
     CatMultiMap cats{{{Label{"leroy"},
                        Label{"fluffy"},
@@ -119,7 +117,7 @@ TEST_F(LabelIdMultiMapTest, some_labels)
     }
 }
 
-TEST_F(LabelIdMultiMapTest, shuffled_labels)
+TEST(LabelIdMultiMapTest, shuffled_labels)
 {
     const std::vector<Label> labels = {
         {"c", "2"},
@@ -133,7 +131,7 @@ TEST_F(LabelIdMultiMapTest, shuffled_labels)
     CatMultiMap cats{labels};
 
     // Check ordering of IDs
-    for (auto i : celeritas::range<CatId::size_type>(labels.size()))
+    for (auto i : range<CatId::size_type>(labels.size()))
     {
         EXPECT_EQ(labels[i], cats.get(CatId{i}));
     }
@@ -155,3 +153,7 @@ TEST_F(LabelIdMultiMapTest, shuffled_labels)
         EXPECT_VEC_EQ(expected_found, found);
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

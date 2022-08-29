@@ -48,12 +48,9 @@ class MockTestBase : virtual public GlobalGeoTestBase
   public:
     //!@{
     //! Type aliases
-    using PhysicsOptions = celeritas::PhysicsParamsOptions;
-    using Applicability  = celeritas::Applicability;
-    using ActionId       = celeritas::ActionId;
-    using ModelId        = celeritas::ModelId;
+    using PhysicsOptions = PhysicsParamsOptions;
     using ModelCallback  = std::function<void(ActionId)>;
-    using SpanConstModel = celeritas::Span<const ModelId>;
+    using SpanConstModel = Span<const ModelId>;
     //!@}
 
   public:
@@ -63,7 +60,7 @@ class MockTestBase : virtual public GlobalGeoTestBase
 
     ModelCallback make_model_callback() const;
 
-    inline celeritas::Span<const ModelId> called_models() const
+    inline Span<const ModelId> called_models() const
     {
         return make_span(interactions_);
     }
@@ -87,7 +84,6 @@ class MockTestBase : virtual public GlobalGeoTestBase
     ActionId::size_type          model_to_action_{0};
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -18,12 +18,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeViewTest : public celeritas_test::OrangeGeoTestBase
+class VolumeViewTest : public OrangeGeoTestBase
 {
   protected:
     using VolumeRef = VolumeView::VolumeRef;

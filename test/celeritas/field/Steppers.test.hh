@@ -28,10 +28,9 @@ namespace test
 
 template<template<class EquationT> class StepperT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_stepper(FieldT&&                           field,
-                       celeritas::units::ElementaryCharge charge)
+make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
 {
-    using Equation_t = celeritas::MagFieldEquation<FieldT>;
+    using Equation_t = MagFieldEquation<FieldT>;
     using Stepper_t  = StepperT<Equation_t>;
     return Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}};
 }
@@ -42,8 +41,6 @@ make_mag_field_stepper(FieldT&&                           field,
 //! Output results
 struct StepperTestOutput
 {
-    using real_type = celeritas::real_type;
-
     std::vector<real_type> pos_x;
     std::vector<real_type> pos_z;
     std::vector<real_type> mom_y;
@@ -74,7 +71,6 @@ inline StepperTestOutput dp547_test(FieldTestParams)
 }
 #endif
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

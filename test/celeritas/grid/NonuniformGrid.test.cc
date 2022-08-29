@@ -12,34 +12,28 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-class NonuniformGridTest : public celeritas_test::Test
+class NonuniformGridTest : public Test
 {
   protected:
     using GridT = NonuniformGrid<int>;
 
     void SetUp() override
     {
-        auto build = celeritas::make_builder(&data);
+        auto build = make_builder(&data);
         irange     = build.insert_back({0, 1, 3, 3, 7});
         ref        = data;
     }
 
-    celeritas::ItemRange<int> irange;
-    celeritas::Collection<int, celeritas::Ownership::value, celeritas::MemSpace::host>
-        data;
-    celeritas::Collection<int,
-                          celeritas::Ownership::const_reference,
-                          celeritas::MemSpace::host>
-        ref;
+    ItemRange<int>                                              irange;
+    Collection<int, Ownership::value, MemSpace::host>           data;
+    Collection<int, Ownership::const_reference, MemSpace::host> ref;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(NonuniformGridTest, accessors)
 {
@@ -57,7 +51,7 @@ TEST_F(NonuniformGridTest, find)
     GridT grid(irange, ref);
 
 #if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(-1), celeritas::DebugError);
+    EXPECT_THROW(grid.find(-1), DebugError);
 #endif
     EXPECT_EQ(0, grid.find(0));
     EXPECT_EQ(1, grid.find(1));
@@ -65,7 +59,10 @@ TEST_F(NonuniformGridTest, find)
     EXPECT_EQ(2, grid.find(3));
     EXPECT_EQ(3, grid.find(4));
 #if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(7), celeritas::DebugError);
-    EXPECT_THROW(grid.find(10), celeritas::DebugError);
+    EXPECT_THROW(grid.find(7), DebugError);
+    EXPECT_THROW(grid.find(10), DebugError);
 #endif
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

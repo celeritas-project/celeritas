@@ -17,6 +17,10 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -71,3 +75,7 @@ TEST(ReprTest, container)
     const std::string strings[] = {"a", "", "special\nchars\t"};
     EXPECT_EQ("{\"a\", \"\", \"special\\nchars\\t\"}", repr_to_string(strings));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

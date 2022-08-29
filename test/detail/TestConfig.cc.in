@@ -8,7 +8,9 @@
 
 #include "detail/TestConfig.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -18,4 +20,5 @@ extern const char source_dir[] = "@CELERITAS_SOURCE_DIR@";
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

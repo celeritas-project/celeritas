@@ -20,9 +20,6 @@ namespace test
 //---------------------------------------------------------------------------//
 struct TestParams
 {
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
     size_type     nsamples;  //! number of samples
     size_type     nthreads;  //! number of threads per blocks
     size_type     nblocks;   //! number of blocks per grids
@@ -42,7 +39,6 @@ struct TestOutput
 template<class T>
 TestOutput curand_test(TestParams params);
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -25,8 +25,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 /*!
@@ -37,7 +35,7 @@ namespace test
  * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
  * values for steel, failing \c processes test.
  */
-class RootImporterTest : public celeritas_test::Test
+class RootImporterTest : public Test
 {
   protected:
     void SetUp() override
@@ -100,9 +98,9 @@ TEST_F(RootImporterTest, elements)
         inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
     }
 
-    static const char* expected_names[] = {"Fe", "Cr", "Ni", "H"};
-    static const int         expected_atomic_numbers[] = {26, 24, 28, 1};
-    static const double      expected_atomic_masses[]
+    static const char*  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
+    static const int    expected_atomic_numbers[] = {26, 24, 28, 1};
+    static const double expected_atomic_masses[]
         = {55.845110798, 51.996130137, 58.6933251009, 1.007940752665}; // [AMU]
     static const double expected_coulomb_factors[] = {0.04197339849163,
                                                       0.03592322294658,
@@ -412,10 +410,10 @@ TEST_F(RootImporterTest, volumes)
     const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
 
     static const std::string expected_names[]  = {"box0x125555be0",
-                                                 "box0x125556d20",
-                                                 "box0x125557160",
-                                                 "box0x1255575a0",
-                                                 "World0x125555f10"};
+                                                  "box0x125556d20",
+                                                  "box0x125557160",
+                                                  "box0x1255575a0",
+                                                  "World0x125555f10"};
     static const std::string expected_solids[] = {"box0x125555b70",
                                                   "box0x125556c70",
                                                   "box0x1255570a0",

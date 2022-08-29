@@ -20,12 +20,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
     auto& lazy = GlobalGeoTestBase::lazy_geo();
@@ -92,7 +86,6 @@ auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
     return lg;
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

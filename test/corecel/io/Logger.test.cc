@@ -18,13 +18,15 @@
 
 #include "celeritas_test.hh"
 
-// using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LoggerTest : public celeritas_test::Test
+class LoggerTest : public Test
 {
   protected:
     void SetUp() override
@@ -135,8 +137,8 @@ TEST_F(LoggerTest, DISABLED_performance)
     log.level(LogLevel::critical);
 
     // Even in debug this takes only 26ms
-    celeritas::Stopwatch get_time;
-    for (auto i : celeritas::range(100000))
+    Stopwatch get_time;
+    for (auto i : range(100000))
     {
         log({"<file>", 0}, LogLevel::info)
             << "Never printed: " << i << ExpensiveToPrint{};
@@ -152,7 +154,7 @@ TEST_F(LoggerTest, env_setup)
         EXPECT_EQ("This should print", msg);
     };
     auto celer_setenv = [](const std::string& key, const std::string& val) {
-        celeritas::environment().insert({key, val});
+        environment().insert({key, val});
     };
 
     {
@@ -172,3 +174,7 @@ TEST_F(LoggerTest, env_setup)
         log({"<test>", 1}, LogLevel::debug) << "Should not print";
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

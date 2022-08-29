@@ -9,8 +9,10 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(VectorUtils, linspace)
@@ -45,3 +47,7 @@ TEST(VectorUtils, linspace)
         }
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

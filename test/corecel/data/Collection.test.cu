@@ -23,9 +23,9 @@ namespace
 __global__ void
 col_cuda_test_kernel(const ::celeritas::DeviceCRef<MockParamsData> params,
                      const ::celeritas::DeviceRef<MockStateData>   states,
-                     const celeritas::Span<double>                 results)
+                     const Span<double>                            results)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
         return;
 
@@ -71,14 +71,13 @@ void col_cuda_test(CTestInput input)
     CELER_VALIDATE(input.states.size() > 0, << "Expected more states");
 
     CELER_LAUNCH_KERNEL(col_cuda_test,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         input.states.size(),
                         input.params,
                         input.states,
                         input.result);
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

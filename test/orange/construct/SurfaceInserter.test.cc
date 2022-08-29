@@ -27,12 +27,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceInserterTest : public celeritas_test::Test
+class SurfaceInserterTest : public Test
 {
   protected:
     ::celeritas::HostVal<SurfaceData> surface_data_;

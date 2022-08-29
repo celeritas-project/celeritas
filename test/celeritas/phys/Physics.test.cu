@@ -19,10 +19,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-namespace test
-{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -31,7 +27,7 @@ namespace
 
 __global__ void phys_test_kernel(const PTestInput inp)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= inp.states.size())
         return;
 
@@ -52,13 +48,10 @@ void phys_cuda_test(const PTestInput& input)
 {
     CELER_ASSERT(input.inits.size() == input.states.size());
 
-    CELER_LAUNCH_KERNEL(phys_test,
-                        celeritas::device().default_block_size(),
-                        input.states.size(),
-                        input);
+    CELER_LAUNCH_KERNEL(
+        phys_test, device().default_block_size(), input.states.size(), input);
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

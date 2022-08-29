@@ -11,24 +11,18 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 using Intersections = Sphere::Intersections;
 
-constexpr real_type sqrt_third = 1 / celeritas::constants::sqrt_three;
+constexpr real_type sqrt_third = 1 / constants::sqrt_three;
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class SphereTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-TEST_F(SphereTest, all)
+TEST(SphereTest, all)
 {
     EXPECT_EQ(celeritas::SurfaceType::s, Sphere::surface_type());
     EXPECT_EQ(4, Sphere::Storage::extent);
@@ -78,3 +72,7 @@ TEST_F(SphereTest, all)
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(1 + 2 * radius, distances[1]);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

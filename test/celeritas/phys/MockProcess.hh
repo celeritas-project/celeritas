@@ -35,17 +35,17 @@ namespace test
  * The given applicability vector has one element per model that it will
  * create. Each model can have a different particle type and/or energy range.
  */
-class MockProcess : public celeritas::Process
+class MockProcess : public Process
 {
   public:
     //!@{
     //! Type aliases
-    using real_type        = celeritas::real_type;
-    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
-    using Applicability    = celeritas::Applicability;
+    using real_type        = real_type;
+    using BarnMicroXs      = Quantity<celeritas::units::Barn>;
+    using Applicability    = Applicability;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
-    using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using ModelCallback    = std::function<void(celeritas::ActionId)>;
     //!@}
 
@@ -72,7 +72,6 @@ class MockProcess : public celeritas::Process
     Input data_;
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

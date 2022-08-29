@@ -24,18 +24,18 @@ namespace test
  * The model is applicable to a single particle type and energy range. Its
  * "interact" simply calls a test-code-provided callback with the model ID.
  */
-class MockModel final : public celeritas::Model
+class MockModel final : public Model
 {
   public:
     //!@{
     //! Type aliases
-    using real_type        = celeritas::real_type;
-    using Applicability    = celeritas::Applicability;
-    using ActionId         = celeritas::ActionId;
-    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
+    using real_type        = real_type;
+    using Applicability    = Applicability;
+    using ActionId         = ActionId;
+    using BarnMicroXs      = Quantity<celeritas::units::Barn>;
     using ModelCallback    = std::function<void(ActionId)>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
-    using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     //!@}
 
     struct Input
@@ -61,7 +61,6 @@ class MockModel final : public celeritas::Model
     Input data_;
 };
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

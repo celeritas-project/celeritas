@@ -28,12 +28,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // SEQUENCE ENGINE
 //---------------------------------------------------------------------------//
 
-class SequenceEngineTest : public celeritas_test::Test
+class SequenceEngineTest : public Test
 {
   public:
     void SetUp() override
@@ -92,7 +90,7 @@ TEST_F(SequenceEngineTest, manual)
     EXPECT_VEC_EQ(raw_vals, actual);
 
     // Past the end
-    EXPECT_THROW(engine(), celeritas::DebugError);
+    EXPECT_THROW(engine(), DebugError);
 }
 
 TEST_F(SequenceEngineTest, from_reals)
@@ -113,7 +111,7 @@ TEST_F(SequenceEngineTest, from_reals)
     EXPECT_VEC_EQ(expected, actual);
 
     // Past the end
-    EXPECT_THROW(engine(), celeritas::DebugError);
+    EXPECT_THROW(engine(), DebugError);
 }
 
 TEST_F(SequenceEngineTest, double_canonical)
@@ -163,11 +161,10 @@ TEST(DiagnosticEngineTest, from_reals)
 // CUDA/ROCM RNG
 //---------------------------------------------------------------------------//
 
-class DeviceRngEngineTest : public celeritas_test::Test
+class DeviceRngEngineTest : public Test
 {
   public:
-    using RngDeviceStore
-        = CollectionStateStore<RngStateData, celeritas::MemSpace::device>;
+    using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;
 
     void SetUp() override { params = std::make_shared<RngParams>(12345); }
 
@@ -184,7 +181,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
 
     // Print a subset of the values
     std::vector<unsigned int> test_values;
-    for (auto i : celeritas::range(rng_store.size()).step(127u))
+    for (auto i : range(rng_store.size()).step(127u))
     {
         test_values.push_back(values[i]);
     }

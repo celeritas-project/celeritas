@@ -21,12 +21,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class XsCalculatorTest : public celeritas_test::CalculatorTestBase
+class XsCalculatorTest : public CalculatorTestBase
 {
   protected:
     using Energy = XsCalculator::Energy;
@@ -160,7 +158,7 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     XsGridData data(this->data());
     data.prime_index = 3; // disallowed
 
-    EXPECT_THROW(XsCalculator(data, this->values()), celeritas::DebugError);
+    EXPECT_THROW(XsCalculator(data, this->values()), DebugError);
 }
 //---------------------------------------------------------------------------//
 } // namespace test

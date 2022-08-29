@@ -29,7 +29,7 @@ namespace test
 /*!
  * Manage a "heuristic" stepper-like test that accumulates path length.
  */
-class HeuristicGeoTestBase : public celeritas_test::GlobalGeoTestBase
+class HeuristicGeoTestBase : public GlobalGeoTestBase
 {
   public:
     //!@{
@@ -38,7 +38,7 @@ class HeuristicGeoTestBase : public celeritas_test::GlobalGeoTestBase
     using StateStore = CollectionStateStore<HeuristicGeoStateData, M>;
     template<MemSpace M>
     using PathLengthRef
-        = celeritas::Collection<real_type, Ownership::reference, M, VolumeId>;
+        = Collection<real_type, Ownership::reference, M, VolumeId>;
     using SpanConstReal = Span<const real_type>;
     using SpanConstStr  = Span<const std::string>;
     //!@}

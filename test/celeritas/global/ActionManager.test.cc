@@ -13,23 +13,15 @@
 
 namespace celeritas
 {
-namespace test
-{
-//---------------------------------------------------------------------------//
-
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 // Fake definition of CoreRef
 template<MemSpace M>
 struct CoreRef
 {
 };
-//---------------------------------------------------------------------------//
-} // namespace celeritas
 
-//---------------------------------------------------------------------------//
-// HELPER CLASSES
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 class MyExplicitAction final : public ExplicitActionInterface
@@ -65,7 +57,7 @@ class MyImplicitAction final : public ImplicitActionInterface,
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ActionManagerTest : public celeritas_test::Test
+class ActionManagerTest : public Test
 {
   protected:
     void SetUp() override
@@ -143,16 +135,16 @@ TEST_F(ActionManagerTest, errors)
     // Incorrect ID
     EXPECT_THROW(
         mgr.insert(std::make_shared<MyImplicitAction>(ActionId{100}, "impl3")),
-        celeritas::RuntimeError);
+        RuntimeError);
 
     // Duplicate label
     EXPECT_THROW(
         mgr.insert(std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1")),
-        celeritas::RuntimeError);
+        RuntimeError);
 
     // Invoke a nonexplicit kernel
     CoreRef<MemSpace::host> host_data;
-    EXPECT_THROW(mgr.invoke(ActionId{0}, host_data), celeritas::RuntimeError);
+    EXPECT_THROW(mgr.invoke(ActionId{0}, host_data), RuntimeError);
 }
 //---------------------------------------------------------------------------//
 } // namespace test

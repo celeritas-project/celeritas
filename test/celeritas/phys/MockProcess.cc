@@ -19,12 +19,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 MockProcess::MockProcess(Input data) : data_(std::move(data))
 {
     CELER_EXPECT(data_.materials);
@@ -34,7 +28,7 @@ MockProcess::MockProcess(Input data) : data_(std::move(data))
     CELER_EXPECT(
         data_.xs.empty()
         || std::any_of(data_.xs.begin(), data_.xs.end(), [](BarnMicroXs x) {
-               return x > celeritas::zero_quantity();
+               return x > zero_quantity();
            }));
     CELER_EXPECT(data_.energy_loss >= 0);
 }
@@ -109,7 +103,6 @@ std::string MockProcess::label() const
     return data_.label;
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

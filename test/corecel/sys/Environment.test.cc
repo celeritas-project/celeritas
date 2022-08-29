@@ -16,21 +16,13 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class EnvironmentTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(EnvironmentTest, local)
+TEST(EnvironmentTest, local)
 {
     Environment env;
     EXPECT_EQ("1", env["ENVTEST_ONE"]);
@@ -53,13 +45,13 @@ TEST_F(EnvironmentTest, local)
               os.str());
 }
 
-TEST_F(EnvironmentTest, global)
+TEST(EnvironmentTest, global)
 {
-    EXPECT_EQ("1", celeritas::environment()["ENVTEST_ONE"]);
-    EXPECT_EQ("1", celeritas::getenv("ENVTEST_ONE"));
+    EXPECT_EQ("1", environment()["ENVTEST_ONE"]);
+    EXPECT_EQ("1", getenv("ENVTEST_ONE"));
 }
 
-TEST_F(EnvironmentTest, json)
+TEST(EnvironmentTest, json)
 {
 #if CELERITAS_USE_JSON
     // Pre-set one environment variable
@@ -84,3 +76,7 @@ TEST_F(EnvironmentTest, json)
     GTEST_SKIP() << "JSON is disabled";
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

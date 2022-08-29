@@ -9,21 +9,13 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class DeviceVectorTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(DeviceVectorTest, all)
+TEST(DeviceVectorTest, all)
 {
     using Vec_t = DeviceVector<int>;
     Vec_t vec;
@@ -32,7 +24,7 @@ TEST_F(DeviceVectorTest, all)
 
 #if !CELER_USE_DEVICE
     // Can't allocate
-    EXPECT_THROW(Vec_t(1234), celeritas::DebugError);
+    EXPECT_THROW(Vec_t(1234), DebugError);
     cout << "CUDA is disabled; skipping remainder of test." << endl;
     return;
 #endif
@@ -77,14 +69,18 @@ TEST_F(DeviceVectorTest, all)
  * the expected build errors.
  */
 #ifdef CELERITAS_SHOULD_NOT_COMPILE
-TEST_F(DeviceVectorTest, should_not_compile)
+TEST(DeviceVectorTest, should_not_compile)
 {
-    DeviceVector<int>    dv(123);
-    celeritas::Span<int> s = make_span(dv);
+    DeviceVector<int> dv(123);
+    Span<int>         s = make_span(dv);
     EXPECT_EQ(123, s.size());
 
-    const auto&                dv_cref = dv;
-    celeritas::Span<const int> s2      = make_span(dv_cref);
+    const auto&     dv_cref = dv;
+    Span<const int> s2      = make_span(dv_cref);
     EXPECT_EQ(123, s2.size());
 }
 #endif
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

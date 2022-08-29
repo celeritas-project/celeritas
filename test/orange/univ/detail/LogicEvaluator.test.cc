@@ -11,22 +11,26 @@
 
 #include "celeritas_test.hh"
 
-using detail::LogicEvaluator;
-
-using detail::LogicEvaluator;
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using VecSense = std::vector<celeritas::Sense>;
 
-using logic_int       = celeritas::logic_int;
-constexpr auto lbegin = celeritas::logic::lbegin;
-constexpr auto ltrue  = celeritas::logic::ltrue;
-constexpr auto lor    = celeritas::logic::lor;
-constexpr auto land   = celeritas::logic::land;
-constexpr auto lnot   = celeritas::logic::lnot;
-constexpr auto lend   = celeritas::logic::lend;
+using logic_int       = logic_int;
+constexpr auto lbegin = logic::lbegin;
+constexpr auto ltrue  = logic::ltrue;
+constexpr auto lor    = logic::lor;
+constexpr auto land   = logic::land;
+constexpr auto lnot   = logic::lnot;
+constexpr auto lend   = logic::lend;
 
-constexpr auto s_in  = celeritas::Sense::inside;
-constexpr auto s_out = celeritas::Sense::outside;
+constexpr auto s_in  = Sense::inside;
+constexpr auto s_out = Sense::outside;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -121,3 +125,8 @@ TEST(LogicEvaluatorTest, evaluate)
     EXPECT_TRUE(eval_delta(make_span(senses)));
     EXPECT_TRUE(eval_everywhere(make_span(senses)));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+} // namespace celeritas

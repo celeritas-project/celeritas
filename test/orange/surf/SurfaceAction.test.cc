@@ -32,10 +32,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-namespace test
-{
 std::ostream& operator<<(std::ostream& os, Sense s)
 {
     return os << to_char(s);
@@ -70,15 +66,15 @@ std::string senses_to_string(Span<const Sense> s)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceActionTest : public celeritas_test::Test
+class SurfaceActionTest : public Test
 {
   protected:
     using SurfaceDataMirror = CollectionMirror<SurfaceData>;
 
     void SetUp() override
     {
-        ::celeritas::HostVal<SurfaceData> surface_data;
-        SurfaceInserter                   insert(&surface_data);
+        HostVal<SurfaceData> surface_data;
+        SurfaceInserter      insert(&surface_data);
         insert(PlaneX(1));
         insert(PlaneY(2));
         insert(PlaneZ(3));
@@ -113,7 +109,7 @@ class SurfaceActionTest : public celeritas_test::Test
     std::mt19937      rng_;
 };
 
-class StaticSurfaceActionTest : public celeritas_test::Test
+class StaticSurfaceActionTest : public Test
 {
 };
 
@@ -190,9 +186,9 @@ TEST_F(SurfaceActionTest, string)
 TEST_F(SurfaceActionTest, host_distances)
 {
     // Create states and sample uniform box, isotropic direction
-    ::celeritas::HostVal<OrangeMiniStateData> states;
+    HostVal<OrangeMiniStateData> states;
     resize(&states, surf_params_.host(), 1024);
-    ::celeritas::HostRef<OrangeMiniStateData> state_ref;
+    HostRef<OrangeMiniStateData> state_ref;
     state_ref = states;
     this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
@@ -203,7 +199,7 @@ TEST_F(SurfaceActionTest, host_distances)
         calc_thread(tid);
     }
 
-    auto test_threads = celeritas::range(ThreadId{10});
+    auto test_threads = range(ThreadId{10});
     // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
@@ -230,7 +226,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     OrangeMiniStateData<Ownership::value, MemSpace::device> device_states;
     {
         // Initialize on host
-        ::celeritas::HostVal<OrangeMiniStateData> host_states;
+        HostVal<OrangeMiniStateData> host_states;
         resize(&host_states, surf_params_.host(), 1024);
         this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
@@ -247,9 +243,9 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 
     {
         // Copy result back to host
-        ::celeritas::HostVal<OrangeMiniStateData> host_states;
+        HostVal<OrangeMiniStateData> host_states;
         host_states       = device_states;
-        auto test_threads = celeritas::range(ThreadId{10});
+        auto test_threads = range(ThreadId{10});
 
         const char expected_senses[]
             = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};

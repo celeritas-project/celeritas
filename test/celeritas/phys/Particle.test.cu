@@ -30,7 +30,7 @@ __global__ void ptv_test_kernel(unsigned int                    size,
                                 const ParticleTrackInitializer* init,
                                 double*                         result)
 {
-    auto local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    auto local_thread_id = KernelParamCalculator::thread_id();
     if (!(local_thread_id < size))
         return;
 
@@ -65,7 +65,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
                                          * PTVTestOutput::props_per_thread());
 
     CELER_LAUNCH_KERNEL(ptv_test,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         init.size(),
                         init.size(),
                         input.params,
@@ -80,7 +80,6 @@ PTVTestOutput ptv_test(PTVTestInput input)
     return output;
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

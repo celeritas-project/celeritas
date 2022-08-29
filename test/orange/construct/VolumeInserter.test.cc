@@ -25,12 +25,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeInserterTest : public celeritas_test::Test
+class VolumeInserterTest : public Test
 {
   protected:
     ::celeritas::HostVal<VolumeData>   volume_data_;

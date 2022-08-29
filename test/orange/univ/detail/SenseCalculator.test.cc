@@ -7,22 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/detail/SenseCalculator.hh"
 
+#include "orange/OrangeGeoTestBase.hh"
 #include "orange/surf/Surfaces.hh"
 #include "orange/univ/VolumeView.hh"
 
-// Test includes
-#include "orange/OrangeGeoTestBase.hh"
-
 #include "celeritas_test.hh"
 
-using detail::OnFace;
-using detail::SenseCalculator;
 namespace celeritas
+{
+namespace detail
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 // DETAIL TESTS
 //---------------------------------------------------------------------------//
@@ -35,7 +31,7 @@ TEST(Types, OnFace)
     EXPECT_FALSE(not_face.id());
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(not_face.sense(), celeritas::DebugError);
+        EXPECT_THROW(not_face.sense(), DebugError);
     }
     EXPECT_NO_THROW(not_face.unchecked_sense());
 
@@ -51,7 +47,7 @@ TEST(Types, OnFace)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SenseCalculatorTest : public celeritas_test::OrangeGeoTestBase
+class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
     using SurfaceRef = Surfaces::SurfaceRef;
@@ -67,7 +63,7 @@ class SenseCalculatorTest : public celeritas_test::OrangeGeoTestBase
     }
 
     //! Access the shared CPU storage space for senses
-    celeritas::Span<Sense> sense_storage()
+    Span<Sense> sense_storage()
     {
         return this->host_state().temp_sense[AllItems<Sense>{}];
     }
@@ -246,7 +242,7 @@ TEST_F(SenseCalculatorTest, five_volumes)
         {
             // Out-of-range face ID
             EXPECT_THROW(calc_senses(vol_b, OnFace{FaceId{8}, Sense::inside}),
-                         celeritas::DebugError);
+                         DebugError);
         }
     }
     {
@@ -282,4 +278,5 @@ TEST_F(SenseCalculatorTest, five_volumes)
 }
 //---------------------------------------------------------------------------//
 } // namespace test
+} // namespace detail
 } // namespace celeritas

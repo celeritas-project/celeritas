@@ -18,24 +18,23 @@
 
 #include "celeritas_test.hh"
 
-using units::AmuMass;
-
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
+class RayleighInteractorTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
         using namespace units;
-        constexpr auto zero   = celeritas::zero_quantity();
+        constexpr auto zero   = zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data for RayleighModel
@@ -46,13 +45,13 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
         // Setup MaterialView
         MaterialParams::Input inp;
-        inp.elements  = {{8, AmuMass{15.999}, "O"},
-                        {74, AmuMass{183.84}, "W"},
-                        {82, AmuMass{207.2}, "Pb"}};
+        inp.elements  = {{8, units::AmuMass{15.999}, "O"},
+                         {74, units::AmuMass{183.84}, "W"},
+                         {82, units::AmuMass{207.2}, "Pb"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,
-             celeritas::MatterState::solid,
+             MatterState::solid,
              {{celeritas::ElementId{0}, 0.5},
               {celeritas::ElementId{1}, 0.3},
               {celeritas::ElementId{2}, 0.2}},
@@ -65,8 +64,8 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         std::vector<celeritas::ImportProcess> imported{
             {22,
              0,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::rayleigh,
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::rayleigh,
              {celeritas::ImportModelClass::livermore_rayleigh},
              {},
              {}}};
@@ -95,7 +94,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
 
   protected:
     std::shared_ptr<RayleighModel> model_;
-    celeritas::RayleighRef         model_ref_;
+    RayleighRef                    model_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -125,7 +124,7 @@ TEST_F(RayleighInteractorTest, basic)
                                     el_id);
 
         // Produce a sample from the original/incident photon
-        celeritas::Interaction result = interact(rng_engine);
+        Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
         this->sanity_check(result);
 
@@ -177,9 +176,9 @@ TEST_F(RayleighInteractorTest, stress_test)
 
         // Produce num_samples from the original/incident photon
         real_type sum_angle = 0;
-        for (CELER_MAYBE_UNUSED auto i : celeritas::range(num_samples))
+        for (CELER_MAYBE_UNUSED auto i : range(num_samples))
         {
-            celeritas::Interaction result = interact(rng_engine);
+            Interaction result = interact(rng_engine);
             SCOPED_TRACE(result);
             this->sanity_check(result);
             rng_engine.count();
@@ -214,3 +213,7 @@ TEST_F(RayleighInteractorTest, stress_test)
     EXPECT_VEC_SOFT_EQ(expected_average_rng_counts, average_rng_counts);
     EXPECT_VEC_SOFT_EQ(expected_average_angle, average_angle);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

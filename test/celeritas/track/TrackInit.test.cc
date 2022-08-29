@@ -54,7 +54,7 @@ ITTestInputData ITTestInput::device_ref()
 
 #define TrackInitTest TEST_IF_CELER_DEVICE(TrackInitTest)
 
-class TrackInitTest : public celeritas_test::SimpleTestBase
+class TrackInitTest : public SimpleTestBase
 {
   protected:
     void SetUp() override
@@ -360,7 +360,6 @@ TEST_F(TrackInitSecondaryTest, secondaries)
     }
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

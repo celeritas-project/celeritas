@@ -20,12 +20,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
-using namespace units;
+using namespace celeritas::units;
 
 namespace celeritas
 {
@@ -34,6 +29,8 @@ namespace test
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_material() -> SPConstMaterial
 {
+    using namespace celeritas::units;
+
     MaterialParams::Input inp;
     inp.elements  = {{13, AmuMass{27}, "Al"}};
     inp.materials = {{2.7 * constants::na_avogadro / 27,
@@ -80,12 +77,12 @@ auto SimpleTestBase::build_cutoff() -> SPConstCutoff
     input.materials = this->material();
     input.particles = this->particle();
     input.cutoffs   = {
-        {pdg::gamma(),
-         {{MevEnergy{0.01}, 0.1 * units::millimeter},
-          {MevEnergy{100}, 100 * units::centimeter}}},
-        {pdg::electron(),
-         {{MevEnergy{1000}, 1000 * units::centimeter},
-          {MevEnergy{1000}, 1000 * units::centimeter}}},
+          {pdg::gamma(),
+           {{MevEnergy{0.01}, 0.1 * millimeter},
+            {MevEnergy{100}, 100 * centimeter}}},
+          {pdg::electron(),
+           {{MevEnergy{1000}, 1000 * centimeter},
+            {MevEnergy{1000}, 1000 * centimeter}}},
     };
 
     return std::make_shared<CutoffParams>(std::move(input));
@@ -155,7 +152,6 @@ auto SimpleTestBase::build_along_step() -> SPConstAction
     return result;
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

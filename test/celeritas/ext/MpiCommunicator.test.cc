@@ -19,21 +19,12 @@
 #    define TEST_IF_CELERITAS_MPI(name) DISABLED_##name
 #endif
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class CommunicatorTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(CommunicatorTest, null)
+TEST(CommunicatorTest, null)
 {
     MpiCommunicator comm;
     EXPECT_FALSE(comm);
@@ -43,19 +34,19 @@ TEST_F(CommunicatorTest, null)
     EXPECT_EQ(0, comm.rank());
 
     // Barrier should be a null-op
-    celeritas::barrier(comm);
+    barrier(comm);
 
     // Reduction should return the original value
-    EXPECT_EQ(123, celeritas::allreduce(comm, Operation::sum, 123));
+    EXPECT_EQ(123, allreduce(comm, Operation::sum, 123));
 
     // Not-in-place reduction should copy the values
     const int src[] = {1234};
     int       dst[] = {-1};
-    celeritas::allreduce(comm, Operation::max, make_span(src), make_span(dst));
+    allreduce(comm, Operation::max, make_span(src), make_span(dst));
     EXPECT_EQ(1234, dst[0]);
 }
 
-TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
+TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
 {
     MpiCommunicator comm = MpiCommunicator::comm_self();
     EXPECT_NE(MpiCommunicator::comm_world().mpi_comm(), comm.mpi_comm());
@@ -65,10 +56,10 @@ TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(self))
     EXPECT_EQ(0, comm.rank());
 
     barrier(comm);
-    EXPECT_EQ(123, celeritas::allreduce(comm, Operation::sum, 123));
+    EXPECT_EQ(123, allreduce(comm, Operation::sum, 123));
 }
 
-TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
+TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 {
     MpiCommunicator comm = MpiCommunicator::comm_world();
 
@@ -89,3 +80,7 @@ TEST_F(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 
     EXPECT_EQ(123 * comm.size(), allreduce(comm, Operation::sum, 123));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -24,15 +24,14 @@
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
+using celeritas::constants::sqrt_two;
+using celeritas::detail::Initialization;
+using celeritas::detail::LocalState;
+
 namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-using constants::sqrt_two;
-using detail::Initialization;
-using detail::LocalState;
-
 namespace
 {
 constexpr real_type sqrt_half = sqrt_two / 2;
@@ -42,7 +41,7 @@ constexpr real_type sqrt_half = sqrt_two / 2;
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class SimpleUnitTrackerTest : public celeritas_test::OrangeGeoTestBase
+class SimpleUnitTrackerTest : public OrangeGeoTestBase
 {
   protected:
     using StateHostValue = ::celeritas::HostVal<OrangeStateData>;
@@ -571,13 +570,12 @@ TEST_F(TwoVolumeTest, normal)
     if (CELERITAS_DEBUG)
     {
         SCOPED_TRACE("Not on a surface");
-        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, SurfaceId{}),
-                     celeritas::DebugError);
+        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, SurfaceId{}), DebugError);
     }
     {
         Real3 pos{3, -2, 1};
         Real3 expected_normal;
-        auto  invnorm = 1 / celeritas::norm(pos);
+        auto  invnorm = 1 / norm(pos);
         for (auto i : range(3))
         {
             expected_normal[i] = pos[i] * invnorm;

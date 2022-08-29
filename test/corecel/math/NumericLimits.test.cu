@@ -24,9 +24,8 @@ namespace test
 template<class T>
 __global__ void nl_test_kernel(NLTestOutput<T>* data)
 {
-    using limits_t = celeritas::numeric_limits<T>;
-    unsigned int local_thread_id
-        = celeritas::KernelParamCalculator::thread_id().get();
+    using limits_t               = numeric_limits<T>;
+    unsigned int local_thread_id = KernelParamCalculator::thread_id().get();
     if (local_thread_id == 0)
     {
         data->eps = limits_t::epsilon();
@@ -61,7 +60,7 @@ NLTestOutput<T> nl_test()
     CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
     static const ::celeritas::KernelParamCalculator calc_launch_params(
-        nl_test_kernel<T>, "nl_test", celeritas::device().threads_per_warp());
+        nl_test_kernel<T>, "nl_test", device().threads_per_warp());
     auto grid = calc_launch_params(4);
 
     CELER_LAUNCH_KERNEL_IMPL(nl_test_kernel<T>,
@@ -90,7 +89,6 @@ NLTestOutput<T> nl_test()
 template NLTestOutput<float>  nl_test<float>();
 template NLTestOutput<double> nl_test<double>();
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

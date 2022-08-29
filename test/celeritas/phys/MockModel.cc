@@ -37,7 +37,7 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
 
     MicroXsBuilders builders;
 
-    celeritas::MaterialView mat(data_.materials->host_ref(), range.material);
+    MaterialView mat(data_.materials->host_ref(), range.material);
     if (!data_.xs.empty())
     {
         for (const auto& elcomp : mat.elements())
@@ -83,7 +83,6 @@ std::string MockModel::description() const
     return os.str();
 }
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -22,12 +22,10 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
+class LinearPropagatorTest : public GlobalGeoTestBase
 {
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;

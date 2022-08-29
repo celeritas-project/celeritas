@@ -55,6 +55,5 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

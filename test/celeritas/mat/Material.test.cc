@@ -25,16 +25,7 @@
 
 namespace celeritas
 {
-namespace test
-{
 //---------------------------------------------------------------------------//
-using celeritas_test::m_test;
-using celeritas_test::MTestInput;
-using celeritas_test::MTestOutput;
-using units::AmuMass;
-
-namespace celeritas
-{
 std::ostream& operator<<(std::ostream& os, const MaterialId& mat)
 {
     os << "MaterialId{";
@@ -43,14 +34,15 @@ std::ostream& operator<<(std::ostream& os, const MaterialId& mat)
     os << "}";
     return os;
 }
-} // namespace celeritas
 
+namespace detail
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 //! Test coulomb correction values
 TEST(MaterialUtils, coulomb_correction)
 {
-    using detail::calc_coulomb_correction;
-
     EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(1));
     EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(13));
     EXPECT_SOFT_EQ(0.39494589680653375, calc_coulomb_correction(92));
@@ -77,7 +69,7 @@ TEST(MaterialUtils, radiation_length)
         ElementRecord el;
         el.atomic_number      = atomic_number;
         el.atomic_mass        = units::AmuMass{amu_mass};
-        el.coulomb_correction = detail::calc_coulomb_correction(atomic_number);
+        el.coulomb_correction = calc_coulomb_correction(atomic_number);
 
         return 1 / detail::calc_mass_rad_coeff(el);
     };
@@ -97,22 +89,24 @@ TEST(MaterialUtils, radiation_length)
     // Plutonium-244 [NOTE: accuracy decreases compared to tabulated values]
     EXPECT_SOFT_NEAR(5.93, calc_inv_rad_coeff(94, 244.06420), 1e-2);
 }
-
 //---------------------------------------------------------------------------//
-// MATERIALS HOST TEST
-//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
 
-class MaterialTest : public celeritas_test::Test
+namespace test
+{
+//---------------------------------------------------------------------------//
+class MaterialTest : public Test
 {
   protected:
     void SetUp() override
     {
         MaterialParams::Input inp;
         inp.elements = {
-            {1, AmuMass{1.008}, "H"},
-            {13, AmuMass{26.9815385}, "Al"},
-            {11, AmuMass{22.98976928}, "Na"},
-            {53, AmuMass{126.90447}, "I"},
+            {1, units::AmuMass{1.008}, "H"},
+            {13, units::AmuMass{26.9815385}, "Al"},
+            {11, units::AmuMass{22.98976928}, "Na"},
+            {53, units::AmuMass{126.90447}, "I"},
         };
         inp.materials = {
             // Sodium iodide
@@ -154,7 +148,7 @@ TEST_F(MaterialTest, params)
 
     EXPECT_EQ(MaterialId{0}, params->find_material("NaI"));
     EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
-    EXPECT_THROW(params->find_material("H2"), celeritas::RuntimeError);
+    EXPECT_THROW(params->find_material("H2"), RuntimeError);
     {
         auto             found      = params->find_materials("H2");
         const MaterialId expected[] = {MaterialId{2}, MaterialId{3}};
@@ -273,7 +267,7 @@ TEST_F(MaterialTest, element_view)
 // IMPORT MATERIAL DATA TEST
 //---------------------------------------------------------------------------//
 
-class MaterialParamsImportTest : public celeritas_test::Test
+class MaterialParamsImportTest : public Test
 {
   protected:
     void SetUp() override
@@ -302,7 +296,7 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
      * Celeritas constants results in the slightly different numerical values
      * calculated by Celeritas.
      */
-    celeritas::MaterialView mat(material_params->host_ref(), MaterialId{1});
+    MaterialView mat(material_params->host_ref(), MaterialId{1});
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
     EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]

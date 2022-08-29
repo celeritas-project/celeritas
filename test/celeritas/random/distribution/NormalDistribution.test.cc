@@ -12,25 +12,16 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class NormalDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(NormalDistributionTest, bin)
+namespace test
 {
-    int num_samples = 10000;
+//---------------------------------------------------------------------------//
+
+TEST(NormalDistributionTest, bin)
+{
+    DiagnosticRngEngine<std::mt19937> rng;
+    int                               num_samples = 10000;
 
     double mean   = 0.0;
     double stddev = 1.0;
@@ -38,7 +29,7 @@ TEST_F(NormalDistributionTest, bin)
     NormalDistribution<double> sample_normal{mean, stddev};
 
     std::vector<int> counters(6);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         double x = sample_normal(rng);
         if (x < -2.0)
@@ -59,3 +50,7 @@ TEST_F(NormalDistributionTest, bin)
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(2 * num_samples, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

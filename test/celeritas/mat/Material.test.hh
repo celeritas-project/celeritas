@@ -20,8 +20,8 @@ namespace test
 //! Input data
 struct MTestInput
 {
-    using MaterialParamsRef = ::celeritas::DeviceCRef<MaterialParamsData>;
-    using MaterialStateRef  = ::celeritas::DeviceRef<MaterialStateData>;
+    using MaterialParamsRef = DeviceCRef<MaterialParamsData>;
+    using MaterialStateRef  = DeviceRef<MaterialStateData>;
 
     MaterialParamsRef               params;
     MaterialStateRef                states;
@@ -47,7 +47,6 @@ struct MTestOutput
 //! Run on device and return results
 MTestOutput m_test(const MTestInput& inp);
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

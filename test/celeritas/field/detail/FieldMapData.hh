@@ -17,10 +17,8 @@ namespace test
 {
 namespace detail
 {
-using size_type = celeritas::size_type;
-using real_type = celeritas::real_type;
-using Ownership = celeritas::Ownership;
-using MemSpace  = celeritas::MemSpace;
+
+using MemSpace = MemSpace;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -69,10 +67,10 @@ struct FieldMapData
     FieldMapParameters params;
 
     //! Index of FieldMap Collection
-    using ElementId = celeritas::ItemId<size_type>;
+    using ElementId = ItemId<size_type>;
 
     template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+    using ElementItems = Collection<T, W, M, ElementId>;
     ElementItems<FieldMapElement> fieldmap;
 
     //! Check whether the data is assigned
@@ -104,6 +102,5 @@ struct FieldMapData
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

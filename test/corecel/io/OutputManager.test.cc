@@ -13,7 +13,13 @@
 
 #include "celeritas_test.hh"
 
-class TestInterface final : public celeritas::OutputInterface
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
+class TestInterface final : public OutputInterface
 {
   public:
     TestInterface(Category cat, std::string lab, int value)
@@ -44,10 +50,10 @@ class TestInterface final : public celeritas::OutputInterface
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class OutputManagerTest : public celeritas_test::Test
+class OutputManagerTest : public Test
 {
   protected:
-    using Category = celeritas::OutputInterface::Category;
+    using Category = OutputInterface::Category;
 
     std::string to_string(const OutputManager& om)
     {
@@ -85,7 +91,7 @@ TEST_F(OutputManagerTest, minimal)
     om.insert(second);
     om.insert(third);
 
-    EXPECT_THROW(om.insert(first), celeritas::RuntimeError);
+    EXPECT_THROW(om.insert(first), RuntimeError);
 
     std::string result = this->to_string(om);
 #if CELERITAS_USE_JSON
@@ -95,3 +101,7 @@ TEST_F(OutputManagerTest, minimal)
     EXPECT_EQ("\"output unavailable\"", result);
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -10,11 +10,13 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-class RangeCalculatorTest : public celeritas_test::CalculatorTestBase
+class RangeCalculatorTest : public CalculatorTestBase
 {
   protected:
     using Energy = RangeCalculator::Energy;
@@ -32,10 +34,6 @@ class RangeCalculatorTest : public celeritas_test::CalculatorTestBase
     }
 };
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
 TEST_F(RangeCalculatorTest, all)
 {
     RangeCalculator calc_range(this->data(), this->values());
@@ -43,7 +41,7 @@ TEST_F(RangeCalculatorTest, all)
     // "stopped" particle case should not calculate range
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(calc_range(Energy{0}), celeritas::DebugError);
+        EXPECT_THROW(calc_range(Energy{0}), DebugError);
     }
 
     // Values below should be scaled below emin
@@ -59,3 +57,7 @@ TEST_F(RangeCalculatorTest, all)
     // Above range
     EXPECT_SOFT_EQ(500, calc_range(Energy{1.001e4}));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

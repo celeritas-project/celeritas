@@ -19,6 +19,8 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+
 class ActionManager;
 class AtomicRelaxationParams;
 class CutoffParams;
@@ -31,10 +33,7 @@ class TrackInitParams;
 
 class CoreParams;
 class OutputManager;
-} // namespace celeritas
 
-namespace celeritas
-{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -45,7 +44,7 @@ namespace test
  * virtual \c public so that tests can create mixins (see e.g. \c
  * SimpleStepperTest).
  */
-class GlobalTestBase : public celeritas_test::Test
+class GlobalTestBase : public Test
 {
   public:
     //!@{
@@ -53,18 +52,18 @@ class GlobalTestBase : public celeritas_test::Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstGeo         = SP<const celeritas::GeoParams>;
-    using SPConstMaterial    = SP<const celeritas::MaterialParams>;
-    using SPConstGeoMaterial = SP<const celeritas::GeoMaterialParams>;
-    using SPConstParticle    = SP<const celeritas::ParticleParams>;
-    using SPConstCutoff      = SP<const celeritas::CutoffParams>;
-    using SPConstPhysics     = SP<const celeritas::PhysicsParams>;
-    using SPConstAction      = SP<const celeritas::ExplicitActionInterface>;
-    using SPConstRng         = SP<const celeritas::RngParams>;
-    using SPConstCore        = SP<const celeritas::CoreParams>;
+    using SPConstGeo         = SP<const GeoParams>;
+    using SPConstMaterial    = SP<const MaterialParams>;
+    using SPConstGeoMaterial = SP<const GeoMaterialParams>;
+    using SPConstParticle    = SP<const ParticleParams>;
+    using SPConstCutoff      = SP<const CutoffParams>;
+    using SPConstPhysics     = SP<const PhysicsParams>;
+    using SPConstAction      = SP<const ExplicitActionInterface>;
+    using SPConstRng         = SP<const RngParams>;
+    using SPConstCore        = SP<const CoreParams>;
 
-    using SPActionManager = SP<celeritas::ActionManager>;
-    using SPOutputManager = SP<celeritas::OutputManager>;
+    using SPActionManager = SP<ActionManager>;
+    using SPOutputManager = SP<OutputManager>;
     //!@}
 
   public:
@@ -182,7 +181,6 @@ DEF_GTB_ACCESSORS(SPConstCore, core)
 
 #undef DEF_GTB_ACCESSORS
 
-//---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

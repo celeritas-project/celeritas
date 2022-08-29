@@ -47,10 +47,10 @@ class ValueGridBuilder
 
     //!@{
     //! Prevent copy/move except by daughters that know what they're doing
-    ValueGridBuilder(const ValueGridBuilder&) = default;
+    ValueGridBuilder(const ValueGridBuilder&)            = default;
     ValueGridBuilder& operator=(const ValueGridBuilder&) = default;
     ValueGridBuilder(ValueGridBuilder&&)                 = default;
-    ValueGridBuilder& operator=(ValueGridBuilder&&) = default;
+    ValueGridBuilder& operator=(ValueGridBuilder&&)      = default;
     //!@}
 };
 

@@ -13,21 +13,13 @@
 
 #include "celeritas_test.hh"
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class CopierTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(CopierTest, host)
+TEST(CopierTest, host)
 {
     // Copy host --> host
     std::vector<int> src_vec(128, 1234);
@@ -40,7 +32,7 @@ TEST_F(CopierTest, host)
     EXPECT_EQ(1234, dst_vec.back());
 }
 
-TEST_F(CopierTest, TEST_IF_CELER_DEVICE(device))
+TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
 {
     // Copy host --> device
     std::vector<int> host_vec(128);
@@ -63,8 +55,12 @@ TEST_F(CopierTest, TEST_IF_CELER_DEVICE(device))
     std::vector<int> new_host_vec(host_vec.size());
     {
         Copier<int, MemSpace::device> copy{new_device_vec.device_ref()};
-        copy(MemSpace::host, celeritas::make_span(new_host_vec));
+        copy(MemSpace::host, make_span(new_host_vec));
     }
     EXPECT_EQ(1, new_host_vec.front());
     EXPECT_EQ(1234, new_host_vec.back());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

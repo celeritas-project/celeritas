@@ -46,6 +46,5 @@ inline RangeTestOutput rangedev_test(RangeTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas
