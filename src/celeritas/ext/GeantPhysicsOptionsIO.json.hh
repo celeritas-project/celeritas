@@ -1,27 +1,25 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ActionInitialization.cc
+//! \file celeritas/ext/GeantPhysicsOptionsIO.json.hh
 //---------------------------------------------------------------------------//
-#include "ActionInitialization.hh"
+#pragma once
 
-#include "PrimaryGeneratorAction.hh"
+#include <nlohmann/json.hpp>
+
+#include "GeantPhysicsOptions.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-/*!
- * Construct and invoke all other Geant4 classes.
- */
-void ActionInitialization::Build() const
-{
-    this->SetUserAction(new PrimaryGeneratorAction());
-}
+
+// Read options from JSON
+void from_json(const nlohmann::json& j, GeantPhysicsOptions& opts);
+
+// Write options to JSON
+void to_json(nlohmann::json& j, const GeantPhysicsOptions& opts);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

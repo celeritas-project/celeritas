@@ -14,7 +14,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/LoadGdml.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -439,21 +439,16 @@ class GeantBuilderTest : public VecgeomTestBase,
     void SetUp() override
     {
         VecgeomTestBase::SetUp();
-        std::string gdml_filename
-            = this->test_data_path("celeritas", "four-levels.gdml");
-
-        GeantSetupOptions opts;
-        opts.physics = GeantSetupPhysicsList::none;
-
-        geant_setup = std::make_shared<GeantSetup>(gdml_filename, opts);
+        world_volume_
+            = load_gdml(this->test_data_path("celeritas", "four-levels.gdml"));
     }
 
     SPConstGeo build_geometry() override
     {
         CELER_NOT_IMPLEMENTED("build_geometry");
-        // return std::make_shared<VecgeomParams>(geant_setup->world());
+        // return std::make_shared<VecgeomParams>(world_volume.get());
     }
 
   private:
-    std::shared_ptr<GeantSetup> geant_setup;
+    celeritas::UPG4PhysicalVolume world_volume_;
 };

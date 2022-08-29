@@ -9,6 +9,7 @@
 
 #include <iterator>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <G4NistManager.hh>
 #include <G4ParticleTable.hh>
@@ -216,6 +217,54 @@ double units_to_scaling(ImportUnits units)
     CELER_ASSERT_UNREACHABLE();
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Get the energy cutoff for secondary production (in ImportMaterial units!).
+ */
+double get_cutoff(PDGNumber pdg, const ImportMaterial& mat)
+{
+    if (!pdg)
+    {
+        return 0;
+    }
+
+    auto cutoffs = mat.pdg_cutoffs.find(pdg.get());
+    if (cutoffs == mat.pdg_cutoffs.end())
+    {
+        // Particle unavailable: use infinite cutoff
+        return std::numeric_limits<double>::infinity();
+    }
+    return cutoffs->second.energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a G4Material from a material index.
+ */
+const G4Material& get_g4material(unsigned int mat_idx)
+{
+    const auto* g4_cuts_table = G4ProductionCutsTable::GetProductionCutsTable();
+    CELER_EXPECT(mat_idx < g4_cuts_table->GetTableSize());
+    const auto* g4_material
+        = g4_cuts_table->GetMaterialCutsCouple(mat_idx)->GetMaterial();
+    CELER_ENSURE(g4_material);
+    return *g4_material;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a G4Material from a material index.
+ */
+const G4ParticleDefinition& get_g4particle(PDGNumber pdg)
+{
+    CELER_EXPECT(pdg);
+    auto* particle
+        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
+    CELER_ENSURE(particle);
+    return *particle;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -274,32 +323,18 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
-        // G4VEmProcess tables
-        if (const auto* secondary = em_process->SecondaryParticle())
-        {
-            process_.secondary_pdg = secondary->GetPDGEncoding();
-        }
-        this->store_em_tables(*em_process);
+        this->store_em_process(*em_process);
     }
-
     else if (const auto* energy_loss
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
-        // G4VEnergyLossProcess tables
-        if (const auto* secondary = energy_loss->SecondaryParticle())
-        {
-            process_.secondary_pdg = secondary->GetPDGEncoding();
-        }
-        this->store_energy_loss_tables(*energy_loss);
+        this->store_eloss_process(*energy_loss);
     }
-
     else if (const auto* multiple_scattering
              = dynamic_cast<const G4VMultipleScattering*>(&process))
     {
-        // G4VMultipleScattering tables
-        this->store_multiple_scattering_tables(*multiple_scattering);
+        this->store_msc_process(*multiple_scattering);
     }
-
     else
     {
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
@@ -315,10 +350,32 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 // PRIVATE
 //---------------------------------------------------------------------------//
 /*!
+ * Store common properties of the current process.
+ *
+ * As of Geant4 11, these functions are non-virtual functions of the daughter
+ * classes that have the same interface.
+ */
+template<class T>
+void ImportProcessConverter::store_common_process(const T& process)
+{
+    static_assert(std::is_base_of<G4VProcess, T>::value,
+                  "process must be a G4VProcess");
+
+    // Save secondaries
+    if (const auto* secondary = process.SecondaryParticle())
+    {
+        process_.secondary_pdg = secondary->GetPDGEncoding();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Store EM cross section tables for the current process.
  */
-void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
+void ImportProcessConverter::store_em_process(const G4VEmProcess& process)
 {
+    this->store_common_process(process);
+
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
@@ -333,18 +390,14 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 
         // Save microscopic cross sections for models that need to sample a
         // random element from a material in an interaction
-        // TODO: include e_coulomb_scattering, and if protons are filtered from
-        // the imported data set infinite proton secondary production cuts
-        if (model_class_id == ImportModelClass::bethe_heitler_lpm
-            || model_class_id == ImportModelClass::klein_nishina
-            || model_class_id == ImportModelClass::livermore_rayleigh)
+        if (needs_micro_xs(model_class_id))
         {
             process_.micro_xs.insert(
                 {model_class_id, this->add_micro_xs(model)});
         }
     }
 
-    // Save potential tables
+    // Save cross section tables if available
     this->add_table(process.LambdaTable(), ImportTableType::lambda);
     this->add_table(process.LambdaTablePrim(), ImportTableType::lambda_prim);
 }
@@ -358,9 +411,16 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-void ImportProcessConverter::store_energy_loss_tables(
+void ImportProcessConverter::store_eloss_process(
     const G4VEnergyLossProcess& process)
 {
+    this->store_common_process(process);
+
+    // Note: NumberOfModels/GetModelByIndex is a *not* a virtual method on
+    // G4VProcess, so this loop cannot yet be combined with the one in
+    // store_em_process .
+    // TODO: when we drop support for Geant4 10 we can use a template to
+    // move this into store_common_process...
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
         G4VEmModel& model          = *process.GetModelByIndex(i);
@@ -371,10 +431,7 @@ void ImportProcessConverter::store_energy_loss_tables(
 
         // Save microscopic cross sections for models that need to sample a
         // random element from a material in an interaction
-        if (model_class_id == ImportModelClass::e_brems_sb
-            || model_class_id == ImportModelClass::e_brems_lpm
-            || model_class_id == ImportModelClass::mu_brems
-            || model_class_id == ImportModelClass::mu_pair_prod)
+        if (needs_micro_xs(model_class_id))
         {
             process_.micro_xs.insert(
                 {model_class_id, this->add_micro_xs(model)});
@@ -439,7 +496,7 @@ void ImportProcessConverter::store_energy_loss_tables(
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
  */
-void ImportProcessConverter::store_multiple_scattering_tables(
+void ImportProcessConverter::store_msc_process(
     const G4VMultipleScattering& process)
 {
 #if CELERITAS_G4_V10
@@ -570,19 +627,14 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
     CELER_ASSERT(!materials_.empty());
 
     // Needed for model.ComputeCrossSectionPerAtom(...)
-    const G4ParticleDefinition& g4_particle_def
-        = *G4ParticleTable::GetParticleTable()->FindParticle(
-            process_.particle_pdg);
+    const G4ParticleDefinition& g4_particle
+        = get_g4particle(PDGNumber{process_.particle_pdg});
     ImportProcess::ModelMicroXS model_micro_xs;
 
-    for (unsigned int mat_idx : celeritas::range(materials_.size()))
+    for (auto mat_idx : celeritas::range(materials_.size()))
     {
-        const auto& material = materials_.at(mat_idx);
-        const auto& g4_cuts_table
-            = *G4ProductionCutsTable::GetProductionCutsTable();
-        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
-        const auto* g4_material
-            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
+        const ImportMaterial& material    = materials_[mat_idx];
+        const G4Material&     g4_material = get_g4material(mat_idx);
 
         ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
@@ -601,37 +653,32 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 
         for (const auto& elem_comp : material.elements)
         {
-            const auto& element = elements_.at(elem_comp.element_id);
+            const auto& element = elements_[elem_comp.element_id];
 
-            const G4Element& g4_element
-                = *g4_nist_manager.FindOrBuildElement(element.atomic_number);
+            const G4Element* g4_element
+                = g4_nist_manager.FindOrBuildElement(element.atomic_number);
+            CELER_ASSERT(g4_element);
             auto& physics_vector
                 = element_physvec_map.find(elem_comp.element_id)->second;
 
-            // Get the secondary production cut
-            double secondary_cutoff = 0;
-            if (process_.secondary_pdg != 0)
-            {
-                auto cutoffs
-                    = material.pdg_cutoffs.find(process_.secondary_pdg);
-                CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
-                secondary_cutoff = cutoffs->second.energy;
-            }
+            // Get the secondary production cut (MeV)
+            double secondary_cutoff
+                = get_cutoff(PDGNumber{process_.secondary_pdg}, material);
 
-            for (int bin_idx : celeritas::range(energy_grid.size()))
+            for (auto bin_idx : celeritas::range(energy_grid.size()))
             {
-                const double energy_bin_value = energy_grid.at(bin_idx);
+                const double energy_bin_value = energy_grid[bin_idx];
 
                 // Set kinematic and material-dependent quantities
                 model.SetupForMaterial(
-                    &g4_particle_def, g4_material, energy_bin_value);
+                    &g4_particle, &g4_material, energy_bin_value);
 
                 // Calculate microscopic cross-section
                 const double xs_per_atom
                     = std::max(
                           0.0,
-                          model.ComputeCrossSectionPerAtom(&g4_particle_def,
-                                                           &g4_element,
+                          model.ComputeCrossSectionPerAtom(&g4_particle,
+                                                           g4_element,
                                                            energy_bin_value,
                                                            secondary_cutoff,
                                                            energy_bin_value))
@@ -683,32 +730,21 @@ ImportPhysicsVector
 ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
                                                            unsigned int mat_idx)
 {
-    const auto& material = materials_.at(mat_idx);
+    const auto& material = materials_[mat_idx];
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
-    double secondary_cutoff = 0;
-    if (process_.secondary_pdg != 0)
-    {
-        auto cutoffs = material.pdg_cutoffs.find(process_.secondary_pdg);
-        CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
-        secondary_cutoff = cutoffs->second.energy;
-    }
-
     double min_energy = model.LowEnergyLimit() / MeV;
     {
-        const auto& g4_cuts_table
-            = *G4ProductionCutsTable::GetProductionCutsTable();
-        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
-        const auto* g4_material
-            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
-        const auto* g4_particle
-            = G4ParticleTable::GetParticleTable()->FindParticle(
-                process_.particle_pdg);
-        const double min_primary_energy
-            = model.MinPrimaryEnergy(g4_material, g4_particle, secondary_cutoff)
+        double secondary_cutoff
+            = get_cutoff(PDGNumber{process_.secondary_pdg}, material);
+        double min_primary_energy
+            = model.MinPrimaryEnergy(
+                  &get_g4material(mat_idx),
+                  &get_g4particle(PDGNumber{process_.particle_pdg}),
+                  secondary_cutoff)
               / MeV;
         min_energy = std::max(min_primary_energy, min_energy);
     }
