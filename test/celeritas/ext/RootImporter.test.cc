@@ -29,6 +29,11 @@ using namespace celeritas;
  * The \e four-steel-slabs.root is created by the \e app/celer-export-geant
  * using the \e four-steel-slabs.gdml example file available in \e app/data .
  *
+ * In order to keep the \e four-steel-slabs.root file small, the stored file in
+ * test/celeritas/data is exported using
+ * GeantImporter::DataSelection::reader_data = false
+ * in \e app/celer-export-geant .
+ *
  * This test only checks if the loaded ROOT file is minimally correct. Detailed
  * verification of the imported data is done by \c ImportData.test .
  */
