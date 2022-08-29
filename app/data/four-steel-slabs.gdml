@@ -91,9 +91,9 @@
 
   <solids>
     <box lunit="mm" name="box0x125555b70" x="200" y="200" z="40"/>
-    <box lunit="mm" name="boxReplica0x125556c70" x="200" y="200" z="40"/>
-    <box lunit="mm" name="boxReplica20x1255570a0" x="200" y="200" z="40"/>
-    <box lunit="mm" name="boxReplica30x125557500" x="200" y="200" z="40"/>
+    <box lunit="mm" name="box0x125556c70" x="200" y="200" z="40"/>
+    <box lunit="mm" name="box0x1255570a0" x="200" y="200" z="40"/>
+    <box lunit="mm" name="box0x125557500" x="200" y="200" z="40"/>
     <box lunit="mm" name="World0x125555ea0" x="10000" y="10000" z="10000"/>
   </solids>
 
@@ -102,17 +102,17 @@
       <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
       <solidref ref="box0x125555b70"/>
     </volume>
-    <volume name="boxReplica0x125556d20">
+    <volume name="box0x125556d20">
       <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
-      <solidref ref="boxReplica0x125556c70"/>
+      <solidref ref="box0x125556c70"/>
     </volume>
-    <volume name="boxReplica0x125557160">
+    <volume name="box0x125557160">
       <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
-      <solidref ref="boxReplica20x1255570a0"/>
+      <solidref ref="box0x1255570a0"/>
     </volume>
-    <volume name="boxReplica0x1255575a0">
+    <volume name="box0x1255575a0">
       <materialref ref="G4_STAINLESS-STEEL0x125553a10"/>
-      <solidref ref="boxReplica30x125557500"/>
+      <solidref ref="box0x125557500"/>
     </volume>
     <volume name="World0x125555f10">
       <materialref ref="G4_Galactic0x125554f50"/>
@@ -121,15 +121,15 @@
         <volumeref ref="box0x125555be0"/>
       </physvol>
       <physvol name="box0x125556dc0">
-        <volumeref ref="boxReplica0x125556d20"/>
+        <volumeref ref="box0x125556d20"/>
         <position name="box0x125556dc0_pos" unit="mm" x="0" y="0" z="60"/>
       </physvol>
       <physvol name="box0x125557110">
-        <volumeref ref="boxReplica0x125557160"/>
+        <volumeref ref="box0x125557160"/>
         <position name="box0x125557110_pos" unit="mm" x="0" y="0" z="120"/>
       </physvol>
       <physvol name="box0x125557640">
-        <volumeref ref="boxReplica0x1255575a0"/>
+        <volumeref ref="box0x1255575a0"/>
         <position name="box0x125557640_pos" unit="mm" x="0" y="0" z="180"/>
       </physvol>
     </volume>
