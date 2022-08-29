@@ -263,6 +263,11 @@ endif()
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4}
   LINK_LIBRARIES Celeritas::IO)
+celeritas_add_test(celeritas/ext/ImportData.test.cc ${_needs_geant4}
+  LINK_LIBRARIES Celeritas::IO
+  FILTER
+    "FourSteelSlabsEmStandard.*"
+  )
 celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}

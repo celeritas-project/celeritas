@@ -653,10 +653,9 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 
         for (const auto& elem_comp : material.elements)
         {
-            const auto& element = elements_[elem_comp.element_id];
-
             const G4Element* g4_element
-                = g4_nist_manager.FindOrBuildElement(element.atomic_number);
+                = g4_nist_manager.GetElement(elem_comp.element_id);
+
             CELER_ASSERT(g4_element);
             auto& physics_vector
                 = element_physvec_map.find(elem_comp.element_id)->second;
