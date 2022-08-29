@@ -23,10 +23,10 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -59,8 +59,6 @@ inline CELER_FUNCTION celeritas::real_type
                                 celeritas::PhysicsStepView&  pstep,
                                 celeritas::units::MevEnergy  energy)
 {
-    using namespace celeritas;
-
     // Calc total macro_xs over processsess
     real_type total_xs = 0;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
@@ -117,4 +115,6 @@ inline void phys_cuda_test(const PTestInput&)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

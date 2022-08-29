@@ -14,7 +14,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::KleinNishinaInteractor;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//

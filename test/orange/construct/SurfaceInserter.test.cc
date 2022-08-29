@@ -22,7 +22,11 @@
 #    include "orange/construct/SurfaceInputIO.json.hh"
 #endif
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -93,3 +97,6 @@ TEST_F(SurfaceInserterTest, from_json)
     EXPECT_EQ(12, surface_range.size());
 #endif
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -21,7 +21,9 @@ struct Applicability;
 struct PhysicsParamsOptions;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -86,4 +88,6 @@ class MockTestBase : virtual public GlobalGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

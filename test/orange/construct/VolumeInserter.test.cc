@@ -20,7 +20,11 @@
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -125,3 +129,6 @@ TEST_F(VolumeInserterTest, from_json)
     }
 #endif
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -18,7 +18,9 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 using StackAllocatorMock = celeritas::StackAllocator<MockSecondary>;
 
@@ -125,4 +127,6 @@ void sa_clear(const SATestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -14,8 +14,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::StringEnumMap;
-
 //---------------------------------------------------------------------------//
 enum class SomeOtherEnum;
 

@@ -20,10 +20,16 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-using namespace celeritas;
-using namespace celeritas::units;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using namespace units;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_material() -> SPConstMaterial
@@ -150,4 +156,6 @@ auto SimpleTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

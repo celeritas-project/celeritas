@@ -16,9 +16,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ElementId;
-using celeritas::EPlusGGInteractor;
-using celeritas::EPlusGGMacroXsCalculator;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -227,7 +224,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
 
 TEST_F(EPlusGGInteractorTest, macro_xs)
 {
-    using celeritas::units::MevEnergy;
+    using units::MevEnergy;
 
     auto material = this->material_track().make_material_view();
     EPlusGGMacroXsCalculator calc_macro_xs(data_, material);

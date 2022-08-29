@@ -12,7 +12,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Array;
 using Real3 = Array<double, 3>;
 
 enum

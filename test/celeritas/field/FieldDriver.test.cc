@@ -23,8 +23,11 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -171,4 +174,6 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     // Check the total error, step/curve length
     EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
               delta);
-}
+} //---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

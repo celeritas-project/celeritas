@@ -11,7 +11,9 @@
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -44,4 +46,6 @@ inline RangeTestOutput rangedev_test(RangeTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -12,7 +12,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::OpaqueId;
 struct TestInstantiator;
 
 //---------------------------------------------------------------------------//

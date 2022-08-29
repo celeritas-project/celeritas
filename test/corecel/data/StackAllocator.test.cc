@@ -14,7 +14,11 @@
 #include "StackAllocator.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 template<celeritas::Ownership W, celeritas::MemSpace M>
 using MockAllocatorData = celeritas::StackAllocatorData<MockSecondary, W, M>;
@@ -143,3 +147,6 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(1024, actual_allocations(input, result));
     EXPECT_EQ(1024, result.view_size);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

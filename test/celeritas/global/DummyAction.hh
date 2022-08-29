@@ -9,7 +9,9 @@
 
 #include "celeritas/global/ActionInterface.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 class DummyAction final : public celeritas::ExplicitActionInterface,
@@ -31,4 +33,6 @@ class DummyAction final : public celeritas::ExplicitActionInterface,
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

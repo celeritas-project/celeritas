@@ -13,10 +13,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::soft_mod;
-using celeritas::SoftEqual;
-using celeritas::SoftZero;
-
 //---------------------------------------------------------------------------//
 
 TEST(SoftEqual, default_precisions)

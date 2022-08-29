@@ -13,10 +13,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Copier;
-using celeritas::DeviceVector;
-using celeritas::MemSpace;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

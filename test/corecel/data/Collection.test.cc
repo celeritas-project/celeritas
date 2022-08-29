@@ -20,14 +20,11 @@
 #include "Collection.test.hh"
 #include "celeritas_test.hh"
 
-using celeritas::AllItems;
-using celeritas::Collection;
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::Span;
-using celeritas::ThreadId;
-
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
@@ -246,9 +243,6 @@ class CollectionTest : public celeritas_test::Test
 
         // Test references helpers
         {
-            using celeritas::make_const_ref;
-            using celeritas::make_ref;
-
             auto host_cref = make_const_ref(host_data);
             EXPECT_TRUE((std::is_same<decltype(host_cref),
                                       MockParamsData<Ownership::const_reference,
@@ -315,3 +309,6 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -13,8 +13,11 @@
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -207,3 +210,6 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
         EXPECT_EQ("geo-boundary", result.action);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

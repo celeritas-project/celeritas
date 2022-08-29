@@ -17,7 +17,9 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -73,7 +75,6 @@ class SequenceEngine
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
 
 namespace celeritas
 {
@@ -102,7 +103,9 @@ class GenerateCanonical<celeritas_test::SequenceEngine, T>
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -182,7 +185,6 @@ auto SequenceEngine::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
 
 namespace celeritas
 {
@@ -218,4 +220,7 @@ T GenerateCanonical<celeritas_test::SequenceEngine, T>::operator()(
 }
 
 //---------------------------------------------------------------------------//
+} // namespace celeritas
+//---------------------------------------------------------------------------//
+} // namespace test
 } // namespace celeritas

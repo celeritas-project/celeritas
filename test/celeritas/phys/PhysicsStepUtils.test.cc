@@ -16,9 +16,12 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -421,3 +424,6 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
         EXPECT_SOFT_EQ(0.001, step.step);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

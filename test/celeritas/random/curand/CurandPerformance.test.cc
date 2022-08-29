@@ -17,9 +17,11 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
-
-using celeritas::range;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -169,3 +171,6 @@ TEST_F(CurandDeviceTest, curand_mtgp32_device)
     this->check_mean_device(output);
 }
 #endif
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

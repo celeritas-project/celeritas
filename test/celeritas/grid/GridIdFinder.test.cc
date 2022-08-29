@@ -12,8 +12,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::GridIdFinder;
-using celeritas::make_span;
 // using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//

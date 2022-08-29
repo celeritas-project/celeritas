@@ -16,7 +16,11 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -69,3 +73,6 @@ TEST_F(GenericXsCalculatorTest, all)
     EXPECT_SOFT_EQ(4.0, calc(0.0001));
     EXPECT_SOFT_EQ(2.0, calc(1e7));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

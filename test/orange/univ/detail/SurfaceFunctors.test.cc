@@ -14,7 +14,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -53,7 +57,7 @@ class SurfaceFunctorsTest : public celeritas_test::Test
 
 TEST_F(SurfaceFunctorsTest, calc_sense)
 {
-    using celeritas::detail::CalcSense;
+    using detail::CalcSense;
     Real3     pos{0.9, 0, 0};
     CalcSense calc{pos};
 
@@ -129,3 +133,6 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     EXPECT_SOFT_EQ(2.25, calc_distance(SurfaceId{0}));
     EXPECT_SOFT_EQ(0.0, calc_distance(SurfaceId{1}));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

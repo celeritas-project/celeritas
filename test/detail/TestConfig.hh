@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -17,4 +19,6 @@ extern const char source_dir[];
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

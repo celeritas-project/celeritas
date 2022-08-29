@@ -13,10 +13,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::MpiCommunicator;
-using celeritas::Operation;
-using celeritas::ScopedMpiInit;
-
 #if CELERITAS_USE_MPI
 #    define TEST_IF_CELERITAS_MPI(name) name
 #else
@@ -39,8 +35,6 @@ class CommunicatorTest : public celeritas_test::Test
 
 TEST_F(CommunicatorTest, null)
 {
-    using celeritas::make_span;
-
     MpiCommunicator comm;
     EXPECT_FALSE(comm);
 

@@ -29,9 +29,15 @@
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -259,4 +265,6 @@ std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

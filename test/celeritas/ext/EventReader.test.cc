@@ -15,10 +15,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::EventReader;
-using celeritas::ParticleParams;
-using celeritas::Primary;
-using namespace celeritas::units;
+using namespace units;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -31,9 +28,8 @@ class EventReaderTest : public celeritas_test::Test,
   protected:
     void SetUp() override
     {
-        using celeritas::PDGNumber;
-        using celeritas::units::ElementaryCharge;
-        using celeritas::units::MevMass;
+        using units::ElementaryCharge;
+        using units::MevMass;
         auto           zero = celeritas::zero_quantity();
         constexpr auto stable
             = celeritas::ParticleRecord::stable_decay_constant();

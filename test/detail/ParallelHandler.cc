@@ -11,9 +11,15 @@
 #include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/MpiOperations.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -69,4 +75,6 @@ void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

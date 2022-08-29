@@ -17,13 +17,8 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::CutoffView;
-using celeritas::dot_product;
-using celeritas::MollerBhabhaInteractor;
-using celeritas::normalize_direction;
-using celeritas::ParticleCutoff;
-using celeritas::units::AmuMass;
-using celeritas::units::MevEnergy;
+using units::AmuMass;
+using units::MevEnergy;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
@@ -38,7 +33,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using namespace celeritas::units;
+        using namespace units;
 
         // Setup MaterialView
         MaterialParams::Input inp;

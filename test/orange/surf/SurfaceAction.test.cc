@@ -26,16 +26,20 @@
 #include "SurfaceAction.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 std::ostream& operator<<(std::ostream& os, Sense s)
 {
     return os << to_char(s);
 }
-} // namespace celeritas_test
 
 namespace
 {
@@ -278,3 +282,6 @@ TEST_F(StaticSurfaceActionTest, check_surface_sizes)
         EXPECT_EQ(get_expected_storage(st), get_actual_storage(st));
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

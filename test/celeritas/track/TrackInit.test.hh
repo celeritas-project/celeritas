@@ -16,9 +16,10 @@
 #include "celeritas/track/SimTrackView.hh"
 #include "celeritas/track/TrackInitData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -119,4 +120,6 @@ inline void interact(CoreStateDeviceRef, ITTestInputData)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

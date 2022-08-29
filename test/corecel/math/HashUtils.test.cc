@@ -12,8 +12,12 @@
 #include "celeritas_test.hh"
 // #include "HashUtils.test.hh"
 
-using namespace celeritas;
-using celeritas::detail::make_fast_hasher;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using detail::make_fast_hasher;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -51,3 +55,6 @@ TEST(HashUtilsTest, hash_combine)
     EXPECT_NE(hash_combine(0, 1), hash_combine(1, 0));
     EXPECT_NE(hash_combine(foo, bar), hash_combine(bar, foo));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

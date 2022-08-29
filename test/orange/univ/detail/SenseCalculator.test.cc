@@ -15,9 +15,13 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::OnFace;
-using celeritas::detail::SenseCalculator;
-using namespace celeritas;
+using detail::OnFace;
+using detail::SenseCalculator;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // DETAIL TESTS
@@ -276,3 +280,6 @@ TEST_F(SenseCalculatorTest, five_volumes)
         }
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

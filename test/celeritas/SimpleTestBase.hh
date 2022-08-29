@@ -11,7 +11,9 @@
 
 #include "GlobalGeoTestBase.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -39,4 +41,6 @@ class SimpleTestBase : virtual public GlobalGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

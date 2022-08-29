@@ -14,15 +14,13 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Ownership;
-using celeritas::range;
-using celeritas::real_type;
-using celeritas::size_type;
-using celeritas::TwodGridCalculator;
-
 TEST(Detail, FindInterp)
 {
-    using namespace celeritas;
+    namespace celeritas
+    {
+    namespace test
+    {
+    //---------------------------------------------------------------------------//
 
     auto              data = UniformGridData::from_bounds(1.0, 5.0, 3);
     const UniformGrid grid(data);
@@ -47,7 +45,7 @@ TEST(Detail, FindInterp)
     EXPECT_THROW(detail::find_interp(grid, 5.0), celeritas::DebugError);
     EXPECT_THROW(detail::find_interp(grid, 5.001), celeritas::DebugError);
 #endif
-}
+    } // namespace test
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -149,3 +147,6 @@ TEST_F(TwodGridCalculatorTest, subgrid)
     EXPECT_VEC_EQ(expected_lower_idx, lower_idx);
     EXPECT_VEC_SOFT_EQ(expected_frac, frac);
 }
+//---------------------------------------------------------------------------//
+} // namespace celeritas
+} // namespace celeritas

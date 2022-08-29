@@ -14,7 +14,9 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -64,8 +66,7 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 {
     CELER_ENSURE(shared_);
 
-    using celeritas::ipow;
-    using celeritas::units::tesla;
+    using units::tesla;
 
     Real3 value{0, 0, 0};
 
@@ -104,4 +105,6 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -11,10 +11,9 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::LogicEvaluator;
+using detail::LogicEvaluator;
 
-using celeritas::make_span;
-using celeritas::detail::LogicEvaluator;
+using detail::LogicEvaluator;
 
 using VecSense = std::vector<celeritas::Sense>;
 

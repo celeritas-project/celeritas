@@ -20,7 +20,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using VGT = ValueGridType;
 
 //---------------------------------------------------------------------------//
@@ -342,3 +346,6 @@ TEST_F(ImportedProcessesTest, rayleigh)
         EXPECT_FALSE(builders[VGT::range]);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

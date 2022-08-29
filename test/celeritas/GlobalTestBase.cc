@@ -23,9 +23,15 @@
 #    include <nlohmann/json.hpp>
 #endif
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 GlobalTestBase::GlobalTestBase()
@@ -113,4 +119,6 @@ void GlobalTestBase::register_action_mgr_output()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

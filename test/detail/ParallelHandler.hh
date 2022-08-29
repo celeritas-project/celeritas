@@ -14,7 +14,9 @@ namespace celeritas
 class MpiCommunicator;
 }
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -41,4 +43,6 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

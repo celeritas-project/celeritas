@@ -13,10 +13,13 @@
 #include "celeritas_test.hh"
 // #include "Orange.test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-using celeritas::constants::sqrt_two;
+using constants::sqrt_two;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -489,3 +492,6 @@ TEST_F(Geant4Testem15Test, safety)
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

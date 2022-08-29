@@ -22,22 +22,11 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::CutoffParams;
-using celeritas::CutoffView;
-using celeritas::ElementId;
-using celeritas::ImportData;
-using celeritas::MaterialId;
-using celeritas::MaterialParams;
-using celeritas::MatterState;
-using celeritas::ParticleId;
-using celeritas::ParticleParams;
-using celeritas::range;
-using celeritas::RootImporter;
-using celeritas::units::AmuMass;
-using celeritas::units::MevEnergy;
+using units::AmuMass;
+using units::MevEnergy;
 
 namespace pdg = celeritas::pdg;
-using namespace celeritas::units;
+using namespace units;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

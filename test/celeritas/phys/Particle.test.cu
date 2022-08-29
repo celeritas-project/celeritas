@@ -16,7 +16,9 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -79,4 +81,6 @@ PTVTestOutput ptv_test(PTVTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

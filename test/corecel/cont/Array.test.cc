@@ -11,9 +11,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Array;
-using celeritas::EnumArray;
-
 enum class Color : unsigned int
 {
     red,

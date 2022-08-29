@@ -9,9 +9,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::no_intersection;
-using celeritas::SurfaceState;
-using celeritas::detail::QuadraticSolver;
+using detail::QuadraticSolver;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS

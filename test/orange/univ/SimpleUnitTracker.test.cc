@@ -24,11 +24,14 @@
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::constants::sqrt_two;
-using celeritas::detail::Initialization;
-using celeritas::detail::LocalState;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using constants::sqrt_two;
+using detail::Initialization;
+using detail::LocalState;
 
 namespace
 {
@@ -804,3 +807,6 @@ TEST_F(FiveVolumesTest, heuristic_init)
         EXPECT_SOFT_EQ(0, result.failed);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -13,9 +13,15 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -53,4 +59,6 @@ void phys_cuda_test(const PTestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -14,8 +14,6 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::ExponentialDistribution;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

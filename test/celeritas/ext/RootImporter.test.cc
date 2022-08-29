@@ -20,7 +20,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -452,3 +456,6 @@ TEST_F(RootImporterTest, em_params)
     EXPECT_VEC_EQ(expected_enum_string, enum_string);
     EXPECT_VEC_EQ(expected_value, value);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

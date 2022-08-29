@@ -19,18 +19,13 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ParticleId;
-using celeritas::ParticleParams;
-using celeritas::ParticleTrackView;
+using units::MevEnergy;
 
-using celeritas::ImportData;
-using celeritas::RootImporter;
-
-using celeritas::real_type;
-using celeritas::ThreadId;
-using celeritas::units::MevEnergy;
-
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS BASE
@@ -44,7 +39,7 @@ class ParticleTest : public celeritas_test::Test
     void SetUp() override
     {
         namespace pdg = celeritas::pdg;
-        using namespace celeritas::units;
+        using namespace units;
 
         constexpr auto zero = celeritas::zero_quantity();
         constexpr auto stable
@@ -72,7 +67,6 @@ class ParticleTest : public celeritas_test::Test
 
 TEST_F(ParticleTest, params_accessors)
 {
-    using celeritas::PDGNumber;
     const ParticleParams& defs = *this->particle_params;
 
     EXPECT_EQ(ParticleId(0), defs.find(PDGNumber(11)));
@@ -257,3 +251,6 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
                                      37982.61652};
     EXPECT_VEC_SOFT_EQ(expected_props, result.props);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

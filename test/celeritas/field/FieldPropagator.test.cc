@@ -29,11 +29,14 @@
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::constants::pi;
-using celeritas::constants::sqrt_three;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using constants::pi;
+using constants::sqrt_three;
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -53,7 +56,7 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
 
     SPConstParticle build_particle() override
     {
-        using namespace celeritas::units;
+        using namespace units;
         namespace pdg = celeritas::pdg;
 
         // Create particle defs
@@ -762,3 +765,6 @@ TEST_F(LayersTest, revolutions_through_cms_field)
     }
     EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

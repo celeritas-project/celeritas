@@ -12,8 +12,6 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-using celeritas::InverseRangeCalculator;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

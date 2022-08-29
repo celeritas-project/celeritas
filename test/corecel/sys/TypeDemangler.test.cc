@@ -9,9 +9,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::demangled_typeid_name;
-using celeritas::TypeDemangler;
-
 //---------------------------------------------------------------------------//
 
 namespace tdtest

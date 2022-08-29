@@ -22,7 +22,9 @@ struct Primary;
 class StepperInterface;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -103,4 +105,6 @@ class StepperTestBase : virtual public celeritas_test::GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -18,12 +18,7 @@
 #    include "corecel/math/QuantityIO.json.hh"
 #endif
 
-using celeritas::native_value_from;
-using celeritas::native_value_to;
-using celeritas::Quantity;
-using celeritas::value_as;
-using celeritas::zero_quantity;
-using celeritas::constants::pi;
+using constants::pi;
 
 // One revolution = 2pi radians
 struct TwoPi
@@ -107,8 +102,6 @@ TEST(QuantityTest, comparators)
 
 TEST(QuantityTest, infinities)
 {
-    using celeritas::max_quantity;
-    using celeritas::neg_max_quantity;
     EXPECT_TRUE(neg_max_quantity() < Revolution{-1e300});
     EXPECT_TRUE(neg_max_quantity() < zero_quantity());
     EXPECT_TRUE(zero_quantity() < max_quantity());

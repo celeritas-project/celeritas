@@ -12,9 +12,10 @@
 #include "corecel/Types.hh"
 #include "celeritas/phys/ParticleData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 
 using ParticleParamsRef = ::celeritas::DeviceCRef<ParticleParamsData>;
 using ParticleStateRef  = ::celeritas::DeviceRef<ParticleStateData>;
@@ -52,4 +53,6 @@ inline PTVTestOutput ptv_test(PTVTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

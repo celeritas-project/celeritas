@@ -13,7 +13,9 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Model.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -60,4 +62,6 @@ class MockModel final : public celeritas::Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

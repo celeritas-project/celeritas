@@ -18,11 +18,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ElementId;
-using celeritas::MaterialParams;
-using celeritas::RayleighInteractor;
-using celeritas::RayleighModel;
-using celeritas::units::AmuMass;
+using units::AmuMass;
 
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
@@ -38,8 +34,7 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::ParticleRecord;
-        using namespace celeritas::units;
+        using namespace units;
         constexpr auto zero   = celeritas::zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 

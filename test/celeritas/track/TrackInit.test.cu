@@ -14,9 +14,10 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -72,4 +73,6 @@ void interact(CoreStateDeviceRef states, ITTestInputData input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

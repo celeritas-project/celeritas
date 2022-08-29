@@ -21,9 +21,15 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
@@ -160,4 +166,6 @@ void AlongStepTestBase::RunResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

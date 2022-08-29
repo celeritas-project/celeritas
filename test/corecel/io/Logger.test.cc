@@ -18,10 +18,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Logger;
-using celeritas::LogLevel;
-using celeritas::MpiCommunicator;
-using celeritas::Provenance;
 // using namespace celeritas_test;
 
 //---------------------------------------------------------------------------//
@@ -33,7 +29,6 @@ class LoggerTest : public celeritas_test::Test
   protected:
     void SetUp() override
     {
-        using celeritas::ScopedMpiInit;
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
             comm_self  = MpiCommunicator::comm_self();

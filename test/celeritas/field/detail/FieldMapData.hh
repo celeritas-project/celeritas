@@ -11,7 +11,9 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -102,4 +104,6 @@ struct FieldMapData
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

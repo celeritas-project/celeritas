@@ -12,7 +12,9 @@
 #include "corecel/Assert.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 
 using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::VecgeomParamsData>;
@@ -53,4 +55,6 @@ inline VGGTestOutput vgg_test(VGGTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

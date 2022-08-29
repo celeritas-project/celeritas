@@ -15,17 +15,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::no_intersection;
-using celeritas::PlaneX;
-using celeritas::PlaneY;
-using celeritas::PlaneZ;
-using celeritas::SignedSense;
-using celeritas::SurfaceState;
-
-using celeritas::ipow;
-using celeritas::Real3;
-using celeritas::real_type;
-
 using VecReal = std::vector<real_type>;
 
 //---------------------------------------------------------------------------//

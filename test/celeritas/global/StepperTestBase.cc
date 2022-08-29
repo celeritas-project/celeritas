@@ -16,10 +16,16 @@
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/global/Stepper.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using std::cout;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 //! Construct dummy action at creation
@@ -163,4 +169,6 @@ void StepperTestBase::RunResult::print_expected() const
             "/*** END CODE ***/\n";
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

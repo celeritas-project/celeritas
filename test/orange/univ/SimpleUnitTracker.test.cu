@@ -9,7 +9,9 @@
 
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -45,4 +47,6 @@ void test_initialize(const ParamsRef<MemSpace::device>& params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

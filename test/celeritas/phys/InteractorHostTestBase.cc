@@ -16,9 +16,15 @@
 
 #include "detail/Macros.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -26,9 +32,8 @@ namespace celeritas_test
  */
 InteractorHostTestBase::InteractorHostTestBase()
 {
-    using celeritas::ParticleRecord;
-    using namespace celeritas::constants;
-    using namespace celeritas::units;
+    using namespace constants;
+    using namespace units;
     constexpr auto zero   = celeritas::zero_quantity();
     auto           stable = ParticleRecord::stable_decay_constant();
 
@@ -313,4 +318,6 @@ void InteractorHostTestBase::check_momentum_conservation(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

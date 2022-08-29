@@ -11,7 +11,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 namespace celeritas
 {
@@ -150,3 +154,6 @@ TEST_F(ActionManagerTest, errors)
     CoreRef<MemSpace::host> host_data;
     EXPECT_THROW(mgr.invoke(ActionId{0}, host_data), celeritas::RuntimeError);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

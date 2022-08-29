@@ -14,9 +14,15 @@
 #include "celeritas/ext/VecgeomTrackView.hh"
 
 using thrust::raw_pointer_cast;
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -102,4 +108,6 @@ VGGTestOutput vgg_test(VGGTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

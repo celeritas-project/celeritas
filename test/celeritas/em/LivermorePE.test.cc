@@ -32,27 +32,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Applicability;
-using celeritas::AtomicRelaxationHelper;
-using celeritas::AtomicRelaxationParams;
-using celeritas::AtomicRelaxationReader;
-using celeritas::AtomicRelaxParamsData;
-using celeritas::AtomicRelaxStateData;
-using celeritas::ElementId;
-using celeritas::ImportPhysicsTable;
-using celeritas::ImportPhysicsVectorType;
-using celeritas::ImportTableType;
-using celeritas::LivermorePEInteractor;
-using celeritas::LivermorePEMacroXsCalculator;
-using celeritas::LivermorePEModel;
-using celeritas::LivermorePEReader;
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::PhotoelectricProcess;
-using celeritas::SubshellId;
-using celeritas::ThreadId;
-using celeritas::ValueGridInserter;
-using celeritas::units::MevEnergy;
+using units::MevEnergy;
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -73,9 +53,8 @@ class LivermorePETest : public celeritas_test::InteractorHostTestBase
 
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using namespace celeritas::units;
-        using namespace celeritas::constants;
+        using namespace units;
+        using namespace constants;
 
         // Set up shared particle data
         const auto& particles = *this->particle_params();
@@ -509,7 +488,7 @@ TEST_F(LivermorePETest, distributions_radiative)
 
 TEST_F(LivermorePETest, macro_xs)
 {
-    using celeritas::units::MevEnergy;
+    using units::MevEnergy;
 
     auto material = this->material_track().make_material_view();
     LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
@@ -544,11 +523,8 @@ TEST_F(LivermorePETest, macro_xs)
 
 TEST_F(LivermorePETest, utils)
 {
-    using celeritas::AtomicRelaxElement;
-    using celeritas::AtomicRelaxSubshell;
-    using celeritas::AtomicRelaxTransition;
-    using celeritas::detail::calc_max_secondaries;
-    using celeritas::detail::calc_max_stack_size;
+    using detail::calc_max_secondaries;
+    using detail::calc_max_stack_size;
     using Values = celeritas::AtomicRelaxParamsData<celeritas::Ownership::value,
                                                     celeritas::MemSpace::host>;
 

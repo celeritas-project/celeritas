@@ -24,19 +24,8 @@
 #include "Main.hh"
 #include "celeritas_test.hh"
 
-using celeritas::BremsstrahlungProcess;
-using celeritas::ElementComponentId;
-using celeritas::ElementId;
-using celeritas::ElementView;
-using celeritas::SBElectronXsCorrector;
-using celeritas::SBEnergyDistHelper;
-using celeritas::SBEnergyDistribution;
-using celeritas::SBPositronXsCorrector;
-using celeritas::SeltzerBergerInteractor;
-using celeritas::SeltzerBergerModel;
-using celeritas::SeltzerBergerReader;
-using celeritas::units::AmuMass;
-using celeritas::units::MevMass;
+using units::AmuMass;
+using units::MevMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
@@ -54,9 +43,8 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using namespace celeritas::constants;
-        using namespace celeritas::units;
+        using namespace constants;
+        using namespace units;
 
         const auto& particles = *this->particle_params();
         data_.ids.electron    = particles.find(pdg::electron());
@@ -129,8 +117,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > celeritas::zero_quantity());
-        using celeritas::ipow;
-        using namespace celeritas::constants;
+        using namespace constants;
 
         auto           mat    = this->material_params()->get(matid);
         constexpr auto migdal = 4 * pi * r_electron
@@ -325,8 +312,6 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
 
 TEST_F(SeltzerBergerTest, basic)
 {
-    using celeritas::MaterialView;
-
     // Reserve 4 secondaries, one for each sample
     const int num_samples = 4;
     this->resize_secondaries(num_samples);
@@ -390,8 +375,6 @@ TEST_F(SeltzerBergerTest, basic)
 
 TEST_F(SeltzerBergerTest, stress_test)
 {
-    using celeritas::MaterialView;
-
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 

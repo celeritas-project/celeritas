@@ -9,10 +9,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::DebugError;
-using celeritas::linspace;
-using celeritas::real_type;
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//

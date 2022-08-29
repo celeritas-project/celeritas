@@ -17,7 +17,9 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -104,4 +106,6 @@ MTestOutput m_test(const MTestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

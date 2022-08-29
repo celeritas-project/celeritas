@@ -16,7 +16,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::MuBremsstrahlungInteractor;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 

@@ -17,10 +17,16 @@
 
 #include "RngEngine.test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -110,4 +116,6 @@ template std::vector<float>  re_test_canonical<float>(RngDeviceRef);
 template std::vector<double> re_test_canonical<double>(RngDeviceRef);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -16,7 +16,9 @@
 
 #include "detail/TestConfig.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -134,4 +136,6 @@ bool Test::strict_testing()
 constexpr double Test::inf;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

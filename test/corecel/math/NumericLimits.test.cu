@@ -13,7 +13,9 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -89,4 +91,6 @@ template NLTestOutput<float>  nl_test<float>();
 template NLTestOutput<double> nl_test<double>();
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

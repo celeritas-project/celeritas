@@ -11,11 +11,10 @@
 #include "orange/Data.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::ThreadId;
+namespace test
+{
 using LocalState = celeritas::detail::LocalState;
 
 template<MemSpace M>
@@ -42,8 +41,6 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
                                                    StateRef<M>  states,
                                                    ThreadId     tid)
 {
-    using namespace celeritas;
-
     // Create local state from global memory
     LocalState lstate;
     lstate.pos     = states.pos[tid];
@@ -110,4 +107,6 @@ inline void test_initialize(const ParamsRef<MemSpace::device>&,
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

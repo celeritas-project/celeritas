@@ -26,9 +26,12 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::detail::truncation_error;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using detail::truncation_error;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -156,4 +159,6 @@ TEST_F(SteppersTest, host_dormand_prince_547)
 
     // Test the Dormand-Prince 547(M) stepper
     this->run_stepper<UniformField, DormandPrinceStepper>(field);
-}
+} //---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

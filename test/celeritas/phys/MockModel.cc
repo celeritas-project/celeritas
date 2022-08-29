@@ -12,7 +12,9 @@
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/mat/MaterialView.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 MockModel::MockModel(Input data) : data_(std::move(data))
@@ -82,4 +84,6 @@ std::string MockModel::description() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

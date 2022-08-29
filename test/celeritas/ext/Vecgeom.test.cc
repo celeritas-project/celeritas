@@ -21,8 +21,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 // Since VecGeom is currently CUDA-only, we cannot use the TEST_IF_CELER_DEVICE
 // macro (which also allows HIP).
@@ -452,3 +455,6 @@ class GeantBuilderTest : public VecgeomTestBase,
   private:
     celeritas::UPG4PhysicalVolume world_volume_;
 };
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

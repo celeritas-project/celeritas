@@ -39,7 +39,9 @@ class ParticleTrackView;
 class MaterialTrackView;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -204,4 +206,6 @@ class InteractorHostTestBase : public celeritas_test::Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

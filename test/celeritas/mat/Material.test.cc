@@ -23,11 +23,15 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::AmuMass;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using celeritas_test::m_test;
 using celeritas_test::MTestInput;
 using celeritas_test::MTestOutput;
+using units::AmuMass;
 
 namespace celeritas
 {
@@ -45,7 +49,7 @@ std::ostream& operator<<(std::ostream& os, const MaterialId& mat)
 //! Test coulomb correction values
 TEST(MaterialUtils, coulomb_correction)
 {
-    using celeritas::detail::calc_coulomb_correction;
+    using detail::calc_coulomb_correction;
 
     EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(1));
     EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(13));
@@ -370,3 +374,6 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);
     EXPECT_VEC_SOFT_EQ(expected_tot_z, result.tot_z);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

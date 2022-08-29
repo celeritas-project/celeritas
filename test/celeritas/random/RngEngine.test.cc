@@ -23,11 +23,11 @@
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::CollectionStateStore;
-using celeritas::generate_canonical;
-using celeritas::RngParams;
-using celeritas::RngStateData;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // SEQUENCE ENGINE
@@ -297,3 +297,6 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
 
     check_expected_float_samples(values);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

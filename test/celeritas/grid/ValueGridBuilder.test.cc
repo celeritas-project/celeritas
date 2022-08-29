@@ -15,7 +15,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using std::make_shared;
 
 //---------------------------------------------------------------------------//
@@ -146,3 +150,6 @@ TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
         EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

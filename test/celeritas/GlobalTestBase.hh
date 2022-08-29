@@ -33,7 +33,9 @@ class CoreParams;
 class OutputManager;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -181,4 +183,6 @@ DEF_GTB_ACCESSORS(SPConstCore, core)
 #undef DEF_GTB_ACCESSORS
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

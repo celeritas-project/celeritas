@@ -58,8 +58,6 @@ TEST(UtilityTest, move)
 
 TEST(UtilityTest, trivial_swap)
 {
-    using celeritas::trivial_swap;
-
     // Test trivial type swapping
     {
         int a = 1;
@@ -85,7 +83,6 @@ TEST(AlgorithmsTest, clamp)
 
 TEST(AlgorithmsTest, clamp_to_nonneg)
 {
-    using celeritas::clamp_to_nonneg;
     constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
 
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
@@ -200,8 +197,6 @@ TEST(MathTest, ipow)
 
 TEST(MathTest, fastpow)
 {
-    using celeritas::fastpow;
-
     EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 1.0));
     EXPECT_DOUBLE_EQ(1.0, fastpow(1234.0, 0.0));
     if (CELERITAS_DEBUG)

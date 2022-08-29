@@ -17,9 +17,10 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 // KERNELS
@@ -163,3 +164,6 @@ template TestOutput curand_test<curandStateMtgp32>(TestParams);
 
 //---------------------------------------------------------------------------//
 } // Namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

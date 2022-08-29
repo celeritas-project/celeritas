@@ -35,14 +35,16 @@
 #include "Test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
 using Action    = celeritas::MscInteraction::Action;
 
-using celeritas::MemSpace;
-using celeritas::Ownership;
 using GeoParamsCRefDevice = celeritas::DeviceCRef<GeoParamsData>;
 using GeoStateRefDevice   = celeritas::DeviceRef<GeoStateData>;
 
@@ -365,3 +367,6 @@ TEST_F(UrbanMscTest, msc_scattering)
         = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
     EXPECT_VEC_EQ(expected_action, action);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -13,9 +13,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Byte;
-using celeritas::DeviceAllocation;
-
 TEST(InitializedValue, semantics)
 {
     using InitValueInt = celeritas::detail::InitializedValue<int>;

@@ -14,8 +14,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::TsaiUrbanDistribution;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -34,8 +32,8 @@ class TsaiUrbanDistributionTest : public celeritas_test::Test
 
 TEST_F(TsaiUrbanDistributionTest, bin)
 {
-    using namespace celeritas::constants;
-    using namespace celeritas::units;
+    using namespace constants;
+    using namespace units;
 
     MevMass             electron_mass = MevMass{0.5109989461};
     std::vector<double> angles;

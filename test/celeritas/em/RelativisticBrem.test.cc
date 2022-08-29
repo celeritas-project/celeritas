@@ -20,13 +20,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ElementComponentId;
-using celeritas::ElementId;
-using celeritas::ElementView;
-using celeritas::RBDiffXsCalculator;
-using celeritas::RelativisticBremInteractor;
-using celeritas::RelativisticBremModel;
-
 namespace pdg = celeritas::pdg;
 
 //---------------------------------------------------------------------------//
@@ -40,8 +33,8 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using namespace celeritas::units;
-        using namespace celeritas::constants;
+        using namespace units;
+        using namespace constants;
 
         // Set up shared material data
         MaterialParams::Input mi;

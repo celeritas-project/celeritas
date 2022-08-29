@@ -9,7 +9,9 @@
 
 #include "corecel/Types.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -33,4 +35,6 @@ struct FieldTestParams
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

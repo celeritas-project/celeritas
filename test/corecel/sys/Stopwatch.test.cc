@@ -11,8 +11,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Stopwatch;
-
 //---------------------------------------------------------------------------//
 /*!
  * Sleep for the given duration.

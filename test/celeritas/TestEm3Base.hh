@@ -9,7 +9,9 @@
 
 #include "GeantTestBase.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,4 +30,6 @@ class TestEm3Base : public GeantTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

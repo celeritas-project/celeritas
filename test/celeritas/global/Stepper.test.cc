@@ -27,8 +27,12 @@
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -540,3 +544,6 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
         }
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

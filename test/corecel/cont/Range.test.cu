@@ -15,9 +15,9 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-using celeritas::range;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 __global__ void
 rangedev_test_kernel(int a, int* x, int* y, int* z, unsigned int n)
@@ -59,4 +59,6 @@ RangeTestOutput rangedev_test(RangeTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

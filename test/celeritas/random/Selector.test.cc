@@ -12,7 +12,6 @@
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::make_selector;
 using celeritas_test::SequenceEngine;
 
 //---------------------------------------------------------------------------//

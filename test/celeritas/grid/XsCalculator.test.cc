@@ -16,7 +16,11 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -158,3 +162,6 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
 
     EXPECT_THROW(XsCalculator(data, this->values()), celeritas::DebugError);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

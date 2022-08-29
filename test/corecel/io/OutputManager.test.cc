@@ -13,9 +13,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::JsonPimpl;
-using celeritas::OutputManager;
-
 class TestInterface final : public celeritas::OutputInterface
 {
   public:

@@ -17,7 +17,11 @@
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // Helper functions
@@ -90,7 +94,6 @@ auto GeantImporterTest::summarize(const ImportData& data) const -> ImportSummary
 
 void GeantImporterTest::ImportSummary::print_expected() const
 {
-    using celeritas::repr;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static const char* expected_particles[] = "
          << repr(this->particles) << ";\n"
@@ -185,3 +188,6 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                             "livermore_rayleigh"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

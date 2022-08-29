@@ -18,7 +18,9 @@
 
 #include "FieldTestParams.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
@@ -73,4 +75,6 @@ inline StepperTestOutput dp547_test(FieldTestParams)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

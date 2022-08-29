@@ -11,15 +11,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::no_intersection;
-using celeritas::SignedSense;
-using celeritas::SphereCentered;
-using celeritas::SurfaceState;
-
-using celeritas::ipow;
-using celeritas::Real3;
-using celeritas::real_type;
-
 using Intersections = SphereCentered::Intersections;
 
 constexpr real_type sqrt_third = 1 / celeritas::constants::sqrt_three;

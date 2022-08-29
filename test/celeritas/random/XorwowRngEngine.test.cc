@@ -22,9 +22,13 @@
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::detail::GenerateCanonical32;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using celeritas_test::SequenceEngine;
+using detail::GenerateCanonical32;
 using std::nextafter;
 
 //---------------------------------------------------------------------------//
@@ -252,3 +256,6 @@ TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
     StateCollection<XorwowState, Ownership::value, MemSpace::host> host_state;
     host_state = rng_store.ref().state;
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

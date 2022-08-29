@@ -13,7 +13,9 @@
 
 #include "../GlobalTestBase.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -66,4 +68,6 @@ class AlongStepTestBase : virtual public celeritas_test::GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -11,7 +11,9 @@
 #include <string>
 #include <gtest/gtest.h>
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -41,4 +43,6 @@ class Test : public ::testing::Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -17,7 +17,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -106,3 +110,6 @@ TEST_F(GeoMaterialTest, host)
         = {"vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
     EXPECT_VEC_EQ(expected_materials, materials);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

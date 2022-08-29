@@ -21,14 +21,7 @@
 #include "Main.hh"
 #include "celeritas_test.hh"
 
-using celeritas::CombinedBremInteractor;
-using celeritas::CombinedBremModel;
-using celeritas::ElementComponentId;
-using celeritas::ElementId;
-using celeritas::SBEnergyDistHelper;
-using celeritas::SeltzerBergerReader;
-
-using celeritas::units::AmuMass;
+using units::AmuMass;
 namespace constants = celeritas::constants;
 namespace pdg       = celeritas::pdg;
 
@@ -46,9 +39,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using namespace celeritas::constants;
-        using namespace celeritas::units;
+        using namespace constants;
+        using namespace units;
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
@@ -114,8 +106,7 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
     {
         CELER_EXPECT(matid);
         CELER_EXPECT(e > celeritas::zero_quantity());
-        using celeritas::ipow;
-        using namespace celeritas::constants;
+        using namespace constants;
 
         auto           mat    = this->material_params()->get(matid);
         constexpr auto migdal = 4 * pi * r_electron
@@ -140,8 +131,6 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(CombinedBremTest, basic_seltzer_berger)
 {
-    using celeritas::MaterialView;
-
     // Reserve 4 secondaries, one for each sample
     const int num_samples = 4;
     this->resize_secondaries(num_samples);
@@ -272,8 +261,6 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
 TEST_F(CombinedBremTest, stress_test_combined)
 {
-    using celeritas::MaterialView;
-
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
     std::vector<double> avg_energy_samples;

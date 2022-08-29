@@ -20,9 +20,10 @@
 
 #include "celeritas_test.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 using TrackInitDeviceValue
     = TrackInitStateData<Ownership::value, MemSpace::device>;
 
@@ -360,4 +361,6 @@ TEST_F(TrackInitSecondaryTest, secondaries)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

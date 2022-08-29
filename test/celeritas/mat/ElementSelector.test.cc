@@ -16,7 +16,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using MaterialParamsRef = MaterialParams::HostRef;
 
 //---------------------------------------------------------------------------//
@@ -34,7 +38,7 @@ class ElementSelectorTest : public celeritas_test::Test
   protected:
     void SetUp() override
     {
-        using celeritas::units::AmuMass;
+        using units::AmuMass;
 
         MaterialParams::Input inp;
         inp.elements = {
@@ -242,3 +246,6 @@ TEST_F(ElementSelectorTest, fancy_xs)
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(0.014965228148605575, select_el.material_micro_xs());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

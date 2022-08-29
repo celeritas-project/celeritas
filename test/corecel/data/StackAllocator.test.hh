@@ -8,7 +8,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocatorData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -62,4 +64,6 @@ inline void sa_clear(const SATestInput&)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

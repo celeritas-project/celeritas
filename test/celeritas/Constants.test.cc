@@ -18,9 +18,8 @@
 #    include "CLHEP/Units/PhysicalConstants.h"
 #endif
 
-using namespace celeritas::units;
-using namespace celeritas::constants;
-using celeritas::real_type;
+using namespace units;
+using namespace constants;
 
 //---------------------------------------------------------------------------//
 // TESTS

@@ -25,8 +25,11 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using MevEnergy = celeritas::units::MevEnergy;
 
 //---------------------------------------------------------------------------//
@@ -713,8 +716,8 @@ class EPlusAnnihilationTest : public PhysicsParamsTest
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 {
-    using namespace celeritas::units;
-    using namespace celeritas::constants;
+    using namespace units;
+    using namespace constants;
 
     MaterialParams::Input mi;
     mi.elements  = {{19, AmuMass{39.0983}, "K"}};
@@ -730,7 +733,7 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
-    using namespace celeritas::units;
+    using namespace units;
     namespace pdg = celeritas::pdg;
 
     constexpr auto zero   = celeritas::zero_quantity();
@@ -796,3 +799,6 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     EXPECT_SOFT_EQ(5.1172452607412999e-05,
                    phys.calc_xs(ppid, material_view, MevEnergy{0.1}));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

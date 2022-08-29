@@ -10,8 +10,6 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-using celeritas::RangeCalculator;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

@@ -10,9 +10,10 @@
 
 #include "celeritas/mat/MaterialData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
@@ -47,4 +48,6 @@ struct MTestOutput
 MTestOutput m_test(const MTestInput& inp);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

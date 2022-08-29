@@ -12,10 +12,11 @@
 #include "Range.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
-
-using celeritas::count;
-using celeritas::range;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using VecInt   = std::vector<int>;
 using Vec_UInt = std::vector<unsigned int>;
@@ -428,3 +429,6 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
     RangeTestOutput result = rangedev_test(input);
     EXPECT_VEC_EQ(z_cpu, result.z);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

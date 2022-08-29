@@ -15,9 +15,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Label;
-using celeritas::LabelIdMultiMap;
-
 using CatId       = celeritas::OpaqueId<struct Cat>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
 using VecLabel    = CatMultiMap::VecLabel;

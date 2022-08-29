@@ -15,8 +15,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Span;
-
 namespace
 {
 template<class T, std::size_t E>

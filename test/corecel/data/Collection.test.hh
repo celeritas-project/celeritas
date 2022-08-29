@@ -10,10 +10,10 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 // MOCK PIES
@@ -170,4 +170,6 @@ inline void col_cuda_test(CTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

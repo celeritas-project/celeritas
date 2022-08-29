@@ -14,9 +14,15 @@
 
 #include "MockModel.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 MockProcess::MockProcess(Input data) : data_(std::move(data))
@@ -104,4 +110,6 @@ std::string MockProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

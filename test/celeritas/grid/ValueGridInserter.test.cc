@@ -13,7 +13,11 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -60,3 +64,6 @@ TEST_F(ValueGridInserterTest, all)
     }
     EXPECT_EQ(2, grid_storage.size());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

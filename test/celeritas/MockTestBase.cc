@@ -16,9 +16,15 @@
 
 #include "phys/MockProcess.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // PUBLIC MEMBER FUNCTIONS
@@ -30,7 +36,7 @@ auto MockTestBase::make_applicability(const char* name,
     CELER_EXPECT(name);
     CELER_EXPECT(lo_energy <= hi_energy);
 
-    using celeritas::units::MevEnergy;
+    using units::MevEnergy;
 
     Applicability result;
     result.particle = this->particle()->find(name);
@@ -53,7 +59,7 @@ auto MockTestBase::make_model_callback() const -> ModelCallback
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_material() -> SPConstMaterial
 {
-    using namespace celeritas::units;
+    using namespace units;
     MaterialParams::Input inp;
     inp.elements = {{1, AmuMass{1.0}, "celerogen"},
                     {4, AmuMass{10.0}, "celerinium"},
@@ -91,7 +97,7 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_particle() -> SPConstParticle
 {
-    using namespace celeritas::units;
+    using namespace units;
     namespace pdg = celeritas::pdg;
 
     constexpr auto zero   = celeritas::zero_quantity();
@@ -220,4 +226,6 @@ auto MockTestBase::build_physics_options() const -> PhysicsOptions
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

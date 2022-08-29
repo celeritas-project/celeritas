@@ -19,7 +19,9 @@ struct ImportData;
 struct PhysicsParamsOptions;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -70,4 +72,6 @@ struct PrintableBuildConf
 std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

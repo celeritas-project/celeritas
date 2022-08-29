@@ -9,7 +9,7 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::LogicStack;
+using detail::LogicStack;
 
 //---------------------------------------------------------------------------//
 // TESTS

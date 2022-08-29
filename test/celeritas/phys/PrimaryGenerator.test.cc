@@ -9,8 +9,12 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -79,3 +83,6 @@ TEST_F(PrimaryGeneratorTest, host)
     EXPECT_VEC_EQ(expected_event_id, event_id);
     EXPECT_VEC_EQ(expected_track_id, track_id);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

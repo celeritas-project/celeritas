@@ -15,8 +15,6 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::IsotropicDistribution;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

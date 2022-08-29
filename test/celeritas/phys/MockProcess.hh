@@ -15,7 +15,9 @@
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/Process.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -71,4 +73,6 @@ class MockProcess : public celeritas::Process
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

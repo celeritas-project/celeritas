@@ -13,16 +13,10 @@
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::Real3;
-using celeritas::real_type;
-using celeritas::ThreadId;
-
-using celeritas::Sense;
-using celeritas::SurfaceState;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 /*!
@@ -164,4 +158,6 @@ inline void sa_test(SATestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

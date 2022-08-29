@@ -11,9 +11,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::UniformGrid;
-using celeritas::UniformGridData;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//

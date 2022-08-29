@@ -11,9 +11,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::make_poly_evaluator;
-using celeritas::PolyEvaluator;
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//

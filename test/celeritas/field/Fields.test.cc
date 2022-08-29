@@ -16,8 +16,11 @@
 #include "detail/FieldMapData.hh"
 #include "detail/MagFieldMap.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -109,3 +112,6 @@ TEST(CMSMapField, all)
         EXPECT_VEC_NEAR(expected[i], calc_field(pos), 1.0e-6);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

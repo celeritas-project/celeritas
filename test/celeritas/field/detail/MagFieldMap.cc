@@ -10,9 +10,15 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -56,4 +62,6 @@ void MagFieldMap::build_data(const ReadMap& load_map, HostValue* host_data)
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

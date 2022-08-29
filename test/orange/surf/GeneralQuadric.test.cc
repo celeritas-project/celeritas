@@ -9,15 +9,6 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::GeneralQuadric;
-using celeritas::no_intersection;
-using celeritas::SignedSense;
-using celeritas::SurfaceState;
-
-using celeritas::ipow;
-using celeritas::Real3;
-using celeritas::real_type;
-
 using Intersections = GeneralQuadric::Intersections;
 
 //---------------------------------------------------------------------------//

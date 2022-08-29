@@ -13,7 +13,11 @@
 #include "NumericLimits.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 // REAL TYPES
@@ -74,3 +78,6 @@ TYPED_TEST(UIntNumericLimitsTest, host)
 
     EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

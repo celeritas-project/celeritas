@@ -13,7 +13,9 @@
 #include "corecel/Types.hh"
 #include "celeritas/random/RngData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -42,4 +44,6 @@ inline std::vector<T> re_test_canonical(RngDeviceRef)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

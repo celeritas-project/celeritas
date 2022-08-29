@@ -20,9 +20,12 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 
@@ -57,8 +60,8 @@ class EnergyLossDistributionTest : public celeritas_test::Test
 
     void SetUp() override
     {
-        using namespace celeritas::constants;
-        using namespace celeritas::units;
+        using namespace constants;
+        using namespace units;
         namespace pdg = celeritas::pdg;
 
         constexpr auto stable
@@ -278,3 +281,6 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
     EXPECT_EQ(551188, rng.count());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

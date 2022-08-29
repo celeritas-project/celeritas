@@ -91,7 +91,9 @@
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace detail
 {
@@ -633,4 +635,6 @@ template<class ContainerE, class ContainerA>
 
 //---------------------------------------------------------------------------//
 } // namespace detail
-} // namespace celeritas_test
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas
