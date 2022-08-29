@@ -114,7 +114,8 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    ms_ = StateStore<celeritas::MaterialStateData>(*material_params_, 1);
+    ms_              = StateStore<celeritas::MaterialStateData>(
+        material_params_->host_ref(), 1);
     cutoff_params_ = {};
 }
 
@@ -144,7 +145,8 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
-    ps_ = StateStore<celeritas::ParticleStateData>(*particle_params_, 1);
+    ps_              = StateStore<celeritas::ParticleStateData>(
+        particle_params_->host_ref(), 1);
     cutoff_params_ = {};
 }
 
@@ -266,7 +268,7 @@ void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
     CollectionStateStore<celeritas::ParticleStateData, celeritas::MemSpace::host>
-                      temp_store(*particle_params_, 1);
+                      temp_store(particle_params_->host_ref(), 1);
     ParticleTrackView temp_track(
         particle_params_->host_ref(), temp_store.ref(), ThreadId{0});
 

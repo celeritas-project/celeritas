@@ -79,7 +79,8 @@ TEST_F(GeoMaterialTest, host)
     // Geometry track view and mat view
     const auto& geo_params = *this->geometry();
     const auto& mat_params = *this->material();
-    CollectionStateStore<GeoStateData, MemSpace::host> geo_state(geo_params, 1);
+    CollectionStateStore<GeoStateData, MemSpace::host> geo_state(
+        geo_params.host_ref(), 1);
     GeoTrackView    geo(geo_params.host_ref(), geo_state.ref(), ThreadId{0});
     GeoMaterialView geo_mat_view(this->geomaterial()->host_ref());
 

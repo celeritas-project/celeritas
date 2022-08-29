@@ -95,8 +95,8 @@ class EnergyLossDistributionTest : public celeritas_test::Test
         cutoffs = std::make_shared<CutoffParams>(std::move(cut_inp));
 
         // Construct states for a single host thread
-        particle_state = ParticleStateStore(*particles, 1);
-        material_state = MaterialStateStore(*materials, 1);
+        particle_state = ParticleStateStore(particles->host_ref(), 1);
+        material_state = MaterialStateStore(materials->host_ref(), 1);
 
         // Construct energy loss fluctuation model parameters
         fluct = std::make_shared<FluctuationParams>(*particles, *materials);

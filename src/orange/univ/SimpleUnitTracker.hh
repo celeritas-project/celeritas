@@ -63,6 +63,9 @@ class SimpleUnitTracker
     inline CELER_FUNCTION real_type safety(const Real3& pos,
                                            VolumeId     vol) const;
 
+    // Calculate the local surface normal
+    inline CELER_FUNCTION Real3 normal(const Real3& pos, SurfaceId surf) const;
+
   private:
     //// DATA ////
     const ParamsRef& params_;
@@ -173,7 +176,7 @@ SimpleUnitTracker::cross_boundary(const LocalState& state) const
         auto logic_state
             = calc_senses(vol, detail::find_face(vol, state.surface));
 
-        // Evalulate whether the senses are "inside" the volume
+        // Evaluate whether the senses are "inside" the volume
         if (!detail::LogicEvaluator(vol.logic())(logic_state.senses))
         {
             // Not inside the volume
@@ -252,6 +255,21 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
 
     CELER_ENSURE(result >= 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the local surface normal.
+ */
+CELER_FUNCTION auto
+SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
+{
+    CELER_EXPECT(surf);
+
+    auto calc_normal = make_surface_action(Surfaces{params_.surfaces},
+                                           detail::CalcNormal{pos});
+
+    return calc_normal(surf);
 }
 
 //---------------------------------------------------------------------------//

@@ -84,6 +84,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {11,
+             22,
              celeritas::ImportProcessType::electromagnetic,
              celeritas::ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,
@@ -91,6 +92,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
              {},
              {}},
             {-11,
+             22,
              celeritas::ImportProcessType::electromagnetic,
              celeritas::ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,

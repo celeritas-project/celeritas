@@ -129,7 +129,7 @@
         {                                                                  \
             ::celeritas::device_debug_error(                               \
                 "Unreachable code point encountered", __FILE__, __LINE__); \
-            CELER_UNREACHABLE;                                             \
+            ::celeritas::unreachable();                                    \
         } while (0)
 #elif CELERITAS_USE_CUDA && !defined(NDEBUG)
 // CUDA assert macro is enabled
@@ -142,7 +142,7 @@
         do                                     \
         {                                      \
             assert(false);                     \
-            CELER_UNREACHABLE;                 \
+            ::celeritas::unreachable();        \
         } while (0)
 #endif
 
@@ -191,7 +191,7 @@
 #    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_NOASSERT_(COND)
-#    define CELER_ASSERT_UNREACHABLE() CELER_UNREACHABLE
+#    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
 #if !CELER_DEVICE_COMPILE
@@ -398,6 +398,12 @@ enum class DebugErrorType
                                       const char* condition,
                                       const char* file,
                                       int         line);
+
+//! Invoke undefined behavior
+[[noreturn]] inline CELER_FUNCTION void unreachable()
+{
+    CELER_UNREACHABLE;
+}
 
 //---------------------------------------------------------------------------//
 // TYPES

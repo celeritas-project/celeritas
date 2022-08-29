@@ -5,30 +5,12 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/data/detail/Filler.cu
 //---------------------------------------------------------------------------//
-#include "Filler.hh"
-
-#include <thrust/device_malloc.h>
-#include <thrust/device_ptr.h>
-#include <thrust/execution_policy.h>
-#include <thrust/fill.h>
-
-#include "corecel/device_runtime_api.h"
+#include "Filler.device.t.hh"
 
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-template<class T>
-void Filler<T, MemSpace::device>::operator()(Span<T> data) const
-{
-    thrust::fill_n(thrust::device,
-                   thrust::device_pointer_cast<T>(data.data()),
-                   data.size(),
-                   value);
-    CELER_DEVICE_CHECK_ERROR();
-}
-
 //---------------------------------------------------------------------------//
 template class Filler<real_type, MemSpace::device>;
 template class Filler<size_type, MemSpace::device>;

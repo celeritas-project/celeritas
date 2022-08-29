@@ -43,11 +43,6 @@ struct MollerBhabhaData
     //! Electron mass * c^2 [MeV]
     units::MevMass electron_mass;
 
-    //! Model's mininum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
-    {
-        return units::MevEnergy{1e-3};
-    }
     //! Model's maximum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
     {

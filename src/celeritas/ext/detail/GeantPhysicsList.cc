@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsList.hh"
 
+#include <memory>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
+#include <G4EmParameters.hh>
 #include <G4GammaConversion.hh>
-#include <G4KleinNishinaModel.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LivermoreRayleighModel.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -39,9 +40,26 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct empty.
+ * Construct with physics options.
  */
-GeantPhysicsList::GeantPhysicsList() : G4VUserPhysicsList() {}
+GeantPhysicsList::GeantPhysicsList(const Options& options) : options_(options)
+{
+    // Set EM options
+    auto& em_parameters = *G4EmParameters::Instance();
+    CELER_VALIDATE(options_.em_bins_per_decade > 0,
+                   << "number of EM bins per decade="
+                   << options.em_bins_per_decade << " (must be positive)");
+
+    em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
+    em_parameters.SetLossFluctuations(options.eloss_fluctuation);
+    em_parameters.SetMinEnergy(value_as<units::MevEnergy>(options.min_energy)
+                               * CLHEP::MeV);
+    em_parameters.SetMaxEnergy(value_as<units::MevEnergy>(options.max_energy)
+                               * CLHEP::MeV);
+    em_parameters.SetLPM(options.lpm);
+    em_parameters.SetIntegral(options.integral_approach);
+    em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -61,7 +79,10 @@ void GeantPhysicsList::ConstructParticle()
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
-    G4Proton::ProtonDefinition();
+    if (options_.msc != MscModelSelection::none)
+    {
+        G4Proton::ProtonDefinition();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -75,7 +96,8 @@ void GeantPhysicsList::ConstructProcess()
 
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
-    this->add_e_processes();
+    this->add_e_processes(G4Electron::Electron());
+    this->add_e_processes(G4Positron::Positron());
 }
 
 //---------------------------------------------------------------------------//
@@ -86,25 +108,23 @@ void GeantPhysicsList::ConstructProcess()
  *
  * | Processes            | Model classes                 |
  * | -------------------- | ----------------------------- |
- * | Compton scattering   | G4KleinNishinaModel           |
+ * | Compton scattering   | G4KleinNishinaCompton         |
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
  * | Gamma conversion     | G4PairProductionRelModel      |
  */
 void GeantPhysicsList::add_gamma_processes()
 {
-    auto       physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    const auto gamma        = G4Gamma::Gamma();
+    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
+    auto* gamma        = G4Gamma::Gamma();
 
-    if (true)
     {
-        // Compton Scattering: G4KleinNishinaModel
+        // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
-        compton_scattering->SetEmModel(new G4KleinNishinaModel());
         physics_list->RegisterProcess(compton_scattering.release(), gamma);
 
         CELER_LOG(debug) << "Loaded Compton scattering with "
-                            "G4KleinNishinaModel";
+                            "G4KleinNishinaCompton";
     }
 
     if (true)
@@ -118,7 +138,7 @@ void GeantPhysicsList::add_gamma_processes()
                             "G4LivermorePhotoElectricModel";
     }
 
-    if (true)
+    if (options_.rayleigh_scattering)
     {
         // Rayleigh: G4LivermoreRayleighModel
         physics_list->RegisterProcess(new G4RayleighScattering(), gamma);
@@ -160,16 +180,14 @@ void GeantPhysicsList::add_gamma_processes()
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
-void GeantPhysicsList::add_e_processes()
+void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 {
-    auto       physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    const auto electron     = G4Electron::Electron();
-    const auto positron     = G4Positron::Positron();
+    auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
-    if (true)
+    if (p == G4Positron::Positron())
     {
         // e+e- annihilation: G4eeToTwoGammaModel
-        physics_list->RegisterProcess(new G4eplusAnnihilation(), positron);
+        physics_list->RegisterProcess(new G4eplusAnnihilation(), p);
 
         CELER_LOG(debug) << "Loaded pair annihilation with "
                             "G4eplusAnnihilation";
@@ -178,39 +196,29 @@ void GeantPhysicsList::add_e_processes()
     if (true)
     {
         // e-e+ ionization: G4MollerBhabhaModel
-        auto electron_ionization = std::make_unique<G4eIonisation>();
-        auto positron_ionization = std::make_unique<G4eIonisation>();
-        electron_ionization->SetEmModel(new G4MollerBhabhaModel());
-        positron_ionization->SetEmModel(new G4MollerBhabhaModel());
-        physics_list->RegisterProcess(electron_ionization.release(), electron);
-        physics_list->RegisterProcess(positron_ionization.release(), positron);
+        auto ionization = std::make_unique<G4eIonisation>();
+        ionization->SetEmModel(new G4MollerBhabhaModel());
+        physics_list->RegisterProcess(ionization.release(), p);
 
-        CELER_LOG(debug) << "Loaded e-e+ ionization with G4MollerBhabhaModel";
+        CELER_LOG(debug) << "Loaded ionization with G4MollerBhabhaModel";
     }
 
     if (true)
     {
-        // Bremsstrahlung: G4SeltzerBergerModel + G4eBremsstrahlungRelModel
-        auto models = GeantBremsstrahlungProcess::ModelSelection::all;
-
-        auto electron_brems
-            = std::make_unique<GeantBremsstrahlungProcess>(models);
-        auto positron_brems
-            = std::make_unique<GeantBremsstrahlungProcess>(models);
-        physics_list->RegisterProcess(electron_brems.release(), electron);
-        physics_list->RegisterProcess(positron_brems.release(), positron);
+        physics_list->RegisterProcess(
+            new GeantBremsstrahlungProcess(options_.brems), p);
 
         auto msg = CELER_LOG(debug);
         msg << "Loaded Bremsstrahlung with ";
-        switch (models)
+        switch (options_.brems)
         {
-            case GeantBremsstrahlungProcess::ModelSelection::seltzer_berger:
+            case BremsModelSelection::seltzer_berger:
                 msg << "G4SeltzerBergerModel";
                 break;
-            case GeantBremsstrahlungProcess::ModelSelection::relativistic:
+            case BremsModelSelection::relativistic:
                 msg << "G4eBremsstrahlungRelModel";
                 break;
-            case GeantBremsstrahlungProcess::ModelSelection::all:
+            case BremsModelSelection::all:
                 msg << "G4SeltzerBergerModel and G4eBremsstrahlungRelModel";
                 break;
             default:
@@ -218,82 +226,51 @@ void GeantPhysicsList::add_e_processes()
         }
     }
 
-    // DISABLED
-    if (false)
+    if (options_.coulomb_scattering)
     {
         // Coulomb scattering: G4eCoulombScatteringModel
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
 
-        // Electron
-        auto coulomb_scat_electron = std::make_unique<G4CoulombScattering>();
-        auto coulomb_model_electron
-            = std::make_unique<G4eCoulombScatteringModel>();
-        coulomb_scat_electron->SetMinKinEnergy(msc_energy_limit);
-        coulomb_model_electron->SetLowEnergyLimit(msc_energy_limit);
-        coulomb_model_electron->SetActivationLowEnergyLimit(msc_energy_limit);
-        coulomb_scat_electron->SetEmModel(coulomb_model_electron.release());
-        physics_list->RegisterProcess(coulomb_scat_electron.release(),
-                                      electron);
-
-        // Positron
-        auto coulomb_scat_positron = std::make_unique<G4CoulombScattering>();
-        auto coulomb_model_positron
-            = std::make_unique<G4eCoulombScatteringModel>();
-        coulomb_scat_positron->SetMinKinEnergy(msc_energy_limit);
-        coulomb_model_positron->SetLowEnergyLimit(msc_energy_limit);
-        coulomb_model_positron->SetActivationLowEnergyLimit(msc_energy_limit);
-        coulomb_scat_positron->SetEmModel(coulomb_model_positron.release());
-        physics_list->RegisterProcess(coulomb_scat_positron.release(),
-                                      positron);
+        auto process = std::make_unique<G4CoulombScattering>();
+        auto model   = std::make_unique<G4eCoulombScatteringModel>();
+        process->SetMinKinEnergy(msc_energy_limit);
+        model->SetLowEnergyLimit(msc_energy_limit);
+        model->SetActivationLowEnergyLimit(msc_energy_limit);
+        process->SetEmModel(model.release());
+        physics_list->RegisterProcess(process.release(), p);
 
         CELER_LOG(debug) << "Loaded Coulomb scattering with "
                             "G4eCoulombScatteringModel";
     }
 
-    if (true)
+    if (options_.msc != MscModelSelection::none)
     {
         // Multiple scattering: Urban (low E) and WentzelVI (high E) models
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
-        auto   msc_electron     = std::make_unique<G4eMultipleScattering>();
-        auto   msc_positron     = std::make_unique<G4eMultipleScattering>();
 
-        if (true)
+        auto process = std::make_unique<G4eMultipleScattering>();
+
+        if (options_.msc == MscModelSelection::urban)
         {
-            // Urban model
-            // Electron
-            auto urban_msc_electron = std::make_unique<G4UrbanMscModel>();
-            urban_msc_electron->SetHighEnergyLimit(msc_energy_limit);
-            msc_electron->SetEmModel(urban_msc_electron.release());
+            auto model = std::make_unique<G4UrbanMscModel>();
+            model->SetHighEnergyLimit(msc_energy_limit);
+            process->SetEmModel(model.release());
 
-            // Positron
-            auto urban_msc_positron = std::make_unique<G4UrbanMscModel>();
-            urban_msc_positron->SetHighEnergyLimit(msc_energy_limit);
-            msc_positron->SetEmModel(urban_msc_positron.release());
-
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Loaded low-energy multiple scattering with "
                                 "G4UrbanMscModel";
         }
 
-        // DISABLED
-        if (false)
+        if (options_.msc == MscModelSelection::wentzel_vi)
         {
-            // WentzelVI model
-            // Electron
-            auto wentzelvi_msc_electron = std::make_unique<G4WentzelVIModel>();
-            wentzelvi_msc_electron->SetLowEnergyLimit(msc_energy_limit);
-            msc_electron->SetEmModel(wentzelvi_msc_electron.release());
+            auto model = std::make_unique<G4WentzelVIModel>();
+            model->SetLowEnergyLimit(msc_energy_limit);
+            process->SetEmModel(model.release());
 
-            // Positron
-            auto wentzelvi_msc_positron = std::make_unique<G4WentzelVIModel>();
-            wentzelvi_msc_positron->SetLowEnergyLimit(msc_energy_limit);
-            msc_positron->SetEmModel(wentzelvi_msc_positron.release());
-
-            CELER_LOG(debug) << "Loaded multiple scattering with "
+            CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
                                 "G4WentzelVIModel";
         }
 
-        physics_list->RegisterProcess(msc_electron.release(), electron);
-        physics_list->RegisterProcess(msc_positron.release(), positron);
+        physics_list->RegisterProcess(process.release(), p);
     }
 }
 

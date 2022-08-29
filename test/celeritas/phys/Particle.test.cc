@@ -125,8 +125,8 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    const std::string expected_loaded_names[] = {"gamma", "e-", "e+", "proton"};
-    const int         expected_loaded_pdgs[]  = {22, 11, -11, 2212};
+    const std::string expected_loaded_names[] = {"gamma", "e-", "e+"};
+    const int         expected_loaded_pdgs[]  = {22, 11, -11};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
@@ -222,7 +222,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
                   {ParticleId{2}, MevEnergy{20}}};
 
     CollectionStateStore<ParticleStateData, MemSpace::device> pstates(
-        *particle_params, input.init.size());
+        particle_params->host_ref(), input.init.size());
     input.params = particle_params->device_ref();
     input.states = pstates.ref();
 

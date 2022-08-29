@@ -49,8 +49,7 @@ std::string gdml_filename(const char* basename)
 //---------------------------------------------------------------------------//
 ImportData load_import_data(std::string filename)
 {
-    GeantSetupOptions options;
-    options.physics            = GeantSetupPhysicsList::em_basic;
+    GeantPhysicsOptions options;
     options.em_bins_per_decade = 14;
     GeantImporter import(GeantSetup(filename, options));
     return import();

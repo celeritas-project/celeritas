@@ -51,7 +51,7 @@ if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
 
   add_test(NAME "app/celer-export-geant"
     COMMAND "$<TARGET_FILE:celer-export-geant>"
-    "${_geant_test_inp}" "test-data.root"
+    "${_geant_test_inp}" "" "test-data.root"
   )
   set_tests_properties("app/celer-export-geant" PROPERTIES
     ENVIRONMENT "${_geant_test_env}"
@@ -221,11 +221,8 @@ if(CELERITAS_BUILD_DEMOS)
     Celeritas::Core
     nlohmann_json::nlohmann_json
     Celeritas::IO
+    Celeritas::DeviceToolkit
   )
-  if(CELERITAS_USE_CUDA)
-    # Transporter calls deviceSync
-    list(APPEND _demo_loop_libs CUDA::cudart)
-  endif()
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
   endif()
@@ -237,9 +234,12 @@ if(CELERITAS_BUILD_DEMOS)
   add_executable(demo-loop ${_demo_loop_src})
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
 
-  if(NOT CELERITAS_USE_OpenMP)
+  if(NOT CELERITAS_USE_OpenMP AND
+      (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
     celeritas_target_compile_options(demo-loop
-      PRIVATE -Wno-unknown-pragmas)
+      PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+    )
   endif()
 
   if(CELERITAS_BUILD_TESTS)

@@ -82,14 +82,14 @@ TEST_HARNESS_FILE = '''\
 #include "celeritas_test.hh"
 // #include "{name}.test.hh"
 
-using {namespace}::{name};
-// using namespace celeritas_test;
-
+{namespace_begin}
+namespace test
+{{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class {name}Test : public celeritas_test::Test
+class {name}Test : public ::celeritas_test::Test
 {{
   protected:
     void SetUp() override {{}}
@@ -110,51 +110,156 @@ TEST_F({name}Test, host)
 //     {capabbr}TestInput input;
 //     {lowabbr}_test(input);
 // }}
+
+//---------------------------------------------------------------------------//
+}} // namespace test
+{namespace_end}
 '''
 
 TEST_HEADER_FILE = '''
+#pragma once
+
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
-namespace celeritas_test
+{namespace_begin}
+namespace test
 {{
-using celeritas::Ownership;
-using celeritas::MemSpace;
+//---------------------------------------------------------------------------//
+// DATA
+//---------------------------------------------------------------------------//
+template<Ownership W, MemSpace M>
+struct {capabbr}TestParamsData
+{{
+    // FIXME
+    // {capabbr}ParamsData<W, M>  geometry;
+    // RngParamsData<W, M>  rng;
 
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
-//---------------------------------------------------------------------------//
-//! Input data
-struct {capabbr}TestInput
-{{
-    int num_threads;
+    explicit CELER_FUNCTION operator bool() const
+    {{
+        // FIXME
+        // return geometry && rng;
+        return false;
+    }}
+
+    template<Ownership W2, MemSpace M2>
+    {capabbr}TestParamsData& operator=(const {capabbr}TestParamsData<W2, M2>& other)
+    {{
+        CELER_EXPECT(other);
+        // FIXME
+        // geometry = other.geometry;
+        // rng      = other.rng;
+        return *this;
+    }}
 }};
 
 //---------------------------------------------------------------------------//
+template<Ownership W, MemSpace M>
+struct {capabbr}TestStateData
+{{
+    template<class T>
+    using StateItems = {corecel_ns}StateCollection<T, W, M>;
+
+    // FIXME
+    // {capabbr}StateData<W, M> geometry;
+    // RngStateData<W, M> rng;
+    // StateItems<bool> alive;
+
+    CELER_FUNCTION {corecel_ns}size_type size() const {{
+        // FIXME
+       // return geometry.size();
+       }}
+
+    explicit CELER_FUNCTION operator bool() const
+    {{
+        // FIXME
+        // return geometry && rng && !alive.empty();
+        return false;
+    }}
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    {capabbr}TestStateData& operator=({capabbr}TestStateData<W2, M2>& other)
+    {{
+        CELER_EXPECT(other);
+        // FIXME
+        // geometry = other.geometry;
+        // rng      = other.rng;
+        // alive    = other.alive;
+        return *this;
+    }}
+}};
+
+//---------------------------------------------------------------------------//
+template<MemSpace M>
+inline void resize({capabbr}TestStateData<Ownership::value, M>* state,
+                   const HostCRef<{capabbr}TestParamsData>&     params,
+                   {corecel_ns}size_type                             size)
+{{
+    CELER_EXPECT(state);
+    CELER_EXPECT(params);
+    CELER_EXPECT(size > 0);
+    // FIXME
+    // resize(&state->geometry, params.geometry, size);
+    // resize(&state->alive, size);
+    // fill(state->alive, 0)
+    CELER_ENSURE(state.size() == size);
+}}
+
+//---------------------------------------------------------------------------//
+// LAUNCHER
+//---------------------------------------------------------------------------//
+struct {capabbr}TestLauncher
+{{
+    using ParamsRef = NativeCRef<{capabbr}TestParamsData>;
+    using StateRef  = NativeRef<{capabbr}TestStateData>;
+
+    const ParamsRef& params;
+    const StateRef&  state;
+
+    inline CELER_FUNCTION void operator()({corecel_ns}ThreadId tid) const;
+}};
+
+//---------------------------------------------------------------------------//
+CELER_FUNCTION void {capabbr}TestLauncher::operator()({corecel_ns}ThreadId tid) const
+{{
+    // FIXME
+}}
+
+//---------------------------------------------------------------------------//
+// DEVICE KERNEL EXECUTION
+//---------------------------------------------------------------------------//
 //! Run on device
-void {lowabbr}_test(const {capabbr}TestInput&);
+void {lowabbr}_test(const DeviceCRef<{capabbr}TestParamsData>&,
+            const DeviceRef<{capabbr}TestStateData>&);
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline void {lowabbr}_test(const {capabbr}TestInput&)
+inline void {lowabbr}_test(
+    const DeviceCRef<{capabbr}TestParamsData>&,
+    const DeviceRef<{capabbr}TestStateData>&)
 {{
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }}
 #endif
 
 //---------------------------------------------------------------------------//
-}} // namespace celeritas_test
+}} // namespace test
+{namespace_end}
 '''
 
 TEST_CODE_FILE = '''\
 #include "{name}.test.hh"
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/Types.h"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 
-namespace celeritas_test
+{namespace_begin}
+namespace test
 {{
 namespace
 {{
@@ -162,11 +267,16 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void {lowabbr}_test_kernel({capabbr}TestInput input)
+__global__ void {lowabbr}_test_kernel(
+    const {corecel_ns}DeviceCRef<{capabbr}TestParamsData> params,
+    const {corecel_ns}DeviceRef<{capabbr}TestStateData> state)
 {{
-    auto tid = celeritas::KernelParamCalculator::thread_id();
-    if (tid.get() >= input.num_threads)
+    auto tid = {corecel_ns}KernelParamCalculator::thread_id();
+    if (tid.get() >= state.size())
         return;
+
+    {capabbr}TestLauncher launch{{params, state}};
+    launch(tid);
 }}
 }}
 
@@ -174,18 +284,22 @@ __global__ void {lowabbr}_test_kernel({capabbr}TestInput input)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void {lowabbr}_test(const {capabbr}TestInput& input)
+void {lowabbr}_test(
+    const {corecel_ns}DeviceCRef<{capabbr}TestParamsData>& params,
+    const {corecel_ns}DeviceRef<{capabbr}TestStateData>& state)
 {{
     CELER_LAUNCH_KERNEL({lowabbr}_test,
-                        celeritas::device().default_block_size(),
-                        input.num_threads,
-                        input);
+                        {corecel_ns}device().default_block_size(),
+                        state.size(),
+                        params,
+                        state);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }}
 
 //---------------------------------------------------------------------------//
-}} // namespace celeritas_test
+}} // namespace test
+{namespace_end}
 '''
 
 
@@ -445,6 +559,8 @@ def generate(root, filename, namespace):
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         'year': YEAR,
+        'corecel_ns': "", # or "celeritas::" or someday "corecel::"
+        'celeritas_ns': "",
     }
     with open(filename, 'w') as f:
         f.write((top + template).format(**variables))

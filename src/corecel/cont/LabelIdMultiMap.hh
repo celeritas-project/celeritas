@@ -161,7 +161,7 @@ auto LabelIdMultiMap<I>::find_all(const std::string& name) const
     CELER_ASSERT(offset_idx + 1 < id_offsets_.size());
     size_type start = id_offsets_[offset_idx];
     size_type stop  = id_offsets_[offset_idx + 1];
-    CELER_ENSURE(0 <= start && start < stop && stop <= id_data_.size());
+    CELER_ENSURE(start < stop && stop <= id_data_.size());
     return {id_data_.data() + start, stop - start};
 }
 

@@ -9,6 +9,8 @@
 
 #include <G4VEnergyLossProcess.hh>
 
+#include "../GeantPhysicsOptions.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -22,22 +24,30 @@ namespace detail
 class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
 {
   public:
-    enum class ModelSelection
-    {
-        seltzer_berger,
-        relativistic,
-        all
-    };
+    //!@{
+    //! \name Type aliases
+    using ModelSelection = BremsModelSelection;
+    //!@}
 
+  public:
     // Construct with model selection
     explicit GeantBremsstrahlungProcess(ModelSelection selection);
     // Empty destructor
     ~GeantBremsstrahlungProcess();
 
+    // Prevent copying
+    GeantBremsstrahlungProcess&
+    operator=(const GeantBremsstrahlungProcess& right)
+        = delete;
+    GeantBremsstrahlungProcess(const GeantBremsstrahlungProcess&) = delete;
+
     // True for electrons and positrons
     bool IsApplicable(const G4ParticleDefinition& particle) final;
     // Print documentation
     void ProcessDescription(std::ostream&) const override;
+
+    //! Which models are used
+    ModelSelection model_selection() const { return model_selection_; }
 
   protected:
     // Initialise process by constructing selected models
@@ -46,17 +56,8 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
     // Print class parameters
     void StreamProcessInfo(std::ostream& output) const override;
 
-  protected:
-    bool is_initialized_;
-
   private:
-    // Hide assignment operator
-    GeantBremsstrahlungProcess&
-    operator=(const GeantBremsstrahlungProcess& right)
-        = delete;
-    GeantBremsstrahlungProcess(const GeantBremsstrahlungProcess&) = delete;
-
-  private:
+    bool           is_initialized_;
     ModelSelection model_selection_;
 };
 

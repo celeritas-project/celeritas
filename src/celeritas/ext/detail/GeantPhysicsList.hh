@@ -9,6 +9,8 @@
 
 #include <G4VUserPhysicsList.hh>
 
+#include "../GeantPhysicsOptions.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -20,8 +22,14 @@ namespace detail
 class GeantPhysicsList : public G4VUserPhysicsList
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Options = GeantPhysicsOptions;
+    //!@}
+
+  public:
     // Set up during construction
-    GeantPhysicsList();
+    explicit GeantPhysicsList(const Options& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
@@ -29,10 +37,12 @@ class GeantPhysicsList : public G4VUserPhysicsList
     void ConstructProcess() override;
 
   private:
+    Options options_;
+
     // Add EM processes for photons
     void add_gamma_processes();
     // Add EM processes for electrons and positrons
-    void add_e_processes();
+    void add_e_processes(G4ParticleDefinition* p);
 };
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/distribution/BhabhaEnergyDistribution.hh"
 #include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -25,8 +26,6 @@
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "detail/BhabhaEnergyDistribution.hh"
 
 namespace celeritas
 {
@@ -105,8 +104,6 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
-    CELER_EXPECT(electron_cutoff_
-                 >= value_as<Energy>(shared_.min_valid_energy()));
 }
 
 //---------------------------------------------------------------------------//

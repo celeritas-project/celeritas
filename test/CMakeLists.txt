@@ -53,6 +53,7 @@ if(CELERITAS_USE_HIP)
     orange/univ/SimpleUnitTracker.test.cu
     celeritas/phys/Particle.test.cu
     celeritas/phys/Physics.test.cu
+    celeritas/geo/HeuristicGeoTestBase.cu
     celeritas/mat/Material.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
@@ -108,7 +109,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTING ADDITION TESTS
 #-----------------------------------------------------------------------------#
-celeritas_setup_tests(SERIAL PREFIX test/detail)
+celeritas_setup_tests(SERIAL PREFIX detail)
 
 celeritas_add_test(detail/Macros.test.cc)
 
@@ -136,6 +137,7 @@ celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc)
 celeritas_add_test(corecel/io/Repr.test.cc)
+celeritas_add_test(corecel/io/StringEnumMap.test.cc)
 
 # Math
 celeritas_add_test(corecel/math/Algorithms.test.cc)
@@ -255,7 +257,7 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_device_test(celeritas/ext/Vecgeom
-    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom Celeritas::IO)
+    LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
@@ -283,6 +285,19 @@ celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
 #-------------------------------------#
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
+
+set(_geo_args GPU ${_needs_geo}
+  SOURCES celeritas/geo/HeuristicGeoTestBase.cc)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
+endif()
+if(CELERITAS_USE_VecGeom)
+  list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
+else()
+  # FIXME: backscattering (or field direction change) into volume crashes ORANGE
+  list(APPEND _geo_args DISABLE)
+endif()
+celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
   ${_needs_root} ${_needs_geo}
@@ -363,7 +378,7 @@ celeritas_add_test(celeritas/random/distribution/UniformRealDistribution.test.cc
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(celeritas/random/curand/CurandPerformance.test.cc GPU
     SOURCES celeritas/random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES CUDA::cudart
+    LINK_LIBRARIES Celeritas::DeviceToolkit
     ${_disable_if_debug}
   )
 endif()
@@ -372,3 +387,26 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
+
+#-----------------------------------------------------------------------------#
+# DATA UPDATE
+#-----------------------------------------------------------------------------#
+
+set(_fourslabs "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/four-steel-slabs")
+set(_cmake_env)
+if(CELERITAS_USE_Geant4)
+  set(_cmake_env
+    "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+  )
+endif()
+add_custom_target(update-four-slabs
+  COMMAND
+    ${_cmake_env}
+    "$<TARGET_FILE:celer-export-geant>"
+    "${_fourslabs}.gdml"
+    "${_fourslabs}.geant.json"
+    "${_fourslabs}.root"
+  VERBATIM
+)
+add_dependencies(update-four-slabs celer-export-geant)
+

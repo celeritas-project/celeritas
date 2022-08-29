@@ -250,6 +250,37 @@ endif()
 # LIBRARY
 #----------------------------------------------------------------------------#
 
+# Define an interface library for propagating include paths for GPU compilers.
+# This allow API calls, so long as the compiler or linker implicitly bring in
+# the correct CUDA/ROCM libraries. Those libraries are *not* explicitly linked
+# because mistakenly linking against both cudart and cudart_static (one of which
+# might come from upstream libraries such as vecgeom) can cause nasty link- and
+# run-time errors.
+add_library(celeritas_device_toolkit INTERFACE)
+add_library(Celeritas::DeviceToolkit ALIAS celeritas_device_toolkit)
+
+if(CELERITAS_USE_CUDA)
+  target_include_directories(celeritas_device_toolkit
+    SYSTEM INTERFACE $<$<COMPILE_LANGUAGE:C,CXX>:${CUDAToolkit_INCLUDE_DIRS}>
+  )
+elseif(CELERITAS_USE_HIP)
+  if(CMAKE_HIP_COMPILER_ROCM_ROOT)
+    # Undocumented CMake variable
+    set(ROCM_PATH "${CMAKE_HIP_COMPILER_ROCM_ROOT}")
+  else()
+    # This hack works on Crusher as of ROCm 5.1.0
+    set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
+  endif()
+  target_include_directories(celeritas_device_toolkit
+    SYSTEM INTERFACE "${ROCM_PATH}/include"
+  )
+endif()
+
+install(TARGETS celeritas_device_toolkit
+  EXPORT celeritas-targets
+)
+
+# Add the main libraries
 add_subdirectory(src)
 
 #----------------------------------------------------------------------------#

@@ -9,9 +9,14 @@
 
 #include <type_traits>
 
+#include "celeritas_config.h"
 #include "celeritas/Constants.hh"
 
 #include "celeritas_test.hh"
+
+#if CELERITAS_USE_JSON
+#    include "corecel/math/QuantityIO.json.hh"
+#endif
 
 using celeritas::native_value_from;
 using celeritas::native_value_to;
@@ -29,7 +34,8 @@ using Revolution = Quantity<TwoPi, double>;
 
 struct DozenUnit
 {
-    static int value() { return 12; }
+    static constexpr int         value() { return 12; }
+    static constexpr const char* label() { return "dozen"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -128,4 +134,42 @@ TEST(QuantityTest, swappiness)
     }
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
+}
+
+TEST(QuantityTest, io)
+{
+#if CELERITAS_USE_JSON
+    using Dozen = Quantity<DozenUnit, int>;
+
+    {
+        SCOPED_TRACE("Input as scalar");
+        nlohmann::json inp    = int{123};
+        auto           result = inp.get<Dozen>();
+        EXPECT_EQ(123, value_as<Dozen>(result));
+    }
+    {
+        SCOPED_TRACE("Input as array");
+        nlohmann::json inp    = {123, "dozen"};
+        auto           result = inp.get<Dozen>();
+        EXPECT_EQ(123, value_as<Dozen>(result));
+    }
+    {
+        SCOPED_TRACE("Invalid array size");
+        nlohmann::json inp{{123, 456, 789}};
+        EXPECT_THROW(inp.get<Dozen>(), celeritas::RuntimeError);
+    }
+    {
+        SCOPED_TRACE("Invalid unit");
+        nlohmann::json inp = {123, "baker's dozen"};
+        EXPECT_THROW(inp.get<Dozen>(), celeritas::RuntimeError);
+    }
+    {
+        SCOPED_TRACE("Output");
+        nlohmann::json    out        = Dozen{2};
+        static const char expected[] = R"json([2,"dozen"])json";
+        EXPECT_EQ(std::string(expected), std::string(out.dump()));
+    }
+#else
+    GTEST_SKIP() << "JSON is disabled";
+#endif
 }

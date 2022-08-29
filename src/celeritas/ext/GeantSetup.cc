@@ -7,6 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "GeantSetup.hh"
 
+#include <memory>
+#include <G4Event.hh>
+#include <G4ParticleGun.hh>
+#include <G4ParticleTable.hh>
+#include <G4SystemOfUnits.hh>
+#include <G4VUserActionInitialization.hh>
+#include <G4VUserDetectorConstruction.hh>
+#include <G4VUserPrimaryGeneratorAction.hh>
+
 #include "detail/GeantVersion.hh"
 #if CELERITAS_G4_V10
 #    include <G4RunManager.hh>
@@ -14,16 +23,9 @@
 #    include <G4RunManagerFactory.hh>
 #endif
 
-#include <FTFP_BERT.hh>
-#include <G4EmParameters.hh>
-#include <G4GenericPhysicsList.hh>
-#include <G4ParticleTable.hh>
-#include <G4VModularPhysicsList.hh>
-
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 
-#include "detail/ActionInitialization.hh"
-#include "detail/DetectorConstruction.hh"
+#include "LoadGdml.hh"
 #include "detail/GeantExceptionHandler.hh"
 #include "detail/GeantLoggerAdapter.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -34,50 +36,89 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up global geant4 physics.
+ * Load the detector geometry from a GDML input file.
  */
-void load_physics(const GeantSetupOptions& options, G4RunManager* run_manager)
+class DetectorConstruction : public G4VUserDetectorConstruction
 {
-    std::unique_ptr<G4VUserPhysicsList> physics_list;
-
-    using PL = GeantSetupPhysicsList;
-    switch (options.physics)
+  public:
+    // Construct from a GDML filename
+    explicit DetectorConstruction(const std::string& filename)
     {
-        case PL::none:
-            // Do not load any physics (possibly for geometry-only testing or
-            // visualization)
-            return;
-        case PL::em_basic:
-            physics_list = std::make_unique<detail::GeantPhysicsList>();
-            break;
-        case PL::em_standard: {
-            auto physics_constructor
-                = std::make_unique<std::vector<G4String>>();
-            physics_constructor->push_back("G4EmStandardPhysics");
-            physics_list = std::make_unique<G4GenericPhysicsList>(
-                physics_constructor.release());
-            break;
-        }
-        case PL::ftfp_bert:
-            // Full Physics
-            physics_list = std::make_unique<FTFP_BERT>();
-            break;
-        default:
-            CELER_VALIDATE(false, << "invalid physics list");
+        phys_vol_world_ = load_gdml(filename);
+        CELER_ENSURE(phys_vol_world_);
     }
 
+    G4VPhysicalVolume* Construct() override
     {
-        // Set EM options
-        auto& em_parameters = *G4EmParameters::Instance();
-        CELER_VALIDATE(options.em_bins_per_decade > 0,
-                       << "number of EM bins per decade="
-                       << options.em_bins_per_decade << " (must be positive)");
-        em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
+        CELER_EXPECT(phys_vol_world_);
+        return phys_vol_world_.release();
     }
 
-    CELER_ASSERT(physics_list);
-    run_manager->SetUserInitialization(physics_list.release());
+    const G4VPhysicalVolume* world_volume() const
+    {
+        CELER_EXPECT(phys_vol_world_);
+        return phys_vol_world_.get();
+    }
+
+  private:
+    UPG4PhysicalVolume phys_vol_world_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a particle gun and generate one primary for a minimal simulation run.
+ */
+class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
+{
+  public:
+    PrimaryGeneratorAction();
+
+    //! Generate a priary at the beginning of each event
+    void GeneratePrimaries(G4Event* event) override
+    {
+        CELER_EXPECT(particle_gun_);
+        particle_gun_->GeneratePrimaryVertex(event);
+    }
+
+  private:
+    std::unique_ptr<G4ParticleGun> particle_gun_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a particle gun for the minimal simulation run.
+ */
+PrimaryGeneratorAction::PrimaryGeneratorAction() : particle_gun_(nullptr)
+{
+    // Select particle type
+    G4ParticleDefinition* particle;
+    particle = G4ParticleTable::GetParticleTable()->FindParticle("e-");
+    CELER_ASSERT(particle);
+
+    // Create and set up particle gun
+    const int number_of_particles = 1;
+    particle_gun_ = std::make_unique<G4ParticleGun>(number_of_particles);
+    particle_gun_->SetParticleDefinition(particle);
+    particle_gun_->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+    particle_gun_->SetParticleEnergy(10 * GeV);
+    particle_gun_->SetParticlePosition(G4ThreeVector(0, 0, 0));
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize Geant4.
+ */
+class ActionInitialization : public G4VUserActionInitialization
+{
+  public:
+    void Build() const override
+    {
+        auto action = std::make_unique<PrimaryGeneratorAction>();
+        this->SetUserAction(action.release());
+    }
+};
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -105,6 +146,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         ++geant_launch_count;
 
 #if CELERITAS_G4_V10
+        // Note: custom deleter means `unique_ptr` won't work
         run_manager_.reset(new G4RunManager);
 #else
         run_manager_.reset(
@@ -118,29 +160,29 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     // Initialize geometry
     {
-        auto detector
-            = std::make_unique<detail::DetectorConstruction>(gdml_filename);
+        auto detector = std::make_unique<DetectorConstruction>(gdml_filename);
 
         // Get world_volume for store_geometry() before releasing detector ptr
-        world_ = detector->get_world_volume();
-        CELER_ASSERT(world_);
+        world_ = detector->world_volume();
 
         run_manager_->SetUserInitialization(detector.release());
     }
 
     // Construct the physics
-    load_physics(options, run_manager_.get());
+    {
+        auto physics_list = std::make_unique<detail::GeantPhysicsList>(options);
+        run_manager_->SetUserInitialization(physics_list.release());
+    }
 
     // Generate physics tables
-    if (options.physics != GeantSetupPhysicsList::none)
     {
-        auto action_initialization
-            = std::make_unique<detail::ActionInitialization>();
-        run_manager_->SetUserInitialization(action_initialization.release());
+        auto init = std::make_unique<ActionInitialization>();
+        run_manager_->SetUserInitialization(init.release());
         run_manager_->Initialize();
         run_manager_->BeamOn(1);
     }
 
+    CELER_ENSURE(world_);
     CELER_ENSURE(*this);
 }
 

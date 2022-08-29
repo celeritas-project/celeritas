@@ -220,8 +220,9 @@ struct OrangeStateData
     StateItems<VolumeId> vol;
 
     // Surface crossing
-    StateItems<SurfaceId> surf;
-    StateItems<Sense>     sense;
+    StateItems<SurfaceId>      surf;
+    StateItems<Sense>          sense;
+    StateItems<BoundaryResult> boundary;
 
     // Scratch space
     Items<Sense>     temp_sense;    // [track][max_faces]
@@ -240,6 +241,7 @@ struct OrangeStateData
             && vol.size() == pos.size()
             && surf.size() == pos.size()
             && sense.size() == pos.size()
+            && boundary.size() == pos.size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -261,6 +263,7 @@ struct OrangeStateData
         vol   = other.vol;
         surf  = other.surf;
         sense = other.sense;
+        boundary = other.boundary;
 
         temp_sense    = other.temp_sense;
         temp_face     = other.temp_face;
@@ -288,6 +291,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->vol, size);
     resize(&data->surf, size);
     resize(&data->sense, size);
+    resize(&data->boundary, size);
 
     size_type face_states = params.scalars.max_faces * size;
     resize(&data->temp_sense, face_states);

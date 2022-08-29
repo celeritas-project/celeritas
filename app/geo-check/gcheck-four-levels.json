@@ -2,6 +2,5 @@
     "input": "../../test/celeritas/data/four-levels.gdml",
     "max_steps": 500,
     "track_origin": [0, 0, 0],
-    "track_direction": [1, 1, 1],
-    "cuda_stack_size": 65536
+    "track_direction": [1, 1, 1]
 }

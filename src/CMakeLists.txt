@@ -40,7 +40,7 @@ set(CELERITAS_CMAKE_STRINGS
     "static const char celeritas_rng[] = \"${CELERITAS_RNG}\";\n"
 )
 set(BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION)
+foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
     "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"
@@ -55,6 +55,7 @@ configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 #----------------------------------------------------------------------------#
 
 set(SOURCES)
+set(DEVICE_SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
 
@@ -201,7 +202,6 @@ list(APPEND SOURCES
   celeritas/track/TrackInitParams.cc
 )
 
-set(DEVICE_SOURCES)
 celeritas_polysource(celeritas/global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(celeritas/global/alongstep/AlongStepUniformMscAction)
@@ -214,19 +214,6 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
   list(APPEND DEVICE_SOURCES
     corecel/data/detail/Filler.cu
-  )
-endif()
-
-if(CELERITAS_USE_CUDA)
-  if(CELERITAS_RNG STREQUAL "CURAND")
-    list(APPEND PUBLIC_DEPS CUDA::cudart)
-  else()
-    list(APPEND PRIVATE_DEPS CUDA::cudart)
-  endif()
-elseif(CELERITAS_USE_HIP)
-  set_source_files_properties(
-    ${DEVICE_SOURCES}
-    PROPERTIES LANGUAGE HIP
   )
 endif()
 
@@ -253,8 +240,18 @@ if(CELERITAS_USE_JSON)
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)
 endif()
 
+if(CELERITAS_RNG STREQUAL "CURAND")
+  list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
+else()
+  list(APPEND PRIVATE_DEPS Celeritas::DeviceToolkit)
+endif()
+
 if(CELERITAS_USE_MPI)
   list(APPEND PUBLIC_DEPS MPI::MPI_CXX)
+endif()
+
+if(CELERITAS_USE_OpenMP)
+  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -267,6 +264,15 @@ if(CELERITAS_USE_VecGeom)
   # to resolve the symbol generate by the `nvcc -dlink` of
   # one of the executable.
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+endif()
+
+if(CELERITAS_USE_HIP)
+  # Compile with HIP instead of CUDA (since we don't change our source
+  # extensions)
+  set_source_files_properties(
+    ${DEVICE_SOURCES}
+    PROPERTIES LANGUAGE HIP
+  )
 endif()
 
 celeritas_add_library(celeritas ${SOURCES} ${DEVICE_SOURCES})
@@ -284,10 +290,12 @@ if(CELERITAS_USE_ROOT AND NOT BUILD_SHARED_LIBS)
   )
 endif()
 
-if(CELERITAS_USE_OpenMP)
-  celeritas_target_link_libraries(celeritas PRIVATE OpenMP::OpenMP_CXX)
-else()
-  celeritas_target_compile_options(celeritas PRIVATE -Wno-unknown-pragmas)
+if(NOT CELERITAS_USE_OpenMP
+    AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+         OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
+  celeritas_target_compile_options(celeritas
+    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+  )
 endif()
 
 celeritas_target_link_libraries(celeritas
@@ -301,13 +309,6 @@ celeritas_target_include_directories(celeritas
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-if(CELERITAS_USE_HIP)
-  # This is a hacky workaround for not having the equivalent of CUDAToolkit: it
-  # works on Crusher as of ROCm 5.1.0
-  set(ROCM_PATH "$ENV{ROCM_PATH}" CACHE PATH "Path to ROCm headers")
-  target_include_directories(celeritas SYSTEM PUBLIC "${ROCM_PATH}/include")
-endif()
 
 celeritas_install(TARGETS celeritas
   EXPORT celeritas-targets
@@ -358,16 +359,14 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   list(APPEND _IO_SOURCES
+    celeritas/ext/LoadGdml.cc
     celeritas/ext/GeantImporter.cc
     celeritas/ext/GeantSetup.cc
-    celeritas/ext/detail/ActionInitialization.cc
-    celeritas/ext/detail/DetectorConstruction.cc
     celeritas/ext/detail/GeantBremsstrahlungProcess.cc
     celeritas/ext/detail/GeantExceptionHandler.cc
     celeritas/ext/detail/GeantLoggerAdapter.cc
     celeritas/ext/detail/GeantPhysicsList.cc
     celeritas/ext/detail/ImportProcessConverter.cc
-    celeritas/ext/detail/PrimaryGeneratorAction.cc
   )
   list(APPEND _IO_PRIVATE_DEPS
     XercesC::XercesC
@@ -376,7 +375,7 @@ if(CELERITAS_USE_Geant4)
 endif()
 if(CELERITAS_USE_JSON)
   list(APPEND _IO_SOURCES
-    celeritas/ext/GeantSetupOptionsIO.json.cc
+    celeritas/ext/GeantPhysicsOptionsIO.json.cc
   )
 endif()
 

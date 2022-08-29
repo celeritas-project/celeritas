@@ -7,10 +7,43 @@
 //---------------------------------------------------------------------------//
 #include "ImportProcess.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<class T>
+using ModelArray = EnumArray<ImportModelClass, T>;
+
+namespace
+{
+//---------------------------------------------------------------------------//
+// Return flags for whether microscopic cross sections are needed
+ModelArray<bool> make_microxs_flag_array()
+{
+    ModelArray<bool> result;
+    std::fill(result.begin(), result.end(), false);
+    for (ImportModelClass c : {
+             ImportModelClass::e_brems_sb,
+             ImportModelClass::e_brems_lpm,
+             ImportModelClass::mu_brems,
+             ImportModelClass::mu_pair_prod,
+             ImportModelClass::bethe_heitler_lpm,
+             ImportModelClass::klein_nishina,
+             ImportModelClass::livermore_rayleigh,
+             ImportModelClass::e_coulomb_scattering,
+         })
+    {
+        result[c] = true;
+    }
+    return result;
+}
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Get the string value for a table type.
@@ -99,6 +132,17 @@ const char* to_cstring(ImportModelClass value)
     CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the model requires microscopic xs data for sampling.
+ */
+bool needs_micro_xs(ImportModelClass value)
+{
+    CELER_EXPECT(value < ImportModelClass::size_);
+    static const ModelArray<bool> needs_xs = make_microxs_flag_array();
+    return needs_xs[value];
 }
 
 //---------------------------------------------------------------------------//
