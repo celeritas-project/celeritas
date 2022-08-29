@@ -14,6 +14,7 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 template<class T>
 using ModelArray = EnumArray<ImportModelClass, T>;
 
@@ -33,7 +34,7 @@ ModelArray<bool> make_microxs_flag_array()
              ImportModelClass::bethe_heitler_lpm,
              ImportModelClass::klein_nishina,
              ImportModelClass::livermore_rayleigh,
-             // ImportModelClass::e_coulomb_scattering,
+             ImportModelClass::e_coulomb_scattering,
          })
     {
         result[c] = true;

@@ -59,16 +59,23 @@ struct ImportMatElemComponent
  */
 struct ImportMaterial
 {
-    std::string                         name;
-    ImportMaterialState                 state;
-    double                              temperature;        //!< [K]
-    double                              density;            //!< [g/cm^3]
-    double                              electron_density;   //!< [1/cm^3]
-    double                              number_density;     //!< [1/cm^3]
-    double                              radiation_length;   //!< [cm]
-    double                              nuclear_int_length; //!< [cm]
-    std::map<int, ImportProductionCut>  pdg_cutoffs;        //!< Cutoff per PDG
-    std::vector<ImportMatElemComponent> elements;
+    //// TYPES ////
+
+    using MapIntCutoff = std::map<int, ImportProductionCut>;
+    using VecComponent = std::vector<ImportMatElemComponent>;
+
+    //// DATA ////
+
+    std::string         name;
+    ImportMaterialState state;
+    double              temperature;        //!< [K]
+    double              density;            //!< [g/cm^3]
+    double              electron_density;   //!< [1/cm^3]
+    double              number_density;     //!< [1/cm^3]
+    double              radiation_length;   //!< [cm]
+    double              nuclear_int_length; //!< [cm]
+    MapIntCutoff        pdg_cutoffs;        //!< Cutoff per PDG
+    VecComponent        elements;
 };
 
 //---------------------------------------------------------------------------//
