@@ -17,11 +17,6 @@
 
 #include "RngEngine.test.hh"
 
-namespace celeritas
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
 using thrust::raw_pointer_cast;
 
 namespace celeritas
