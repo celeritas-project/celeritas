@@ -25,9 +25,6 @@ class CalculatorTestBase : public Test
   public:
     //!@{
     //! Type aliases
-    using real_type = real_type;
-    using size_type = size_type;
-
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;

@@ -53,27 +53,11 @@ namespace test
 class InteractorHostTestBase : public Test
 {
   public:
-    static constexpr MemSpace host = MemSpace::host;
     //!@{
     //! Type aliases
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-
-    using MevEnergy = units::MevEnergy;
-
-    using MaterialId     = MaterialId;
-    using MaterialParams = MaterialParams;
-
-    using ActionId = ActionId;
-
-    using ImportProcess        = ImportProcess;
-    using ImportedProcesses    = ImportedProcesses;
-    using Interaction          = Interaction;
+    using RandomEngine         = DiagnosticRngEngine<std::mt19937>;
+    using MevEnergy            = units::MevEnergy;
     using Action               = Interaction::Action;
-    using ParticleId           = ParticleId;
-    using ParticleParams       = ParticleParams;
-    using ParticleTrackView    = ParticleTrackView;
-    using Real3                = Real3;
-    using Secondary            = Secondary;
     using SecondaryAllocator   = StackAllocator<Secondary>;
     using constSpanSecondaries = Span<const Secondary>;
     //!@}

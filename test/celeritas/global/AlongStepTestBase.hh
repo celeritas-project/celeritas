@@ -29,10 +29,6 @@ class AlongStepTestBase : virtual public GlobalTestBase
   public:
     //!@{
     //! \name Type aliases
-    using size_type = size_type;
-    using real_type = real_type;
-    using Real3     = Real3;
-
     using MevEnergy = units::MevEnergy;
     //!@}
 

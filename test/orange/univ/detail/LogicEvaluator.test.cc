@@ -21,7 +21,6 @@ namespace test
 
 using VecSense = std::vector<celeritas::Sense>;
 
-using logic_int       = logic_int;
 constexpr auto lbegin = logic::lbegin;
 constexpr auto ltrue  = logic::ltrue;
 constexpr auto lor    = logic::lor;

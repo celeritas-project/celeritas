@@ -29,9 +29,6 @@ class MockModel final : public Model
   public:
     //!@{
     //! Type aliases
-    using real_type        = real_type;
-    using Applicability    = Applicability;
-    using ActionId         = ActionId;
     using BarnMicroXs      = Quantity<celeritas::units::Barn>;
     using ModelCallback    = std::function<void(ActionId)>;
     using VecMicroXs       = std::vector<BarnMicroXs>;

@@ -18,7 +18,6 @@ namespace test
 namespace detail
 {
 
-using MemSpace = MemSpace;
 
 //---------------------------------------------------------------------------//
 /*!

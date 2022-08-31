@@ -40,9 +40,7 @@ class MockProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using real_type        = real_type;
     using BarnMicroXs      = Quantity<celeritas::units::Barn>;
-    using Applicability    = Applicability;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
