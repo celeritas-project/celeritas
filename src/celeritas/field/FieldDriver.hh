@@ -197,7 +197,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
             // Estimate a new trial chord with a relative scale
             step *= max(std::sqrt(options_.delta_chord / dchord), half());
         }
-    } while (!succeeded && (--remaining_steps > 0));
+    } while (!succeeded && --remaining_steps > 0);
 
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
@@ -303,7 +303,7 @@ FieldDriver<StepperT>::integrate_step(real_type       step,
         // Compute a proposed new step
         CELER_ASSERT(output.end.step > 0);
         output.proposed_step = this->new_step_size(
-            step, dyerr / (step * options_.epsilon_step));
+            step, dyerr / (options_.epsilon_step * step));
     }
 
     return output;
