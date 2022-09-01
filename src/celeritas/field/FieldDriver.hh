@@ -175,7 +175,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
 
     bool          succeeded       = false;
     size_type     remaining_steps = options_.max_nsteps;
-    StepperResult result;
+    FieldStepperResult result;
 
     do
     {
@@ -291,7 +291,7 @@ FieldDriver<StepperT>::integrate_step(real_type       step,
     else
     {
         // Do an integration step for a small step (a.k.a quick advance)
-        StepperResult result = apply_step_(step, state);
+        FieldStepperResult result = apply_step_(step, state);
 
         // Update position and momentum
         output.end.state = result.end_state;
@@ -326,7 +326,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     bool          succeeded       = false;
     size_type     remaining_steps = options_.max_nsteps;
     real_type     errmax2;
-    StepperResult result;
+    FieldStepperResult result;
 
     do
     {

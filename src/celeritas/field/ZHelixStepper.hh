@@ -35,7 +35,7 @@ class ZHelixStepper
   public:
     //!@{
     //! Type aliases
-    using result_type = StepperResult;
+    using result_type = FieldStepperResult;
     //!@}
 
   public:

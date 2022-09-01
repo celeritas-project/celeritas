@@ -33,7 +33,7 @@ struct OdeState
 /*!
  * The result of the integration stepper.
  */
-struct StepperResult
+struct FieldStepperResult
 {
     OdeState mid_state; //!< OdeState at the middle
     OdeState end_state; //!< OdeState at the end

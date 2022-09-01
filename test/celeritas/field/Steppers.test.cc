@@ -93,7 +93,7 @@ class SteppersTest : public Test
                 expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
                 for (CELER_MAYBE_UNUSED int j : celeritas::range(param.nsteps))
                 {
-                    StepperResult result = stepper(hstep, y);
+                    FieldStepperResult result = stepper(hstep, y);
                     y                    = result.end_state;
 
                     total_err2
