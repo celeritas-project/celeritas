@@ -10,6 +10,8 @@
       "cacheVariables": {
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_JSON":     {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_Geant4":   {"type": "BOOL",   "value": "ON"},
         "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "12"},
@@ -27,7 +29,7 @@
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
-        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "$env{IWYU_ROOT}/bin/include-what-you-use;-Xiwyu;--no_fwd_decls;-Xiwyu;--no_comments;-Xiwyu;--transitive_includes_only"
+        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "/opt/homebrew/bin/include-what-you-use;-Xiwyu;--no_fwd_decls;-Xiwyu;--no_comments;-Xiwyu;--transitive_includes_only"
       }
     },
     {
