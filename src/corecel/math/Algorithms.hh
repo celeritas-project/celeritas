@@ -317,4 +317,30 @@ inline CELER_FUNCTION T fastpow(T a, T b)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate an inverse square root.
+ */
+inline CELER_FUNCTION double rsqrt(double value)
+{
+#if CELERITAS_USE_DEVICE
+    return ::rsqrt(value);
+#else
+    return 1.0 / std::sqrt(value);
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an inverse square root.
+ */
+inline CELER_FUNCTION float rsqrt(float value)
+{
+#if CELERITAS_USE_DEVICE
+    return ::rsqrtf(value);
+#else
+    return 1.0f / std::sqrt(value);
+#endif
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

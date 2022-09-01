@@ -215,3 +215,18 @@ TEST(MathTest, fastpow)
 
     EXPECT_TRUE((std::is_same<float, decltype(fastpow(5.0f, 1.0f))>::value));
 }
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, rsqrt)
+{
+    constexpr auto dblinf = std::numeric_limits<double>::infinity();
+    EXPECT_DOUBLE_EQ(0.5, celeritas::rsqrt(4.0));
+    EXPECT_DOUBLE_EQ(dblinf, celeritas::rsqrt(0.0));
+    EXPECT_DOUBLE_EQ(0.0, celeritas::rsqrt(dblinf));
+
+    constexpr auto fltinf = std::numeric_limits<float>::infinity();
+    EXPECT_FLOAT_EQ(0.5f, celeritas::rsqrt(4.0f));
+    EXPECT_FLOAT_EQ(fltinf, celeritas::rsqrt(0.0f));
+    EXPECT_FLOAT_EQ(0.0f, celeritas::rsqrt(fltinf));
+}

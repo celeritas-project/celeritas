@@ -86,7 +86,7 @@ GammaDistribution<RealType>::GammaDistribution(real_type alpha, real_type beta)
     , beta_(beta)
     , alpha_p_(alpha < 1 ? alpha + 1 : alpha)
     , d_(alpha_p_ - real_type(1) / 3)
-    , c_(1 / std::sqrt(9 * d_))
+    , c_(celeritas::rsqrt(9 * d_))
 {
     CELER_EXPECT(alpha_ > 0);
     CELER_EXPECT(beta_ > 0);

@@ -95,7 +95,7 @@ MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 
     real_type momentum_mag2 = dot_product(y.mom, y.mom);
     CELER_ASSERT(momentum_mag2 > 0);
-    real_type momentum_inv = 1 / std::sqrt(momentum_mag2);
+    real_type momentum_inv = celeritas::rsqrt(momentum_mag2);
 
     // Evaluate the right-hand-side of the equation
     OdeState result;
