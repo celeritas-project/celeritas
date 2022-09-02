@@ -156,14 +156,13 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                                                const OdeState& beg_state,
                                                const OdeState& rhs) const
 {
-    OdeState end_state;
-
     // Solution for position and momentum after moving delta_phi on the helix
     real_type del_phi = (helicity == Helicity::positive) ? step / radius
                                                          : -step / radius;
     real_type sin_phi = std::sin(del_phi);
     real_type cos_phi = std::cos(del_phi);
 
+    OdeState end_state;
     end_state.pos = {(beg_state.pos[0] * cos_phi - beg_state.pos[1] * sin_phi),
                      (beg_state.pos[0] * sin_phi + beg_state.pos[1] * cos_phi),
                      beg_state.pos[2] + del_phi * radius * rhs.pos[2]};

@@ -126,8 +126,10 @@ inline CELER_FUNCTION real_type truncation_error(real_type       step,
                                                  const OdeState& beg_state,
                                                  const OdeState& err_state)
 {
+    CELER_EXPECT(step > 0);
+    CELER_EXPECT(eps_rel_max > 0);
+
     // Evaluate tolerance and squre of the position and momentum accuracy
-    real_type eps_pos = eps_rel_max * step;
 
     real_type magvel2 = dot_product(beg_state.mom, beg_state.mom);
     real_type errpos2 = dot_product(err_state.pos, err_state.pos);
@@ -137,7 +139,7 @@ inline CELER_FUNCTION real_type truncation_error(real_type       step,
     CELER_ASSERT(errpos2 >= 0);
     CELER_ASSERT(magvel2 > 0);
 
-    errpos2 /= ipow<2>(eps_pos);
+    errpos2 /= ipow<2>(eps_rel_max * step);
     errvel2 /= (magvel2 * ipow<2>(eps_rel_max));
 
     // Return the square of the maximum truncation error
@@ -156,8 +158,8 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
                                                const OdeState& mid_state,
                                                const OdeState& end_state)
 {
-    Real3 beg_mid = mid_state.pos;
-    Real3 beg_end = end_state.pos;
+    Real3 beg_mid;
+    Real3 beg_end;
 
     for (size_type i = 0; i != 3; ++i)
     {

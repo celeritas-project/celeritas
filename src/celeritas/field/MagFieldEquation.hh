@@ -90,18 +90,25 @@ template<class FieldT>
 CELER_FUNCTION auto
 MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 {
-    // Get a magnetic field value at a given position
+    CELER_EXPECT(y.mom[0] != 0 || y.mom[1] != 0 || y.mom[2] != 0);
+    real_type momentum_inv = celeritas::rsqrt(dot_product(y.mom, y.mom));
+
+    // Evaluate the rate of change in particle's position per unit length: this
+    // is just the direction
+    OdeState result;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        result.pos[i] = momentum_inv * y.mom[i];
+    }
+
+    // Calculate the magnetic field value at the current position
+    // to calculate the force on the particle
     auto&& mag_vec = calc_field_(y.pos);
-
-    real_type momentum_mag2 = dot_product(y.mom, y.mom);
-    CELER_ASSERT(momentum_mag2 > 0);
-    real_type momentum_inv = celeritas::rsqrt(momentum_mag2);
-
-    // Evaluate the right-hand-side of the equation
-    OdeState result{{0, 0, 0}, {0, 0, 0}};
-
-    axpy(momentum_inv, y.mom, &result.pos);
-    axpy(coeffi_ * momentum_inv, cross_product(y.mom, mag_vec), &result.mom);
+    result.mom     = cross_product(y.mom, mag_vec);
+    for (size_type i = 0; i != 3; ++i)
+    {
+        result.mom[i] *= coeffi_ * momentum_inv;
+    }
 
     return result;
 }

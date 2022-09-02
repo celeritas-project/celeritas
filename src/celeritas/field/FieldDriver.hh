@@ -14,9 +14,8 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "FieldDriverOptions.hh"
-#include "MagFieldEquation.hh"
-#include "RungeKuttaStepper.hh"
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
