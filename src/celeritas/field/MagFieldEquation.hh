@@ -98,7 +98,7 @@ MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
     real_type momentum_inv = celeritas::rsqrt(momentum_mag2);
 
     // Evaluate the right-hand-side of the equation
-    OdeState result;
+    OdeState result{{0, 0, 0}, {0, 0, 0}};
 
     axpy(momentum_inv, y.mom, &result.pos);
     axpy(coeffi_ * momentum_inv, cross_product(y.mom, mag_vec), &result.mom);
