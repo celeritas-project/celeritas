@@ -8,7 +8,7 @@
 #pragma once
 
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 namespace geo_check
@@ -20,7 +20,7 @@ using GeoParamsCRefHost   = celeritas::HostCRef<celeritas::GeoParamsData>;
 using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
 using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
 
-using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
+using SPConstGeo = std::shared_ptr<const celeritas::VecgeomParams>;
 
 //---------------------------------------------------------------------------//
 //! Input and return structs

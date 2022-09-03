@@ -9,6 +9,7 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/LinearPropagator.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 using namespace celeritas;
 
