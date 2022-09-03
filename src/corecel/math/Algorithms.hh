@@ -316,17 +316,17 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     return std::exp(b * std::log(a));
 }
 
+#if CELERITAS_USE_DEVICE
+// Compiling with CUDA 11.4 claims to have ambiguous rsqrt overload...
+using ::rsqrt;
+#else
 //---------------------------------------------------------------------------//
 /*!
  * Calculate an inverse square root.
  */
 inline CELER_FUNCTION double rsqrt(double value)
 {
-#if CELERITAS_USE_DEVICE
-    return ::rsqrt(value);
-#else
     return 1.0 / std::sqrt(value);
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -335,12 +335,9 @@ inline CELER_FUNCTION double rsqrt(double value)
  */
 inline CELER_FUNCTION float rsqrt(float value)
 {
-#if CELERITAS_USE_DEVICE
-    return ::rsqrtf(value);
-#else
     return 1.0f / std::sqrt(value);
-#endif
 }
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
