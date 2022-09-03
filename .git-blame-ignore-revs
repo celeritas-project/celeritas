@@ -4,8 +4,7 @@ c93d9582552e2d7ad4e18d9d74b7e9e62de53c0e
 7a0f476ae128025a8843ba2b1e6e6284efb7d0dd
 # clang-format and IWYU
 0e14b341e12eb750b627e7d61602e50c68db2551
+954cd07322312b43eb7dc926abd0054f630a8eff
 # consolidate .hh, i.hh
 128b0eff32a159005019a8f18619e3630181d9d0
 d90f9cb55c0df92e36ccfd0646f9ffd1a51bbd14
-# update test namespaces and clang-format repo
-# FIXME test namespace and clang-format
