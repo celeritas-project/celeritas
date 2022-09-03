@@ -49,14 +49,13 @@ TEST(MagFieldEquationTest, charged)
 {
     auto eval = make_equation(dummy_field, ElementaryCharge{3});
     {
-        OdeState result = eval(OdeState{.pos = {1, 2, 3}, .mom = {0, 0, 1}});
+        OdeState result = eval({{1, 2, 3}, {0, 0, 1}});
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), result.pos);
         EXPECT_VEC_SOFT_EQ(Real3({-0.02698132122, 0.00899377374, 0}),
                            result.mom);
     }
     {
-        OdeState result
-            = eval(OdeState{.pos = {0.5, -2, -1}, .mom = {1, 2, 3}});
+        OdeState result = eval({{0.5, -2, -1}, {1, 2, 3}});
         EXPECT_VEC_SOFT_EQ(
             Real3({0.26726124191242, 0.53452248382485, 0.80178372573727}),
             result.pos);
@@ -66,8 +65,7 @@ TEST(MagFieldEquationTest, charged)
     }
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(eval(OdeState{.pos = {0.5, -2, -1}, .mom = {0, 0, 0}}),
-                     DebugError);
+        EXPECT_THROW(eval({{0.5, -2, -1}, {0, 0, 0}}), DebugError);
     }
 }
 
@@ -75,7 +73,7 @@ TEST(MagFieldEquationTest, neutral)
 {
     auto eval = make_equation(dummy_field, ElementaryCharge{0});
     {
-        OdeState s{.pos = {0.5, -2, -1}, .mom = {0, 0, 1}};
+        OdeState s{{0.5, -2, -1}, {0, 0, 1}};
         OdeState result = eval(s);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), result.pos);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), result.mom);
