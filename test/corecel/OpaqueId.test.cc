@@ -31,7 +31,7 @@ class OpaqueIdTest : public celeritas_test::Test
 
 TEST(OpaqueIdTest, operations)
 {
-    using Id_t = OpaqueId<TestInstantiator, std::size_t>;
+    using Id_t             = OpaqueId<TestInstantiator, std::size_t>;
     constexpr auto sizemax = static_cast<std::size_t>(-1);
 
     Id_t unassigned;

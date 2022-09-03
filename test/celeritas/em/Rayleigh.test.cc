@@ -52,8 +52,8 @@ class RayleighInteractorTest : public celeritas_test::InteractorHostTestBase
         // Setup MaterialView
         MaterialParams::Input inp;
         inp.elements  = {{8, AmuMass{15.999}, "O"},
-                        {74, AmuMass{183.84}, "W"},
-                        {82, AmuMass{207.2}, "Pb"}};
+                         {74, AmuMass{183.84}, "W"},
+                         {82, AmuMass{207.2}, "Pb"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,

@@ -78,7 +78,7 @@ class CollectionStateStore
     inline CollectionStateStore& operator=(CollectionStateStore<S, M2>&& other);
 
     //! Default copy construction/assignment
-    CollectionStateStore(const CollectionStateStore&) = default;
+    CollectionStateStore(const CollectionStateStore&)            = default;
     CollectionStateStore& operator=(const CollectionStateStore&) = default;
 
     //! Whether any data is being stored

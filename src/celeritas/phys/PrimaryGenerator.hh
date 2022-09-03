@@ -9,10 +9,11 @@
 
 #include <vector>
 
+#include "celeritas/Units.hh"
+
+#include "PDGNumber.hh"
 #include "ParticleParams.hh"
 #include "Primary.hh"
-#include "PDGNumber.hh"
-#include "celeritas/Units.hh"
 
 namespace celeritas
 {
@@ -24,8 +25,8 @@ struct PrimaryGeneratorOptions
 {
     PDGNumber        pdg;
     units::MevEnergy energy{0};
-    Real3            position{0,0,0};
-    Real3            direction{0,0,1};
+    Real3            position{0, 0, 0};
+    Real3            direction{0, 0, 1};
     size_type        num_events{};
     size_type        primaries_per_event{};
 

@@ -51,7 +51,7 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
         return;
     }
 
-    auto particle = track.make_particle_view();
+    auto   particle = track.make_particle_view();
     Energy eloss;
     if (particle.energy() < phys.scalars().eloss_calc_limit)
     {

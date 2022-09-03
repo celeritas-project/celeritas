@@ -111,8 +111,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
     HeuristicGeoScalars build_scalars() const final
     {
         HeuristicGeoScalars result;
-        result.lower = {-30, -30, -700};
-        result.upper = {30, 30, 700};
+        result.lower        = {-30, -30, -700};
+        result.upper        = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
         return result;

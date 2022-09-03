@@ -74,12 +74,12 @@ auto SimpleTestBase::build_cutoff() -> SPConstCutoff
     input.materials = this->material();
     input.particles = this->particle();
     input.cutoffs   = {
-        {pdg::gamma(),
-         {{MevEnergy{0.01}, 0.1 * units::millimeter},
-          {MevEnergy{100}, 100 * units::centimeter}}},
-        {pdg::electron(),
-         {{MevEnergy{1000}, 1000 * units::centimeter},
-          {MevEnergy{1000}, 1000 * units::centimeter}}},
+          {pdg::gamma(),
+           {{MevEnergy{0.01}, 0.1 * units::millimeter},
+            {MevEnergy{100}, 100 * units::centimeter}}},
+          {pdg::electron(),
+           {{MevEnergy{1000}, 1000 * units::centimeter},
+            {MevEnergy{1000}, 1000 * units::centimeter}}},
     };
 
     return std::make_shared<CutoffParams>(std::move(input));
