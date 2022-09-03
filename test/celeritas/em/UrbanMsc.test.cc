@@ -258,7 +258,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
     constexpr double    step_is_range = -1;
-    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
+    std::vector<double> step          = {0.00279169, 0.412343, 0.0376414};
     step.resize(nsamples, step_is_range);
 
     for (unsigned int i : celeritas::range(nsamples))

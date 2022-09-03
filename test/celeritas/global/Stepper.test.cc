@@ -440,7 +440,7 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
             EXPECT_SOFT_EQ(52.625, result.calc_avg_steps_per_primary());
             EXPECT_EQ(11, result.calc_emptying_step());
             EXPECT_EQ(RunResult::StepCount({9, 4}), result.calc_queue_hwm());
-    }
+        }
     }
     else
     {

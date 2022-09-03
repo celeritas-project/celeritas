@@ -45,9 +45,9 @@ TEST_F(PrimaryGeneratorTest, host)
     PrimaryGeneratorOptions opts;
     EXPECT_FALSE(opts);
 
-    opts.pdg = pdg::gamma();
-    opts.energy = MevEnergy{10};
-    opts.num_events = 2;
+    opts.pdg                 = pdg::gamma();
+    opts.energy              = MevEnergy{10};
+    opts.num_events          = 2;
     opts.primaries_per_event = 3;
 
     PrimaryGenerator generate_primaries(particles_, opts);

@@ -59,17 +59,17 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
         // Create particle defs
         constexpr auto        stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input defs   = {
-            {"electron",
-             pdg::electron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{-1},
-             stable},
-            {"positron",
-             pdg::positron(),
-             MevMass{0.5109989461},
-             ElementaryCharge{1},
-             stable},
-            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+              {"electron",
+               pdg::electron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{-1},
+               stable},
+              {"positron",
+               pdg::positron(),
+               MevMass{0.5109989461},
+               ElementaryCharge{1},
+               stable},
+              {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
         return std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -457,7 +457,8 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.py",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
@@ -543,7 +544,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.py",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
@@ -566,7 +568,8 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.mx", this->geometry()->id_to_label(geo.surface_id()));
+            EXPECT_EQ("inner_box.mx",
+                      this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));

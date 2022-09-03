@@ -44,7 +44,7 @@ struct Moveable
     }
 
     // Delete copy and copy assign
-    Moveable(const Moveable& rhs) = delete;
+    Moveable(const Moveable& rhs)            = delete;
     Moveable& operator=(const Moveable& rhs) = delete;
 };
 
