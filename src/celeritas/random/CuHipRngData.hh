@@ -82,6 +82,9 @@ struct CuHipRngParamsData<W, MemSpace::host>
 
     //// METHODS ////
 
+    //! Any settings are valid
+    explicit CELER_FUNCTION operator bool() const { return true; }
+
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     CuHipRngParamsData& operator=(const CuHipRngParamsData<W2, M2>& other)
