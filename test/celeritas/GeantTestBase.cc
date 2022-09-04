@@ -85,8 +85,8 @@ bool GeantTestBase::is_wildstyle_build()
 }
 
 //---------------------------------------------------------------------------//
-//! Whether Geant4 dependencies match those on the CI build
-bool GeantTestBase::is_srj_build()
+//! Whether Geant4 dependencies match those on Summit
+bool GeantTestBase::is_summit_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
            && cstring_equal(celeritas_clhep_version, "2.4.5.1")
