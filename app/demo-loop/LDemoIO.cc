@@ -90,6 +90,12 @@ auto get_all_process_classes(const std::vector<ImportProcess>& processes)
     std::set<ImportProcessClass> result;
     for (const auto& p : processes)
     {
+        if (PDGNumber(p.particle_pdg) == pdg::mu_minus()
+            || PDGNumber(p.particle_pdg) == pdg::mu_plus())
+        {
+            // Skip muon processes
+            continue;
+        }
         result.insert(p.process_class);
     }
     return result;
