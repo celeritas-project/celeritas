@@ -86,7 +86,6 @@ auto ProcessBuilder::operator()(ImportProcessClass ipc) -> SPProcess
         {IPC::annihilation, &ProcessBuilder::build_annihilation},
         {IPC::compton, &ProcessBuilder::build_compton},
         {IPC::conversion, &ProcessBuilder::build_conversion},
-        {IPC::coulomb_scat, &ProcessBuilder::build_coulomb_scat},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
         {IPC::msc, &ProcessBuilder::build_msc},
@@ -108,12 +107,6 @@ auto ProcessBuilder::build_msc() -> SPProcess
 {
     return std::make_shared<MultipleScatteringProcess>(
         particle_, material_, processes_);
-}
-
-//---------------------------------------------------------------------------//
-auto ProcessBuilder::build_coulomb_scat() -> SPProcess
-{
-    return std::make_shared<ComptonProcess>(particle_, processes_);
 }
 
 //---------------------------------------------------------------------------//
