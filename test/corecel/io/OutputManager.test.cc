@@ -9,6 +9,7 @@
 
 #include <sstream>
 
+#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
 
@@ -105,6 +106,15 @@ TEST_F(OutputManagerTest, minimal)
     {
         EXPECT_EQ("\"output unavailable\"", result);
     }
+}
+
+TEST_F(OutputManagerTest, build_output)
+{
+    OutputManager om;
+    om.insert(std::make_shared<celeritas::BuildOutput>());
+    std::string result = this->to_string(om);
+    EXPECT_TRUE(result.find("CELERITAS_BUILD_TYPE") != std::string::npos)
+        << "actual output: " << result;
 }
 
 TEST_F(OutputManagerTest, exception_output)
