@@ -341,9 +341,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
   )
 
   if(CELERITAS_BUILD_TESTS)
-  set(_exe "$<TARGET_FILE:geo-check>")
-  set(_json_inp "${CMAKE_CURRENT_SOURCE_DIR}/geo-check/gcheck-four-levels.json")
-  add_test(NAME "app/geo-check-fourLevels"
-    COMMAND "${_exe}" "${_json_inp}")
+    set(_exe "$<TARGET_FILE:geo-check>")
+    configure_file("geo-check/gcheck-four-levels.json.in" "gcheck-four-levels.json" @ONLY)
+    set(_json_inp "${CMAKE_CURRENT_BINARY_DIR}/gcheck-four-levels.json")
+    add_test(NAME "app/geo-check-fourLevels"
+      COMMAND "${_exe}" "${_json_inp}")
   endif()
 endif()
