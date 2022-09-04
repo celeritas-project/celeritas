@@ -90,12 +90,6 @@ auto get_all_process_classes(const std::vector<ImportProcess>& processes)
     std::set<ImportProcessClass> result;
     for (const auto& p : processes)
     {
-        if (PDGNumber(p.particle_pdg) == pdg::mu_minus()
-            || PDGNumber(p.particle_pdg) == pdg::mu_plus())
-        {
-            // Skip muon processes
-            continue;
-        }
         result.insert(p.process_class);
     }
     return result;
@@ -207,6 +201,11 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     if (j.contains("geant_options"))
     {
         j.at("geant_options").get_to(v.geant_options);
+    }
+    else
+    {
+        // Basic physics for demo loop
+        v.geant_options.physics = celeritas::GeantSetupPhysicsList::em_basic;
     }
 }
 //!@}
