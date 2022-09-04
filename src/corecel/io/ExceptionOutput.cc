@@ -7,16 +7,39 @@
 //---------------------------------------------------------------------------//
 #include "ExceptionOutput.hh"
 
-#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
+#include "corecel/sys/TypeDemangler.hh"
+
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
 
-
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+#if CELERITAS_USE_JSON
+
+void to_json(nlohmann::json& j, const DebugErrorDetails& d)
+{
+    j["which"]     = to_cstring(d.which);
+    j["condition"] = d.condition;
+    j["file"]      = d.file;
+    j["line"]      = d.line;
+}
+
+void to_json(nlohmann::json& j, const RuntimeErrorDetails& d)
+{
+    j["which"]     = to_cstring(d.which);
+    j["what"]      = d.what;
+    j["condition"] = d.condition;
+    j["file"]      = d.file;
+    j["line"]      = d.line;
+}
+
+#endif
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with an exception object.
@@ -25,10 +48,32 @@ namespace celeritas
  */
 ExceptionOutput::ExceptionOutput(const std::exception& e)
 {
-    TypeDemangler<std::exception> demangle;
-    type_ = demangle(e);
-    what_ = e.what();
+#if CELERITAS_USE_JSON
+    output_ = std::make_unique<JsonPimpl>();
+    if (auto* d = dynamic_cast<const DebugError*>(&e))
+    {
+        output_->obj         = d->details();
+        output_->obj["type"] = "DebugError";
+    }
+    else if (auto* d = dynamic_cast<const RuntimeError*>(&e))
+    {
+        output_->obj         = d->details();
+        output_->obj["type"] = "RuntimeError";
+    }
+    else
+    {
+        // Save unknown exception info
+        TypeDemangler<std::exception> demangle;
+        output_->obj = {{"type", demangle(e)}, {"what", e.what()}};
+    }
+#else
+    (void)sizeof(e);
+#endif
 }
+
+//---------------------------------------------------------------------------//
+//! Default destructor
+ExceptionOutput::~ExceptionOutput() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -37,10 +82,8 @@ ExceptionOutput::ExceptionOutput(const std::exception& e)
 void ExceptionOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
-    j->obj = {
-        {"type", type_},
-        {"what", what_}
-    };
+    CELER_EXPECT(output_);
+    j->obj = output_->obj;
 #else
     (void)sizeof(j);
 #endif

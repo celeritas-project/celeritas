@@ -7,9 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
-#include "OutputInterface.hh"
+
 #include "corecel/sys/TypeDemangler.hh"
+
+#include "OutputInterface.hh"
 
 namespace celeritas
 {
@@ -34,6 +37,9 @@ class ExceptionOutput final : public OutputInterface
     // Construct with an exception object
     explicit ExceptionOutput(const std::exception& e);
 
+    // Protected destructor
+    ~ExceptionOutput();
+
     // Category of data to write
     Category category() const final { return Category::result; }
 
@@ -44,8 +50,7 @@ class ExceptionOutput final : public OutputInterface
     void output(JsonPimpl*) const final;
 
   private:
-    std::string type_;
-    std::string what_;
+    std::unique_ptr<JsonPimpl> output_;
 };
 
 //---------------------------------------------------------------------------//

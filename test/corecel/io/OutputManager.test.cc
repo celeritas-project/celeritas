@@ -123,8 +123,7 @@ TEST_F(OutputManagerTest, exception_output)
 
     try
     {
-        CELER_VALIDATE(false,
-                       << "Things went wrong");
+        CELER_VALIDATE(false, << "things went wrong");
     }
     catch (const std::exception& e)
     {
@@ -134,7 +133,8 @@ TEST_F(OutputManagerTest, exception_output)
     std::string result = this->to_string(om);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_TRUE(result.find("Things went wrong") != std::string::npos)
+        EXPECT_TRUE(result.find("\"what\":\"things went wrong\"")
+                    != std::string::npos)
             << "actual output: " << result;
     }
 }
