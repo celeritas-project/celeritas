@@ -64,8 +64,12 @@ std::string build_runtime_error_msg(const RuntimeErrorDetails& d)
 
     if (d.which != RuntimeErrorType::validate || verbose_message)
     {
-        msg << color_code('W') << d.file << ':' << d.line << ':'
-            << color_code(' ') << '\n';
+        msg << color_code('W') << d.file;
+        if (d.line)
+        {
+            msg << ':' << d.line;
+        }
+        msg << ':' << color_code(' ') << '\n';
     }
 
     msg << "celeritas: " << color_code('R') << to_cstring(d.which)
@@ -123,6 +127,8 @@ const char* to_cstring(RuntimeErrorType which)
 #endif
         case RuntimeErrorType::mpi:
             return "mpi";
+        case RuntimeErrorType::geant:
+            return "geant4";
     }
     return "";
 }
@@ -178,6 +184,21 @@ RuntimeError RuntimeError::from_mpi_call(CELER_MAYBE_UNUSED int errorcode,
 #endif
     return RuntimeError{
         {RuntimeErrorType::mpi, error_string, code, file, line}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an error message from a Geant4 exception.
+ *
+ * \param origin Usually the function that throws
+ * \param code A computery error code
+ * \param desc Description of the failure
+ */
+RuntimeError RuntimeError::from_geant_exception(const char* origin,
+                                                const char* code,
+                                                const char* desc)
+{
+    return RuntimeError{{RuntimeErrorType::geant, desc, code, origin, 0}};
 }
 
 //---------------------------------------------------------------------------//

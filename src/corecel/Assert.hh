@@ -378,7 +378,8 @@ enum class RuntimeErrorType
 {
     validate, //!< Celeritas runtime error
     device,   //!< CUDA or HIP
-    mpi
+    mpi,      //!< Coarse-grain parallelism
+    geant     //!< Error from Geant4
 };
 
 //! Detailed properties of a debug assertion failure
@@ -452,9 +453,14 @@ class RuntimeError : public std::runtime_error
                                          const char* file,
                                          int         line);
 
-    // Construct from device call
+    // Construct from MPI call
     static RuntimeError
     from_mpi_call(int errorcode, const char* code, const char* file, int line);
+
+    // Construct from call to Geant4
+    static RuntimeError from_geant_exception(const char* origin,
+                                             const char* code,
+                                             const char* desc);
 
     // Construct from details
     explicit RuntimeError(RuntimeErrorDetails);
