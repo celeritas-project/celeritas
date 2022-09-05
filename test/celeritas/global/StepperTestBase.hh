@@ -86,15 +86,13 @@ class StepperTestBase : virtual public GlobalTestBase
     StepperInput make_stepper_input(size_type tracks, size_type init_scaling);
 
     //! Create a vector of primaries inside the 'run' function
-    virtual std::vector<celeritas::Primary>
-    make_primaries(size_type count) const = 0;
+    virtual std::vector<Primary> make_primaries(size_type count) const = 0;
 
     //! Maximum number of steps on average before aborting
     virtual size_type max_average_steps() const = 0;
 
     // Run a bunch of primaries to completion
-    RunResult
-    run(celeritas::StepperInterface& step, size_type num_primaries) const;
+    RunResult run(StepperInterface& step, size_type num_primaries) const;
 
     //! Access the dummy action
     const DummyAction& dummy_action() const { return *dummy_action_; }

@@ -87,7 +87,7 @@ class SurfaceActionTest : public Test
         surf_params_ = SurfaceDataMirror{std::move(surface_data)};
     }
 
-    void fill_uniform_box(celeritas::Span<Real3> pos)
+    void fill_uniform_box(Span<Real3> pos)
     {
         UniformBoxDistribution<> sample_box{{-3, -2, -1}, {6, 8, 10}};
         for (Real3& d : pos)
@@ -96,7 +96,7 @@ class SurfaceActionTest : public Test
         }
     }
 
-    void fill_isotropic(celeritas::Span<Real3> dir)
+    void fill_isotropic(Span<Real3> dir)
     {
         IsotropicDistribution<> sample_isotropic;
         for (Real3& d : dir)

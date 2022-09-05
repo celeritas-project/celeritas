@@ -67,14 +67,14 @@ TEST_F(LoggerTest, global_handlers)
     CELER_LOG(warning) << "This is a warning message";
     CELER_LOG(debug) << "This should be hidden by default";
     std::cerr << "[regular cerr]" << std::endl;
-    ::celeritas::world_logger().level(LogLevel::debug);
+    world_logger().level(LogLevel::debug);
     CELER_LOG(debug) << "This should be shown now";
 
     CELER_LOG_LOCAL(warning) << "Warning from rank " << comm_world.rank();
 
     // Replace 'local' with a null-op logger, so the log message will never
     // show
-    ::celeritas::self_logger() = Logger(comm_self, nullptr);
+    self_logger() = Logger(comm_self, nullptr);
     CELER_LOG_LOCAL(critical) << "the last enemy that shall be destroyed is "
                                  "death";
 }

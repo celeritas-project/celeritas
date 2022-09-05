@@ -21,7 +21,7 @@ namespace test
 
 TEST(InitializedValue, semantics)
 {
-    using InitValueInt = ::celeritas::detail::InitializedValue<int>;
+    using InitValueInt = detail::InitializedValue<int>;
     static_assert(sizeof(InitValueInt) == sizeof(int), "Bad size");
 
     // Use operator new to test that the int is being initialized properly by

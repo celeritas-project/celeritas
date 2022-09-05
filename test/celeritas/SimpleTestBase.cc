@@ -20,8 +20,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-using namespace celeritas::units;
-
 namespace celeritas
 {
 namespace test
@@ -29,7 +27,7 @@ namespace test
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_material() -> SPConstMaterial
 {
-    using namespace celeritas::units;
+    using namespace units;
 
     MaterialParams::Input inp;
     inp.elements  = {{13, AmuMass{27}, "Al"}};
@@ -56,6 +54,7 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_particle() -> SPConstParticle
 {
+    using namespace ::celeritas::units;
     ParticleParams::Input defs;
     defs.push_back({"gamma",
                     pdg::gamma(),
@@ -73,6 +72,7 @@ auto SimpleTestBase::build_particle() -> SPConstParticle
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_cutoff() -> SPConstCutoff
 {
+    using namespace ::celeritas::units;
     CutoffParams::Input input;
     input.materials = this->material();
     input.particles = this->particle();

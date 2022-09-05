@@ -25,8 +25,6 @@
 #include "celeritas_test.hh"
 
 using celeritas::constants::sqrt_two;
-using celeritas::detail::Initialization;
-using celeritas::detail::LocalState;
 
 namespace celeritas
 {
@@ -44,10 +42,12 @@ constexpr real_type sqrt_half = sqrt_two / 2;
 class SimpleUnitTrackerTest : public OrangeGeoTestBase
 {
   protected:
-    using StateHostValue = ::celeritas::HostVal<OrangeStateData>;
-    using StateHostRef   = ::celeritas::HostRef<OrangeStateData>;
+    using StateHostValue = HostVal<OrangeStateData>;
+    using StateHostRef   = HostRef<OrangeStateData>;
     using HostStateStore
         = CollectionStateStore<OrangeStateData, MemSpace::host>;
+    using Initialization = ::celeritas::detail::Initialization;
+    using LocalState     = ::celeritas::detail::LocalState;
 
     struct HeuristicInitResult
     {

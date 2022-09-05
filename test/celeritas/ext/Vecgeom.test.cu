@@ -22,12 +22,12 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
-                                const GeoStateRefDevice    state,
-                                const GeoTrackInitializer* start,
-                                const int                  max_segments,
-                                int*                       ids,
-                                double*                    distances)
+__global__ void vgg_test_kernel(const DeviceCRef<VecgeomParamsData> params,
+                                const DeviceRef<VecgeomStateData>   state,
+                                const GeoTrackInitializer*          start,
+                                const int max_segments,
+                                int*      ids,
+                                double*   distances)
 {
     CELER_EXPECT(params && state);
 

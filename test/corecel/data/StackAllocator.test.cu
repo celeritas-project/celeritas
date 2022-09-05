@@ -56,10 +56,9 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
             // Initialize the secondary
             secondaries[j].mock_id = thread_idx;
         }
-        static_assert(sizeof(void*) == sizeof(celeritas::ull_int),
-                      "Wrong pointer size");
+        static_assert(sizeof(void*) == sizeof(ull_int), "Wrong pointer size");
         atomic_max(&output->last_secondary_address,
-                   reinterpret_cast<celeritas::ull_int>(secondaries));
+                   reinterpret_cast<ull_int>(secondaries));
     }
 }
 

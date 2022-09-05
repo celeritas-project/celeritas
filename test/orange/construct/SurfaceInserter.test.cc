@@ -33,7 +33,7 @@ namespace test
 class SurfaceInserterTest : public Test
 {
   protected:
-    ::celeritas::HostVal<SurfaceData> surface_data_;
+    HostVal<SurfaceData> surface_data_;
 };
 
 //---------------------------------------------------------------------------//

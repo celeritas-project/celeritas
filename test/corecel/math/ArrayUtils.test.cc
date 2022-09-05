@@ -83,9 +83,9 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
 {
     Real3 dir{1, 2, 3};
     normalize_direction(&dir);
-    EXPECT_TRUE(celeritas::is_soft_unit_vector(dir));
+    EXPECT_TRUE(is_soft_unit_vector(dir));
     dir[0] += 1e-12;
-    EXPECT_TRUE(celeritas::is_soft_unit_vector(dir));
+    EXPECT_TRUE(is_soft_unit_vector(dir));
 }
 
 TEST(ArrayUtilsTest, rotate)

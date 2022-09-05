@@ -24,7 +24,7 @@ constexpr real_type sqrt_third = 1 / constants::sqrt_three;
 //---------------------------------------------------------------------------//
 TEST(SphereTest, all)
 {
-    EXPECT_EQ(celeritas::SurfaceType::s, Sphere::surface_type());
+    EXPECT_EQ(SurfaceType::s, Sphere::surface_type());
     EXPECT_EQ(4, Sphere::Storage::extent);
     EXPECT_EQ(2, Sphere::Intersections{}.size());
 

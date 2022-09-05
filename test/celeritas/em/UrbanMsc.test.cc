@@ -48,8 +48,8 @@ using Action    = MscInteraction::Action;
 using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
 using GeoStateRefDevice   = DeviceRef<GeoStateData>;
 
-using SimStateValue = ::celeritas::HostVal<SimStateData>;
-using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
+using SimStateValue = HostVal<SimStateData>;
+using SimStateRef   = NativeRef<SimStateData>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -65,7 +65,7 @@ class UrbanMscTest : public GlobalGeoTestBase
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
+    using PhysicsParamsHostRef = HostCRef<PhysicsParamsData>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:

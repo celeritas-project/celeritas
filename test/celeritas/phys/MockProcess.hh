@@ -40,11 +40,11 @@ class MockProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using BarnMicroXs      = Quantity<celeritas::units::Barn>;
+    using BarnMicroXs      = Quantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using ModelCallback    = std::function<void(celeritas::ActionId)>;
+    using ModelCallback    = std::function<void(ActionId)>;
     //!@}
 
     struct Input

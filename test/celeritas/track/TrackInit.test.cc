@@ -106,7 +106,7 @@ class TrackInitTest : public SimpleTestBase
         ITTestOutput result;
 
         // Copy track initializer data to host
-        ::celeritas::HostVal<TrackInitStateData> data;
+        HostVal<TrackInitStateData> data;
         data = track_init_states;
 
         // Store the IDs of the vacant track slots

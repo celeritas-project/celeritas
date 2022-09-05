@@ -287,7 +287,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 // nearly-tangent cylinder checking to change.
 TEST(TestCCylZ, multi_intersect)
 {
-    constexpr int Y = static_cast<int>(celeritas::Axis::y);
+    constexpr int Y = static_cast<int>(Axis::y);
 
     CCylZ cyl(10.0);
 

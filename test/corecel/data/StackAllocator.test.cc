@@ -20,7 +20,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-template<celeritas::Ownership W, MemSpace M>
+template<Ownership W, MemSpace M>
 using MockAllocatorData = StackAllocatorData<MockSecondary, W, M>;
 
 //---------------------------------------------------------------------------//

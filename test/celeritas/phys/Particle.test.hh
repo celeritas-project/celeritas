@@ -16,18 +16,12 @@ namespace celeritas
 {
 namespace test
 {
-
-using ParticleParamsRef = ::celeritas::DeviceCRef<ParticleParamsData>;
-using ParticleStateRef  = ::celeritas::DeviceRef<ParticleStateData>;
-
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
 struct PTVTestInput
 {
-    ParticleParamsRef params;
-    ParticleStateRef  states;
+    DeviceCRef<ParticleParamsData> params;
+    DeviceRef<ParticleStateData>   states;
 
     std::vector<ParticleTrackInitializer> init;
 };

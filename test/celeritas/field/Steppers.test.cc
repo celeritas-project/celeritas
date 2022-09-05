@@ -96,7 +96,7 @@ class SteppersTest : public Test
                     StepperResult result = stepper(hstep, y);
                     y                    = result.end_state;
 
-                    total_err2 += ::celeritas::detail::truncation_error(
+                    total_err2 += detail::truncation_error(
                         hstep, 0.001, y, result.err_state);
                 }
                 // Check the state after each revolution and the total error

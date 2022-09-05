@@ -31,7 +31,7 @@ class CMSMapField
     //!@{
     //! \name Type aliases
     using Real3       = Array<real_type, 3>;
-    using FieldMapRef = ::celeritas::NativeCRef<FieldMapData>;
+    using FieldMapRef = NativeCRef<FieldMapData>;
     //!@}
 
   public:

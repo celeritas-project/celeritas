@@ -16,12 +16,6 @@ namespace celeritas
 {
 namespace test
 {
-
-using GeoParamsCRefDevice = DeviceCRef<celeritas::VecgeomParamsData>;
-using GeoStateRefDevice   = DeviceRef<celeritas::VecgeomStateData>;
-
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
 //---------------------------------------------------------------------------//
 
 //! Input data
@@ -29,8 +23,8 @@ struct VGGTestInput
 {
     std::vector<GeoTrackInitializer> init;
     int                              max_segments = 0;
-    GeoParamsCRefDevice              params;
-    GeoStateRefDevice                state;
+    DeviceCRef<VecgeomParamsData>    params;
+    DeviceRef<VecgeomStateData>      state;
 };
 
 //---------------------------------------------------------------------------//

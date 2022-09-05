@@ -27,7 +27,7 @@ using Intersections = GeneralQuadric::Intersections;
  */
 TEST(GeneralQuadricTest, all)
 {
-    EXPECT_EQ(celeritas::SurfaceType::gq, GeneralQuadric::surface_type());
+    EXPECT_EQ(SurfaceType::gq, GeneralQuadric::surface_type());
     EXPECT_EQ(10, GeneralQuadric::Storage::extent);
     EXPECT_EQ(2, GeneralQuadric::Intersections{}.size());
 

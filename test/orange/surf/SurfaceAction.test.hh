@@ -67,7 +67,7 @@ struct OrangeMiniStateData
  */
 template<MemSpace M>
 inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
-                   const HostCRef<celeritas::SurfaceData>&,
+                   const HostCRef<SurfaceData>&,
                    size_type size)
 {
     CELER_EXPECT(data);
@@ -105,8 +105,7 @@ struct CalcSenseDistance
         {
             CELER_ASSERT(distance > 0);
         }
-        *this->distance
-            = *celeritas::min_element(intersect.begin(), intersect.end());
+        *this->distance = *min_element(intersect.begin(), intersect.end());
     }
 };
 
@@ -139,8 +138,8 @@ struct CalcSenseDistanceLauncher
 //! Input data
 struct SATestInput
 {
-    using ParamsRef = DeviceCRef<celeritas::SurfaceData>;
-    using StateRef  = ::celeritas::DeviceRef<OrangeMiniStateData>;
+    using ParamsRef = DeviceCRef<SurfaceData>;
+    using StateRef  = DeviceRef<OrangeMiniStateData>;
 
     ParamsRef params;
     StateRef  states;

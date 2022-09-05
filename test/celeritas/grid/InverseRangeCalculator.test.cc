@@ -36,7 +36,7 @@ class InverseRangeCalculatorTest : public CalculatorTestBase
         }
 
         // Adjust final point for roundoff for exact top-of-range testing
-        CELER_ASSERT(celeritas::soft_equal(real_type(500), value_span.back()));
+        CELER_ASSERT(soft_equal(real_type(500), value_span.back()));
         value_span.back() = 500;
     }
 };

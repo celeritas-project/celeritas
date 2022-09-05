@@ -378,7 +378,7 @@ TEST(CountTest, start)
     }
     EXPECT_VEC_EQ((VecInt{10, 25, 40, 55, 70, 85}), vals);
 
-    EXPECT_EQ(10, *celeritas::Count<int>(10).begin());
+    EXPECT_EQ(10, *Count<int>(10).begin());
 }
 
 TEST(CountTest, backward)

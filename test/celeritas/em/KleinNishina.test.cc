@@ -116,7 +116,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
         energy.push_back(result.energy.value());
         costheta.push_back(dot_product(result.direction, this->direction()));
         energy_electron.push_back(result.secondaries.front().energy.value());
-        costheta_electron.push_back(celeritas::dot_product(
+        costheta_electron.push_back(dot_product(
             result.secondaries.front().direction, this->direction()));
     }
 

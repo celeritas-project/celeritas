@@ -28,7 +28,7 @@ using StateRef = OrangeStateData<Ownership::reference, M>;
 
 template<class T>
 CELER_CONSTEXPR_FUNCTION ItemRange<T>
-                         build_range(celeritas::size_type stride, ThreadId tid)
+                         build_range(size_type stride, ThreadId tid)
 {
     CELER_EXPECT(tid);
     using IdT = ItemId<T>;

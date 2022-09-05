@@ -31,12 +31,12 @@ constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
 TEST(ItemRange, types)
 {
-    EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
+    EXPECT_TRUE((is_trivial_v<ItemRange<int>>));
     EXPECT_TRUE((
         is_trivial_v<Collection<int, Ownership::reference, MemSpace::device>>));
-    EXPECT_TRUE((is_trivial_v<celeritas::Collection<int,
-                                                    Ownership::const_reference,
-                                                    MemSpace::device>>));
+    EXPECT_TRUE(
+        (is_trivial_v<
+            Collection<int, Ownership::const_reference, MemSpace::device>>));
 }
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
@@ -190,7 +190,7 @@ class CollectionTest : public Test
 
     void SetUp() override
     {
-        ::celeritas::HostVal<MockParamsData> host_data;
+        HostVal<MockParamsData> host_data;
         host_data.max_element_components = 3;
 
         auto el_builder  = make_builder(&host_data.elements);
@@ -274,7 +274,7 @@ inline void resize(MockStateData<Ownership::value, M>* data, size_type size)
 
 TEST_F(CollectionTest, host)
 {
-    ::celeritas::HostVal<MockStateData> host_state;
+    HostVal<MockStateData> host_state;
     resize(&host_state, 1);
     auto host_state_ref               = make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
@@ -299,7 +299,7 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
 
     col_cuda_test(kernel_input);
     std::vector<double> result(device_result.size());
-    device_result.copy_to_host(celeritas::make_span(result));
+    device_result.copy_to_host(make_span(result));
 
     // For brevity, only check the first 6 values (they repeat after that)
     result.resize(6);

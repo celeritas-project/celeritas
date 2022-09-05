@@ -33,7 +33,7 @@ class CutoffParamsTest : public Test
   protected:
     void SetUp() override
     {
-        using namespace ::celeritas::units;
+        using namespace units;
 
         // Set up MaterialParams
         MaterialParams::Input m_input;

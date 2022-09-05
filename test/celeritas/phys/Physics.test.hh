@@ -40,21 +40,21 @@ struct PhysTestInit
 
 struct PTestInput
 {
-    DeviceCRef<celeritas::PhysicsParamsData> params;
-    DeviceRef<celeritas::PhysicsStateData>   states;
+    DeviceCRef<PhysicsParamsData> params;
+    DeviceRef<PhysicsStateData>   states;
     StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 
     // Calculated "step" per track
-    Span<celeritas::real_type> result;
+    Span<real_type> result;
 };
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION real_type calc_step(celeritas::PhysicsTrackView& phys,
-                                          PhysicsStepView&             pstep,
-                                          units::MevEnergy             energy)
+inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
+                                          PhysicsStepView&  pstep,
+                                          units::MevEnergy  energy)
 {
     // Calc total macro_xs over processsess
     real_type total_xs = 0;

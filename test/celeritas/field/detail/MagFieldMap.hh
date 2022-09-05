@@ -29,8 +29,8 @@ class MagFieldMap
     //@{
     //! Type aliases
     using ReadMap   = std::function<detail::FieldMapInput()>;
-    using HostRef   = ::celeritas::HostCRef<FieldMapData>;
-    using DeviceRef = ::celeritas::DeviceCRef<FieldMapData>;
+    using HostRef   = HostCRef<FieldMapData>;
+    using DeviceRef = DeviceCRef<FieldMapData>;
     //@}
 
   public:
@@ -48,7 +48,7 @@ class MagFieldMap
     CollectionMirror<FieldMapData> mirror_;
 
   private:
-    using HostValue = ::celeritas::HostVal<FieldMapData>;
+    using HostValue = HostVal<FieldMapData>;
     void build_data(const ReadMap&, HostValue*);
 };
 

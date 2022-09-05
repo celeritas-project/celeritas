@@ -140,8 +140,8 @@ class ParticleTestHost : public ParticleTest
         state_ref = state_value;
     }
 
-    ::celeritas::HostVal<ParticleStateData> state_value;
-    ::celeritas::HostRef<ParticleStateData> state_ref;
+    HostVal<ParticleStateData> state_value;
+    HostRef<ParticleStateData> state_ref;
 };
 
 TEST_F(ParticleTestHost, electron)

@@ -64,7 +64,7 @@ TEST(QuantityTest, usage)
     EXPECT_SOFT_EQ(2 * pi / 16, native_value_from(spacing));
 
     // Create a quantity from a literal value in the native unit system
-    auto half_rev = native_value_to<Revolution>(celeritas::constants::pi);
+    auto half_rev = native_value_to<Revolution>(constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
 }

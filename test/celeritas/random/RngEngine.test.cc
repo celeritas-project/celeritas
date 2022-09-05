@@ -95,7 +95,7 @@ TEST_F(SequenceEngineTest, manual)
 
 TEST_F(SequenceEngineTest, from_reals)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     EXPECT_EQ(values_.size() * 2, engine.max_count());
     SequenceEngine::VecResult actual(engine.max_count());
     std::generate(actual.begin(), actual.end(), std::ref(engine));
@@ -116,7 +116,7 @@ TEST_F(SequenceEngineTest, from_reals)
 
 TEST_F(SequenceEngineTest, double_canonical)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     for (double expected : values_)
     {
         double actual = generate_canonical<double>(engine);
@@ -129,7 +129,7 @@ TEST_F(SequenceEngineTest, double_canonical)
 
 TEST_F(SequenceEngineTest, float_canonical)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     for (double expected : values_)
     {
         float actual = generate_canonical<float>(engine);

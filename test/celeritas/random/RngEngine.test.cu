@@ -29,7 +29,7 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample_native_kernel(::celeritas::DeviceRef<RngStateData> view,
+__global__ void sample_native_kernel(DeviceRef<RngStateData> view,
                                      RngEngine::result_type* samples)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -42,8 +42,7 @@ __global__ void sample_native_kernel(::celeritas::DeviceRef<RngStateData> view,
 
 template<class RealType>
 __global__ void
-sample_canonical_kernel(::celeritas::DeviceRef<RngStateData> view,
-                        RealType*                            samples)
+sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() < view.size())
@@ -81,7 +80,7 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
 {
     thrust::device_vector<T> samples(states.size());
 
-    static const ::celeritas::KernelParamCalculator calc_launch_params(
+    static const KernelParamCalculator calc_launch_params(
         sample_canonical_kernel<T>,
         "sample_canonical",
         device().default_block_size());

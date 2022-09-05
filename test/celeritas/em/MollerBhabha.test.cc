@@ -40,7 +40,7 @@ class MollerBhabhaInteractorTest : public InteractorHostTestBase
             {1.0 * constants::na_avogadro,
              293.0,
              MatterState::solid,
-             {{celeritas::ElementId{0}, 1.0}},
+             {{ElementId{0}, 1.0}},
              "Cu"},
         };
         this->set_material_params(inp);

@@ -145,7 +145,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     //!@{
     //! Type aliases
     using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
-    using ParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
+    using ParamsHostRef = HostCRef<PhysicsParamsData>;
     //!@}
 
     void SetUp() override
@@ -774,8 +774,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 {
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
         this->physics()->host_ref(), 1};
-    ::celeritas::HostCRef<PhysicsParamsData> params_ref{
-        this->physics()->host_ref()};
+    HostCRef<PhysicsParamsData> params_ref{this->physics()->host_ref()};
 
     const auto pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);

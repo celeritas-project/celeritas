@@ -55,7 +55,7 @@ InteractorHostTestBase::InteractorHostTestBase()
         {0.141 * na_avogadro,
          293.0,
          MatterState::solid,
-         {{celeritas::ElementId{0}, 1.0}},
+         {{ElementId{0}, 1.0}},
          Label{"Cu"}},
         {0.05477 * na_avogadro,
          293.15,
@@ -70,14 +70,12 @@ InteractorHostTestBase::InteractorHostTestBase()
         {1.0 * na_avogadro,
          293.0,
          MatterState::solid,
-         {{celeritas::ElementId{0}, 1.0}},
+         {{ElementId{0}, 1.0}},
          Label{"Cu-1.0"}},
         {1.0 * constants::na_avogadro,
          293.0,
          MatterState::solid,
-         {{celeritas::ElementId{2}, 0.5},
-          {celeritas::ElementId{3}, 0.3},
-          {celeritas::ElementId{4}, 0.2}},
+         {{ElementId{2}, 0.5}, {ElementId{3}, 0.3}, {ElementId{4}, 0.2}},
          Label{"PbWO"}},
     };
     this->set_material_params(std::move(mat_inp));
@@ -113,8 +111,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
     CELER_EXPECT(!inp.materials.empty());
 
     material_params_ = std::make_shared<MaterialParams>(std::move(inp));
-    ms_              = StateStore<celeritas::MaterialStateData>(
-        material_params_->host_ref(), 1);
+    ms_ = StateStore<MaterialStateData>(material_params_->host_ref(), 1);
     cutoff_params_ = {};
 }
 
@@ -144,8 +141,7 @@ void InteractorHostTestBase::set_particle_params(ParticleParams::Input inp)
 {
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
-    ps_              = StateStore<celeritas::ParticleStateData>(
-        particle_params_->host_ref(), 1);
+    ps_ = StateStore<ParticleStateData>(particle_params_->host_ref(), 1);
     cutoff_params_ = {};
 }
 
@@ -197,7 +193,7 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
  */
 void InteractorHostTestBase::set_inc_direction(const Real3& dir)
 {
-    CELER_EXPECT(celeritas::norm(dir) > 0);
+    CELER_EXPECT(norm(dir) > 0);
 
     inc_direction_ = dir;
     normalize_direction(&inc_direction_);
@@ -266,7 +262,7 @@ void InteractorHostTestBase::check_energy_conservation(
 void InteractorHostTestBase::check_momentum_conservation(
     const Interaction& interaction) const
 {
-    CollectionStateStore<celeritas::ParticleStateData, MemSpace::host> temp_store(
+    CollectionStateStore<ParticleStateData, MemSpace::host> temp_store(
         particle_params_->host_ref(), 1);
     ParticleTrackView temp_track(
         particle_params_->host_ref(), temp_store.ref(), ThreadId{0});

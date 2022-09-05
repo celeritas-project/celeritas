@@ -49,8 +49,8 @@ class MockFluctuationTest : public MockTestBase
 class EnergyLossDistributionTest : public Test
 {
   protected:
-    using HostValue = ::celeritas::HostVal<FluctuationData>;
-    using HostRef   = ::celeritas::HostCRef<FluctuationData>;
+    using HostValue = HostVal<FluctuationData>;
+    using HostRef   = HostCRef<FluctuationData>;
     using MaterialStateStore
         = CollectionStateStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore

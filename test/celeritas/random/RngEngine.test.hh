@@ -21,7 +21,7 @@ namespace test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-using RngDeviceRef = DeviceRef<celeritas::RngStateData>;
+using RngDeviceRef = DeviceRef<RngStateData>;
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results

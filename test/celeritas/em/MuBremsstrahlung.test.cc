@@ -108,8 +108,8 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
                   this->secondary_allocator().get().data() + i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        costheta.push_back(celeritas::dot_product(
-            result.secondaries.front().direction, this->direction()));
+        costheta.push_back(dot_product(result.secondaries.front().direction,
+                                       this->direction()));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());

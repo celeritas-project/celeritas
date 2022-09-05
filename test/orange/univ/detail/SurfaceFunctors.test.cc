@@ -45,8 +45,8 @@ class SurfaceFunctorsTest : public ::celeritas::test::Test
         return surfaces_->make_surface<T>(SurfaceId{sid});
     }
 
-    ::celeritas::HostVal<SurfaceData>  surface_data_;
-    ::celeritas::HostCRef<SurfaceData> sd_ref_;
+    HostVal<SurfaceData>  surface_data_;
+    HostCRef<SurfaceData> sd_ref_;
 
     std::unique_ptr<Surfaces> surfaces_;
 };

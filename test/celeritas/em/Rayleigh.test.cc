@@ -52,21 +52,19 @@ class RayleighInteractorTest : public InteractorHostTestBase
             {1.0 * constants::na_avogadro,
              293.0,
              MatterState::solid,
-             {{celeritas::ElementId{0}, 0.5},
-              {celeritas::ElementId{1}, 0.3},
-              {celeritas::ElementId{2}, 0.2}},
+             {{ElementId{0}, 0.5}, {ElementId{1}, 0.3}, {ElementId{2}, 0.2}},
              "PbWO"},
         };
         this->set_material_params(inp);
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
-        std::vector<celeritas::ImportProcess> imported{
+        std::vector<ImportProcess> imported{
             {22,
              0,
              ImportProcessType::electromagnetic,
              ImportProcessClass::rayleigh,
-             {celeritas::ImportModelClass::livermore_rayleigh},
+             {ImportModelClass::livermore_rayleigh},
              {},
              {}}};
         this->set_imported_processes(imported);

@@ -31,9 +31,9 @@ namespace test
 class VolumeInserterTest : public Test
 {
   protected:
-    ::celeritas::HostVal<VolumeData>   volume_data_;
-    ::celeritas::HostVal<SurfaceData>  surface_data_;
-    ::celeritas::HostCRef<SurfaceData> surface_ref_;
+    HostVal<VolumeData>   volume_data_;
+    HostVal<SurfaceData>  surface_data_;
+    HostCRef<SurfaceData> surface_ref_;
 
     void SetUp() override
     {

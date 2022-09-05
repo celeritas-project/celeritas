@@ -46,10 +46,10 @@ TEST(DeviceVectorTest, all)
     data.front() = 1;
     data.back()  = 1234567;
 
-    vec.copy_to_device(celeritas::make_span(data));
+    vec.copy_to_device(make_span(data));
 
     std::vector<int> newdata(vec.size());
-    vec.copy_to_host(celeritas::make_span(newdata));
+    vec.copy_to_host(make_span(newdata));
     EXPECT_EQ(1, newdata.front());
     EXPECT_EQ(1234567, newdata.back());
 

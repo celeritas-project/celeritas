@@ -160,10 +160,10 @@ class InteractorHostTestBase : public Test
     void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
-    template<template<celeritas::Ownership, MemSpace> class S>
+    template<template<Ownership, MemSpace> class S>
     using StateStore = CollectionStateStore<S, MemSpace::host>;
-    template<celeritas::Ownership W, MemSpace M>
-    using SecondaryStackData = StackAllocatorData<celeritas::Secondary, W, M>;
+    template<Ownership W, MemSpace M>
+    using SecondaryStackData = StackAllocatorData<Secondary, W, M>;
 
     std::shared_ptr<const MaterialParams>    material_params_;
     std::shared_ptr<const ParticleParams>    particle_params_;
@@ -171,8 +171,8 @@ class InteractorHostTestBase : public Test
     std::shared_ptr<const ImportedProcesses> imported_processes_;
     RandomEngine                             rng_;
 
-    StateStore<celeritas::MaterialStateData> ms_;
-    StateStore<celeritas::ParticleStateData> ps_;
+    StateStore<MaterialStateData> ms_;
+    StateStore<ParticleStateData> ps_;
 
     Real3                          inc_direction_ = {0, 0, 1};
     StateStore<SecondaryStackData> secondaries_;

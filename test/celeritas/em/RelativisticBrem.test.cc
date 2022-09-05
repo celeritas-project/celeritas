@@ -49,21 +49,19 @@ class RelativisticBremTest : public InteractorHostTestBase
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
-        std::vector<celeritas::ImportProcess> imported{
+        std::vector<ImportProcess> imported{
             {11,
              22,
              ImportProcessType::electromagnetic,
              ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              ImportModelClass::e_brems_lpm},
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}},
             {-11,
              22,
              ImportProcessType::electromagnetic,
              ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              ImportModelClass::e_brems_lpm},
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}}};
         this->set_imported_processes(imported);
@@ -218,8 +216,8 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.back().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -283,8 +281,8 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.back().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
