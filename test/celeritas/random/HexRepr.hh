@@ -1,30 +1,37 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedStreamRedirect.test.cc
+//! \file celeritas/random/HexRepr.hh
 //---------------------------------------------------------------------------//
-#include "corecel/io/ScopedStreamRedirect.hh"
-
-#include "celeritas_test.hh"
+#pragma once
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-TEST(ScopedStreamRedirectTest, all)
-{
-    const auto* orig_buf = std::cout.rdbuf();
-    {
-        ScopedStreamRedirect redirect(&std::cout);
-        EXPECT_NE(orig_buf, std::cout.rdbuf());
 
-        std::cout << "More output  \n";
-        EXPECT_EQ("More output", redirect.str());
-    }
-    EXPECT_EQ(orig_buf, std::cout.rdbuf());
+template<class T>
+struct HexRepr
+{
+    T value;
+};
+
+template<class T>
+inline std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
+{
+    ScopedStreamFormat save_fmt(&os);
+
+    os << std::hexfloat << h.value;
+    return os;
+}
+
+template<class T>
+inline HexRepr<T> hex_repr(T value)
+{
+    return HexRepr<T>{value};
 }
 
 //---------------------------------------------------------------------------//

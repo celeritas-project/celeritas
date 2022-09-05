@@ -15,7 +15,9 @@
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/Process.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,18 +35,16 @@ namespace celeritas_test
  * The given applicability vector has one element per model that it will
  * create. Each model can have a different particle type and/or energy range.
  */
-class MockProcess : public celeritas::Process
+class MockProcess : public Process
 {
   public:
     //!@{
     //! Type aliases
-    using real_type        = celeritas::real_type;
-    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
-    using Applicability    = celeritas::Applicability;
+    using BarnMicroXs      = Quantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
-    using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
-    using ModelCallback    = std::function<void(celeritas::ActionId)>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
+    using ModelCallback    = std::function<void(ActionId)>;
     //!@}
 
     struct Input
@@ -71,4 +71,5 @@ class MockProcess : public celeritas::Process
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

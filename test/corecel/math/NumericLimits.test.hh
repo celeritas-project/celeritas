@@ -9,7 +9,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -39,4 +41,5 @@ inline NLTestOutput<T> nl_test()
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

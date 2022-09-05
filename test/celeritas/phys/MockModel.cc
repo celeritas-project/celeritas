@@ -12,7 +12,9 @@
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/mat/MaterialView.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 MockModel::MockModel(Input data) : data_(std::move(data))
@@ -35,7 +37,7 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
 
     MicroXsBuilders builders;
 
-    celeritas::MaterialView mat(data_.materials->host_ref(), range.material);
+    MaterialView mat(data_.materials->host_ref(), range.material);
     if (!data_.xs.empty())
     {
         for (const auto& elcomp : mat.elements())
@@ -46,9 +48,8 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
                 xs_grid.push_back(native_value_from(xs));
             }
 
-            builders[elcomp.element]
-                = std::make_unique<celeritas::ValueGridLogBuilder>(
-                    range.lower.value(), range.upper.value(), xs_grid);
+            builders[elcomp.element] = std::make_unique<ValueGridLogBuilder>(
+                range.lower.value(), range.upper.value(), xs_grid);
         }
     }
 
@@ -82,4 +83,5 @@ std::string MockModel::description() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

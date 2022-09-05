@@ -9,23 +9,24 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class PrimaryGeneratorTest : public celeritas_test::Test
+class PrimaryGeneratorTest : public Test
 {
   protected:
     void SetUp() override
     {
-        namespace pdg = celeritas::pdg;
-
-        constexpr auto zero = celeritas::zero_quantity();
-        constexpr auto stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        constexpr auto zero   = zero_quantity();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;
@@ -45,9 +46,9 @@ TEST_F(PrimaryGeneratorTest, host)
     PrimaryGeneratorOptions opts;
     EXPECT_FALSE(opts);
 
-    opts.pdg = pdg::gamma();
-    opts.energy = MevEnergy{10};
-    opts.num_events = 2;
+    opts.pdg                 = pdg::gamma();
+    opts.energy              = MevEnergy{10};
+    opts.num_events          = 2;
     opts.primaries_per_event = 3;
 
     PrimaryGenerator generate_primaries(particles_, opts);
@@ -79,3 +80,6 @@ TEST_F(PrimaryGeneratorTest, host)
     EXPECT_VEC_EQ(expected_event_id, event_id);
     EXPECT_VEC_EQ(expected_track_id, track_id);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

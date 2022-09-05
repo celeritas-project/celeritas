@@ -20,18 +20,20 @@
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeInserterTest : public celeritas_test::Test
+class VolumeInserterTest : public Test
 {
   protected:
-    ::celeritas::HostVal<VolumeData>   volume_data_;
-    ::celeritas::HostVal<SurfaceData>  surface_data_;
-    ::celeritas::HostCRef<SurfaceData> surface_ref_;
+    HostVal<VolumeData>   volume_data_;
+    HostVal<SurfaceData>  surface_data_;
+    HostCRef<SurfaceData> surface_ref_;
 
     void SetUp() override
     {
@@ -125,3 +127,6 @@ TEST_F(VolumeInserterTest, from_json)
     }
 #endif
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

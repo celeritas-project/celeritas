@@ -21,9 +21,9 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
@@ -34,7 +34,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     // Create states
     CollectionStateStore<CoreStateData, MemSpace::host> states{
         this->core()->host_ref(), num_tracks};
-    CoreRef<MemSpace::host>                             core_ref;
+    CoreRef<MemSpace::host> core_ref;
     core_ref.params = this->core()->host_ref();
     core_ref.states = states.ref();
     CELER_ASSERT(core_ref);
@@ -61,8 +61,8 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         TrackInitParams init_params{std::move(inp)};
         TrackInitStateData<Ownership::value, MemSpace::host> init_states;
         resize(&init_states, init_params.host_ref(), num_tracks);
-        celeritas::extend_from_primaries(init_params.host_ref(), &init_states);
-        celeritas::initialize_tracks(core_ref, &init_states);
+        extend_from_primaries(init_params.host_ref(), &init_states);
+        initialize_tracks(core_ref, &init_states);
     }
 
     // Set remaining MFP
@@ -97,8 +97,8 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
 
         result.eloss += value_as<MevEnergy>(inp.energy)
                         - value_as<MevEnergy>(particle.energy());
-        result.displacement += celeritas::distance(geo.pos(), inp.position);
-        result.angle += celeritas::dot_product(geo.dir(), inp.direction);
+        result.displacement += distance(geo.pos(), inp.position);
+        result.angle += dot_product(geo.dir(), inp.direction);
         result.time += sim.time();
         result.step += sim.step_limit().step;
         actions[sim.step_limit().action] += 1;
@@ -160,4 +160,5 @@ void AlongStepTestBase::RunResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

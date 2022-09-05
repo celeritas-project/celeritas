@@ -15,16 +15,11 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::CCylX;
-using celeritas::CCylY;
-using celeritas::CCylZ;
-using celeritas::no_intersection;
-using celeritas::SignedSense;
-using celeritas::SurfaceState;
-
-using celeritas::ipow;
-using celeritas::Real3;
-using celeritas::real_type;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using Intersections = CCylX::Intersections;
 using VecReal       = std::vector<real_type>;
@@ -292,7 +287,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 // nearly-tangent cylinder checking to change.
 TEST(TestCCylZ, multi_intersect)
 {
-    constexpr int Y = static_cast<int>(celeritas::Axis::y);
+    constexpr int Y = static_cast<int>(Axis::y);
 
     CCylZ cyl(10.0);
 
@@ -374,7 +369,7 @@ TEST(TestCCylZ, multi_intersect)
 /*!
  * Test initialization on or near boundary
  */
-class DegenerateBoundaryTest : public celeritas_test::Test
+class DegenerateBoundaryTest : public Test
 {
   protected:
     void run(real_type xdir) const;
@@ -443,3 +438,6 @@ TEST_F(DegenerateBoundaryTest, pos)
     eps = 1.e-8;
     run_all();
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

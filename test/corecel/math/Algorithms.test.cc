@@ -14,6 +14,12 @@
 
 #include "celeritas_test.hh"
 
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 struct Foo
 {
 };
@@ -58,8 +64,6 @@ TEST(UtilityTest, move)
 
 TEST(UtilityTest, trivial_swap)
 {
-    using celeritas::trivial_swap;
-
     // Test trivial type swapping
     {
         int a = 1;
@@ -74,23 +78,22 @@ TEST(UtilityTest, trivial_swap)
 
 TEST(AlgorithmsTest, clamp)
 {
-    EXPECT_EQ(123, celeritas::clamp(123, 100, 200));
-    EXPECT_EQ(100, celeritas::clamp(99, 100, 200));
-    EXPECT_EQ(200, celeritas::clamp(999, 100, 200));
+    EXPECT_EQ(123, clamp(123, 100, 200));
+    EXPECT_EQ(100, clamp(99, 100, 200));
+    EXPECT_EQ(200, clamp(999, 100, 200));
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(celeritas::clamp(150, 200, 100), celeritas::DebugError);
+        EXPECT_THROW(clamp(150, 200, 100), DebugError);
     }
 }
 
 TEST(AlgorithmsTest, clamp_to_nonneg)
 {
-    using celeritas::clamp_to_nonneg;
     constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
 
     EXPECT_DOUBLE_EQ(1.2345, clamp_to_nonneg(1.2345));
     EXPECT_DOUBLE_EQ(0.0, clamp_to_nonneg(-123));
-    EXPECT_TRUE(std::isnan(celeritas::clamp_to_nonneg(nan)));
+    EXPECT_TRUE(std::isnan(clamp_to_nonneg(nan)));
 }
 
 TEST(AlgorithmsTest, lower_bound)
@@ -151,8 +154,8 @@ TEST(AlgorithmsTest, sort)
 }
 TEST(AlgorithmsTest, minmax)
 {
-    EXPECT_EQ(1, celeritas::min<int>(1, 2));
-    EXPECT_EQ(2, celeritas::max<int>(1, 2));
+    EXPECT_EQ(1, min<int>(1, 2));
+    EXPECT_EQ(2, max<int>(1, 2));
 }
 
 TEST(AlgorithmsTest, min_element)
@@ -188,25 +191,23 @@ TEST(AlgorithmsTest, min_element)
 
 TEST(MathTest, ipow)
 {
-    EXPECT_DOUBLE_EQ(1, celeritas::ipow<0>(0.0));
-    EXPECT_EQ(123.456, celeritas::ipow<1>(123.456));
-    EXPECT_EQ(8, (celeritas::ipow<3>(2)));
-    EXPECT_FLOAT_EQ(0.001f, celeritas::ipow<3>(0.1f));
-    EXPECT_EQ(1e4, celeritas::ipow<4>(10.0));
-    EXPECT_TRUE((std::is_same<int, decltype(celeritas::ipow<4>(5))>::value));
+    EXPECT_DOUBLE_EQ(1, ipow<0>(0.0));
+    EXPECT_EQ(123.456, ipow<1>(123.456));
+    EXPECT_EQ(8, ipow<3>(2));
+    EXPECT_FLOAT_EQ(0.001f, ipow<3>(0.1f));
+    EXPECT_EQ(1e4, ipow<4>(10.0));
+    EXPECT_TRUE((std::is_same<int, decltype(ipow<4>(5))>::value));
 }
 
 //---------------------------------------------------------------------------//
 
 TEST(MathTest, fastpow)
 {
-    using celeritas::fastpow;
-
     EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 1.0));
     EXPECT_DOUBLE_EQ(1.0, fastpow(1234.0, 0.0));
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(fastpow(0.0, 0.0), celeritas::DebugError);
+        EXPECT_THROW(fastpow(0.0, 0.0), DebugError);
     }
     EXPECT_DOUBLE_EQ(123.456, fastpow(123.456, 1.0));
     EXPECT_FLOAT_EQ(0.001f, fastpow(0.1f, 3.0f));
@@ -221,12 +222,16 @@ TEST(MathTest, fastpow)
 TEST(MathTest, rsqrt)
 {
     constexpr auto dblinf = std::numeric_limits<double>::infinity();
-    EXPECT_DOUBLE_EQ(0.5, celeritas::rsqrt(4.0));
-    EXPECT_DOUBLE_EQ(dblinf, celeritas::rsqrt(0.0));
-    EXPECT_DOUBLE_EQ(0.0, celeritas::rsqrt(dblinf));
+    EXPECT_DOUBLE_EQ(0.5, rsqrt(4.0));
+    EXPECT_DOUBLE_EQ(dblinf, rsqrt(0.0));
+    EXPECT_DOUBLE_EQ(0.0, rsqrt(dblinf));
 
     constexpr auto fltinf = std::numeric_limits<float>::infinity();
-    EXPECT_FLOAT_EQ(0.5f, celeritas::rsqrt(4.0f));
-    EXPECT_FLOAT_EQ(fltinf, celeritas::rsqrt(0.0f));
-    EXPECT_FLOAT_EQ(0.0f, celeritas::rsqrt(fltinf));
+    EXPECT_FLOAT_EQ(0.5f, rsqrt(4.0f));
+    EXPECT_FLOAT_EQ(fltinf, rsqrt(0.0f));
+    EXPECT_FLOAT_EQ(0.0f, rsqrt(fltinf));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

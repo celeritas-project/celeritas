@@ -14,9 +14,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
 
-#include "detail/TestConfig.hh"
+#include "testdetail/TestConfig.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -27,7 +29,7 @@ namespace celeritas_test
 std::string Test::test_data_path(const char* subdir, const char* filename)
 {
     std::ostringstream os;
-    os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
+    os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;
 
     std::string result = os.str();
     CELER_VALIDATE(std::ifstream(result).good(),
@@ -120,7 +122,7 @@ std::string Test::make_unique_filename(const char* ext)
  */
 bool Test::strict_testing()
 {
-    const std::string& envstr = celeritas::getenv("CELER_TEST_STRICT");
+    const std::string& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
     if (envstr == "0")
     {
         return false;
@@ -134,4 +136,5 @@ bool Test::strict_testing()
 constexpr double Test::inf;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -20,8 +20,10 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -33,7 +35,7 @@ using namespace celeritas;
  * G4EMLOW7.12 and G4EMLOW7.13 produce slightly different physics vector
  * values for steel, failing \c processes test.
  */
-class RootImporterTest : public celeritas_test::Test
+class RootImporterTest : public Test
 {
   protected:
     void SetUp() override
@@ -96,9 +98,9 @@ TEST_F(RootImporterTest, elements)
         inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
     }
 
-    static const char* expected_names[] = {"Fe", "Cr", "Ni", "H"};
-    static const int         expected_atomic_numbers[] = {26, 24, 28, 1};
-    static const double      expected_atomic_masses[]
+    static const char*  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
+    static const int    expected_atomic_numbers[] = {26, 24, 28, 1};
+    static const double expected_atomic_masses[]
         = {55.845110798, 51.996130137, 58.6933251009, 1.007940752665}; // [AMU]
     static const double expected_coulomb_factors[] = {0.04197339849163,
                                                       0.03592322294658,
@@ -213,14 +215,13 @@ TEST_F(RootImporterTest, processes)
                             });
     };
 
-    auto ioni
-        = find_process(celeritas::pdg::electron(), ImportProcessClass::e_ioni);
+    auto ioni = find_process(pdg::electron(), ImportProcessClass::e_ioni);
     ASSERT_NE(processes.end(), ioni);
 
     EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
     ASSERT_EQ(1, ioni->models.size());
     EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
-    EXPECT_EQ(celeritas::pdg::electron().get(), ioni->secondary_pdg);
+    EXPECT_EQ(pdg::electron().get(), ioni->secondary_pdg);
 
     // No ionization micro xs
     EXPECT_EQ(0, ioni->micro_xs.size());
@@ -297,10 +298,9 @@ TEST_F(RootImporterTest, processes)
             return result;
         };
 
-        auto brem = find_process(celeritas::pdg::electron(),
-                                 ImportProcessClass::e_brems);
+        auto brem = find_process(pdg::electron(), ImportProcessClass::e_brems);
         ASSERT_NE(processes.end(), brem);
-        EXPECT_EQ(celeritas::pdg::gamma().get(), brem->secondary_pdg);
+        EXPECT_EQ(pdg::gamma().get(), brem->secondary_pdg);
         EXPECT_EQ(2, brem->micro_xs.size());
         EXPECT_EQ(brem->models.size(), brem->micro_xs.size());
         {
@@ -357,10 +357,9 @@ TEST_F(RootImporterTest, processes)
         }
         {
             // Check Klein-Nishina micro xs
-            auto comp = find_process(celeritas::pdg::gamma(),
-                                     ImportProcessClass::compton);
+            auto comp = find_process(pdg::gamma(), ImportProcessClass::compton);
             ASSERT_NE(processes.end(), comp);
-            EXPECT_EQ(celeritas::pdg::electron().get(), comp->secondary_pdg);
+            EXPECT_EQ(pdg::electron().get(), comp->secondary_pdg);
             EXPECT_EQ(1, comp->micro_xs.size());
             EXPECT_EQ(comp->models.size(), comp->micro_xs.size());
 
@@ -408,10 +407,10 @@ TEST_F(RootImporterTest, volumes)
     const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
 
     static const std::string expected_names[]  = {"box0x125555be0",
-                                                 "box0x125556d20",
-                                                 "box0x125557160",
-                                                 "box0x1255575a0",
-                                                 "World0x125555f10"};
+                                                  "box0x125556d20",
+                                                  "box0x125557160",
+                                                  "box0x1255575a0",
+                                                  "World0x125555f10"};
     static const std::string expected_solids[] = {"box0x125555b70",
                                                   "box0x125556c70",
                                                   "box0x1255570a0",
@@ -452,3 +451,6 @@ TEST_F(RootImporterTest, em_params)
     EXPECT_VEC_EQ(expected_enum_string, enum_string);
     EXPECT_VEC_EQ(expected_value, value);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

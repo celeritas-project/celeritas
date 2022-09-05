@@ -65,10 +65,16 @@ class DeviceVector
     //// ACCESSORS ////
 
     //! Get the number of elements
-    size_type size() const { return size_; }
+    size_type size() const
+    {
+        return size_;
+    }
 
     //! Whether any elements are stored
-    bool empty() const { return size_ == 0; }
+    bool empty() const
+    {
+        return size_ == 0;
+    }
 
     //// DEVICE ACCESSORS ////
 
@@ -79,10 +85,16 @@ class DeviceVector
     inline void copy_to_host(SpanT host_data) const;
 
     // Get a mutable view to device data
-    SpanT device_ref() { return {this->data(), this->size()}; }
+    SpanT device_ref()
+    {
+        return {this->data(), this->size()};
+    }
 
     // Get a const view to device data
-    SpanConstT device_ref() const { return {this->data(), this->size()}; }
+    SpanConstT device_ref() const
+    {
+        return {this->data(), this->size()};
+    }
 
     // Raw pointer to device data (dangerous!)
     inline T* data();

@@ -12,21 +12,16 @@
 #include "corecel/Types.hh"
 #include "celeritas/phys/ParticleData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
-
-using ParticleParamsRef = ::celeritas::DeviceCRef<ParticleParamsData>;
-using ParticleStateRef  = ::celeritas::DeviceRef<ParticleStateData>;
-
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
+namespace test
+{
 //---------------------------------------------------------------------------//
 //! Input data
 struct PTVTestInput
 {
-    ParticleParamsRef params;
-    ParticleStateRef  states;
+    DeviceCRef<ParticleParamsData> params;
+    DeviceRef<ParticleStateData>   states;
 
     std::vector<ParticleTrackInitializer> init;
 };
@@ -52,4 +47,5 @@ inline PTVTestOutput ptv_test(PTVTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

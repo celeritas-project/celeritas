@@ -22,32 +22,19 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::CutoffParams;
-using celeritas::CutoffView;
-using celeritas::ElementId;
-using celeritas::ImportData;
-using celeritas::MaterialId;
-using celeritas::MaterialParams;
-using celeritas::MatterState;
-using celeritas::ParticleId;
-using celeritas::ParticleParams;
-using celeritas::range;
-using celeritas::RootImporter;
-using celeritas::units::AmuMass;
-using celeritas::units::MevEnergy;
-
-namespace pdg = celeritas::pdg;
-using namespace celeritas::units;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-class CutoffParamsTest : public celeritas_test::Test
+class CutoffParamsTest : public Test
 {
   protected:
     void SetUp() override
     {
+        using namespace units;
+
         // Set up MaterialParams
         MaterialParams::Input m_input;
         m_input.elements = {
@@ -76,9 +63,8 @@ class CutoffParamsTest : public celeritas_test::Test
 
         // Set up ParticleParams
         ParticleParams::Input p_input;
-        constexpr auto        zero = celeritas::zero_quantity();
-        constexpr auto        stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        constexpr auto        zero   = zero_quantity();
+        constexpr auto        stable = ParticleRecord::stable_decay_constant();
 
         p_input.push_back({"electron",
                            pdg::electron(),
@@ -93,9 +79,6 @@ class CutoffParamsTest : public celeritas_test::Test
     std::shared_ptr<ParticleParams> particle_params;
 };
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 TEST_F(CutoffParamsTest, empty_cutoffs)
 {
     CutoffParams::Input input;
@@ -129,9 +112,9 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     CutoffParams::MaterialCutoffs mat_cutoffs;
     input.materials = material_params;
     input.particles = particle_params;
-    mat_cutoffs.push_back({MevEnergy{0.2}, 0.1});
-    mat_cutoffs.push_back({MevEnergy{0.0}, 0.0});
-    mat_cutoffs.push_back({MevEnergy{0.4}, 0.3});
+    mat_cutoffs.push_back({units::MevEnergy{0.2}, 0.1});
+    mat_cutoffs.push_back({units::MevEnergy{0.0}, 0.0});
+    mat_cutoffs.push_back({units::MevEnergy{0.4}, 0.3});
     input.cutoffs.insert({pdg::electron(), mat_cutoffs});
 
     CutoffParams cutoff_params(input);
@@ -156,10 +139,8 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
 }
 
 //---------------------------------------------------------------------------//
-// IMPORT CUTOFF DATA TEST
-//---------------------------------------------------------------------------//
 
-class CutoffParamsImportTest : public celeritas_test::Test
+class CutoffParamsImportTest : public Test
 {
   protected:
     void SetUp() override
@@ -199,3 +180,7 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

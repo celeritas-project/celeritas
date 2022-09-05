@@ -14,32 +14,20 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::ExponentialDistribution;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class ExponentialDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(ExponentialDistributionTest, all)
+namespace test
 {
-    int                       num_samples = 10000;
-    double                    lambda      = 0.25;
-    ExponentialDistribution<> sample(lambda);
+//---------------------------------------------------------------------------//
+TEST(ExponentialDistributionTest, all)
+{
+    int                                     num_samples = 10000;
+    double                                  lambda      = 0.25;
+    ExponentialDistribution<>               sample(lambda);
+    test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         double x = sample(rng);
         ASSERT_GE(x, 0.0);
@@ -60,3 +48,7 @@ TEST_F(ExponentialDistributionTest, all)
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(2 * num_samples, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

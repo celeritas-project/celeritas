@@ -17,13 +17,15 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public celeritas_test::GlobalGeoTestBase
+class GeoMaterialTest : public GlobalGeoTestBase
 {
     const char* geometry_basename() const override { return "simple-cms"; }
 
@@ -106,3 +108,6 @@ TEST_F(GeoMaterialTest, host)
         = {"vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
     EXPECT_VEC_EQ(expected_materials, materials);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -19,82 +19,23 @@
 #include "celeritas/random/XorwowRngParams.hh"
 #include "celeritas/random/detail/GenerateCanonical32.hh"
 
+#include "HexRepr.hh"
+#include "RngTally.hh"
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::detail::GenerateCanonical32;
-using celeritas_test::SequenceEngine;
-using std::nextafter;
-
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// Helper class
-struct RngTally
-{
-    double moments[4] = {0, 0, 0, 0};
-    double min        = 1;
-    double max        = 0;
-
-    void operator()(double xi)
-    {
-        this->min = std::min(xi, this->min);
-        this->max = std::max(xi, this->max);
-
-        // Rescale to [-1, 1]
-        xi = 2 * xi - 1;
-        this->moments[0] += xi;
-        this->moments[1] += 0.5 * (3 * ipow<2>(xi) - 1);
-        this->moments[2] += 0.5 * (5 * ipow<3>(xi) - 3 * xi);
-        this->moments[3] += 0.125 * (35 * ipow<4>(xi) - 30 * ipow<2>(xi) + 3);
-    }
-
-    void check(double num_samples, double tol)
-    {
-        CELER_EXPECT(tol < 1);
-
-        EXPECT_LT(max, 1);
-        EXPECT_GE(min, 0);
-
-        for (auto& m : this->moments)
-        {
-            m /= num_samples;
-        }
-        EXPECT_SOFT_NEAR(0, moments[0], tol);
-        EXPECT_SOFT_NEAR(0, moments[1], tol);
-        EXPECT_SOFT_NEAR(0, moments[2], tol);
-        EXPECT_SOFT_NEAR(0, moments[3], tol);
-    }
-};
-
-template<class T>
-struct HexRepr
-{
-    T value;
-};
-
-template<class T>
-std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
-{
-    celeritas::ScopedStreamFormat save_fmt(&os);
-
-    os << std::hexfloat << h.value;
-    return os;
-}
-
-template<class T>
-HexRepr<T> hex_repr(T value)
-{
-    return HexRepr<T>{value};
-}
-
-//---------------------------------------------------------------------------//
-// Test 32-bit canonical sequence
-// NOTE: hexadecimal floating point literals are a feature of C++17, so we have
-// to work around with "stof"/"stod"
-//---------------------------------------------------------------------------//
+using ::celeritas::test::SequenceEngine;
 
 TEST(GenerateCanonical32, flt)
 {
+    using std::nextafter;
     // Test numbers at beginning, midpoint, and end
     SequenceEngine rng({0x00000000u,
                         0x00000001u,
@@ -104,6 +45,8 @@ TEST(GenerateCanonical32, flt)
                         0xfffffffeu,
                         0xffffffffu});
 
+    // NOTE: hexadecimal floating point literals are a feature of C++17, so we
+    // have to work around with "stof"/"stod"
     GenerateCanonical32<float> generate_canonical;
     EXPECT_FLOAT_EQ(0.0f, generate_canonical(rng));
     EXPECT_FLOAT_EQ(std::stof("0x0.00000001p0"), generate_canonical(rng));
@@ -116,6 +59,7 @@ TEST(GenerateCanonical32, flt)
 
 TEST(GenerateCanonical32, dbl)
 {
+    using ::celeritas::test::hex_repr;
     // Upper/[xor|lower] bits
     // clang-format off
     SequenceEngine rng({0x00000000u, 0x00000000u, // 0
@@ -160,7 +104,7 @@ TEST(GenerateCanonical32, moments)
 
     std::mt19937                rng;
     GenerateCanonical32<double> generate_canonical;
-    RngTally                    tally;
+    ::celeritas::test::RngTally tally;
 
     for (int i = 0; i < num_samples; ++i)
     {
@@ -168,12 +112,14 @@ TEST(GenerateCanonical32, moments)
     }
     tally.check(num_samples, 1e-3);
 }
-
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
 
-class XorwowRngEngineTest : public celeritas_test::Test
+namespace test
+{
+//---------------------------------------------------------------------------//
+class XorwowRngEngineTest : public Test
 {
   protected:
     using HostStore = CollectionStateStore<XorwowRngStateData, MemSpace::host>;
@@ -188,10 +134,6 @@ class XorwowRngEngineTest : public celeritas_test::Test
 
     std::shared_ptr<XorwowRngParams> params;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(XorwowRngEngineTest, host)
 {
@@ -238,7 +180,7 @@ TEST_F(XorwowRngEngineTest, moments)
         XorwowRngEngine rng(states.ref(), ThreadId{i});
         for (unsigned int j = 0; j < num_samples; ++j)
         {
-            tally(celeritas::generate_canonical(rng));
+            tally(generate_canonical(rng));
         }
     }
     tally.check(num_samples * num_seeds, 1e-3);
@@ -252,3 +194,7 @@ TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
     StateCollection<XorwowState, Ownership::value, MemSpace::host> host_state;
     host_state = rng_store.ref().state;
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

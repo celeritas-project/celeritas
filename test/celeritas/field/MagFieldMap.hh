@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/MagFieldMap.hh
+//! \file celeritas/field/MagFieldMap.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,9 +13,9 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -26,9 +26,9 @@ class MagFieldMap
   public:
     //@{
     //! Type aliases
-    using ReadMap   = std::function<detail::FieldMapInput()>;
-    using HostRef   = ::celeritas::HostCRef<FieldMapData>;
-    using DeviceRef = ::celeritas::DeviceCRef<FieldMapData>;
+    using ReadMap   = std::function<FieldMapInput()>;
+    using HostRef   = HostCRef<FieldMapData>;
+    using DeviceRef = DeviceCRef<FieldMapData>;
     //@}
 
   public:
@@ -43,13 +43,13 @@ class MagFieldMap
 
   private:
     // Host/device storage and reference
-    celeritas::CollectionMirror<FieldMapData> mirror_;
+    CollectionMirror<FieldMapData> mirror_;
 
   private:
-    using HostValue = ::celeritas::HostVal<FieldMapData>;
+    using HostValue = HostVal<FieldMapData>;
     void build_data(const ReadMap&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

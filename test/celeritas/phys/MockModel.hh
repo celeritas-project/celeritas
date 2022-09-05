@@ -13,7 +13,9 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Model.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -22,18 +24,15 @@ namespace celeritas_test
  * The model is applicable to a single particle type and energy range. Its
  * "interact" simply calls a test-code-provided callback with the model ID.
  */
-class MockModel final : public celeritas::Model
+class MockModel final : public Model
 {
   public:
     //!@{
     //! Type aliases
-    using real_type        = celeritas::real_type;
-    using Applicability    = celeritas::Applicability;
-    using ActionId         = celeritas::ActionId;
-    using BarnMicroXs      = celeritas::Quantity<celeritas::units::Barn>;
+    using BarnMicroXs      = Quantity<units::Barn>;
     using ModelCallback    = std::function<void(ActionId)>;
     using VecMicroXs       = std::vector<BarnMicroXs>;
-    using SPConstMaterials = std::shared_ptr<const celeritas::MaterialParams>;
+    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     //!@}
 
     struct Input
@@ -60,4 +59,5 @@ class MockModel final : public celeritas::Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

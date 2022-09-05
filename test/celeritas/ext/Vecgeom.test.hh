@@ -12,25 +12,19 @@
 #include "corecel/Assert.hh"
 #include "celeritas/ext/VecgeomData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-
-using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::VecgeomParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::VecgeomStateData>;
-
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 //! Input data
 struct VGGTestInput
 {
-    using GeoTrackInitializer = celeritas::GeoTrackInitializer;
-
     std::vector<GeoTrackInitializer> init;
     int                              max_segments = 0;
-    GeoParamsCRefDevice              params;
-    GeoStateRefDevice                state;
+    DeviceCRef<VecgeomParamsData>    params;
+    DeviceRef<VecgeomStateData>      state;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,4 +47,5 @@ inline VGGTestOutput vgg_test(VGGTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/NonMasterResultPrinter.cc
+//! \file testdetail/NonMasterResultPrinter.cc
 //---------------------------------------------------------------------------//
 #include "NonMasterResultPrinter.hh"
 
@@ -12,11 +12,9 @@
 
 #include "corecel/io/ColorUtils.hh"
 
-using celeritas::color_code;
-
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -54,5 +52,5 @@ void NonMasterResultPrinter::OnTestPartResult(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

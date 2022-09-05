@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSMapField.hh
+//! \file celeritas/field/CMSMapField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,9 @@
 
 #include "FieldMapData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,9 +28,8 @@ class CMSMapField
   public:
     //!@{
     //! \name Type aliases
-    using real_type   = celeritas::real_type;
-    using Real3       = celeritas::Array<real_type, 3>;
-    using FieldMapRef = ::celeritas::NativeCRef<FieldMapData>;
+    using Real3       = Array<real_type, 3>;
+    using FieldMapRef = NativeCRef<FieldMapData>;
     //!@}
 
   public:
@@ -64,8 +63,7 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 {
     CELER_ENSURE(shared_);
 
-    using celeritas::ipow;
-    using celeritas::units::tesla;
+    using units::tesla;
 
     Real3 value{0, 0, 0};
 
@@ -103,5 +101,5 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

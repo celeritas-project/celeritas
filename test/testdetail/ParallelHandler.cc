@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/ParallelHandler.cc
+//! \file testdetail/ParallelHandler.cc
 //---------------------------------------------------------------------------//
 #include "ParallelHandler.hh"
 
@@ -11,11 +11,9 @@
 #include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/MpiOperations.hh"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -54,7 +52,7 @@ void ParallelHandler::OnTestProgramEnd(const ::testing::UnitTest&) {}
  */
 void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 {
-    celeritas::barrier(comm_);
+    barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,9 +62,9 @@ void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
 {
     std::cout << std::flush;
-    celeritas::barrier(comm_);
+    barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

@@ -19,36 +19,26 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ParticleId;
-using celeritas::ParticleParams;
-using celeritas::ParticleTrackView;
-
-using celeritas::ImportData;
-using celeritas::RootImporter;
-
-using celeritas::real_type;
-using celeritas::ThreadId;
-using celeritas::units::MevEnergy;
-
-using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS BASE
 //---------------------------------------------------------------------------//
 
-class ParticleTest : public celeritas_test::Test
+class ParticleTest : public Test
 {
   protected:
     using Initializer_t = ParticleTrackView::Initializer_t;
+    using MevEnergy     = units::MevEnergy;
 
     void SetUp() override
     {
-        namespace pdg = celeritas::pdg;
-        using namespace celeritas::units;
+        using namespace units;
 
-        constexpr auto zero = celeritas::zero_quantity();
-        constexpr auto stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        constexpr auto zero   = zero_quantity();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
         ParticleParams::Input defs;
@@ -72,7 +62,6 @@ class ParticleTest : public celeritas_test::Test
 
 TEST_F(ParticleTest, params_accessors)
 {
-    using celeritas::PDGNumber;
     const ParticleParams& defs = *this->particle_params;
 
     EXPECT_EQ(ParticleId(0), defs.find(PDGNumber(11)));
@@ -91,7 +80,7 @@ TEST_F(ParticleTest, params_accessors)
 // IMPORT PARTICLE DATA TEST
 //---------------------------------------------------------------------------//
 
-class ParticleImportTest : public celeritas_test::Test
+class ParticleImportTest : public Test
 {
   protected:
     void SetUp() override
@@ -151,8 +140,8 @@ class ParticleTestHost : public ParticleTest
         state_ref = state_value;
     }
 
-    ::celeritas::HostVal<ParticleStateData> state_value;
-    ::celeritas::HostRef<ParticleStateData> state_ref;
+    HostVal<ParticleStateData> state_value;
+    HostRef<ParticleStateData> state_ref;
 };
 
 TEST_F(ParticleTestHost, electron)
@@ -167,8 +156,7 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_DOUBLE_EQ(0.0, particle.decay_constant());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
     EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
-    EXPECT_SOFT_EQ(25867950886.882648,
-                   celeritas::native_value_from(particle.speed()));
+    EXPECT_SOFT_EQ(25867950886.882648, native_value_from(particle.speed()));
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
     EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
     EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());
@@ -257,3 +245,6 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
                                      37982.61652};
     EXPECT_VEC_SOFT_EQ(expected_props, result.props);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -16,9 +16,10 @@
 #include "celeritas/track/SimTrackView.hh"
 #include "celeritas/track/TrackInitData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -103,9 +104,7 @@ struct ITTestOutput
 };
 
 using SecondaryAllocatorData
-    = celeritas::StackAllocatorData<Secondary,
-                                    celeritas::Ownership::reference,
-                                    celeritas::MemSpace::device>;
+    = StackAllocatorData<Secondary, Ownership::reference, MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 //! Launch a kernel to produce secondaries and apply cutoffs
@@ -119,4 +118,5 @@ inline void interact(CoreStateDeviceRef, ITTestInputData)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

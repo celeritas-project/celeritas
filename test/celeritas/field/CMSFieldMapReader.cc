@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSFieldMapReader.cc
+//! \file celeritas/field/CMSFieldMapReader.cc
 //---------------------------------------------------------------------------//
 #include "CMSFieldMapReader.hh"
 
@@ -15,11 +15,9 @@
 #include "corecel/Types.hh"
 #include "celeritas/Units.hh"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -70,5 +68,5 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

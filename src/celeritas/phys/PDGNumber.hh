@@ -98,7 +98,10 @@ namespace pdg
 //!@{
 //! Particle Data Group Monte Carlo number codes.
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
-    inline constexpr PDGNumber NAME() { return PDGNumber{VALUE}; }
+    inline constexpr PDGNumber NAME()       \
+    {                                       \
+        return PDGNumber{VALUE};            \
+    }
 
 // Sorted by (abs(val), val < 0)
 CELER_DEFINE_PDGNUMBER(electron, 11)

@@ -13,16 +13,10 @@
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::Real3;
-using celeritas::real_type;
-using celeritas::ThreadId;
-
-using celeritas::Sense;
-using celeritas::SurfaceState;
+namespace test
+{
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +26,7 @@ template<Ownership W, MemSpace M>
 struct OrangeMiniStateData
 {
     template<class T>
-    using StateItems = celeritas::StateCollection<T, W, M>;
+    using StateItems = StateCollection<T, W, M>;
 
     StateItems<Real3>     pos;
     StateItems<Real3>     dir;
@@ -73,8 +67,8 @@ struct OrangeMiniStateData
  */
 template<MemSpace M>
 inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
-                   const celeritas::HostCRef<celeritas::SurfaceData>&,
-                   celeritas::size_type size)
+                   const HostCRef<SurfaceData>&,
+                   size_type size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
@@ -111,8 +105,7 @@ struct CalcSenseDistance
         {
             CELER_ASSERT(distance > 0);
         }
-        *this->distance
-            = *celeritas::min_element(intersect.begin(), intersect.end());
+        *this->distance = *min_element(intersect.begin(), intersect.end());
     }
 };
 
@@ -120,21 +113,21 @@ struct CalcSenseDistance
 template<MemSpace M = MemSpace::native>
 struct CalcSenseDistanceLauncher
 {
-    celeritas::SurfaceData<Ownership::const_reference, M> params;
-    OrangeMiniStateData<Ownership::reference, M>          states;
+    SurfaceData<Ownership::const_reference, M>   params;
+    OrangeMiniStateData<Ownership::reference, M> states;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
-        celeritas::Surfaces surfaces(this->params);
+        Surfaces surfaces(this->params);
 
-        auto calc_sense_dist = celeritas::make_surface_action(
+        auto calc_sense_dist = make_surface_action(
             surfaces,
             CalcSenseDistance{this->states.pos[tid],
                               this->states.dir[tid],
                               &this->states.sense[tid],
                               &this->states.distance[tid]});
 
-        celeritas::SurfaceId sid{tid.get() % surfaces.num_surfaces()};
+        SurfaceId sid{tid.get() % surfaces.num_surfaces()};
         calc_sense_dist(sid);
     }
 };
@@ -145,8 +138,8 @@ struct CalcSenseDistanceLauncher
 //! Input data
 struct SATestInput
 {
-    using ParamsRef = celeritas::DeviceCRef<celeritas::SurfaceData>;
-    using StateRef  = ::celeritas::DeviceRef<OrangeMiniStateData>;
+    using ParamsRef = DeviceCRef<SurfaceData>;
+    using StateRef  = DeviceRef<OrangeMiniStateData>;
 
     ParamsRef params;
     StateRef  states;
@@ -164,4 +157,5 @@ inline void sa_test(SATestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

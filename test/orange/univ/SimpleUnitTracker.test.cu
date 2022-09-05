@@ -9,7 +9,9 @@
 
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -20,7 +22,7 @@ namespace
 __global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
                                   const StateRef<MemSpace::device>  states)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
         return;
 
@@ -36,13 +38,11 @@ __global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
 void test_initialize(const ParamsRef<MemSpace::device>& params,
                      const StateRef<MemSpace::device>&  state)
 {
-    CELER_LAUNCH_KERNEL(initialize,
-                        celeritas::device().default_block_size(),
-                        state.size(),
-                        params,
-                        state);
+    CELER_LAUNCH_KERNEL(
+        initialize, device().default_block_size(), state.size(), params, state);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas
