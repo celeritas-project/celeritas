@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSFieldMapReader.hh
+//! \file celeritas/field/CMSFieldMapReader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,8 +14,6 @@
 namespace celeritas
 {
 namespace test
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -34,15 +32,15 @@ class CMSFieldMapReader
 {
     //!@{
     //! Type aliases
-    using result_type = detail::FieldMapInput;
+    using result_type = FieldMapInput;
     //!@}
 
     // Input format
     struct CMSFieldMapInput
     {
-        int                     idx_z; //! index of z grid
-        int                     idx_r; //! index of r grid
-        detail::FieldMapElement value; //! z and r components of the field
+        int             idx_z; //! index of z grid
+        int             idx_r; //! index of r grid
+        FieldMapElement value; //! z and r components of the field
     };
 
   public:
@@ -60,6 +58,5 @@ class CMSFieldMapReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas

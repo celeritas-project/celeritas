@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/MagFieldMap.cc
+//! \file celeritas/field/MagFieldMap.cc
 //---------------------------------------------------------------------------//
 #include "MagFieldMap.hh"
 
@@ -13,10 +13,6 @@
 namespace celeritas
 {
 namespace test
-{
-//---------------------------------------------------------------------------//
-
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -30,7 +26,7 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
     this->build_data(load_map, &host_data);
 
     // Move to mirrored data, copying to device
-    mirror_ = CollectionMirror<detail::FieldMapData>{std::move(host_data)};
+    mirror_ = CollectionMirror<FieldMapData>{std::move(host_data)};
     CELER_ENSURE(this->mirror_);
 }
 
@@ -41,7 +37,7 @@ MagFieldMap::MagFieldMap(ReadMap load_map)
 void MagFieldMap::build_data(const ReadMap& load_map, HostValue* host_data)
 {
     CELER_EXPECT(load_map);
-    detail::FieldMapInput result = load_map();
+    FieldMapInput result = load_map();
 
     host_data->params = result.params;
 
@@ -57,6 +53,5 @@ void MagFieldMap::build_data(const ReadMap& load_map, HostValue* host_data)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas

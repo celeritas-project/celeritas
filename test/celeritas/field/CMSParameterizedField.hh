@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSParameterizedField.hh
+//! \file celeritas/field/CMSParameterizedField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,8 +19,6 @@
 namespace celeritas
 {
 namespace test
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -164,6 +162,5 @@ auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas

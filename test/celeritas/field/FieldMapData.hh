@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/FieldMapData.hh
+//! \file celeritas/field/FieldMapData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,10 +15,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace detail
-{
-
-
 //---------------------------------------------------------------------------//
 /*!
  * FieldMap (2-dimensional RZ map) parameters
@@ -100,6 +96,5 @@ struct FieldMapData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas

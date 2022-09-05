@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSMapField.hh
+//! \file celeritas/field/CMSMapField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,8 +17,6 @@
 namespace celeritas
 {
 namespace test
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -103,6 +101,5 @@ CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas

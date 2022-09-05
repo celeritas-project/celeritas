@@ -26,8 +26,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
+#include "CMSParameterizedField.hh"
 #include "celeritas_test.hh"
-#include "detail/CMSParameterizedField.hh"
 
 namespace celeritas
 {
@@ -738,8 +738,8 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         this->particle()->find(pdg::electron()), MevEnergy{10.9181415106});
     auto geo = this->init_geo({radius, -10, 0}, {0, 1, 0});
 
-    detail::CMSParameterizedField field;
-    FieldDriverOptions            driver_options;
+    CMSParameterizedField field;
+    FieldDriverOptions    driver_options;
 
     EXPECT_SOFT_NEAR(
         radius, this->calc_field_curvature(particle, geo, field), 5e-3);

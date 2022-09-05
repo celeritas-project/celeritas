@@ -8,13 +8,13 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/field/detail/CMSParameterizedField.hh"
 
+#include "CMSFieldMapReader.hh"
+#include "CMSMapField.hh"
+#include "CMSParameterizedField.hh"
+#include "FieldMapData.hh"
+#include "MagFieldMap.hh"
 #include "celeritas_test.hh"
-#include "detail/CMSFieldMapReader.hh"
-#include "detail/CMSMapField.hh"
-#include "detail/FieldMapData.hh"
-#include "detail/MagFieldMap.hh"
 
 namespace celeritas
 {
@@ -42,7 +42,7 @@ TEST(UniformFieldTest, all)
 TEST(CMSParameterizedFieldTest, all)
 {
     // Create the magnetic field with a parameterized field
-    detail::CMSParameterizedField calc_field;
+    CMSParameterizedField calc_field;
 
     const int nsamples = 8;
     real_type delta_z  = 25.0;
@@ -68,21 +68,21 @@ TEST(CMSParameterizedFieldTest, all)
 
 TEST(CMSMapField, all)
 {
-    std::unique_ptr<detail::MagFieldMap> field_map;
+    std::unique_ptr<MagFieldMap> field_map;
     {
-        detail::FieldMapParameters params;
+        FieldMapParameters params;
         params.delta_grid = units::meter;
         params.num_grid_r = 9 + 1;      //! [0:9]
         params.num_grid_z = 2 * 16 + 1; //! [-16:16]
         params.offset_z   = 16 * units::meter;
 
-        detail::CMSFieldMapReader load_map(
+        CMSFieldMapReader load_map(
             params,
             test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
-        field_map = std::make_unique<detail::MagFieldMap>(load_map);
+        field_map = std::make_unique<MagFieldMap>(load_map);
     }
 
-    detail::CMSMapField calc_field(field_map->host_ref());
+    CMSMapField calc_field(field_map->host_ref());
 
     const int nsamples = 8;
     real_type delta_z  = 25.0;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/MagFieldMap.hh
+//! \file celeritas/field/MagFieldMap.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,8 +17,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Set up a 2D MagFieldMap.
@@ -28,7 +26,7 @@ class MagFieldMap
   public:
     //@{
     //! Type aliases
-    using ReadMap   = std::function<detail::FieldMapInput()>;
+    using ReadMap   = std::function<FieldMapInput()>;
     using HostRef   = HostCRef<FieldMapData>;
     using DeviceRef = DeviceCRef<FieldMapData>;
     //@}
@@ -53,6 +51,5 @@ class MagFieldMap
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace test
 } // namespace celeritas
