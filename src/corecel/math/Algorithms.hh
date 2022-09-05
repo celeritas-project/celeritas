@@ -317,7 +317,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     return std::exp(b * std::log(a));
 }
 
-#if CELERITAS_USE_CUDA
+#ifdef __CUDACC__
 using ::rsqrt;
 #else
 //---------------------------------------------------------------------------//
