@@ -10,6 +10,7 @@
 #include <cmath>
 #include <type_traits>
 
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
@@ -316,8 +317,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     return std::exp(b * std::log(a));
 }
 
-#if CELERITAS_USE_DEVICE
-// Compiling with CUDA 11.4 claims to have ambiguous rsqrt overload...
+#if CELER_USE_DEVICE
 using ::rsqrt;
 #else
 //---------------------------------------------------------------------------//
