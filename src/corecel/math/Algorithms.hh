@@ -10,7 +10,7 @@
 #include <cmath>
 #include <type_traits>
 
-#include "corecel/device_runtime_api.h"
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
@@ -317,7 +317,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     return std::exp(b * std::log(a));
 }
 
-#if CELER_USE_DEVICE
+#if CELERITAS_USE_CUDA
 using ::rsqrt;
 #else
 //---------------------------------------------------------------------------//
