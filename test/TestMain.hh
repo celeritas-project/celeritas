@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Main.hh
+//! \file TestMainImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "testdetail/TestMain.hh"
+#include "testdetail/TestMainImpl.hh"
 
 //! Define main
 int main(int argc, char** argv)

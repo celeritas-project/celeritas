@@ -3,10 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file testdetail/TestMain.cc
+//! \file testdetail/TestMainImpl.cc
 //---------------------------------------------------------------------------//
-#include "TestMain.hh"
-
 #include <stdexcept>
 
 #include "celeritas_config.h"
@@ -22,6 +20,7 @@
 
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
+#include "TestMain.hh"
 
 using std::cout;
 using std::endl;

@@ -18,7 +18,6 @@
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
-#include "Main.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

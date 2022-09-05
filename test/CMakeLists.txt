@@ -19,7 +19,7 @@ list(APPEND CELER_SOURCES
   testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/ParallelHandler.cc
-  testdetail/TestMain.cc
+  testdetail/TestMainImpl.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
