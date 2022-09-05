@@ -202,11 +202,12 @@
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
 #else
 #    define CELER_VALIDATE(COND, MSG)                                         \
-        throw ::celeritas::DebugError(::celeritas::DebugErrorType::internal,  \
-                                      "CELER_VALIDATE cannot be called from " \
-                                      "device code",                          \
-                                      __FILE__,                               \
-                                      __LINE__);
+        throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal, \
+                                       "CELER_VALIDATE cannot be called "     \
+                                       "from "                                \
+                                       "device code",                         \
+                                       __FILE__,                              \
+                                       __LINE__});
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_ASSERT(0)
 #endif

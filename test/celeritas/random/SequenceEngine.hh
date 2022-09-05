@@ -173,10 +173,10 @@ auto SequenceEngine::operator()() -> result_type
     if (CELER_UNLIKELY(i_ == values_.size()))
     {
         // Always throw a debug error rather than letting the test crash
-        throw DebugError{{celeritas::DebugErrorType::precondition,
-                          "SequenceEngine RNG stream exceeded",
-                          __FILE__,
-                          __LINE__}};
+        throw ::celeritas::DebugError{{celeritas::DebugErrorType::precondition,
+                                       "SequenceEngine RNG stream exceeded",
+                                       __FILE__,
+                                       __LINE__}};
     }
     return values_[i_++];
 }
