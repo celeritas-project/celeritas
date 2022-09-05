@@ -123,6 +123,7 @@ list(APPEND SOURCES
   corecel/data/DeviceAllocation.cc
   corecel/io/BuildOutput.cc
   corecel/io/ColorUtils.cc
+  corecel/io/ExceptionOutput.cc
   corecel/io/Logger.cc
   corecel/io/LoggerTypes.cc
   corecel/io/OutputInterface.cc

@@ -9,6 +9,8 @@
 
 #include <sstream>
 
+#include "corecel/io/BuildOutput.hh"
+#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
 
 #include "celeritas_test.hh"
@@ -69,11 +71,14 @@ TEST_F(OutputManagerTest, empty)
     OutputManager om;
 
     std::string result = this->to_string(om);
-#if CELERITAS_USE_JSON
-    EXPECT_EQ("null", result);
-#else
-    EXPECT_EQ("\"output unavailable\"", result);
-#endif
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ("null", result);
+    }
+    else
+    {
+        EXPECT_EQ("\"output unavailable\"", result);
+    }
 }
 
 TEST_F(OutputManagerTest, minimal)
@@ -91,10 +96,45 @@ TEST_F(OutputManagerTest, minimal)
     EXPECT_THROW(om.insert(first), celeritas::RuntimeError);
 
     std::string result = this->to_string(om);
-#if CELERITAS_USE_JSON
-    EXPECT_EQ(R"({"input":{"input_value":42},"result":{"out":1,"timing":2}})",
-              result);
-#else
-    EXPECT_EQ("\"output unavailable\"", result);
-#endif
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(
+            R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
+            result);
+    }
+    else
+    {
+        EXPECT_EQ("\"output unavailable\"", result);
+    }
+}
+
+TEST_F(OutputManagerTest, build_output)
+{
+    OutputManager om;
+    om.insert(std::make_shared<celeritas::BuildOutput>());
+    std::string result = this->to_string(om);
+    EXPECT_TRUE(result.find("CELERITAS_BUILD_TYPE") != std::string::npos)
+        << "actual output: " << result;
+}
+
+TEST_F(OutputManagerTest, exception_output)
+{
+    OutputManager om;
+
+    try
+    {
+        CELER_VALIDATE(false, << "things went wrong");
+    }
+    catch (const std::exception& e)
+    {
+        om.insert(std::make_shared<celeritas::ExceptionOutput>(e));
+    }
+
+    std::string result = this->to_string(om);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_TRUE(result.find("\"what\":\"things went wrong\"")
+                    != std::string::npos)
+            << "actual output: " << result;
+    }
 }
