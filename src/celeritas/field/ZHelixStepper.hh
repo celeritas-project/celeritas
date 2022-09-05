@@ -12,10 +12,10 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
-#include "UniformZField.hh"
 
 namespace celeritas
 {
+class UniformZField;
 //---------------------------------------------------------------------------//
 /*!
  * Analytically step along a helical path for a uniform Z magnetic field.
@@ -118,8 +118,8 @@ ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
     // Solution are exact, but assign a tolerance for numerical treatments
     for (auto i : range(3))
     {
-        result.err_state.pos[i] += ZHelixStepper::tolerance();
-        result.err_state.mom[i] += ZHelixStepper::tolerance();
+        result.err_state.pos[i] = ZHelixStepper::tolerance();
+        result.err_state.mom[i] = ZHelixStepper::tolerance();
     }
 
     return result;
