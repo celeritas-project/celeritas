@@ -11,7 +11,9 @@
 
 #include "GlobalGeoTestBase.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -19,12 +21,6 @@ namespace celeritas_test
  */
 class SimpleTestBase : virtual public GlobalGeoTestBase
 {
-  public:
-    //!@{
-    //! Type aliases
-    using real_type = celeritas::real_type;
-    //!@}
-
   protected:
     const char* geometry_basename() const override { return "two-boxes"; }
 
@@ -39,4 +35,5 @@ class SimpleTestBase : virtual public GlobalGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

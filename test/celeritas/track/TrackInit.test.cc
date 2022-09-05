@@ -20,9 +20,10 @@
 
 #include "celeritas_test.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 using TrackInitDeviceValue
     = TrackInitStateData<Ownership::value, MemSpace::device>;
 
@@ -53,7 +54,7 @@ ITTestInputData ITTestInput::device_ref()
 
 #define TrackInitTest TEST_IF_CELER_DEVICE(TrackInitTest)
 
-class TrackInitTest : public celeritas_test::SimpleTestBase
+class TrackInitTest : public SimpleTestBase
 {
   protected:
     void SetUp() override
@@ -105,7 +106,7 @@ class TrackInitTest : public celeritas_test::SimpleTestBase
         ITTestOutput result;
 
         // Copy track initializer data to host
-        ::celeritas::HostVal<TrackInitStateData> data;
+        HostVal<TrackInitStateData> data;
         data = track_init_states;
 
         // Store the IDs of the vacant track slots
@@ -360,4 +361,5 @@ TEST_F(TrackInitSecondaryTest, secondaries)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

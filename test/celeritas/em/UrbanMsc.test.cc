@@ -35,35 +35,37 @@
 #include "Test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using VGT       = ValueGridType;
 using MevEnergy = units::MevEnergy;
-using Action    = celeritas::MscInteraction::Action;
+using Action    = MscInteraction::Action;
 
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using GeoParamsCRefDevice = celeritas::DeviceCRef<GeoParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<GeoStateData>;
+using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
+using GeoStateRefDevice   = DeviceRef<GeoStateData>;
 
-using SimStateValue = ::celeritas::HostVal<SimStateData>;
-using SimStateRef   = ::celeritas::NativeRef<SimStateData>;
+using SimStateValue = HostVal<SimStateData>;
+using SimStateRef   = NativeRef<SimStateData>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public celeritas_test::GlobalGeoTestBase
+class UrbanMscTest : public GlobalGeoTestBase
 {
   protected:
-    using RandomEngine    = celeritas_test::DiagnosticRngEngine<std::mt19937>;
+    using RandomEngine    = DiagnosticRngEngine<std::mt19937>;
     using SPConstImported = std::shared_ptr<const ImportedProcesses>;
 
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
+    using PhysicsParamsHostRef = HostCRef<PhysicsParamsData>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:
@@ -261,7 +263,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<double> step          = {0.00279169, 0.412343, 0.0376414};
     step.resize(nsamples, step_is_range);
 
-    for (unsigned int i : celeritas::range(nsamples))
+    for (unsigned int i : range(nsamples))
     {
         SimTrackState state = {TrackId{i},
                                TrackId{i},
@@ -293,7 +295,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<char>   action;
     Real3               direction{0, 0, 1};
 
-    for (auto i : celeritas::range(nsamples))
+    for (auto i : range(nsamples))
     {
         real_type r = i * 2 - real_type(1e-4);
         geo_view    = {{r, r, r}, direction};
@@ -365,3 +367,6 @@ TEST_F(UrbanMscTest, msc_scattering)
         = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
     EXPECT_VEC_EQ(expected_action, action);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

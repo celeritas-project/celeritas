@@ -13,7 +13,9 @@
 
 #include "../GlobalTestBase.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -22,16 +24,12 @@ namespace celeritas_test
  * This high-level test *only* executes on the host so we can extract detailed
  * information from the states.
  */
-class AlongStepTestBase : virtual public celeritas_test::GlobalTestBase
+class AlongStepTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using size_type  = celeritas::size_type;
-    using real_type  = celeritas::real_type;
-    using Real3      = celeritas::Real3;
-    using ParticleId = celeritas::ParticleId;
-    using MevEnergy  = celeritas::units::MevEnergy;
+    using MevEnergy = units::MevEnergy;
     //!@}
 
     struct Input
@@ -45,8 +43,8 @@ class AlongStepTestBase : virtual public celeritas_test::GlobalTestBase
 
         explicit operator bool() const
         {
-            return particle_id && energy >= celeritas::zero_quantity()
-                   && time >= 0 && phys_mfp > 0;
+            return particle_id && energy >= zero_quantity() && time >= 0
+                   && phys_mfp > 0;
         }
     };
 
@@ -66,4 +64,5 @@ class AlongStepTestBase : virtual public celeritas_test::GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

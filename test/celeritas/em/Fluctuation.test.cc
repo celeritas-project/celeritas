@@ -20,17 +20,19 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using celeritas::units::MevEnergy;
-
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MockFluctuationTest : public celeritas_test::MockTestBase
+class MockFluctuationTest : public MockTestBase
 {
   protected:
     void SetUp() override
@@ -44,11 +46,11 @@ class MockFluctuationTest : public celeritas_test::MockTestBase
 
 //---------------------------------------------------------------------------//
 
-class EnergyLossDistributionTest : public celeritas_test::Test
+class EnergyLossDistributionTest : public Test
 {
   protected:
-    using HostValue = ::celeritas::HostVal<FluctuationData>;
-    using HostRef   = ::celeritas::HostCRef<FluctuationData>;
+    using HostValue = HostVal<FluctuationData>;
+    using HostRef   = HostCRef<FluctuationData>;
     using MaterialStateStore
         = CollectionStateStore<MaterialStateData, MemSpace::host>;
     using ParticleStateStore
@@ -57,12 +59,10 @@ class EnergyLossDistributionTest : public celeritas_test::Test
 
     void SetUp() override
     {
-        using namespace celeritas::constants;
-        using namespace celeritas::units;
-        namespace pdg = celeritas::pdg;
+        using namespace constants;
+        using namespace units;
 
-        constexpr auto stable
-            = celeritas::ParticleRecord::stable_decay_constant();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
@@ -157,7 +157,7 @@ TEST_F(EnergyLossDistributionTest, none)
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
 
-    celeritas::EnergyLossDeltaDistribution sample_loss(helper);
+    EnergyLossDeltaDistribution sample_loss(helper);
     EXPECT_EQ(mean_loss, sample_loss(rng));
     EXPECT_EQ(0, rng.count());
 }
@@ -193,8 +193,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_SOFT_EQ(0.13988041753438,
                        value_as<EnergySq>(helper.bohr_variance()));
 
-        celeritas::EnergyLossGammaDistribution sample_loss(helper);
-        for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+        EnergyLossGammaDistribution sample_loss(helper);
+        for (CELER_MAYBE_UNUSED int i : range(num_samples))
         {
             auto loss = sample_loss(rng).value();
             auto bin  = size_type((loss - lower) / width);
@@ -216,8 +216,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
                        value_as<EnergySq>(helper.bohr_variance()));
         EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
 
-        celeritas::EnergyLossGaussianDistribution sample_loss(helper);
-        for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+        EnergyLossGaussianDistribution sample_loss(helper);
+        for (CELER_MAYBE_UNUSED int i : range(num_samples))
         {
             auto loss = sample_loss(rng).value();
             auto bin  = size_type((loss - lower) / width);
@@ -260,9 +260,9 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_SOFT_EQ(1.3819085992495e-05,
                    value_as<EnergySq>(helper.bohr_variance()));
     EXPECT_EQ(EnergyLossFluctuationModel::urban, helper.model());
-    celeritas::EnergyLossUrbanDistribution sample_loss(helper);
+    EnergyLossUrbanDistribution sample_loss(helper);
 
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         auto loss = sample_loss(rng).value();
         auto bin  = size_type((loss - lower) / width);
@@ -278,3 +278,6 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_SOFT_EQ(0.0099918954960280353, sum / num_samples);
     EXPECT_EQ(551188, rng.count());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

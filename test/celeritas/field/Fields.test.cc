@@ -8,17 +8,18 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/field/detail/CMSParameterizedField.hh"
 
+#include "CMSFieldMapReader.hh"
+#include "CMSMapField.hh"
+#include "CMSParameterizedField.hh"
+#include "FieldMapData.hh"
+#include "MagFieldMap.hh"
 #include "celeritas_test.hh"
-#include "detail/CMSFieldMapReader.hh"
-#include "detail/CMSMapField.hh"
-#include "detail/FieldMapData.hh"
-#include "detail/MagFieldMap.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -41,7 +42,7 @@ TEST(UniformFieldTest, all)
 TEST(CMSParameterizedFieldTest, all)
 {
     // Create the magnetic field with a parameterized field
-    celeritas_test::detail::CMSParameterizedField calc_field;
+    CMSParameterizedField calc_field;
 
     const int nsamples = 8;
     real_type delta_z  = 25.0;
@@ -57,7 +58,7 @@ TEST(CMSParameterizedFieldTest, all)
            {21.253065, 21.253065, 3777.244454},
            {28.935544, 28.935544, 3765.695087}};
 
-    for (int i : celeritas::range(nsamples))
+    for (int i : range(nsamples))
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};
@@ -67,11 +68,6 @@ TEST(CMSParameterizedFieldTest, all)
 
 TEST(CMSMapField, all)
 {
-    using celeritas_test::detail::CMSFieldMapReader;
-    using celeritas_test::detail::CMSMapField;
-    using celeritas_test::detail::FieldMapParameters;
-    using celeritas_test::detail::MagFieldMap;
-
     std::unique_ptr<MagFieldMap> field_map;
     {
         FieldMapParameters params;
@@ -80,9 +76,9 @@ TEST(CMSMapField, all)
         params.num_grid_z = 2 * 16 + 1; //! [-16:16]
         params.offset_z   = 16 * units::meter;
 
-        CMSFieldMapReader load_map(params,
-                                   celeritas_test::Test::test_data_path(
-                                       "celeritas", "cmsFieldMap.tiny"));
+        CMSFieldMapReader load_map(
+            params,
+            test::Test::test_data_path("celeritas", "cmsFieldMap.tiny"));
         field_map = std::make_unique<MagFieldMap>(load_map);
     }
 
@@ -102,10 +98,13 @@ TEST(CMSMapField, all)
            {14.241, 14.241, 3771.88},
            {16.6149, 16.6149, 3757.2}};
 
-    for (int i : celeritas::range(nsamples))
+    for (int i : range(nsamples))
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};
         EXPECT_VEC_NEAR(expected[i], calc_field(pos), 1.0e-6);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

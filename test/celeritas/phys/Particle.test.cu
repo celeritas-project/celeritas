@@ -16,19 +16,23 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
+{
+namespace
 {
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
 
 __global__ void ptv_test_kernel(unsigned int                    size,
-                                ParticleParamsRef               params,
-                                ParticleStateRef                states,
+                                DeviceCRef<ParticleParamsData>  params,
+                                DeviceRef<ParticleStateData>    states,
                                 const ParticleTrackInitializer* init,
                                 double*                         result)
 {
-    auto local_thread_id = celeritas::KernelParamCalculator::thread_id();
+    auto local_thread_id = KernelParamCalculator::thread_id();
     if (!(local_thread_id < size))
         return;
 
@@ -50,9 +54,9 @@ __global__ void ptv_test_kernel(unsigned int                    size,
     *result++ = p.momentum().value();
     *result++ = p.momentum_sq().value();
 }
-
 //---------------------------------------------------------------------------//
-// TESTING INTERFACE
+} // namespace
+
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 PTVTestOutput ptv_test(PTVTestInput input)
@@ -63,7 +67,7 @@ PTVTestOutput ptv_test(PTVTestInput input)
                                          * PTVTestOutput::props_per_thread());
 
     CELER_LAUNCH_KERNEL(ptv_test,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         init.size(),
                         init.size(),
                         input.params,
@@ -79,4 +83,5 @@ PTVTestOutput ptv_test(PTVTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

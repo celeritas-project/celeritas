@@ -22,7 +22,7 @@
 #include "celeritas/random/RngParams.hh"
 
 #include "HeuristicGeoLauncher.hh"
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

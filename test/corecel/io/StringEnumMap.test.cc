@@ -14,8 +14,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::StringEnumMap;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 enum class SomeOtherEnum;
 
@@ -49,7 +51,7 @@ TEST(StringEnumMapTest, from_cstring)
     EXPECT_EQ(CeleritasLabs::argonne, from_string("argonne"));
     EXPECT_EQ(CeleritasLabs::fermilab, from_string("fermilab"));
     EXPECT_EQ(CeleritasLabs::ornl, from_string("ornl"));
-    EXPECT_THROW(from_string("inl"), celeritas::RuntimeError);
+    EXPECT_THROW(from_string("inl"), RuntimeError);
 }
 
 TEST(StringEnumMapTest, from_generic)
@@ -68,5 +70,9 @@ TEST(StringEnumMapTest, from_generic)
     EXPECT_EQ(CeleritasLabs::argonne, from_string("ARGONNE"));
     EXPECT_EQ(CeleritasLabs::fermilab, from_string("FERMILAB"));
     EXPECT_EQ(CeleritasLabs::ornl, from_string("ORNL"));
-    EXPECT_THROW(from_string("ornl"), celeritas::RuntimeError);
+    EXPECT_THROW(from_string("ornl"), RuntimeError);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -11,8 +11,11 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Array;
-using celeritas::EnumArray;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 enum class Color : unsigned int
 {
@@ -76,3 +79,7 @@ TEST(EnumArrayTest, all)
     EXPECT_EQ(3, x[Color::green]);
     EXPECT_EQ(static_cast<void*>(&x), x.data());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

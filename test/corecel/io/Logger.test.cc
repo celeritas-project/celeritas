@@ -18,22 +18,19 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Logger;
-using celeritas::LogLevel;
-using celeritas::MpiCommunicator;
-using celeritas::Provenance;
-// using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LoggerTest : public celeritas_test::Test
+class LoggerTest : public Test
 {
   protected:
     void SetUp() override
     {
-        using celeritas::ScopedMpiInit;
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
             comm_self  = MpiCommunicator::comm_self();
@@ -70,14 +67,14 @@ TEST_F(LoggerTest, global_handlers)
     CELER_LOG(warning) << "This is a warning message";
     CELER_LOG(debug) << "This should be hidden by default";
     std::cerr << "[regular cerr]" << std::endl;
-    ::celeritas::world_logger().level(LogLevel::debug);
+    world_logger().level(LogLevel::debug);
     CELER_LOG(debug) << "This should be shown now";
 
     CELER_LOG_LOCAL(warning) << "Warning from rank " << comm_world.rank();
 
     // Replace 'local' with a null-op logger, so the log message will never
     // show
-    ::celeritas::self_logger() = Logger(comm_self, nullptr);
+    self_logger() = Logger(comm_self, nullptr);
     CELER_LOG_LOCAL(critical) << "the last enemy that shall be destroyed is "
                                  "death";
 }
@@ -140,8 +137,8 @@ TEST_F(LoggerTest, DISABLED_performance)
     log.level(LogLevel::critical);
 
     // Even in debug this takes only 26ms
-    celeritas::Stopwatch get_time;
-    for (auto i : celeritas::range(100000))
+    Stopwatch get_time;
+    for (auto i : range(100000))
     {
         log({"<file>", 0}, LogLevel::info)
             << "Never printed: " << i << ExpensiveToPrint{};
@@ -157,7 +154,7 @@ TEST_F(LoggerTest, env_setup)
         EXPECT_EQ("This should print", msg);
     };
     auto celer_setenv = [](const std::string& key, const std::string& val) {
-        celeritas::environment().insert({key, val});
+        environment().insert({key, val});
     };
 
     {
@@ -177,3 +174,7 @@ TEST_F(LoggerTest, env_setup)
         log({"<test>", 1}, LogLevel::debug) << "Should not print";
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/test/Macros.test.cc
+//! \file TestMacros.test.cc
 //---------------------------------------------------------------------------//
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 #include <limits>
 
@@ -13,23 +13,23 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas_test::detail;
-
 using VecInt = std::vector<int>;
 using VecDbl = std::vector<double>;
 using VecFlt = std::vector<float>;
 
 constexpr double inf = std::numeric_limits<double>::infinity();
 
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(PrintExpected, example)
 {
     std::string out_result;
     {
-        celeritas::ScopedStreamRedirect redirect_out(&std::cout);
+        ScopedStreamRedirect redirect_out(&std::cout);
         std::cout << '\n';
 
         std::vector<int> values = {1, 2, 3};
@@ -57,6 +57,11 @@ static const std::string expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
+} // namespace test
+
+namespace testdetail
+{
+//---------------------------------------------------------------------------//
 
 TEST(IsSoftEquiv, successes)
 {
@@ -349,3 +354,6 @@ TEST(IsVecEq, failures)
     actual[150] = 2;
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 }
+//---------------------------------------------------------------------------//
+} // namespace testdetail
+} // namespace celeritas

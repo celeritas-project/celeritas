@@ -9,29 +9,14 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::GeneralQuadric;
-using celeritas::no_intersection;
-using celeritas::SignedSense;
-using celeritas::SurfaceState;
-
-using celeritas::ipow;
-using celeritas::Real3;
-using celeritas::real_type;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using Intersections = GeneralQuadric::Intersections;
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class GeneralQuadricTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
 //---------------------------------------------------------------------------//
 /*!
  * This shape is an ellipsoid:
@@ -40,9 +25,9 @@ class GeneralQuadricTest : public celeritas_test::Test
  * - then 30 degrees about z,
  * - and finally translated by {1, 2, 3}.
  */
-TEST_F(GeneralQuadricTest, all)
+TEST(GeneralQuadricTest, all)
 {
-    EXPECT_EQ(celeritas::SurfaceType::gq, GeneralQuadric::surface_type());
+    EXPECT_EQ(SurfaceType::gq, GeneralQuadric::surface_type());
     EXPECT_EQ(10, GeneralQuadric::Storage::extent);
     EXPECT_EQ(2, GeneralQuadric::Intersections{}.size());
 
@@ -93,3 +78,7 @@ TEST_F(GeneralQuadricTest, all)
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(7.0, distances[1]);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

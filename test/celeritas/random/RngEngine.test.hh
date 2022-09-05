@@ -13,13 +13,15 @@
 #include "corecel/Types.hh"
 #include "celeritas/random/RngData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-using RngDeviceRef = celeritas::DeviceRef<celeritas::RngStateData>;
+using RngDeviceRef = DeviceRef<RngStateData>;
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
@@ -42,4 +44,5 @@ inline std::vector<T> re_test_canonical(RngDeviceRef)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

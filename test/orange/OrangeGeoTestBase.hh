@@ -23,29 +23,21 @@
 // Test dependencies
 #include "Test.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Test base for loading geometry.
  */
-class OrangeGeoTestBase : public celeritas_test::Test
+class OrangeGeoTestBase : public Test
 {
   public:
     //!@{
     //! Type aliases
-    using real_type = celeritas::real_type;
-    using size_type = celeritas::size_type;
-    using Real3     = celeritas::Real3;
-    using Sense     = celeritas::Sense;
-    using VolumeId  = celeritas::VolumeId;
-    using FaceId    = celeritas::FaceId;
-    using SurfaceId = celeritas::SurfaceId;
-    using Params    = celeritas::OrangeParams;
-
-    using HostStateRef
-        = celeritas::OrangeStateData<celeritas::Ownership::reference,
-                                     celeritas::MemSpace::host>;
+    using HostStateRef = OrangeStateData<Ownership::reference, MemSpace::host>;
+    using Params       = OrangeParams;
     //!@}
 
     //!@{
@@ -63,7 +55,7 @@ class OrangeGeoTestBase : public celeritas_test::Test
 
   public:
     // Convert a vector of senses to a string
-    static std::string senses_to_string(celeritas::Span<const Sense> senses);
+    static std::string senses_to_string(Span<const Sense> senses);
 
     // Default constructor
     OrangeGeoTestBase() = default;
@@ -118,8 +110,7 @@ class OrangeGeoTestBase : public celeritas_test::Test
     //// TYPES ////
 
     using HostStateStore
-        = celeritas::CollectionStateStore<celeritas::OrangeStateData,
-                                          celeritas::MemSpace::host>;
+        = CollectionStateStore<OrangeStateData, MemSpace::host>;
 
     //// DATA ////
 
@@ -135,4 +126,5 @@ class OrangeGeoTestBase : public celeritas_test::Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

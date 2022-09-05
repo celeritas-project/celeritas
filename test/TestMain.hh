@@ -3,18 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/TestMain.hh
+//! \file TestMainImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-namespace celeritas_test
-{
-namespace detail
-{
-//---------------------------------------------------------------------------//
+#include "testdetail/TestMainImpl.hh"
 
-int test_main(int argc, char** argv);
-
-//---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+//! Define main
+int main(int argc, char** argv)
+{
+    return ::celeritas::testdetail::test_main(argc, argv);
+}

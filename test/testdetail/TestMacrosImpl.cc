@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/Macros.cc
+//! \file testdetail/TestMacrosImpl.cc
 //---------------------------------------------------------------------------//
-#include "Macros.hh"
+#include "TestMacrosImpl.hh"
 
 #include <cstdio>
 #include <cstring>
@@ -14,9 +14,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -62,5 +62,5 @@ trunc_string(unsigned int digits, const char* str, const char* trunc)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

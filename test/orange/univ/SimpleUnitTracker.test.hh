@@ -11,28 +11,27 @@
 #include "orange/Data.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::ThreadId;
-using LocalState = celeritas::detail::LocalState;
+namespace test
+{
+using LocalState = detail::LocalState;
 
 template<MemSpace M>
-using ParamsRef = celeritas::OrangeParamsData<Ownership::const_reference, M>;
+using ParamsRef = OrangeParamsData<Ownership::const_reference, M>;
 template<MemSpace M>
-using StateRef = celeritas::OrangeStateData<Ownership::reference, M>;
+using StateRef = OrangeStateData<Ownership::reference, M>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 
 template<class T>
-CELER_CONSTEXPR_FUNCTION celeritas::ItemRange<T>
-                         build_range(celeritas::size_type stride, ThreadId tid)
+CELER_CONSTEXPR_FUNCTION ItemRange<T>
+                         build_range(size_type stride, ThreadId tid)
 {
     CELER_EXPECT(tid);
-    using IdT = celeritas::ItemId<T>;
+    using IdT = ItemId<T>;
     auto t    = tid.unchecked_get();
     return {IdT{t * stride}, IdT{(t + 1) * stride}};
 }
@@ -42,8 +41,6 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
                                                    StateRef<M>  states,
                                                    ThreadId     tid)
 {
-    using namespace celeritas;
-
     // Create local state from global memory
     LocalState lstate;
     lstate.pos     = states.pos[tid];
@@ -75,9 +72,9 @@ struct InitializingLauncher
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
         // Instantiate tracker and initialize
-        celeritas::SimpleUnitTracker tracker(this->params);
-        auto lstate = build_local_state(params, states, tid);
-        auto init   = tracker.initialize(lstate);
+        SimpleUnitTracker tracker(this->params);
+        auto              lstate = build_local_state(params, states, tid);
+        auto              init   = tracker.initialize(lstate);
 
         // Update state with post-initialization result
         states.vol[tid]   = init.volume;
@@ -110,4 +107,5 @@ inline void test_initialize(const ParamsRef<MemSpace::device>&,
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

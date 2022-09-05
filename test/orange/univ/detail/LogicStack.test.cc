@@ -9,11 +9,14 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::detail::LogicStack;
+namespace celeritas
+{
+namespace detail
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 TEST(LogicStackTest, logic_stack)
 {
     LogicStack s;
@@ -22,9 +25,9 @@ TEST(LogicStackTest, logic_stack)
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(s.pop(), celeritas::DebugError);
-        EXPECT_THROW(s.top(), celeritas::DebugError);
-        EXPECT_THROW(s.apply_not(), celeritas::DebugError);
+        EXPECT_THROW(s.pop(), DebugError);
+        EXPECT_THROW(s.top(), DebugError);
+        EXPECT_THROW(s.apply_not(), DebugError);
     }
 
     // Add a value [F]
@@ -93,3 +96,8 @@ TEST(LogicStackTest, operators)
     EXPECT_FALSE(s.top());
     EXPECT_EQ(1, s.size());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace detail
+} // namespace celeritas

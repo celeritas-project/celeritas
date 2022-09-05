@@ -8,7 +8,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocatorData.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -22,9 +24,7 @@ struct MockSecondary
 struct SATestInput
 {
     using MockAllocatorData
-        = celeritas::StackAllocatorData<MockSecondary,
-                                        celeritas::Ownership::reference,
-                                        celeritas::MemSpace::device>;
+        = StackAllocatorData<MockSecondary, Ownership::reference, MemSpace::device>;
 
     int               num_threads;
     int               num_iters;
@@ -36,8 +36,6 @@ struct SATestInput
 //! Output results
 struct SATestOutput
 {
-    using ull_int = celeritas::ull_int;
-
     int     num_errors             = 0;
     int     num_allocations        = 0;
     int     view_size              = 0;
@@ -62,4 +60,5 @@ inline void sa_clear(const SATestInput&)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas
