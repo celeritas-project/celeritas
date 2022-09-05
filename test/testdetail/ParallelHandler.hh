@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/ParallelHandler.hh
+//! \file testdetail/ParallelHandler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,9 +16,7 @@ class MpiCommunicator;
 
 namespace celeritas
 {
-namespace test
-{
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -42,6 +40,5 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace test
+} // namespace testdetail
 } // namespace celeritas

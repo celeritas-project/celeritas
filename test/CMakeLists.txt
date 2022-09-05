@@ -11,15 +11,15 @@ include(CeleritasAddTest)
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
-configure_file(detail/TestConfig.cc.in TestConfig.cc @ONLY)
+configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
 
 set(CELER_SOURCES)
 list(APPEND CELER_SOURCES
   Test.cc
-  detail/Macros.cc
-  detail/NonMasterResultPrinter.cc
-  detail/ParallelHandler.cc
-  detail/TestMain.cc
+  testdetail/TestMacrosImpl.cc
+  testdetail/NonMasterResultPrinter.cc
+  testdetail/ParallelHandler.cc
+  testdetail/TestMain.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
@@ -111,7 +111,7 @@ endif()
 #-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX detail)
 
-celeritas_add_test(detail/Macros.test.cc)
+celeritas_add_test(TestMacros.test.cc)
 
 #-----------------------------------------------------------------------------#
 # CORECEL TESTS

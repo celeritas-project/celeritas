@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/TestMain.hh"
+#include "testdetail/TestMain.hh"
 
 //! Define main
 int main(int argc, char** argv)
 {
-    return ::celeritas::test::detail::test_main(argc, argv);
+    return ::celeritas::testdetail::test_main(argc, argv);
 }

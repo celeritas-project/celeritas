@@ -14,7 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/Environment.hh"
 
-#include "detail/TestConfig.hh"
+#include "testdetail/TestConfig.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ namespace test
 std::string Test::test_data_path(const char* subdir, const char* filename)
 {
     std::ostringstream os;
-    os << detail::source_dir << "/test/" << subdir << "/data/" << filename;
+    os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;
 
     std::string result = os.str();
     CELER_VALIDATE(std::ifstream(result).good(),

@@ -16,7 +16,7 @@
 
 #include "Main.hh"
 #include "Test.hh"
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 using std::cout;
 using std::endl;

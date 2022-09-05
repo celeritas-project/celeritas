@@ -14,7 +14,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

@@ -3,22 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file TestConfig.cc
+//! \file testdetail/TestMain.hh
 //---------------------------------------------------------------------------//
-
-#include "detail/TestConfig.hh"
+#pragma once
 
 namespace celeritas
 {
-namespace test
-{
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 
-extern const char source_dir[] = "@CELERITAS_SOURCE_DIR@";
+int test_main(int argc, char** argv);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace test
+} // namespace testdetail
 } // namespace celeritas

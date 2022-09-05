@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/test/Macros.test.cc
+//! \file TestMacros.test.cc
 //---------------------------------------------------------------------------//
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 #include <limits>
 
@@ -23,12 +23,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace detail
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
-// TESTS
 //---------------------------------------------------------------------------//
 
 TEST(PrintExpected, example)
@@ -63,6 +57,11 @@ static const std::string expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
+} // namespace test
+
+namespace testdetail
+{
+//---------------------------------------------------------------------------//
 
 TEST(IsSoftEquiv, successes)
 {
@@ -356,7 +355,5 @@ TEST(IsVecEq, failures)
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-} // namespace test
+} // namespace testdetail
 } // namespace celeritas

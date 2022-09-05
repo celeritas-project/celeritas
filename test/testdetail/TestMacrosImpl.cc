@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/Macros.cc
+//! \file testdetail/TestMacrosImpl.cc
 //---------------------------------------------------------------------------//
-#include "Macros.hh"
+#include "TestMacrosImpl.hh"
 
 #include <cstdio>
 #include <cstring>
@@ -16,9 +16,7 @@
 
 namespace celeritas
 {
-namespace test
-{
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -64,6 +62,5 @@ trunc_string(unsigned int digits, const char* str, const char* trunc)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace test
+} // namespace testdetail
 } // namespace celeritas

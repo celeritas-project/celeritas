@@ -11,7 +11,7 @@
 
 #include "corecel/math/Algorithms.hh"
 
-#include "detail/Macros.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

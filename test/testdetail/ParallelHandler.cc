@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/ParallelHandler.cc
+//! \file testdetail/ParallelHandler.cc
 //---------------------------------------------------------------------------//
 #include "ParallelHandler.hh"
 
@@ -13,9 +13,7 @@
 
 namespace celeritas
 {
-namespace test
-{
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -68,6 +66,5 @@ void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace test
+} // namespace testdetail
 } // namespace celeritas
