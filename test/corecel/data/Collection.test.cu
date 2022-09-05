@@ -67,8 +67,7 @@ __global__ void col_cuda_test_kernel(const DeviceCRef<MockParamsData> params,
 //! Run on device and return results
 void col_cuda_test(CTestInput input)
 {
-    CELER_VALIDATE(input.states.size() > 0, << "Expected more states");
-
+    CELER_EXPECT(input.states.size() > 0);
     CELER_LAUNCH_KERNEL(col_cuda_test,
                         device().default_block_size(),
                         input.states.size(),

@@ -168,10 +168,10 @@ auto SequenceEngine::operator()() -> result_type
     if (CELER_UNLIKELY(i_ == values_.size()))
     {
         // Always throw a debug error rather than letting the test crash
-        throw_debug_error(DebugErrorType::precondition,
+        throw DebugError{{DebugErrorType::precondition,
                           "SequenceEngine RNG stream exceeded",
                           __FILE__,
-                          __LINE__);
+                          __LINE__}};
     }
     return values_[i_++];
 }
@@ -196,7 +196,7 @@ T GenerateCanonical<test::SequenceEngine, T>::operator()(
 {
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
     const real_type range  = test::SequenceEngine::max() + real_type(1);
-    real_type       result = rng();
+    real_type result = rng();
     result += rng() * range;
     result *= 1 / ipow<2>(range);
     if (CELER_UNLIKELY(result == real_type(1)))

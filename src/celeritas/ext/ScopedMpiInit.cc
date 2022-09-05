@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ScopedMpiInit.hh"
 
+#include <iostream>
+
 #include "celeritas_config.h"
 #if CELERITAS_USE_MPI
 #    include <mpi.h>
@@ -68,7 +70,20 @@ ScopedMpiInit::~ScopedMpiInit()
     if (status_ == Status::initialized)
     {
         status_ = Status::uninitialized;
-        CELER_MPI_CALL(MPI_Finalize());
+        try
+        {
+            CELER_MPI_CALL(MPI_Finalize());
+        }
+        catch (const RuntimeError& e)
+        {
+            std::cerr << "During destruction of scoped MPI initialization: "
+                      << e.what() << std::endl;
+        }
+        catch (...)
+        {
+            std::cerr << "Failure during destruction of scoped MPI"
+                      << std::endl;
+        }
     }
 }
 

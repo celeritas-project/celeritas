@@ -146,18 +146,20 @@
         } while (0)
 #endif
 
-#define CELER_DEBUG_ASSERT_(COND, WHICH)                                        \
-    do                                                                          \
-    {                                                                           \
-        if (CELER_UNLIKELY(!(COND)))                                            \
-            ::celeritas::throw_debug_error(                                     \
-                ::celeritas::DebugErrorType::WHICH, #COND, __FILE__, __LINE__); \
+#define CELER_DEBUG_ASSERT_(COND, WHICH)                                       \
+    do                                                                         \
+    {                                                                          \
+        if (CELER_UNLIKELY(!(COND)))                                           \
+            throw ::celeritas::DebugError({::celeritas::DebugErrorType::WHICH, \
+                                           #COND,                              \
+                                           __FILE__,                           \
+                                           __LINE__});                         \
     } while (0)
-#define CELER_DEBUG_FAIL_(MSG, WHICH)                                     \
-    do                                                                    \
-    {                                                                     \
-        ::celeritas::throw_debug_error(                                   \
-            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__); \
+#define CELER_DEBUG_FAIL_(MSG, WHICH)                                       \
+    do                                                                      \
+    {                                                                       \
+        throw ::celeritas::DebugError(                                      \
+            {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__}); \
     } while (0)
 #define CELER_RUNTIME_ASSERT_(COND, MSG)                              \
     do                                                                \
@@ -166,7 +168,7 @@
         {                                                             \
             std::ostringstream celer_runtime_msg_;                    \
             celer_runtime_msg_ MSG;                                   \
-            ::celeritas::throw_runtime_error(                         \
+            throw ::celeritas::RuntimeError::from_validate(           \
                 celer_runtime_msg_.str(), #COND, __FILE__, __LINE__); \
         }                                                             \
     } while (0)
@@ -200,11 +202,12 @@
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
 #else
 #    define CELER_VALIDATE(COND, MSG)                                         \
-        ::celeritas::throw_debug_error(::celeritas::DebugErrorType::internal, \
+        throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal, \
                                        "CELER_VALIDATE cannot be called "     \
-                                       "from device code",                    \
+                                       "from "                                \
+                                       "device code",                         \
                                        __FILE__,                              \
-                                       __LINE__);
+                                       __LINE__});
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
 #    define CELER_NOT_IMPLEMENTED(WHAT) CELER_ASSERT(0)
 #endif
@@ -228,19 +231,19 @@
  * includes that header).
  */
 #if CELERITAS_USE_CUDA
-#    define CELER_CUDA_CALL(STATEMENT)                       \
-        do                                                   \
-        {                                                    \
-            cudaError_t cuda_result_ = (STATEMENT);          \
-            if (CELER_UNLIKELY(cuda_result_ != cudaSuccess)) \
-            {                                                \
-                cudaGetLastError();                          \
-                ::celeritas::throw_device_call_error(        \
-                    cudaGetErrorString(cuda_result_),        \
-                    #STATEMENT,                              \
-                    __FILE__,                                \
-                    __LINE__);                               \
-            }                                                \
+#    define CELER_CUDA_CALL(STATEMENT)                             \
+        do                                                         \
+        {                                                          \
+            cudaError_t cuda_result_ = (STATEMENT);                \
+            if (CELER_UNLIKELY(cuda_result_ != cudaSuccess))       \
+            {                                                      \
+                cudaGetLastError();                                \
+                throw ::celeritas::RuntimeError::from_device_call( \
+                    cudaGetErrorString(cuda_result_),              \
+                    #STATEMENT,                                    \
+                    __FILE__,                                      \
+                    __LINE__);                                     \
+            }                                                      \
         } while (0)
 #else
 #    define CELER_CUDA_CALL(STATEMENT)    \
@@ -268,19 +271,19 @@
  * compiled by NVCC (which implicitly includes that header).
  */
 #if CELERITAS_USE_HIP
-#    define CELER_HIP_CALL(STATEMENT)                      \
-        do                                                 \
-        {                                                  \
-            hipError_t hip_result_ = (STATEMENT);          \
-            if (CELER_UNLIKELY(hip_result_ != hipSuccess)) \
-            {                                              \
-                hipGetLastError();                         \
-                ::celeritas::throw_device_call_error(      \
-                    hipGetErrorString(hip_result_),        \
-                    #STATEMENT,                            \
-                    __FILE__,                              \
-                    __LINE__);                             \
-            }                                              \
+#    define CELER_HIP_CALL(STATEMENT)                              \
+        do                                                         \
+        {                                                          \
+            hipError_t hip_result_ = (STATEMENT);                  \
+            if (CELER_UNLIKELY(hip_result_ != hipSuccess))         \
+            {                                                      \
+                hipGetLastError();                                 \
+                throw ::celeritas::RuntimeError::from_device_call( \
+                    hipGetErrorString(hip_result_),                \
+                    #STATEMENT,                                    \
+                    __FILE__,                                      \
+                    __LINE__);                                     \
+            }                                                      \
         } while (0)
 #else
 #    define CELER_HIP_CALL(STATEMENT)    \
@@ -341,7 +344,7 @@
             int mpi_result_ = (STATEMENT);                        \
             if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS))       \
             {                                                     \
-                ::celeritas::throw_mpi_call_error(                \
+                throw ::celeritas::RuntimeError::from_mpi_call(   \
                     mpi_result_, #STATEMENT, __FILE__, __LINE__); \
             }                                                     \
         } while (0)
@@ -372,38 +375,48 @@ enum class DebugErrorType
     postcondition, //!< Postcondition contract violation
 };
 
+enum class RuntimeErrorType
+{
+    validate, //!< Celeritas runtime error
+    device,   //!< CUDA or HIP
+    mpi,      //!< Coarse-grain parallelism
+    geant     //!< Error from Geant4
+};
+
+//! Detailed properties of a debug assertion failure
+struct DebugErrorDetails
+{
+    DebugErrorType which;
+    const char*    condition;
+    const char*    file;
+    int            line;
+};
+
+//! Detailed properties of a runtime error
+struct RuntimeErrorDetails
+{
+    RuntimeErrorType which{RuntimeErrorType::validate};
+    std::string      what{};
+    const char*      condition{nullptr};
+    const char*      file{nullptr};
+    int              line{0};
+};
+
 //---------------------------------------------------------------------------//
 // FUNCTIONS
 //---------------------------------------------------------------------------//
-// Construct and throw a DebugError.
-[[noreturn]] void throw_debug_error(DebugErrorType which,
-                                    const char*    condition,
-                                    const char*    file,
-                                    int            line);
-
-// Construct and throw a RuntimeError for failed CUDA/HIP calls.
-[[noreturn]] void throw_device_call_error(const char* error_string,
-                                          const char* code,
-                                          const char* file,
-                                          int         line);
-
-// Construct and throw a RuntimeError for failed MPI calls.
-[[noreturn]] void throw_mpi_call_error(int         errorcode,
-                                       const char* code,
-                                       const char* file,
-                                       int         line);
-
-// Construct and throw a RuntimeError.
-[[noreturn]] void throw_runtime_error(std::string msg,
-                                      const char* condition,
-                                      const char* file,
-                                      int         line);
 
 //! Invoke undefined behavior
 [[noreturn]] inline CELER_FUNCTION void unreachable()
 {
     CELER_UNREACHABLE;
 }
+
+//! Get a pretty string version of a debug error
+const char* to_cstring(DebugErrorType which);
+
+//! Get a pretty string version of a runtime error
+const char* to_cstring(RuntimeErrorType which);
 
 //---------------------------------------------------------------------------//
 // TYPES
@@ -414,11 +427,14 @@ enum class DebugErrorType
 class DebugError : public std::logic_error
 {
   public:
-    //!@{
-    //! \name Delegating constructors
-    explicit DebugError(const char* msg);
-    explicit DebugError(const std::string& msg);
-    //!@}
+    // Construct from debug attributes
+    explicit DebugError(DebugErrorDetails);
+
+    //! Access the debug data
+    const DebugErrorDetails& details() const { return details_; }
+
+  private:
+    DebugErrorDetails details_;
 };
 
 //---------------------------------------------------------------------------//
@@ -428,11 +444,33 @@ class DebugError : public std::logic_error
 class RuntimeError : public std::runtime_error
 {
   public:
-    //!@{
-    //! \name Delegating constructors
-    explicit RuntimeError(const char* msg);
-    explicit RuntimeError(const std::string& msg);
-    //!@}
+    // Construct from validation failure
+    static RuntimeError
+    from_validate(std::string msg, const char* code, const char* file, int line);
+
+    // Construct from device call
+    static RuntimeError from_device_call(const char* error_string,
+                                         const char* code,
+                                         const char* file,
+                                         int         line);
+
+    // Construct from MPI call
+    static RuntimeError
+    from_mpi_call(int errorcode, const char* code, const char* file, int line);
+
+    // Construct from call to Geant4
+    static RuntimeError from_geant_exception(const char* origin,
+                                             const char* code,
+                                             const char* desc);
+
+    // Construct from details
+    explicit RuntimeError(RuntimeErrorDetails);
+
+    //! Access detailed information
+    const RuntimeErrorDetails& details() const { return details_; }
+
+  private:
+    RuntimeErrorDetails details_;
 };
 
 //---------------------------------------------------------------------------//

@@ -17,6 +17,7 @@
 #include "celeritas_version.h"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
+#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputManager.hh"
@@ -199,6 +200,7 @@ int main(int argc, char* argv[])
         CELER_LOG(critical)
             << "While running input at  " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
+        output.insert(std::make_shared<ExceptionOutput>(e));
     }
 
     // Write system properties and (if available) results
