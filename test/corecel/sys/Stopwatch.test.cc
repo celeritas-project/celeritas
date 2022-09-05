@@ -11,8 +11,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Stopwatch;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sleep for the given duration.
@@ -61,3 +63,7 @@ TEST(StopwatchTest, all)
     measured_s   = elapsed_time();
     EXPECT_LT(measured_s, 0.05);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

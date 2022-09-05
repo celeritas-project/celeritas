@@ -27,16 +27,19 @@
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
 #define TestEm3Test TEST_IF_CELERITAS_GEANT(TestEm3Test)
-class TestEm3Test : public celeritas_test::TestEm3Base,
-                    public celeritas_test::StepperTestBase
+class TestEm3Test : public TestEm3Base, public StepperTestBase
 {
   public:
     //! Make 10GeV electrons along +x
@@ -112,8 +115,7 @@ class TestEm3MscNofluctTest : public TestEm3Test
 };
 
 #define TestEm15Test TEST_IF_CELERITAS_GEANT(TestEm15Test)
-class TestEm15FieldTest : public celeritas_test::TestEm15Base,
-                          public celeritas_test::StepperTestBase
+class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
 {
     bool enable_fluctuation() const override { return false; }
 
@@ -199,7 +201,7 @@ TEST_F(TestEm3Test, host)
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -247,7 +249,7 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -303,7 +305,7 @@ TEST_F(TestEm3MscTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -348,7 +350,7 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -400,7 +402,7 @@ TEST_F(TestEm3MscNofluctTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -445,7 +447,7 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -494,7 +496,7 @@ TEST_F(TestEm15FieldTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -531,7 +533,7 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -540,3 +542,6 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
         }
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

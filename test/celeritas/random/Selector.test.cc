@@ -12,27 +12,21 @@
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::make_selector;
-using celeritas_test::SequenceEngine;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class PdfSelectorTest : public celeritas_test::Test
+namespace celeritas
 {
-  public:
-    using SelectorT = celeritas::Selector<std::function<double(int)>, int>;
-};
-
+namespace test
+{
+//---------------------------------------------------------------------------//
 SequenceEngine make_rng(double select_val)
 {
     return SequenceEngine::from_reals({select_val});
 }
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
+class PdfSelectorTest : public Test
+{
+  public:
+    using SelectorT = Selector<std::function<double(int)>, int>;
+};
 
 TEST_F(PdfSelectorTest, typical)
 {
@@ -80,9 +74,11 @@ TEST_F(PdfSelectorTest, TEST_IF_CELERITAS_DEBUG(invalid_total))
     static const double prob[]  = {0.1, 0.3, 0.5, 0.1};
     auto                get_val = [](int i) { return prob[i]; };
 
-    EXPECT_THROW(SelectorT(get_val, 4, 1.1), celeritas::DebugError);
-    EXPECT_THROW(SelectorT(get_val, 4, 0.9), celeritas::DebugError);
+    EXPECT_THROW(SelectorT(get_val, 4, 1.1), DebugError);
+    EXPECT_THROW(SelectorT(get_val, 4, 0.9), DebugError);
 }
+
+//---------------------------------------------------------------------------//
 
 TEST(SelectorTest, make_selector)
 {
@@ -99,7 +95,7 @@ TEST(SelectorTest, make_selector)
 
 TEST(SelectorTest, selector_element)
 {
-    using ElementId                = celeritas::OpaqueId<struct Element>;
+    using ElementId                = OpaqueId<struct Element>;
     static const double macro_xs[] = {1.0, 2.0, 4.0};
     std::vector<int>    evaluated;
     auto                get_xs = [&evaluated](ElementId el) {
@@ -137,3 +133,7 @@ TEST(SelectorTest, selector_element)
         EXPECT_VEC_EQ(expected_evaluated_final, evaluated);
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

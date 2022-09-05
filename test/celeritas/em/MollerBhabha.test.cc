@@ -17,37 +17,30 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::CutoffView;
-using celeritas::dot_product;
-using celeritas::MollerBhabhaInteractor;
-using celeritas::normalize_direction;
-using celeritas::ParticleCutoff;
-using celeritas::units::AmuMass;
-using celeritas::units::MevEnergy;
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
+namespace celeritas
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
+
+class MollerBhabhaInteractorTest : public InteractorHostTestBase
+{
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
-        using namespace celeritas::units;
+        using namespace units;
 
         // Setup MaterialView
         MaterialParams::Input inp;
-        inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
+        inp.elements  = {{29, units::AmuMass{63.546}, "Cu"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,
-             celeritas::MatterState::solid,
-             {{celeritas::ElementId{0}, 1.0}},
+             MatterState::solid,
+             {{ElementId{0}, 1.0}},
              "Cu"},
         };
         this->set_material_params(inp);
@@ -73,7 +66,7 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_GT(this->particle_track().energy().value(),
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
+        EXPECT_SOFT_EQ(1.0, norm(interaction.direction));
         EXPECT_EQ(Action::scattered, interaction.action);
 
         // Check secondaries
@@ -84,20 +77,20 @@ class MollerBhabhaInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        EXPECT_SOFT_EQ(1.0, norm(electron.direction));
 
         // Check conservation between primary and secondaries
         this->check_conservation(interaction);
     }
 
   protected:
-    celeritas::MollerBhabhaData data_;
+    MollerBhabhaData data_;
 };
 
 struct SampleInit
 {
-    celeritas::real_type energy; //!< MeV
-    celeritas::Real3     dir;
+    real_type energy; //!< MeV
+    Real3     dir;
 };
 
 struct SampleResult
@@ -381,3 +374,6 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

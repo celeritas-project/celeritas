@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/CMSParameterizedField.hh
+//! \file celeritas/field/CMSParameterizedField.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,9 +16,9 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,9 +33,9 @@ class CMSParameterizedField
   public:
     //!@{
     //! \name Type aliases
-    using real_type = celeritas::real_type;
-    using Real3     = celeritas::Array<real_type, 3>;
-    using Real4     = celeritas::Array<real_type, 4>;
+
+    using Real3 = Array<real_type, 3>;
+    using Real4 = Array<real_type, 4>;
     //!@}
 
   public:
@@ -67,8 +67,7 @@ class CMSParameterizedField
 CELER_FUNCTION
 auto CMSParameterizedField::operator()(const Real3& pos) const -> Real3
 {
-    using celeritas::ipow;
-    using celeritas::units::tesla;
+    using units::tesla;
 
     Real3 value{0., 0., 0.};
 
@@ -94,8 +93,7 @@ CELER_FUNCTION
 auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     -> Real3
 {
-    using celeritas::ipow;
-    using celeritas::units::meter;
+    using units::meter;
 
     const real_type prm[9] = {4.24326,
                               15.0201,
@@ -151,8 +149,6 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 CELER_FUNCTION
 auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 {
-    using celeritas::ipow;
-
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);
 
@@ -166,5 +162,5 @@ auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

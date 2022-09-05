@@ -11,8 +11,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ScopedSignalHandler;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -81,7 +83,7 @@ TEST(ScopedSignalHandlerTest, nested)
 
         // Cannot create a new handler while an interrupt is unhandled for
         // that type
-        EXPECT_THROW(ScopedSignalHandler(SIGINT), celeritas::RuntimeError);
+        EXPECT_THROW(ScopedSignalHandler(SIGINT), RuntimeError);
 
         // Clear outer interrupt
         interrupted = {};
@@ -110,3 +112,6 @@ TEST(ScopedSignalHandlerTest, nested)
         EXPECT_TRUE(outer());
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

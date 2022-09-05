@@ -10,7 +10,9 @@
 #include <cstddef>
 #include <utility>
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -61,4 +63,5 @@ class DiagnosticRngEngine
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

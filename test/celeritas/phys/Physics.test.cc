@@ -25,9 +25,12 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-using MevEnergy = celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using MevEnergy = units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // PHYSICS BASE CLASS
@@ -142,7 +145,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     //!@{
     //! Type aliases
     using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
-    using ParamsHostRef = ::celeritas::HostCRef<PhysicsParamsData>;
+    using ParamsHostRef = HostCRef<PhysicsParamsData>;
     //!@}
 
     void SetUp() override
@@ -602,8 +605,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
-            step.push_back(
-                celeritas_test::calc_step(phys, pstep, MevEnergy{energy}));
+            step.push_back(test::calc_step(phys, pstep, MevEnergy{energy}));
         }
     }
 
@@ -642,17 +644,15 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
         CELER_ASSERT(this->physics());
     }
 
-    StateStore states;
-    celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::device>
-        inits;
+    StateStore                                                        states;
+    StateCollection<PhysTestInit, Ownership::value, MemSpace::device> inits;
 };
 
 TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        celeritas::StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
-            temp_inits;
+        StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
 
         auto         init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;
@@ -673,7 +673,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
     }
 
     states = StateStore(this->physics()->host_ref(), this->inits.size());
-    celeritas::DeviceVector<real_type> step(this->states.size());
+    DeviceVector<real_type> step(this->states.size());
 
     PTestInput inp;
     inp.params = this->physics()->device_ref();
@@ -713,8 +713,8 @@ class EPlusAnnihilationTest : public PhysicsParamsTest
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 {
-    using namespace celeritas::units;
-    using namespace celeritas::constants;
+    using namespace units;
+    using namespace constants;
 
     MaterialParams::Input mi;
     mi.elements  = {{19, AmuMass{39.0983}, "K"}};
@@ -730,11 +730,10 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
-    using namespace celeritas::units;
-    namespace pdg = celeritas::pdg;
+    using namespace units;
 
-    constexpr auto zero   = celeritas::zero_quantity();
-    constexpr auto stable = celeritas::ParticleRecord::stable_decay_constant();
+    constexpr auto zero   = zero_quantity();
+    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
         ParticleParams::Input{{"positron",
@@ -775,8 +774,7 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 {
     CollectionStateStore<PhysicsStateData, MemSpace::host> state{
         this->physics()->host_ref(), 1};
-    ::celeritas::HostCRef<PhysicsParamsData> params_ref{
-        this->physics()->host_ref()};
+    HostCRef<PhysicsParamsData> params_ref{this->physics()->host_ref()};
 
     const auto pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);
@@ -796,3 +794,6 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
     EXPECT_SOFT_EQ(5.1172452607412999e-05,
                    phys.calc_xs(ppid, material_view, MevEnergy{0.1}));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

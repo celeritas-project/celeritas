@@ -10,13 +10,12 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
-
+namespace test
+{
 //---------------------------------------------------------------------------//
-// MOCK PIES
+// MOCK DATA
 //---------------------------------------------------------------------------//
 
 struct MockElement
@@ -25,29 +24,24 @@ struct MockElement
     double atomic_mass;
 };
 
-using MockElementId = celeritas::ItemId<MockElement>;
+using MockElementId = ItemId<MockElement>;
 
 struct MockMaterial
 {
-    double                            number_density;
-    celeritas::ItemRange<MockElement> elements;
+    double                 number_density;
+    ItemRange<MockElement> elements;
 };
 
-using MockMaterialId = celeritas::ItemId<MockMaterial>;
+using MockMaterialId = ItemId<MockMaterial>;
 
 template<Ownership W, MemSpace M>
 struct MockParamsData
 {
-    //// TYPES ////
-
-    template<class T>
-    using Collection = celeritas::Collection<T, W, M>;
-
     //// DATA ////
 
-    celeritas::Collection<MockElement, W, M>  elements;
-    celeritas::Collection<MockMaterial, W, M> materials;
-    int                                       max_element_components{};
+    Collection<MockElement, W, M>  elements;
+    Collection<MockMaterial, W, M> materials;
+    int                            max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -76,19 +70,14 @@ struct MockParamsData
 template<Ownership W, MemSpace M>
 struct MockStateData
 {
-    //// TYPES ////
-
-    template<class T>
-    using Collection = celeritas::Collection<T, W, M>;
-
     //// DATA ////
 
-    celeritas::StateCollection<MockMaterialId, W, M> matid;
+    StateCollection<MockMaterialId, W, M> matid;
 
     //// MEMBER FUNCTIONS ////
 
-    explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
-    CELER_FUNCTION celeritas::size_type size() const { return matid.size(); }
+    explicit CELER_FUNCTION  operator bool() const { return !matid.empty(); }
+    CELER_FUNCTION size_type size() const { return matid.size(); }
 
     //! Assign from another set of collections on the host
     template<Ownership W2, MemSpace M2>
@@ -107,9 +96,8 @@ struct MockStateData
 class MockTrackView
 {
   public:
-    using ParamsData = ::celeritas::NativeCRef<MockParamsData>;
-    using StateData  = ::celeritas::NativeRef<MockStateData>;
-    using ThreadId   = celeritas::ThreadId;
+    using ParamsData = NativeCRef<MockParamsData>;
+    using StateData  = NativeRef<MockStateData>;
 
     CELER_FUNCTION MockTrackView(const ParamsData& params,
                                  const StateData&  states,
@@ -129,7 +117,7 @@ class MockTrackView
         return this->mat().number_density;
     }
 
-    CELER_FUNCTION celeritas::Span<const MockElement> elements() const
+    CELER_FUNCTION Span<const MockElement> elements() const
     {
         return params_.elements[this->mat().elements];
     }
@@ -153,9 +141,9 @@ class MockTrackView
 //! Input data
 struct CTestInput
 {
-    ::celeritas::DeviceCRef<MockParamsData> params;
-    ::celeritas::DeviceRef<MockStateData>   states;
-    celeritas::Span<double>                 result;
+    DeviceCRef<MockParamsData> params;
+    DeviceRef<MockStateData>   states;
+    Span<double>               result;
 };
 
 //---------------------------------------------------------------------------//
@@ -170,4 +158,5 @@ inline void col_cuda_test(CTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -17,7 +17,9 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -45,8 +47,7 @@ class SequenceEngine
 
   public:
     // Nearly reproduce the given stream of reals with generate_canonical
-    inline static SequenceEngine
-    from_reals(celeritas::Span<const double> values);
+    inline static SequenceEngine from_reals(Span<const double> values);
 
     // Nearly reproduce the given stream of reals with generate_canonical
     inline static SequenceEngine
@@ -71,18 +72,15 @@ class SequenceEngine
     VecResult values_;
     size_type i_;
 };
-
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Specialization of GenerateCanonical for SequenceEngine.
  */
 template<class T>
-class GenerateCanonical<celeritas_test::SequenceEngine, T>
+class GenerateCanonical<test::SequenceEngine, T>
 {
   public:
     //!@{
@@ -93,16 +91,13 @@ class GenerateCanonical<celeritas_test::SequenceEngine, T>
 
   public:
     // Sample a random number
-    inline result_type operator()(celeritas_test::SequenceEngine& rng);
+    inline result_type operator()(test::SequenceEngine& rng);
 };
-
-//---------------------------------------------------------------------------//
-} // namespace celeritas
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-namespace celeritas_test
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -112,7 +107,7 @@ namespace celeritas_test
  * (see the RngEngine unit test) will not be exactly reproduced. All input
  * values must be bounded in  \f$ [0, 1) \f$ .
  */
-SequenceEngine SequenceEngine::from_reals(celeritas::Span<const double> values)
+SequenceEngine SequenceEngine::from_reals(Span<const double> values)
 {
     using real_type = double;
 
@@ -173,19 +168,16 @@ auto SequenceEngine::operator()() -> result_type
     if (CELER_UNLIKELY(i_ == values_.size()))
     {
         // Always throw a debug error rather than letting the test crash
-        celeritas::throw_debug_error(celeritas::DebugErrorType::precondition,
-                                     "SequenceEngine RNG stream exceeded",
-                                     __FILE__,
-                                     __LINE__);
+        throw_debug_error(DebugErrorType::precondition,
+                          "SequenceEngine RNG stream exceeded",
+                          __FILE__,
+                          __LINE__);
     }
     return values_[i_++];
 }
-
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Specialization for sequence RNG.
@@ -199,15 +191,14 @@ namespace celeritas
  * behavior for small values.
  */
 template<class T>
-T GenerateCanonical<celeritas_test::SequenceEngine, T>::operator()(
-    celeritas_test::SequenceEngine& rng)
+T GenerateCanonical<test::SequenceEngine, T>::operator()(
+    test::SequenceEngine& rng)
 {
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
-    const real_type range = celeritas_test::SequenceEngine::max()
-                            + real_type(1);
-    real_type result = rng();
+    const real_type range  = test::SequenceEngine::max() + real_type(1);
+    real_type       result = rng();
     result += rng() * range;
-    result *= 1 / celeritas::ipow<2>(range);
+    result *= 1 / ipow<2>(range);
     if (CELER_UNLIKELY(result == real_type(1)))
     {
         // Change to nearest point value closer to zero

@@ -12,10 +12,11 @@
 #include "Range.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
-
-using celeritas::count;
-using celeritas::range;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 using VecInt   = std::vector<int>;
 using Vec_UInt = std::vector<unsigned int>;
@@ -63,7 +64,7 @@ enum G4MySillyIndex
 //---------------------------------------------------------------------------//
 TEST(RangeTest, class_interface)
 {
-    using RangeT = celeritas::Range<int>;
+    using RangeT = Range<int>;
     RangeT r(1, 3);
     EXPECT_EQ(2, r.size());
     EXPECT_EQ(1, *r.begin());
@@ -143,7 +144,7 @@ TEST(RangeTest, just_end)
 
 TEST(RangeTest, vec_fill)
 {
-    auto r = celeritas::range(1, 5);
+    auto r = range(1, 5);
     EXPECT_EQ(5 - 1, r.size());
     EXPECT_FALSE(r.empty());
 
@@ -157,14 +158,14 @@ TEST(RangeTest, vec_fill)
     vals.assign(r.begin(), r.end());
     EXPECT_VEC_EQ((VecInt{1, 2, 3, 4}), vals);
 
-    r = celeritas::range(5, 5);
+    r = range(5, 5);
     EXPECT_EQ(0, r.size());
     EXPECT_TRUE(r.empty());
 }
 
 TEST(RangeTest, empty)
 {
-    celeritas::Range<int> r;
+    Range<int> r;
     EXPECT_TRUE(r.empty());
     EXPECT_EQ(0, r.size());
 }
@@ -172,7 +173,7 @@ TEST(RangeTest, empty)
 TEST(RangeTest, enums)
 {
     int  ctr          = 0;
-    auto most_pokemon = celeritas::range(pokemon::charmander, pokemon::size_);
+    auto most_pokemon = range(pokemon::charmander, pokemon::size_);
     for (pokemon::Pokemon p : most_pokemon)
     {
         EXPECT_EQ(p, static_cast<pokemon::Pokemon>(ctr));
@@ -182,7 +183,7 @@ TEST(RangeTest, enums)
     EXPECT_EQ(4, most_pokemon.size());
 
     ctr = 0;
-    for (auto p : celeritas::range(pokemon::size_))
+    for (auto p : range(pokemon::size_))
     {
         static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
                       "Pokemon range should be an enum");
@@ -191,15 +192,14 @@ TEST(RangeTest, enums)
     }
 
 #if CELERITAS_DEBUG
-    EXPECT_THROW(celeritas::range(static_cast<pokemon::Pokemon>(100)),
-                 celeritas::DebugError);
+    EXPECT_THROW(range(static_cast<pokemon::Pokemon>(100)), DebugError);
 #endif
 }
 
 TEST(RangeTest, different_enums)
 {
     int ctr = 0;
-    for (auto i : celeritas::range(fake_geant::NumberOfGeantIndex))
+    for (auto i : range(fake_geant::NumberOfGeantIndex))
     {
         static_assert(
             std::is_same<decltype(i), fake_geant::G4MySillyIndex>::value,
@@ -219,7 +219,7 @@ TEST(RangeTest, enum_step)
      * ints.
      */
     std::vector<int> vals;
-    for (auto p : celeritas::range(pokemon::size_).step(3u))
+    for (auto p : range(pokemon::size_).step(3u))
     {
         static_assert(std::is_same<decltype(p), pokemon::Pokemon>::value,
                       "Pokemon range should still be an enum");
@@ -231,13 +231,13 @@ TEST(RangeTest, enum_step)
 TEST(RangeTest, enum_classes)
 {
     int ctr = 0;
-    for (Color c : celeritas::range(Color::red, Color::size_))
+    for (Color c : range(Color::red, Color::size_))
     {
         EXPECT_EQ(c, static_cast<Color>(ctr));
         ++ctr;
     }
 
-    auto srange = celeritas::range(Color::red, Color::size_).step(2u);
+    auto srange = range(Color::red, Color::size_).step(2u);
     EXPECT_EQ(Color::red, *srange.begin());
     EXPECT_EQ(static_cast<int>(Color::size_), static_cast<int>(*srange.end()));
     EXPECT_EQ(srange.begin(), srange.begin());
@@ -314,15 +314,15 @@ TEST(RangeTest, backward_conversion)
 
 TEST(RangeTest, opaque_id)
 {
-    using MatId = celeritas::OpaqueId<struct Mat>;
+    using MatId = OpaqueId<struct Mat>;
 
     {
-        celeritas::Range<MatId> fr;
+        Range<MatId> fr;
         EXPECT_EQ(0, fr.size());
         EXPECT_TRUE(fr.empty());
     }
     {
-        celeritas::Range<MatId> r(MatId{10});
+        Range<MatId> r(MatId{10});
         EXPECT_EQ(10, r.size());
         EXPECT_FALSE(r.empty());
         EXPECT_EQ(MatId{0}, *r.begin());
@@ -330,7 +330,7 @@ TEST(RangeTest, opaque_id)
         EXPECT_EQ(MatId{10}, *r.end());
     }
     {
-        celeritas::Range<MatId> r(MatId{3}, MatId{10});
+        Range<MatId> r(MatId{3}, MatId{10});
         EXPECT_EQ(7, r.size());
         EXPECT_FALSE(r.empty());
         EXPECT_EQ(MatId{3}, *r.begin());
@@ -378,7 +378,7 @@ TEST(CountTest, start)
     }
     EXPECT_VEC_EQ((VecInt{10, 25, 40, 55, 70, 85}), vals);
 
-    EXPECT_EQ(10, *celeritas::Count<int>(10).begin());
+    EXPECT_EQ(10, *Count<int>(10).begin());
 }
 
 TEST(CountTest, backward)
@@ -396,9 +396,6 @@ TEST(CountTest, backward)
     EXPECT_VEC_EQ((VecInt{3, 2, 1, 0, -1}), vals);
 }
 
-//---------------------------------------------------------------------------//
-// DEVICE TESTS
-//---------------------------------------------------------------------------//
 TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
 {
     // next prime after 1<<20 elements to avoid multiples of block/stride
@@ -414,7 +411,7 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
     {
         input.y[i] = i;
     }
-    input.num_threads       = celeritas::device().threads_per_warp();
+    input.num_threads       = device().threads_per_warp();
     input.threads_per_block = 256;
 
     // Calculate saxpy using CPU
@@ -428,3 +425,7 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
     RangeTestOutput result = rangedev_test(input);
     EXPECT_VEC_EQ(z_cpu, result.z);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

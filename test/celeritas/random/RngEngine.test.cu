@@ -17,10 +17,11 @@
 
 #include "RngEngine.test.hh"
 
-using namespace celeritas;
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -28,10 +29,10 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample_native_kernel(::celeritas::DeviceRef<RngStateData> view,
+__global__ void sample_native_kernel(DeviceRef<RngStateData> view,
                                      RngEngine::result_type* samples)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() < view.size())
     {
         RngEngine rng(view, tid);
@@ -41,10 +42,9 @@ __global__ void sample_native_kernel(::celeritas::DeviceRef<RngStateData> view,
 
 template<class RealType>
 __global__ void
-sample_canonical_kernel(::celeritas::DeviceRef<RngStateData> view,
-                        RealType*                            samples)
+sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() < view.size())
     {
         RngEngine rng(view, tid);
@@ -62,7 +62,7 @@ std::vector<unsigned int> re_test_native(RngDeviceRef states)
     thrust::device_vector<unsigned int> samples(states.size());
 
     CELER_LAUNCH_KERNEL(sample_native,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         states.size(),
                         states,
                         raw_pointer_cast(samples.data()));
@@ -80,10 +80,10 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
 {
     thrust::device_vector<T> samples(states.size());
 
-    static const ::celeritas::KernelParamCalculator calc_launch_params(
+    static const KernelParamCalculator calc_launch_params(
         sample_canonical_kernel<T>,
         "sample_canonical",
-        celeritas::device().default_block_size());
+        device().default_block_size());
     auto grid = calc_launch_params(states.size());
 
     CELER_LAUNCH_KERNEL_IMPL(sample_canonical_kernel<T>,
@@ -110,4 +110,5 @@ template std::vector<float>  re_test_canonical<float>(RngDeviceRef);
 template std::vector<double> re_test_canonical<double>(RngDeviceRef);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

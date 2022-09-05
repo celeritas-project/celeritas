@@ -20,14 +20,18 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using VGT = ValueGridType;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedProcessesTest : public celeritas_test::Test
+class ImportedProcessesTest : public Test
 {
   protected:
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
@@ -342,3 +346,6 @@ TEST_F(ImportedProcessesTest, rayleigh)
         EXPECT_FALSE(builders[VGT::range]);
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

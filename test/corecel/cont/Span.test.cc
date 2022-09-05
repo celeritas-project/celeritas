@@ -15,10 +15,14 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Span;
-
+namespace celeritas
+{
+namespace test
+{
 namespace
 {
+//---------------------------------------------------------------------------//
+
 template<class T, std::size_t E>
 std::string span_to_string(const Span<T, E>& s)
 {
@@ -26,23 +30,11 @@ std::string span_to_string(const Span<T, E>& s)
     os << s;
     return os.str();
 }
+
+//---------------------------------------------------------------------------//
 } // namespace
 
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class SpanTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(SpanTest, fixed_size_zero)
+TEST(SpanTest, fixed_size_zero)
 {
     Span<int, 0> empty_span;
     EXPECT_EQ(nullptr, empty_span.data());
@@ -91,7 +83,7 @@ TEST_F(SpanTest, fixed_size_zero)
     EXPECT_EQ(0, ptr_span.size());
 }
 
-TEST_F(SpanTest, fixed_size)
+TEST(SpanTest, fixed_size)
 {
     int          local_data[] = {123, 456};
     Span<int, 2> local_span(local_data);
@@ -142,7 +134,7 @@ TEST_F(SpanTest, fixed_size)
     EXPECT_EQ(local_data, ptr_span.data());
 }
 
-TEST_F(SpanTest, dynamic_size)
+TEST(SpanTest, dynamic_size)
 {
     int       local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
@@ -206,8 +198,8 @@ TEST_F(SpanTest, dynamic_size)
     }
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(local_span.last(4), celeritas::DebugError);
-        EXPECT_THROW(local_span.last<4>(), celeritas::DebugError);
+        EXPECT_THROW(local_span.last(4), DebugError);
+        EXPECT_THROW(local_span.last<4>(), DebugError);
     }
 
     auto func_subspan = local_span.subspan(1);
@@ -240,7 +232,7 @@ TEST_F(SpanTest, dynamic_size)
     EXPECT_EQ(local_data, ptr_span.data());
 }
 
-TEST_F(SpanTest, io_manip)
+TEST(SpanTest, io_manip)
 {
     int       local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
@@ -261,3 +253,7 @@ TEST_F(SpanTest, io_manip)
         EXPECT_EQ("{123   ,456  ,789  }", os.str());
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

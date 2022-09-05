@@ -17,10 +17,12 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
-
+namespace test
+{
+namespace
+{
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
@@ -69,10 +71,9 @@ __global__ void curand_test_mtgp32_kernel(unsigned int       nsamples,
         tid += blockDim.x * gridDim.x;
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace
 
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
-//---------------------------------------------------------------------------//
 //! Run on device and return results
 template<class T>
 TestOutput curand_test(TestParams params)
@@ -162,4 +163,5 @@ template TestOutput curand_test<curandStatePhilox4_32_10_t>(TestParams);
 template TestOutput curand_test<curandStateMtgp32>(TestParams);
 
 //---------------------------------------------------------------------------//
-} // Namespace celeritas_test
+} // namespace test
+} // namespace celeritas

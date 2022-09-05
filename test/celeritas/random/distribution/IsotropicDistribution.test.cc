@@ -15,37 +15,25 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::IsotropicDistribution;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class IsotropicDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
-};
-
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(IsotropicDistributionTest, bin)
+TEST(IsotropicDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    IsotropicDistribution<> sample_isotropic;
+    IsotropicDistribution<>                 sample_isotropic;
+    test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         auto u = sample_isotropic(rng);
 
         // Make sure sampled point is on the surface of the unit sphere
-        ASSERT_TRUE(celeritas::is_soft_unit_vector(u));
+        ASSERT_TRUE(is_soft_unit_vector(u));
 
         // Tally octant
         int tally_bin = 1 * (u[0] >= 0) + 2 * (u[1] >= 0) + 4 * (u[2] >= 0);
@@ -62,3 +50,7 @@ TEST_F(IsotropicDistributionTest, bin)
     // 2 32-bit samples per double, 2 doubles per sample
     EXPECT_EQ(num_samples * 4, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

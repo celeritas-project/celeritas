@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/TestConfig.hh
+//! \file testdetail/TestMainImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 
-extern const char source_dir[];
+int test_main(int argc, char** argv);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

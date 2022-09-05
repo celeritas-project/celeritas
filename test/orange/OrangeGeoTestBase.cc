@@ -29,12 +29,13 @@
 #    include "orange/construct/VolumeInputIO.json.hh"
 #endif
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 struct ToStream
 {
     std::ostream& os;
@@ -47,7 +48,9 @@ struct ToStream
     }
 };
 
+//---------------------------------------------------------------------------//
 } // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Convert a vector of senses to a string.
@@ -55,7 +58,7 @@ struct ToStream
 std::string OrangeGeoTestBase::senses_to_string(Span<const Sense> senses)
 {
     std::ostringstream os;
-    os << '{' << celeritas::join(senses.begin(), senses.end(), ' ', [](Sense s) {
+    os << '{' << join(senses.begin(), senses.end(), ' ', [](Sense s) {
         return to_char(s);
     }) << '}';
     return os.str();
@@ -259,4 +262,5 @@ std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

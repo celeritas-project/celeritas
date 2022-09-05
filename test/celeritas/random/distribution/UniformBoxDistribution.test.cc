@@ -14,32 +14,21 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::UniformBoxDistribution;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class UniformBoxDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(UniformBoxDistributionTest, all)
+TEST(UniformBoxDistributionTest, all)
 {
     int num_samples = 10000;
 
-    UniformBoxDistribution<> sample_point({-1, -2, -3}, {3, 6, 9});
+    UniformBoxDistribution<>          sample_point({-1, -2, -3}, {3, 6, 9});
+    DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         auto r = sample_point(rng);
 
@@ -61,3 +50,7 @@ TEST_F(UniformBoxDistributionTest, all)
     // 2 32-bit samples per double, 3 doubles per sample
     EXPECT_EQ(num_samples * 6, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -23,44 +23,39 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using celeritas::MemSpace;
-using celeritas::Ownership;
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
 struct PhysTestInit
 {
-    celeritas::units::MevEnergy energy;
-    celeritas::MaterialId       mat;
-    celeritas::ParticleId       particle;
+    units::MevEnergy energy;
+    MaterialId       mat;
+    ParticleId       particle;
 };
 
 struct PTestInput
 {
-    celeritas::DeviceCRef<celeritas::PhysicsParamsData> params;
-    celeritas::DeviceRef<celeritas::PhysicsStateData>   states;
-    celeritas::StateCollection<PhysTestInit,
-                               Ownership::const_reference,
-                               MemSpace::device>
+    DeviceCRef<PhysicsParamsData> params;
+    DeviceRef<PhysicsStateData>   states;
+    StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 
     // Calculated "step" per track
-    celeritas::Span<celeritas::real_type> result;
+    Span<real_type> result;
 };
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-inline CELER_FUNCTION celeritas::real_type
-                      calc_step(celeritas::PhysicsTrackView& phys,
-                                celeritas::PhysicsStepView&  pstep,
-                                celeritas::units::MevEnergy  energy)
+inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
+                                          PhysicsStepView&  pstep,
+                                          units::MevEnergy  energy)
 {
-    using namespace celeritas;
-
     // Calc total macro_xs over processsess
     real_type total_xs = 0;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
@@ -92,7 +87,7 @@ inline CELER_FUNCTION celeritas::real_type
         if (auto id = phys.value_grid(ValueGridType::range, ppid))
         {
             auto calc_range = phys.make_calculator<RangeCalculator>(id);
-            step            = celeritas::min(step, calc_range(energy));
+            step            = min(step, calc_range(energy));
         }
     }
     if (step != inf)
@@ -101,7 +96,7 @@ inline CELER_FUNCTION celeritas::real_type
     }
 
     // Take minimum of step and half the MFP
-    step = celeritas::min(step, 0.5 * phys.interaction_mfp());
+    step = min(step, 0.5 * phys.interaction_mfp());
     return step;
 }
 
@@ -117,4 +112,5 @@ inline void phys_cuda_test(const PTestInput&)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -10,17 +10,18 @@
 
 #include "celeritas/mat/MaterialData.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-using namespace celeritas;
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
 struct MTestInput
 {
-    using MaterialParamsRef = ::celeritas::DeviceCRef<MaterialParamsData>;
-    using MaterialStateRef  = ::celeritas::DeviceRef<MaterialStateData>;
+    using MaterialParamsRef = DeviceCRef<MaterialParamsData>;
+    using MaterialStateRef  = DeviceRef<MaterialStateData>;
 
     MaterialParamsRef               params;
     MaterialStateRef                states;
@@ -47,4 +48,5 @@ struct MTestOutput
 MTestOutput m_test(const MTestInput& inp);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -13,13 +13,15 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ValueGridInserterTest : public celeritas_test::Test
+class ValueGridInserterTest : public Test
 {
   protected:
     Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
@@ -60,3 +62,6 @@ TEST_F(ValueGridInserterTest, all)
     }
     EXPECT_EQ(2, grid_storage.size());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

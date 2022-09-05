@@ -13,13 +13,15 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeViewTest : public celeritas_test::OrangeGeoTestBase
+class VolumeViewTest : public OrangeGeoTestBase
 {
   protected:
     using VolumeRef = VolumeView::VolumeRef;
@@ -88,3 +90,6 @@ TEST_F(VolumeViewTest, five_volumes)
     const unsigned long expected_num_faces[] = {1ul, 7ul, 7ul, 2ul, 11ul, 1ul};
     EXPECT_VEC_EQ(expected_num_faces, num_faces);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

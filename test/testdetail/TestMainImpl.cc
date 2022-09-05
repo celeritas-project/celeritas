@@ -3,10 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/TestMain.cc
+//! \file testdetail/TestMainImpl.cc
 //---------------------------------------------------------------------------//
-#include "TestMain.hh"
-
 #include <stdexcept>
 
 #include "celeritas_config.h"
@@ -22,14 +20,14 @@
 
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
+#include "TestMain.hh"
 
 using std::cout;
 using std::endl;
-using namespace celeritas;
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 int test_main(int argc, char** argv)
@@ -99,13 +97,12 @@ int test_main(int argc, char** argv)
         }
 
         // Write diagnostics and overall test result
-        if (celeritas::device())
+        if (device())
         {
-            CELER_LOG(debug)
-                << "Kernel diagnostics: " << celeritas::kernel_diagnostics();
+            CELER_LOG(debug) << "Kernel diagnostics: " << kernel_diagnostics();
         }
         CELER_LOG(debug) << "Celeritas environment variables: "
-                         << celeritas::environment();
+                         << environment();
 
         cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
              << ": tests " << (failed ? "FAILED" : "PASSED") << color_code(' ')
@@ -117,5 +114,5 @@ int test_main(int argc, char** argv)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas
