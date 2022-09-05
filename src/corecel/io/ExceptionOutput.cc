@@ -18,24 +18,39 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
 #if CELERITAS_USE_JSON
+namespace
+{
+//---------------------------------------------------------------------------//
+template<class T>
+void details_to_json(nlohmann::json& j, const T& d)
+{
+    j["which"] = to_cstring(d.which);
+    if (d.condition)
+    {
+        j["condition"] = d.condition;
+    }
+    if (d.file && d.file[0] != '\0')
+    {
+        j["file"] = d.file;
+    }
+    if (d.line != 0)
+    {
+        j["line"] = d.line;
+    }
+}
+//---------------------------------------------------------------------------//
+} // namespace
 
 void to_json(nlohmann::json& j, const DebugErrorDetails& d)
 {
-    j["which"]     = to_cstring(d.which);
-    j["condition"] = d.condition;
-    j["file"]      = d.file;
-    j["line"]      = d.line;
+    details_to_json(j, d);
 }
 
 void to_json(nlohmann::json& j, const RuntimeErrorDetails& d)
 {
-    j["which"]     = to_cstring(d.which);
     j["what"]      = d.what;
-    j["condition"] = d.condition;
-    j["file"]      = d.file;
-    j["line"]      = d.line;
+    details_to_json(j, d);
 }
 
 #endif
