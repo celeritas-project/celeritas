@@ -21,6 +21,9 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Return whether to give an extra verbose message.
+ */
 bool determine_verbose_message()
 {
 #if CELERITAS_DEBUG
@@ -34,7 +37,7 @@ bool determine_verbose_message()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a debug assertion message and throw.
+ * Construct a debug assertion message for printing.
  */
 std::string build_debug_error_msg(const DebugErrorDetails& d)
 {
@@ -54,7 +57,7 @@ std::string build_debug_error_msg(const DebugErrorDetails& d)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a runtime assertion message.
+ * Construct a runtime assertion message for printing.
  */
 std::string build_runtime_error_msg(const RuntimeErrorDetails& d)
 {
@@ -92,6 +95,9 @@ std::string build_runtime_error_msg(const RuntimeErrorDetails& d)
 } // namespace
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a human-readable string describing a debug error.
+ */
 const char* to_cstring(DebugErrorType which)
 {
     switch (which)
@@ -113,6 +119,9 @@ const char* to_cstring(DebugErrorType which)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a human-readable string describing a runtime error.
+ */
 const char* to_cstring(RuntimeErrorType which)
 {
     switch (which)
@@ -134,6 +143,9 @@ const char* to_cstring(RuntimeErrorType which)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a debug exception from detailed attributes.
+ */
 DebugError::DebugError(DebugErrorDetails d)
     : std::logic_error(build_debug_error_msg(d)), details_(std::move(d))
 {
@@ -141,7 +153,7 @@ DebugError::DebugError(DebugErrorDetails d)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a message and throw an error from a runtime CUDA/HIP failure.
+ * Construct a runtime exception from a validation failure.
  */
 RuntimeError RuntimeError::from_validate(std::string what,
                                          const char* code,
@@ -153,7 +165,7 @@ RuntimeError RuntimeError::from_validate(std::string what,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a message and throw an error from a runtime CUDA/HIP failure.
+ * Construct a runtime exception from a CUDA/HIP runtime failure.
  */
 RuntimeError RuntimeError::from_device_call(const char* error_string,
                                             const char* code,
@@ -202,6 +214,9 @@ RuntimeError RuntimeError::from_geant_exception(const char* origin,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a runtime error from detailed descriptions.
+ */
 RuntimeError::RuntimeError(RuntimeErrorDetails d)
     : std::runtime_error(build_runtime_error_msg(d)), details_(std::move(d))
 {
