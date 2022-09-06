@@ -20,7 +20,7 @@ using GeoParamsCRefHost   = celeritas::HostCRef<celeritas::GeoParamsData>;
 using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
 using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
 
-using SPConstGeo = std::shared_ptr<const celeritas::VecgeomParams>;
+using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
 
 //---------------------------------------------------------------------------//
 //! Input and return structs
@@ -44,7 +44,11 @@ CELER_FORCEINLINE_FUNCTION int physid(const celeritas::GeoTrackView& geo)
 {
     if (geo.is_outside())
         return 0;
+#if CELERITAS_USE_VECGEOM
     return geo.volume_physid();
+#else
+    return geo.volume_id().get();
+#endif
 }
 
 //---------------------------------------------------------------------------//
