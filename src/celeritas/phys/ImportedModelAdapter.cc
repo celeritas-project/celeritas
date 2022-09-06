@@ -78,17 +78,19 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
     auto xs = import_process.micro_xs.find(model_class_);
     CELER_ASSERT(xs != import_process.micro_xs.end());
     CELER_ASSERT(applic.material < xs->second.size());
-    const auto& el_to_vec = xs->second[applic.material.get()];
+    const auto& elem_phys_vectors = xs->second[applic.material.get()];
 
     MicroXsBuilders builders;
-    for (const auto& kv : el_to_vec)
+
+    for (size_type i : range(elem_phys_vectors.size()))
     {
-        const auto& vec = kv.second;
+        const auto& vec = elem_phys_vectors.at(i);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        ElementId el{static_cast<size_type>(kv.first)};
+        ElementId el{i};
         builders[el] = ValueGridLogBuilder::from_geant(make_span(vec.x),
                                                        make_span(vec.y));
     }
+
     return builders;
 }
 

@@ -212,20 +212,19 @@ void print_process(const ImportProcess&               proc,
                     "------- "
                     "|\n";
 
-            const auto& element_map = micro_xs.at(mat_id);
+            const auto& elem_phys_vectors = micro_xs.at(mat_id);
 
-            for (const auto& iter_el : element_map)
+            for (size_t i : celeritas::range(elem_phys_vectors.size()))
             {
                 // Print elements and their physics vectors
-                const auto physvec = iter_el.second;
-                cout << "| " << setw(13) << std::left
-                     << elements.at(iter_el.first).name << " | " << setw(5)
-                     << physvec.x.size() << " | (" << setprecision(3)
-                     << setw(12) << physvec.x.front() << ", "
-                     << setprecision(3) << setw(12) << physvec.y.front()
-                     << ") -> (" << setprecision(3) << setw(12)
-                     << physvec.x.back() << ", " << setprecision(3) << setw(12)
-                     << physvec.y.back() << ") |\n";
+                const auto physvec = elem_phys_vectors.at(i);
+                cout << "| " << setw(13) << std::left << elements.at(i).name
+                     << " | " << setw(5) << physvec.x.size() << " | ("
+                     << setprecision(3) << setw(12) << physvec.x.front()
+                     << ", " << setprecision(3) << setw(12)
+                     << physvec.y.front() << ") -> (" << setprecision(3)
+                     << setw(12) << physvec.x.back() << ", " << setprecision(3)
+                     << setw(12) << physvec.y.back() << ") |\n";
             }
         }
 

@@ -306,18 +306,16 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     }
     {
         // Test model microscopic cross sections
-        auto get_values = [](const ImportProcess::ElementPhysicsVectorMap& xs) {
+        auto get_values = [](const ImportProcess::ElementPhysicsVectors& xs) {
             std::unordered_map<std::string, std::vector<double>> result;
-            for (const auto& kv : xs)
+            for (const auto& vec : xs)
             {
-                const auto& vec = kv.second;
                 result["x_size"].push_back(vec.x.size());
                 result["y_size"].push_back(vec.y.size());
                 result["x_front"].push_back(vec.x.front());
                 result["y_front"].push_back(vec.y.front() / units::barn);
                 result["x_back"].push_back(vec.x.back());
                 result["y_back"].push_back(vec.y.back() / units::barn);
-                result["element_id"].push_back(kv.first);
             }
             return result;
         };
@@ -346,7 +344,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             static const double expected_x_back[] = {1000, 1000, 1000};
             static const double expected_y_back[]
                 = {77.270585225307, 66.692872575545, 88.395455128585};
-            static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(sb->second.back());
             EXPECT_VEC_EQ(expected_size, actual["x_size"]);
@@ -355,7 +352,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
             EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
             EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
-            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
         }
         {
             // Check relativistic brems electron micro xs
@@ -370,7 +366,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
                 = {100000000, 100000000, 100000000};
             static const double expected_y_back[]
                 = {14.346956760121, 12.347642615031, 16.486026316006};
-            static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(rb->second.back());
             EXPECT_VEC_EQ(expected_size, actual["x_size"]);
@@ -379,7 +374,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
             EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
             EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
-            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
         }
         {
             // Check Klein-Nishina micro xs
@@ -401,7 +395,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
                 = {100000000, 100000000, 100000000};
             static const double expected_y_back[] = {
                 7.3005460134493e-07, 6.7387221120147e-07, 7.8623296376253e-07};
-            static const double expected_element_id[] = {0, 1, 2};
 
             auto actual = get_values(kn->second.back());
             EXPECT_VEC_EQ(expected_size, actual["x_size"]);
@@ -410,7 +403,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
             EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
             EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
-            EXPECT_VEC_EQ(expected_element_id, actual["element_id"]);
         }
     }
 }

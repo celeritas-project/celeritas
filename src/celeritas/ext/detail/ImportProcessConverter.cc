@@ -626,7 +626,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 {
     CELER_ASSERT(!materials_.empty());
 
-    // Needed for model.ComputeCrossSectionPerAtom(...)
+    // G4 particle def is needed for model.ComputeCrossSectionPerAtom(...)
     const G4ParticleDefinition& g4_particle
         = get_g4particle(PDGNumber{process_.particle_pdg});
     ImportProcess::ModelMicroXS model_micro_xs;
@@ -636,29 +636,28 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         const ImportMaterial& material    = materials_[mat_idx];
         const G4Material&     g4_material = get_g4material(mat_idx);
 
-        ImportProcess::ElementPhysicsVectorMap element_physvec_map;
+        ImportProcess::ElementPhysicsVectors elem_phys_vectors;
+        elem_phys_vectors.resize(material.elements.size());
 
         // Set up all element physics vectors for this material and model
-        for (const auto& elem_comp : material.elements)
+        for (size_t i : celeritas::range(material.elements.size()))
         {
-            ImportPhysicsVector physics_vector
+            elem_phys_vectors[i]
                 = this->initialize_micro_xs_physics_vector(model, mat_idx);
-            element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
-        auto& g4_nist_manager = *G4NistManager::Instance();
+        const auto& g4_nist_manager = *G4NistManager::Instance();
 
         // All physics vectors have the same energy grid for the same material
-        const auto& energy_grid = element_physvec_map.begin()->second.x;
+        const auto& energy_grid = elem_phys_vectors.front().x;
 
-        for (const auto& elem_comp : material.elements)
+        for (size_t elem_comp_idx : celeritas::range(material.elements.size()))
         {
+            const auto&      elem_comp = material.elements.at(elem_comp_idx);
             const G4Element* g4_element
                 = g4_nist_manager.GetElement(elem_comp.element_id);
-
             CELER_ASSERT(g4_element);
-            auto& physics_vector
-                = element_physvec_map.find(elem_comp.element_id)->second;
+            auto& physics_vector = elem_phys_vectors.at(elem_comp_idx);
 
             // Get the secondary production cut (MeV)
             double secondary_cutoff
@@ -691,10 +690,8 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         // Avoid cross-section vectors starting or ending with zero values.
         // Geant4 simply uses the next/previous bin value when the vector's
         // front/back are zero. This feels like a trap.
-        for (auto& iter : element_physvec_map)
+        for (auto& physics_vector : elem_phys_vectors)
         {
-            auto& physics_vector = iter.second;
-
             if (physics_vector.y.front() == 0.0)
             {
                 // Cross-section starts with zero, use next bin value
@@ -710,7 +707,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         }
 
         // Store element cross-section map for this material
-        model_micro_xs.push_back(element_physvec_map);
+        model_micro_xs.push_back(std::move(elem_phys_vectors));
     }
 
     return model_micro_xs;
