@@ -132,6 +132,8 @@ function(cgv_find_version)
         )
       endif()
       set(_CACHED_VERSION "${_VERSION_STRING}" "${_VERSION_STRING_SUFFIX}" "${_VERSION_HASH}")
+      # Note: 'unset' is necessary if using CMake presets with ${projname}_GIT_DESCRIBE=""
+      unset(${_CACHE_VAR} CACHE)
       set("${_CACHE_VAR}" "${_CACHED_VERSION}" CACHE INTERNAL
         "Version string and hash for ${projname}")
     endif()

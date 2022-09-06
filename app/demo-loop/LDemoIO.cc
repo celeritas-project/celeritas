@@ -132,7 +132,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["step_limiter"] = v.step_limiter;
     }
-    if (ends_with(v.geometry_filename, ".gdml"))
+    if (ends_with(v.physics_filename, ".gdml"))
     {
         j["geant_options"] = v.geant_options;
     }
@@ -201,6 +201,11 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     if (j.contains("geant_options"))
     {
         j.at("geant_options").get_to(v.geant_options);
+    }
+    else
+    {
+        // Basic physics for demo loop
+        v.geant_options.physics = celeritas::GeantSetupPhysicsList::em_basic;
     }
 }
 //!@}

@@ -40,7 +40,7 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     //! Whether the Geant4 configuration match a certain machine
     static bool is_ci_build();
     static bool is_wildstyle_build();
-    static bool is_srj_build();
+    static bool is_summit_build();
     //!@}
 
   protected:

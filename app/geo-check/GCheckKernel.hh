@@ -8,7 +8,7 @@
 #pragma once
 
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 
 namespace geo_check
@@ -44,7 +44,11 @@ CELER_FORCEINLINE_FUNCTION int physid(const celeritas::GeoTrackView& geo)
 {
     if (geo.is_outside())
         return 0;
+#if CELERITAS_USE_VECGEOM
     return geo.volume_physid();
+#else
+    return geo.volume_id().get();
+#endif
 }
 
 //---------------------------------------------------------------------------//

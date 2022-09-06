@@ -9,6 +9,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
+        "Celeritas_GIT_DESCRIBE": "",
         "CELERITAS_BUILD_TESTS":{"type": "BOOL",   "value": "ON"},
         "CELERITAS_DEBUG":      {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_SWIG":   {"type": "BOOL",   "value": "OFF"},
@@ -74,8 +75,8 @@
       "cacheVariables": {
         "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
         "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"},
-        "CMAKE_CUDA_FLAGS_RELEASE": "--use_fast_math -O3 -DNDEBUG",
-        "CMAKE_HIP_FLAGS_RELEASE": "-ffast-math -O3 -DNDEBUG"
+        "CMAKE_CUDA_FLAGS_RELEASE": "-O3 -DNDEBUG",
+        "CMAKE_HIP_FLAGS_RELEASE": "-O3 -DNDEBUG"
       }
     },
     {

@@ -20,8 +20,6 @@ using namespace celeritas;
 
 namespace geo_check
 {
-using NavState = vecgeom::NavigationState;
-
 //---------------------------------------------------------------------------//
 /*!
  * Constructor, takes ownership of SPConstGeo object received
