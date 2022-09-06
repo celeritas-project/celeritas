@@ -80,10 +80,19 @@ GeoMaterialParams::GeoMaterialParams(Input input)
             auto iter = lab_to_id.find(geo.id_to_label(volume_id));
             if (iter == lab_to_id.end())
             {
-                missing_volumes.push_back(geo.id_to_label(volume_id));
-                continue;
+                const Label& label = geo.id_to_label(volume_id);
+                if (!label.name.empty()
+                    && !(label.name.front() == '[' && label.name.back() == ']'))
+                {
+                    // Skip "[unused]" that we set for vecgeom empty labels,
+                    // "[EXTERIOR]" from ORANGE
+                    missing_volumes.push_back(label);
+                }
             }
-            input.volume_to_mat[volume_id.unchecked_get()] = iter->second;
+            else
+            {
+                input.volume_to_mat[volume_id.unchecked_get()] = iter->second;
+            }
         }
         if (!missing_volumes.empty())
         {

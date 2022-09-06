@@ -30,7 +30,10 @@ class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
 
     const char* geometry_basename() const override { return "simple-cms"; }
 
-    void SetUp() override { state = StateStore(*this->geometry(), 1); }
+    void SetUp() override
+    {
+        state = StateStore(this->geometry()->host_ref(), 1);
+    }
 
     GeoTrackView make_geo_track_view()
     {

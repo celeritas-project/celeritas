@@ -24,9 +24,9 @@ struct Primary
 {
     ParticleId       particle_id;
     units::MevEnergy energy;
-    Real3            position;
-    Real3            direction;
-    real_type        time;
+    Real3            position{0,0,0};
+    Real3            direction{0,0,0};
+    real_type        time{};
     EventId          event_id;
     TrackId          track_id;
 };

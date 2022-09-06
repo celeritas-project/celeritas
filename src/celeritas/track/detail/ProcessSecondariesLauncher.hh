@@ -91,7 +91,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         {
             // Particles should not be making secondaries while crossing a
             // surface
-            CELER_ASSERT(!geo.surface_id());
+            CELER_ASSERT(!geo.is_on_boundary());
 
             // Calculate the track ID of the secondary
             // TODO: This is nondeterministic; we need to calculate the

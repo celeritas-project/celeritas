@@ -84,6 +84,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
         // physics tables, which are not needed for the interactor)
         std::vector<celeritas::ImportProcess> imported{
             {11,
+             22,
              celeritas::ImportProcessType::electromagnetic,
              celeritas::ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,
@@ -91,6 +92,7 @@ class SeltzerBergerTest : public celeritas_test::InteractorHostTestBase
              {},
              {}},
             {-11,
+             22,
              celeritas::ImportProcessType::electromagnetic,
              celeritas::ImportProcessClass::e_brems,
              {celeritas::ImportModelClass::e_brems_sb,
@@ -367,9 +369,9 @@ TEST_F(SeltzerBergerTest, basic)
 
     // Note: these are "gold" values based on the host RNG.
     const double expected_angle[]  = {0.959441513277674,
-                                     0.994350429950924,
-                                     0.968866136008621,
-                                     0.961582855967571};
+                                      0.994350429950924,
+                                      0.968866136008621,
+                                      0.961582855967571};
     const double expected_energy[] = {0.0349225070114679,
                                       0.0316182310804369,
                                       0.0838794010486177,

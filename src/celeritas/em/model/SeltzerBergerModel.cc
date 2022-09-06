@@ -84,8 +84,9 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    // TODO: bounds need to be adjusted based on BremsstrahlungProcess data and
-    // SB table data
+    // TODO: potentially set lower energy bound based on (material-dependent)
+    // BremsstrahlungProcess lambda table energy grid to avoid invoking the
+    // interactor for tracks with energy below the interaction threshold
 
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;

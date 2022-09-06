@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -141,7 +142,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
-        CELER_ASSERT(substep.step <= remaining);
+        CELER_ASSERT(substep.step <= remaining
+                     || soft_equal(substep.step, remaining));
 
         // TODO: use safety distance to reduce number of calls to
         // find_next_step
@@ -160,7 +162,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // distance so we can continue toward the next boundary or end of
             // caller-requested step.
             state_ = substep.state;
-            result.distance += substep.step;
+            result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
         }
@@ -183,10 +185,15 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         {
             // The straight-line intersection point is a distance less than
             // `delta_intersection` from the substep's end position.
-            // Commit the proposed state's momentum but use the
-            // post-boundary-crossing track position for consistency
+            // Commit the proposed state's momentum, use the
+            // post-boundary-crossing track position for consistency, and
+            // conservatively reduce the *reported* traveled distance to avoid
+            // coincident boundary crossings.
             result.boundary = true;
-            result.distance += substep.step;
+            real_type miss_distance = detail::calc_miss_distance(
+                state_.pos, chord.dir, linear_step.distance, substep.state.pos);
+            CELER_ASSERT(miss_distance >= 0 && miss_distance < substep.step);
+            result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
             remaining  = 0;
         }
@@ -219,6 +226,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     normalize_direction(&dir);
     geo_.set_dir(dir);
 
+    CELER_ENSURE(result.distance >= 0 && result.distance <= step);
     return result;
 }
 

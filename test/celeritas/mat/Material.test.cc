@@ -343,7 +343,7 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
         = {{MaterialId{0}}, {MaterialId{1}}, {MaterialId{2}}, {MaterialId{3}}};
 
     CollectionStateStore<MaterialStateData, MemSpace::device> states(
-        *params, input.init.size());
+        params->host_ref(), input.init.size());
 
     input.params = params->device_ref();
     input.states = states.ref();

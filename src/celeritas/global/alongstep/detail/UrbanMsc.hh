@@ -148,8 +148,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
                                 phys,
                                 mat.make_material_view(),
                                 msc_step_result,
-                                /* geo_limited = */ local->step_limit.action
-                                    == track.boundary_action());
+                                /* geo_limited = */ geo.is_on_boundary());
 
     auto rng        = track.make_rng_engine();
     auto msc_result = msc_scatter(rng);
@@ -163,12 +162,13 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
     // Update direction and position
     if (msc_result.action != MscInteraction::Action::unchanged)
     {
+        // Changing direction during a boundary crossing is OK
         geo.set_dir(msc_result.direction);
-        // XXX: this invalidates the next surface, so we should probably skip
-        // the boundary crossing if this happens?
     }
     if (msc_result.action == MscInteraction::Action::displaced)
     {
+        // Displacment during a boundary crossing is *not* OK
+        CELER_ASSERT(!geo.is_on_boundary());
         Real3 new_pos;
         for (int i : range(3))
         {

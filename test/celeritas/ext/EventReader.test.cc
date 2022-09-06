@@ -78,10 +78,6 @@ TEST_P(EventReaderTest, read_all_formats)
     // Determine the event record format and open the file
     EventReader read_event(filename_.c_str(), particle_params_);
 
-    // Read all primary particles from the event record
-    auto primaries = read_event();
-    EXPECT_EQ(8, primaries.size());
-
     // Expected PDG: 2212, 1, 2212, -2, 22, -24, 1, -2
     const int expected_def_id[] = {0, 1, 0, 2, 4, 3, 1, 2};
 
@@ -98,23 +94,36 @@ TEST_P(EventReaderTest, read_all_formats)
         {-8.273504806466310e-2, 9.750892208717103e-1, 2.058055469649411e-1},
         {7.028153760960004e-2, -8.780402697122620e-1, -4.733981307893478e-1}};
 
-    for (auto i : celeritas::range(primaries.size()))
+    // Read events from the event record
+    int  event_count = 0;
+    auto primaries   = read_event();
+    while (!primaries.empty())
     {
-        const auto& primary = primaries[i];
+        EXPECT_EQ(8, primaries.size());
+        for (auto i : celeritas::range(primaries.size()))
+        {
+            const auto& primary = primaries[i];
 
-        // Check that the particle types were read correctly
-        EXPECT_EQ(expected_def_id[i], primary.particle_id.get());
+            // Check that the particle types were read correctly
+            EXPECT_EQ(expected_def_id[i], primary.particle_id.get());
 
-        // Check that the event IDs match
-        EXPECT_EQ(0, primary.event_id.get());
+            // Check that the event IDs match
+            EXPECT_EQ(event_count, primary.event_id.get());
 
-        // Check that the position, direction, and energy were read correctly
-        const double expected_position[] = {0, 0, 0};
-        EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
-        EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
-        EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy.value());
-        EXPECT_EQ(0, primary.time);
+            // Check that the position, direction, and energy were read
+            // correctly
+            const double expected_position[] = {0, 0, 0};
+            EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
+            EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
+            EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy.value());
+            EXPECT_EQ(0, primary.time);
+        }
+        ++event_count;
+        primaries = read_event();
     }
+    // Event reader should keep returning an empty vector
+    primaries = read_event();
+    EXPECT_TRUE(primaries.empty());
 }
 
 INSTANTIATE_TEST_SUITE_P(EventReaderTests,

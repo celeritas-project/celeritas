@@ -46,8 +46,7 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
     input.geometry      = this->geometry();
     input.materials     = this->material();
     input.volume_to_mat = {MaterialId{0}, MaterialId{1}, MaterialId{}};
-    input.volume_labels
-        = {Label{"Detector"}, Label{"World"}, Label{"[EXTERIOR]"}};
+    input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
 
@@ -94,6 +93,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 
     ImportProcess compton_data;
     compton_data.particle_pdg  = pdg::gamma().get();
+    compton_data.secondary_pdg = pdg::electron().get();
     compton_data.process_type  = ImportProcessType::electromagnetic;
     compton_data.process_class = ImportProcessClass::compton;
     compton_data.models        = {ImportModelClass::klein_nishina};

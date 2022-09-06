@@ -18,6 +18,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh"
+#include "celeritas/em/distribution/BhabhaEnergyDistribution.hh"
 #include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
@@ -25,8 +26,6 @@
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "detail/BhabhaEnergyDistribution.hh"
 
 namespace celeritas
 {
@@ -42,6 +41,14 @@ namespace celeritas
  */
 class MollerBhabhaInteractor
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using Mass     = units::MevMass;
+    using Energy   = units::MevEnergy;
+    using Momentum = units::MevMomentum;
+    //!@}
+
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
@@ -88,16 +95,15 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     const Real3&               inc_direction,
     StackAllocator<Secondary>& allocate)
     : shared_(shared)
-    , inc_energy_(particle.energy().value())
-    , inc_momentum_(particle.momentum().value())
+    , inc_energy_{value_as<Energy>(particle.energy())}
+    , inc_momentum_{value_as<Momentum>(particle.momentum())}
     , inc_direction_(inc_direction)
-    , electron_cutoff_(cutoffs.energy(shared_.ids.electron).value())
+    , electron_cutoff_(value_as<Energy>(cutoffs.energy(shared_.ids.electron)))
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
-    CELER_EXPECT(electron_cutoff_ >= shared_.min_valid_energy());
 }
 
 //---------------------------------------------------------------------------//
@@ -115,8 +121,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         // The secondary should not be emitted. This interaction cannot
         // happen and the incident particle must undergo an energy loss
         // process.
-        return Interaction::from_unchanged(units::MevEnergy{inc_energy_},
-                                           inc_direction_);
+        return Interaction::from_unchanged(Energy{inc_energy_}, inc_direction_);
     }
 
     // Allocate memory for the produced electron
@@ -133,13 +138,17 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     if (inc_particle_is_electron_)
     {
         MollerEnergyDistribution sample_moller(
-            shared_.electron_mass_c_sq, electron_cutoff_, inc_energy_);
+            value_as<Mass>(shared_.electron_mass),
+            electron_cutoff_,
+            inc_energy_);
         epsilon = sample_moller(rng);
     }
     else
     {
         BhabhaEnergyDistribution sample_bhabha(
-            shared_.electron_mass_c_sq, electron_cutoff_, inc_energy_);
+            value_as<Mass>(shared_.electron_mass),
+            electron_cutoff_,
+            inc_energy_);
         epsilon = sample_bhabha(rng);
     }
 
@@ -149,13 +158,16 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     // Same equation as in ParticleTrackView::momentum_sq()
     const real_type secondary_momentum = std::sqrt(
-        secondary_energy * (secondary_energy + 2 * shared_.electron_mass_c_sq));
+        secondary_energy
+        * (secondary_energy + 2 * value_as<Mass>(shared_.electron_mass)));
 
-    const real_type total_energy = inc_energy_ + shared_.electron_mass_c_sq;
+    const real_type total_energy = inc_energy_
+                                   + value_as<Mass>(shared_.electron_mass);
 
     // Calculate theta from energy-momentum conservation
     real_type secondary_cos_theta
-        = secondary_energy * (total_energy + shared_.electron_mass_c_sq)
+        = secondary_energy
+          * (total_energy + value_as<Mass>(shared_.electron_mass))
           / (secondary_momentum * inc_momentum_);
 
     secondary_cos_theta = celeritas::min<real_type>(secondary_cos_theta, 1);
@@ -182,13 +194,13 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     // Construct interaction for change to primary (incident) particle
     const real_type inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction     result;
-    result.energy      = units::MevEnergy{inc_exiting_energy};
+    result.energy      = Energy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
     result.direction   = inc_exiting_direction;
 
     // Assign values to the secondary particle
     electron_secondary[0].particle_id = shared_.ids.electron;
-    electron_secondary[0].energy      = units::MevEnergy{secondary_energy};
+    electron_secondary[0].energy      = Energy{secondary_energy};
     electron_secondary[0].direction   = secondary_direction;
 
     return result;

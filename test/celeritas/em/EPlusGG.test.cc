@@ -35,8 +35,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         const auto& params = *this->particle_params();
         data_.ids.positron = params.find(pdg::positron());
         data_.ids.gamma    = params.find(pdg::gamma());
-        data_.electron_mass
-            = params.get(params.find(pdg::electron())).mass().value();
+        data_.electron_mass = params.get(params.find(pdg::electron())).mass();
 
         // Set default particle to incident 10 MeV positron
         this->set_inc_particle(pdg::positron(), MevEnergy{10});
@@ -57,18 +56,18 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_TRUE(gamma1);
         EXPECT_EQ(data_.ids.gamma, gamma1.particle_id);
 
-        EXPECT_GT(
-            this->particle_track().energy().value() + 2 * data_.electron_mass,
-            gamma1.energy.value());
+        EXPECT_GT(this->particle_track().energy().value()
+                      + 2 * data_.electron_mass.value(),
+                  gamma1.energy.value());
         EXPECT_LT(0, gamma1.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma1.direction));
 
         const auto& gamma2 = interaction.secondaries.back();
         EXPECT_TRUE(gamma2);
         EXPECT_EQ(data_.ids.gamma, gamma2.particle_id);
-        EXPECT_GT(
-            this->particle_track().energy().value() + 2 * data_.electron_mass,
-            gamma2.energy.value());
+        EXPECT_GT(this->particle_track().energy().value()
+                      + 2 * data_.electron_mass.value(),
+                  gamma2.energy.value());
         EXPECT_LT(0, gamma2.energy.value());
         EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma2.direction));
     }
@@ -170,9 +169,9 @@ TEST_F(EPlusGGInteractorTest, at_rest)
                        celeritas::dot_product(result.secondaries[0].direction,
                                               result.secondaries[1].direction));
 
-        EXPECT_SOFT_EQ(data_.electron_mass,
+        EXPECT_SOFT_EQ(data_.electron_mass.value(),
                        result.secondaries[0].energy.value());
-        EXPECT_SOFT_EQ(data_.electron_mass,
+        EXPECT_SOFT_EQ(data_.electron_mass.value(),
                        result.secondaries[1].energy.value());
     }
 }

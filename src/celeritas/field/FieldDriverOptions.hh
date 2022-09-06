@@ -22,7 +22,7 @@ struct FieldDriverOptions
     //! The minimum length of the field step
     real_type minimum_step = 1.0e-5 * units::millimeter;
 
-    //! The closest miss distrance
+    //! The closest miss distance
     real_type delta_chord = 0.25 * units::millimeter;
 
     //! Accuracy of intersection of the boundary crossing
@@ -55,13 +55,19 @@ struct FieldDriverOptions
     //! Maximum number of steps (or trials)
     size_type max_nsteps = 100;
 
+    //! Initial step tolerance
+    static constexpr real_type initial_step_tol = 1e-6;
+
+    //! Chord distance fudge factor
+    static constexpr real_type dchord_tol = 1e-5 * units::millimeter;
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
       return  (minimum_step > 0)
 	       && (delta_chord > 0)
-	       && (delta_intersection > 0)
+	       && (delta_intersection > minimum_step)
 	       && (epsilon_step > 0 && epsilon_step < 1)
 	       && (epsilon_rel_max > 0)
 	       && (errcon > 0)

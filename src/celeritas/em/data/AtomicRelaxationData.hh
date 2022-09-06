@@ -23,10 +23,10 @@ namespace celeritas
  */
 struct AtomicRelaxTransition
 {
-    SubshellId initial_shell; //!< Index of the originating shell
-    SubshellId auger_shell;   //!< Index of the Auger electron shell
-    real_type  probability;
-    real_type  energy;
+    SubshellId       initial_shell; //!< Index of the originating shell
+    SubshellId       auger_shell;   //!< Index of the Auger electron shell
+    real_type        probability;
+    units::MevEnergy energy;
 };
 
 //---------------------------------------------------------------------------//

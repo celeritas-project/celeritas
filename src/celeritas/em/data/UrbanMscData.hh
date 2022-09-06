@@ -59,10 +59,10 @@ struct UrbanMscParameters
         return 100 * limit_min_fix();
     }
 
-    //! Below this endpoint energy, don't sample scattering
+    //! Below this endpoint energy, don't sample scattering: 1 eV
     static CELER_CONSTEXPR_FUNCTION Energy min_sampling_energy()
     {
-        return units::MevEnergy{1e-9};
+        return units::MevEnergy{1e-6};
     }
 };
 

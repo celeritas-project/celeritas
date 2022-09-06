@@ -20,7 +20,27 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Operate on the device with shared (persistent) params and local state.
+ * Navigate through an ORANGE geometry on a single thread.
+ *
+ * Ordering requirements:
+ * - initialize (through assignment) must come first
+ * - access (pos, dir, volume/surface/is_outside/is_on_boundary) good at any
+ * time
+ * - \c find_safety (fine at any time)
+ * - \c find_next_step
+ * - \c move_internal or \c move_to_boundary
+ * - if on boundary, \c cross_boundary
+ * - at any time, \c set_dir , but then must do \c find_next_step before any
+ *   following action above
+ *
+ * The main point is that \c find_next_step depends on the current
+ * straight-line direction, \c move_to_boundary and \c move_internal (with
+ * a step length) depends on that distance, and
+ * \c cross_boundary depends on being on the boundary with a knowledge of the
+ * post-boundary state.
+ *
+ * \c move_internal with a position \em should depend on the safety distance
+ * but that's not yet implemented.
  */
 class OrangeTrackView
 {
@@ -66,6 +86,8 @@ class OrangeTrackView
     }
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
+    // Whether the track is exactly on a surface
+    CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
 
     //// OPERATIONS ////
 
@@ -219,6 +241,15 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the track is exactly on a surface.
+ */
+CELER_FUNCTION bool OrangeTrackView::is_on_boundary() const
+{
+    return static_cast<bool>(this->surface_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find the distance to the next geometric boundary.
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
@@ -316,6 +347,7 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Move to the inside of the surface
     states_.surf[thread_]  = next_surface_.id();
     states_.sense[thread_] = next_surface_.unchecked_sense();
+    states_.boundary[thread_] = BoundaryResult::exiting;
     this->clear_next_step();
 }
 
@@ -356,12 +388,20 @@ CELER_FUNCTION void OrangeTrackView::move_internal(const Real3& pos)
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position *must* be on the boundary following a move-to-boundary. This
+ * should only be called once per boundary crossing.
  */
 CELER_FUNCTION void OrangeTrackView::cross_boundary()
 {
-    CELER_EXPECT(this->surface_id());
+    CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
+
+    if (states_.boundary[thread_] == BoundaryResult::reentrant)
+    {
+        // Direction changed while on boundary leading to no change in
+        // volume/surface. This is logically equivalent to a reflection.
+        return;
+    }
 
     // Flip current sense from "before crossing" to "after"
     detail::LocalState local;
@@ -379,6 +419,13 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     states_.vol[thread_]   = init.volume;
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
+
+    // Reset boundary crossing state: though cross boundary should only ever be
+    // called once, and this value should only ever be checked after a call to
+    // move-to-boundary?
+    states_.boundary[thread_] = BoundaryResult::reentrant;
+
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
@@ -386,12 +433,37 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
  * Change the track's direction.
  *
  * This happens after a scattering event or movement inside a magnetic field.
- * It resets the calculated distance-to-boundary.
+ * It resets the calculated distance-to-boundary. It is allowed to happen on
+ * the boundary, but changing direction so that it goes from pointing outward
+ * to inward (or vice versa) will mean that \c cross_boundary will be a
+ * null-op.
  */
 CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    if (this->is_on_boundary())
+    {
+        // Changing direction on a boundary is dangerous, as it could mean we
+        // don't leave the volume after all. Evaluate whether the direction
+        // dotted with the surface normal changes (i.e. heading from inside to
+        // outside or vice versa).
+        SimpleUnitTracker tracker(params_);
+        const Real3 normal = tracker.normal(this->pos(), this->surface_id());
+
+        if ((dot_product(normal, newdir) >= 0)
+            != (dot_product(normal, this->dir()) >= 0))
+        {
+            // The boundary crossing direction has changed! Reverse our plans
+            // to change the logical state and move to a new volume.
+            states_.boundary[thread_]
+                = flip_boundary(states_.boundary[thread_]);
+        }
+    }
+
+    // Complete direction setting
     states_.dir[thread_] = newdir;
+
     this->clear_next_step();
 }
 

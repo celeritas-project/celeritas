@@ -60,6 +60,17 @@ class VecgeomParams
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
 
+    //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
+
+    // Get the label for a placed volume ID
+    inline const Label& id_to_label(SurfaceId) const;
+
+    // Get the surface ID corresponding to a unique label name
+    inline SurfaceId find_surface(const std::string& name) const;
+
+    //! Number of distinct surfaces
+    size_type num_surfaces() const { return 0; }
+
     //// DATA ACCESS ////
 
     //! Access geometry data on host
@@ -85,6 +96,24 @@ class VecgeomParams
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * No surface IDs are defined in vecgeom.
+ */
+const Label& VecgeomParams::id_to_label(SurfaceId) const
+{
+    CELER_NOT_IMPLEMENTED("surfaces in VecGeom");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * No surface IDs are defined in vecgeom.
+ */
+SurfaceId VecgeomParams::find_surface(const std::string&) const
+{
+    return {};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Access geometry data on host.

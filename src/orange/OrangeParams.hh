@@ -70,7 +70,7 @@ class OrangeParams
     // Get the label for a placed volume ID
     const Label& id_to_label(VolumeId vol_id) const;
 
-    // Get the volume ID corresponding to a unique label lname
+    // Get the volume ID corresponding to a unique label
     VolumeId find_volume(const std::string& name) const;
 
     // Get zero or more volume IDs corresponding to a name
@@ -88,7 +88,7 @@ class OrangeParams
     SurfaceId find_surface(const std::string& name) const;
 
     //! Number of distinct surfaces
-    size_type num_surfaces() const { return surf_labels_.size(); }
+    SurfaceId::size_type num_surfaces() const { return surf_labels_.size(); }
 
     //// DATA ACCESS ////
 

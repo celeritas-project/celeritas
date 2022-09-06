@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <random>
 
+#include "celeritas_config.h"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Repr.hh"
@@ -558,6 +559,31 @@ TEST_F(TwoVolumeTest, safety)
     // Actual result
     EXPECT_SOFT_EQ(inf, tracker.safety({0, 0, 0}, inside)); // degenerate!
 #endif
+}
+
+TEST_F(TwoVolumeTest, normal)
+{
+    SimpleUnitTracker tracker(this->params().host_ref());
+
+    if (CELERITAS_DEBUG)
+    {
+        SCOPED_TRACE("Not on a surface");
+        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, SurfaceId{}),
+                     celeritas::DebugError);
+    }
+    {
+        Real3 pos{3, -2, 1};
+        Real3 expected_normal;
+        auto  invnorm = 1 / celeritas::norm(pos);
+        for (auto i : range(3))
+        {
+            expected_normal[i] = pos[i] * invnorm;
+            pos[i]             = expected_normal[i] * real_type(1.5); // radius
+        }
+
+        auto actual_normal = tracker.normal(pos, SurfaceId{0});
+        EXPECT_VEC_SOFT_EQ(expected_normal, actual_normal);
+    }
 }
 
 TEST_F(TwoVolumeTest, heuristic_init)

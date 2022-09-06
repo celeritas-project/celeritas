@@ -19,11 +19,12 @@ namespace celeritas
 /*!
  * Construct with options and shared particle data.
  */
-PrimaryGenerator::PrimaryGenerator(SPConstParticles        particles,
-                                   PrimaryGeneratorOptions options)
+PrimaryGenerator::PrimaryGenerator(SPConstParticles               particles,
+                                   const PrimaryGeneratorOptions& options)
     : num_events_(options.num_events)
     , primaries_per_event_(options.primaries_per_event)
 {
+    CELER_EXPECT(options);
     primary_.particle_id = particles->find(PDGNumber{options.pdg});
     primary_.energy      = units::MevEnergy{options.energy};
     primary_.position    = options.position;
@@ -33,21 +34,22 @@ PrimaryGenerator::PrimaryGenerator(SPConstParticles        particles,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primary particles.
+ * Generate primary particles from a single event.
  */
 auto PrimaryGenerator::operator()() -> VecPrimary
 {
-    VecPrimary result;
-    result.reserve(num_events_ * primaries_per_event_);
-    for (auto i : range(num_events_))
+    if (event_count_ == num_events_)
     {
-        for (auto j : range(primaries_per_event_))
-        {
-            primary_.event_id = EventId{i};
-            primary_.track_id = TrackId{j};
-            result.push_back(primary_);
-        }
+        return {};
     }
+
+    VecPrimary result(primaries_per_event_, primary_);
+    for (auto i : range(primaries_per_event_))
+    {
+        result[i].event_id = EventId{event_count_};
+        result[i].track_id = TrackId{i};
+    }
+    ++event_count_;
     return result;
 }
 

@@ -176,7 +176,8 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
             transitions[j].auger_shell
                 = des_to_id[import_transitions[j].auger_shell];
             transitions[j].probability = import_transitions[j].probability;
-            transitions[j].energy      = import_transitions[j].energy;
+            transitions[j].energy
+                = units::MevEnergy{import_transitions[j].energy};
         }
         shells[i].transitions
             = make_builder(&data->transitions)

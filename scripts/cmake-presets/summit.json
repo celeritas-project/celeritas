@@ -6,7 +6,7 @@
       "name": ".base",
       "hidden": true,
       "inherits": ["full"],
-      "binaryDir": "$env{PROJWORK}/csc404/celeritas/build-${presetName}-v010",
+      "binaryDir": "$env{PROJWORK}/csc404/celeritas/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "OFF"},
@@ -38,8 +38,7 @@
       "cacheVariables": {
         "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "ON"},
-        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"},
-        "CMAKE_CUDA_RUNTIME_LIBRARY": {"type": "STRING", "value": "Shared"}
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"}
       }
     },
     {

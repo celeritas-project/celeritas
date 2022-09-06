@@ -75,12 +75,11 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     bool has_msc() const { return static_cast<bool>(msc_); }
 
     //! Field strength
-    const Real3& field() const { return field_; }
+    const Real3& field() const { return field_params_.field; }
 
   private:
     ActionId           id_;
     SPConstMsc         msc_;
-    Real3              field_;
     UniformFieldParams field_params_;
 
     // TODO: kind of hacky way to support msc being optional

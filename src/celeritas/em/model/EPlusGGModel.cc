@@ -32,8 +32,7 @@ EPlusGGModel::EPlusGGModel(ActionId id, const ParticleParams& particles)
     CELER_VALIDATE(interface_.ids.positron && interface_.ids.gamma,
                    << "missing positron and/or gamma particles (required for "
                    << this->description() << ")");
-    interface_.electron_mass
-        = particles.get(interface_.ids.positron).mass().value();
+    interface_.electron_mass = particles.get(interface_.ids.positron).mass();
     CELER_ENSURE(interface_);
 }
 

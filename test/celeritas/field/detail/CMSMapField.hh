@@ -14,8 +14,6 @@
 
 #include "FieldMapData.hh"
 
-using celeritas::Real3;
-
 namespace celeritas_test
 {
 namespace detail
@@ -23,11 +21,17 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the value of magnetic field based on a volume-based CMS field map
- * excerpted from the CMS detector simulation (CMSSW)
+ * excerpted from the CMS detector simulation (CMSSW).
  */
 class CMSMapField
 {
-    using FieldMapRef = detail::FieldMapRef;
+  public:
+    //!@{
+    //! \name Type aliases
+    using real_type   = celeritas::real_type;
+    using Real3       = celeritas::Array<real_type, 3>;
+    using FieldMapRef = ::celeritas::NativeCRef<FieldMapData>;
+    //!@}
 
   public:
     // Construct with the shared map data (FieldMapData)
@@ -56,7 +60,7 @@ CMSMapField::CMSMapField(const FieldMapRef& shared) : shared_(shared) {}
 /*!
  * Retrieve the magnetic field value for the given position.
  */
-CELER_FUNCTION Real3 CMSMapField::operator()(const Real3& pos) const
+CELER_FUNCTION auto CMSMapField::operator()(const Real3& pos) const -> Real3
 {
     CELER_ENSURE(shared_);
 

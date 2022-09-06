@@ -38,14 +38,14 @@ class TsaiUrbanDistribution
   public:
     //!@{
     //! Type aliases
-    using MevEnergy   = units::MevEnergy;
-    using MevMass     = units::MevMass;
+    using Energy      = units::MevEnergy;
+    using Mass        = units::MevMass;
     using result_type = real_type;
     //!@}
 
   public:
     // Construct with defaults
-    inline CELER_FUNCTION TsaiUrbanDistribution(MevEnergy energy, MevMass mass);
+    inline CELER_FUNCTION TsaiUrbanDistribution(Energy energy, Mass mass);
 
     // Sample using the given random number generator
     template<class Engine>
@@ -63,9 +63,8 @@ class TsaiUrbanDistribution
  * Construct from input data.
  */
 CELER_FUNCTION
-TsaiUrbanDistribution::TsaiUrbanDistribution(MevEnergy energy, MevMass mass)
+TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
 {
-    // MevMass{}.value() [MeV]
     umax_ = 2 * (1 + energy.value() / mass.value());
 }
 

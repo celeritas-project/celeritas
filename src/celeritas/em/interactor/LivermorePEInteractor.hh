@@ -52,8 +52,8 @@ class LivermorePEInteractor
 {
   public:
     //!@{
-    //! Type aliases
-    using MevEnergy = units::MevEnergy;
+    //! \name Type aliases
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
@@ -85,7 +85,7 @@ class LivermorePEInteractor
     // Incident direction
     const Real3& inc_direction_;
     // Incident gamma energy
-    const MevEnergy inc_energy_;
+    const real_type inc_energy_;
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Microscopic cross section calculator
@@ -127,14 +127,14 @@ LivermorePEInteractor::LivermorePEInteractor(
     , el_id_(el_id)
     , cutoffs_(cutoffs)
     , inc_direction_(inc_direction)
-    , inc_energy_(particle.energy().value())
+    , inc_energy_(value_as<Energy>(particle.energy()))
     , allocate_(allocate)
     , calc_micro_xs_(shared, particle.energy())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
-    CELER_EXPECT(inc_energy_ > zero_quantity());
+    CELER_EXPECT(inc_energy_ > 0);
 
-    inv_energy_ = 1 / inc_energy_.value();
+    inv_energy_ = 1 / inc_energy_;
 }
 
 //---------------------------------------------------------------------------//
@@ -165,15 +165,16 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     if (CELER_UNLIKELY(!shell_id))
     {
         Interaction result       = Interaction::from_absorption();
-        result.energy_deposition = inc_energy_;
+        result.energy_deposition = Energy{inc_energy_};
         return result;
     }
 
-    MevEnergy binding_energy;
+    real_type binding_energy;
     {
         const auto& el     = shared_.xs.elements[el_id_];
         const auto& shells = shared_.xs.shells[el.shells];
-        binding_energy     = shells[shell_id.get()].binding_energy;
+        binding_energy
+            = value_as<Energy>(shells[shell_id.get()].binding_energy);
     }
 
     // Outgoing secondary is an electron
@@ -184,8 +185,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 
         // Electron kinetic energy is the difference between the incident
         // photon energy and the binding energy of the shell
-        electron.energy
-            = MevEnergy{inc_energy_.value() - binding_energy.value()};
+        electron.energy = Energy{inc_energy_ - binding_energy};
 
         // Direction of the emitted photoelectron is sampled from the
         // Sauter-Gavrila distribution
@@ -208,11 +208,11 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         // energy of the vacancy subshell and the sum of the energies of any
         // secondaries created in atomic relaxation
         result.energy_deposition
-            = MevEnergy{binding_energy.value() - outgoing.energy};
+            = Energy{binding_energy - value_as<Energy>(outgoing.energy)};
     }
     else
     {
-        result.energy_deposition = binding_energy;
+        result.energy_deposition = Energy{binding_energy};
     }
     result.secondaries = secondaries;
 
@@ -232,7 +232,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     size_type               shell_id = 0;
 
     const real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
-    if (inc_energy_ < el.thresh_lo)
+    if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
         // TODO: use Selector-with-remainder
@@ -241,7 +241,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         for (; shell_id < shells.size(); ++shell_id)
         {
             const auto& shell = shells[shell_id];
-            if (inc_energy_ < shell.binding_energy)
+            if (Energy{inc_energy_} < shell.binding_energy)
             {
                 // No chance of interaction because binding energy is higher
                 // than incident
@@ -250,7 +250,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 
             // Use the tabulated subshell cross sections
             GenericXsCalculator calc_xs(shell.xs, shared_.xs.reals);
-            xs += inv_cube_energy * calc_xs(inc_energy_.value());
+            xs += inv_cube_energy * calc_xs(inc_energy_);
 
             if (xs > cutoff)
             {
@@ -271,7 +271,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         // an algorithm to encapsulate and later accelerate it.
 
         // Low/high index on params
-        const int       pidx      = inc_energy_ < el.thresh_hi ? 0 : 1;
+        const int       pidx      = Energy{inc_energy_} < el.thresh_hi ? 0 : 1;
         const size_type shell_end = shells.size() - 1;
 
         for (; shell_id < shell_end; ++shell_id)
@@ -308,25 +308,18 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 template<class Engine>
 CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 {
-    constexpr MevEnergy min_energy{1.e-6};
-    constexpr MevEnergy max_energy{100.};
-    real_type           energy_per_mecsq;
+    constexpr units::MevEnergy min_energy{1.e-6};
+    constexpr units::MevEnergy max_energy{100.};
 
-    if (inc_energy_ > max_energy)
+    if (inc_energy_ > value_as<Energy>(max_energy))
     {
         // If the incident gamma energy is above 100 MeV, use the incident
         // gamma direction for the direction of the emitted photoelectron.
         return inc_direction_;
     }
-    else if (inc_energy_ < min_energy)
-    {
-        // If the incident energy is below 1 eV, set it to 1 eV.
-        energy_per_mecsq = min_energy.value() * shared_.inv_electron_mass;
-    }
-    else
-    {
-        energy_per_mecsq = inc_energy_.value() * shared_.inv_electron_mass;
-    }
+    // If the incident energy is below 1 eV, set it to 1 eV.
+    real_type energy_per_mecsq = max(value_as<Energy>(min_energy), inc_energy_)
+                                 * shared_.inv_electron_mass;
 
     // Calculate Lorentz factors of the photoelectron
     real_type gamma = energy_per_mecsq + 1;
@@ -350,7 +343,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
         // the inverse function (Eq. 2.11)
         real_type u = generate_canonical(rng);
         nu          = 2 * a * (2 * u + (a + 2) * std::sqrt(u))
-             / ((a + 2) * (a + 2) - 4 * u);
+             / (ipow<2>(a + 2) - 4 * u);
 
         // Calculate the rejection function (Eq 2.8) at the sampled value
         g = (2 - nu) * (1 / (a + nu) + b);

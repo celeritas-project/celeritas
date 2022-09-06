@@ -504,6 +504,41 @@ function(celeritas_find_final_library OUTLIST flat_dependency_list)
 endfunction()
 
 #-----------------------------------------------------------------------------#
+#
+#  Check which CUDA runtime is need for a give (depend) library.
+function(celeritas_check_cuda_runtime OUTVAR library)
+
+  get_target_property(_runtime ${library} CUDA_RUNTIME_LIBRARY)
+  if (NOT _runtime)
+    # We could get more exact information by using:
+    #  file(GET_RUNTIME_DEPENDENCIES LIBRARIES ${_lib_loc} UNRESOLVED_DEPENDENCIES_VAR _lib_dependcies)
+    # but we get
+    #   You have used file(GET_RUNTIME_DEPENDENCIES) in project mode.  This is
+    #     probably not what you intended to do.
+    # On the other hand, if the library is using (relocatable) CUDA code and
+    # the shared run-time library and we don't have the scafolding libraries
+    # (shared/static/final) then this won't work well. i.e. if we were to detect this
+    # case we probably need to 'error out'.
+    get_target_property(_cuda_library_type ${library} CELERITAS_CUDA_LIBRARY_TYPE)
+    get_target_property(_cuda_find_library ${library} CELERITAS_CUDA_FINAL_LIBRARY)
+    if ("${_cuda_library_type}" STREQUAL "Shared")
+      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+      set(_runtime "Shared")
+    elseif(NOT _cuda_find_library)
+      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
+      set(_runtime "None")
+    else()
+      # If we have a final library then the library is shared.
+      set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+      set(_runtime "Shared")
+    endif()
+  endif()
+
+  set(${OUTVAR} ${_runtime} PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------#
 # Replacement for target_link_libraries that is aware of
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
@@ -538,10 +573,11 @@ function(celeritas_target_link_libraries target)
       celeritas_use_middle_lib_in_property(${_target_object} LINK_LIBRARIES)
     endif()
 
+    celeritas_cuda_gather_dependencies(_alldependencies ${target})
+    celeritas_find_final_library(_finallibs "${_alldependencies}")
+
     get_target_property(_target_type ${target} TYPE)
     if(${_target_type} STREQUAL "EXECUTABLE")
-      celeritas_cuda_gather_dependencies(_alldependencies ${target})
-      celeritas_find_final_library(_finallibs "${_alldependencies}")
       list(LENGTH _finallibs _final_count)
       if(_contains_cuda)
         if(${_final_count} GREATER 0)
@@ -562,6 +598,12 @@ function(celeritas_target_link_libraries target)
           CUDA_RESOLVE_DEVICE_SYMBOLS OFF
         )
         get_target_property(_final_target_type ${target} TYPE)
+
+        get_target_property(_final_runtime ${_finallibs} CUDA_RUNTIME_LIBRARY)
+        if ("${_final_runtime}" STREQUAL "Shared")
+          set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+        endif()
+
         if(${_final_target_type} STREQUAL "STATIC_LIBRARY")
           # for static libraries we need to list the libraries a second time (to resolve symbol from the final library)
           get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
@@ -579,8 +621,17 @@ function(celeritas_target_link_libraries target)
     endif()
 
     if(_contains_cuda)
+      set(_need_to_use_shared_runtime FALSE)
       celeritas_cuda_gather_dependencies(_flat_target_link_libraries ${_target_middle})
       foreach(_lib ${_flat_target_link_libraries})
+
+        celeritas_check_cuda_runtime(_runtime ${_lib})
+        # We do not yet treat the case where the dependent library is Static
+        # and the current one is Shared.
+        if (NOT ${_need_to_use_shared_runtime} AND ${_runtime} STREQUAL "Shared")
+          set(_need_to_use_shared_runtime TRUE)
+        endif()
+
         get_target_property(_lib_target_type ${_lib} TYPE)
         if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
           get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
@@ -599,6 +650,15 @@ function(celeritas_target_link_libraries target)
           endif()
         endif()
       endforeach()
+
+      if (_need_to_use_shared_runtime)
+        get_target_property(_current_runtime ${target} CUDA_RUNTIME_LIBRARY)
+        if (NOT "${_current_runtime}" STREQUAL "Shared")
+          set_target_properties(${_target_middle} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+          set_target_properties(${_target_final} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+          set_target_properties(${_target_object} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+        endif()
+      endif()
     else() # We could restrict to the case where the dependent is a static library ... maybe
       set_target_properties(${target} PROPERTIES
         # If cmake detects that a library depends/uses a static library
@@ -609,6 +669,24 @@ function(celeritas_target_link_libraries target)
         # Note: we might be able to move this to celeritas_target_link_libraries
         CUDA_RESOLVE_DEVICE_SYMBOLS OFF
       )
+      if(NOT ${_target_type} STREQUAL "EXECUTABLE")
+        get_target_property(_current_runtime ${target} CUDA_RUNTIME_LIBRARY)
+        if(NOT "${_current_runtime}" STREQUAL "Shared")
+          set(_need_to_use_shared_runtime FALSE)
+          foreach(_lib ${_alldependencies})
+            celeritas_check_cuda_runtime(_runtime ${_lib})
+            if (${_runtime} STREQUAL "Shared")
+              set(_need_to_use_shared_runtime TRUE)
+              break()
+            endif()
+          endforeach()
+          # We do not yet treat the case where the dependent library is Static
+          # and the current one is Shared.
+          if (${_need_to_use_shared_runtime})
+            set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
+          endif()
+        endif()
+      endif()
     endif()
   endif()
 

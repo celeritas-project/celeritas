@@ -51,7 +51,7 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
     Applicability mu_minus_applic, mu_plus_applic;
 
     mu_minus_applic.particle = interface_.ids.mu_minus;
-    mu_minus_applic.lower    = interface_.min_incident_energy();
+    mu_minus_applic.lower    = zero_quantity();
     mu_minus_applic.upper    = interface_.max_incident_energy();
 
     mu_plus_applic.particle = interface_.ids.mu_plus;

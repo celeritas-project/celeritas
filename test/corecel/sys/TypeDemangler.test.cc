@@ -92,8 +92,8 @@ TEST(TypeDemanglerTest, dynamic)
     using namespace tdtest;
 
     TypeDemangler<JapaneseIsland> demangle;
-    const Honshu                  honshu;
-    const Hokkaido                hokkaido;
+    const Honshu                  honshu{};
+    const Hokkaido                hokkaido{};
     const JapaneseIsland&         hon_ptr = honshu;
     const JapaneseIsland&         hok_ptr = hokkaido;
 

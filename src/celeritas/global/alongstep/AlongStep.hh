@@ -79,6 +79,8 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
         if (p.boundary)
         {
             // Stopped at a geometry boundary: this is the new step action.
+            CELER_ASSERT(p.distance <= local.geo_step);
+            CELER_ASSERT(p.distance < local.step_limit.step);
             local.geo_step          = p.distance;
             local.step_limit.action = track.boundary_action();
         }

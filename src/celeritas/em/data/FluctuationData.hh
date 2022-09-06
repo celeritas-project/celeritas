@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -21,7 +22,8 @@ namespace celeritas
  */
 struct UrbanFluctuationParameters
 {
-    using Real2 = Array<real_type, 2>;
+    using Energy = units::MevEnergy;
+    using Real2  = Array<real_type, 2>;
 
     Real2 binding_energy;      //!< Binding energies E_1 and E_2 [MeV]
     Real2 log_binding_energy;  //!< Log of binding energies [LogMevEnergy]
@@ -37,11 +39,12 @@ struct FluctuationData
 {
     template<class T>
     using MaterialItems = Collection<T, W, M, MaterialId>;
+    using Mass          = units::MevMass;
 
     //// MEMBER DATA ////
 
-    ParticleId electron_id;   //!< ID of an electron
-    real_type  electron_mass; //!< Electron mass [MevMass]
+    ParticleId electron_id;                          //!< ID of an electron
+    Mass       electron_mass;                        //!< Electron mass
     MaterialItems<UrbanFluctuationParameters> urban; //!< Model parameters
 
     //// MEMBER FUNCTIONS ////
@@ -49,7 +52,7 @@ struct FluctuationData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return electron_id && electron_mass > 0;
+        return electron_id && electron_mass > zero_quantity();
     }
 
     //! Assign from another set of data

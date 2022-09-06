@@ -149,7 +149,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
         }
         else
         {
-            x = std::pow(1 - y, -ninv) - 1;
+            x = fastpow(1 - y, -ninv) - 1;
         }
 
         cost = 1 - 2 * x / (b * input.factor);
@@ -174,8 +174,9 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
     const Real3& n = shared_.params[element_id_].n;
 
     SampleInput input;
-    input.factor = ipow<2>(units::centimeter * native_value_from(inc_energy_)
-                           / (constants::c_light * constants::h_planck));
+    input.factor = ipow<2>(units::centimeter
+                           / (constants::c_light * constants::h_planck)
+                           * native_value_from(inc_energy_));
 
     Real3 x = b;
     axpy(input.factor, b, &x);
@@ -183,12 +184,12 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
     Real3 prob;
     for (auto i : range(3))
     {
-        input.weight[i] = (x[i] > fit_slice())
-                              ? 1 - std::pow(1 + x[i], -n[i])
+        input.weight[i] = (x[i] > this->fit_slice())
+                              ? 1 - fastpow(1 + x[i], -n[i])
                               : n[i] * x[i]
                                     * (1
-                                       - real_type(0.5) * (n[i] - 1) * (x[i])
-                                             * (1 - (n[i] - 2) * (x[i]) / 3));
+                                       - (n[i] - 1) / 2 * x[i]
+                                             * (1 - (n[i] - 2) / 3 * x[i]));
 
         prob[i] = input.weight[i] * a[i] / (b[i] * n[i]);
     }

@@ -14,6 +14,7 @@
 #include <G4ParticleTable.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
+#include <G4ProductionCutsTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
@@ -32,17 +33,6 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantVersion.hh"
-
-using celeritas::ImportModelClass;
-using celeritas::ImportPhysicsTable;
-using celeritas::ImportPhysicsVector;
-using celeritas::ImportPhysicsVectorType;
-using celeritas::ImportProcessClass;
-using celeritas::ImportProcessType;
-using celeritas::ImportTableType;
-using celeritas::ImportUnits;
-using celeritas::PDGNumber;
-using ProcessTypeDemangler = celeritas::TypeDemangler<G4VProcess>;
 
 namespace celeritas
 {
@@ -130,7 +120,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
 /*!
  * Safely retrieve the correct model enum from a given string.
  */
-ImportModelClass to_import_model(const std::string& g4_model_name)
+ImportModelClass to_import_model(const G4VEmModel& model)
 {
     static const std::unordered_map<std::string, ImportModelClass> model_map = {
         // clang-format off
@@ -148,7 +138,7 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
         {"eBremLPM",            ImportModelClass::e_brems_lpm},
         {"eplus2gg",            ImportModelClass::e_plus_to_gg},
         {"LivermorePhElectric", ImportModelClass::livermore_photoelectric},
-        {"KleinNishina",        ImportModelClass::klein_nishina},
+        {"Klein-Nishina",       ImportModelClass::klein_nishina},
         {"BetheHeitler",        ImportModelClass::bethe_heitler},
         {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
         {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
@@ -157,11 +147,13 @@ ImportModelClass to_import_model(const std::string& g4_model_name)
         {"muPairProd",          ImportModelClass::mu_pair_prod},
         // clang-format on
     };
-    auto iter = model_map.find(g4_model_name);
+    const std::string& name = model.GetName();
+    auto               iter = model_map.find(name);
     if (iter == model_map.end())
     {
-        CELER_LOG(warning) << "Encountered unknown model '" << g4_model_name
-                           << "'";
+        static celeritas::TypeDemangler<G4VEmModel> demangle_model;
+        CELER_LOG(warning) << "Encountered unknown model '" << name
+                           << "' (RTTI: " << demangle_model(model) << ")";
         return ImportModelClass::unknown;
     }
     return iter->second;
@@ -257,15 +249,17 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                                    const G4VProcess&           process)
 {
     // Check for duplicate processes
-    auto iter_ok = written_processes_.insert({&process, {&particle}});
-    if (!iter_ok.second)
+    auto iter_inserted = written_processes_.insert({&process, {&particle}});
+
+    if (!iter_inserted.second)
     {
-        const PrevProcess& prev = iter_ok.first->second;
-        CELER_LOG(warning) << "Skipping process '" << process.GetProcessName()
-                           << "' (" << ProcessTypeDemangler()(process)
-                           << ") for particle " << particle.GetParticleName()
-                           << ": duplicate of particle "
-                           << prev.particle->GetParticleName();
+        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+        const PrevProcess& prev = iter_inserted.first->second;
+        CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
+                         << "' (RTTI: " << demangle_process(process)
+                         << ") for particle " << particle.GetParticleName()
+                         << ": duplicate of particle "
+                         << prev.particle->GetParticleName();
         return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
@@ -281,6 +275,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
     {
         // G4VEmProcess tables
+        if (const auto* secondary = em_process->SecondaryParticle())
+        {
+            process_.secondary_pdg = secondary->GetPDGEncoding();
+        }
         this->store_em_tables(*em_process);
     }
 
@@ -288,6 +286,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
              = dynamic_cast<const G4VEnergyLossProcess*>(&process))
     {
         // G4VEnergyLossProcess tables
+        if (const auto* secondary = energy_loss->SecondaryParticle())
+        {
+            process_.secondary_pdg = secondary->GetPDGEncoding();
+        }
         this->store_energy_loss_tables(*energy_loss);
     }
 
@@ -300,9 +302,10 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 
     else
     {
+        static const celeritas::TypeDemangler<G4VProcess> demangle_process;
         CELER_LOG(error) << "Cannot export unknown process '"
-                         << process.GetProcessName() << "' ("
-                         << ProcessTypeDemangler()(process) << ")";
+                         << process.GetProcessName()
+                         << "' (RTTI: " << demangle_process(process) << ")";
     }
 
     return process_;
@@ -311,10 +314,8 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
 //---------------------------------------------------------------------------//
 // PRIVATE
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
- * Store EM XS tables to this->process_.
+ * Store EM cross section tables for the current process.
  */
 void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
 {
@@ -324,14 +325,23 @@ void ImportProcessConverter::store_em_tables(const G4VEmProcess& process)
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        auto&      model          = *process.GetModelByIndex(i);
-        const auto model_class_id = to_import_model(model.GetName());
+        G4VEmModel& model          = *process.GetModelByIndex(i);
+        auto        model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
 
-        // Save element-selector data
-        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
+        // Save microscopic cross sections for models that need to sample a
+        // random element from a material in an interaction
+        // TODO: include e_coulomb_scattering, and if protons are filtered from
+        // the imported data set infinite proton secondary production cuts
+        if (model_class_id == ImportModelClass::bethe_heitler_lpm
+            || model_class_id == ImportModelClass::klein_nishina
+            || model_class_id == ImportModelClass::livermore_rayleigh)
+        {
+            process_.micro_xs.insert(
+                {model_class_id, this->add_micro_xs(model)});
+        }
     }
 
     // Save potential tables
@@ -353,14 +363,22 @@ void ImportProcessConverter::store_energy_loss_tables(
 {
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        auto&      model          = *process.GetModelByIndex(i);
-        const auto model_class_id = to_import_model(model.GetName());
+        G4VEmModel& model          = *process.GetModelByIndex(i);
+        auto        model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
 
-        // Save element-selector data
-        process_.micro_xs.insert({model_class_id, this->add_micro_xs(model)});
+        // Save microscopic cross sections for models that need to sample a
+        // random element from a material in an interaction
+        if (model_class_id == ImportModelClass::e_brems_sb
+            || model_class_id == ImportModelClass::e_brems_lpm
+            || model_class_id == ImportModelClass::mu_brems
+            || model_class_id == ImportModelClass::mu_pair_prod)
+        {
+            process_.micro_xs.insert(
+                {model_class_id, this->add_micro_xs(model)});
+        }
     }
 
     if (process.IsIonisationProcess())
@@ -438,13 +456,12 @@ void ImportProcessConverter::store_multiple_scattering_tables(
                 // model. Skipping any further model for now
                 CELER_LOG(warning)
                     << "Cannot store multiple scattering table for process "
-                    << process.GetProcessName() << ", model "
-                    << process.GetModelByIndex(i)->GetName()
-                    << ". Model index is > 0.";
+                    << process.GetProcessName() << ": skipping model "
+                    << process.GetModelByIndex(i)->GetName();
                 continue;
             }
 
-            process_.models.push_back(to_import_model(model->GetName()));
+            process_.models.push_back(to_import_model(*model));
             this->add_table(model->GetCrossSectionTable(),
                             ImportTableType::lambda);
         }
@@ -465,24 +482,17 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     }
 
     // Check for duplicate tables
-    auto iter_ok = written_tables_.insert(
+    auto iter_inserted = written_tables_.insert(
         {g4table, {process_.particle_pdg, process_.process_class, table_type}});
-    if (!iter_ok.second)
+
+    CELER_LOG(debug)
+        << (iter_inserted.second ? "Saving" : "Skipping duplicate")
+        << " physics table " << process_.particle_pdg << '.'
+        << to_cstring(process_.process_class) << '.' << to_cstring(table_type);
+    if (!iter_inserted.second)
     {
-        const PrevTable& prev = iter_ok.first->second;
-        CELER_LOG(warning) << "Skipping table " << process_.particle_pdg << '.'
-                           << to_cstring(process_.process_class) << '.'
-                           << to_cstring(table_type) << ": duplicate of "
-                           << prev.particle_pdg << '.'
-                           << to_cstring(prev.process_class) << '.'
-                           << to_cstring(prev.table_type);
         return;
     }
-
-    CELER_LOG(debug) << "Saving table " << process_.particle_pdg << '.'
-                     << to_cstring(process_.process_type) << '.'
-                     << to_cstring(process_.process_class) << '.'
-                     << to_cstring(table_type);
 
     ImportPhysicsTable table;
     table.table_type = table_type;
@@ -565,9 +575,14 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
             process_.particle_pdg);
     ImportProcess::ModelMicroXS model_micro_xs;
 
-    for (int mat_id : celeritas::range(materials_.size()))
+    for (unsigned int mat_idx : celeritas::range(materials_.size()))
     {
-        const auto& material = materials_.at(mat_id);
+        const auto& material = materials_.at(mat_idx);
+        const auto& g4_cuts_table
+            = *G4ProductionCutsTable::GetProductionCutsTable();
+        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
+        const auto* g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
 
         ImportProcess::ElementPhysicsVectorMap element_physvec_map;
 
@@ -575,7 +590,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         for (const auto& elem_comp : material.elements)
         {
             ImportPhysicsVector physics_vector
-                = this->initialize_micro_xs_physics_vector(model, material);
+                = this->initialize_micro_xs_physics_vector(model, mat_idx);
             element_physvec_map.insert({elem_comp.element_id, physics_vector});
         }
 
@@ -590,15 +605,26 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 
             const G4Element& g4_element
                 = *g4_nist_manager.FindOrBuildElement(element.atomic_number);
-            const double particle_cutoff
-                = material.pdg_cutoffs.find(process_.particle_pdg)->second.energy;
-
             auto& physics_vector
                 = element_physvec_map.find(elem_comp.element_id)->second;
+
+            // Get the secondary production cut
+            double secondary_cutoff = 0;
+            if (process_.secondary_pdg != 0)
+            {
+                auto cutoffs
+                    = material.pdg_cutoffs.find(process_.secondary_pdg);
+                CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
+                secondary_cutoff = cutoffs->second.energy;
+            }
 
             for (int bin_idx : celeritas::range(energy_grid.size()))
             {
                 const double energy_bin_value = energy_grid.at(bin_idx);
+
+                // Set kinematic and material-dependent quantities
+                model.SetupForMaterial(
+                    &g4_particle_def, g4_material, energy_bin_value);
 
                 // Calculate microscopic cross-section
                 const double xs_per_atom
@@ -607,7 +633,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
                           model.ComputeCrossSectionPerAtom(&g4_particle_def,
                                                            &g4_element,
                                                            energy_bin_value,
-                                                           particle_cutoff,
+                                                           secondary_cutoff,
                                                            energy_bin_value))
                       / cm2;
 
@@ -653,20 +679,40 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
  * The energy grid is calculated in the same way as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
-ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
-    G4VEmModel& model, const ImportMaterial& material)
+ImportPhysicsVector
+ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
+                                                           unsigned int mat_idx)
 {
+    const auto& material = materials_.at(mat_idx);
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
     physics_vector.vector_type = ImportPhysicsVectorType::log;
 
-    auto cutoff_iter = material.pdg_cutoffs.find(process_.particle_pdg);
-    CELER_ASSERT(cutoff_iter != material.pdg_cutoffs.end());
+    double secondary_cutoff = 0;
+    if (process_.secondary_pdg != 0)
+    {
+        auto cutoffs = material.pdg_cutoffs.find(process_.secondary_pdg);
+        CELER_ASSERT(cutoffs != material.pdg_cutoffs.end());
+        secondary_cutoff = cutoffs->second.energy;
+    }
 
+    double min_energy = model.LowEnergyLimit() / MeV;
+    {
+        const auto& g4_cuts_table
+            = *G4ProductionCutsTable::GetProductionCutsTable();
+        CELER_ASSERT(mat_idx < g4_cuts_table.GetTableSize());
+        const auto* g4_material
+            = g4_cuts_table.GetMaterialCutsCouple(mat_idx)->GetMaterial();
+        const auto* g4_particle
+            = G4ParticleTable::GetParticleTable()->FindParticle(
+                process_.particle_pdg);
+        const double min_primary_energy
+            = model.MinPrimaryEnergy(g4_material, g4_particle, secondary_cutoff)
+              / MeV;
+        min_energy = std::max(min_primary_energy, min_energy);
+    }
     const double max_energy = model.HighEnergyLimit() / MeV;
-    const double min_energy
-        = std::max(cutoff_iter->second.energy, model.LowEnergyLimit() / MeV);
 
     const int bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();

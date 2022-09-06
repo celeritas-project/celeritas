@@ -20,7 +20,7 @@ struct ImportAtomicTransition
     int    initial_shell; //!< Originating shell designator
     int    auger_shell;   //!< Auger shell designator
     double probability;   //!< Transition probability
-    double energy;        //!< Transition energy
+    double energy;        //!< Transition energy [MeV]
 };
 
 struct ImportAtomicSubshell

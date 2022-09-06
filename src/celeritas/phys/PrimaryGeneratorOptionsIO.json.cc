@@ -17,8 +17,15 @@ namespace celeritas
  */
 void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
 {
-    j.at("pdg").get_to(opts.pdg);
-    j.at("energy").get_to(opts.energy);
+    int pdg;
+    j.at("pdg").get_to(pdg);
+    opts.pdg = PDGNumber{pdg};
+    CELER_VALIDATE(opts.pdg, << "invalid PDG number " << pdg);
+    // TODO: allow symmetric reading with JSON output (skipping "MeV")
+    real_type energy;
+    j.at("energy").get_to(energy);
+    opts.energy = units::MevEnergy{energy};
+
     j.at("position").get_to(opts.position);
     j.at("direction").get_to(opts.direction);
     j.at("num_events").get_to(opts.num_events);
@@ -31,8 +38,8 @@ void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
  */
 void to_json(nlohmann::json& j, const PrimaryGeneratorOptions& opts)
 {
-    j = nlohmann::json{{"pdg", opts.pdg},
-                       {"energy", opts.energy},
+    j = nlohmann::json{{"pdg", opts.pdg.unchecked_get()},
+                       {"energy", {opts.energy.value(), "MeV"}},
                        {"position", opts.position},
                        {"direction", opts.direction},
                        {"num_events", opts.num_events},

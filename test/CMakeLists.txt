@@ -53,6 +53,7 @@ if(CELERITAS_USE_HIP)
     orange/univ/SimpleUnitTracker.test.cu
     celeritas/phys/Particle.test.cu
     celeritas/phys/Physics.test.cu
+    celeritas/geo/HeuristicGeoTestBase.cu
     celeritas/mat/Material.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
@@ -108,7 +109,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTING ADDITION TESTS
 #-----------------------------------------------------------------------------#
-celeritas_setup_tests(SERIAL PREFIX test/detail)
+celeritas_setup_tests(SERIAL PREFIX detail)
 
 celeritas_add_test(detail/Macros.test.cc)
 
@@ -255,10 +256,12 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_device_test(celeritas/ext/Vecgeom
-    LINK_LIBRARIES ${_vgcudatest} VecGeom::vecgeom Celeritas::IO)
+    LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
+celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4}
+  LINK_LIBRARIES Celeritas::IO)
 celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
@@ -268,21 +271,32 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
 # Field
 set(CELERITASTEST_PREFIX celeritas/field)
 
-celeritas_device_test(celeritas/field/Steppers)
-celeritas_device_test(celeritas/field/FieldDriver)
-celeritas_device_test(celeritas/field/FieldPropagator ${_needs_geo})
-celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
-celeritas_device_test(celeritas/field/UserParamField ${_needs_geo})
-celeritas_device_test(celeritas/field/UserMapField
-  SOURCES
-    celeritas/field/detail/MagFieldMap.cc
-    celeritas/field/detail/CMSFieldMapReader.cc
-  ${_needs_geo}
+celeritas_add_test(celeritas/field/Fields.test.cc
+SOURCES
+  celeritas/field/detail/MagFieldMap.cc
+  celeritas/field/detail/CMSFieldMapReader.cc
 )
+celeritas_add_test(celeritas/field/Steppers.test.cc)
+celeritas_add_test(celeritas/field/FieldDriver.test.cc)
+celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
 
 #-------------------------------------#
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
+
+set(_geo_args GPU ${_needs_geo}
+  SOURCES celeritas/geo/HeuristicGeoTestBase.cc)
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
+endif()
+if(CELERITAS_USE_VecGeom)
+  list(APPEND _geo_args LINK_LIBRARIES VecGeom::vecgeom)
+else()
+  # FIXME: backscattering (or field direction change) into volume crashes ORANGE
+  list(APPEND _geo_args DISABLE)
+endif()
+celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
   ${_needs_root} ${_needs_geo}
@@ -339,6 +353,7 @@ celeritas_device_test(celeritas/phys/Particle
   LINK_LIBRARIES Celeritas::IO)
 celeritas_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
+celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Random
@@ -362,7 +377,7 @@ celeritas_add_test(celeritas/random/distribution/UniformRealDistribution.test.cc
 if(CELERITAS_USE_CUDA)
   celeritas_add_test(celeritas/random/curand/CurandPerformance.test.cc GPU
     SOURCES celeritas/random/curand/CurandPerformance.test.cu
-    LINK_LIBRARIES CUDA::cudart
+    LINK_LIBRARIES Celeritas::DeviceToolkit
     ${_disable_if_debug}
   )
 endif()

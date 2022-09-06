@@ -75,6 +75,8 @@ struct CollectionStorage<T, Ownership::value, MemSpace::device>;
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::host>
 {
+    static_assert(!std::is_same<T, bool>::value,
+                  "bool is not compatible between vector and anything else");
     using type = std::vector<T>;
     type data;
 };
