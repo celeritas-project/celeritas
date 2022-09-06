@@ -132,7 +132,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["step_limiter"] = v.step_limiter;
     }
-    if (ends_with(v.geometry_filename, ".gdml"))
+    if (ends_with(v.physics_filename, ".gdml"))
     {
         j["geant_options"] = v.geant_options;
     }
