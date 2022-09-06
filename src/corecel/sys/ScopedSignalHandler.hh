@@ -88,7 +88,7 @@ class ScopedSignalHandler
     explicit operator bool() const { return mask_ != 0; }
 
     // Move construct and assign to capture/release signal handling
-    ScopedSignalHandler(const ScopedSignalHandler&) = delete;
+    ScopedSignalHandler(const ScopedSignalHandler&)            = delete;
     ScopedSignalHandler& operator=(const ScopedSignalHandler&) = delete;
     ScopedSignalHandler(ScopedSignalHandler&&) noexcept;
     ScopedSignalHandler& operator=(ScopedSignalHandler&&) noexcept;

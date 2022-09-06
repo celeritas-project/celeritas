@@ -9,13 +9,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::demangled_typeid_name;
-using celeritas::TypeDemangler;
-
-//---------------------------------------------------------------------------//
-
 namespace tdtest
 {
+//---------------------------------------------------------------------------//
+
 template<class T>
 struct FlorbyDorb
 {
@@ -45,7 +42,14 @@ void do_templated_stuff(T)
 {
 }
 
+//---------------------------------------------------------------------------//
 } // namespace tdtest
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 template<class F>
 std::string get_templated_funcname(F)
@@ -105,3 +109,7 @@ TEST(TypeDemanglerTest, dynamic)
     EXPECT_EQ("tdtest::Hokkaido", demangle(hok_ptr));
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

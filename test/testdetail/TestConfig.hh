@@ -3,32 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/NonMasterResultPrinter.hh
+//! \file testdetail/TestConfig.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <gtest/gtest.h>
-
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
-/*!
- * Print test results on non-rank-zero processes.
- */
-class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
-{
-  public:
-    // Construct with MPI rank
-    explicit NonMasterResultPrinter(int rank);
 
-    void OnTestPartResult(const ::testing::TestPartResult& result) override;
-
-  private:
-    int rank_;
-};
+extern const char source_dir[];
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

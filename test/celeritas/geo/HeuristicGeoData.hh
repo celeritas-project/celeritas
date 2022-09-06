@@ -83,13 +83,13 @@ template<Ownership W, MemSpace M>
 struct HeuristicGeoStateData
 {
     template<class T>
-    using StateItems = celeritas::StateCollection<T, W, M>;
+    using StateItems = StateCollection<T, W, M>;
 
     GeoStateData<W, M>     geometry;
     RngStateData<W, M>     rng;
     StateItems<LifeStatus> status;
 
-    celeritas::Collection<real_type, W, M, VolumeId> accum_path;
+    Collection<real_type, W, M, VolumeId> accum_path;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return geometry.size(); }

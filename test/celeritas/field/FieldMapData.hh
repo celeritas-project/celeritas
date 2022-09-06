@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/field/detail/FieldMapData.hh
+//! \file celeritas/field/FieldMapData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,15 +11,10 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 
-namespace celeritas_test
+namespace celeritas
 {
-namespace detail
+namespace test
 {
-using size_type = celeritas::size_type;
-using real_type = celeritas::real_type;
-using Ownership = celeritas::Ownership;
-using MemSpace  = celeritas::MemSpace;
-
 //---------------------------------------------------------------------------//
 /*!
  * FieldMap (2-dimensional RZ map) parameters
@@ -67,10 +62,10 @@ struct FieldMapData
     FieldMapParameters params;
 
     //! Index of FieldMap Collection
-    using ElementId = celeritas::ItemId<size_type>;
+    using ElementId = ItemId<size_type>;
 
     template<class T>
-    using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+    using ElementItems = Collection<T, W, M, ElementId>;
     ElementItems<FieldMapElement> fieldmap;
 
     //! Check whether the data is assigned
@@ -101,5 +96,5 @@ struct FieldMapData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

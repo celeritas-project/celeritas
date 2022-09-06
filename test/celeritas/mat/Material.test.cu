@@ -17,7 +17,9 @@
 
 using thrust::raw_pointer_cast;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 namespace
 {
@@ -33,7 +35,7 @@ __global__ void m_test_kernel(unsigned int const                  size,
                               real_type*                          rad_len,
                               real_type*                          tot_z)
 {
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= size)
         return;
 
@@ -49,9 +51,9 @@ __global__ void m_test_kernel(unsigned int const                  size,
     rad_len[tid.get()]      = mat.radiation_length();
 
     // Fill elements with finctional cross sections
-    celeritas::Span<real_type> scratch = mat_track.element_scratch();
+    Span<real_type> scratch = mat_track.element_scratch();
 
-    for (auto ec : celeritas::range(mat.num_elements()))
+    for (auto ec : range(mat.num_elements()))
     {
         // Pretend to calculate cross section for the ec'th element
         const auto& element = mat.make_element_view(ElementComponentId{ec});
@@ -59,7 +61,7 @@ __global__ void m_test_kernel(unsigned int const                  size,
     }
 
     real_type tz = 0.0;
-    for (auto ec : celeritas::range(mat.num_elements()))
+    for (auto ec : range(mat.num_elements()))
     {
         // Get its atomic number weighted by its fractional number density
         tz += scratch[ec] * mat.get_element_density(ElementComponentId{ec});
@@ -80,7 +82,7 @@ MTestOutput m_test(const MTestInput& input)
     thrust::device_vector<real_type>          tot_z(input.size());
 
     CELER_LAUNCH_KERNEL(m_test,
-                        celeritas::device().default_block_size(),
+                        device().default_block_size(),
                         init.size(),
                         init.size(),
                         input.params,
@@ -104,4 +106,5 @@ MTestOutput m_test(const MTestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -19,7 +19,9 @@ struct ImportData;
 struct PhysicsParamsOptions;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -30,9 +32,7 @@ class GeantTestBase : virtual public GlobalGeoTestBase
   public:
     //!@{
     //! \name Type aliases
-    using real_type      = celeritas::real_type;
-    using ImportData     = celeritas::ImportData;
-    using PhysicsOptions = celeritas::PhysicsParamsOptions;
+    using PhysicsOptions = PhysicsParamsOptions;
     //!@}
 
   public:
@@ -59,7 +59,7 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     virtual PhysicsOptions build_physics_options() const;
 
     // Access lazily (re)loaded static geant4 data
-    const celeritas::ImportData& imported_data() const;
+    const ImportData& imported_data() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,4 +70,5 @@ struct PrintableBuildConf
 std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

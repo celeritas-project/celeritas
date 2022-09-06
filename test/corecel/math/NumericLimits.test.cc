@@ -13,14 +13,16 @@
 #include "NumericLimits.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // REAL TYPES
 //---------------------------------------------------------------------------//
 
 template<class T>
-class RealNumericLimitsTest : public celeritas_test::Test
+class RealNumericLimitsTest : public Test
 {
 };
 using RealTypes = ::testing::Types<float, double>;
@@ -29,7 +31,7 @@ TYPED_TEST_SUITE(RealNumericLimitsTest, RealTypes, );
 TYPED_TEST(RealNumericLimitsTest, host)
 {
     using std_limits_t   = std::numeric_limits<TypeParam>;
-    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
+    using celer_limits_t = numeric_limits<TypeParam>;
 
     EXPECT_EQ(std_limits_t::epsilon(), celer_limits_t::epsilon());
     EXPECT_EQ(std_limits_t::infinity(), celer_limits_t::infinity());
@@ -44,7 +46,7 @@ TYPED_TEST(RealNumericLimitsTest, device)
 TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
 #endif
 {
-    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
+    using celer_limits_t = numeric_limits<TypeParam>;
     auto result          = nl_test<TypeParam>();
 
     EXPECT_EQ(celer_limits_t::epsilon(), result.eps);
@@ -59,7 +61,7 @@ TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
 //---------------------------------------------------------------------------//
 
 template<class T>
-class UIntNumericLimitsTest : public celeritas_test::Test
+class UIntNumericLimitsTest : public Test
 {
 };
 
@@ -70,7 +72,10 @@ TYPED_TEST_SUITE(UIntNumericLimitsTest, UIntTypes, );
 TYPED_TEST(UIntNumericLimitsTest, host)
 {
     using std_limits_t   = std::numeric_limits<TypeParam>;
-    using celer_limits_t = celeritas::numeric_limits<TypeParam>;
+    using celer_limits_t = numeric_limits<TypeParam>;
 
     EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

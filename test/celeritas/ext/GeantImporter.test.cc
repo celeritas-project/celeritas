@@ -18,8 +18,10 @@
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // Helper functions
 namespace
@@ -40,7 +42,7 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeantImporterTest : public celeritas_test::Test
+class GeantImporterTest : public Test
 {
   protected:
     using DataSelection = GeantImporter::DataSelection;
@@ -91,7 +93,6 @@ auto GeantImporterTest::summarize(const ImportData& data) const -> ImportSummary
 
 void GeantImporterTest::ImportSummary::print_expected() const
 {
-    using celeritas::repr;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static const char* expected_particles[] = "
          << repr(this->particles) << ";\n"
@@ -858,3 +859,6 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
     EXPECT_VEC_SOFT_EQ(expected_fluor_probability, fluor_probability);
     EXPECT_VEC_SOFT_EQ(expected_fluor_energy, fluor_energy);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

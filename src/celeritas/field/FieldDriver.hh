@@ -230,9 +230,10 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     // step length and larger than the permillion fraction of the step length.
     // Otherwise, use the input step length for the first trial.
     // TODO: review whether this approach is an efficient bootstrapping.
-    real_type h = ((hinitial > options_.initial_step_tol * step) && (hinitial < step))
-                      ? hinitial
-                      : step;
+    real_type h
+        = ((hinitial > options_.initial_step_tol * step) && (hinitial < step))
+              ? hinitial
+              : step;
     real_type h_threshold = options_.epsilon_step * step;
 
     // Output with the next good step
@@ -353,13 +354,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     CELER_ASSERT(succeeded);
 
     // Update state, step taken by this trial and the next predicted step
-    output.end.state = result.end_state;
-    output.end.step  = step;
-    output.proposed_step
-        = (errmax2 > ipow<2>(options_.errcon))
-              ? options_.safety * step
-                    * fastpow(errmax2, half() * options_.pgrow)
-              : options_.max_stepping_increase * step;
+    output.end.state     = result.end_state;
+    output.end.step      = step;
+    output.proposed_step = (errmax2 > ipow<2>(options_.errcon))
+                               ? options_.safety * step
+                                     * fastpow(errmax2, half() * options_.pgrow)
+                               : options_.max_stepping_increase * step;
 
     return output;
 }

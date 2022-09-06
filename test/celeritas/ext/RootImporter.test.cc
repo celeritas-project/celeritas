@@ -20,8 +20,10 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -35,9 +37,9 @@ using namespace celeritas;
  * in \e app/celer-export-geant .
  *
  * This test only checks if the loaded ROOT file is minimally correct. Detailed
- * verification of the imported data is done by \c ImportData.test .
+ * verification of the imported data is done by \c GeantImporter.test .
  */
-class RootImporterTest : public celeritas_test::Test
+class RootImporterTest : public Test
 {
   protected:
     void SetUp() override
@@ -128,14 +130,12 @@ TEST_F(RootImporterTest, processes)
                             });
     };
 
-    auto ioni
-        = find_process(celeritas::pdg::electron(), ImportProcessClass::e_ioni);
+    auto ioni = find_process(pdg::electron(), ImportProcessClass::e_ioni);
     ASSERT_NE(processes.end(), ioni);
 
     EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
     ASSERT_EQ(1, ioni->models.size());
     EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
-    EXPECT_EQ(celeritas::pdg::electron().get(), ioni->secondary_pdg);
 }
 
 //---------------------------------------------------------------------------//
@@ -172,3 +172,7 @@ TEST_F(RootImporterTest, volumes)
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_solids, solids);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

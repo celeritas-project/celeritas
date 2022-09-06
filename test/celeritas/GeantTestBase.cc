@@ -33,9 +33,9 @@
 
 #include "celeritas_cmake_strings.h"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 namespace
@@ -237,4 +237,5 @@ std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

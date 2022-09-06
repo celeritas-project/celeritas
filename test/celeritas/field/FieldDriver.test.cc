@@ -23,9 +23,10 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -60,13 +61,13 @@ class FieldDriverTest : public Test
 
 template<template<class EquationT> class StepperT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_driver(FieldT&&                             field,
-                      const celeritas::FieldDriverOptions& options,
-                      celeritas::units::ElementaryCharge   charge)
+make_mag_field_driver(FieldT&&                  field,
+                      const FieldDriverOptions& options,
+                      units::ElementaryCharge   charge)
 {
-    using Equation_t = celeritas::MagFieldEquation<FieldT>;
+    using Equation_t = MagFieldEquation<FieldT>;
     using Stepper_t  = StepperT<Equation_t>;
-    using Driver_t   = celeritas::FieldDriver<Stepper_t>;
+    using Driver_t   = FieldDriver<Stepper_t>;
     return Driver_t{
         options,
         Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}}};
@@ -171,4 +172,6 @@ TEST_F(FieldDriverTest, accurate_advance_host)
     // Check the total error, step/curve length
     EXPECT_LT(total_curved_length - circumference * test_params.revolutions,
               delta);
-}
+} //---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

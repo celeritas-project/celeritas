@@ -18,41 +18,33 @@
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
-#include "Main.hh"
 #include "celeritas_test.hh"
 
-using celeritas::CombinedBremInteractor;
-using celeritas::CombinedBremModel;
-using celeritas::ElementComponentId;
-using celeritas::ElementId;
-using celeritas::SBEnergyDistHelper;
-using celeritas::SeltzerBergerReader;
-
-using celeritas::units::AmuMass;
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
-using Energy   = celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using Energy   = units::MevEnergy;
 using EnergySq = SBEnergyDistHelper::EnergySq;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CombinedBremTest : public celeritas_test::InteractorHostTestBase
+class CombinedBremTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
-        using celeritas::MatterState;
-        using namespace celeritas::constants;
-        using namespace celeritas::units;
+        using namespace constants;
+        using namespace units;
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements  = {{29, AmuMass{63.546}, "Cu"}};
+        mat_inp.elements  = {{29, units::AmuMass{63.546}, "Cu"}};
         mat_inp.materials = {
             {0.141 * na_avogadro,
              293.0,
@@ -68,21 +60,19 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
-        std::vector<celeritas::ImportProcess> imported{
+        std::vector<ImportProcess> imported{
             {11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}},
             {-11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}}};
         this->set_imported_processes(imported);
@@ -113,9 +103,8 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
     EnergySq density_correction(MaterialId matid, Energy e) const
     {
         CELER_EXPECT(matid);
-        CELER_EXPECT(e > celeritas::zero_quantity());
-        using celeritas::ipow;
-        using namespace celeritas::constants;
+        CELER_EXPECT(e > zero_quantity());
+        using namespace constants;
 
         auto           mat    = this->material_params()->get(matid);
         constexpr auto migdal = 4 * pi * r_electron
@@ -140,8 +129,6 @@ class CombinedBremTest : public celeritas_test::InteractorHostTestBase
 
 TEST_F(CombinedBremTest, basic_seltzer_berger)
 {
-    using celeritas::MaterialView;
-
     // Reserve 4 secondaries, one for each sample
     const int num_samples = 4;
     this->resize_secondaries(num_samples);
@@ -165,7 +152,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
     std::vector<double> energy;
 
     // Loop number of samples
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -176,8 +163,8 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.front().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.front().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -232,7 +219,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
     std::vector<double> angle;
     std::vector<double> energy;
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -243,8 +230,8 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.back().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -272,8 +259,6 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
 TEST_F(CombinedBremTest, stress_test_combined)
 {
-    using celeritas::MaterialView;
-
     const int           num_samples = 1e4;
     std::vector<double> avg_engine_samples;
     std::vector<double> avg_energy_samples;
@@ -375,3 +360,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy_samples, avg_energy_samples);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

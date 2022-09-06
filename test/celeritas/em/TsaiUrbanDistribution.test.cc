@@ -14,31 +14,19 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::TsaiUrbanDistribution;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class TsaiUrbanDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    std::mt19937 rng;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(TsaiUrbanDistributionTest, bin)
+namespace test
 {
-    using namespace celeritas::constants;
-    using namespace celeritas::units;
+//---------------------------------------------------------------------------//
+TEST(TsaiUrbanDistributionTest, bin)
+{
+    using namespace constants;
+    using namespace units;
 
     MevMass             electron_mass = MevMass{0.5109989461};
     std::vector<double> angles;
+    std::mt19937        rng;
 
     // Loop over various electron energies(converted to MevEnergy)
     for (double inc_e : {0.1, 1.0, 10.0, 50.0, 100.0})
@@ -55,3 +43,7 @@ TEST_F(TsaiUrbanDistributionTest, bin)
                                       0.999978220994207};
     EXPECT_VEC_SOFT_EQ(expected_angles, angles);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

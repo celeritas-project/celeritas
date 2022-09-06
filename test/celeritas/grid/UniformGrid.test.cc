@@ -11,14 +11,12 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::UniformGrid;
-using celeritas::UniformGridData;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class UniformGridTest : public celeritas_test::Test
+class UniformGridTest : public Test
 {
   protected:
     void SetUp() override
@@ -31,10 +29,6 @@ class UniformGridTest : public celeritas_test::Test
 
     UniformGridData input;
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 TEST_F(UniformGridTest, accessors)
 {
@@ -54,15 +48,15 @@ TEST_F(UniformGridTest, find)
 
     UniformGrid grid(input);
 #if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(0.99999), celeritas::DebugError);
+    EXPECT_THROW(grid.find(0.99999), DebugError);
 #endif
     EXPECT_EQ(0, grid.find(1.0));
     EXPECT_EQ(0, grid.find(2.49999));
     EXPECT_EQ(1, grid.find(2.5));
     EXPECT_EQ(1, grid.find(3.99999));
 #if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(4.0), celeritas::DebugError);
-    EXPECT_THROW(grid.find(4.0 + 0.00001), celeritas::DebugError);
+    EXPECT_THROW(grid.find(4.0), DebugError);
+    EXPECT_THROW(grid.find(4.0 + 0.00001), DebugError);
 #endif
 }
 
@@ -96,6 +90,10 @@ TEST_F(UniformGridTest, from_logbounds)
     EXPECT_EQ(1, grid.find(std::nextafter(log10, 1e100)));
     EXPECT_EQ(4, grid.find(std::nextafter(log_emax, 0.)));
 #if CELERITAS_DEBUG
-    EXPECT_THROW(grid.find(log_emax), celeritas::DebugError);
+    EXPECT_THROW(grid.find(log_emax), DebugError);
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

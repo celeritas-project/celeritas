@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file detail/ParallelHandler.hh
+//! \file testdetail/NonMasterResultPrinter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,34 +11,24 @@
 
 namespace celeritas
 {
-class MpiCommunicator;
-}
-
-namespace celeritas_test
-{
-namespace detail
+namespace testdetail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Integrate google test with MPI.
+ * Print test results on non-rank-zero processes.
  */
-class ParallelHandler : public ::testing::EmptyTestEventListener
+class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
 {
   public:
-    using Comm = celeritas::MpiCommunicator;
+    // Construct with MPI rank
+    explicit NonMasterResultPrinter(int rank);
 
-    // Construct with communicator
-    explicit ParallelHandler(const Comm& comm);
-
-    void OnTestProgramStart(const ::testing::UnitTest&) override;
-    void OnTestProgramEnd(const ::testing::UnitTest&) override;
-    void OnTestStart(const ::testing::TestInfo&) override;
-    void OnTestEnd(const ::testing::TestInfo&) override;
+    void OnTestPartResult(const ::testing::TestPartResult& result) override;
 
   private:
-    const Comm& comm_;
+    int rank_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas_test
+} // namespace testdetail
+} // namespace celeritas

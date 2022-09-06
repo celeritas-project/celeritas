@@ -14,24 +14,24 @@
 #include "celeritas/ext/VecgeomTrackView.hh"
 
 using thrust::raw_pointer_cast;
-using namespace celeritas;
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
+{
+namespace
 {
 //---------------------------------------------------------------------------//
-// KERNELS
-//---------------------------------------------------------------------------//
-
-__global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
-                                const GeoStateRefDevice    state,
-                                const GeoTrackInitializer* start,
-                                const int                  max_segments,
-                                int*                       ids,
-                                double*                    distances)
+__global__ void vgg_test_kernel(const DeviceCRef<VecgeomParamsData> params,
+                                const DeviceRef<VecgeomStateData>   state,
+                                const GeoTrackInitializer*          start,
+                                const int max_segments,
+                                int*      ids,
+                                double*   distances)
 {
     CELER_EXPECT(params && state);
 
-    auto tid = celeritas::KernelParamCalculator::thread_id();
+    auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= state.size())
         return;
 
@@ -59,10 +59,9 @@ __global__ void vgg_test_kernel(const GeoParamsCRefDevice  params,
             break;
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace
 
-//---------------------------------------------------------------------------//
-// TESTING INTERFACE
-//---------------------------------------------------------------------------//
 //! Run on device and return results
 VGGTestOutput vgg_test(VGGTestInput input)
 {
@@ -78,8 +77,8 @@ VGGTestOutput vgg_test(VGGTestInput input)
     thrust::device_vector<double> distances(ids.size(), -3.0);
 
     // Run kernel
-    static const celeritas::KernelParamCalculator calc_launch_params(
-        vgg_test_kernel, "vgg_test");
+    static const KernelParamCalculator calc_launch_params(vgg_test_kernel,
+                                                          "vgg_test");
     auto params = calc_launch_params(init.size());
     vgg_test_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
         input.params,
@@ -102,4 +101,5 @@ VGGTestOutput vgg_test(VGGTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

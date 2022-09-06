@@ -13,12 +13,15 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::Byte;
-using celeritas::DeviceAllocation;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 TEST(InitializedValue, semantics)
 {
-    using InitValueInt = celeritas::detail::InitializedValue<int>;
+    using InitValueInt = detail::InitializedValue<int>;
     static_assert(sizeof(InitValueInt) == sizeof(int), "Bad size");
 
     // Use operator new to test that the int is being initialized properly by
@@ -67,35 +70,25 @@ TEST(InitializedValue, semantics)
 }
 
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
 
-class DeviceAllocationTest : public celeritas_test::Test
-{
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(DeviceAllocationTest, always)
+TEST(DeviceAllocationTest, always)
 {
     DeviceAllocation alloc;
     EXPECT_EQ(0, alloc.size());
     EXPECT_TRUE(alloc.empty());
 }
 
-#if !CELER_USE_DEVICE
-TEST_F(DeviceAllocationTest, nocuda)
+TEST(DeviceAllocationTest, nocuda)
 {
+#if !CELER_USE_DEVICE
     // Can't allocate
-    EXPECT_THROW(DeviceAllocation(1234), celeritas::DebugError);
-}
+    EXPECT_THROW(DeviceAllocation(1234), DebugError);
+#else
+    GTEST_SKIP() << "CUDA is enabled";
 #endif
+}
 
-TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
+TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 {
     DeviceAllocation alloc(1024);
     EXPECT_EQ(1024, alloc.size());
@@ -116,10 +109,10 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
     data.front() = Byte(1);
     data.back()  = Byte(127);
 
-    alloc.copy_to_device(celeritas::make_span(data));
+    alloc.copy_to_device(make_span(data));
 
     std::vector<Byte> newdata(alloc.size());
-    alloc.copy_to_host(celeritas::make_span(newdata));
+    alloc.copy_to_host(make_span(newdata));
     EXPECT_EQ(Byte(1), newdata.front());
     EXPECT_EQ(Byte(127), newdata.back());
 
@@ -133,7 +126,7 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
     }
 }
 
-TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
+TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
 {
     DeviceAllocation alloc{0};
     EXPECT_TRUE(alloc.empty());
@@ -141,6 +134,10 @@ TEST_F(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
     EXPECT_EQ(nullptr, alloc.device_ref().data());
 
     std::vector<Byte> newdata(alloc.size());
-    alloc.copy_to_device(celeritas::make_span(newdata));
-    alloc.copy_to_host(celeritas::make_span(newdata));
+    alloc.copy_to_device(make_span(newdata));
+    alloc.copy_to_host(make_span(newdata));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

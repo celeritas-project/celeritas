@@ -9,7 +9,9 @@
 
 #include "corecel/Types.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -17,9 +19,6 @@ namespace celeritas_test
 
 struct FieldTestParams
 {
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
     size_type nstates{};     //! number of states (tracks)
     int       nsteps{};      //! number of steps/revolution
     int       revolutions{}; //! number of revolutions
@@ -33,4 +32,5 @@ struct FieldTestParams
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

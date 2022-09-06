@@ -20,14 +20,15 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
-using namespace celeritas;
-using namespace celeritas::units;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_material() -> SPConstMaterial
 {
+    using namespace units;
+
     MaterialParams::Input inp;
     inp.elements  = {{13, AmuMass{27}, "Al"}};
     inp.materials = {{2.7 * constants::na_avogadro / 27,
@@ -53,6 +54,7 @@ auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_particle() -> SPConstParticle
 {
+    using namespace ::celeritas::units;
     ParticleParams::Input defs;
     defs.push_back({"gamma",
                     pdg::gamma(),
@@ -70,16 +72,17 @@ auto SimpleTestBase::build_particle() -> SPConstParticle
 //---------------------------------------------------------------------------//
 auto SimpleTestBase::build_cutoff() -> SPConstCutoff
 {
+    using namespace ::celeritas::units;
     CutoffParams::Input input;
     input.materials = this->material();
     input.particles = this->particle();
     input.cutoffs   = {
-        {pdg::gamma(),
-         {{MevEnergy{0.01}, 0.1 * units::millimeter},
-          {MevEnergy{100}, 100 * units::centimeter}}},
-        {pdg::electron(),
-         {{MevEnergy{1000}, 1000 * units::centimeter},
-          {MevEnergy{1000}, 1000 * units::centimeter}}},
+          {pdg::gamma(),
+           {{MevEnergy{0.01}, 0.1 * millimeter},
+            {MevEnergy{100}, 100 * centimeter}}},
+          {pdg::electron(),
+           {{MevEnergy{1000}, 1000 * centimeter},
+            {MevEnergy{1000}, 1000 * centimeter}}},
     };
 
     return std::make_shared<CutoffParams>(std::move(input));
@@ -150,4 +153,5 @@ auto SimpleTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

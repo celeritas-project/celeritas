@@ -20,35 +20,31 @@
 #include "Collection.test.hh"
 #include "celeritas_test.hh"
 
-using celeritas::AllItems;
-using celeritas::Collection;
-using celeritas::MemSpace;
-using celeritas::Ownership;
-using celeritas::Span;
-using celeritas::ThreadId;
-
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 template<class T>
 constexpr bool is_trivial_v = std::is_trivially_copyable<T>::value;
 
 TEST(ItemRange, types)
 {
-    EXPECT_TRUE((is_trivial_v<celeritas::ItemRange<int>>));
+    EXPECT_TRUE((is_trivial_v<ItemRange<int>>));
+    EXPECT_TRUE((
+        is_trivial_v<Collection<int, Ownership::reference, MemSpace::device>>));
     EXPECT_TRUE(
         (is_trivial_v<
-            celeritas::Collection<int, Ownership::reference, MemSpace::device>>));
-    EXPECT_TRUE((is_trivial_v<celeritas::Collection<int,
-                                                    Ownership::const_reference,
-                                                    MemSpace::device>>));
+            Collection<int, Ownership::const_reference, MemSpace::device>>));
 }
 
 // NOTE: these tests are essentially redundant with Range.test.cc since
 // ItemRange is a Range<OpaqueId> and ItemId is an OpaqueId.
 TEST(ItemRange, accessors)
 {
-    using ItemRangeT = celeritas::ItemRange<int>;
-    using ItemIdT    = celeritas::ItemId<int>;
+    using ItemRangeT = ItemRange<int>;
+    using ItemIdT    = ItemId<int>;
     ItemRangeT ps;
     EXPECT_EQ(0, ps.size());
     EXPECT_TRUE(ps.empty());
@@ -65,7 +61,7 @@ TEST(ItemRange, accessors)
 
 TEST(CollectionBuilder, size_limits)
 {
-    using IdType = celeritas::OpaqueId<struct Tiny, std::uint8_t>;
+    using IdType = OpaqueId<struct Tiny, std::uint8_t>;
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
     auto                build = make_builder(&host_val);
     std::vector<double> dummy(254);
@@ -83,13 +79,13 @@ TEST(CollectionBuilder, size_limits)
 #if CELERITAS_DEBUG
     // Inserting 256 elements when 255 is the max int *must* raise an error
     // when debug assertions are enabled.
-    EXPECT_THROW(build.push_back(1234.5), celeritas::DebugError);
+    EXPECT_THROW(build.push_back(1234.5), DebugError);
 #else
     // With bounds checking disabled, a one-off check when getting a reference
     // should catch the size failure.
     build.push_back(12345.6);
     Collection<double, Ownership::const_reference, MemSpace::host, IdType> host_ref;
-    EXPECT_THROW(host_ref = host_val, celeritas::RuntimeError);
+    EXPECT_THROW(host_ref = host_val, RuntimeError);
 #endif
 }
 
@@ -97,13 +93,13 @@ TEST(CollectionBuilder, size_limits)
 // SIMPLE TESTS
 //---------------------------------------------------------------------------//
 
-class SimpleCollectionTest : public celeritas_test::Test
+class SimpleCollectionTest : public Test
 {
   protected:
-    using IntId    = celeritas::ItemId<int>;
-    using IntRange = celeritas::ItemRange<int>;
+    using IntId    = ItemId<int>;
+    using IntRange = ItemRange<int>;
     template<MemSpace M>
-    using AllInts = celeritas::AllItems<int, M>;
+    using AllInts = AllItems<int, M>;
 
     template<MemSpace M>
     using Value = Collection<int, Ownership::value, M>;
@@ -160,25 +156,25 @@ TEST_F(SimpleCollectionTest, algo_host)
 
     // Test 'fill'
     resize(&src, 4);
-    celeritas::fill(123, &src);
+    fill(123, &src);
     EXPECT_EQ(123, src[IntId{0}]);
     EXPECT_EQ(123, src[IntId{3}]);
     src[IntId{1}] = 2;
 
     // Test 'copy_to_host'
     std::vector<int> dst(src.size());
-    celeritas::copy_to_host(src, celeritas::make_span(dst));
+    copy_to_host(src, make_span(dst));
 }
 
 TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 {
     Value<device> src;
     resize(&src, 2);
-    celeritas::fill(123, &src);
+    fill(123, &src);
 
     // Test 'copy_to_host'
     std::vector<int> dst(src.size());
-    celeritas::copy_to_host(src, celeritas::make_span(dst));
+    copy_to_host(src, make_span(dst));
     EXPECT_EQ(123, dst.front());
     EXPECT_EQ(123, dst.back());
 }
@@ -187,14 +183,14 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 // COMPLEX TESTS
 //---------------------------------------------------------------------------//
 
-class CollectionTest : public celeritas_test::Test
+class CollectionTest : public Test
 {
   protected:
-    using MockParamsMirror = celeritas::CollectionMirror<MockParamsData>;
+    using MockParamsMirror = CollectionMirror<MockParamsData>;
 
     void SetUp() override
     {
-        ::celeritas::HostVal<MockParamsData> host_data;
+        HostVal<MockParamsData> host_data;
         host_data.max_element_components = 3;
 
         auto el_builder  = make_builder(&host_data.elements);
@@ -246,9 +242,6 @@ class CollectionTest : public celeritas_test::Test
 
         // Test references helpers
         {
-            using celeritas::make_const_ref;
-            using celeritas::make_ref;
-
             auto host_cref = make_const_ref(host_data);
             EXPECT_TRUE((std::is_same<decltype(host_cref),
                                       MockParamsData<Ownership::const_reference,
@@ -269,8 +262,7 @@ class CollectionTest : public celeritas_test::Test
 };
 
 template<MemSpace M>
-inline void
-resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
+inline void resize(MockStateData<Ownership::value, M>* data, size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&data->matid, size);
@@ -282,14 +274,13 @@ resize(MockStateData<Ownership::value, M>* data, celeritas::size_type size)
 
 TEST_F(CollectionTest, host)
 {
-    ::celeritas::HostVal<MockStateData> host_state;
+    HostVal<MockStateData> host_state;
     resize(&host_state, 1);
-    auto host_state_ref               = celeritas::make_ref(host_state);
+    auto host_state_ref               = make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
 
     // Create view
-    MockTrackView mock(
-        mock_params.host(), host_state_ref, celeritas::ThreadId{0});
+    MockTrackView mock(mock_params.host(), host_state_ref, ThreadId{0});
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
@@ -299,7 +290,7 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     MockStateData<Ownership::value, MemSpace::device> device_states;
     resize(&device_states, 1024);
 
-    celeritas::DeviceVector<double> device_result(device_states.size());
+    DeviceVector<double> device_result(device_states.size());
 
     CTestInput kernel_input;
     kernel_input.params = this->mock_params.device();
@@ -308,10 +299,13 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
 
     col_cuda_test(kernel_input);
     std::vector<double> result(device_result.size());
-    device_result.copy_to_host(celeritas::make_span(result));
+    device_result.copy_to_host(make_span(result));
 
     // For brevity, only check the first 6 values (they repeat after that)
     result.resize(6);
     const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

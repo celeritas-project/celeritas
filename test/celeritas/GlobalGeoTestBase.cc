@@ -15,9 +15,9 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
@@ -87,4 +87,5 @@ auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

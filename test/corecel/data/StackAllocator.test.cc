@@ -14,19 +14,23 @@
 #include "StackAllocator.test.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
-template<celeritas::Ownership W, celeritas::MemSpace M>
-using MockAllocatorData = celeritas::StackAllocatorData<MockSecondary, W, M>;
+template<Ownership W, MemSpace M>
+using MockAllocatorData = StackAllocatorData<MockSecondary, W, M>;
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //---------------------------------------------------------------------------//
 
-class StackAllocatorTest : public celeritas_test::Test
+class StackAllocatorTest : public Test
 {
   protected:
-    using Allocator = celeritas::StackAllocator<MockSecondary>;
+    using Allocator = StackAllocator<MockSecondary>;
 
     // Get the actual number of allocated secondaries
     int actual_allocations(const SATestInput& in, const SATestOutput& out) const
@@ -41,7 +45,7 @@ class StackAllocatorTest : public celeritas_test::Test
             = static_cast<MockSecondary*>(
                   reinterpret_cast<void*>(out.last_secondary_address))
               + in.alloc_size;
-        constexpr celeritas::ItemId<MockSecondary> first_item{0};
+        constexpr ItemId<MockSecondary> first_item{0};
         return storage_end_ptr - &in.sa_data.storage[first_item];
     }
 };
@@ -50,9 +54,7 @@ class StackAllocatorTest : public celeritas_test::Test
 
 TEST_F(StackAllocatorTest, host)
 {
-    using StateStore
-        = celeritas::CollectionStateStore<MockAllocatorData,
-                                          celeritas::MemSpace::host>;
+    using StateStore = CollectionStateStore<MockAllocatorData, MemSpace::host>;
     StateStore data(16);
     Allocator  alloc(data.ref());
     EXPECT_EQ(16, alloc.capacity());
@@ -61,7 +63,7 @@ TEST_F(StackAllocatorTest, host)
     MockSecondary* ptr = alloc(8);
     EXPECT_EQ(8, alloc.get().size());
     ASSERT_NE(nullptr, ptr);
-    for (MockSecondary& p : celeritas::Span<MockSecondary>(ptr, 8))
+    for (MockSecondary& p : Span<MockSecondary>(ptr, 8))
     {
         // Check that secondary was initialized properly
         EXPECT_EQ(-1, p.mock_id);
@@ -86,8 +88,7 @@ TEST_F(StackAllocatorTest, host)
 TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
 {
     using StateStore
-        = celeritas::CollectionStateStore<MockAllocatorData,
-                                          celeritas::MemSpace::device>;
+        = CollectionStateStore<MockAllocatorData, MemSpace::device>;
 
     StateStore data(1024);
 
@@ -143,3 +144,6 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(1024, actual_allocations(input, result));
     EXPECT_EQ(1024, result.view_size);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

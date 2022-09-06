@@ -345,8 +345,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Physically move next step
     axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
     // Move to the inside of the surface
-    states_.surf[thread_]  = next_surface_.id();
-    states_.sense[thread_] = next_surface_.unchecked_sense();
+    states_.surf[thread_]     = next_surface_.id();
+    states_.sense[thread_]    = next_surface_.unchecked_sense();
     states_.boundary[thread_] = BoundaryResult::exiting;
     this->clear_next_step();
 }

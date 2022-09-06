@@ -114,7 +114,7 @@ class PhysicsParams
         SPConstParticles  particles;
         SPConstMaterials  materials;
         VecProcess        processes;
-        SPConstRelaxation relaxation;  //!< Optional atomic relaxation
+        SPConstRelaxation relaxation; //!< Optional atomic relaxation
         ActionManager*    action_manager = nullptr;
 
         Options options;

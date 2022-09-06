@@ -11,11 +11,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::make_poly_evaluator;
-using celeritas::PolyEvaluator;
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(PolyEvaluatorTest, make_eval)
@@ -59,3 +58,7 @@ TEST(PolyEvaluatorTest, eval_int)
         EXPECT_EQ(3 + 2 * x + x * x - x * x * x, eval(x));
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas
