@@ -114,10 +114,10 @@ class Stepper : public StepperInterface
 
     //!@{
     //! Prohibit copying but allow moving and empty construction
-    Stepper()               = default;
-    Stepper(Stepper&&)      = default;
-    Stepper(const Stepper&) = delete;
-    Stepper& operator=(Stepper&&) = default;
+    Stepper()                          = default;
+    Stepper(Stepper&&)                 = default;
+    Stepper(const Stepper&)            = delete;
+    Stepper& operator=(Stepper&&)      = default;
     Stepper& operator=(const Stepper&) = delete;
     //!@}
 

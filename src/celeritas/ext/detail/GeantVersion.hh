@@ -9,10 +9,8 @@
 
 #include <G4Version.hh>
 
-namespace celeritas
-{
-//---------------------------------------------------------------------------//
 /*!
+ * \def CELERITAS_G4_V10
  * Macro for differentiating between Geant4 v10 and v11.
  */
 #if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
@@ -20,6 +18,3 @@ namespace celeritas
 #else
 #    define CELERITAS_G4_V10 0
 #endif
-
-//---------------------------------------------------------------------------//
-} // namespace celeritas

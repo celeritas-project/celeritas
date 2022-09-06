@@ -17,13 +17,15 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
+class LinearPropagatorTest : public GlobalGeoTestBase
 {
   public:
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
@@ -161,3 +163,6 @@ TEST_F(LinearPropagatorTest, all)
     EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, -2000}), geo.pos());
     EXPECT_EQ("[OUTSIDE]", this->volume_label(geo));
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

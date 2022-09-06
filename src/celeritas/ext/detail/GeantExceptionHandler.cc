@@ -29,10 +29,8 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
     CELER_EXPECT(exception_code);
 
     // Construct message
-    std::ostringstream os;
-    os << exception_code << " in Geant4 " << origin_of_exception << ": "
-       << description;
-    const std::string& msg = os.str();
+    auto err = RuntimeError::from_geant_exception(
+        origin_of_exception, exception_code, description);
 
     switch (severity)
     {
@@ -41,10 +39,10 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
         case RunMustBeAborted:
         case EventMustBeAborted:
             // Severe or initialization error
-            throw celeritas::RuntimeError(msg);
+            throw err;
         case JustWarning:
             // Display a message
-            CELER_LOG(warning) << msg;
+            CELER_LOG(warning) << err.what();
             break;
         default:
             CELER_ASSERT_UNREACHABLE();

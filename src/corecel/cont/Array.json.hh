@@ -24,7 +24,7 @@ void from_json(const nlohmann::json& j, Array<T, N>& value)
 {
     CELER_VALIDATE(j.size() == N,
                    << "unexpected array size (" << j.size()
-                   << " in JSON input: should have " << N);
+                   << ") in JSON input: should be " << N);
     for (size_type i = 0; i != N; ++i)
     {
         value[i] = j[i].get<T>();

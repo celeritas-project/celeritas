@@ -20,35 +20,27 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ElementComponentId;
-using celeritas::ElementId;
-using celeritas::ElementView;
-using celeritas::RBDiffXsCalculator;
-using celeritas::RelativisticBremInteractor;
-using celeritas::RelativisticBremModel;
-
-namespace pdg = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
+class RelativisticBremTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
-        using namespace celeritas::units;
-        using namespace celeritas::constants;
-
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements  = {{82, AmuMass{207.2}, "Pb"}};
-        mi.materials = {{0.05477 * na_avogadro,
+        mi.elements  = {{82, units::AmuMass{207.2}, "Pb"}};
+        mi.materials = {{0.05477 * constants::na_avogadro,
                          293.15,
-                         celeritas::MatterState::solid,
+                         MatterState::solid,
                          {{ElementId{0}, 1.0}},
                          "Pb"}};
 
@@ -57,21 +49,19 @@ class RelativisticBremTest : public celeritas_test::InteractorHostTestBase
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
-        std::vector<celeritas::ImportProcess> imported{
+        std::vector<ImportProcess> imported{
             {11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}},
             {-11,
              22,
-             celeritas::ImportProcessType::electromagnetic,
-             celeritas::ImportProcessClass::e_brems,
-             {celeritas::ImportModelClass::e_brems_sb,
-              celeritas::ImportModelClass::e_brems_lpm},
+             ImportProcessType::electromagnetic,
+             ImportProcessClass::e_brems,
+             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
              {},
              {}}};
         this->set_imported_processes(imported);
@@ -215,7 +205,7 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
     std::vector<double> angle;
     std::vector<double> energy;
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -226,8 +216,8 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.back().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -280,7 +270,7 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
     std::vector<double> angle;
     std::vector<double> energy;
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -291,8 +281,8 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
                       + result.secondaries.size() * i);
 
         energy.push_back(result.secondaries[0].energy.value());
-        angle.push_back(celeritas::dot_product(
-            result.direction, result.secondaries.back().direction));
+        angle.push_back(dot_product(result.direction,
+                                    result.secondaries.back().direction));
     }
 
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
@@ -337,7 +327,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     real_type average_energy{0};
     Real3     average_angle{0, 0, 0};
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -360,3 +350,6 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
         average_angle[1] / num_samples, 1.3067055198983571e-06, 1e-8);
     EXPECT_SOFT_EQ(average_angle[2] / num_samples, 0.99999999899845182);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

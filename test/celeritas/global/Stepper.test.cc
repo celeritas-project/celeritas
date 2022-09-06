@@ -27,16 +27,19 @@
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using celeritas::units::MevEnergy;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+using units::MevEnergy;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
 #define TestEm3Test TEST_IF_CELERITAS_GEANT(TestEm3Test)
-class TestEm3Test : public celeritas_test::TestEm3Base,
-                    public celeritas_test::StepperTestBase
+class TestEm3Test : public TestEm3Base, public StepperTestBase
 {
   public:
     //! Make 10GeV electrons along +x
@@ -112,8 +115,7 @@ class TestEm3MscNofluctTest : public TestEm3Test
 };
 
 #define TestEm15Test TEST_IF_CELERITAS_GEANT(TestEm15Test)
-class TestEm15FieldTest : public celeritas_test::TestEm15Base,
-                          public celeritas_test::StepperTestBase
+class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
 {
     bool enable_fluctuation() const override { return false; }
 
@@ -191,15 +193,15 @@ TEST_F(TestEm3Test, host)
     }
     else if (this->is_summit_build())
     {
-        EXPECT_EQ(321, result.num_step_iters());
-        EXPECT_SOFT_EQ(54526, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(207, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({90, 1268}), result.calc_queue_hwm());
+        EXPECT_EQ(323, result.num_step_iters());
+        EXPECT_SOFT_EQ(61437, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(257, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({89, 1140}), result.calc_queue_hwm());
     }
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -247,7 +249,7 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -295,24 +297,25 @@ TEST_F(TestEm3MscTest, host)
     }
     else if (this->is_summit_build())
     {
-        EXPECT_EQ(55, result.num_step_iters());
         if (CELERITAS_USE_VECGEOM)
         {
-            EXPECT_SOFT_NEAR(48.375, result.calc_avg_steps_per_primary(), 0.02);
+            EXPECT_EQ(53, result.num_step_iters());
+            EXPECT_SOFT_NEAR(44.75, result.calc_avg_steps_per_primary(), 0.02);
             EXPECT_EQ(7, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
+            EXPECT_EQ(RunResult::StepCount({4, 6}), result.calc_queue_hwm());
         }
         else
         {
-            EXPECT_SOFT_NEAR(60.875, result.calc_avg_steps_per_primary(), 0.02);
-            EXPECT_EQ(10, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({1, 4}), result.calc_queue_hwm());
+            EXPECT_EQ(51, result.num_step_iters());
+            EXPECT_SOFT_NEAR(51.75, result.calc_avg_steps_per_primary(), 0.02);
+            EXPECT_EQ(12, result.calc_emptying_step());
+            EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
         }
     }
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -358,23 +361,23 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
     {
         if (CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ(58, result.num_step_iters());
-            EXPECT_SOFT_EQ(42.125, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(8, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({6, 5}), result.calc_queue_hwm());
+            EXPECT_EQ(90, result.num_step_iters());
+            EXPECT_SOFT_EQ(78.375, result.calc_avg_steps_per_primary());
+            EXPECT_EQ(11, result.calc_emptying_step());
+            EXPECT_EQ(RunResult::StepCount({6, 6}), result.calc_queue_hwm());
         }
         else
         {
-            EXPECT_EQ(56, result.num_step_iters());
-            EXPECT_SOFT_EQ(40.375, result.calc_avg_steps_per_primary());
-            EXPECT_EQ(8, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({6, 4}), result.calc_queue_hwm());
+            EXPECT_EQ(61, result.num_step_iters());
+            EXPECT_SOFT_EQ(54.375, result.calc_avg_steps_per_primary());
+            EXPECT_EQ(9, result.calc_emptying_step());
+            EXPECT_EQ(RunResult::StepCount({7, 8}), result.calc_queue_hwm());
         }
     }
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -420,23 +423,23 @@ TEST_F(TestEm3MscNofluctTest, host)
     {
         if (CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ(113, result.num_step_iters());
+            EXPECT_EQ(84, result.num_step_iters());
             EXPECT_SOFT_NEAR(53.625, result.calc_avg_steps_per_primary(), 0.04);
-            EXPECT_EQ(9, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({7, 4}), result.calc_queue_hwm());
+            EXPECT_EQ(8, result.calc_emptying_step());
+            EXPECT_EQ(RunResult::StepCount({5, 5}), result.calc_queue_hwm());
         }
         else
         {
-            EXPECT_EQ(72, result.num_step_iters());
-            EXPECT_SOFT_NEAR(53.625, result.calc_avg_steps_per_primary(), 0.04);
-            EXPECT_EQ(10, result.calc_emptying_step());
-            EXPECT_EQ(RunResult::StepCount({7, 5}), result.calc_queue_hwm());
+            EXPECT_EQ(73, result.num_step_iters());
+            EXPECT_SOFT_NEAR(60.375, result.calc_avg_steps_per_primary(), 0.04);
+            EXPECT_EQ(8, result.calc_emptying_step());
+            EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
         }
     }
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -481,7 +484,7 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -516,7 +519,7 @@ TEST_F(TestEm15FieldTest, host)
     else if (this->is_summit_build())
     {
         EXPECT_EQ(14, result.num_step_iters());
-        EXPECT_SOFT_EQ(35.5, result.calc_avg_steps_per_primary());
+        EXPECT_SOFT_EQ(35, result.calc_avg_steps_per_primary());
         EXPECT_EQ(6, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
     }
@@ -530,7 +533,7 @@ TEST_F(TestEm15FieldTest, host)
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -566,15 +569,15 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
     }
     else if (this->is_summit_build())
     {
-        EXPECT_EQ(15, result.num_step_iters());
-        EXPECT_SOFT_EQ(30.125, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(4, result.calc_emptying_step());
+        EXPECT_EQ(14, result.num_step_iters());
+        EXPECT_SOFT_EQ(29.75, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(5, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({2, 11}), result.calc_queue_hwm());
     }
     else
     {
         cout << "No output saved for combination of "
-             << celeritas_test::PrintableBuildConf{} << std::endl;
+             << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
 
         if (this->strict_testing())
@@ -583,3 +586,6 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
         }
     }
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

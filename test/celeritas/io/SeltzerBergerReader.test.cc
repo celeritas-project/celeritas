@@ -9,23 +9,13 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::SeltzerBergerReader;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class SeltzerBergerReaderTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(SeltzerBergerReaderTest, read)
+TEST(SeltzerBergerReaderTest, read)
 {
     const double log_incident_energy[]
         = {-6.9078,  -6.5023,  -6.2146,  -5.8091, -5.5215, -5.2983, -5.116,
@@ -53,5 +43,9 @@ TEST_F(SeltzerBergerReaderTest, read)
     // For Z = 93-99, the incident log energy grid and reduced photon energy
     // grid in the bremsstrahlung data files are incorrect (smaller than the
     // number of DCS values), so this should fail.
-    EXPECT_THROW(reader(94), celeritas::RuntimeError);
+    EXPECT_THROW(reader(94), RuntimeError);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

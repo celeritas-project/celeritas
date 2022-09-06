@@ -38,7 +38,7 @@ GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(ModelSelection selection)
 /*!
  * Empty destructor.
  */
-GeantBremsstrahlungProcess::~GeantBremsstrahlungProcess() {}
+GeantBremsstrahlungProcess::~GeantBremsstrahlungProcess() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,8 +63,6 @@ void GeantBremsstrahlungProcess::ProcessDescription(std::ostream& output) const
 
 //---------------------------------------------------------------------------//
 // PROTECTED
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Initialise process by constructing models based on \c ModelSelection .
@@ -96,7 +94,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
             G4VEnergyLossProcess::SetEmModel(new G4SeltzerBergerModel());
         }
 
-        auto em_model = G4VEnergyLossProcess::EmModel(model_index);
+        auto* em_model = G4VEnergyLossProcess::EmModel(model_index);
         em_model->SetLowEnergyLimit(energy_min);
         em_model->SetHighEnergyLimit(energy_limit);
         em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
@@ -117,7 +115,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
                     new G4eBremsstrahlungRelModel());
             }
 
-            auto em_model = G4VEnergyLossProcess::EmModel(model_index);
+            auto* em_model = G4VEnergyLossProcess::EmModel(model_index);
             em_model->SetLowEnergyLimit(energy_limit);
             em_model->SetHighEnergyLimit(energy_max);
             em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
@@ -135,13 +133,13 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
  */
 void GeantBremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
 {
-    if (EmModel(0))
+    if (auto* model = G4VEnergyLossProcess::EmModel(0))
     {
         const auto&  param            = G4EmParameters::Instance();
         const double energy_threshold = param->BremsstrahlungTh();
 
         output << "      LPM flag: " << param->LPM() << " for E > "
-               << EmModel(0)->HighEnergyLimit() / GeV << " GeV";
+               << model->HighEnergyLimit() / GeV << " GeV";
 
         if (energy_threshold < std::numeric_limits<double>::max())
         {

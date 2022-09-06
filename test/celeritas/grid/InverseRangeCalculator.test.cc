@@ -12,13 +12,13 @@
 #include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
-using celeritas::InverseRangeCalculator;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
 
-class InverseRangeCalculatorTest : public celeritas_test::CalculatorTestBase
+class InverseRangeCalculatorTest : public CalculatorTestBase
 {
   protected:
     using Energy = InverseRangeCalculator::Energy;
@@ -36,14 +36,10 @@ class InverseRangeCalculatorTest : public celeritas_test::CalculatorTestBase
         }
 
         // Adjust final point for roundoff for exact top-of-range testing
-        CELER_ASSERT(celeritas::soft_equal(real_type(500), value_span.back()));
+        CELER_ASSERT(soft_equal(real_type(500), value_span.back()));
         value_span.back() = 500;
     }
 };
-
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 
 // Note: these are all the same values as the RangeCalculator test.
 TEST_F(InverseRangeCalculatorTest, all)
@@ -64,6 +60,10 @@ TEST_F(InverseRangeCalculatorTest, all)
 
 #if CELERITAS_DEBUG
     // Above range
-    EXPECT_THROW(calc_energy(500.1), celeritas::DebugError);
+    EXPECT_THROW(calc_energy(500.1), DebugError);
 #endif
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

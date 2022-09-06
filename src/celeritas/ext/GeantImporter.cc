@@ -260,20 +260,44 @@ std::vector<ImportMaterial>
 store_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
-    const auto& g4production_cuts_table
+    const auto&    g4production_cuts_table
         = *G4ProductionCutsTable::GetProductionCutsTable();
 
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
 
-    std::vector<G4ProductionCutsIndex> particle_cuts;
+    using CutRange = std::pair<G4ProductionCutsIndex,
+                               std::unique_ptr<G4VRangeToEnergyConverter>>;
+
+    std::vector<CutRange> cut_converters;
     for (auto gi : range(NumberOfG4CutIndex))
     {
         PDGNumber pdg = to_pdg(gi);
-        if (include_particle(pdg))
+        if (!include_particle(pdg))
         {
-            particle_cuts.push_back(gi);
+            continue;
         }
+
+        std::unique_ptr<G4VRangeToEnergyConverter> converter;
+        switch (gi)
+        {
+            case idxG4GammaCut:
+                converter = std::make_unique<G4RToEConvForGamma>();
+                break;
+            case idxG4ElectronCut:
+                converter = std::make_unique<G4RToEConvForElectron>();
+                break;
+            case idxG4PositronCut:
+                converter = std::make_unique<G4RToEConvForPositron>();
+                break;
+            case idxG4ProtonCut:
+                converter = std::make_unique<G4RToEConvForProton>();
+                break;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+
+        cut_converters.emplace_back(gi, std::move(converter));
     }
 
     // Loop over material data
@@ -304,24 +328,14 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
         material.radiation_length   = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
-        // Range to energy converters for populating material.cutoffs
-        std::unique_ptr<G4VRangeToEnergyConverter>
-            range_to_e_converters[NumberOfG4CutIndex];
-        range_to_e_converters[idxG4GammaCut]
-            = std::make_unique<G4RToEConvForGamma>();
-        range_to_e_converters[idxG4ElectronCut]
-            = std::make_unique<G4RToEConvForElectron>();
-        range_to_e_converters[idxG4PositronCut]
-            = std::make_unique<G4RToEConvForPositron>();
-        range_to_e_converters[idxG4ProtonCut]
-            = std::make_unique<G4RToEConvForProton>();
-
         // Populate material production cut values
-        for (G4ProductionCutsIndex g4i : particle_cuts)
+        for (const auto& idx_convert : cut_converters)
         {
-            const double range = g4prod_cuts->GetProductionCut(g4i);
-            const double energy
-                = range_to_e_converters[g4i]->Convert(range, g4material);
+            G4ProductionCutsIndex      g4i       = idx_convert.first;
+            G4VRangeToEnergyConverter& converter = *idx_convert.second;
+
+            const double range  = g4prod_cuts->GetProductionCut(g4i);
+            const double energy = converter.Convert(range, g4material);
 
             ImportProductionCut cutoffs;
             cutoffs.energy = energy / MeV;

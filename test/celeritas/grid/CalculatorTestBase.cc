@@ -15,9 +15,9 @@
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/grid/Interpolator.hh"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 void CalculatorTestBase::build(real_type emin, real_type emax, size_type count)
@@ -67,4 +67,5 @@ auto CalculatorTestBase::mutable_values() -> SpanReal
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

@@ -222,7 +222,7 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(const Collection& other) = default;
-    Collection& operator=(Collection&& other) = default;
+    Collection& operator=(Collection&& other)      = default;
     //!@}
 
     // Assign from another collection
@@ -280,7 +280,10 @@ class Collection
     {
         return storage_.data;
     }
-    CELER_FORCEINLINE_FUNCTION StorageT& storage() { return storage_.data; }
+    CELER_FORCEINLINE_FUNCTION StorageT& storage()
+    {
+        return storage_.data;
+    }
     //@}
 };
 

@@ -11,15 +11,15 @@ include(CeleritasAddTest)
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
-configure_file(detail/TestConfig.cc.in TestConfig.cc @ONLY)
+configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
 
 set(CELER_SOURCES)
 list(APPEND CELER_SOURCES
   Test.cc
-  detail/Macros.cc
-  detail/NonMasterResultPrinter.cc
-  detail/ParallelHandler.cc
-  detail/TestMain.cc
+  testdetail/TestMacrosImpl.cc
+  testdetail/NonMasterResultPrinter.cc
+  testdetail/ParallelHandler.cc
+  testdetail/TestMainImpl.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 
@@ -111,7 +111,7 @@ endif()
 #-----------------------------------------------------------------------------#
 celeritas_setup_tests(SERIAL PREFIX detail)
 
-celeritas_add_test(detail/Macros.test.cc)
+celeritas_add_test(TestMacros.test.cc)
 
 #-----------------------------------------------------------------------------#
 # CORECEL TESTS
@@ -137,6 +137,7 @@ celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc)
 celeritas_add_test(corecel/io/Repr.test.cc)
+celeritas_add_test(corecel/io/StringEnumMap.test.cc)
 
 # Math
 celeritas_add_test(corecel/math/Algorithms.test.cc)
@@ -273,8 +274,8 @@ set(CELERITASTEST_PREFIX celeritas/field)
 
 celeritas_add_test(celeritas/field/Fields.test.cc
 SOURCES
-  celeritas/field/detail/MagFieldMap.cc
-  celeritas/field/detail/CMSFieldMapReader.cc
+  celeritas/field/MagFieldMap.cc
+  celeritas/field/CMSFieldMapReader.cc
 )
 celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
@@ -386,3 +387,26 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
+
+#-----------------------------------------------------------------------------#
+# DATA UPDATE
+#-----------------------------------------------------------------------------#
+
+set(_fourslabs "${CMAKE_CURRENT_SOURCE_DIR}/celeritas/data/four-steel-slabs")
+set(_cmake_env)
+if(CELERITAS_USE_Geant4)
+  set(_cmake_env
+    "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+  )
+endif()
+add_custom_target(update-four-slabs
+  COMMAND
+    ${_cmake_env}
+    "$<TARGET_FILE:celer-export-geant>"
+    "${_fourslabs}.gdml"
+    "${_fourslabs}.geant.json"
+    "${_fourslabs}.root"
+  VERBATIM
+)
+add_dependencies(update-four-slabs celer-export-geant)
+

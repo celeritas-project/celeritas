@@ -123,6 +123,7 @@ list(APPEND SOURCES
   corecel/data/DeviceAllocation.cc
   corecel/io/BuildOutput.cc
   corecel/io/ColorUtils.cc
+  corecel/io/ExceptionOutput.cc
   corecel/io/Logger.cc
   corecel/io/LoggerTypes.cc
   corecel/io/OutputInterface.cc
@@ -359,16 +360,14 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   list(APPEND _IO_SOURCES
+    celeritas/ext/LoadGdml.cc
     celeritas/ext/GeantImporter.cc
     celeritas/ext/GeantSetup.cc
-    celeritas/ext/detail/ActionInitialization.cc
-    celeritas/ext/detail/DetectorConstruction.cc
     celeritas/ext/detail/GeantBremsstrahlungProcess.cc
     celeritas/ext/detail/GeantExceptionHandler.cc
     celeritas/ext/detail/GeantLoggerAdapter.cc
     celeritas/ext/detail/GeantPhysicsList.cc
     celeritas/ext/detail/ImportProcessConverter.cc
-    celeritas/ext/detail/PrimaryGeneratorAction.cc
   )
   list(APPEND _IO_PRIVATE_DEPS
     XercesC::XercesC
@@ -377,7 +376,7 @@ if(CELERITAS_USE_Geant4)
 endif()
 if(CELERITAS_USE_JSON)
   list(APPEND _IO_SOURCES
-    celeritas/ext/GeantSetupOptionsIO.json.cc
+    celeritas/ext/GeantPhysicsOptionsIO.json.cc
   )
 endif()
 

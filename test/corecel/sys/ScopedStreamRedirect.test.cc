@@ -9,23 +9,12 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ScopedStreamRedirect;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class ScopedStreamRedirectTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-};
-
+namespace test
+{
 //---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
-
-TEST_F(ScopedStreamRedirectTest, all)
+TEST(ScopedStreamRedirectTest, all)
 {
     const auto* orig_buf = std::cout.rdbuf();
     {
@@ -37,3 +26,7 @@ TEST_F(ScopedStreamRedirectTest, all)
     }
     EXPECT_EQ(orig_buf, std::cout.rdbuf());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

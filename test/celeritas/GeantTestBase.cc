@@ -33,9 +33,9 @@
 
 #include "celeritas_cmake_strings.h"
 
-using namespace celeritas;
-
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 namespace
@@ -49,8 +49,7 @@ std::string gdml_filename(const char* basename)
 //---------------------------------------------------------------------------//
 ImportData load_import_data(std::string filename)
 {
-    GeantSetupOptions options;
-    options.physics            = GeantSetupPhysicsList::em_basic;
+    GeantPhysicsOptions options;
     options.em_bins_per_decade = 14;
     GeantImporter import(GeantSetup(filename, options));
     return import();
@@ -238,4 +237,5 @@ std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

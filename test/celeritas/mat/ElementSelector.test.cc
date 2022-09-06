@@ -16,14 +16,18 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 using MaterialParamsRef = MaterialParams::HostRef;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ElementSelectorTest : public celeritas_test::Test
+class ElementSelectorTest : public Test
 {
   public:
     //!@{
@@ -34,7 +38,7 @@ class ElementSelectorTest : public celeritas_test::Test
   protected:
     void SetUp() override
     {
-        using celeritas::units::AmuMass;
+        using units::AmuMass;
 
         MaterialParams::Input inp;
         inp.elements = {
@@ -116,7 +120,7 @@ TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 {
     MaterialView material(mats->host_ref(), mats->find_material("hard_vacuum"));
     EXPECT_THROW(ElementSelector(material, mock_micro_xs, make_span(storage)),
-                 celeritas::DebugError);
+                 DebugError);
 }
 
 //! Single element should always select the first one.
@@ -166,7 +170,7 @@ TEST_F(ElementSelectorTest, everything_even)
 
     // Test with sequence engine
     {
-        auto seq_rng = celeritas_test::SequenceEngine::from_reals(
+        auto seq_rng = SequenceEngine::from_reals(
             {0.0, 0.099, 0.101, 0.3, 0.499, 0.999999});
         std::vector<int> selection;
         while (seq_rng.count() < seq_rng.max_count())
@@ -214,8 +218,7 @@ TEST_F(ElementSelectorTest, even_zero_xs)
         = [](ElementId el) -> real_type { return (el.get() % 2 ? 1 : 0); };
     ElementSelector select_el(material, calc_xs, make_span(storage));
 
-    auto seq_rng = celeritas_test::SequenceEngine::from_reals(
-        {0.0, 0.01, 0.49, 0.5, 0.51});
+    auto seq_rng = SequenceEngine::from_reals({0.0, 0.01, 0.49, 0.5, 0.51});
     std::vector<int> selection;
     while (seq_rng.count() < seq_rng.max_count())
     {
@@ -242,3 +245,6 @@ TEST_F(ElementSelectorTest, fancy_xs)
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(0.014965228148605575, select_el.material_micro_xs());
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

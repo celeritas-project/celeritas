@@ -11,16 +11,15 @@
 
 #include "corecel/Types.hh"
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 struct TestParams
 {
-    using size_type = celeritas::size_type;
-    using real_type = celeritas::real_type;
-
     size_type     nsamples;  //! number of samples
     size_type     nthreads;  //! number of threads per blocks
     size_type     nblocks;   //! number of blocks per grids
@@ -41,4 +40,5 @@ template<class T>
 TestOutput curand_test(TestParams params);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

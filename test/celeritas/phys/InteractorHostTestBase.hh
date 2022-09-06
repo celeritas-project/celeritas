@@ -39,7 +39,9 @@ class ParticleTrackView;
 class MaterialTrackView;
 } // namespace celeritas
 
-namespace celeritas_test
+namespace celeritas
+{
+namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -48,36 +50,16 @@ namespace celeritas_test
  * \todo Since this now uses Collection objects it's generally safe to use this
  * to test Models as well as device code -- think about renaming it.
  */
-class InteractorHostTestBase : public celeritas_test::Test
+class InteractorHostTestBase : public Test
 {
   public:
-    static constexpr celeritas::MemSpace host = celeritas::MemSpace::host;
     //!@{
     //! Type aliases
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-
-    using real_type = celeritas::real_type;
-    using PDGNumber = celeritas::PDGNumber;
-    using MevEnergy = celeritas::units::MevEnergy;
-
-    using MaterialId        = celeritas::MaterialId;
-    using MaterialParams    = celeritas::MaterialParams;
-    using MaterialTrackView = celeritas::MaterialTrackView;
-    using ActionId          = celeritas::ActionId;
-
-    using CutoffParams = celeritas::CutoffParams;
-
-    using ImportProcess        = celeritas::ImportProcess;
-    using ImportedProcesses    = celeritas::ImportedProcesses;
-    using Interaction          = celeritas::Interaction;
-    using Action               = celeritas::Interaction::Action;
-    using ParticleId           = celeritas::ParticleId;
-    using ParticleParams       = celeritas::ParticleParams;
-    using ParticleTrackView    = celeritas::ParticleTrackView;
-    using Real3                = celeritas::Real3;
-    using Secondary            = celeritas::Secondary;
-    using SecondaryAllocator   = celeritas::StackAllocator<Secondary>;
-    using constSpanSecondaries = celeritas::Span<const Secondary>;
+    using RandomEngine         = DiagnosticRngEngine<std::mt19937>;
+    using MevEnergy            = units::MevEnergy;
+    using Action               = Interaction::Action;
+    using SecondaryAllocator   = StackAllocator<Secondary>;
+    using constSpanSecondaries = Span<const Secondary>;
     //!@}
 
   public:
@@ -178,12 +160,10 @@ class InteractorHostTestBase : public celeritas_test::Test
     void check_momentum_conservation(const Interaction& interaction) const;
 
   private:
-    template<template<celeritas::Ownership, celeritas::MemSpace> class S>
-    using StateStore
-        = celeritas::CollectionStateStore<S, celeritas::MemSpace::host>;
-    template<celeritas::Ownership W, celeritas::MemSpace M>
-    using SecondaryStackData
-        = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    template<Ownership W, MemSpace M>
+    using SecondaryStackData = StackAllocatorData<Secondary, W, M>;
 
     std::shared_ptr<const MaterialParams>    material_params_;
     std::shared_ptr<const ParticleParams>    particle_params_;
@@ -191,8 +171,8 @@ class InteractorHostTestBase : public celeritas_test::Test
     std::shared_ptr<const ImportedProcesses> imported_processes_;
     RandomEngine                             rng_;
 
-    StateStore<celeritas::MaterialStateData> ms_;
-    StateStore<celeritas::ParticleStateData> ps_;
+    StateStore<MaterialStateData> ms_;
+    StateStore<ParticleStateData> ps_;
 
     Real3                          inc_direction_ = {0, 0, 1};
     StateStore<SecondaryStackData> secondaries_;
@@ -204,4 +184,5 @@ class InteractorHostTestBase : public celeritas_test::Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas_test
+} // namespace test
+} // namespace celeritas

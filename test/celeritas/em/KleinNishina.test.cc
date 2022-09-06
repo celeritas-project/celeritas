@@ -14,16 +14,17 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::KleinNishinaInteractor;
-namespace pdg = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
+class KleinNishinaInteractorTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
@@ -47,7 +48,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_GT(this->particle_track().energy().value(),
                   interaction.energy.value());
         EXPECT_LT(0, interaction.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(interaction.direction));
+        EXPECT_SOFT_EQ(1.0, norm(interaction.direction));
         EXPECT_EQ(Action::scattered, interaction.action);
 
         // Check secondaries
@@ -62,7 +63,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
             EXPECT_LT(KleinNishinaInteractor::secondary_cutoff(),
                       electron.energy);
             EXPECT_EQ(0, interaction.energy_deposition.value());
-            EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+            EXPECT_SOFT_EQ(1.0, norm(electron.direction));
         }
         else
         {
@@ -78,7 +79,7 @@ class KleinNishinaInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::KleinNishinaData data_;
+    KleinNishinaData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,7 +104,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     std::vector<double> costheta_electron;
 
     // Produce four samples from the original incident energy/dir
-    for (int i : celeritas::range(4))
+    for (int i : range(4))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -113,10 +114,9 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
 
         // Add actual results to vector
         energy.push_back(result.energy.value());
-        costheta.push_back(
-            celeritas::dot_product(result.direction, this->direction()));
+        costheta.push_back(dot_product(result.direction, this->direction()));
         energy_electron.push_back(result.secondaries.front().energy.value());
-        costheta_electron.push_back(celeritas::dot_product(
+        costheta_electron.push_back(dot_product(
             result.secondaries.front().direction, this->direction()));
     }
 
@@ -228,7 +228,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
         }
 
         // Bin directional change
-        double costheta = celeritas::dot_product(inc_direction, out.direction);
+        double costheta = dot_product(inc_direction, out.direction);
         int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
         if (ct_bin >= 0 && ct_bin < nbins)
         {
@@ -245,3 +245,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

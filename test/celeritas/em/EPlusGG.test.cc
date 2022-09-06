@@ -16,25 +16,24 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::ElementId;
-using celeritas::EPlusGGInteractor;
-using celeritas::EPlusGGMacroXsCalculator;
-namespace pdg = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
+class EPlusGGInteractorTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
-        const auto& params = *this->particle_params();
-        data_.ids.positron = params.find(pdg::positron());
-        data_.ids.gamma    = params.find(pdg::gamma());
+        const auto& params  = *this->particle_params();
+        data_.ids.positron  = params.find(pdg::positron());
+        data_.ids.gamma     = params.find(pdg::gamma());
         data_.electron_mass = params.get(params.find(pdg::electron())).mass();
 
         // Set default particle to incident 10 MeV positron
@@ -60,7 +59,7 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
                       + 2 * data_.electron_mass.value(),
                   gamma1.energy.value());
         EXPECT_LT(0, gamma1.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma1.direction));
+        EXPECT_SOFT_EQ(1.0, norm(gamma1.direction));
 
         const auto& gamma2 = interaction.secondaries.back();
         EXPECT_TRUE(gamma2);
@@ -69,11 +68,11 @@ class EPlusGGInteractorTest : public celeritas_test::InteractorHostTestBase
                       + 2 * data_.electron_mass.value(),
                   gamma2.energy.value());
         EXPECT_LT(0, gamma2.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(gamma2.direction));
+        EXPECT_SOFT_EQ(1.0, norm(gamma2.direction));
     }
 
   protected:
-    celeritas::EPlusGGData data_;
+    EPlusGGData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -99,7 +98,7 @@ TEST_F(EPlusGGInteractorTest, basic)
     std::vector<double> energy1;
     std::vector<double> energy2;
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -109,9 +108,8 @@ TEST_F(EPlusGGInteractorTest, basic)
                   this->secondary_allocator().get().data()
                       + result.secondaries.size() * i);
 
-        angle.push_back(
-            celeritas::dot_product(result.secondaries.front().direction,
-                                   result.secondaries.back().direction));
+        angle.push_back(dot_product(result.secondaries.front().direction,
+                                    result.secondaries.back().direction));
         energy1.push_back(result.secondaries[0].energy.value());
         energy2.push_back(result.secondaries[1].energy.value());
     }
@@ -145,7 +143,7 @@ TEST_F(EPlusGGInteractorTest, basic)
 TEST_F(EPlusGGInteractorTest, at_rest)
 {
     this->set_inc_direction({1, 0, 0});
-    this->set_inc_particle(pdg::positron(), celeritas::zero_quantity());
+    this->set_inc_particle(pdg::positron(), zero_quantity());
     const int num_samples = 4;
 
     // Reserve  num_samples*2 secondaries;
@@ -158,7 +156,7 @@ TEST_F(EPlusGGInteractorTest, at_rest)
                                this->secondary_allocator());
     RandomEngine&     rng_engine = this->rng();
 
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -166,8 +164,8 @@ TEST_F(EPlusGGInteractorTest, at_rest)
 
         ASSERT_EQ(2, result.secondaries.size());
         EXPECT_SOFT_EQ(-1,
-                       celeritas::dot_product(result.secondaries[0].direction,
-                                              result.secondaries[1].direction));
+                       dot_product(result.secondaries[0].direction,
+                                   result.secondaries[1].direction));
 
         EXPECT_SOFT_EQ(data_.electron_mass.value(),
                        result.secondaries[0].energy.value());
@@ -227,7 +225,7 @@ TEST_F(EPlusGGInteractorTest, stress_test)
 
 TEST_F(EPlusGGInteractorTest, macro_xs)
 {
-    using celeritas::units::MevEnergy;
+    using units::MevEnergy;
 
     auto material = this->material_track().make_material_view();
     EPlusGGMacroXsCalculator calc_macro_xs(data_, material);
@@ -259,3 +257,6 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
            6.355265134801e-10, 2.068312058021e-10};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

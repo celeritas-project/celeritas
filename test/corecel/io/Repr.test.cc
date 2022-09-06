@@ -17,8 +17,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::repr;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -61,11 +63,10 @@ TEST(ReprTest, string)
 TEST(ReprTest, container)
 {
     EXPECT_EQ("{1, 2, 3, 4}", repr_to_string(std::vector<int>{1, 2, 3, 4}));
-    EXPECT_EQ("{100l, 200l}",
-              repr_to_string(celeritas::Array<long, 2>{100, 200}));
+    EXPECT_EQ("{100l, 200l}", repr_to_string(Array<long, 2>{100, 200}));
 
     unsigned int uints[] = {11, 22};
-    EXPECT_EQ("{11u, 22u}", repr_to_string(celeritas::make_span(uints)));
+    EXPECT_EQ("{11u, 22u}", repr_to_string(make_span(uints)));
 
     const char* const cstrings[] = {"one", "three", "five"};
     EXPECT_EQ("{\"one\", \"three\", \"five\"}", repr_to_string(cstrings));
@@ -73,3 +74,7 @@ TEST(ReprTest, container)
     const std::string strings[] = {"a", "", "special\nchars\t"};
     EXPECT_EQ("{\"a\", \"\", \"special\\nchars\\t\"}", repr_to_string(strings));
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -258,11 +258,11 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        pos   = other.pos;
-        dir   = other.dir;
-        vol   = other.vol;
-        surf  = other.surf;
-        sense = other.sense;
+        pos      = other.pos;
+        dir      = other.dir;
+        vol      = other.vol;
+        surf     = other.surf;
+        sense    = other.sense;
         boundary = other.boundary;
 
         temp_sense    = other.temp_sense;

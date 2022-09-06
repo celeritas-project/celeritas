@@ -14,15 +14,18 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
-#include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/ext/LoadGdml.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
 
 #include "celeritas_test.hh"
 
-using namespace celeritas;
-using namespace celeritas_test;
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
 
 // Since VecGeom is currently CUDA-only, we cannot use the TEST_IF_CELER_DEVICE
 // macro (which also allows HIP).
@@ -42,7 +45,7 @@ using namespace celeritas_test;
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-class VecgeomTestBase : virtual public celeritas_test::GlobalTestBase
+class VecgeomTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
@@ -147,8 +150,7 @@ void VecgeomTestBase::TrackingResult::print_expected()
 
 //---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTestBase,
-                       public celeritas_test::GlobalGeoTestBase
+class FourLevelsTest : public VecgeomTestBase, public GlobalGeoTestBase
 {
   public:
     const char* geometry_basename() const final { return "four-levels"; }
@@ -426,34 +428,31 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 //---------------------------------------------------------------------------//
 
 #define GeantBuilderTest TEST_IF_CELERITAS_GEANT(GeantBuilderTest)
-class GeantBuilderTest : public VecgeomTestBase,
-                         virtual public celeritas_test::GlobalTestBase
+class GeantBuilderTest : public VecgeomTestBase, virtual public GlobalTestBase
 {
   public:
     static void SetUpTestCase()
     {
         // Make sure existing VecGeom geometry has been cleared
-        celeritas_test::GlobalGeoTestBase::reset_geometry();
+        test::GlobalGeoTestBase::reset_geometry();
     }
 
     void SetUp() override
     {
         VecgeomTestBase::SetUp();
-        std::string gdml_filename
-            = this->test_data_path("celeritas", "four-levels.gdml");
-
-        GeantSetupOptions opts;
-        opts.physics = GeantSetupPhysicsList::none;
-
-        geant_setup = std::make_shared<GeantSetup>(gdml_filename, opts);
+        world_volume_
+            = load_gdml(this->test_data_path("celeritas", "four-levels.gdml"));
     }
 
     SPConstGeo build_geometry() override
     {
         CELER_NOT_IMPLEMENTED("build_geometry");
-        // return std::make_shared<VecgeomParams>(geant_setup->world());
+        // return std::make_shared<VecgeomParams>(world_volume.get());
     }
 
   private:
-    std::shared_ptr<GeantSetup> geant_setup;
+    UPG4PhysicalVolume world_volume_;
 };
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

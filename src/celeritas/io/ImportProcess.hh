@@ -94,6 +94,7 @@ enum class ImportModelClass
     mu_bethe_bloch,
     mu_brems,
     mu_pair_prod,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -147,9 +148,13 @@ struct ImportProcess
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Get the string form of a process enumeration.
 const char* to_cstring(ImportProcessType value);
 const char* to_cstring(ImportProcessClass value);
 const char* to_cstring(ImportModelClass value);
+
+// Whether Celeritas requires microscopic xs data for sampling
+bool needs_micro_xs(ImportModelClass model);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

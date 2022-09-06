@@ -43,7 +43,7 @@ class LoggerMessage
     ~LoggerMessage();
 
     // Default move construct and assignment
-    LoggerMessage(LoggerMessage&&) = default;
+    LoggerMessage(LoggerMessage&&)            = default;
     LoggerMessage& operator=(LoggerMessage&&) = default;
 
     // Write the object to the stream if applicable

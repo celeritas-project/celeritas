@@ -23,17 +23,15 @@
 #include "SequenceEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::CollectionStateStore;
-using celeritas::generate_canonical;
-using celeritas::RngParams;
-using celeritas::RngStateData;
-using namespace celeritas_test;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // SEQUENCE ENGINE
 //---------------------------------------------------------------------------//
 
-class SequenceEngineTest : public celeritas_test::Test
+class SequenceEngineTest : public Test
 {
   public:
     void SetUp() override
@@ -92,12 +90,12 @@ TEST_F(SequenceEngineTest, manual)
     EXPECT_VEC_EQ(raw_vals, actual);
 
     // Past the end
-    EXPECT_THROW(engine(), celeritas::DebugError);
+    EXPECT_THROW(engine(), DebugError);
 }
 
 TEST_F(SequenceEngineTest, from_reals)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     EXPECT_EQ(values_.size() * 2, engine.max_count());
     SequenceEngine::VecResult actual(engine.max_count());
     std::generate(actual.begin(), actual.end(), std::ref(engine));
@@ -113,12 +111,12 @@ TEST_F(SequenceEngineTest, from_reals)
     EXPECT_VEC_EQ(expected, actual);
 
     // Past the end
-    EXPECT_THROW(engine(), celeritas::DebugError);
+    EXPECT_THROW(engine(), DebugError);
 }
 
 TEST_F(SequenceEngineTest, double_canonical)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     for (double expected : values_)
     {
         double actual = generate_canonical<double>(engine);
@@ -131,7 +129,7 @@ TEST_F(SequenceEngineTest, double_canonical)
 
 TEST_F(SequenceEngineTest, float_canonical)
 {
-    auto engine = SequenceEngine::from_reals(celeritas::make_span(values_));
+    auto engine = SequenceEngine::from_reals(make_span(values_));
     for (double expected : values_)
     {
         float actual = generate_canonical<float>(engine);
@@ -163,11 +161,10 @@ TEST(DiagnosticEngineTest, from_reals)
 // CUDA/ROCM RNG
 //---------------------------------------------------------------------------//
 
-class DeviceRngEngineTest : public celeritas_test::Test
+class DeviceRngEngineTest : public Test
 {
   public:
-    using RngDeviceStore
-        = CollectionStateStore<RngStateData, celeritas::MemSpace::device>;
+    using RngDeviceStore = CollectionStateStore<RngStateData, MemSpace::device>;
 
     void SetUp() override { params = std::make_shared<RngParams>(12345); }
 
@@ -184,7 +181,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
 
     // Print a subset of the values
     std::vector<unsigned int> test_values;
-    for (auto i : celeritas::range(rng_store.size()).step(127u))
+    for (auto i : range(rng_store.size()).step(127u))
     {
         test_values.push_back(values[i]);
     }
@@ -297,3 +294,6 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
 
     check_expected_float_samples(values);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -16,9 +17,25 @@
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/ScopedMpiInit.hh"
 
+#if CELERITAS_USE_JSON
+#    include <fstream>
+#    include <nlohmann/json.hpp>
+
+#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+#endif
+
 using namespace celeritas;
 using std::cout;
 using std::endl;
+
+namespace
+{
+void print_usage(const char* exec_name)
+{
+    cout << "Usage: " << exec_name
+         << " input.gdml [options.json, -, ''] output.root" << endl;
+}
+} // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -38,17 +55,69 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    if (argc != 3)
+    std::vector<std::string> args(argv + 1, argv + argc);
+    if (args.size() == 1 && (args.front() == "--help" || args.front() == "-h"))
+    {
+        print_usage(argv[0]);
+        return 0;
+    }
+    if (args.size() == 1 && args.front() == "--options")
+    {
+#if CELERITAS_USE_JSON
+        GeantPhysicsOptions options;
+        constexpr int       indent = 1;
+        std::cout << nlohmann::json{options}.dump(indent) << endl;
+#else
+        CELER_LOG(error) << "JSON is unavailable: can't output geant options";
+#endif
+        return 0;
+    }
+    if (args.size() != 3)
     {
         // Incorrect number of arguments: print help and exit
-        cout << "Usage: " << argv[0] << " geometry.gdml output.root" << endl;
+        print_usage(argv[0]);
         return 2;
     }
-    std::string gdml_input_filename  = argv[1];
-    std::string root_output_filename = argv[2];
+    const std::string& gdml_input_filename  = args[0];
+    const std::string& option_filename      = args[1];
+    const std::string& root_output_filename = args[2];
 
-    GeantSetupOptions options;
-    options.physics = GeantSetupOptions::PhysicsList::em_basic;
+    GeantPhysicsOptions options;
+    if (option_filename.empty())
+    {
+        CELER_LOG(info) << "Using default Celeritas Geant4 options";
+    }
+#if CELERITAS_USE_JSON
+    else if (option_filename == "-")
+    {
+        auto inp = nlohmann::json::parse(std::cin);
+        inp.get_to(options);
+        CELER_LOG(info) << "Loaded Geant4 setup options: "
+                        << nlohmann::json{options}.dump();
+    }
+    else
+    {
+        std::ifstream infile(option_filename);
+        if (!infile)
+        {
+            CELER_LOG(critical) << "Failed to open '" << option_filename << "'";
+            return EXIT_FAILURE;
+        }
+        auto inp = nlohmann::json::parse(infile);
+        inp.get_to(options);
+        CELER_LOG(info) << "Loaded Geant4 setup options from "
+                        << option_filename << ": "
+                        << nlohmann::json{options}.dump();
+    }
+#else
+    else
+    {
+        CELER_LOG(critical) << "JSON is unavailable so only default Geant4 "
+                               "options are supported: use '' as the second "
+                               "argument";
+        return EXIT_FAILURE;
+    }
+#endif
 
     // Initialize geant4 with basic EM physics from GDML path
     try

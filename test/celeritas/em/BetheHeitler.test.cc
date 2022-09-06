@@ -17,22 +17,19 @@
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
-#include "Main.hh"
 #include "celeritas_test.hh"
 
-using celeritas::BetheHeitlerInteractor;
-using celeritas::ElementComponentId;
-using celeritas::GammaConversionProcess;
-namespace constants = celeritas::constants;
-namespace pdg       = celeritas::pdg;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
+class BetheHeitlerInteractorTest : public InteractorHostTestBase
 {
-    using Base = celeritas_test::InteractorHostTestBase;
+    using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
@@ -65,7 +62,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(electron.direction));
+        EXPECT_SOFT_EQ(1.0, norm(electron.direction));
         // Positron
         const auto& positron = interaction.secondaries.back();
         EXPECT_TRUE(positron);
@@ -73,7 +70,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
         EXPECT_GT(this->particle_track().energy().value(),
                   positron.energy.value());
         EXPECT_LT(0, positron.energy.value());
-        EXPECT_SOFT_EQ(1.0, celeritas::norm(positron.direction));
+        EXPECT_SOFT_EQ(1.0, norm(positron.direction));
 
         // Check conservation between primary and secondaries
         // TODO: is momentum known *not* to be conserved?
@@ -82,7 +79,7 @@ class BetheHeitlerInteractorTest : public celeritas_test::InteractorHostTestBase
     }
 
   protected:
-    celeritas::BetheHeitlerData data_;
+    BetheHeitlerData data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -112,7 +109,7 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     std::vector<double> energy1;
     std::vector<double> energy2;
 
-    for (int i : celeritas::range(num_samples))
+    for (int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);
@@ -122,9 +119,8 @@ TEST_F(BetheHeitlerInteractorTest, basic)
                   this->secondary_allocator().get().data()
                       + result.secondaries.size() * i);
 
-        angle.push_back(
-            celeritas::dot_product(result.secondaries.front().direction,
-                                   result.secondaries.back().direction));
+        angle.push_back(dot_product(result.secondaries.front().direction,
+                                    result.secondaries.back().direction));
         energy1.push_back(result.secondaries[0].energy.value());
         energy2.push_back(result.secondaries[1].energy.value());
     }
@@ -279,3 +275,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
         EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

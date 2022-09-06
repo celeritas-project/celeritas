@@ -13,10 +13,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::BernoulliDistribution;
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(BernoulliDistributionTest, single_constructor)
@@ -26,7 +26,7 @@ TEST(BernoulliDistributionTest, single_constructor)
     EXPECT_SOFT_EQ(0.25, quarter_true.p());
 
     int num_true = 0;
-    for (CELER_MAYBE_UNUSED auto i : celeritas::range(1000))
+    for (CELER_MAYBE_UNUSED auto i : range(1000))
     {
         if (quarter_true(rng))
         {
@@ -41,3 +41,7 @@ TEST(BernoulliDistributionTest, normalizing_constructor)
     BernoulliDistribution tenth_true(1, 9);
     EXPECT_SOFT_EQ(0.1, tenth_true.p());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

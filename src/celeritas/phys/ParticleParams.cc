@@ -73,7 +73,7 @@ ParticleParams::ParticleParams(const Input& input)
 
     // Build elements and materials on host.
     HostVal<ParticleParamsData> host_data;
-    auto particles = make_builder(&host_data.particles);
+    auto                        particles = make_builder(&host_data.particles);
     particles.reserve(input.size());
 
     for (const auto& particle : input)

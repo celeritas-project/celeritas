@@ -9,27 +9,34 @@
 
 #include <type_traits>
 
+#include "celeritas_config.h"
 #include "celeritas/Constants.hh"
 
 #include "celeritas_test.hh"
 
-using celeritas::native_value_from;
-using celeritas::native_value_to;
-using celeritas::Quantity;
-using celeritas::value_as;
-using celeritas::zero_quantity;
-using celeritas::constants::pi;
+#if CELERITAS_USE_JSON
+#    include "corecel/math/QuantityIO.json.hh"
+#endif
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+
+using constants::pi;
 
 // One revolution = 2pi radians
 struct TwoPi
 {
-    static double value() { return 2 * celeritas::constants::pi; }
+    static double value() { return 2 * constants::pi; }
 };
 using Revolution = Quantity<TwoPi, double>;
 
 struct DozenUnit
 {
-    static int value() { return 12; }
+    static constexpr int         value() { return 12; }
+    static constexpr const char* label() { return "dozen"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +64,7 @@ TEST(QuantityTest, usage)
     EXPECT_SOFT_EQ(2 * pi / 16, native_value_from(spacing));
 
     // Create a quantity from a literal value in the native unit system
-    auto half_rev = native_value_to<Revolution>(celeritas::constants::pi);
+    auto half_rev = native_value_to<Revolution>(constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
 }
@@ -101,8 +108,6 @@ TEST(QuantityTest, comparators)
 
 TEST(QuantityTest, infinities)
 {
-    using celeritas::max_quantity;
-    using celeritas::neg_max_quantity;
     EXPECT_TRUE(neg_max_quantity() < Revolution{-1e300});
     EXPECT_TRUE(neg_max_quantity() < zero_quantity());
     EXPECT_TRUE(zero_quantity() < max_quantity());
@@ -114,7 +119,7 @@ TEST(QuantityTest, swappiness)
     using Dozen = Quantity<DozenUnit, int>;
     Dozen dozen{1}, gross{12};
     {
-        // ADL should prefer celeritas::swap implementation
+        // ADL should prefer swap implementation
         using std::swap;
         swap(dozen, gross);
         EXPECT_EQ(1, gross.value());
@@ -129,3 +134,45 @@ TEST(QuantityTest, swappiness)
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
 }
+
+TEST(QuantityTest, io)
+{
+#if CELERITAS_USE_JSON
+    using Dozen = Quantity<DozenUnit, int>;
+
+    {
+        SCOPED_TRACE("Input as scalar");
+        nlohmann::json inp    = int{123};
+        auto           result = inp.get<Dozen>();
+        EXPECT_EQ(123, value_as<Dozen>(result));
+    }
+    {
+        SCOPED_TRACE("Input as array");
+        nlohmann::json inp    = {123, "dozen"};
+        auto           result = inp.get<Dozen>();
+        EXPECT_EQ(123, value_as<Dozen>(result));
+    }
+    {
+        SCOPED_TRACE("Invalid array size");
+        nlohmann::json inp{{123, 456, 789}};
+        EXPECT_THROW(inp.get<Dozen>(), RuntimeError);
+    }
+    {
+        SCOPED_TRACE("Invalid unit");
+        nlohmann::json inp = {123, "baker's dozen"};
+        EXPECT_THROW(inp.get<Dozen>(), RuntimeError);
+    }
+    {
+        SCOPED_TRACE("Output");
+        nlohmann::json    out        = Dozen{2};
+        static const char expected[] = R"json([2,"dozen"])json";
+        EXPECT_EQ(std::string(expected), std::string(out.dump()));
+    }
+#else
+    GTEST_SKIP() << "JSON is disabled";
+#endif
+}
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

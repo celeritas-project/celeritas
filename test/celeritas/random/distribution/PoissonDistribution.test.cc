@@ -14,35 +14,24 @@
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
 
-using celeritas::PoissonDistribution;
-
-//---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
-
-class PoissonDistributionTest : public celeritas_test::Test
+namespace celeritas
 {
-  protected:
-    void SetUp() override {}
-
-    celeritas_test::DiagnosticRngEngine<std::mt19937> rng;
-};
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace test
+{
 //---------------------------------------------------------------------------//
 
-TEST_F(PoissonDistributionTest, bin_small)
+TEST(PoissonDistributionTest, bin_small)
 {
     int num_samples = 10000;
 
     // Small lambda will use the direct method, which requires on average
     // lambda + 1 RNG samples
-    double                      lambda = 4.0;
-    PoissonDistribution<double> sample_poisson{lambda};
+    double                            lambda = 4.0;
+    PoissonDistribution<double>       sample_poisson{lambda};
+    DiagnosticRngEngine<std::mt19937> rng;
 
     std::map<int, int> sample_to_count;
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         auto k = sample_poisson(rng);
         ++sample_to_count[k];
@@ -65,16 +54,17 @@ TEST_F(PoissonDistributionTest, bin_small)
     EXPECT_EQ(99684, rng.count());
 }
 
-TEST_F(PoissonDistributionTest, bin_large)
+TEST(PoissonDistributionTest, bin_large)
 {
     int num_samples = 10000;
 
     // Large lambda will use Gaussian approximation
-    double                      lambda = 64.0;
-    PoissonDistribution<double> sample_poisson{lambda};
+    double                            lambda = 64.0;
+    PoissonDistribution<double>       sample_poisson{lambda};
+    DiagnosticRngEngine<std::mt19937> rng;
 
     std::map<int, int> sample_to_count;
-    for (CELER_MAYBE_UNUSED int i : celeritas::range(num_samples))
+    for (CELER_MAYBE_UNUSED int i : range(num_samples))
     {
         auto k = sample_poisson(rng);
         ++sample_to_count[k];
@@ -103,3 +93,7 @@ TEST_F(PoissonDistributionTest, bin_large)
     EXPECT_VEC_EQ(expected_counts, counts);
     EXPECT_EQ(2 * num_samples, rng.count());
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

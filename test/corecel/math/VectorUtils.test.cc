@@ -9,12 +9,10 @@
 
 #include "celeritas_test.hh"
 
-using celeritas::DebugError;
-using celeritas::linspace;
-using celeritas::real_type;
-
-//---------------------------------------------------------------------------//
-// TESTS
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 
 TEST(VectorUtils, linspace)
@@ -49,3 +47,7 @@ TEST(VectorUtils, linspace)
         }
     }
 }
+
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas

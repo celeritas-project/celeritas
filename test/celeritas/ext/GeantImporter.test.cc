@@ -7,14 +7,20 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
+#include "celeritas_config.h"
 #include "corecel/io/Repr.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "celeritas_test.hh"
+#if CELERITAS_USE_JSON
+#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+#endif
 
-using namespace celeritas;
-
+namespace celeritas
+{
+namespace test
+{
 //---------------------------------------------------------------------------//
 // Helper functions
 namespace
@@ -35,7 +41,7 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeantImporterTest : public celeritas_test::Test
+class GeantImporterTest : public Test
 {
   protected:
     using DataSelection = GeantImporter::DataSelection;
@@ -86,7 +92,6 @@ auto GeantImporterTest::summarize(const ImportData& data) const -> ImportSummary
 
 void GeantImporterTest::ImportSummary::print_expected() const
 {
-    using celeritas::repr;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "static const char* expected_particles[] = "
          << repr(this->particles) << ";\n"
@@ -106,7 +111,14 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     GeantSetup setup_geant() override
     {
         GeantSetup::Options opts;
-        opts.physics = GeantSetupPhysicsList::em_standard;
+#if CELERITAS_USE_JSON
+        {
+            nlohmann::json    out = opts;
+            static const char expected[]
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true})json";
+            EXPECT_EQ(std::string(expected), std::string(out.dump()));
+        }
+#endif
         return GeantSetup(
             this->test_data_path("celeritas", "four-steel-slabs.gdml"), opts);
     }
@@ -124,37 +136,24 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     auto imported = this->import_geant(options);
     auto summary  = this->summarize(imported);
 
-    static const char* expected_particles[]
-        = {"e+", "e-", "gamma", "mu+", "mu-"};
+    static const char* expected_particles[] = {"e+", "e-", "gamma"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
     static const char* expected_processes[] = {"msc",
-                                               "coulomb_scat",
                                                "e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh",
-                                               "mu_ioni",
-                                               "mu_brems",
-                                               "mu_pair_prod"};
+                                               "rayleigh"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"bethe_bloch",
-                                            "urban_msc",
-                                            "icru_73_qo",
-                                            "wentzel_VI_uni",
-                                            "e_coulomb_scattering",
-                                            "bragg",
+    static const char* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
-                                            "livermore_rayleigh",
-                                            "mu_bethe_bloch",
-                                            "mu_brems",
-                                            "mu_pair_prod"};
+                                            "livermore_rayleigh"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
 
@@ -167,60 +166,26 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     auto imported = this->import_geant(options);
     auto summary  = this->summarize(imported);
 
-    static const char* expected_particles[] = {"He3",
-                                               "alpha",
-                                               "anti_He3",
-                                               "anti_alpha",
-                                               "anti_deuteron",
-                                               "anti_proton",
-                                               "anti_triton",
-                                               "deuteron",
-                                               "e+",
-                                               "e-",
-                                               "gamma",
-                                               "kaon+",
-                                               "kaon-",
-                                               "mu+",
-                                               "mu-",
-                                               "pi+",
-                                               "pi-",
-                                               "proton",
-                                               "triton"};
+    static const char* expected_particles[] = {"e+", "e-", "gamma", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static const char* expected_processes[] = {"ion_ioni",
-                                               "msc",
-                                               "h_ioni",
-                                               "h_brems",
-                                               "h_pair_prod",
-                                               "coulomb_scat",
+    static const char* expected_processes[] = {"msc",
                                                "e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh",
-                                               "mu_ioni",
-                                               "mu_brems",
-                                               "mu_pair_prod"};
+                                               "rayleigh"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"bragg_ion",
-                                            "bethe_bloch",
-                                            "urban_msc",
-                                            "icru_73_qo",
-                                            "wentzel_VI_uni",
-                                            "h_brems",
-                                            "h_pair_prod",
-                                            "e_coulomb_scattering",
-                                            "bragg",
+    static const char* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
-                                            "livermore_rayleigh",
-                                            "mu_bethe_bloch",
-                                            "mu_brems",
-                                            "mu_pair_prod"};
+                                            "livermore_rayleigh"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 }
+//---------------------------------------------------------------------------//
+} // namespace test
+} // namespace celeritas
