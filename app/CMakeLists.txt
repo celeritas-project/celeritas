@@ -207,14 +207,13 @@ if(CELERITAS_BUILD_DEMOS)
     demo-loop/diagnostic/ParticleProcessDiagnostic.cc
     demo-loop/diagnostic/StepDiagnostic.cc
   )
-  set(_demo_loop_libs)
 
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     list(APPEND _demo_loop_src
       demo-loop/diagnostic/EnergyDiagnostic.cu
       demo-loop/diagnostic/ParticleProcessDiagnostic.cu
       demo-loop/diagnostic/StepDiagnostic.cu
-      )
+    )
   endif()
 
   set(_demo_loop_libs
@@ -314,36 +313,48 @@ endif()
 # Utility: single-track geometry debugging
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
-  # Since the demo kernel links against VecGeom, which requires CUDA separable
-  # compilation, it cannot be linked directly into an executable.
-  celeritas_add_library(geo_check_cuda
+if(CELERITAS_BUILD_DEMOS)
+  set(_geo_check_src
     geo-check/GCheckRunner.cc
     geo-check/GCheckKernel.cc
-    geo-check/GCheckKernel.cu
-  )
-  celeritas_target_link_libraries(geo_check_cuda
-    PRIVATE
-      Celeritas::Core
-      nlohmann_json::nlohmann_json
-      VecGeom::vecgeom
-  )
-
-  # Add the executable
-  add_executable(geo-check
     geo-check/geo-check.cc
   )
-  celeritas_target_link_libraries(geo-check
-    celeritas
-    VecGeom::vecgeom
-    geo_check_cuda
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND _geo_check_src
+      geo-check/GCheckKernel.cu
+    )
+  endif()
+
+  set(_geo_check_libs
+    Celeritas::Core
     nlohmann_json::nlohmann_json
+    Celeritas::DeviceToolkit
   )
+  if(CELERITAS_USE_VecGeom)
+    list(APPEND _geo_check_libs VecGeom::vecgeom)
+  endif()
+
+  add_executable(geo-check ${_geo_check_src})
+  celeritas_target_link_libraries(geo-check ${_geo_check_libs})
 
   if(CELERITAS_BUILD_TESTS)
-  set(_exe "$<TARGET_FILE:geo-check>")
-  set(_json_inp "${CMAKE_CURRENT_SOURCE_DIR}/geo-check/gcheck-four-levels.json")
-  add_test(NAME "app/geo-check-fourLevels"
-    COMMAND "${_exe}" "${_json_inp}")
+    set(_exe "$<TARGET_FILE:geo-check>")
+    configure_file(
+      "geo-check/gcheck-four-levels.json.in"
+      "gcheck-four-levels.json" @ONLY
+    )
+    set(_json_inp "${CMAKE_CURRENT_BINARY_DIR}/gcheck-four-levels.json")
+    add_test(NAME "app/geo-check"
+      COMMAND "${_exe}" "${_json_inp}"
+    )
+    set_tests_properties("app/geo-check" PROPERTIES
+      RESOURCE_LOCK gpu
+      LABELS "app;gpu"
+    )
+    if (NOT (CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA))
+      set_tests_properties("app/geo-check" PROPERTIES
+        DISABLED true
+      )
+    endif()
   endif()
 endif()

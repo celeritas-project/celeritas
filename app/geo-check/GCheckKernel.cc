@@ -9,6 +9,7 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/LinearPropagator.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 using namespace celeritas;
 
@@ -70,7 +71,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
                     step.distance,
                     geo.find_next_step().distance,
                     physid(geo),
-                    geo.volume_id().get());
+                    static_cast<int>(geo.volume_id().get()));
             }
         }
         else

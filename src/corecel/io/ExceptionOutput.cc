@@ -49,7 +49,7 @@ void to_json(nlohmann::json& j, const DebugErrorDetails& d)
 
 void to_json(nlohmann::json& j, const RuntimeErrorDetails& d)
 {
-    j["what"]      = d.what;
+    j["what"] = d.what;
     details_to_json(j, d);
 }
 

@@ -69,7 +69,6 @@ class ProcessBuilder
     auto build_annihilation() -> SPProcess;
     auto build_compton() -> SPProcess;
     auto build_conversion() -> SPProcess;
-    auto build_coulomb_scat() -> SPProcess;
     auto build_ebrems() -> SPProcess;
     auto build_eioni() -> SPProcess;
     auto build_msc() -> SPProcess;

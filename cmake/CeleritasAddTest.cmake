@@ -351,7 +351,7 @@ function(celeritas_add_test SOURCE_FILE)
     if(NOT PARSE_GPU)
       list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_DEVICE=1")
     else()
-      if(NOT CELERITAS_DEBUG)
+      if(NOT CELERITAS_DEBUG OR CELERITAS_TEST_RESOURCE_LOCK)
         # Add a "resource lock" when building without debug checking to get more
         # accurate test times (since multiple GPU processes won't be competing for
         # the same card).

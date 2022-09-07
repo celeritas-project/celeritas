@@ -6,6 +6,8 @@
 //! \file geo-check.cc
 //---------------------------------------------------------------------------//
 
+#include <fstream>
+
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 

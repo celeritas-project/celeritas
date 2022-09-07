@@ -608,8 +608,9 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 
         EXPECT_FALSE(result.boundary);
         EXPECT_SOFT_EQ(result.distance, first_step);
-        EXPECT_VEC_SOFT_EQ((Real3{-4.99000022992164, 8.24444331692931e-08, 0}),
-                           geo.pos());
+        EXPECT_LT(distance(Real3{-4.99000022992164, 8.24444331692931e-08, 0},
+                           geo.pos()),
+                  1e-8);
     }
     {
         SCOPED_TRACE("First step ends on boundary");
@@ -628,7 +629,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         EXPECT_TRUE(result.boundary);
         EXPECT_SOFT_NEAR(result.distance, first_step, 1e-10);
         // Y position suffers from roundoff
-        EXPECT_VEC_SOFT_EQ((Real3{-5.0, -9.26396730438483e-07, 0}), geo.pos());
+        EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
+                  1e-8);
     }
     {
         SCOPED_TRACE("First step is a slightly further than boundary");

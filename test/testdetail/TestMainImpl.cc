@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file testdetail/TestMainImpl.cc
 //---------------------------------------------------------------------------//
+#include "testdetail/TestMainImpl.hh"
+
 #include <stdexcept>
 
 #include "celeritas_config.h"
@@ -20,7 +22,6 @@
 
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
-#include "TestMain.hh"
 
 using std::cout;
 using std::endl;
