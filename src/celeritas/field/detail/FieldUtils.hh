@@ -43,7 +43,7 @@ template<class T>
 inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 {
     Array<T, 3> result;
-    for (size_type i = 0; i != 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         result[i] = a * x[i];
     }
@@ -57,13 +57,13 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
 {
     Chord result;
-    for (size_type i = 0; i != 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         result.dir[i] = dst[i] - src[i];
     }
     result.length        = norm(result.dir);
     const real_type norm = 1 / result.length;
-    for (size_type i = 0; i != 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         result.dir[i] *= norm;
     }
@@ -88,7 +88,7 @@ inline CELER_FUNCTION real_type calc_miss_distance(const Real3& pos,
                                                    const Real3& target)
 {
     real_type delta_sq = 0;
-    for (size_type i = 0; i != 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
     }
@@ -161,7 +161,7 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
     Real3 beg_mid;
     Real3 beg_end;
 
-    for (size_type i = 0; i != 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         beg_mid[i] = mid_state.pos[i] - beg_state.pos[i];
         beg_end[i] = end_state.pos[i] - beg_state.pos[i];

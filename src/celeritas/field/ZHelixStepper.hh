@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
@@ -116,7 +115,7 @@ ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
     // Solution are exact, but assign a tolerance for numerical treatments
-    for (auto i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         result.err_state.pos[i] = ZHelixStepper::tolerance();
         result.err_state.mom[i] = ZHelixStepper::tolerance();
@@ -172,7 +171,7 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                      rhs.pos[2]};
 
     real_type momentum = norm(beg_state.mom);
-    for (auto i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         end_state.mom[i] *= momentum;
     }
