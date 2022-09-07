@@ -280,6 +280,7 @@ celeritas_add_test(celeritas/field/Steppers.test.cc)
 celeritas_add_test(celeritas/field/FieldDriver.test.cc)
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc ${_needs_geo})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc ${_needs_geo})
+celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
 
 #-------------------------------------#
 # Geo

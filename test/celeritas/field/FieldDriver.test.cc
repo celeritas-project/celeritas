@@ -14,7 +14,6 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
-#include "celeritas/field/FieldDriver.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/Types.hh"
@@ -50,7 +49,7 @@ class FieldDriverTest : public Test
 
   protected:
     // Field parameters
-    FieldDriverOptions field_params;
+    FieldDriverOptions driver_options;
 
     // Test parameters
     FieldTestParams test_params;
@@ -71,16 +70,16 @@ make_mag_field_driver(FieldT&&                             field,
         options,
         Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}}};
 }
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(FieldDriverTest, field_driver_host)
+TEST_F(FieldDriverTest, types)
 {
-    // Construct FieldDriver
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
         UniformField({0, 0, test_params.field_value}),
-        field_params,
+        driver_options,
         units::ElementaryCharge{-1});
 
     // Make sure object is holding things by value
@@ -91,6 +90,14 @@ TEST_F(FieldDriverTest, field_driver_host)
     // Size: field vector, q / c, reference to options
     EXPECT_EQ(sizeof(Real3) + sizeof(real_type) + sizeof(FieldDriverOptions*),
               sizeof(driver));
+}
+
+TEST_F(FieldDriverTest, revolutions)
+{
+    auto driver = make_mag_field_driver<DormandPrinceStepper>(
+        UniformField({0, 0, test_params.field_value}),
+        driver_options,
+        units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
@@ -106,7 +113,7 @@ TEST_F(FieldDriverTest, field_driver_host)
     real_type total_step_length{0};
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
-    real_type delta = field_params.errcon;
+    real_type delta = driver_options.errcon;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
         y_expected.pos
@@ -129,11 +136,11 @@ TEST_F(FieldDriverTest, field_driver_host)
         total_step_length, circumference * test_params.revolutions, delta);
 }
 
-TEST_F(FieldDriverTest, accurate_advance_host)
+TEST_F(FieldDriverTest, accurate_advance)
 {
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
         UniformField({0, 0, test_params.field_value}),
-        field_params,
+        driver_options,
         units::ElementaryCharge{-1});
 
     // Test parameters and the sub-step size
@@ -149,7 +156,7 @@ TEST_F(FieldDriverTest, accurate_advance_host)
 
     // Try the stepper by hstep for (num_revolutions * num_steps) times
     real_type total_curved_length{0};
-    real_type delta = field_params.errcon;
+    real_type delta = driver_options.errcon;
 
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {

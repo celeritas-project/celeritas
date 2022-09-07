@@ -230,7 +230,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         if (length > 0)
         {
             result.displacement = this->sample_displacement_dir(rng, phi);
-            for (auto i : range(3))
+            for (int i = 0; i < 3; ++i)
             {
                 result.displacement[i] *= length;
             }

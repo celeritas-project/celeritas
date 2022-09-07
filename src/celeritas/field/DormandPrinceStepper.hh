@@ -63,7 +63,7 @@ class DormandPrinceStepper
   public:
     //!@{
     //! Type aliases
-    using result_type = StepperResult;
+    using result_type = FieldStepperResult;
     //!@}
 
   public:
@@ -189,6 +189,7 @@ DormandPrinceStepper<E>::operator()(real_type       step,
     OdeState k7 = calc_rhs_(result.end_state);
 
     // The error estimate
+    result.err_state = {{0, 0, 0}, {0, 0, 0}};
     axpy(d71 * step, k1, &result.err_state);
     axpy(d73 * step, k3, &result.err_state);
     axpy(d74 * step, k4, &result.err_state);

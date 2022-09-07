@@ -8,14 +8,13 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
-#include "UniformZField.hh"
 
 namespace celeritas
 {
+class UniformZField;
 //---------------------------------------------------------------------------//
 /*!
  * Analytically step along a helical path for a uniform Z magnetic field.
@@ -35,7 +34,7 @@ class ZHelixStepper
   public:
     //!@{
     //! Type aliases
-    using result_type = StepperResult;
+    using result_type = FieldStepperResult;
     //!@}
 
   public:
@@ -116,10 +115,10 @@ ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);
 
     // Solution are exact, but assign a tolerance for numerical treatments
-    for (auto i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
-        result.err_state.pos[i] += ZHelixStepper::tolerance();
-        result.err_state.mom[i] += ZHelixStepper::tolerance();
+        result.err_state.pos[i] = ZHelixStepper::tolerance();
+        result.err_state.mom[i] = ZHelixStepper::tolerance();
     }
 
     return result;
@@ -156,14 +155,13 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                                                const OdeState& beg_state,
                                                const OdeState& rhs) const
 {
-    OdeState end_state;
-
     // Solution for position and momentum after moving delta_phi on the helix
     real_type del_phi = (helicity == Helicity::positive) ? step / radius
                                                          : -step / radius;
     real_type sin_phi = std::sin(del_phi);
     real_type cos_phi = std::cos(del_phi);
 
+    OdeState end_state;
     end_state.pos = {(beg_state.pos[0] * cos_phi - beg_state.pos[1] * sin_phi),
                      (beg_state.pos[0] * sin_phi + beg_state.pos[1] * cos_phi),
                      beg_state.pos[2] + del_phi * radius * rhs.pos[2]};
@@ -173,7 +171,7 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
                      rhs.pos[2]};
 
     real_type momentum = norm(beg_state.mom);
-    for (auto i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         end_state.mom[i] *= momentum;
     }

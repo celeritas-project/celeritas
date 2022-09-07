@@ -9,7 +9,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
@@ -145,7 +144,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
 
     Real3 inc_direction;
-    for (int i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         inc_direction[i] = value_as<Momentum>(particle_.momentum())
                                * inc_direction_[i]

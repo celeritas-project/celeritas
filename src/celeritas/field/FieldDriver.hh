@@ -14,9 +14,8 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "FieldDriverOptions.hh"
-#include "MagFieldEquation.hh"
-#include "RungeKuttaStepper.hh"
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -173,9 +172,9 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
     // Output with a step control error
     ChordSearch output;
 
-    bool          succeeded       = false;
-    size_type     remaining_steps = options_.max_nsteps;
-    StepperResult result;
+    bool               succeeded       = false;
+    size_type          remaining_steps = options_.max_nsteps;
+    FieldStepperResult result;
 
     do
     {
@@ -197,7 +196,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
             // Estimate a new trial chord with a relative scale
             step *= max(std::sqrt(options_.delta_chord / dchord), half());
         }
-    } while (!succeeded && (--remaining_steps > 0));
+    } while (!succeeded && --remaining_steps > 0);
 
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
@@ -291,7 +290,7 @@ FieldDriver<StepperT>::integrate_step(real_type       step,
     else
     {
         // Do an integration step for a small step (a.k.a quick advance)
-        StepperResult result = apply_step_(step, state);
+        FieldStepperResult result = apply_step_(step, state);
 
         // Update position and momentum
         output.end.state = result.end_state;
@@ -303,7 +302,7 @@ FieldDriver<StepperT>::integrate_step(real_type       step,
         // Compute a proposed new step
         CELER_ASSERT(output.end.step > 0);
         output.proposed_step = this->new_step_size(
-            step, dyerr / (step * options_.epsilon_step));
+            step, dyerr / (options_.epsilon_step * step));
     }
 
     return output;
@@ -326,7 +325,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     bool          succeeded       = false;
     size_type     remaining_steps = options_.max_nsteps;
     real_type     errmax2;
-    StepperResult result;
+    FieldStepperResult result;
 
     do
     {
@@ -353,13 +352,12 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
     CELER_ASSERT(succeeded);
 
     // Update state, step taken by this trial and the next predicted step
-    output.end.state = result.end_state;
-    output.end.step  = step;
-    output.proposed_step
-        = (errmax2 > ipow<2>(options_.errcon))
-              ? options_.safety * step
-                    * fastpow(errmax2, half() * options_.pgrow)
-              : options_.max_stepping_increase * step;
+    output.end.state     = result.end_state;
+    output.end.step      = step;
+    output.proposed_step = (errmax2 > ipow<2>(options_.errcon))
+                               ? options_.safety * step
+                                     * fastpow(errmax2, half() * options_.pgrow)
+                               : options_.max_stepping_increase * step;
 
     return output;
 }
