@@ -8,6 +8,23 @@
 Release History
 ***************
 
+Version 0.1.2
+=============
+
+This is a bug-fixing patch that addresses a few outstanding build issues,
+targeted at making it easier to run and debug the regression problem suite.
+
+New features
+---------
+
+* Save JSON exception output if demo loop fails by @sethrj in #507
+
+Bug fixes
+---------
+
+* Fix class name conflict, remove default initializers, and tweak field driver @sethrj in #504
+* Fix no-ROOT demo loop for 0.1.x and other summit changes by @sethrj in #508
+
 Version 0.1.1
 =============
 
