@@ -170,7 +170,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
         // Displacment during a boundary crossing is *not* OK
         CELER_ASSERT(!geo.is_on_boundary());
         Real3 new_pos;
-        for (int i : range(3))
+        for (int i = 0; i < 3; ++i)
         {
             new_pos[i] = geo.pos()[i] + msc_result.displacement[i];
         }

@@ -182,7 +182,7 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
     axpy(input.factor, b, &x);
 
     Real3 prob;
-    for (auto i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         input.weight[i] = (x[i] > this->fit_slice())
                               ? 1 - fastpow(1 + x[i], -n[i])

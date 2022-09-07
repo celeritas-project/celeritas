@@ -10,6 +10,7 @@
 #include <cmath>
 #include <type_traits>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
@@ -315,6 +316,28 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
 }
+
+#ifdef __CUDACC__
+using ::rsqrt;
+#else
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an inverse square root.
+ */
+inline CELER_FUNCTION double rsqrt(double value)
+{
+    return 1.0 / std::sqrt(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an inverse square root.
+ */
+inline CELER_FUNCTION float rsqrt(float value)
+{
+    return 1.0f / std::sqrt(value);
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

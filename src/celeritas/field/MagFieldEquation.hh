@@ -15,6 +15,7 @@
 #include "celeritas/Quantities.hh"
 
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -90,18 +91,18 @@ template<class FieldT>
 CELER_FUNCTION auto
 MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 {
-    // Get a magnetic field value at a given position
-    auto&& mag_vec = calc_field_(y.pos);
+    CELER_EXPECT(y.mom[0] != 0 || y.mom[1] != 0 || y.mom[2] != 0);
+    real_type momentum_inv = celeritas::rsqrt(dot_product(y.mom, y.mom));
 
-    real_type momentum_mag2 = dot_product(y.mom, y.mom);
-    CELER_ASSERT(momentum_mag2 > 0);
-    real_type momentum_inv = 1 / std::sqrt(momentum_mag2);
-
-    // Evaluate the right-hand-side of the equation
+    // Evaluate the rate of change in particle's position per unit length: this
+    // is just the direction
     OdeState result;
+    result.pos = detail::ax(momentum_inv, y.mom);
 
-    axpy(momentum_inv, y.mom, &result.pos);
-    axpy(coeffi_ * momentum_inv, cross_product(y.mom, mag_vec), &result.mom);
+    // Calculate the magnetic field value at the current position
+    // to calculate the force on the particle
+    result.mom = detail::ax(coeffi_ * momentum_inv,
+                            cross_product(y.mom, calc_field_(y.pos)));
 
     return result;
 }

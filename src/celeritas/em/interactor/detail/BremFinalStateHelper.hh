@@ -101,7 +101,7 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(
         = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
 
     // Update parent particle direction
-    for (unsigned int i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         real_type inc_momentum_i   = inc_momentum_.value() * inc_direction_[i];
         real_type gamma_momentum_i = result.secondaries[0].energy.value()

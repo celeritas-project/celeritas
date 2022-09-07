@@ -11,7 +11,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -182,7 +181,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     // Calculate incident particle final direction
     Real3 inc_exiting_direction;
-    for (int i : range(3))
+    for (int i = 0; i < 3; ++i)
     {
         real_type inc_momentum_ijk       = inc_momentum_ * inc_direction_[i];
         real_type secondary_momentum_ijk = secondary_momentum

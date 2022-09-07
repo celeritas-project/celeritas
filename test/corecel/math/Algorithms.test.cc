@@ -218,5 +218,20 @@ TEST(MathTest, fastpow)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(MathTest, rsqrt)
+{
+    constexpr auto dblinf = std::numeric_limits<double>::infinity();
+    EXPECT_DOUBLE_EQ(0.5, rsqrt(4.0));
+    EXPECT_DOUBLE_EQ(dblinf, rsqrt(0.0));
+    EXPECT_DOUBLE_EQ(0.0, rsqrt(dblinf));
+
+    constexpr auto fltinf = std::numeric_limits<float>::infinity();
+    EXPECT_FLOAT_EQ(0.5f, rsqrt(4.0f));
+    EXPECT_FLOAT_EQ(fltinf, rsqrt(0.0f));
+    EXPECT_FLOAT_EQ(0.0f, rsqrt(fltinf));
+}
+
+//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

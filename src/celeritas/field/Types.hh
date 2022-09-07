@@ -25,15 +25,15 @@ struct OdeState
     using MomentumUnits = units::MevMomentum;
     using Real3         = Array<real_type, 3>;
 
-    Real3 pos{0, 0, 0}; //!< Particle position
-    Real3 mom{0, 0, 0}; //!< Particle momentum
+    Real3 pos; //!< Particle position
+    Real3 mom; //!< Particle momentum
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * The result of the integration stepper.
  */
-struct StepperResult
+struct FieldStepperResult
 {
     OdeState mid_state; //!< OdeState at the middle
     OdeState end_state; //!< OdeState at the end
