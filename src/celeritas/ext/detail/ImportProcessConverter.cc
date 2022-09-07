@@ -640,7 +640,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         elem_phys_vectors.resize(material.elements.size());
 
         // Set up all element physics vectors for this material and model
-        for (size_t i : celeritas::range(material.elements.size()))
+        for (auto i : celeritas::range(material.elements.size()))
         {
             elem_phys_vectors[i]
                 = this->initialize_micro_xs_physics_vector(model, mat_idx);

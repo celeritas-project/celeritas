@@ -84,7 +84,7 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
 
     for (size_type i : range(elem_phys_vectors.size()))
     {
-        const auto& vec = elem_phys_vectors.at(i);
+        const auto& vec = elem_phys_vectors[i];
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         ElementId el{i};
         builders[el] = ValueGridLogBuilder::from_geant(make_span(vec.x),

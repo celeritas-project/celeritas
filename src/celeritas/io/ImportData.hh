@@ -70,7 +70,7 @@ enum class ImportEmParameter
 struct ImportData
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using AtomicNumber         = int;
     using ImportEmParamsMap    = std::map<ImportEmParameter, double>;
     using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;

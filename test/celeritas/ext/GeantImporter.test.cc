@@ -52,7 +52,17 @@ class GeantImporterTest : public Test
         std::vector<std::string> particles;
         std::vector<std::string> processes;
         std::vector<std::string> models;
-        void                     print_expected() const;
+
+        void print_expected() const;
+    };
+
+    struct ImportXsSummary
+    {
+        std::vector<size_type> size;
+        std::vector<real_type> x_bounds;
+        std::vector<real_type> y_bounds;
+
+        void print_expected() const;
     };
 
     ImportData import_geant(const DataSelection& selection)
@@ -65,6 +75,8 @@ class GeantImporterTest : public Test
     }
 
     ImportSummary summarize(const ImportData& data) const;
+    ImportXsSummary
+    summarize(const ImportProcess::ElementPhysicsVectors& xs) const;
 
     virtual GeantSetup setup_geant() = 0;
 };
@@ -104,6 +116,38 @@ void GeantImporterTest::ImportSummary::print_expected() const
          << repr(this->models) << ";\n"
          << "EXPECT_VEC_EQ(expected_models, summary.models);\n"
             "/*** END CODE ***/\n";
+}
+
+auto GeantImporterTest::summarize(
+    const ImportProcess::ElementPhysicsVectors& xs) const -> ImportXsSummary
+{
+    ImportXsSummary result;
+    for (const auto& vec : xs)
+    {
+        EXPECT_FALSE(vec.x.empty());
+        EXPECT_EQ(vec.x.size(), vec.y.size());
+        result.size.push_back(vec.x.size());
+        result.x_bounds.push_back(vec.x.front());
+        result.x_bounds.push_back(vec.x.back());
+        result.y_bounds.push_back(vec.y.front() / units::barn);
+        result.y_bounds.push_back(vec.y.back() / units::barn);
+    }
+    return result;
+}
+
+void GeantImporterTest::ImportXsSummary::print_expected() const
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+         << "static const real_type expected_size[] = " << repr(this->size)
+         << ";\n"
+         << "EXPECT_VEC_EQ(expected_size, result.size);\n"
+         << "static const real_type expected_x_bounds[] = "
+         << repr(this->x_bounds) << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);\n"
+         << "static const real_type expected_y_bounds[] = "
+         << repr(this->y_bounds) << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);\n"
+         << "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -407,20 +451,6 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     }
     {
         // Test model microscopic cross sections
-        auto get_values = [](const ImportProcess::ElementPhysicsVectors& xs) {
-            std::unordered_map<std::string, std::vector<double>> result;
-            for (const auto& vec : xs)
-            {
-                result["x_size"].push_back(vec.x.size());
-                result["y_size"].push_back(vec.y.size());
-                result["x_front"].push_back(vec.x.front());
-                result["y_front"].push_back(vec.y.front() / units::barn);
-                result["x_back"].push_back(vec.x.back());
-                result["y_back"].push_back(vec.y.back() / units::barn);
-            }
-            return result;
-        };
-
         auto brem = find_process(celeritas::pdg::electron(),
                                  ImportProcessClass::e_brems);
         ASSERT_NE(processes.end(), brem);
@@ -432,49 +462,50 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             const auto& sb = brem->micro_xs.find(brem->models[0]);
             EXPECT_EQ(ImportModelClass::e_brems_sb, sb->first);
 
-            // 2 materials; seccond material is stainless steel with 3
+            // 2 materials; second material is stainless steel with 3
             // elements
             EXPECT_EQ(2, sb->second.size());
             EXPECT_EQ(3, sb->second.back().size());
 
-            static const double expected_size[] = {5, 5, 5};
-            static const double expected_x_front[]
-                = {0.0209231725658313, 0.0209231725658313, 0.0209231725658313};
-            static const double expected_y_front[]
-                = {19.855602934384, 16.824420929076, 23.159721368813};
-            static const double expected_x_back[] = {1000, 1000, 1000};
-            static const double expected_y_back[]
-                = {77.270585225307, 66.692872575545, 88.395455128585};
+            auto result = summarize(sb->second.back());
 
-            auto actual = get_values(sb->second.back());
-            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
-            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            static const real_type expected_size[]     = {5ul, 5ul, 5ul};
+            static const real_type expected_x_bounds[] = {0.020923172565831,
+                                                          1000,
+                                                          0.020923172565831,
+                                                          1000,
+                                                          0.020923172565831,
+                                                          1000};
+            static const real_type expected_y_bounds[] = {19.855602934384,
+                                                          77.270585225307,
+                                                          16.824420929076,
+                                                          66.692872575545,
+                                                          23.159721368813,
+                                                          88.395455128585};
+            EXPECT_VEC_EQ(expected_size, result.size);
+            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
+            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
         }
         {
             // Check relativistic brems electron micro xs
             const auto& rb = brem->micro_xs.find(brem->models[1]);
             EXPECT_EQ(ImportModelClass::e_brems_lpm, rb->first);
 
-            static const double expected_size[]    = {5, 5, 5};
-            static const double expected_x_front[] = {1000, 1000, 1000};
-            static const double expected_y_front[]
-                = {77.085320789881, 66.446696755766, 88.447643447573};
-            static const double expected_x_back[]
-                = {100000000, 100000000, 100000000};
-            static const double expected_y_back[]
-                = {14.346956760121, 12.347642615031, 16.486026316006};
+            auto result = summarize(rb->second.back());
 
-            auto actual = get_values(rb->second.back());
-            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
-            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            static const real_type expected_size[] = {5ul, 5ul, 5ul};
+            static const real_type expected_x_bounds[]
+                = {1000, 100000000, 1000, 100000000, 1000, 100000000};
+            static const real_type expected_y_bounds[] = {77.085320789881,
+                                                          14.346956760121,
+                                                          66.446696755766,
+                                                          12.347642615031,
+                                                          88.447643447573,
+                                                          16.486026316006};
+
+            EXPECT_VEC_EQ(expected_size, result.size);
+            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
+            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
         }
         {
             // Check Klein-Nishina micro xs
@@ -488,22 +519,21 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             const auto& kn = comp->micro_xs.find(comp->models[0]);
             EXPECT_EQ(ImportModelClass::klein_nishina, kn->first);
 
-            static const double expected_size[]    = {13, 13, 13};
-            static const double expected_x_front[] = {0.0001, 0.0001, 0.0001};
-            static const double expected_y_front[]
-                = {1.0069880589339, 0.96395721121544, 1.042982687407};
-            static const double expected_x_back[]
-                = {100000000, 100000000, 100000000};
-            static const double expected_y_back[] = {
-                7.3005460134493e-07, 6.7387221120147e-07, 7.8623296376253e-07};
+            auto result = summarize(kn->second.back());
 
-            auto actual = get_values(kn->second.back());
-            EXPECT_VEC_EQ(expected_size, actual["x_size"]);
-            EXPECT_VEC_EQ(expected_size, actual["y_size"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_front, actual["x_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_front, actual["y_front"]);
-            EXPECT_VEC_SOFT_EQ(expected_x_back, actual["x_back"]);
-            EXPECT_VEC_SOFT_EQ(expected_y_back, actual["y_back"]);
+            static const real_type expected_size[] = {13ul, 13ul, 13ul};
+            static const real_type expected_x_bounds[]
+                = {0.0001, 100000000, 0.0001, 100000000, 0.0001, 100000000};
+            static const real_type expected_y_bounds[] = {1.0069880589339,
+                                                          7.3005460134493e-07,
+                                                          0.96395721121543,
+                                                          6.7387221120147e-07,
+                                                          1.042982687407,
+                                                          7.8623296376253e-07};
+
+            EXPECT_VEC_EQ(expected_size, result.size);
+            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
+            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
         }
     }
 }

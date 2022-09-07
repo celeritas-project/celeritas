@@ -60,7 +60,7 @@ struct ImportMatElemComponent
 struct ImportMaterial
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MapIntCutoff = std::map<int, ImportProductionCut>;
     using VecComponent = std::vector<ImportMatElemComponent>;
     //!@}
