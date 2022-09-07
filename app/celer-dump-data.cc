@@ -212,20 +212,19 @@ void print_process(const ImportProcess&               proc,
                     "------- "
                     "|\n";
 
-            const auto& element_map = micro_xs.at(mat_id);
+            const auto& elem_phys_vectors = micro_xs.at(mat_id);
 
-            for (const auto& iter_el : element_map)
+            for (size_t i : celeritas::range(elem_phys_vectors.size()))
             {
                 // Print elements and their physics vectors
-                const auto physvec = iter_el.second;
-                cout << "| " << setw(13) << std::left
-                     << elements.at(iter_el.first).name << " | " << setw(5)
-                     << physvec.x.size() << " | (" << setprecision(3)
-                     << setw(12) << physvec.x.front() << ", "
-                     << setprecision(3) << setw(12) << physvec.y.front()
-                     << ") -> (" << setprecision(3) << setw(12)
-                     << physvec.x.back() << ", " << setprecision(3) << setw(12)
-                     << physvec.y.back() << ") |\n";
+                const auto physvec = elem_phys_vectors.at(i);
+                cout << "| " << setw(13) << std::left << elements.at(i).name
+                     << " | " << setw(5) << physvec.x.size() << " | ("
+                     << setprecision(3) << setw(12) << physvec.x.front()
+                     << ", " << setprecision(3) << setw(12)
+                     << physvec.y.front() << ") -> (" << setprecision(3)
+                     << setw(12) << physvec.x.back() << ", " << setprecision(3)
+                     << setw(12) << physvec.y.back() << ") |\n";
             }
         }
 
@@ -342,6 +341,12 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
  */
 void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
 {
+    if (em_params_map.empty())
+    {
+        CELER_LOG(info) << "EM Parameters not available";
+        return;
+    }
+
     CELER_LOG(info) << "Loaded " << em_params_map.size() << " EM parameters";
 
     cout << R"gfm(
@@ -356,6 +361,110 @@ void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
         cout << "| " << setw(18) << to_cstring(key.first) << " | " << setw(7)
              << key.second << " |\n";
     }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print Seltzer-Berger map.
+ */
+void print_sb_data(const ImportData::ImportSBMap& sb_map)
+{
+    if (sb_map.empty())
+    {
+        CELER_LOG(info) << "Seltzer-Berger data not available";
+        return;
+    }
+
+    CELER_LOG(info) << "Loaded " << sb_map.size() << " SB tables";
+
+    cout << R"gfm(
+# Seltzer-Berger data
+
+| Atomic number | Endpoints (x, y, value [mb]) |
+| ------------- | ---------------------------------------------------------- |
+)gfm";
+
+    for (const auto& key : sb_map)
+    {
+        const auto& table = key.second;
+
+        cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
+             << setw(7) << table.x.front() << ", " << setprecision(3)
+             << setw(7) << table.y.front() << ", " << setprecision(3)
+             << setw(7) << table.value.front() << ") -> (" << setprecision(3)
+             << setw(7) << table.x.back() << ", " << setprecision(3) << setw(7)
+             << table.y.back() << ", " << setprecision(3) << setw(7)
+             << table.value.back() << ") |\n";
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print Livermore PE map.
+ */
+void print_livermore_pe_data(const ImportData::ImportLivermorePEMap& lpe_map)
+{
+    if (lpe_map.empty())
+    {
+        CELER_LOG(info) << "Livermore PE data not available";
+        return;
+    }
+
+    CELER_LOG(info) << "Loaded Livermore PE data map with size "
+                    << lpe_map.size();
+
+    cout << R"gfm(
+# Livermore PE data
+
+| Atomic number | Thresholds (low, high) [MeV] | Subshell size |
+| ------------- | ---------------------------- | ------------- |
+)gfm";
+
+    for (const auto& key : lpe_map)
+    {
+        const auto& ilpe = key.second;
+
+        cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
+             << setw(12) << ilpe.thresh_lo << ", " << setprecision(3)
+             << setw(12) << ilpe.thresh_hi << ") | " << setw(13)
+             << ilpe.shells.size() << " |\n";
+    }
+    cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print atomic relaxation map.
+ */
+void print_atomic_relaxation_data(
+    const ImportData::ImportAtomicRelaxationMap& ar_map)
+{
+    if (ar_map.empty())
+    {
+        CELER_LOG(info) << "Atomic relaxation data not available";
+        return;
+    }
+
+    CELER_LOG(info) << "Loaded atomic relaxation data map with size "
+                    << ar_map.size();
+
+    cout << R"gfm(
+# Atomic relaxation data
+
+| Atomic number | Subshell size |
+| ------------- | ------------- |
+)gfm";
+
+    for (const auto& key : ar_map)
+    {
+        const auto& iar = key.second;
+
+        cout << "| " << setw(13) << key.first << " | " << setw(13)
+             << iar.shells.size() << " |\n";
+    }
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -404,6 +513,9 @@ int main(int argc, char* argv[])
     print_processes(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
+    print_sb_data(data.sb_data);
+    print_livermore_pe_data(data.livermore_pe_data);
+    print_atomic_relaxation_data(data.atomic_relaxation_data);
 
     return EXIT_SUCCESS;
 }

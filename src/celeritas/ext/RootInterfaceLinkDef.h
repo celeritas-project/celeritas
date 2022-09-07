@@ -18,6 +18,16 @@
 #pragma link C++ class celeritas::ImportMatElemComponent+;
 #pragma link C++ class celeritas::ImportElement+;
 #pragma link C++ class celeritas::ImportVolume+;
+#pragma link C++ class celeritas::ImportSBTable+;
+#pragma link C++ class celeritas::ImportLivermoreSubshell+;
+#pragma link C++ class celeritas::ImportLivermorePE+;
+#pragma link C++ class celeritas::ImportAtomicTransition+;
+#pragma link C++ class celeritas::ImportAtomicSubshell+;
+#pragma link C++ class celeritas::ImportAtomicRelaxation+;
+#pragma link C++ class celeritas::ImportData::ImportEmParamsMap+;
+#pragma link C++ class celeritas::ImportData::ImportSBMap+;
+#pragma link C++ class celeritas::ImportData::ImportLivermorePEMap+;
+#pragma link C++ class celeritas::ImportData::ImportAtomicRelaxationMap+;
 #pragma link C++ class celeritas::ImportData+;
 // clang-format on
 

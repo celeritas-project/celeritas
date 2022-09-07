@@ -125,8 +125,13 @@ int main(int argc, char* argv[])
         GeantImporter import(GeantSetup(gdml_input_filename, options));
         RootExporter  export_root(root_output_filename.c_str());
 
+        GeantImporter::DataSelection selection;
+        selection.particles   = GeantImporter::DataSelection::em;
+        selection.processes   = GeantImporter::DataSelection::em;
+        selection.reader_data = true;
+
         // Read data from geant, write to ROOT
-        export_root(import());
+        export_root(import(selection));
     }
     catch (const RuntimeError& e)
     {

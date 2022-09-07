@@ -59,12 +59,11 @@ struct ImportMatElemComponent
  */
 struct ImportMaterial
 {
-    //// TYPES ////
-
+    //!@{
+    //! \name Type aliases
     using MapIntCutoff = std::map<int, ImportProductionCut>;
     using VecComponent = std::vector<ImportMatElemComponent>;
-
-    //// DATA ////
+    //!@}
 
     std::string         name;
     ImportMaterialState state;

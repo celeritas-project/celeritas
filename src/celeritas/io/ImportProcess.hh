@@ -113,7 +113,7 @@ enum class ImportModelClass
  * Conversely, element-selectors are model dependent. Thus, for simplicity,
  * they are stored directly as physics vectors and retrieved by providing the
  * model class enum, material, and element id:
- * \c micro_xs.find(model).at(material_id).find(element_id)->second .
+ * \c micro_xs.find(model).at(material_id).at(element_id) .
  *
  * Microscopic cross-section data stored in the element-selector physics vector
  * is in cm^2.
@@ -122,10 +122,10 @@ struct ImportProcess
 {
     //!@{
     //! Type aliases
-    // One map per material: <element_id, physics_vector>
-    using ElementPhysicsVectorMap = std::map<int, ImportPhysicsVector>;
+    // One ImportPhysicsVector per element component
+    using ElementPhysicsVectors = std::vector<ImportPhysicsVector>;
     // Vector spans over all materials for a given model
-    using ModelMicroXS = std::vector<ElementPhysicsVectorMap>;
+    using ModelMicroXS = std::vector<ElementPhysicsVectors>;
     //!@}
 
     int                                      particle_pdg{0};

@@ -9,10 +9,13 @@
 
 #include <vector>
 
+#include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
+#include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
+#include "ImportSBTable.hh"
 #include "ImportVolume.hh"
 
 namespace celeritas
@@ -47,6 +50,10 @@ enum class ImportEmParameter
  * Each entity's id is defined by its vector position. An \c ImportElement with
  * id = 3 is stored at \c elements.at(3) . Same for materials and volumes.
  *
+ * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
+ * atomic numbers, and thus are stored in maps. To retrieve specific data use
+ * \c find(atomic_number) .
+ *
  * All units must be converted at import time to be in accordance to the
  * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
  *
@@ -64,7 +71,12 @@ struct ImportData
 {
     //!@{
     //! \name Type aliases
-    using ImportEmParamsMap = std::map<ImportEmParameter, double>;
+    using AtomicNumber         = int;
+    using ImportEmParamsMap    = std::map<ImportEmParameter, double>;
+    using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;
+    using ImportLivermorePEMap = std::map<AtomicNumber, ImportLivermorePE>;
+    using ImportAtomicRelaxationMap
+        = std::map<AtomicNumber, ImportAtomicRelaxation>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -73,6 +85,9 @@ struct ImportData
     std::vector<ImportProcess>  processes;
     std::vector<ImportVolume>   volumes;
     ImportEmParamsMap           em_params;
+    ImportSBMap                 sb_data;
+    ImportLivermorePEMap        livermore_pe_data;
+    ImportAtomicRelaxationMap   atomic_relaxation_data;
 
     explicit operator bool() const
     {
