@@ -15,6 +15,7 @@
 #include "celeritas/Quantities.hh"
 
 #include "Types.hh"
+#include "detail/FieldUtils.hh"
 
 namespace celeritas
 {
@@ -96,19 +97,12 @@ MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
     // Evaluate the rate of change in particle's position per unit length: this
     // is just the direction
     OdeState result;
-    for (size_type i = 0; i != 3; ++i)
-    {
-        result.pos[i] = momentum_inv * y.mom[i];
-    }
+    result.pos = detail::ax(momentum_inv, y.mom);
 
     // Calculate the magnetic field value at the current position
     // to calculate the force on the particle
-    auto&& mag_vec = calc_field_(y.pos);
-    result.mom     = cross_product(y.mom, mag_vec);
-    for (size_type i = 0; i != 3; ++i)
-    {
-        result.mom[i] *= coeffi_ * momentum_inv;
-    }
+    result.mom = detail::ax(coeffi_ * momentum_inv,
+                            cross_product(y.mom, calc_field_(y.pos)));
 
     return result;
 }
