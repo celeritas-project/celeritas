@@ -142,8 +142,9 @@ list(APPEND SOURCES
 
   orange/OrangeParams.cc
   orange/Types.cc
-  orange/construct/SurfaceInserter.cc
-  orange/construct/VolumeInserter.cc
+  orange/construct/SurfaceInputBuilder.cc
+  orange/detail/SurfaceInserter.cc
+  orange/detail/VolumeInserter.cc
   orange/surf/SurfaceIO.cc
 
   celeritas/em/AtomicRelaxationParams.cc
@@ -234,8 +235,7 @@ if(CELERITAS_USE_JSON)
     corecel/sys/DeviceIO.json.cc
     corecel/sys/KernelDiagnosticsIO.json.cc
     celeritas/phys/PrimaryGeneratorOptionsIO.json.cc
-    orange/construct/SurfaceInputIO.json.cc
-    orange/construct/VolumeInputIO.json.cc
+    orange/construct/OrangeInputIO.json.cc
     celeritas/field/FieldDriverOptionsIO.json.cc
   )
   list(APPEND PUBLIC_DEPS nlohmann_json::nlohmann_json)

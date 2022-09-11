@@ -25,6 +25,7 @@
 
 namespace celeritas
 {
+struct UnitInput;
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -57,6 +58,9 @@ class OrangeGeoTestBase : public Test
     // Convert a vector of senses to a string
     static std::string senses_to_string(Span<const Sense> senses);
 
+    // Convert a string to a sense vector
+    static std::vector<Sense> string_to_senses(const std::string& s);
+
     // Default constructor
     OrangeGeoTestBase() = default;
 
@@ -71,6 +75,9 @@ class OrangeGeoTestBase : public Test
 
     // Load geometry with two volumes separated by a spherical surface
     void build_geometry(TwoVolInput);
+
+    // Load geometry from a single unit
+    void build_geometry(UnitInput);
 
     //! Get the data after loading
     const Params& params() const

@@ -161,14 +161,18 @@ set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 #-----------------------------------------------------------------------------#
 # ORANGE TESTS
 #-----------------------------------------------------------------------------#
-celeritas_setup_tests(SERIAL PREFIX orange)
+add_library(CeleritasOrangeTest
+  orange/OrangeGeoTestBase.cc
+)
+celeritas_target_link_libraries(CeleritasOrangeTest
+  PRIVATE Celeritas::Test
+  PUBLIC Celeritas::Core
+)
+
+celeritas_setup_tests(SERIAL PREFIX orange LINK_LIBRARIES CeleritasOrangeTest)
 
 # Base-level
 celeritas_add_test(orange/BoundingBox.test.cc)
-
-# Construction
-celeritas_add_test(orange/construct/SurfaceInserter.test.cc)
-celeritas_add_test(orange/construct/VolumeInserter.test.cc)
 
 # Surfaces
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
@@ -185,15 +189,6 @@ celeritas_add_test(orange/univ/detail/LogicStack.test.cc)
 celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
 
 ### Tests that require a geometry input ###
-
-add_library(CeleritasOrangeTest
-  orange/OrangeGeoTestBase.cc
-)
-celeritas_target_link_libraries(CeleritasOrangeTest
-  PRIVATE Celeritas::Test
-  PUBLIC Celeritas::Core
-)
-set(CELERITASTEST_LINK_LIBRARIES CeleritasOrangeTest)
 
 celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)

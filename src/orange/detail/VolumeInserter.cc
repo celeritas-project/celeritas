@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/VolumeInserter.cc
+//! \file orange/detail/VolumeInserter.cc
 //---------------------------------------------------------------------------//
 #include "VolumeInserter.hh"
 
@@ -15,14 +15,16 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Ref.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
+#include "orange/construct/OrangeInput.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
-#include "VolumeInput.hh"
-
 namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -90,10 +92,10 @@ struct NumIntersectionGetter
 /*!
  * Construct with a reference to empty volume data.
  */
-VolumeInserter::VolumeInserter(const SurfData& surfaces, Data* volumes)
-    : surface_data_{surfaces}, volume_data_(volumes)
+VolumeInserter::VolumeInserter(Data* orange_data) : orange_data_(orange_data)
 {
-    CELER_EXPECT(volume_data_ && volume_data_->defs.empty());
+    CELER_EXPECT(orange_data_ && orange_data_->volumes.defs.empty());
+    surfaces_ = make_const_ref(orange_data->surfaces);
 }
 
 //---------------------------------------------------------------------------//
@@ -107,9 +109,9 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     CELER_EXPECT(input);
     CELER_EXPECT(std::is_sorted(input.faces.begin(), input.faces.end()));
     CELER_EXPECT(input.faces.empty()
-                 || input.faces.back() < surface_data_.size());
+                 || input.faces.back() < orange_data_->surfaces.size());
 
-    VolumeId::size_type new_id = volume_data_->defs.size();
+    VolumeId::size_type new_id = orange_data_->volumes.defs.size();
 
     // Calculate the maximum stack depth of the volume definition
     int this_max_depth = calc_max_depth(make_span(input.logic));
@@ -122,7 +124,7 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     bool      simple_safety     = true;
     logic_int max_intersections = 0;
 
-    Surfaces surfaces{surface_data_};
+    Surfaces surfaces{surfaces_};
     auto     get_simple_safety
         = make_surface_action(surfaces, SimpleSafetyGetter{});
     auto get_num_intersections
@@ -135,9 +137,9 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
         max_intersections += get_num_intersections(sid);
     }
 
-    auto defs  = make_builder(&volume_data_->defs);
-    auto faces = make_builder(&volume_data_->faces);
-    auto logic = make_builder(&volume_data_->logic);
+    auto defs  = make_builder(&orange_data_->volumes.defs);
+    auto faces = make_builder(&orange_data_->volumes.faces);
+    auto logic = make_builder(&orange_data_->volumes.logic);
 
     VolumeRecord output;
     output.faces = faces.insert_back(input.faces.begin(), input.faces.end());
@@ -158,4 +160,5 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

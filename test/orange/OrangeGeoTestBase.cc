@@ -15,19 +15,11 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
 #include "orange/Types.hh"
-#include "orange/construct/SurfaceInput.hh"
-#include "orange/construct/SurfaceInserter.hh"
-#include "orange/construct/VolumeInput.hh"
-#include "orange/construct/VolumeInserter.hh"
+#include "orange/construct/OrangeInput.hh"
+#include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/SurfaceIO.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/cont/Array.json.hh"
-#    include "orange/construct/SurfaceInputIO.json.hh"
-#    include "orange/construct/VolumeInputIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -48,6 +40,13 @@ struct ToStream
     }
 };
 
+OrangeInput to_input(UnitInput u)
+{
+    OrangeInput result;
+    result.units.push_back(std::move(u));
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 } // namespace
 
@@ -62,6 +61,20 @@ std::string OrangeGeoTestBase::senses_to_string(Span<const Sense> senses)
         return to_char(s);
     }) << '}';
     return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a string to a vector of senses.
+ */
+std::vector<Sense> OrangeGeoTestBase::string_to_senses(const std::string& s)
+{
+    std::vector<Sense> result(s.size());
+    std::transform(s.begin(), s.end(), result.begin(), [](char c) {
+        CELER_EXPECT(c == '+' || c == '-');
+        return c == '+' ? Sense::outside : Sense::inside;
+    });
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -90,23 +103,23 @@ void OrangeGeoTestBase::build_geometry(const char* filename)
 void OrangeGeoTestBase::build_geometry(OneVolInput inp)
 {
     CELER_EXPECT(!params_);
-    Params::Input input;
+    UnitInput input;
     {
         // Insert volumes
-        auto           surface_ref = make_const_ref(input.surfaces);
-        VolumeInserter insert(surface_ref, &input.volumes);
         VolumeInput    vi;
         vi.logic = {logic::ltrue};
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);
-        insert(vi);
-        input.volume_labels = {Label("infinite")};
+        vi.label = "infinite";
+        input.volumes.push_back(std::move(vi));
     }
 
     // Save fake bbox for sampling
     input.bbox = {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
 
-    params_ = std::make_unique<Params>(std::move(input));
+    input.label = "one volume";
+
+    return this->build_geometry(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
@@ -117,52 +130,50 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
 {
     CELER_EXPECT(!params_);
     CELER_EXPECT(inp.radius > 0);
-    Params::Input input;
+    UnitInput input;
 
     {
         // Insert surfaces
-        SurfaceInserter insert(&input.surfaces);
-        insert(Sphere({0, 0, 0}, inp.radius));
-        input.surface_labels = {Label("sphere")};
+        SurfaceInputBuilder insert(&input.surfaces);
+        insert(Sphere({0, 0, 0}, inp.radius), Label("sphere"));
     }
     {
         // Insert volumes
-        auto           surface_ref = make_const_ref(input.surfaces);
-        VolumeInserter insert(surface_ref, &input.volumes);
-        {
-            VolumeInput vi;
-            vi.faces             = {SurfaceId{0}};
-            vi.max_intersections = 2;
+        VolumeInput vi;
+        vi.faces             = {SurfaceId{0}};
+        vi.max_intersections = 2;
 
-            // Outside
-            vi.logic = {0};
-            insert(vi);
+        // Outside
+        vi.logic = {0};
+        vi.label = "outside";
+        input.volumes.push_back(vi);
 
-            // Inside
-            vi.logic = {0, logic::lnot};
-            insert(vi);
-        }
-        input.volume_labels = {Label("outside"), Label("inside")};
-
-        {
-            auto volumes      = make_builder(&input.volumes.volumes);
-            auto connectivity = make_builder(&input.volumes.connectivity);
-
-            // Single surface connecting both volumes
-            const VolumeId temp_vols[] = {VolumeId{0}, VolumeId{1}};
-
-            Connectivity conn;
-            conn.neighbors = volumes.insert_back(std::begin(temp_vols),
-                                                 std::end(temp_vols));
-            connectivity.push_back(conn);
-        }
+        // Inside
+        vi.logic = {0, logic::lnot};
+        vi.label = "inside";
+        input.volumes.push_back(vi);
     }
 
     // Save bbox
     input.bbox = {{-inp.radius, -inp.radius, -inp.radius},
                   {inp.radius, inp.radius, inp.radius}};
 
-    params_ = std::make_unique<Params>(std::move(input));
+    input.label = "two volumes";
+
+    // Define connectivity
+    input.connectivity = {{VolumeId{0}, VolumeId{1}}};
+
+    return this->build_geometry(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a geometry from a single global unit.
+ */
+void OrangeGeoTestBase::build_geometry(UnitInput input)
+{
+    CELER_EXPECT(input);
+    params_ = std::make_unique<Params>(to_input(std::move(input)));
 }
 
 //---------------------------------------------------------------------------//

@@ -17,27 +17,22 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/Ref.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 
 #include "Data.hh"
 #include "Types.hh"
-#include "construct/SurfaceInput.hh"
-#include "construct/SurfaceInserter.hh"
-#include "construct/VolumeInput.hh"
-#include "construct/VolumeInserter.hh"
+#include "construct/OrangeInput.hh"
+#include "detail/SurfaceInserter.hh"
+#include "detail/VolumeInserter.hh"
 #include "univ/detail/LogicStack.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "corecel/cont/Array.json.hh"
-#    include "corecel/cont/Label.json.hh"
-
-#    include "construct/SurfaceInputIO.json.hh"
-#    include "construct/VolumeInputIO.json.hh"
+#    include "construct/OrangeInputIO.json.hh"
 #endif
 
 namespace celeritas
@@ -46,9 +41,9 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given JSON filename.
+ * Load a geometry from the given filename.
  */
-OrangeParams::Input input_from_json(std::string filename)
+OrangeInput input_from_json(std::string filename)
 {
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
@@ -68,87 +63,33 @@ OrangeParams::Input input_from_json(std::string filename)
         CELER_LOG(warning) << "Expected '.json' extension for JSON input";
     }
 
-    OrangeParams::Input input;
+    OrangeInput result;
 
 #if CELERITAS_USE_JSON
     std::ifstream infile(filename);
     CELER_VALIDATE(infile,
                    << "failed to open geometry at '" << filename << '\'');
-
-    auto        full_inp  = nlohmann::json::parse(infile);
-    const auto& universes = full_inp["universes"];
-
-    CELER_VALIDATE(universes.size() == 1,
-                   << "input geometry has " << universes.size()
-                   << "universes; at present there must be a single global "
-                      "universe");
-    const auto& uni = universes[0];
-
-    {
-        // Insert surfaces
-        SurfaceInserter insert(&input.surfaces);
-        insert(uni["surfaces"].get<SurfaceInput>());
-        uni["surface_names"].get_to(input.surface_labels);
-    }
-
-    {
-        // Insert volumes
-        auto           surface_ref = make_const_ref(input.surfaces);
-        VolumeInserter insert(surface_ref, &input.volumes);
-        for (const auto& vol_inp : uni["cells"])
-        {
-            insert(vol_inp.get<VolumeInput>());
-        }
-        uni["cell_names"].get_to(input.volume_labels);
-
-        CELER_VALIDATE(static_cast<size_type>(insert.max_logic_depth())
-                           < detail::LogicStack::max_stack_depth(),
-                       << "input geometry has at least one volume with a "
-                          "logic depth of"
-                       << insert.max_logic_depth()
-                       << " (surfaces are nested too deeply); but the logic "
-                          "stack is limited to a depth of "
-                       << detail::LogicStack::max_stack_depth());
-    }
-
-    // Add connectivity
-    // TODO: calculate this on the fly using VolumeInserter
-    CELER_VALIDATE(uni["surfaces"].contains("connectivity"),
-                   << "input geometry is missing surface connectivity; "
-                      "regenerate the JSON file with orange2celeritas");
-    {
-        // Volume ID storage
-        auto volumes      = make_builder(&input.volumes.volumes);
-        auto connectivity = make_builder(&input.volumes.connectivity);
-
-        std::vector<VolumeId> temp_ids;
-        for (const auto& surf_to_vol : uni["surfaces"]["connectivity"])
-        {
-            // Convert from values to IDs: a transform iterator would be a more
-            // elegant way to do this
-            temp_ids.resize(surf_to_vol.size());
-            for (auto i : range(surf_to_vol.size()))
-            {
-                temp_ids[i] = VolumeId(surf_to_vol[i]);
-            }
-            Connectivity conn;
-            conn.neighbors
-                = volumes.insert_back(temp_ids.begin(), temp_ids.end());
-            connectivity.push_back(conn);
-        }
-        CELER_ASSERT(input.volumes.connectivity.size()
-                     == input.surfaces.size());
-    }
-
-    {
-        // Save bbox
-        const auto& bbox = uni["bbox"];
-        input.bbox       = {bbox[0].get<Real3>(), bbox[1].get<Real3>()};
-    }
+    nlohmann::json::parse(infile).get_to(result);
 #endif
 
-    return input;
+    return result;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a volume supports "simple safety".
+ *
+ * We declare this to be true for "implicit" cells (whose interiors aren't
+ * tracked like normal cells), as well as cells that have *both* the simple
+ * safety flag (no invalid surface types) *and* no internal surfaces.
+ */
+bool supports_simple_safety(logic_int flags)
+{
+    return (flags & VolumeRecord::implicit_cell)
+           || ((flags & VolumeRecord::simple_safety)
+               && !(flags & VolumeRecord::internal_surfaces));
+}
+
 //---------------------------------------------------------------------------//
 } // namespace
 
@@ -170,25 +111,72 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  *
  * Volume and surface labels must be unique for the time being.
  */
-OrangeParams::OrangeParams(Input input)
-    : surf_labels_{std::move(input.surface_labels)}
-    , vol_labels_{std::move(input.volume_labels)}
-    , bbox_{input.bbox}
+OrangeParams::OrangeParams(OrangeInput input)
 {
-    CELER_EXPECT(input.surfaces && input.volumes);
-    CELER_EXPECT(surf_labels_.size() == input.surfaces.size());
-    CELER_EXPECT(vol_labels_.size() == input.volumes.size());
-
-    CELER_VALIDATE(input.volumes.connectivity.size() == input.surfaces.size(),
-                   << "missing connectivity information");
+    CELER_VALIDATE(input.units.size() == 1,
+                   << "input geometry has " << input.units.size()
+                   << "universes; at present there must be a single global "
+                      "universe");
+    UnitInput& u = input.units.front();
+    CELER_VALIDATE(u,
+                   << "unit '" << u.label << "' is not properly constructed");
+    {
+        // Capture metadata
+        surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(u.surfaces.labels)};
+        std::vector<Label> volume_labels;
+        volume_labels.resize(u.volumes.size());
+        for (auto i : range(u.volumes.size()))
+        {
+            volume_labels[i] = std::move(u.volumes[i].label);
+        }
+        vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
+        bbox_       = u.bbox;
+    }
 
     // Construct data
     HostVal<OrangeParamsData> host_data;
-    host_data.surfaces = std::move(input.surfaces);
-    host_data.volumes  = std::move(input.volumes);
+    {
+        // Insert surfaces
+        detail::SurfaceInserter insert(&host_data);
+        insert(u.surfaces);
+    }
 
-    // Calculate max faces and intersections, reserving at least one to
-    // improve error checking in state
+    {
+        // Insert volumes
+        detail::VolumeInserter insert(&host_data);
+        std::for_each(u.volumes.begin(), u.volumes.end(), insert);
+
+        CELER_VALIDATE(static_cast<size_type>(insert.max_logic_depth())
+                           < detail::LogicStack::max_stack_depth(),
+                       << "input geometry has at least one volume with a "
+                          "logic depth of"
+                       << insert.max_logic_depth()
+                       << " (surfaces are nested too deeply); but the logic "
+                          "stack is limited to a depth of "
+                       << detail::LogicStack::max_stack_depth());
+    }
+
+    {
+        // Add connectivity
+        CELER_VALIDATE(u.connectivity.size() == u.surfaces.size(),
+                       << "missing connectivity information");
+
+        // Volume ID storage
+        auto volumes      = make_builder(&host_data.volumes.volumes);
+        auto connectivity = make_builder(&host_data.volumes.connectivity);
+
+        for (const auto& ids : u.connectivity)
+        {
+            Connectivity conn;
+            conn.neighbors = volumes.insert_back(ids.begin(), ids.end());
+            connectivity.push_back(conn);
+        }
+        CELER_ASSERT(host_data.volumes.connectivity.size()
+                     == host_data.surfaces.size());
+    }
+
+    // Calculate max faces and intersections
+    // (Use 1 instead of 0 in case of trivial geometries to improve assertions)
     size_type max_faces         = 1;
     size_type max_intersections = 1;
     bool      simple_safety     = true;
@@ -198,18 +186,10 @@ OrangeParams::OrangeParams(Input input)
         max_faces = std::max<size_type>(max_faces, def.faces.size());
         max_intersections
             = std::max<size_type>(max_intersections, def.max_intersections);
-
-        // Safe if an implicit cell *or* has simple surface types and no
-        // internal surfaces
-        simple_safety
-            = simple_safety
-              && ((def.flags & VolumeRecord::implicit_cell)
-                  || ((def.flags & VolumeRecord::simple_safety)
-                      && !(def.flags & VolumeRecord::internal_surfaces)));
+        simple_safety = simple_safety && supports_simple_safety(def.flags);
     }
     host_data.scalars.max_faces         = max_faces;
     host_data.scalars.max_intersections = max_intersections;
-
     supports_safety_ = simple_safety;
 
     // Construct device values and device/host references

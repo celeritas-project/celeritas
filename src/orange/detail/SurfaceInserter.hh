@@ -3,37 +3,47 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/VolumeInput.hh
+//! \file orange/detail/SurfaceInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 
 namespace celeritas
 {
+struct SurfaceInput;
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * Input definition for a single volume.
+ * Construct surfaces on the host.
+ *
+ * This appends all surfaces from a single unit. We could potentially
+ * deduplicate surfaces across universes with a remapping?
  */
-struct VolumeInput
+class SurfaceInserter
 {
-    using Flags = VolumeRecord::Flags;
+  public:
+    //!@{
+    //! Type aliases
+    using Data         = HostVal<OrangeParamsData>;
+    using SurfaceRange = ItemRange<struct Surface>;
+    //!@}
 
-    //! Sorted list of surface IDs in this cell
-    std::vector<SurfaceId> faces{};
-    //! RPN region definition for this cell, using local surface index
-    std::vector<logic_int> logic{};
+  public:
+    // Construct with reference to surfaces to build
+    explicit SurfaceInserter(Data* params);
 
-    //! Maximum possible number of surface intersections in this volume
-    logic_int max_intersections{0};
-    //! Special flags
-    logic_int flags{0};
+    // Create a bunch of surfaces (experimental)
+    SurfaceRange operator()(const SurfaceInput& all_surfaces);
 
-    //! Whether the volume definition is valid
-    explicit operator bool() const { return !logic.empty(); }
+  private:
+    Data* orange_data_;
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
