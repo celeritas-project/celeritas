@@ -202,7 +202,8 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     CELER_EXPECT(params_);
 
     os << "# Surfaces\n";
-    Surfaces surfaces(this->params().host_ref().surfaces);
+    Surfaces surfaces(this->params().host_ref().surfaces,
+                      this->params().host_ref().reals);
     auto     surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply

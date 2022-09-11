@@ -41,8 +41,7 @@ struct SurfaceDataSize
 SurfaceInserter::SurfaceInserter(Data* params) : orange_data_(params)
 {
     CELER_EXPECT(orange_data_ && orange_data_->surfaces.types.empty()
-                 && orange_data_->surfaces.offsets.empty()
-                 && orange_data_->surfaces.reals.empty());
+                 && orange_data_->surfaces.offsets.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -80,11 +79,11 @@ auto SurfaceInserter::operator()(const SurfaceInput& s) -> SurfaceRange
     //// Insert data ////
 
     SurfaceId start_id{orange_data_->surfaces.types.size()};
-    size_type start_offset = orange_data_->surfaces.reals.size();
+    size_type start_offset = orange_data_->reals.size();
 
     auto types   = make_builder(&orange_data_->surfaces.types);
     auto offsets = make_builder(&orange_data_->surfaces.offsets);
-    auto reals   = make_builder(&orange_data_->surfaces.reals);
+    auto reals   = make_builder(&orange_data_->reals);
 
     types.insert_back(s.types.begin(), s.types.end());
     reals.insert_back(s.data.begin(), s.data.end());

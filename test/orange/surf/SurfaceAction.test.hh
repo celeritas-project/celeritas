@@ -67,7 +67,7 @@ struct OrangeMiniStateData
  */
 template<MemSpace M>
 inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
-                   const HostCRef<SurfaceData>&,
+                   const HostCRef<OrangeParamsData>&,
                    size_type size)
 {
     CELER_EXPECT(data);
@@ -113,12 +113,12 @@ struct CalcSenseDistance
 template<MemSpace M = MemSpace::native>
 struct CalcSenseDistanceLauncher
 {
-    SurfaceData<Ownership::const_reference, M>   params;
+    OrangeParamsData<Ownership::const_reference, M> params;
     OrangeMiniStateData<Ownership::reference, M> states;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
-        Surfaces surfaces(this->params);
+        Surfaces surfaces(this->params.surfaces, this->params.reals);
 
         auto calc_sense_dist = make_surface_action(
             surfaces,
@@ -138,7 +138,7 @@ struct CalcSenseDistanceLauncher
 //! Input data
 struct SATestInput
 {
-    using ParamsRef = DeviceCRef<SurfaceData>;
+    using ParamsRef = DeviceCRef<OrangeParamsData>;
     using StateRef  = DeviceRef<OrangeMiniStateData>;
 
     ParamsRef params;

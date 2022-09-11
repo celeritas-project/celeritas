@@ -124,7 +124,9 @@ VolumeId VolumeInserter::operator()(const VolumeInput& input)
     bool      simple_safety     = true;
     logic_int max_intersections = 0;
 
-    Surfaces surfaces{surfaces_};
+    Surfaces::Reals reals;
+    reals = orange_data_->reals;
+    Surfaces surfaces{surfaces_, reals};
     auto     get_simple_safety
         = make_surface_action(surfaces, SimpleSafetyGetter{});
     auto get_num_intersections

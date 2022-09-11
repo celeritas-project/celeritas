@@ -72,6 +72,9 @@ class SimpleUnitTracker
 
     //// METHODS ////
 
+    // Create a Surfaces object from the params
+    inline CELER_FUNCTION Surfaces make_local_surfaces() const;
+
     // Get volumes that have the given surface as a "face" (connectivity)
     inline CELER_FUNCTION Span<const VolumeId> get_neighbors(SurfaceId) const;
 
@@ -117,7 +120,7 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
     CELER_EXPECT(!state.surface && !state.volume);
 
     detail::SenseCalculator calc_senses(
-        Surfaces{params_.surfaces}, state.pos, state.temp_sense);
+        this->make_local_surfaces(), state.pos, state.temp_sense);
 
     // Loop over all volumes (TODO: use BVH)
     for (VolumeId volid : range(VolumeId{params_.volumes.size()}))
@@ -160,7 +163,7 @@ SimpleUnitTracker::cross_boundary(const LocalState& state) const
 {
     CELER_EXPECT(state.surface && state.volume);
     detail::SenseCalculator calc_senses(
-        Surfaces{params_.surfaces}, state.pos, state.temp_sense);
+        this->make_local_surfaces(), state.pos, state.temp_sense);
 
     // Loop over all connected surfaces (TODO: intersect with BVH)
     for (VolumeId volid : this->get_neighbors(state.surface.id()))
@@ -246,7 +249,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
 
     // Calculate minimim distance to all local faces
     real_type result      = numeric_limits<real_type>::infinity();
-    auto      calc_safety = make_surface_action(Surfaces{params_.surfaces},
+    auto      calc_safety = make_surface_action(this->make_local_surfaces(),
                                            detail::CalcSafetyDistance{pos});
     for (SurfaceId surface : vol.faces())
     {
@@ -266,7 +269,7 @@ SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
-    auto calc_normal = make_surface_action(Surfaces{params_.surfaces},
+    auto calc_normal = make_surface_action(this->make_local_surfaces(),
                                            detail::CalcNormal{pos});
 
     return calc_normal(surf);
@@ -274,6 +277,15 @@ SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
 
 //---------------------------------------------------------------------------//
 // PRIVATE INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Create a Surfaces object from the params.
+ */
+CELER_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() const
+{
+    return Surfaces{params_.surfaces, params_.reals};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get volumes that have the given surface as a "face" (connectivity).
@@ -324,7 +336,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume
     auto calc_intersections = make_surface_action(
-        Surfaces{params_.surfaces},
+        this->make_local_surfaces(),
         detail::CalcIntersections<const F&>{
             state.pos,
             state.dir,
@@ -397,7 +409,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
     }
     else
     {
-        auto calc_sense = make_surface_action(Surfaces{params_.surfaces},
+        auto calc_sense = make_surface_action(this->make_local_surfaces(),
                                               detail::CalcSense{state.pos});
 
         SignedSense ss = calc_sense(surface);
@@ -440,7 +452,7 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
 
     // Calculate local senses, taking current face into account
     auto logic_state = detail::SenseCalculator(
-        Surfaces{params_.surfaces}, state.pos, state.temp_sense)(
+        this->make_local_surfaces(), state.pos, state.temp_sense)(
         vol, detail::find_face(vol, state.surface));
 
     // Current senses should put us inside the cell

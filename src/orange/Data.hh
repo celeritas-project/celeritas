@@ -38,7 +38,6 @@ struct SurfaceData
 
     Items<SurfaceType>          types;
     Items<OpaqueId<real_type>>  offsets;
-    Collection<real_type, W, M> reals;
 
     //// METHODS ////
 
@@ -48,7 +47,7 @@ struct SurfaceData
     //! True if sizes are valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return offsets.size() == types.size() && reals.size() >= types.size();
+        return offsets.size() == types.size();
     }
 
     //! Assign from another set of data
@@ -58,7 +57,6 @@ struct SurfaceData
         CELER_EXPECT(other);
         types   = other.types;
         offsets = other.offsets;
-        reals   = other.reals;
         return *this;
     }
 };
@@ -174,6 +172,7 @@ struct OrangeParamsData
     SurfaceData<W, M> surfaces;
     VolumeData<W, M>  volumes;
 
+    Collection<real_type, W, M> reals;
     OrangeParamsScalars scalars;
 
     //// METHODS ////
@@ -191,6 +190,7 @@ struct OrangeParamsData
         CELER_EXPECT(other);
         surfaces = other.surfaces;
         volumes  = other.volumes;
+        reals    = other.reals;
         scalars  = other.scalars;
         return *this;
     }

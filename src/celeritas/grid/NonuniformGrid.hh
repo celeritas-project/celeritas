@@ -36,7 +36,7 @@ class NonuniformGrid
 
   public:
     // Construct with data
-    explicit inline CELER_FUNCTION
+    inline CELER_FUNCTION
     NonuniformGrid(const ItemRange<value_type>& values, const Values& data);
 
     // Construct with data (all values)

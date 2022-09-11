@@ -56,8 +56,9 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         // Construct a single dummy volume
         this->build_geometry(std::move(unit));
 
+        const auto& host_ref = this->params().host_ref();
         surfaces_
-            = std::make_unique<Surfaces>(this->params().host_ref().surfaces);
+            = std::make_unique<Surfaces>(host_ref.surfaces, host_ref.reals);
     }
 
     template<class T>

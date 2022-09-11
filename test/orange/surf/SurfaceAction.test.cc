@@ -150,7 +150,8 @@ struct GetTypeSize
 TEST_F(SurfaceActionTest, string)
 {
     // Create functor
-    Surfaces surfaces(this->params().host_ref().surfaces);
+    const auto& host_ref = this->params().host_ref();
+    Surfaces    surfaces(host_ref.surfaces, host_ref.reals);
     auto     surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply
@@ -176,16 +177,17 @@ TEST_F(SurfaceActionTest, string)
 
 TEST_F(SurfaceActionTest, host_distances)
 {
+    const auto& host_ref = this->params().host_ref();
+
     // Create states and sample uniform box, isotropic direction
     HostVal<OrangeMiniStateData> states;
-    resize(&states, this->params().host_ref().surfaces, 1024);
+    resize(&states, host_ref, 1024);
     HostRef<OrangeMiniStateData> state_ref;
     state_ref = states;
     this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
 
-    CalcSenseDistanceLauncher<> calc_thread{this->params().host_ref().surfaces,
-                                            state_ref};
+    CalcSenseDistanceLauncher<> calc_thread{host_ref, state_ref};
     for (auto tid : range(ThreadId{states.size()}))
     {
         calc_thread(tid);
@@ -217,7 +219,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     {
         // Initialize on host
         HostVal<OrangeMiniStateData> host_states;
-        resize(&host_states, this->params().host_ref().surfaces, 1024);
+        resize(&host_states, this->params().host_ref(), 1024);
         this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
 
@@ -227,7 +229,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 
     // Launch kernel
     SATestInput input;
-    input.params = this->params().device_ref().surfaces;
+    input.params = this->params().device_ref();
     input.states = device_states;
     sa_test(input);
 
