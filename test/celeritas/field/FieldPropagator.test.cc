@@ -375,14 +375,14 @@ TEST_F(TwoBoxTest, gamma_pathological)
 
     // Propagate inside box
     {
-        auto geo = this->init_geo({0, 0, 0}, {0, 0, -2});
+        auto geo = this->init_geo({0, 0, -2}, {0, 0, 1});
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
         EXPECT_EQ(1, stepper.count());
     }
