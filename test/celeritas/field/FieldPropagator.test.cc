@@ -27,6 +27,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "CMSParameterizedField.hh"
+#include "DiagnosticStepper.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -37,6 +38,9 @@ namespace test
 using constants::pi;
 using constants::sqrt_three;
 using units::MevEnergy;
+
+template<class E>
+using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -180,9 +184,11 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
 
     // Build propagator
+    auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
     FieldDriverOptions driver_options;
-    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-        field, driver_options, particle, &geo);
+    auto               propagate
+        = make_field_propagator(stepper, driver_options, particle, &geo);
 
     // Test step that's smaller than driver's minimum (won't actually alter geo
     // state but should return the distance as if it were moved)
@@ -191,6 +197,7 @@ TEST_F(TwoBoxTest, electron_interior)
     EXPECT_FALSE(result.boundary);
     EXPECT_VEC_SOFT_EQ(Real3({radius, 0, 0}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
+    EXPECT_EQ(0, stepper.count());
 
     // Test a short step
     result = propagate(1e-2);
@@ -199,15 +206,18 @@ TEST_F(TwoBoxTest, electron_interior)
                        geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({-0.00262567606832303, 0.999996552906651, 0}),
                        geo.dir());
+    EXPECT_EQ(1, stepper.count());
 
     // Test the remaining quarter-turn divided into 20 steps
     {
+        stepper.reset_count();
         real_type step = 0.5 * pi * radius - 1e-2;
         for (auto i : range(25))
         {
             SCOPED_TRACE(i);
             result = propagate(step / 25);
             EXPECT_SOFT_EQ(step / 25, result.distance);
+            EXPECT_EQ(i + 1, stepper.count());
             EXPECT_FALSE(result.boundary)
                 << "At " << geo.pos() << " along " << geo.dir();
         }
@@ -218,19 +228,23 @@ TEST_F(TwoBoxTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
+        stepper.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), 1e-6);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
+        EXPECT_EQ(27, stepper.count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
     {
         SCOPED_TRACE("Half turn");
+        stepper.reset_count();
         result = propagate(pi * radius);
         EXPECT_SOFT_EQ(pi * radius, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
+        EXPECT_EQ(68, stepper.count());
     }
 }
 
@@ -265,31 +279,38 @@ TEST_F(TwoBoxTest, gamma_interior)
     auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
                                         MevEnergy{1});
 
-    // Construct field (magnitude shouldn't matter)
+    // Construct field (shape and magnitude shouldn't matter)
     UniformZField      field(1234.5);
     FieldDriverOptions driver_options;
+    auto               stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
 
     // Propagate inside box
     {
         auto geo       = this->init_geo({0, 0, 0}, {0, 0, 1});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(3.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
+        EXPECT_EQ(1, stepper.count());
     }
     // Move to boundary
     {
-        auto geo       = this->make_geo_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto geo = this->make_geo_view();
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+
+        stepper.reset_count();
         auto result = propagate(3.0);
         EXPECT_SOFT_EQ(2.0, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 5}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
+        EXPECT_EQ(2, stepper.count());
     }
     // Cross boundary
     {
@@ -302,13 +323,16 @@ TEST_F(TwoBoxTest, gamma_interior)
     // Move in new region
     {
         auto geo       = this->make_geo_view();
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+
+        stepper.reset_count();
         auto result = propagate(5.0);
         EXPECT_SOFT_EQ(5.0, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
+        EXPECT_EQ(1, stepper.count());
     }
 }
 
@@ -602,11 +626,14 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         axpy(real_type(-1), first_pos, &start_pos);
 
         auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(first_step);
 
         EXPECT_FALSE(result.boundary);
+        EXPECT_EQ(3, stepper.count());
         EXPECT_SOFT_EQ(result.distance, first_step);
         EXPECT_LT(distance(Real3{-4.99000022992164, 8.24444331692931e-08, 0},
                            geo.pos()),
@@ -614,19 +641,20 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     }
     {
         SCOPED_TRACE("First step ends on boundary");
-        // Note: hard to tell without debug code, but this does end up with a
-        // single substep
 
         real_type dx = 0;
         Real3     start_pos{-5 - dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
         auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
+        EXPECT_EQ(3, stepper.count());
         EXPECT_SOFT_NEAR(result.distance, first_step, 1e-10);
         // Y position suffers from roundoff
         EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
@@ -640,11 +668,14 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         axpy(real_type(-1), first_pos, &start_pos);
 
         auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(first_step);
 
         EXPECT_TRUE(result.boundary);
+        EXPECT_EQ(3, stepper.count());
         EXPECT_LT(result.distance, first_step);
         EXPECT_SOFT_EQ(0.44613335936932041, result.distance);
         EXPECT_VEC_SOFT_EQ((Real3{-5, -0.0438785349441534, 0}), geo.pos());
@@ -769,6 +800,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
     }
     EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

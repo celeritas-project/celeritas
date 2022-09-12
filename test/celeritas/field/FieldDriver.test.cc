@@ -16,9 +16,11 @@
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/Types.hh"
 #include "celeritas/field/UniformField.hh"
 
+#include "DiagnosticStepper.hh"
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
@@ -64,12 +66,10 @@ make_mag_field_driver(FieldT&&                  field,
                       const FieldDriverOptions& options,
                       units::ElementaryCharge   charge)
 {
-    using Equation_t = MagFieldEquation<FieldT>;
-    using Stepper_t  = StepperT<Equation_t>;
-    using Driver_t   = FieldDriver<Stepper_t>;
-    return Driver_t{
-        options,
-        Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}}};
+    using Driver_t = FieldDriver<StepperT<MagFieldEquation<FieldT>>>;
+    return Driver_t{options,
+                    make_mag_field_stepper<StepperT>(
+                        ::celeritas::forward<FieldT>(field), charge)};
 }
 
 //---------------------------------------------------------------------------//
