@@ -8,9 +8,12 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 #include <utility>
 
 #include "celeritas/field/Types.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -41,7 +44,11 @@ class DiagnosticStepper
     result_type operator()(real_type step, const OdeState& beg_state) const
     {
         ++count_;
-        return do_step_(step, beg_state);
+        cout << "step=" << step << " at " << beg_state << " ==> ";
+        auto result = do_step_(step, beg_state);
+        cout << "mid=" << result.mid_state << ", end=" << result.end_state
+             << ", err=" << result.err_state << endl;
+        return result;
     }
 
     //! Get the number of samples
