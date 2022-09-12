@@ -107,6 +107,15 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
         return view;
     }
 
+    std::string volume_name(const GeoTrackView& geo) const
+    {
+        if (geo.is_outside())
+        {
+            return "[OUTSIDE]";
+        }
+        return this->geometry()->id_to_label(geo.volume_id()).name;
+    }
+
     template<class Field>
     real_type calc_field_curvature(const ParticleTrackView& particle,
                                    const GeoTrackView&      geo,
@@ -162,6 +171,18 @@ struct ReluZField
     }
 };
 
+// sin(1/z), scaled and with multiplicative constant
+struct HorribleZField
+{
+    real_type strength{1};
+    real_type scale{1};
+
+    Real3 operator()(const Real3& pos) const
+    {
+        return {0, 0, this->strength * std::sin(this->scale / pos[2])};
+    }
+};
+
 //---------------------------------------------------------------------------//
 // CONSTANTS
 //---------------------------------------------------------------------------//
@@ -186,7 +207,7 @@ TEST_F(TwoBoxTest, electron_interior)
 
     // Check expected field curvature and geometry cell
     EXPECT_SOFT_EQ(radius, this->calc_field_curvature(particle, geo, field));
-    EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
+    EXPECT_EQ("inner", this->volume_name(geo));
 
     // Build propagator
     auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
@@ -320,10 +341,9 @@ TEST_F(TwoBoxTest, gamma_interior)
     // Cross boundary
     {
         auto geo = this->make_geo_view();
-        EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     // Move in new region
     {
@@ -338,6 +358,66 @@ TEST_F(TwoBoxTest, gamma_interior)
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 10}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
         EXPECT_EQ(1, stepper.count());
+    }
+}
+
+// Field really shouldn't matter to a gamma right?
+TEST_F(TwoBoxTest, gamma_pathological)
+{
+    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
+                                        MevEnergy{1});
+
+    // Construct field (shape and magnitude shouldn't matter)
+    HorribleZField     field{1234.5, 5};
+    FieldDriverOptions driver_options;
+    auto               stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+        field, particle.charge());
+
+    // Propagate inside box
+    {
+        auto geo = this->init_geo({0, 0, 0}, {0, 0, -2});
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+
+        auto result = propagate(3.0);
+        EXPECT_SOFT_EQ(3.0, result.distance);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 3}), geo.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
+        EXPECT_EQ(1, stepper.count());
+    }
+}
+
+// Gamma exits the inner volume
+TEST_F(TwoBoxTest, gamma_exit)
+{
+    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
+                                        MevEnergy{1});
+
+    UniformZField      field(12345.6);
+    FieldDriverOptions driver_options;
+
+    for (double d : {0.251 + 1e-6, 1e4})
+    {
+        SCOPED_TRACE("Testing intercept from " + std::to_string(d));
+
+        auto geo     = this->init_geo({2, 4.749, 0}, {0, 1, 0});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        auto result = propagate(d);
+
+        EXPECT_SOFT_EQ(0.251, result.distance);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
+        EXPECT_EQ(1, stepper.count());
+        EXPECT_EQ("inner", this->volume_name(geo));
+        if (result.boundary)
+        {
+            geo.cross_boundary();
+            EXPECT_EQ("world", this->volume_name(geo));
+        }
     }
 }
 
@@ -413,10 +493,9 @@ TEST_F(TwoBoxTest, electron_cross)
         SCOPED_TRACE("Cross boundary");
 
         auto geo = this->make_geo_view();
-        EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_EQ("inner", this->volume_name(geo));
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Reenter (1/3 turn)");
@@ -437,7 +516,7 @@ TEST_F(TwoBoxTest, electron_cross)
 
         auto geo = this->make_geo_view();
         geo.cross_boundary();
-        EXPECT_EQ("inner", this->geometry()->id_to_label(geo.volume_id()));
+        EXPECT_EQ("inner", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Return to start (2/3 turn)");
@@ -492,8 +571,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
                       this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Barely misses boundary");
@@ -549,8 +627,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
                       this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Hits y because the chord goes through x first");
@@ -579,8 +656,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
                       this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
     {
         SCOPED_TRACE("Barely (correctly) misses y");
@@ -603,8 +679,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
                       this->geometry()->id_to_label(geo.surface_id()));
         }
         geo.cross_boundary();
-        EXPECT_EQ("world", this->geometry()->id_to_label(geo.volume_id()));
-        EXPECT_FALSE(geo.is_outside());
+        EXPECT_EQ("world", this->volume_name(geo));
     }
 }
 

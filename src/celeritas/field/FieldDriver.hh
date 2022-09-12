@@ -51,6 +51,7 @@ class FieldDriver
 
     CELER_FUNCTION size_type max_nsteps() const { return options_.max_nsteps; }
 
+    // TODO: this should be field propagator data
     CELER_FUNCTION real_type delta_intersection() const
     {
         return options_.delta_intersection;
