@@ -7,10 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
-
 #include "corecel/cont/Array.hh"
-#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -63,12 +60,6 @@ inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y)
 {
     axpy(a, x.pos, &y->pos);
     axpy(a, x.mom, &y->mom);
-}
-
-inline std::ostream& operator<<(std::ostream& os, const OdeState& s)
-{
-    os << "{pos=" << s.pos << ", mom=" << s.mom << "}";
-    return os;
 }
 
 } // namespace celeritas
