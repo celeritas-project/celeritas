@@ -239,8 +239,6 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         host_states       = device_states;
         auto test_threads = range(ThreadId{10});
 
-        const char expected_senses[]
-            = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};
         const double expected_distance[] = {inf,
                                             inf,
                                             inf,
@@ -251,8 +249,8 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
                                             5.436749550654,
                                             0.9761596300109,
                                             5.848454015622};
-        EXPECT_VEC_EQ(expected_senses,
-                      senses_to_string(host_states.sense[test_threads]));
+        EXPECT_EQ("{- - + + - - + + - -}",
+                  senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
     }
