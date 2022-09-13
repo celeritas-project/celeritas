@@ -69,6 +69,7 @@ OrangeInput input_from_json(std::string filename)
     std::ifstream infile(filename);
     CELER_VALIDATE(infile,
                    << "failed to open geometry at '" << filename << '\'');
+    // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
 #endif
 
