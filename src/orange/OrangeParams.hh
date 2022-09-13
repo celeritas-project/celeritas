@@ -22,6 +22,7 @@
 
 namespace celeritas
 {
+struct OrangeInput;
 //---------------------------------------------------------------------------//
 /*!
  * Persistent model data for an ORANGE geometry.
@@ -39,25 +40,12 @@ class OrangeParams
     using SpanConstVolumeId = Span<const VolumeId>;
     //!@}
 
-    struct Input
-    {
-        using Surfaces = HostVal<SurfaceData>;
-        using Volumes  = HostVal<VolumeData>;
-        using VecLabel = std::vector<Label>;
-
-        Surfaces    surfaces;       //!< Surface definitions
-        Volumes     volumes;        //!< Volume definitions
-        VecLabel    surface_labels; //!< Surface names (metadata)
-        VecLabel    volume_labels;  //!< Volume names (metadata)
-        BoundingBox bbox;           //!< Outer bounding box (metadata)
-    };
-
   public:
     // Construct from a JSON file (if JSON is enabled)
     explicit OrangeParams(const std::string& json_filename);
 
     // ADVANCED usage: construct from explicit host data
-    explicit OrangeParams(Input input);
+    explicit OrangeParams(OrangeInput input);
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const { return supports_safety_; }

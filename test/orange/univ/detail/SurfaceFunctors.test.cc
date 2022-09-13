@@ -8,7 +8,10 @@
 #include "orange/univ/detail/SurfaceFunctors.hh"
 
 #include "orange/Data.hh"
-#include "orange/construct/SurfaceInserter.hh"
+#include "orange/OrangeGeoTestBase.hh"
+#include "orange/construct/OrangeInput.hh"
+#include "orange/construct/SurfaceInputBuilder.hh"
+#include "orange/detail/SurfaceInserter.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
@@ -24,17 +27,38 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceFunctorsTest : public ::celeritas::test::Test
+class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
     void SetUp() override
     {
-        SurfaceInserter insert(&surface_data_);
-        insert(PlaneX(1.25));
-        insert(Sphere({2.25, 1, 0}, 1.25));
+        UnitInput unit;
+        unit.label = "dummy";
 
-        sd_ref_   = surface_data_;
-        surfaces_ = std::make_unique<Surfaces>(sd_ref_);
+        {
+            // Build surfaces
+            SurfaceInputBuilder insert(&unit.surfaces);
+            insert(PlaneX(1.25), "myplane");
+            insert(Sphere({2.25, 1, 0}, 1.25), "sphere");
+        }
+        {
+            // Create a volume
+            unit.volumes.resize(1);
+            unit.volumes.back().logic = {logic::ltrue};
+        }
+        {
+            unit.connectivity.resize(unit.surfaces.size());
+        }
+        {
+            unit.bbox = {{-1, -1, -1}, {1, 1, 1}};
+        }
+
+        // Construct a single dummy volume
+        this->build_geometry(std::move(unit));
+
+        const auto& host_ref = this->params().host_ref();
+        surfaces_
+            = std::make_unique<Surfaces>(host_ref.surfaces, host_ref.reals);
     }
 
     template<class T>
@@ -44,9 +68,6 @@ class SurfaceFunctorsTest : public ::celeritas::test::Test
         CELER_EXPECT(sid < surfaces_->num_surfaces());
         return surfaces_->make_surface<T>(SurfaceId{sid});
     }
-
-    HostVal<SurfaceData>  surface_data_;
-    HostCRef<SurfaceData> sd_ref_;
 
     std::unique_ptr<Surfaces> surfaces_;
 };
@@ -130,6 +151,7 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     EXPECT_SOFT_EQ(2.25, calc_distance(SurfaceId{0}));
     EXPECT_SOFT_EQ(0.0, calc_distance(SurfaceId{1}));
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace detail

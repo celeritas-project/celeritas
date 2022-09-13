@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/SurfaceInserter.hh
+//! \file orange/construct/SurfaceInputBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,10 +12,10 @@
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 
-#include "SurfaceInput.hh"
-
 namespace celeritas
 {
+struct Label;
+struct SurfaceInput;
 //---------------------------------------------------------------------------//
 /*!
  * Construct surfaces on the host.
@@ -24,20 +24,14 @@ namespace celeritas
  * robust geometry implementation will implement "soft" surface deduplication.
  *
  * \code
-   SurfaceInserter insert_surface(&params.surfaces);
+   SurfaceInputBuilder insert_surface(&surface_input);
    auto id = insert_surface(PlaneX(123));
    auto id2 = insert_surface(PlaneX(123.0000001)); // TODO: equals id
    \endcode
  */
-class SurfaceInserter
+class SurfaceInputBuilder
 {
   public:
-    //!@{
-    //! Type aliases
-    using Data         = HostVal<SurfaceData>;
-    using SurfaceRange = ItemRange<struct Surface>;
-    //!@}
-
     //! Type-deleted reference to a surface
     struct GenericSurfaceRef
     {
@@ -49,20 +43,17 @@ class SurfaceInserter
 
   public:
     // Construct with reference to surfaces to build
-    explicit SurfaceInserter(Data* surfaces);
+    explicit SurfaceInputBuilder(SurfaceInput* input);
 
     // Add a new surface
     template<class T>
-    inline SurfaceId operator()(const T& surface);
+    inline SurfaceId operator()(const T& surface, const Label& label);
 
     // Append a generic surface view to the vector
-    SurfaceId operator()(GenericSurfaceRef generic_surf);
-
-    // Create a bunch of surfaces (experimental)
-    SurfaceRange operator()(const SurfaceInput& all_surfaces);
+    SurfaceId operator()(GenericSurfaceRef generic_surf, const Label& label);
 
   private:
-    Data* surface_data_;
+    SurfaceInput* input_;
 };
 
 //---------------------------------------------------------------------------//
@@ -71,7 +62,7 @@ class SurfaceInserter
 /*!
  * Whether a generic surface reference is valid.
  */
-SurfaceInserter::GenericSurfaceRef::operator bool() const
+SurfaceInputBuilder::GenericSurfaceRef::operator bool() const
 {
     return !data.empty() && type != SurfaceType::size_;
 }
@@ -81,12 +72,13 @@ SurfaceInserter::GenericSurfaceRef::operator bool() const
  * Add a surface (type-deleted) with the given coefficients
  */
 template<class T>
-SurfaceId SurfaceInserter::operator()(const T& surface)
+SurfaceId SurfaceInputBuilder::operator()(const T& surface, const Label& label)
 {
     static_assert(sizeof(typename T::Intersections) > 0,
                   "Template parameter must be a surface class");
 
-    return (*this)(GenericSurfaceRef{surface.surface_type(), surface.data()});
+    return (*this)(GenericSurfaceRef{surface.surface_type(), surface.data()},
+                   label);
 }
 
 //---------------------------------------------------------------------------//

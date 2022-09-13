@@ -23,11 +23,13 @@ class Surfaces
     //@{
     //! Type aliases
     using SurfaceRef = NativeCRef<SurfaceData>;
+    using Reals
+        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //@}
 
   public:
     // Construct with reference to persistent data
-    explicit inline CELER_FUNCTION Surfaces(const SurfaceRef&);
+    inline CELER_FUNCTION Surfaces(const SurfaceRef&, const Reals&);
 
     // Number of surfaces
     inline CELER_FUNCTION SurfaceId::size_type num_surfaces() const;
@@ -41,6 +43,7 @@ class Surfaces
 
   private:
     const SurfaceRef& data_;
+    const Reals&      reals_;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,7 +52,8 @@ class Surfaces
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION Surfaces::Surfaces(const SurfaceRef& data) : data_(data)
+CELER_FUNCTION Surfaces::Surfaces(const SurfaceRef& data, const Reals& reals)
+    : data_(data), reals_(reals)
 {
     CELER_EXPECT(data_);
 }
@@ -85,12 +89,12 @@ CELER_FUNCTION T Surfaces::make_surface(SurfaceId sid) const
     CELER_EXPECT(sid < this->num_surfaces());
     CELER_EXPECT(this->surface_type(sid) == T::surface_type());
 
-    const real_type* data = data_.reals[AllItems<real_type>{}].data();
+    const real_type* data = reals_[AllItems<real_type>{}].data();
 
     auto start_offset = data_.offsets[sid].unchecked_get();
     auto stop_offset  = start_offset
                        + static_cast<size_type>(T::Storage::extent);
-    CELER_ASSERT(stop_offset <= data_.reals.size());
+    CELER_ASSERT(stop_offset <= reals_.size());
     return T{Span<const real_type>{data + start_offset, data + stop_offset}};
 }
 

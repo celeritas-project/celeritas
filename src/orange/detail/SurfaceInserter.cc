@@ -3,18 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/SurfaceInserter.cc
+//! \file orange/detail/SurfaceInserter.cc
 //---------------------------------------------------------------------------//
 #include "SurfaceInserter.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "orange/construct/OrangeInput.hh"
 #include "orange/surf/SurfaceAction.hh"
 
-#include "SurfaceInput.hh"
-
 namespace celeritas
+{
+namespace detail
 {
 namespace
 {
@@ -37,34 +38,10 @@ struct SurfaceDataSize
 /*!
  * Construct with a reference to empty surfaces.
  */
-SurfaceInserter::SurfaceInserter(Data* surfaces) : surface_data_(surfaces)
+SurfaceInserter::SurfaceInserter(Data* params) : orange_data_(params)
 {
-    CELER_EXPECT(surface_data_ && surface_data_->types.empty()
-                 && surface_data_->offsets.empty()
-                 && surface_data_->reals.empty());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Insert a generic surface.
- */
-SurfaceId SurfaceInserter::operator()(GenericSurfaceRef generic_surf)
-{
-    CELER_EXPECT(generic_surf);
-
-    // TODO: surface deduplication goes here
-
-    auto types   = make_builder(&surface_data_->types);
-    auto offsets = make_builder(&surface_data_->offsets);
-    auto reals   = make_builder(&surface_data_->reals);
-
-    SurfaceId::size_type new_id = types.size();
-    types.push_back(generic_surf.type);
-    offsets.push_back(OpaqueId<real_type>(reals.size()));
-    reals.insert_back(generic_surf.data.begin(), generic_surf.data.end());
-
-    CELER_ENSURE(types.size() == offsets.size());
-    return SurfaceId{new_id};
+    CELER_EXPECT(orange_data_ && orange_data_->surfaces.types.empty()
+                 && orange_data_->surfaces.offsets.empty());
 }
 
 //---------------------------------------------------------------------------//
@@ -101,12 +78,12 @@ auto SurfaceInserter::operator()(const SurfaceInput& s) -> SurfaceRange
 
     //// Insert data ////
 
-    SurfaceId start_id{surface_data_->types.size()};
-    size_type start_offset = surface_data_->reals.size();
+    SurfaceId start_id{orange_data_->surfaces.types.size()};
+    size_type start_offset = orange_data_->reals.size();
 
-    auto types   = make_builder(&surface_data_->types);
-    auto offsets = make_builder(&surface_data_->offsets);
-    auto reals   = make_builder(&surface_data_->reals);
+    auto types   = make_builder(&orange_data_->surfaces.types);
+    auto offsets = make_builder(&orange_data_->surfaces.offsets);
+    auto reals   = make_builder(&orange_data_->reals);
 
     types.insert_back(s.types.begin(), s.types.end());
     reals.insert_back(s.data.begin(), s.data.end());
@@ -122,4 +99,5 @@ auto SurfaceInserter::operator()(const SurfaceInput& s) -> SurfaceRange
 }
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas

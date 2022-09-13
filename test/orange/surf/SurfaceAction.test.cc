@@ -17,7 +17,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "orange/Data.hh"
-#include "orange/construct/SurfaceInserter.hh"
+#include "orange/OrangeGeoTestBase.hh"
+#include "orange/construct/OrangeInput.hh"
+#include "orange/construct/SurfaceInputBuilder.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/Surfaces.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -37,54 +39,44 @@ std::ostream& operator<<(std::ostream& os, Sense s)
     return os << to_char(s);
 }
 
-namespace
-{
-// Disabled since it's unused; it could be in the future though.
-#if 0
-std::vector<Sense> string_to_senses(std::string s)
-{
-    std::vector<Sense> result(s.size());
-    std::transform(s.begin(), s.end(), result.begin(), [](char c) {
-        CELER_EXPECT(c == '+' || c == '-');
-        return c == '+' ? Sense::outside : Sense::inside;
-    });
-    return result;
-}
-#endif
-
-std::string senses_to_string(Span<const Sense> s)
-{
-    std::string result(s.size(), ' ');
-    std::transform(s.begin(), s.end(), result.begin(), [](Sense s) {
-        return to_char(s);
-    });
-    return result;
-}
-} // namespace
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class SurfaceActionTest : public Test
+class SurfaceActionTest : public OrangeGeoTestBase
 {
   protected:
-    using SurfaceDataMirror = CollectionMirror<SurfaceData>;
-
     void SetUp() override
     {
-        HostVal<SurfaceData> surface_data;
-        SurfaceInserter      insert(&surface_data);
-        insert(PlaneX(1));
-        insert(PlaneY(2));
-        insert(PlaneZ(3));
-        insert(CCylX(5));
-        insert(CCylY(6));
-        insert(CCylZ(7));
-        insert(Sphere({1, 2, 3}, 1.5));
-        insert(GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9));
+        UnitInput unit;
+        unit.label = "dummy";
 
-        surf_params_ = SurfaceDataMirror{std::move(surface_data)};
+        {
+            // Build surfaces
+            SurfaceInputBuilder insert(&unit.surfaces);
+            insert(PlaneX(1), "px");
+            insert(PlaneY(2), "py");
+            insert(PlaneZ(3), "pz");
+            insert(CCylX(5), "mycyl");
+            insert(CCylY(6), "mycyl");
+            insert(CCylZ(7), "mycyl");
+            insert(Sphere({1, 2, 3}, 1.5), "mysph");
+            insert(GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9), "gq");
+        }
+        {
+            // Create a volume
+            unit.volumes.resize(1);
+            unit.volumes.back().logic = {logic::ltrue};
+        }
+        {
+            unit.connectivity.resize(unit.surfaces.size());
+        }
+        {
+            unit.bbox = {{-1, -1, -1}, {1, 1, 1}};
+        }
+
+        // Construct a single dummy volume
+        this->build_geometry(std::move(unit));
     }
 
     void fill_uniform_box(Span<Real3> pos)
@@ -105,8 +97,7 @@ class SurfaceActionTest : public Test
         }
     }
 
-    SurfaceDataMirror surf_params_;
-    std::mt19937      rng_;
+    std::mt19937 rng_;
 };
 
 class StaticSurfaceActionTest : public Test
@@ -159,7 +150,8 @@ struct GetTypeSize
 TEST_F(SurfaceActionTest, string)
 {
     // Create functor
-    Surfaces surfaces(surf_params_.host());
+    const auto& host_ref = this->params().host_ref();
+    Surfaces    surfaces(host_ref.surfaces, host_ref.reals);
     auto     surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply
@@ -185,15 +177,17 @@ TEST_F(SurfaceActionTest, string)
 
 TEST_F(SurfaceActionTest, host_distances)
 {
+    const auto& host_ref = this->params().host_ref();
+
     // Create states and sample uniform box, isotropic direction
     HostVal<OrangeMiniStateData> states;
-    resize(&states, surf_params_.host(), 1024);
+    resize(&states, host_ref, 1024);
     HostRef<OrangeMiniStateData> state_ref;
     state_ref = states;
     this->fill_uniform_box(state_ref.pos[AllItems<Real3>{}]);
     this->fill_isotropic(state_ref.dir[AllItems<Real3>{}]);
 
-    CalcSenseDistanceLauncher<> calc_thread{surf_params_.host(), state_ref};
+    CalcSenseDistanceLauncher<> calc_thread{host_ref, state_ref};
     for (auto tid : range(ThreadId{states.size()}))
     {
         calc_thread(tid);
@@ -203,8 +197,6 @@ TEST_F(SurfaceActionTest, host_distances)
     // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
-    const char expected_senses[]
-        = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};
     const double expected_distance[] = {inf,
                                         inf,
                                         inf,
@@ -216,8 +208,8 @@ TEST_F(SurfaceActionTest, host_distances)
                                         0.9761596300109,
                                         5.848454015622};
 
-    EXPECT_VEC_EQ(expected_senses,
-                  senses_to_string(state_ref.sense[test_threads]));
+    EXPECT_EQ("{- - + + - - + + - -}",
+              senses_to_string(state_ref.sense[test_threads]));
     EXPECT_VEC_SOFT_EQ(expected_distance, state_ref.distance[test_threads]);
 }
 
@@ -227,7 +219,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     {
         // Initialize on host
         HostVal<OrangeMiniStateData> host_states;
-        resize(&host_states, surf_params_.host(), 1024);
+        resize(&host_states, this->params().host_ref(), 1024);
         this->fill_uniform_box(host_states.pos[AllItems<Real3>{}]);
         this->fill_isotropic(host_states.dir[AllItems<Real3>{}]);
 
@@ -237,7 +229,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 
     // Launch kernel
     SATestInput input;
-    input.params = surf_params_.device();
+    input.params = this->params().device_ref();
     input.states = device_states;
     sa_test(input);
 
@@ -247,8 +239,6 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
         host_states       = device_states;
         auto test_threads = range(ThreadId{10});
 
-        const char expected_senses[]
-            = {'-', '-', '+', '+', '-', '-', '+', '+', '-', '-'};
         const double expected_distance[] = {inf,
                                             inf,
                                             inf,
@@ -259,8 +249,8 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
                                             5.436749550654,
                                             0.9761596300109,
                                             5.848454015622};
-        EXPECT_VEC_EQ(expected_senses,
-                      senses_to_string(host_states.sense[test_threads]));
+        EXPECT_EQ("{- - + + - - + + - -}",
+                  senses_to_string(host_states.sense[test_threads]));
         EXPECT_VEC_SOFT_EQ(expected_distance,
                            host_states.distance[test_threads]);
     }
@@ -278,6 +268,7 @@ TEST_F(StaticSurfaceActionTest, check_surface_sizes)
         EXPECT_EQ(get_expected_storage(st), get_actual_storage(st));
     }
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

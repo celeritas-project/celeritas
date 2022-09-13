@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/VolumeInserter.hh
+//! \file orange/detail/VolumeInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,11 @@
 #include "orange/Data.hh"
 #include "orange/Types.hh"
 
-#include "VolumeInput.hh"
-
 namespace celeritas
+{
+struct VolumeInput;
+
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,13 +35,12 @@ class VolumeInserter
   public:
     //!@{
     //! Type aliases
-    using SurfData = HostCRef<SurfaceData>;
-    using Data     = HostVal<VolumeData>;
+    using Data = HostVal<OrangeParamsData>;
     //!@}
 
   public:
     // Construct from input surface data and targeted volume data
-    VolumeInserter(const SurfData& surfaces, Data* volumes);
+    VolumeInserter(Data* orange_data);
 
     // Append a volume
     VolumeId operator()(const VolumeInput& vol_def);
@@ -48,10 +49,11 @@ class VolumeInserter
     int max_logic_depth() const { return max_logic_depth_; }
 
   private:
-    const SurfData& surface_data_;
-    Data*           volume_data_{nullptr};
-    int             max_logic_depth_{0};
+    Data*                 orange_data_{nullptr};
+    HostCRef<SurfaceData> surfaces_;
+    int                   max_logic_depth_{0};
 };
 
 //---------------------------------------------------------------------------//
+} // namespace detail
 } // namespace celeritas
