@@ -164,9 +164,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
         // Do a detailed check boundary check from the start position toward
-        // the substep end point.
+        // the substep end point. Travel to the end of the chord, plus a little
+        // extra.
         geo_.set_dir(chord.dir);
-        auto linear_step = geo_.find_next_step(chord.length);
+        auto linear_step
+            = geo_.find_next_step(chord.length + driver_.delta_intersection());
         cout << " + chord length " << chord.length << " => linear step "
              << linear_step.distance
              << (linear_step.boundary ? " (boundary!)" : "") << endl;
@@ -215,8 +217,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             state_.mom = substep.state.mom;
             remaining  = 0;
 
-            cout << " + intercept is sufficiently close to substep point "
-                 << driver_.minimum_step() << endl;
+            cout << " + intercept is sufficiently close (miss distance = "
+                 << miss_distance << ") to substep point" << endl;
         }
         else
         {
