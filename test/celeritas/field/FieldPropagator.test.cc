@@ -150,11 +150,6 @@ class LayersTest : public FieldPropagatorTestBase
     const char* geometry_basename() const override { return "field-test"; }
 };
 
-class Cms2018Test : public FieldPropagatorTestBase
-{
-    const char* geometry_basename() const override { return "cms2018"; }
-};
-
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
@@ -933,31 +928,6 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         }
     }
     EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
-}
-
-TEST_F(Cms2018Test, gamma)
-{
-    auto particle = this->init_particle(this->particle()->find(pdg::gamma()),
-                                        MevEnergy{1});
-
-    // Construct field (magnitude shouldn't matter)
-    UniformZField      field(1234.5);
-    FieldDriverOptions driver_options;
-
-    // Starts inside tube on inner surface (rmin = 233 mm)
-    auto geo = this->init_geo(
-        {-2.30337241943357e+01, -3.51248483829853e+00, 0},
-        {-9.88570909661977e-01, -1.50750278264796e-01, 1.38209014809877e-03});
-    EXPECT_EQ("TIBLayer0Down", this->volume_name(geo));
-    auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-        field, driver_options, particle, &geo);
-
-    // Many iterations to converge in the propagator
-    auto result = propagate(1e4);
-    EXPECT_SOFT_EQ(0.24664816696122355, result.distance);
-    EXPECT_TRUE(result.boundary);
-    geo.cross_boundary();
-    EXPECT_EQ("TIBModule0B", this->volume_name(geo));
 }
 
 //---------------------------------------------------------------------------//
