@@ -10,7 +10,7 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
@@ -53,8 +53,8 @@ class Model : public ExplicitActionInterface
     //@{
     //! Type aliases
     using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
-    using MicroXsBuilders  = std::unordered_map<ElementId, UPConstGridBuilder>;
-    using SetApplicability = std::set<Applicability>;
+    using MicroXsBuilders    = std::vector<UPConstGridBuilder>;
+    using SetApplicability   = std::set<Applicability>;
     //@}
 
   public:

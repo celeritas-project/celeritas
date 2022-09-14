@@ -80,17 +80,14 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
     CELER_ASSERT(applic.material < xs->second.size());
     const auto& elem_phys_vectors = xs->second[applic.material.get()];
 
-    MicroXsBuilders builders;
-
-    for (size_type i : range(elem_phys_vectors.size()))
+    MicroXsBuilders builders(elem_phys_vectors.size());
+    for (size_type elcomp_idx : range(elem_phys_vectors.size()))
     {
-        const auto& vec = elem_phys_vectors[i];
+        const auto& vec = elem_phys_vectors[elcomp_idx];
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
-        ElementId el{i};
-        builders[el] = ValueGridLogBuilder::from_geant(make_span(vec.x),
-                                                       make_span(vec.y));
+        builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
+            make_span(vec.x), make_span(vec.y));
     }
-
     return builders;
 }
 

@@ -36,11 +36,11 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
     CELER_EXPECT(range.particle);
 
     MicroXsBuilders builders;
-
     MaterialView mat(data_.materials->host_ref(), range.material);
     if (!data_.xs.empty())
     {
-        for (const auto& elcomp : mat.elements())
+        builders.resize(mat.num_elements());
+        for (auto elcomp_idx : celeritas::range(mat.num_elements()))
         {
             std::vector<real_type> xs_grid;
             for (auto xs : data_.xs)
@@ -48,11 +48,10 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
                 xs_grid.push_back(native_value_from(xs));
             }
 
-            builders[elcomp.element] = std::make_unique<ValueGridLogBuilder>(
+            builders[elcomp_idx] = std::make_unique<ValueGridLogBuilder>(
                 range.lower.value(), range.upper.value(), xs_grid);
         }
     }
-
     return builders;
 }
 
