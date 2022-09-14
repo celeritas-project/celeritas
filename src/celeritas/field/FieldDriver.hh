@@ -51,6 +51,7 @@ class FieldDriver
 
     CELER_FUNCTION size_type max_nsteps() const { return options_.max_nsteps; }
 
+    // TODO: this should be field propagator data
     CELER_FUNCTION real_type delta_intersection() const
     {
         return options_.delta_intersection;
@@ -185,16 +186,16 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
-        if (dchord <= options_.delta_chord + options_.dchord_tol)
+        if (dchord > options_.delta_chord + options_.dchord_tol)
+        {
+            // Estimate a new trial chord with a relative scale
+            step *= max(std::sqrt(options_.delta_chord / dchord), half());
+        }
+        else
         {
             succeeded    = true;
             output.error = detail::truncation_error(
                 step, options_.epsilon_rel_max, state, result.err_state);
-        }
-        else
-        {
-            // Estimate a new trial chord with a relative scale
-            step *= max(std::sqrt(options_.delta_chord / dchord), half());
         }
     } while (!succeeded && --remaining_steps > 0);
 
@@ -333,11 +334,7 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
         errmax2 = detail::truncation_error(
             step, options_.epsilon_rel_max, state, result.err_state);
 
-        if (errmax2 <= 1)
-        {
-            succeeded = true;
-        }
-        else
+        if (errmax2 > 1)
         {
             // Step failed; compute the size of re-trial step.
             real_type htemp = options_.safety * step
@@ -345,6 +342,11 @@ FieldDriver<StepperT>::one_good_step(real_type step, const OdeState& state) cons
 
             // Truncation error too large, reduce stepsize with a low bound
             step = max(htemp, options_.max_stepping_decrease * step);
+        }
+        else
+        {
+            // Success or possibly nan!
+            succeeded = true;
         }
     } while (!succeeded && --remaining_steps > 0);
 

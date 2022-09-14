@@ -23,25 +23,31 @@ using namespace celeritas;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
+class LinearPropagatorTestBase : public celeritas_test::GlobalGeoTestBase
 {
   public:
-    using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
-
-    const char* geometry_basename() const override { return "simple-cms"; }
+    using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
     void SetUp() override
     {
-        state = StateStore(this->geometry()->host_ref(), 1);
+        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
     }
 
-    GeoTrackView make_geo_track_view()
+    GeoTrackView make_geo_view()
     {
         return GeoTrackView(
-            this->geometry()->host_ref(), state.ref(), ThreadId{0});
+            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
     }
 
-    std::string volume_label(const GeoTrackView& geo)
+    GeoTrackView init_geo(const Real3& pos, Real3 dir)
+    {
+        normalize_direction(&dir);
+        GeoTrackView view = this->make_geo_view();
+        view              = {pos, dir};
+        return view;
+    }
+
+    std::string volume_name(const GeoTrackView& geo)
     {
         if (geo.is_outside())
         {
@@ -62,20 +68,23 @@ class LinearPropagatorTest : public celeritas_test::GlobalGeoTestBase
     }
 
   protected:
-    StateStore state;
+    GeoStateStore geo_state_;
+};
+
+class SimpleCmsTest : public LinearPropagatorTestBase
+{
+    const char* geometry_basename() const override { return "simple-cms"; }
 };
 
 //---------------------------------------------------------------------------//
 // HOST TESTS
 //----------------------------------------------------------------------------//
 
-TEST_F(LinearPropagatorTest, all)
+TEST_F(SimpleCmsTest, all)
 {
-    GeoTrackView geo = this->make_geo_track_view();
-
     // Initialize
-    geo = {{0, 0, 0}, {0, 0, 1}};
-    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
+    GeoTrackView geo = this->init_geo({0, 0, 0}, {0, 0, 1});
+    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
 
     {
         LinearPropagator propagate(&geo);
@@ -88,7 +97,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state and scatter
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 20}), geo.pos());
-    EXPECT_EQ("vacuum_tube", this->volume_label(geo));
+    EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     geo.set_dir({1, 0, 0});
 
     {
@@ -103,7 +112,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state
     EXPECT_VEC_SOFT_EQ(Real3({30, 0, 20}), geo.pos());
-    EXPECT_EQ("si_tracker", this->volume_label(geo));
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
         LinearPropagator propagate(&geo);
@@ -120,7 +129,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state
     EXPECT_VEC_SOFT_EQ(Real3({105, 0, 20}), geo.pos());
-    EXPECT_EQ("si_tracker", this->volume_label(geo));
+    EXPECT_EQ("si_tracker", this->volume_name(geo));
 
     {
         LinearPropagator propagate(&geo);
@@ -139,7 +148,7 @@ TEST_F(LinearPropagatorTest, all)
 
     // Check state and scatter
     EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, 20}), geo.pos());
-    EXPECT_EQ("em_calorimeter", this->volume_label(geo));
+    EXPECT_EQ("em_calorimeter", this->volume_name(geo));
     geo.set_dir({0, 0, -1});
 
     {
@@ -159,5 +168,5 @@ TEST_F(LinearPropagatorTest, all)
     }
 
     EXPECT_VEC_SOFT_EQ(Real3({125.1, 0, -2000}), geo.pos());
-    EXPECT_EQ("[OUTSIDE]", this->volume_label(geo));
+    EXPECT_EQ("[OUTSIDE]", this->volume_name(geo));
 }
