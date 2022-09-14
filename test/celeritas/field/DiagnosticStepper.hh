@@ -31,22 +31,22 @@ class DiagnosticStepper
     //!@}
 
   public:
-    //! Forward construction arguments to the original engine
+    //! Forward construction arguments to the original stepper
     template<class... Args>
     DiagnosticStepper(Args&&... args) : do_step_(std::forward<Args>(args)...)
     {
     }
 
-    //! Get a random number and increment the sample counter
+    //! Calculate a step and increment the counter
     result_type operator()(real_type step, const OdeState& beg_state) const
     {
         ++count_;
         return do_step_(step, beg_state);
     }
 
-    //! Get the number of samples
+    //! Get the number of steps
     size_type count() const { return count_; }
-    //! Reset the sample counter
+    //! Reset the stepscounter
     void reset_count() { count_ = 0; }
 
   private:
