@@ -32,7 +32,6 @@ ModelArray<bool> make_microxs_flag_array()
              ImportModelClass::mu_brems,
              ImportModelClass::mu_pair_prod,
              ImportModelClass::bethe_heitler_lpm,
-             ImportModelClass::klein_nishina,
              ImportModelClass::livermore_rayleigh,
              ImportModelClass::e_coulomb_scattering,
          })

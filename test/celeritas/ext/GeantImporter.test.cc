@@ -508,28 +508,32 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
         }
         {
-            // Check Klein-Nishina micro xs
-            auto comp = find_process(celeritas::pdg::gamma(),
-                                     ImportProcessClass::compton);
-            ASSERT_NE(processes.end(), comp);
-            EXPECT_EQ(celeritas::pdg::electron().get(), comp->secondary_pdg);
-            EXPECT_EQ(1, comp->micro_xs.size());
-            EXPECT_EQ(comp->models.size(), comp->micro_xs.size());
+            // Check Bethe-Heitler micro xs
+            auto conv = find_process(celeritas::pdg::gamma(),
+                                     ImportProcessClass::conversion);
+            ASSERT_NE(processes.end(), conv);
+            EXPECT_EQ(celeritas::pdg::electron().get(), conv->secondary_pdg);
+            EXPECT_EQ(1, conv->micro_xs.size());
+            EXPECT_EQ(conv->models.size(), conv->micro_xs.size());
 
-            const auto& kn = comp->micro_xs.find(comp->models[0]);
-            EXPECT_EQ(ImportModelClass::klein_nishina, kn->first);
+            const auto& bh = conv->micro_xs.find(conv->models[0]);
+            EXPECT_EQ(ImportModelClass::bethe_heitler_lpm, bh->first);
 
-            auto result = summarize(kn->second.back());
+            auto result = summarize(bh->second.back());
 
-            static const real_type expected_size[] = {13ul, 13ul, 13ul};
-            static const real_type expected_x_bounds[]
-                = {0.0001, 100000000, 0.0001, 100000000, 0.0001, 100000000};
-            static const real_type expected_y_bounds[] = {1.0069880589339,
-                                                          7.3005460134493e-07,
-                                                          0.96395721121543,
-                                                          6.7387221120147e-07,
-                                                          1.042982687407,
-                                                          7.8623296376253e-07};
+            static const unsigned int expected_size[]     = {9u, 9u, 9u};
+            static const double       expected_x_bounds[] = {1.02199782,
+                                                             100000000,
+                                                             1.02199782,
+                                                             100000000,
+                                                             1.02199782,
+                                                             100000000};
+            static const double       expected_y_bounds[] = {1.4603666285612,
+                                                             4.4976609946794,
+                                                             1.250617083013,
+                                                             3.8760336885145,
+                                                             1.6856988385825,
+                                                             5.1617257552977};
 
             EXPECT_VEC_EQ(expected_size, result.size);
             EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
