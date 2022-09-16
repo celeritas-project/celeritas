@@ -215,11 +215,7 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                auto el_id
-                    = material.element_id(ElementComponentId{elcomp_idx});
-                auto iter = builders.find(el_id);
-                ASSERT_TRUE(iter != builders.end());
-                EXPECT_TRUE(iter->second);
+                EXPECT_TRUE(builders[elcomp_idx]);
             }
         }
     }
@@ -352,11 +348,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                auto el_id
-                    = material.element_id(ElementComponentId{elcomp_idx});
-                auto iter = builders.find(el_id);
-                ASSERT_TRUE(iter != builders.end());
-                EXPECT_TRUE(iter->second);
+                EXPECT_TRUE(builders[elcomp_idx]);
             }
         }
     }
@@ -447,11 +439,7 @@ TEST_F(ImportedProcessesTest, rayleigh)
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
-                auto el_id
-                    = material.element_id(ElementComponentId{elcomp_idx});
-                auto iter = builders.find(el_id);
-                ASSERT_TRUE(iter != builders.end());
-                EXPECT_TRUE(iter->second);
+                EXPECT_TRUE(builders[elcomp_idx]);
             }
         }
     }
