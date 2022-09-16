@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantImporter.hh"
 
+#include <algorithm>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -365,6 +366,15 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
             // Add material's element information
             material.elements.push_back(elem_comp);
         }
+
+        // Sort element components by increasing element ID
+        std::sort(material.elements.begin(),
+                  material.elements.end(),
+                  [](const ImportMatElemComponent& lhs,
+                     const ImportMatElemComponent& rhs) {
+                      return lhs.element_id < rhs.element_id;
+                  });
+
         // Add material to vector
         const unsigned int material_id = g4material_cuts_couple->GetIndex();
         CELER_ASSERT(material_id < materials.size());

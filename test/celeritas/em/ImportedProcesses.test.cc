@@ -78,14 +78,23 @@ TEST_F(ImportedProcessesTest, compton)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            EXPECT_TRUE(builders.empty());
+        }
     }
 }
 
@@ -106,16 +115,25 @@ TEST_F(ImportedProcessesTest, e_ionization)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
         for (auto applic : all_applic)
         {
-            applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_TRUE(builders[VGT::energy_loss]);
-            EXPECT_TRUE(builders[VGT::range]);
+            // Test step limits
+            {
+                applic.material = mat_id;
+                auto builders   = process->step_limits(applic);
+                EXPECT_TRUE(builders[VGT::macro_xs]);
+                EXPECT_TRUE(builders[VGT::energy_loss]);
+                EXPECT_TRUE(builders[VGT::range]);
+            }
+
+            // Test micro xs
+            for (const auto& model : models)
+            {
+                auto builders = model->micro_xs(applic);
+                EXPECT_TRUE(builders.empty());
+            }
         }
     }
 }
@@ -137,16 +155,25 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
         for (auto applic : all_applic)
         {
-            applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::macro_xs]);
-            EXPECT_FALSE(builders[VGT::energy_loss]);
-            EXPECT_FALSE(builders[VGT::range]);
+            // Test step limits
+            {
+                applic.material = mat_id;
+                auto builders   = process->step_limits(applic);
+                EXPECT_TRUE(builders[VGT::macro_xs]);
+                EXPECT_FALSE(builders[VGT::energy_loss]);
+                EXPECT_FALSE(builders[VGT::range]);
+            }
+
+            // Test micro xs
+            for (const auto& model : models)
+            {
+                auto builders = model->micro_xs(applic);
+                EXPECT_TRUE(builders.empty());
+            }
         }
     }
 }
@@ -169,14 +196,28 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            auto material = materials_->get(mat_id);
+            EXPECT_EQ(material.num_elements(), builders.size());
+            for (auto elcomp_idx : range(material.num_elements()))
+            {
+                EXPECT_TRUE(builders[elcomp_idx]);
+            }
+        }
     }
 }
 
@@ -195,12 +236,21 @@ TEST_F(ImportedProcessesTest, msc)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::msc_mfp]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::msc_mfp]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            EXPECT_TRUE(builders.empty());
+        }
     }
 }
 
@@ -227,14 +277,23 @@ TEST_F(ImportedProcessesTest, photoelectric)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            EXPECT_TRUE(builders.empty());
+        }
     }
 }
 
@@ -265,18 +324,33 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
 
-        // Only the ionization process has energy loss and range tables. It's
-        // de/dx table is the sum of the ionization and bremsstrahlung energy
-        // loss, and the range table is calculated from the summed de/dx.
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+            // Only the ionization process has energy loss and range tables.
+            // It's de/dx table is the sum of the ionization and bremsstrahlung
+            // energy loss, and the range table is calculated from the summed
+            // de/dx.
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            auto material = materials_->get(mat_id);
+            EXPECT_EQ(material.num_elements(), builders.size());
+            for (auto elcomp_idx : range(material.num_elements()))
+            {
+                EXPECT_TRUE(builders[elcomp_idx]);
+            }
+        }
     }
 }
 
@@ -306,18 +380,28 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
 
-        // Only the ionization process has energy loss and range tables. It's
-        // de/dx table is the sum of the ionization and bremsstrahlung energy
-        // loss, and the range table is calculated from the summed de/dx.
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+            // Only the ionization process has energy loss and range tables.
+            // It's de/dx table is the sum of the ionization and bremsstrahlung
+            // energy loss, and the range table is calculated from the summed
+            // de/dx.
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            EXPECT_TRUE(builders.empty());
+        }
     }
 }
 
@@ -336,14 +420,28 @@ TEST_F(ImportedProcessesTest, rayleigh)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    // Test step limits
     for (auto mat_id : range(MaterialId{materials_->num_materials()}))
     {
-        applic.material = mat_id;
-        auto builders   = process->step_limits(applic);
-        EXPECT_TRUE(builders[VGT::macro_xs]);
-        EXPECT_FALSE(builders[VGT::energy_loss]);
-        EXPECT_FALSE(builders[VGT::range]);
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders   = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (const auto& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            auto material = materials_->get(mat_id);
+            EXPECT_EQ(material.num_elements(), builders.size());
+            for (auto elcomp_idx : range(material.num_elements()))
+            {
+                EXPECT_TRUE(builders[elcomp_idx]);
+            }
+        }
     }
 }
 //---------------------------------------------------------------------------//

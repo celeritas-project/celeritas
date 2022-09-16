@@ -629,15 +629,11 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
                     auto& grid_ids = temp_grid_ids[pm_idx][mat_id.get()];
                     grid_ids.resize(material.num_elements());
 
-                    for (auto elcomp_id :
-                         range(ElementComponentId{material.num_elements()}))
+                    for (auto elcomp_idx : range(material.num_elements()))
                     {
-                        auto el_id = material.element_id(elcomp_id);
-                        auto iter  = builders.find(el_id);
-                        CELER_ASSERT(iter != builders.end());
-                        CELER_ASSERT(iter->second);
-                        grid_ids[elcomp_id.get()]
-                            = iter->second->build(insert_grid);
+                        CELER_ASSERT(builders[elcomp_idx]);
+                        grid_ids[elcomp_idx]
+                            = builders[elcomp_idx]->build(insert_grid);
                     }
                 }
             }
