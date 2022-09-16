@@ -139,8 +139,6 @@ template<class StepperT>
 CELER_FUNCTION DriverResult
 FieldDriver<StepperT>::advance(real_type step, const OdeState& state) const
 {
-    CELER_EXPECT(step >= this->minimum_step());
-
     // Output with a step control error
     ChordSearch output = this->find_next_chord(step, state);
 

@@ -136,7 +136,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
-    while (remaining >= driver_.minimum_step())
+    do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
 
@@ -206,7 +206,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // fraction along the chord, and retry the driver step.
             remaining = substep.step * linear_step.distance / chord.length;
         }
-    }
+    } while (remaining >= driver_.minimum_step());
 
     if (result.boundary)
     {
