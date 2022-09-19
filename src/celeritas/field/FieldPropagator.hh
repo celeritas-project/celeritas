@@ -176,7 +176,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // would be less than the driver's minimum step. Hop to the
             // boundary without committing the substep.
             result.boundary = true;
-            result.distance += linear_step.distance;
+            result.distance += min(linear_step.distance, remaining);
             remaining = 0;
         }
         else if (detail::is_intercept_close(state_.pos,
