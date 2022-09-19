@@ -211,17 +211,8 @@ TEST_F(TwoBoxTest, electron_interior)
     auto               propagate
         = make_field_propagator(stepper, driver_options, particle, &geo);
 
-    // Test step that's smaller than driver's minimum (won't actually alter geo
-    // state but should return the distance as if it were moved)
-    Propagation result = propagate(1e-10);
-    EXPECT_DOUBLE_EQ(1e-10, result.distance);
-    EXPECT_FALSE(result.boundary);
-    EXPECT_VEC_SOFT_EQ(Real3({radius, 0, 0}), geo.pos());
-    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
-    EXPECT_EQ(0, stepper.count());
-
     // Test a short step
-    result = propagate(1e-2);
+    Propagation result = propagate(1e-2);
     EXPECT_SOFT_EQ(1e-2, result.distance);
     EXPECT_VEC_SOFT_EQ(Real3({3.80852541539105, 0.0099999885096862, 0}),
                        geo.pos());
@@ -266,6 +257,19 @@ TEST_F(TwoBoxTest, electron_interior)
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
         EXPECT_EQ(68, stepper.count());
+    }
+
+    // Test step that's smaller than driver's minimum (should take one
+    // iteration in the propagator loop)
+    {
+        stepper.reset_count();
+        result = propagate(1e-10);
+        EXPECT_DOUBLE_EQ(1e-10, result.distance);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_VEC_SOFT_EQ(Real3({3.8085385881855, -2.3814749713353e-07, 0}),
+                           geo.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({6.2529888474538e-08, 1, 0}), geo.dir());
+        EXPECT_EQ(1, stepper.count());
     }
 }
 
@@ -447,6 +451,78 @@ TEST_F(TwoBoxTest, gamma_exit)
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
+    }
+}
+
+// Electron takes small steps up to and from a boundary
+TEST_F(TwoBoxTest, electron_small_step)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10});
+    UniformZField       field(unit_radius_field_strength);
+    FieldDriverOptions  driver_options;
+    constexpr real_type delta = 1e-7;
+
+    {
+        SCOPED_TRACE("Small step *almost* to boundary");
+
+        auto geo = this->init_geo({5 - 2 * delta, 0, 0}, {1, 0, 0});
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(delta);
+
+        // Reported distance traveled is equal to the step, but the track is
+        // moved to the boundary
+        EXPECT_DOUBLE_EQ(delta, result.distance);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
+        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+    }
+    {
+        SCOPED_TRACE("Small step intersected by boundary");
+
+        auto geo = this->init_geo({5 - delta, 0, 0}, {1, 0, 0});
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(2 * delta);
+
+        // Distance is the linear step
+        EXPECT_DOUBLE_EQ(1.0000000028043181e-07, result.distance);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
+        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+    }
+    {
+        SCOPED_TRACE("Cross boundary");
+
+        auto geo = this->make_geo_view();
+        EXPECT_EQ("inner", this->volume_name(geo));
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->volume_name(geo));
+    }
+    {
+        SCOPED_TRACE("Small step from boundary");
+
+        auto geo = this->make_geo_view();
+        EXPECT_TRUE(geo.is_on_boundary());
+
+        // Starting on the boundary, take a step smaller than driver's minimum
+        // (could be, e.g., a very small distance to interaction)
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(delta);
+
+        EXPECT_DOUBLE_EQ(delta, result.distance);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ(Real3({5 + delta, 0, 0}), geo.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
     }
 }
 
