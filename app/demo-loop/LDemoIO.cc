@@ -95,6 +95,42 @@ auto get_all_process_classes(const std::vector<ImportProcess>& processes)
     return result;
 }
 
+struct IsProcess
+{
+    ImportProcessClass process_class;
+
+    bool operator()(const ImportProcess& p) const
+    {
+        return p.process_class == process_class;
+    }
+};
+
+void fixup_process_list(bool                        enable,
+                        ImportProcessClass          type,
+                        const char*                 desc,
+                        const char*                 opt,
+                        std::vector<ImportProcess>* processes)
+{
+    if (!enable)
+    {
+        // Delete data
+        auto iter = std::remove_if(
+            processes->begin(), processes->end(), IsProcess{type});
+        processes->erase(iter, processes->end());
+    }
+    else
+    {
+        // Make sure data is there
+        CELER_VALIDATE(
+            std::find_if(processes->begin(), processes->end(), IsProcess{type})
+                != processes->end(),
+            << desc
+            << " data is not available but "
+               "input requested '"
+            << opt << "'=true'");
+    }
+}
+
 //---------------------------------------------------------------------------//
 } // namespace
 
@@ -237,27 +273,16 @@ TransporterInput load_input(const LDemoArgs& args)
     }
 
     // TODO: delete when #485 is merged
-    auto is_msc = [](const ImportProcess& p) {
-        return p.process_class == ImportProcessClass::msc;
-    };
-    if (!args.enable_msc)
-    {
-        // Delete MSC data
-        auto iter = std::remove_if(imported_data.processes.begin(),
-                                   imported_data.processes.end(),
-                                   is_msc);
-        imported_data.processes.erase(iter, imported_data.processes.end());
-    }
-    else
-    {
-        // Make sure MSC data is there
-        CELER_VALIDATE(std::find_if(imported_data.processes.begin(),
-                                    imported_data.processes.end(),
-                                    is_msc)
-                           != imported_data.processes.end(),
-                       << "multiple scattering data is not available but "
-                          "input requested 'enable_msc=true'");
-    }
+    fixup_process_list(args.enable_msc,
+                       ImportProcessClass::msc,
+                       "multiple scattering",
+                       "enable_msc",
+                       &imported_data.processes);
+    fixup_process_list(args.rayleigh,
+                       ImportProcessClass::rayleigh,
+                       "Rayleigh scattering",
+                       "rayleigh",
+                       &imported_data.processes);
 
     // Create action manager
     {
