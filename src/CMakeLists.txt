@@ -195,7 +195,6 @@ list(APPEND SOURCES
   celeritas/phys/ParticleParams.cc
   celeritas/phys/PhysicsParams.cc
   celeritas/phys/PhysicsParamsOutput.cc
-  celeritas/phys/PrimaryGenerator.cc
   celeritas/phys/Process.cc
   celeritas/phys/ProcessBuilder.cc
   celeritas/random/CuHipRngData.cc

@@ -10,6 +10,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
@@ -95,22 +96,21 @@ void run(std::istream* is, OutputManager* output)
     std::vector<Primary> primaries;
     if (run_args.primary_gen_options)
     {
-        PrimaryGenerator generate_event(transport_ptr->params().particle(),
-                                        run_args.primary_gen_options);
-
-        auto event = generate_event();
+        std::mt19937 rng;
+        auto generate_event = PrimaryGenerator<std::mt19937>::from_options(
+            transport_ptr->params().particle(), run_args.primary_gen_options);
+        auto event = generate_event(rng);
         while (!event.empty())
         {
             primaries.insert(primaries.end(), event.begin(), event.end());
-            event = generate_event();
+            event = generate_event(rng);
         }
     }
     else
     {
         EventReader read_event(run_args.hepmc3_filename.c_str(),
                                transport_ptr->params().particle());
-
-        auto event = read_event();
+        auto        event = read_event();
         while (!event.empty())
         {
             primaries.insert(primaries.end(), event.begin(), event.end());
