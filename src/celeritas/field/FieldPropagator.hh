@@ -24,8 +24,29 @@
 using std::cout;
 using std::endl;
 
+#include <fstream>
+#include <iomanip>
+
 namespace celeritas
 {
+namespace detail
+{
+std::ofstream make_fstream()
+{
+    std::ofstream fout("debug-field-propagator.csv");
+    fout << 'x' << ',' << 'y' << ',' << 'z' << ',' << "step" << ','
+         << "action\n";
+    return fout;
+}
+
+std::ostream& debug_fstream()
+{
+    static std::ofstream out = make_fstream();
+    out << std::setprecision(15);
+    return out;
+}
+} // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Propagate a charged particle in a field.
@@ -137,8 +158,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     result_type result;
     result.distance = 0;
 
+    std::ostream& fout = detail::debug_fstream();
     cout << color_code('b') << "Propagate up to " << step << color_code(' ')
          << endl;
+    fout << geo_.pos()[0] << ',' << geo_.pos()[1] << ',' << geo_.pos()[2]
+         << ',' << step << ",start\n";
 
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
@@ -156,6 +180,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         cout << "- advance(" << remaining << ", " << state_.pos << ") -> {"
              << substep.step << ", " << substep.state.pos << "}" << endl;
+        fout << substep.state.pos[0] << ',' << substep.state.pos[1] << ','
+             << substep.state.pos[2] << ',' << substep.step << ",proposed\n";
 
         // TODO: use safety distance to reduce number of calls to
         // find_next_step
@@ -174,10 +200,15 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
              << linear_step.distance;
         if (linear_step.boundary)
         {
-            cout << " (hit surface " << geo_.surface_id().unchecked_get()
+            cout << " (hit surface " << geo_.next_surface_id().unchecked_get()
                  << ')';
         }
         cout << '\n';
+
+        Real3 temp = geo_.pos();
+        axpy(linear_step.distance, chord.dir, &temp);
+        fout << temp[0] << ',' << temp[1] << ',' << temp[2] << ','
+             << linear_step.distance << ',';
 
         if (!linear_step.boundary)
         {
@@ -190,6 +221,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             cout << " + advancing to substep end point" << endl;
+            fout << "no_hit";
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
@@ -203,6 +235,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             remaining = 0;
             cout << " + next trial step exceeds driver minimum "
                  << driver_.minimum_step() << endl;
+            fout << "nearly_boundary";
         }
         else if (detail::is_intercept_close(state_.pos,
                                             chord.dir,
@@ -226,6 +259,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
             cout << " + intercept is sufficiently close (miss distance = "
                  << miss_distance << ") to substep point" << endl;
+            fout << "barely_boundary";
         }
         else
         {
@@ -237,7 +271,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             cout << " + Setting remaining distance to a fraction "
                  << linear_step.distance / chord.length << " of the substep"
                  << endl;
+            fout << "too_far";
         }
+        fout << '\n';
     } while (remaining >= driver_.minimum_step());
 
     if (result.boundary)
