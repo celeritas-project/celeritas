@@ -84,6 +84,11 @@ class OrangeTrackView
     {
         return states_.surf[thread_];
     }
+    //! After 'find_next_step', the next straight-line surface
+    CELER_FUNCTION SurfaceId next_surface_id() const
+    {
+        return next_surface_.id();
+    }
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface

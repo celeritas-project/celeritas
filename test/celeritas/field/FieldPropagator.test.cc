@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/FieldPropagator.hh"
 
+#include <cmath>
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/Algorithms.hh"
@@ -114,6 +115,16 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
             return "[OUTSIDE]";
         }
         return this->geometry()->id_to_label(geo.volume_id()).name;
+    }
+
+    std::string surface_name(const GeoTrackView& geo) const
+    {
+        CELER_EXPECT(!CELERITAS_USE_VECGEOM);
+        if (!geo.is_on_boundary())
+        {
+            return "---";
+        }
+        return this->geometry()->id_to_label(geo.surface_id()).name;
     }
 
     template<class Field>
@@ -1019,23 +1030,57 @@ TEST_F(SimpleCmsTest, electron_stuck)
                                         MevEnergy{4.25402379798713e-01});
     UniformZField      field(1000);
     FieldDriverOptions driver_options;
-    constexpr int      max_iter = 1000;
 
     auto geo = this->init_geo(
         {-2.43293925496543e+01, -1.75522265870979e+01, 2.80918346435833e+02},
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
-    for (int i = 0; i < max_iter; ++i)
+    auto calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+    EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
+
     {
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, &geo);
         auto result = propagate(1000);
-        EXPECT_TRUE(geo.is_on_boundary());
-
-        if (result.boundary)
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
         {
-            geo.cross_boundary();
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
         }
+        EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
+        geo.cross_boundary();
+        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    }
+    {
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1000);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+        }
+        EXPECT_SOFT_EQ(30, calc_radius());
+        geo.cross_boundary();
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
+    }
+    {
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1000);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+        }
+        EXPECT_SOFT_EQ(30, calc_radius());
+        geo.cross_boundary();
+        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }
 }
 
