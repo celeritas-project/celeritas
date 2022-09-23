@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <fstream>
+#include <iomanip>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
@@ -20,6 +23,24 @@
 
 namespace celeritas
 {
+namespace detail
+{
+std::ofstream make_fstream()
+{
+    std::ofstream fout("debug-field-propagator.csv");
+    fout << 'x' << ',' << 'y' << ',' << 'z' << ',' << "step" << ','
+         << "action\n";
+    return fout;
+}
+
+std::ostream& debug_fstream()
+{
+    static std::ofstream out = make_fstream();
+    out << std::setprecision(15);
+    return out;
+}
+} // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Propagate a charged particle in a field.
@@ -131,6 +152,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     result_type result;
     result.distance = 0;
 
+    std::ostream& fout = detail::debug_fstream();
+    fout << geo_.pos()[0] << ',' << geo_.pos()[1] << ',' << geo_.pos()[2]
+         << ',' << step << ",start\n";
+
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
     // geometry boundary in each substep. This loop is guaranteed to converge
@@ -145,6 +170,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         CELER_ASSERT(substep.step <= remaining
                      || soft_equal(substep.step, remaining));
 
+        fout << substep.state.pos[0] << ',' << substep.state.pos[1] << ','
+             << substep.state.pos[2] << ',' << substep.step << ",proposed\n";
+
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
@@ -154,6 +182,12 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         geo_.set_dir(chord.dir);
         auto linear_step
             = geo_.find_next_step(chord.length + driver_.delta_intersection());
+
+        Real3 temp = geo_.pos();
+        axpy(linear_step.distance, chord.dir, &temp);
+        fout << temp[0] << ',' << temp[1] << ',' << temp[2] << ','
+             << linear_step.distance << ',';
+
         if (!linear_step.boundary)
         {
             // No boundary intersection along the chord: accept substep
@@ -164,6 +198,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
+            fout << "no_hit";
         }
         else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
                                 && geo_.is_on_boundary()))
@@ -172,6 +207,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
+            fout << "reentrant";
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
@@ -183,6 +219,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.boundary = true;
             result.distance += min(linear_step.distance, remaining);
             remaining = 0;
+            fout << "nearly_boundary";
         }
         else if (detail::is_intercept_close(state_.pos,
                                             chord.dir,
@@ -203,6 +240,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
             remaining  = 0;
+            fout << "barely_boundary";
         }
         else
         {
@@ -210,7 +248,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
             remaining = substep.step * linear_step.distance / chord.length;
+            fout << "too_far";
         }
+        fout << '\n';
     } while (remaining >= driver_.minimum_step());
 
     if (result.boundary)
