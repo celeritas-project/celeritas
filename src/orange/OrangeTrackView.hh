@@ -226,6 +226,7 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
     states_.vol[thread_]   = states_.vol[init.other.thread_];
     states_.surf[thread_]  = states_.surf[init.other.thread_];
     states_.sense[thread_] = states_.sense[init.other.thread_];
+    states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
     // Clear step and surface info
     this->clear_next_step();
