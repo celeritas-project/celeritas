@@ -953,27 +953,60 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
             distances.push_back(result.distance);
             substeps.push_back(stepper.count());
             stepper.reset_count();
+            if (!CELERITAS_USE_VECGEOM)
+            {
+                // Correct
+                EXPECT_EQ(std::string(i == 0 ? "inner" : "outer"),
+                          this->volume_name(geo));
+            }
+            else
+            {
+                // INCORRECT: vecgeom doesn't return zero/1e-8 distance
+                EXPECT_EQ("inner", this->volume_name(geo));
+            }
         }
     }
 
     // PRINT_EXPECTED(boundary);
     // PRINT_EXPECTED(distances);
     // PRINT_EXPECTED(substeps);
-    static const int expected_boundary[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    EXPECT_VEC_EQ(expected_boundary, boundary);
-    static const double expected_distances[] = {0.0078539816339744,
-                                                0.0028233449997633,
-                                                0.0044879895051283,
-                                                0.0028259703523794,
-                                                1e-05,
-                                                1e-05,
-                                                5e-09,
-                                                5e-09,
-                                                5e-12,
-                                                5e-12};
-    EXPECT_VEC_SOFT_EQ(expected_distances, distances);
-    static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
-    EXPECT_VEC_EQ(expected_substeps, substeps);
+
+    if (CELERITAS_USE_VECGEOM)
+    {
+        static const int expected_boundary[] = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
+        EXPECT_VEC_EQ(expected_boundary, boundary);
+        static const double expected_distances[] = {0.0078539816339744,
+                                                    0.0078539816339745,
+                                                    0.0044879895051283,
+                                                    0.0044879895051283,
+                                                    1e-05,
+                                                    6.25e-07,
+                                                    1e-08,
+                                                    5e-09,
+                                                    9.9937975537864e-12,
+                                                    5e-12};
+        EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+        static const int expected_substeps[] = {4, 4, 3, 3, 1, 4, 1, 1, 1, 1};
+        EXPECT_VEC_EQ(expected_substeps, substeps);
+    }
+    else
+    {
+        static const int expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+        EXPECT_VEC_EQ(expected_boundary, boundary);
+        static const double expected_distances[] = {0.0078539816339744,
+                                                    0.0028233449997633,
+                                                    0.0044879895051283,
+                                                    0.0028259703523794,
+                                                    1e-05,
+                                                    1e-05,
+                                                    1e-08,
+                                                    1e-08,
+                                                    9.9937975537864e-12,
+                                                    1e-11};
+        EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+        static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+        EXPECT_VEC_EQ(expected_substeps, substeps);
+    }
 }
 
 // Heuristic test: plotting points with finer propagation distance show a track
@@ -1150,8 +1183,12 @@ TEST_F(SimpleCmsTest, electron_stuck)
         if (!CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+            EXPECT_SOFT_EQ(30, calc_radius());
         }
-        EXPECT_SOFT_EQ(30, calc_radius());
+        else
+        {
+            EXPECT_SOFT_NEAR(30, calc_radius(), 1e-5);
+        }
         geo.cross_boundary();
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }

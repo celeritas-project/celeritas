@@ -183,9 +183,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         fout << substep.state.pos[0] << ',' << substep.state.pos[1] << ','
              << substep.state.pos[2] << ',' << substep.step << ",proposed\n";
 
-        // TODO: use safety distance to reduce number of calls to
-        // find_next_step
-
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
@@ -222,6 +219,16 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             geo_.move_internal(state_.pos);
             cout << " + advancing to substep end point" << endl;
             fout << "no_hit";
+        }
+        else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
+                                && geo_.is_on_boundary()))
+        {
+            // Likely heading back into the old volume when starting on a
+            // surface (this can happen when tracking through a volume at a
+            // near tangent). Reduce substep size and try again.
+            remaining = substep.step / 2;
+            cout << " + halving substep distance" << endl;
+            fout << "reentrant";
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
