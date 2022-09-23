@@ -184,6 +184,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
     states_.dir[thread_]   = init.dir;
     states_.surf[thread_]  = {};
     states_.sense[thread_] = {};
+    states_.boundary[thread_] = BoundaryResult::exiting;
 
     // Clear local data
     this->clear_next_step();
@@ -259,6 +260,12 @@ CELER_FUNCTION bool OrangeTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
+    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
+    {
+        // On a boundary, headed back in: next step is zero
+        return {0, true};
+    }
+
     if (!next_surface_ && next_step_ != no_intersection())
     {
         // Reset a previously found truncated distance
@@ -291,13 +298,15 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    if (next_step_ > max_step)
+    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
+    {
+        // On a boundary, headed back in: next step is zero
+        return {0, true};
+    }
+    else if (next_step_ > max_step)
     {
         // Cached next step is beyond the given step
-        Propagation result;
-        result.distance = max_step;
-        result.boundary = false;
-        return result;
+        return {max_step, false};
     }
     else if (!next_surface_ && next_step_ < max_step)
     {
@@ -344,6 +353,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
+    CELER_EXPECT(states_.boundary[thread_] != BoundaryResult::reentrant);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(next_surface_);
 
@@ -352,7 +362,6 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Move to the inside of the surface
     states_.surf[thread_]     = next_surface_.id();
     states_.sense[thread_]    = next_surface_.unchecked_sense();
-    states_.boundary[thread_] = BoundaryResult::exiting;
     this->clear_next_step();
 }
 
@@ -401,7 +410,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (states_.boundary[thread_] == BoundaryResult::reentrant)
+    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
@@ -425,10 +434,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
 
-    // Reset boundary crossing state: though cross boundary should only ever be
-    // called once, and this value should only ever be checked after a call to
-    // move-to-boundary?
-    states_.boundary[thread_] = BoundaryResult::reentrant;
+    // Reset boundary crossing state
+    states_.boundary[thread_] = BoundaryResult::exiting;
 
     CELER_ENSURE(this->is_on_boundary());
 }
