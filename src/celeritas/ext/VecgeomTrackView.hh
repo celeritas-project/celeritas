@@ -86,8 +86,11 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
     CELER_FORCEINLINE_FUNCTION int      volume_physid() const;
 
+    //!@{
     //! VecGeom states are never "on" a surface
     CELER_FUNCTION SurfaceId surface_id() const { return {}; }
+    CELER_FUNCTION SurfaceId next_surface_id() const { return {}; }
+    //!@}
 
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
