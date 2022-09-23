@@ -913,9 +913,10 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
     const real_type radius        = 0.01;
     const real_type miss_distance = 1e-4;
 
-    std::vector<int>       boundary;
-    std::vector<real_type> distances;
-    std::vector<int>       substeps;
+    std::vector<int>         boundary;
+    std::vector<real_type>   distances;
+    std::vector<int>         substeps;
+    std::vector<std::string> volumes;
 
     for (real_type dtheta : {pi / 4, pi / 7, 1e-3, 1e-6, 1e-9})
     {
@@ -930,10 +931,10 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
                       5 + miss_distance - radius + radius * sintheta,
                       0};
             Real3 dir{-sintheta, costheta, 0};
-            cout << "pos=" << pos << ", dir=" << dir << endl;
             this->init_geo(pos, dir);
         }
         auto geo = this->make_geo_view();
+        EXPECT_EQ("inner", this->volume_name(geo));
 
         EXPECT_SOFT_EQ(radius,
                        this->calc_field_curvature(particle, geo, field));
@@ -948,65 +949,46 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
         {
             SCOPED_TRACE(i);
             auto result = propagate(radius * dtheta);
+            if (result.boundary)
+            {
+                geo.cross_boundary();
+            }
 
             boundary.push_back(result.boundary);
             distances.push_back(result.distance);
             substeps.push_back(stepper.count());
+            volumes.push_back(this->volume_name(geo));
             stepper.reset_count();
-            if (!CELERITAS_USE_VECGEOM)
-            {
-                // Correct
-                EXPECT_EQ(std::string(i == 0 ? "inner" : "outer"),
-                          this->volume_name(geo));
-            }
-            else
-            {
-                // INCORRECT: vecgeom doesn't return zero/1e-8 distance
-                EXPECT_EQ("inner", this->volume_name(geo));
-            }
         }
     }
 
-    // PRINT_EXPECTED(boundary);
-    // PRINT_EXPECTED(distances);
-    // PRINT_EXPECTED(substeps);
+    static const int expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    EXPECT_VEC_EQ(expected_boundary, boundary);
+    static const double expected_distances[] = {0.0078539816339744,
+                                                0.0028233449997633,
+                                                0.0044879895051283,
+                                                0.0028259703523794,
+                                                1e-05,
+                                                1e-05,
+                                                1e-08,
+                                                1e-08,
+                                                9.9937975537864e-12,
+                                                1e-11};
+    EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+    static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
 
-    if (CELERITAS_USE_VECGEOM)
-    {
-        static const int expected_boundary[] = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
-        EXPECT_VEC_EQ(expected_boundary, boundary);
-        static const double expected_distances[] = {0.0078539816339744,
-                                                    0.0078539816339745,
-                                                    0.0044879895051283,
-                                                    0.0044879895051283,
-                                                    1e-05,
-                                                    6.25e-07,
-                                                    1e-08,
-                                                    5e-09,
-                                                    9.9937975537864e-12,
-                                                    5e-12};
-        EXPECT_VEC_SOFT_EQ(expected_distances, distances);
-        static const int expected_substeps[] = {4, 4, 3, 3, 1, 4, 1, 1, 1, 1};
-        EXPECT_VEC_EQ(expected_substeps, substeps);
-    }
-    else
-    {
-        static const int expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
-        EXPECT_VEC_EQ(expected_boundary, boundary);
-        static const double expected_distances[] = {0.0078539816339744,
-                                                    0.0028233449997633,
-                                                    0.0044879895051283,
-                                                    0.0028259703523794,
-                                                    1e-05,
-                                                    1e-05,
-                                                    1e-08,
-                                                    1e-08,
-                                                    9.9937975537864e-12,
-                                                    1e-11};
-        EXPECT_VEC_SOFT_EQ(expected_distances, distances);
-        static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
-        EXPECT_VEC_EQ(expected_substeps, substeps);
-    }
+    EXPECT_VEC_EQ(expected_substeps, substeps);
+    static const char* expected_volumes[] = {"world",
+                                             "inner",
+                                             "world",
+                                             "inner",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world"};
+    EXPECT_VEC_EQ(expected_volumes, volumes);
 }
 
 // Heuristic test: plotting points with finer propagation distance show a track
