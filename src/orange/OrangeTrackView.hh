@@ -429,8 +429,15 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     // Update the post-crossing volume
     SimpleUnitTracker tracker(params_);
     auto              init = tracker.cross_boundary(local);
-    // TODO: error correction/graceful failure if initialization failed
     CELER_ASSERT(init.volume);
+    if (!CELERITAS_DEBUG && CELER_UNLIKELY(!init.volume))
+    {
+        // Initialization failure on release mode: set to exterior volume
+        // rather than segfaulting
+        // TODO: error correction or more graceful failure than losing energy
+        init.volume  = VolumeId{0};
+        init.surface = {};
+    }
     states_.vol[thread_]   = init.volume;
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
