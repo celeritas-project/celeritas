@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/FieldPropagator.hh"
 
+#include <cmath>
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/Algorithms.hh"
@@ -116,6 +117,16 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
         return this->geometry()->id_to_label(geo.volume_id()).name;
     }
 
+    std::string surface_name(const GeoTrackView& geo) const
+    {
+        CELER_EXPECT(!CELERITAS_USE_VECGEOM);
+        if (!geo.is_on_boundary())
+        {
+            return "---";
+        }
+        return this->geometry()->id_to_label(geo.surface_id()).name;
+    }
+
     template<class Field>
     real_type calc_field_curvature(const ParticleTrackView& particle,
                                    const GeoTrackView&      geo,
@@ -148,6 +159,11 @@ class TwoBoxTest : public FieldPropagatorTestBase
 class LayersTest : public FieldPropagatorTestBase
 {
     const char* geometry_basename() const override { return "field-test"; }
+};
+
+class SimpleCmsTest : public FieldPropagatorTestBase
+{
+    const char* geometry_basename() const override { return "simple-cms"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -887,6 +903,94 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     }
 }
 
+// Electron barely crosses boundary
+TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10});
+
+    UniformZField   field(unit_radius_field_strength * 100);
+    const real_type radius        = 0.01;
+    const real_type miss_distance = 1e-4;
+
+    std::vector<int>         boundary;
+    std::vector<real_type>   distances;
+    std::vector<int>         substeps;
+    std::vector<std::string> volumes;
+
+    for (real_type dtheta : {pi / 4, pi / 7, 1e-3, 1e-6, 1e-9})
+    {
+        SCOPED_TRACE(dtheta);
+        {
+            // Angle of intercept with boundary
+            real_type tint = std::asin((radius - miss_distance) / radius);
+            const real_type sintheta = std::sin(tint - dtheta);
+            const real_type costheta = std::cos(tint - dtheta);
+
+            Real3 pos{radius * costheta,
+                      5 + miss_distance - radius + radius * sintheta,
+                      0};
+            Real3 dir{-sintheta, costheta, 0};
+            this->init_geo(pos, dir);
+        }
+        auto geo = this->make_geo_view();
+        EXPECT_EQ("inner", this->volume_name(geo));
+
+        EXPECT_SOFT_EQ(radius,
+                       this->calc_field_curvature(particle, geo, field));
+
+        // Build propagator
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        FieldDriverOptions driver_options;
+        auto               propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        for (int i : range(2))
+        {
+            SCOPED_TRACE(i);
+            auto result = propagate(radius * dtheta);
+            if (result.boundary)
+            {
+                geo.cross_boundary();
+            }
+
+            boundary.push_back(result.boundary);
+            distances.push_back(result.distance);
+            substeps.push_back(stepper.count());
+            volumes.push_back(this->volume_name(geo));
+            stepper.reset_count();
+        }
+    }
+
+    static const int expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    EXPECT_VEC_EQ(expected_boundary, boundary);
+    static const double expected_distances[] = {0.0078539816339744,
+                                                0.0028233449997633,
+                                                0.0044879895051283,
+                                                0.0028259703523794,
+                                                1e-05,
+                                                1e-05,
+                                                1e-08,
+                                                1e-08,
+                                                9.9937975537864e-12,
+                                                1e-11};
+    EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+    static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+
+    EXPECT_VEC_EQ(expected_substeps, substeps);
+    static const char* expected_volumes[] = {"world",
+                                             "inner",
+                                             "world",
+                                             "inner",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world",
+                                             "world"};
+    EXPECT_VEC_EQ(expected_volumes, volumes);
+}
+
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
 TEST_F(TwoBoxTest, nonuniform_field)
@@ -1004,6 +1108,72 @@ TEST_F(LayersTest, revolutions_through_cms_field)
         }
     }
     EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SimpleCmsTest, electron_stuck)
+{
+    auto particle = this->init_particle(this->particle()->find(pdg::electron()),
+                                        MevEnergy{4.25402379798713e-01});
+    UniformZField      field(1000);
+    FieldDriverOptions driver_options;
+
+    auto geo = this->init_geo(
+        {-2.43293925496543e+01, -1.75522265870979e+01, 2.80918346435833e+02},
+        {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
+
+    auto calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+    EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
+
+    {
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1000);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+        }
+        EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
+        geo.cross_boundary();
+        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    }
+    {
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1000);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+        }
+        EXPECT_SOFT_EQ(30, calc_radius());
+        geo.cross_boundary();
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
+    }
+    {
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1000);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        ASSERT_TRUE(geo.is_on_boundary());
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ("guide_tube.coz", this->surface_name(geo));
+            EXPECT_SOFT_EQ(30, calc_radius());
+        }
+        else
+        {
+            EXPECT_SOFT_NEAR(30, calc_radius(), 1e-5);
+        }
+        geo.cross_boundary();
+        EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    }
 }
 
 //---------------------------------------------------------------------------//

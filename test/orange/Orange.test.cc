@@ -270,7 +270,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(SurfaceId{0}, geo.surface_id());
 }
 
-// Leaving the voume almost at a tangent, but magnetic field changes direction
+// Leaving the volume almost at a tangent, but magnetic field changes direction
 // on boundary so it ends up heading back in
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
@@ -380,6 +380,58 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
         geo.cross_boundary();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+}
+
+// After leaving the volume almost at a tangent, change direction before moving
+// as part of the field propagation algorithm.
+TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
+{
+    auto geo = this->make_track_view();
+    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+
+    {
+        // Find distance
+        Propagation next = geo.find_next_step();
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
+    }
+    {
+        // Move to boundary
+        geo.move_to_boundary();
+        EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
+        EXPECT_EQ(VolumeId{1}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+
+        // Cross into new volume
+        geo.cross_boundary();
+        EXPECT_EQ(VolumeId{0}, geo.volume_id());
+        EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Propose direction on boundary so we're heading back into volume 0
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.set_dir({-1, 0, 0});
+
+        // Find distance
+        Propagation next = geo.find_next_step();
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(0, next.distance);
+
+        // Propose a new direction but still headed back inside
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.set_dir({-sqrt_two / 2, sqrt_two / 2, 0});
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(0, next.distance);
+
+        // Propose a new direction headed outside again
+        EXPECT_TRUE(geo.is_on_boundary());
+        geo.set_dir({0, 1, 0});
+        next = geo.find_next_step();
+        EXPECT_FALSE(next.boundary);
+        EXPECT_SOFT_EQ(inf, next.distance);
     }
 }
 

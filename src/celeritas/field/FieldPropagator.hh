@@ -145,9 +145,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         CELER_ASSERT(substep.step <= remaining
                      || soft_equal(substep.step, remaining));
 
-        // TODO: use safety distance to reduce number of calls to
-        // find_next_step
-
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
 
@@ -167,6 +164,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
+        }
+        else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
+                                && geo_.is_on_boundary()))
+        {
+            // Likely heading back into the old volume when starting on a
+            // surface (this can happen when tracking through a volume at a
+            // near tangent). Reduce substep size and try again.
+            remaining = substep.step / 2;
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
