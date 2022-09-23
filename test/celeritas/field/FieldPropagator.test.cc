@@ -903,6 +903,79 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
     }
 }
 
+// Electron barely crosses boundary
+TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{10});
+
+    UniformZField   field(unit_radius_field_strength * 100);
+    const real_type radius        = 0.01;
+    const real_type miss_distance = 1e-4;
+
+    std::vector<int>       boundary;
+    std::vector<real_type> distances;
+    std::vector<int>       substeps;
+
+    for (real_type dtheta : {pi / 4, pi / 7, 1e-3, 1e-6, 1e-9})
+    {
+        SCOPED_TRACE(dtheta);
+        {
+            // Angle of intercept with boundary
+            real_type tint = std::asin((radius - miss_distance) / radius);
+            const real_type sintheta = std::sin(tint - dtheta);
+            const real_type costheta = std::cos(tint - dtheta);
+
+            Real3 pos{radius * costheta,
+                      5 + miss_distance - radius + radius * sintheta,
+                      0};
+            Real3 dir{-sintheta, costheta, 0};
+            cout << "pos=" << pos << ", dir=" << dir << endl;
+            this->init_geo(pos, dir);
+        }
+        auto geo = this->make_geo_view();
+
+        EXPECT_SOFT_EQ(radius,
+                       this->calc_field_curvature(particle, geo, field));
+
+        // Build propagator
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        FieldDriverOptions driver_options;
+        auto               propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        for (int i : range(2))
+        {
+            SCOPED_TRACE(i);
+            auto result = propagate(radius * dtheta);
+
+            boundary.push_back(result.boundary);
+            distances.push_back(result.distance);
+            substeps.push_back(stepper.count());
+            stepper.reset_count();
+        }
+    }
+
+    // PRINT_EXPECTED(boundary);
+    // PRINT_EXPECTED(distances);
+    // PRINT_EXPECTED(substeps);
+    static const int expected_boundary[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    EXPECT_VEC_EQ(expected_boundary, boundary);
+    static const double expected_distances[] = {0.0078539816339744,
+                                                0.0028233449997633,
+                                                0.0044879895051283,
+                                                0.0028259703523794,
+                                                1e-05,
+                                                1e-05,
+                                                5e-09,
+                                                5e-09,
+                                                5e-12,
+                                                5e-12};
+    EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+    static const int expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
+    EXPECT_VEC_EQ(expected_substeps, substeps);
+}
+
 // Heuristic test: plotting points with finer propagation distance show a track
 // with decreasing radius
 TEST_F(TwoBoxTest, nonuniform_field)
