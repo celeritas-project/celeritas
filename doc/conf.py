@@ -14,13 +14,13 @@ from pathlib import Path
 project = 'Celeritas'
 all_authors = [
  'Seth R Johnson',
- # Remaining authors in alphabetical order
+ # Remaining core team in alphabetical order
+ 'Philippe Canal',
  'Tom Evans',
  'Soon Yung Jun',
  'Guilherme Lima',
  'Amanda Lund',
- 'Ben Morgan',
- 'Vince Pascuzzi',
+ 'Paul Romano',
  'Stefano C Tognini',
 ]
 author = " and ".join(all_authors)

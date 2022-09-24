@@ -8,9 +8,18 @@
 Development Guide
 *****************
 
+The agility, extensibility, and performance of Celeritas depend strongly on
+software infrastructure and best practices. This appendix describes how to
+modify and extend the codebase.
 
-Guiding principles
-==================
+.. include:: ../../CONTRIBUTING.rst
+
+
+Code development guidelines
+===========================
+
+These are a list of recommendations when writing new code.
+
 
 Maximize encapsulation
 ----------------------
@@ -43,7 +52,7 @@ Applications:
 Examples:
 
 - Random number sampling: write a unit sphere sampling functor instead of
-  replicating a polar-to-cartesian transform in a thousand places.
+  replicating a polar-to-Cartesian transform in a thousand places.
 - Cell IDs: Opaque IDs add type safety so that you can't accidentally convert a
   cell identifier into a double or switch a cell and material ID. It also makes
   code more readable of course.
@@ -52,7 +61,8 @@ Examples:
 Maximize code reuse
 -------------------
 
-No explanation needed.
+Duplicating code means potentially duplicating bugs, duplicating the amount of
+work needed when refactoring, and missing optimizations.
 
 
 Minimize compile time
@@ -60,15 +70,18 @@ Minimize compile time
 
 Code performance is important but so is developer time. When possible,
 minimize the amount of code touched by NVCC. (NVCC's error output is also
-rudimentary compared to modern clang/gcc, so that's another reason to prefer
+rudimentary compared to modern clang/GCC, so that's another reason to prefer
 them compiling your code.)
+
 
 Prefer single-state classes
 ---------------------------
 
 As much as possible, make classes "complete" and valid after calling the
-constructor. Don't have a series of functions that have to be called in a
-specific order to put the class in a workable state.  (And when it is not possible,  code must be put in place to automatically detect (and warn the developer) if the specific order is not respected).
+constructor. Try to avoid "finalize" functions that have to be called in a
+specific order to put the class in a workable state. If a finalize function
+*is* used, implement assertions to detect and warn the developer if the
+required order is not respected.
 
 When a class has a single function (especially if you name that function
 ``operator()``), its usage is obvious. The reader also doesn't have to know
@@ -77,6 +90,7 @@ whether a class uses ``doIt`` or ``do_it`` or ``build``.
 When you have a class that needs a lot of data to start in a valid state, use a
 ``struct`` of intuitive objects to pass the data to the class's constructor.
 The constructor can do any necessary validation on the input data.
+
 
 Learn from the pros
 -------------------
@@ -97,9 +111,9 @@ Test thoroughly
 Functions should use programmatic assertions whenever assumptions are made:
 
 - Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
-  incoming data or initial internal states
+  incoming data or initial internal states.
 - Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
-  "this index is not out of range of the array")
+  "this index is not out of range of the array").
 - Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
   function and side effects resulting from the function.
 
@@ -118,6 +132,7 @@ Implementation detail classes (in the ``celeritas::detail`` namespace, in
 testing the detail classes is a good way to simplify edge case testing compared
 to testing the higher-level code.
 
+
 Style guidelines
 ================
 
@@ -132,6 +147,8 @@ became the style standard for the GPU-enabled Monte Carlo code `Shift`_.
 .. _Tom Evans: https://github.com/tmdelellis
 .. _Shift: https://doi.org/10.1016/j.anucene.2019.01.012
 
+.. _formatting:
+
 Formatting
 ----------
 
@@ -141,10 +158,14 @@ code windows to be open side-by-side. Generally, statements longer than 80
 columns should be broken into sub-expressions for improved readability anyway
 -- the ``auto`` keyword can help a lot with this.
 
+Run ``scripts/dev/install-commit-hooks.sh`` to to install a git post-commit hook
+that will amend each commit with clang-format updates if necessary.
+
 There's a certain amount of decorations (separators, Doxygen comment structure,
 etc.) that is standard throughout the code. Use the ``celeritas-gen.py`` script
 (in the ``scripts/dev`` directory) to generate skeletons for new files, and use
 existing source code as a guide to how to structure the decorations.
+
 
 Symbol names
 ------------
@@ -161,14 +182,15 @@ verb. For example::
    ModelEvaluator evaluate_something(parameters...);
    auto result = evaluate_something(arguments...);
 
-There are many opportunities to use `OpaqueId` in GPU code to indicate
+There are many opportunities to use ``OpaqueId`` in GPU code to indicate
 indexing into particular vectors. To maintain consistency, we let an
-index into a vector of `Foo` have a corresponding OpaqueId type::
+index into a vector of ``Foo`` have a corresponding ``OpaqueId``  type::
 
     using FooId = OpaqueId<Foo>;
 
-and ideally be defined either immediately after `Foo` or in a `Types.hh` file.
-Some OpaqueId types may have only a "symbolic" corresponding type, in which case
+and ideally be defined either immediately after ``Foo`` or in a
+:file:`Types.hh` file.  Some ``OpaqueId`` types may have only a "symbolic"
+corresponding type, in which case
 a tag struct can be be defined inline::
 
    using BarId = OpaqueId<struct Bar>;
@@ -207,6 +229,7 @@ Some files have special extensions:
   should be provided there as well.
 - ``.test.cc`` are unit test executables corresponding to the main ``.cc``
   file. These should only be in the main ``/test`` directory.
+
 
 Device compilation
 ------------------
@@ -259,6 +282,7 @@ to the context or meaning (e.g. `c_light` or `h_planck`).
 Use scoped enumerations (``enum class``) where possible (named like classes) so
 their values can safely be named like member variables (lowercase with
 underscores).
+
 
 Function arguments and return values
 ------------------------------------
@@ -321,6 +345,7 @@ with the standard library. (It's also possible to have ``template <typename``
 where ``typename`` *doesn't* mean a class: namely,
 ``template <typename U::value_type Value>``.)
 
+
 Data management
 ===============
 
@@ -377,8 +402,4 @@ View
    on both the state and parameters. For example, momentum depends on both the
    mass of a particle (constant, set by the model) and the speed (variable,
    depends on particle track state).
-
-
-.. include:: ../../CONTRIBUTING.rst
-
 
