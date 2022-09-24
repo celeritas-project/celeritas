@@ -10,7 +10,31 @@ developed primarily by a group of U.S. Department of Energy subcontractors, our
 goal is to increase community involvement and integration over time. We welcome
 your contributions!
 
-.. note:: This document is a work in progress.
+
+Copyright
+---------
+
+All submissions to the Celeritas project are automatically licensed under the
+terms of [the project copyright](COPYRIGHT) as formalized by the [GitHub terms
+of service](https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license).
+
+
+Development prerequisites
+-------------------------
+
+To meet the :ref:`formatting` requirements described in the development guide,
+make sure that `clang-format`_ is installed on your development
+Run ``scripts/dev/install-commit-hooks.sh`` to to install a git post-commit hook
+that will amend each commit with clang-format updates if necessary.
+
+A mostly consistent set of decorations (separators, Doxygen comment structure,
+etc.) are used throughout the code, so try to make new files look like existing
+ones. Use the ``celeritas-gen.py`` script (in the ``scripts/dev`` directory) to
+generate skeletons for new files, and use existing source code as a guide to
+how to structure the decorations.
+
+.. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
+
 
 Pull request process
 --------------------
@@ -48,11 +72,12 @@ For example, some of the configurations currently fail due to disk space issues.
 Since there are few enough merge requests these days, only Maintainers may
 commit a merge.
 
+
 Ownership and Authorship
 ------------------------
 
-The person who writes a line of code is its author. However, Celeritas is a
-collaborative project with collective ownership: as much as possible, there
-should be a shared responsibility for the code. If the code is reviewed
-according to the guidelines above, at least two people should always be
-comfortable modifying any piece of code.
+The person who writes a line of code is its author but not its owner.
+Celeritas is a collaborative project with collective ownership: as much as
+possible, there should be a shared responsibility for the code.
+If the code is reviewed according to the guidelines above, at least two people
+should always be comfortable modifying any piece of code.
