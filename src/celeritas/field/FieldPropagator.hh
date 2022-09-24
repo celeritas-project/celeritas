@@ -160,7 +160,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // movement inside the current volume and reset the remaining
             // distance so we can continue toward the next boundary or end of
             // caller-requested step.
-            state_ = substep.state;
+            result.boundary = false;
+            state_          = substep.state;
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
@@ -171,7 +172,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again.
-            remaining = substep.step / 2;
+            result.boundary = true;
+            remaining       = substep.step / 2;
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
@@ -233,7 +235,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     normalize_direction(&dir);
     geo_.set_dir(dir);
 
-    CELER_ENSURE(result.distance >= 0 && result.distance <= step);
+    CELER_ENSURE(result.boundary == geo_.is_on_boundary());
+    CELER_ENSURE(result.distance > 0 && result.distance <= step);
     return result;
 }
 
