@@ -147,6 +147,7 @@ became the style standard for the GPU-enabled Monte Carlo code `Shift`_.
 .. _Tom Evans: https://github.com/tmdelellis
 .. _Shift: https://doi.org/10.1016/j.anucene.2019.01.012
 
+
 .. _formatting:
 
 Formatting
@@ -194,6 +195,7 @@ corresponding type, in which case
 a tag struct can be be defined inline::
 
    using BarId = OpaqueId<struct Bar>;
+
 
 File names
 ----------
@@ -373,16 +375,16 @@ State (state variables)
   respect to a corresponding model (``FooParams``).
 
 TrackView
-  Device-instantiable class that provides read/write access to the data for a
+  Device-friendly class that provides read/write access to the data for a
   single track, in the spirit of `std::string_view` which adds functionality to
   data owned by someone else. It combines the state variables and model
   parameters into a single class. The constructor always takes const references
-  to ParamsData and StatePointers as well as the track ID. It encapsulates
+  to ParamsData and StateData as well as the track ID. It encapsulates
   the storage/layout of the state and parameters, as well as what (if any) data
   is cached in the state.
 
 View
-  Device-instantiable class with read/write access for data shared across
+  Device-friendly class with read/write access for data shared across
   threads.  For example, allocation for Secondary particles is performed on
   device, but the data is not specific to a thread.
 
@@ -390,8 +392,8 @@ View
 
    Consider the following example.
 
-   All SM physics particles share a common set of properties such as mass,
-   charge; and each instance of particle has a particular set of
+   All SM physics particles share a common set of properties such as mass and
+   charge, and each instance of particle has a particular set of
    associated variables such as kinetic energy. The shared data (SM parameters)
    reside in ``ParticleParams``, and the particle track properties are managed
    by a ``ParticleStateStore`` class.
