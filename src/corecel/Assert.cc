@@ -221,7 +221,6 @@ RuntimeError::RuntimeError(RuntimeErrorDetails d)
     : std::runtime_error(build_runtime_error_msg(d)), details_(std::move(d))
 {
 }
-//!@}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

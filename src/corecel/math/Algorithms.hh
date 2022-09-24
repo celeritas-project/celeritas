@@ -106,12 +106,13 @@ struct Less<void>
  *
  * This replaces:
  * \code
- *  min(hi, max(lo, v))
+   min(hi, max(lo, v))
  * \endcode
  * or
  * \code
- *  max(v, min(v, lo))
+   max(v, min(v, lo))
  * \endcode
+ * assuming that the relationship between \c lo and \c hi holds.
  */
 template<class T>
 inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)

@@ -29,7 +29,7 @@ This is a bug-fixing patch that addresses a few outstanding build issues,
 targeted at making it easier to run and debug the regression problem suite.
 
 New features
----------
+------------
 
 * Save JSON exception output if demo loop fails by *(@sethrj, #507)*
 

@@ -63,14 +63,14 @@ namespace celeritas
  *   of threads)
  * - A free function \c resize with one of two signatures:
  * \code
-void resize(
-    StateData<Ownership::value, M>*                               data,
-    const HostCRef<ParamsData>& params,
-    size_type                                                     size);
-// or...
-void resize(
-    StateData<Ownership::value, M>* data,
-    size_type                       size);
+   void resize(
+       StateData<Ownership::value, M>* data,
+       const HostCRef<ParamsData>&     params,
+       size_type                       size);
+   // or...
+   void resize(
+       StateData<Ownership::value, M>* data,
+       size_type                       size);
  * \endcode
  *
  * By convention, related groups of collections are stored in a header file
@@ -110,18 +110,18 @@ using ItemId = OpaqueId<T, size_type>;
  * supposed to be indexed into with a particular ID type.
  *
  * \code
- * struct MyMaterial
- * {
- *     real_type number_density;
- *     ItemRange<ElementComponents> components;
- * };
- *
- * template<Ownership W, MemSpace M>
- * struct MyData
- * {
- *     Collection<ElementComponents, W, M> components;
- *     Collection<MyMaterial, W, M> materials;
- * };
+   struct MyMaterial
+   {
+       real_type number_density;
+       ItemRange<ElementComponents> components;
+   };
+
+   template<Ownership W, MemSpace M>
+   struct MyData
+   {
+       Collection<ElementComponents, W, M> components;
+       Collection<MyMaterial, W, M> materials;
+   };
  * \endcode
  */
 template<class T, class Size = size_type>
