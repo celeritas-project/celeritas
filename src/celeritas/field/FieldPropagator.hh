@@ -28,7 +28,7 @@ namespace celeritas
  * particle along a curved trajectory up to an interaction length proposed by
  * a chosen physics process for the step, possibly integrating sub-steps by
  * an adaptive step control with a required accuracy of tracking in a
- * field and updates the final state (position, momentum) along with
+ * field. It updates the final state (position, momentum, boundary) along with
  * the step actually taken.  If the final position is outside the current
  * volume, it returns a geometry limited step and the state at the
  * intersection between the curve trajectory and the first volume boundary
@@ -103,9 +103,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()() -> result_type
 /*!
  * Propagate a charged particle in a field.
  *
- * It utilises a field driver based on an adaptive step
- * control to track a charged particle until it travels along a curved
- * trajectory for a given step length within a required accuracy or intersects
+ * It utilises a field driver (based on an adaptive step control to limit the
+ * length traveled based on the magnetic field behavior and geometric
+ * tolerances) to track a charged particle along a curved trajectory for a
+ * given step length within a required accuracy or intersects
  * with a new volume (geometry limited step).
  *
  * The position of the internal OdeState `state_` should be consistent with the
