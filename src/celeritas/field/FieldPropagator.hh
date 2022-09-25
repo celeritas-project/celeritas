@@ -59,6 +59,9 @@ class FieldPropagator
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
+    //! Limit on substeps
+    static CELER_CONSTEXPR_FUNCTION int max_substeps() { return 128; }
+
   private:
     //// DATA ////
 
@@ -137,6 +140,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
+    int       remaining_substeps = this->max_substeps();
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -168,6 +172,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
+            --remaining_substeps;
         }
         else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
                                 && geo_.is_on_boundary()))
@@ -218,14 +223,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // fraction along the chord, and retry the driver step.
             remaining = substep.step * linear_step.distance / chord.length;
         }
-    } while (remaining >= driver_.minimum_step());
+    } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
     if (result.boundary)
     {
         geo_.move_to_boundary();
         state_.pos = geo_.pos();
     }
-    else if (remaining > 0)
+    else if (remaining > 0 && remaining_substeps > 0)
     {
         // Bad luck with substep accumulation or possible very small initial
         // value for "step". Return that we've moved this tiny amount (for e.g.

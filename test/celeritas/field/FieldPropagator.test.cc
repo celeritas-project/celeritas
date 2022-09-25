@@ -1214,13 +1214,12 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(2.12621374950874703e+21);
+        EXPECT_SOFT_EQ(14.946488966946923, result.distance);
+        EXPECT_FALSE(result.boundary);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
-        EXPECT_SOFT_EQ(125.04595517211715, calc_radius());
-        EXPECT_EQ(503784, stepper.count());
-        ASSERT_TRUE(geo.is_on_boundary());
-        geo.cross_boundary();
-        EXPECT_EQ("world", this->volume_name(geo));
+        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-4);
+        EXPECT_EQ(9984, stepper.count());
     }
 }
 
