@@ -15,7 +15,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "Transporter.hh"
 

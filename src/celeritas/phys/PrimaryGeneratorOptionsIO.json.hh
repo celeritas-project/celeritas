@@ -9,7 +9,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "PrimaryGenerator.hh"
+#include "PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
