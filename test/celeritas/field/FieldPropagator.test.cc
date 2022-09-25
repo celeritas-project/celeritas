@@ -1176,6 +1176,51 @@ TEST_F(SimpleCmsTest, electron_stuck)
     }
 }
 
+TEST_F(SimpleCmsTest, vecgeom_failure)
+{
+    UniformZField      field(1000);
+    FieldDriverOptions driver_options;
+    auto               geo = this->init_geo({1.23254142755319734e+02,
+                                             -2.08186543568394598e+01,
+                                             -4.08262349901495583e+01},
+                              {-2.59700373666105766e-01,
+                                             -8.11661685885768147e-01,
+                                             -5.23221772848529443e-01});
+    auto               calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+    {
+        auto particle
+            = this->init_particle(this->particle()->find(pdg::electron()),
+                                  MevEnergy{3.27089632881079409e-02});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(1.39170198361108938e-05);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
+        geo.set_dir({-1.31178657592616127e-01,
+                     -8.29310561920304168e-01,
+                     -5.43172303859124073e-01});
+        ASSERT_TRUE(geo.is_on_boundary());
+        geo.cross_boundary();
+        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+    }
+    {
+        auto particle
+            = this->init_particle(this->particle()->find(pdg::electron()),
+                                  MevEnergy{3.25917780979408864e-02});
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(2.12621374950874703e+21);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        EXPECT_SOFT_EQ(125.04595517211715, calc_radius());
+        ASSERT_TRUE(geo.is_on_boundary());
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->volume_name(geo));
+    }
+}
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas
