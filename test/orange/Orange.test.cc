@@ -235,16 +235,22 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     }
     {
-        // Scatter on boundary so we're heading back into volume 0
+        // Scatter on boundary so we're heading back into volume 1
         geo.set_dir({-1, 0, 0});
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     }
     {
-        // Cross into new volume
+        // Cross back into volume
         geo.cross_boundary();
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    }
+    {
+        // Find next distance
+        Propagation next = geo.find_next_step();
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(2.98, next.distance);
     }
 }
 
@@ -269,7 +275,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     }
     {
-        // Scatter on boundary so we're still leaving volume 0
+        // Scatter on boundary so we're still leaving volume 1
         geo.set_dir({1, 0, 0});
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
@@ -306,7 +312,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     }
     {
-        // Scatter on boundary so we're heading back into volume 0
+        // Scatter on boundary so we're heading back into volume 1
         geo.set_dir({-1, 0, 0});
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
@@ -353,7 +359,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
     }
     {
-        // Propose direction on boundary so we're heading back into volume 0
+        // Propose direction on boundary so we're heading back into volume 1
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({-1, 0, 0});
 
@@ -365,6 +371,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         // Propose a new direction but still headed back inside
         EXPECT_TRUE(geo.is_on_boundary());
         geo.set_dir({-sqrt_two / 2, sqrt_two / 2, 0});
+        next = geo.find_next_step();
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0, next.distance);
 
