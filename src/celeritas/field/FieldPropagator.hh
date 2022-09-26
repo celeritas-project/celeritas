@@ -159,9 +159,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // No boundary intersection along the chord: accept substep
             // movement inside the current volume and reset the remaining
             // distance so we can continue toward the next boundary or end of
-            // caller-requested step.
-            result.boundary = false;
+            // caller-requested step. Reset the boundary flag to "false" only
+            // in the unlikely case that we successfully shortened the substep
+            // on a reentrant boundary crossing below.
             state_          = substep.state;
+            result.boundary = false;
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
@@ -171,7 +173,9 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
-            // near tangent). Reduce substep size and try again.
+            // near tangent). Reduce substep size and try again. Assume a
+            // boundary crossing if repeated bisection of the substep fails to
+            // converge.
             result.boundary = true;
             remaining       = substep.step / 2;
         }
