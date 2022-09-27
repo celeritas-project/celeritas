@@ -52,4 +52,5 @@ requirements of LHC-HL upgrade.
 
    appendices/release-history.rst
    appendices/development.rst
+   appendices/administration.rst
    appendices/license.rst

@@ -15,10 +15,55 @@ modify and extend the codebase.
 .. include:: ../../CONTRIBUTING.rst
 
 
+.. _code_guidelines:
+
 Code development guidelines
 ===========================
 
-These are a list of recommendations when writing new code.
+Every new piece of code is a commitment for you and other developers to
+maintain it in the future (or delete it if obsolete). There are numerous
+considerations to making code easier to update or understand, including testing
+and documentation.
+
+
+Document implicitly and explicitly
+----------------------------------
+
+Code should be self-documenting as far as possible (see details below for
+naming conventions). This means that variable names, function names, and
+function arguments should be as "obvious" as possible. Take particular care
+with constants that appear in physics implementations. They should
+be multiplied by units in the native Celeritas unit system if applicable, or
+defined as ``Quantity`` instances. The numerical value of the constant must
+also be documented with a paper citation or other comment.
+
+
+Test thoroughly
+---------------
+
+Functions should use programmatic assertions whenever assumptions are made:
+
+- Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
+  incoming data or initial internal states.
+- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
+  "this index is not out of range of the array").
+- Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
+  function and side effects resulting from the function.
+
+Additionally, user-provided data and potentially volatile runtime conditions
+(such as the presence of an environment variable) should be checked with
+the ``CELER_VALIDATE(x, << "streamable message")`` macro. See :ref:`corecel`
+for more details about these macros.
+
+Each class must be thoroughly tested with an independent unit test in the
+`test` directory.  For complete coverage, each function of the class must have
+at least as many tests as the number of possible code flow paths (cyclomatic
+complexity).
+
+Implementation detail classes (in the ``celeritas::detail`` namespace, in
+``detail/`` subdirectories) are exempt from the testing requirement, but
+testing the detail classes is a good way to simplify edge case testing compared
+to testing the higher-level code.
 
 
 Maximize encapsulation
@@ -57,12 +102,9 @@ Examples:
   cell identifier into a double or switch a cell and material ID. It also makes
   code more readable of course.
 
-
-Maximize code reuse
--------------------
-
-Duplicating code means potentially duplicating bugs, duplicating the amount of
-work needed when refactoring, and missing optimizations.
+Encapsulation is also useful for code reuse. Always avoid copy-pasting code, as
+it means potentially duplicating bugs, duplicating the amount of work needed
+when refactoring, and missing optimizations.
 
 
 Minimize compile time
@@ -105,33 +147,7 @@ offers good suggestions.
 .. _Google style guide: https://google.github.io/styleguide/cppguide.html
 
 
-Test thoroughly
----------------
-
-Functions should use programmatic assertions whenever assumptions are made:
-
-- Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
-  incoming data or initial internal states.
-- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
-  "this index is not out of range of the array").
-- Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
-  function and side effects resulting from the function.
-
-Additionally, user-provided data and potentially volatile runtime conditions
-(such as the presence of an environment variable) should be checked with
-the ``CELER_VALIDATE(x, << "streamable message")`` macro. See :ref:`corecel`
-for more details about these macros.
-
-Each class must be thoroughly tested with an independent unit test in the
-`test` directory.  For complete coverage, each function of the class must have
-at least as many tests as the number of possible code flow paths (cyclomatic
-complexity).
-
-Implementation detail classes (in the ``celeritas::detail`` namespace, in
-``detail/`` subdirectories) are exempt from the testing requirement, but
-testing the detail classes is a good way to simplify edge case testing compared
-to testing the higher-level code.
-
+.. _style_guidelines:
 
 Style guidelines
 ================
@@ -157,15 +173,13 @@ Formatting is determined by the clang-format file inside the top-level
 directory. One key restriction is the 80-column limit, which enables multiple
 code windows to be open side-by-side. Generally, statements longer than 80
 columns should be broken into sub-expressions for improved readability anyway
--- the ``auto`` keyword can help a lot with this.
+-- the ``auto`` keyword can help a lot with this. The post-commit formatting
+hook in :file:`scripts/dev` can take care of this automatically.
 
-Run ``scripts/dev/install-commit-hooks.sh`` to to install a git post-commit hook
-that will amend each commit with clang-format updates if necessary.
-
-There's a certain amount of decorations (separators, Doxygen comment structure,
-etc.) that is standard throughout the code. Use the ``celeritas-gen.py`` script
-(in the ``scripts/dev`` directory) to generate skeletons for new files, and use
-existing source code as a guide to how to structure the decorations.
+Certain decorations (separators, Doxygen comment structure,
+etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
+(in the :file:`scripts/dev` directory) to generate skeletons for new files, and
+use existing source code as a guide to how to structure the decorations.
 
 
 Symbol names
@@ -283,7 +297,9 @@ to the context or meaning (e.g. `c_light` or `h_planck`).
 
 Use scoped enumerations (``enum class``) where possible (named like classes) so
 their values can safely be named like member variables (lowercase with
-underscores).
+underscores). Prefer enumerations to boolean values in function interfaces
+(since ``do_something(true)`` requires looking up the function interface
+definition to understand).
 
 
 Function arguments and return values
@@ -348,8 +364,8 @@ where ``typename`` *doesn't* mean a class: namely,
 ``template <typename U::value_type Value>``.)
 
 
-Data management
-===============
+Data management in Celeritas
+============================
 
 .. todo::
    This section needs updating to more accurately describe the Collection

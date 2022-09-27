@@ -139,6 +139,7 @@ configure_file("config.json.in" "config.json" @ONLY)
 
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
+set(DOXYGEN_XML_PROGRAMLISTING NO)
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION

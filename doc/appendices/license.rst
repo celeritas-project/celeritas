@@ -10,10 +10,14 @@ License
 
 Celeritas is copyrighted and licensed under the following terms and conditions.
 
+
+.. _code_copyright:
+
 Code
 ====
 
 .. include:: ../../COPYRIGHT
+
 
 Documentation
 =============
