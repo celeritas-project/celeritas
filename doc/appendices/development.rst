@@ -50,10 +50,13 @@ Functions should use programmatic assertions whenever assumptions are made:
 - Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
   function and side effects resulting from the function.
 
+These assertions are enabled only when the ``CELERITAS_DEBUG`` CMake option is
+set.
+
 Additionally, user-provided data and potentially volatile runtime conditions
 (such as the presence of an environment variable) should be checked with
-the ``CELER_VALIDATE(x, << "streamable message")`` macro. See :ref:`corecel`
-for more details about these macros.
+the always-on assertion ``CELER_VALIDATE(x, << "streamable message")`` macro. See
+:ref:`corecel` for more details about these macros.
 
 Each class must be thoroughly tested with an independent unit test in the
 `test` directory.  For complete coverage, each function of the class must have

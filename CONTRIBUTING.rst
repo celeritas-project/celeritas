@@ -38,14 +38,14 @@ Development prerequisites
 -------------------------
 
 To meet the :ref:`formatting` requirements described in the development guide,
-make sure that `clang-format`_ is installed on your development
-Run ``scripts/dev/install-commit-hooks.sh`` to to install a git post-commit hook
+make sure that `clang-format`_ is installed on your development machine.
+Run ``scripts/dev/install-commit-hooks.sh`` to install a git post-commit hook
 that will amend each commit with clang-format updates if necessary.
 
 A mostly consistent set of decorations (separators, Doxygen comment structure,
 etc.) are used throughout the code, so try to make new files look like existing
 ones. Use the ``celeritas-gen.py`` script (in the ``scripts/dev`` directory) to
-generate skeletons for new files, and use existing source code as a guide to
+generate skeletons for new files, and use existing source code as a guide for
 how to structure the decorations.
 
 .. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
@@ -77,8 +77,8 @@ information about whether the test passed and failed on previous commits.
 
 The :ref:`code <code_guidelines>` and :ref:`style <style_guidelines>` guidelines
 must be followed for all new code and code changes.
-This includes the use of the correct formatting as well as the addition of new
-unit tests for new code or bug fixes.
+This includes the use of the correct formatting as well as the addition of
+documentation and unit tests for new code and bug fixes.
 
 All tests must pass on the CI runner before a PR can be merged. (Exceptions
 will be made if any failures are clearly unrelated to the changes and enough
