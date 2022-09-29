@@ -17,8 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control with the 4th order classical Runge-Kutta
- * method.
+ * Integrate the field ODEs using the 4th order classical Runge-Kutta method.
  *
  * This method estimates the updated state from an initial state and evaluates
  * the truncation error, with fourth-order accuracy based on description in
