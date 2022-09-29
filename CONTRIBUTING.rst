@@ -60,7 +60,7 @@ Squashing eliminates the potential of broken commits and relieves developers of
 the burden of worrying about clean commit messages within a branch.
 
 Each pull request must be reviewed by at least one
-member of the :ref:`core team <roles>` who is knowledgable about
+member of the :ref:`core team <roles>` who is knowledgeable about
 the section of code being modified. Physics code should be compared against
 reference papers and other codes such as Geant4. By the end of the code review,
 the reviewer should understand the code well enough to maintain it (by

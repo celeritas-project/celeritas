@@ -9,7 +9,10 @@ Administration
 **************
 
 This appendix includes administrative details describing the roles and
-responsibilities of participants.
+responsibilities of participants. It is meant to be a living document, more
+descriptive than prescriptive. It should be a basis for future decision making,
+using past decisions as a prior. Changes to this appendix can be made by pull
+request with the leadership team as reviewers.
 
 
 Community standards
