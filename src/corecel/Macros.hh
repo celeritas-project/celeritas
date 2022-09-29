@@ -103,7 +103,7 @@
  * Mark a point in code as being impossible to reach in normal execution.
  *
  * See https://clang.llvm.org/docs/LanguageExtensions.html#builtin-unreachable
- * or https://msdn.microsoft.com/en-us/library/1b3fsfxw.aspx=
+ * or https://msdn.microsoft.com/en-us/library/1b3fsfxw.aspx
  * or
  * https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#__builtin_unreachable
  *

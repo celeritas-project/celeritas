@@ -18,6 +18,7 @@ spack:
     - python
     - py-breathe
     - py-sphinx
+    - py-sphinx-rtd-theme
     - py-sphinxcontrib-bibtex
     - root cxxstd=17
     - swig

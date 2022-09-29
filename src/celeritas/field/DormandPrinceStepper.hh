@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * The Dormand-Prince RK5(4)7M Stepper
+ * Integrate the field ODEs using Dormand-Prince RK5(4)7M.
  *
  * The algorithm, RK5(4)7M and the coefficients have been adapted from
  * J. R. Dormand and P. J. Prince, "A family of embedded Runge-Kutta formulae"

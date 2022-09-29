@@ -46,9 +46,9 @@ struct UnitlessQuantity
  * mass and momentum are expressed in atomic natural units (where m_e = 1 and c
  * = 1).
  * \code
-    using MevEnergy        = Quantity<Mev>;
-    using MevMass          = Quantity<UnitDivide<Mev, CLightSq>>;
-    using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
+   using MevEnergy   = Quantity<Mev>;
+   using MevMass     = Quantity<UnitDivide<Mev, CLightSq>>;
+   using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
    \endcode
  *
  * A relativistic equation that operates on these quantities can do so without
@@ -62,7 +62,7 @@ struct UnitlessQuantity
  * with `native_value_from`, which multiplies in the constant value of
  * ElMomentumUnit:
  * \code
- * real_type mom = native_value_from(momentum);
+   real_type mom = native_value_from(momentum);
  * \endcode
  *
  * When using a Quantity from another part of the code, e.g. an imported unit
@@ -222,8 +222,8 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  * Convert the given quantity into the native Celeritas unit system.
  *
  * \code
- assert(native_value_from(Quantity<CLight>{1}) == 2.998e10 *
- centimeter/second);
+   assert(native_value_from(Quantity<CLight>{1}) == 2.998e10 *
+   centimeter/second);
  * \endcode
  */
 template<class UnitT, class ValueT>
@@ -241,8 +241,8 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
  * system (typically a "natural" unit system for use in physics kernels).
  *
  * \code
- constexpr LightSpeed c = native_value_to<LightSpeed>(constants::c_light);
- assert(c.value() == 1);
+   constexpr LightSpeed c = native_value_to<LightSpeed>(constants::c_light);
+   assert(c.value() == 1);
  * \endcode
  */
 template<class Q>

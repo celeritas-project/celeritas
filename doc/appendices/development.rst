@@ -8,9 +8,66 @@
 Development Guide
 *****************
 
+The agility, extensibility, and performance of Celeritas depend strongly on
+software infrastructure and best practices. This appendix describes how to
+modify and extend the codebase.
 
-Guiding principles
-==================
+.. include:: ../../CONTRIBUTING.rst
+
+
+.. _code_guidelines:
+
+Code development guidelines
+===========================
+
+Every new piece of code is a commitment for you and other developers to
+maintain it in the future (or delete it if obsolete). There are numerous
+considerations to making code easier to update or understand, including testing
+and documentation.
+
+
+Document implicitly and explicitly
+----------------------------------
+
+Code should be self-documenting as far as possible (see details below for
+naming conventions). This means that variable names, function names, and
+function arguments should be as "obvious" as possible. Take particular care
+with constants that appear in physics implementations. They should
+be multiplied by units in the native Celeritas unit system if applicable, or
+defined as ``Quantity`` instances. The numerical value of the constant must
+also be documented with a paper citation or other comment.
+
+
+Test thoroughly
+---------------
+
+Functions should use programmatic assertions whenever assumptions are made:
+
+- Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
+  incoming data or initial internal states.
+- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
+  "this index is not out of range of the array").
+- Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
+  function and side effects resulting from the function.
+
+These assertions are enabled only when the ``CELERITAS_DEBUG`` CMake option is
+set.
+
+Additionally, user-provided data and potentially volatile runtime conditions
+(such as the presence of an environment variable) should be checked with
+the always-on assertion ``CELER_VALIDATE(x, << "streamable message")`` macro. See
+:ref:`corecel` for more details about these macros.
+
+Each class must be thoroughly tested with an independent unit test in the
+`test` directory.  For complete coverage, each function of the class must have
+at least as many tests as the number of possible code flow paths (cyclomatic
+complexity).
+
+Implementation detail classes (in the ``celeritas::detail`` namespace, in
+``detail/`` subdirectories) are exempt from the testing requirement, but
+testing the detail classes is a good way to simplify edge case testing compared
+to testing the higher-level code.
+
 
 Maximize encapsulation
 ----------------------
@@ -43,16 +100,14 @@ Applications:
 Examples:
 
 - Random number sampling: write a unit sphere sampling functor instead of
-  replicating a polar-to-cartesian transform in a thousand places.
+  replicating a polar-to-Cartesian transform in a thousand places.
 - Cell IDs: Opaque IDs add type safety so that you can't accidentally convert a
   cell identifier into a double or switch a cell and material ID. It also makes
   code more readable of course.
 
-
-Maximize code reuse
--------------------
-
-No explanation needed.
+Encapsulation is also useful for code reuse. Always avoid copy-pasting code, as
+it means potentially duplicating bugs, duplicating the amount of work needed
+when refactoring, and missing optimizations.
 
 
 Minimize compile time
@@ -60,15 +115,18 @@ Minimize compile time
 
 Code performance is important but so is developer time. When possible,
 minimize the amount of code touched by NVCC. (NVCC's error output is also
-rudimentary compared to modern clang/gcc, so that's another reason to prefer
+rudimentary compared to modern clang/GCC, so that's another reason to prefer
 them compiling your code.)
+
 
 Prefer single-state classes
 ---------------------------
 
 As much as possible, make classes "complete" and valid after calling the
-constructor. Don't have a series of functions that have to be called in a
-specific order to put the class in a workable state.  (And when it is not possible,  code must be put in place to automatically detect (and warn the developer) if the specific order is not respected).
+constructor. Try to avoid "finalize" functions that have to be called in a
+specific order to put the class in a workable state. If a finalize function
+*is* used, implement assertions to detect and warn the developer if the
+required order is not respected.
 
 When a class has a single function (especially if you name that function
 ``operator()``), its usage is obvious. The reader also doesn't have to know
@@ -77,6 +135,7 @@ whether a class uses ``doIt`` or ``do_it`` or ``build``.
 When you have a class that needs a lot of data to start in a valid state, use a
 ``struct`` of intuitive objects to pass the data to the class's constructor.
 The constructor can do any necessary validation on the input data.
+
 
 Learn from the pros
 -------------------
@@ -91,32 +150,7 @@ offers good suggestions.
 .. _Google style guide: https://google.github.io/styleguide/cppguide.html
 
 
-Test thoroughly
----------------
-
-Functions should use programmatic assertions whenever assumptions are made:
-
-- Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
-  incoming data or initial internal states
-- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
-  "this index is not out of range of the array")
-- Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
-  function and side effects resulting from the function.
-
-Additionally, user-provided data and potentially volatile runtime conditions
-(such as the presence of an environment variable) should be checked with
-the ``CELER_VALIDATE(x, << "streamable message")`` macro. See :ref:`corecel`
-for more details about these macros.
-
-Each class must be thoroughly tested with an independent unit test in the
-`test` directory.  For complete coverage, each function of the class must have
-at least as many tests as the number of possible code flow paths (cyclomatic
-complexity).
-
-Implementation detail classes (in the ``celeritas::detail`` namespace, in
-``detail/`` subdirectories) are exempt from the testing requirement, but
-testing the detail classes is a good way to simplify edge case testing compared
-to testing the higher-level code.
+.. _style_guidelines:
 
 Style guidelines
 ================
@@ -132,6 +166,9 @@ became the style standard for the GPU-enabled Monte Carlo code `Shift`_.
 .. _Tom Evans: https://github.com/tmdelellis
 .. _Shift: https://doi.org/10.1016/j.anucene.2019.01.012
 
+
+.. _formatting:
+
 Formatting
 ----------
 
@@ -139,12 +176,14 @@ Formatting is determined by the clang-format file inside the top-level
 directory. One key restriction is the 80-column limit, which enables multiple
 code windows to be open side-by-side. Generally, statements longer than 80
 columns should be broken into sub-expressions for improved readability anyway
--- the ``auto`` keyword can help a lot with this.
+-- the ``auto`` keyword can help a lot with this. The post-commit formatting
+hook in :file:`scripts/dev` can take care of this automatically.
 
-There's a certain amount of decorations (separators, Doxygen comment structure,
-etc.) that is standard throughout the code. Use the ``celeritas-gen.py`` script
-(in the ``scripts/dev`` directory) to generate skeletons for new files, and use
-existing source code as a guide to how to structure the decorations.
+Certain decorations (separators, Doxygen comment structure,
+etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
+(in the :file:`scripts/dev` directory) to generate skeletons for new files, and
+use existing source code as a guide to how to structure the decorations.
+
 
 Symbol names
 ------------
@@ -161,17 +200,19 @@ verb. For example::
    ModelEvaluator evaluate_something(parameters...);
    auto result = evaluate_something(arguments...);
 
-There are many opportunities to use `OpaqueId` in GPU code to indicate
+There are many opportunities to use ``OpaqueId`` in GPU code to indicate
 indexing into particular vectors. To maintain consistency, we let an
-index into a vector of `Foo` have a corresponding OpaqueId type::
+index into a vector of ``Foo`` have a corresponding ``OpaqueId``  type::
 
     using FooId = OpaqueId<Foo>;
 
-and ideally be defined either immediately after `Foo` or in a `Types.hh` file.
-Some OpaqueId types may have only a "symbolic" corresponding type, in which case
+and ideally be defined either immediately after ``Foo`` or in a
+:file:`Types.hh` file.  Some ``OpaqueId`` types may have only a "symbolic"
+corresponding type, in which case
 a tag struct can be be defined inline::
 
    using BarId = OpaqueId<struct Bar>;
+
 
 File names
 ----------
@@ -207,6 +248,7 @@ Some files have special extensions:
   should be provided there as well.
 - ``.test.cc`` are unit test executables corresponding to the main ``.cc``
   file. These should only be in the main ``/test`` directory.
+
 
 Device compilation
 ------------------
@@ -258,7 +300,10 @@ to the context or meaning (e.g. `c_light` or `h_planck`).
 
 Use scoped enumerations (``enum class``) where possible (named like classes) so
 their values can safely be named like member variables (lowercase with
-underscores).
+underscores). Prefer enumerations to boolean values in function interfaces
+(since ``do_something(true)`` requires looking up the function interface
+definition to understand).
+
 
 Function arguments and return values
 ------------------------------------
@@ -321,8 +366,9 @@ with the standard library. (It's also possible to have ``template <typename``
 where ``typename`` *doesn't* mean a class: namely,
 ``template <typename U::value_type Value>``.)
 
-Data management
-===============
+
+Data management in Celeritas
+============================
 
 .. todo::
    This section needs updating to more accurately describe the Collection
@@ -335,7 +381,7 @@ exact same device/host code. Furthermore, state data (one per track) and
 shared data (definitions, persistent data, model data) should be separately
 allocated and managed.
 
-Params (model parameters)
+Params
   Provide a CPU-based interface to manage and provide access to constant shared
   GPU data, usually model parameters or the like. The Params class itself can
   only be accessed via host code. A params class can contain metadata (string
@@ -343,21 +389,21 @@ Params (model parameters)
   classes convert from user-friendly input (e.g. particle name) to
   device-friendly IDs (e.g. particle def ID).
 
-State (state variables)
+State
   Thread-local data specifying the state of a single particle track with
   respect to a corresponding model (``FooParams``).
 
 TrackView
-  Device-instantiable class that provides read/write access to the data for a
+  Device-friendly class that provides read/write access to the data for a
   single track, in the spirit of `std::string_view` which adds functionality to
   data owned by someone else. It combines the state variables and model
   parameters into a single class. The constructor always takes const references
-  to ParamsData and StatePointers as well as the track ID. It encapsulates
+  to ParamsData and StateData as well as the track ID. It encapsulates
   the storage/layout of the state and parameters, as well as what (if any) data
   is cached in the state.
 
 View
-  Device-instantiable class with read/write access for data shared across
+  Device-friendly class with read/write access for data shared across
   threads.  For example, allocation for Secondary particles is performed on
   device, but the data is not specific to a thread.
 
@@ -365,8 +411,8 @@ View
 
    Consider the following example.
 
-   All SM physics particles share a common set of properties such as mass,
-   charge; and each instance of particle has a particular set of
+   All SM physics particles share a common set of properties such as mass and
+   charge, and each instance of particle has a particular set of
    associated variables such as kinetic energy. The shared data (SM parameters)
    reside in ``ParticleParams``, and the particle track properties are managed
    by a ``ParticleStateStore`` class.
@@ -377,8 +423,4 @@ View
    on both the state and parameters. For example, momentum depends on both the
    mass of a particle (constant, set by the model) and the speed (variable,
    depends on particle track state).
-
-
-.. include:: ../../CONTRIBUTING.rst
-
 

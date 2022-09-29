@@ -8,6 +8,37 @@
 Release History
 ***************
 
+Version 0.1.3
+=============
+
+This patch fixes additional issues with tracking in a magnetic field.
+
+Bug fixes
+---------
+
+* Fix near-infinite loop in field propagation *(@sethrj, #511)*
+* Allow tracks taking small steps to propagate in field *(@amandalund, #513)*
+* Fix ability to disable Rayleigh scattering when running demo-loop app
+* Fix failure when changing direction on boundary immediately after crossing *(@sethrj, #515)*
+* Escape rather than segfault on boundary crossing failure in release mode in ORANGE *(@sethrj, #516)*
+
+Version 0.1.2
+=============
+
+This is a bug-fixing patch that addresses a few outstanding build issues,
+targeted at making it easier to run and debug the regression problem suite.
+
+New features
+------------
+
+* Save JSON exception output if demo loop fails by *(@sethrj, #507)*
+
+Bug fixes
+---------
+
+* Fix class name conflict, remove default initializers, and tweak field driver *(@sethrj, #504)*
+* Fix no-ROOT demo loop for 0.1.x and other summit changes by *(@sethrj, #508)*
+
 Version 0.1.1
 =============
 
@@ -17,39 +48,39 @@ transport loop.
 New features
 ------------
 
-* Filter imported data from Geant4 based on user options by @sethrj in #482
-* Add contributing guide and development docs by @sethrj in #502
+* Filter imported data from Geant4 based on user options by *(@sethrj, #482)*
+* Add contributing guide and development docs by *(@sethrj, #502)*
 
 Bug fixes
 ---------
 
-* Fix uninitialized data access in primary generator by @sethrj in #472
-* Build processes based on exported data by @sethrj in #483
-* NVHPC: silence warnings by @sethrj in #486
-* Bring latest upstream updates to the BVHNavigator by @mrguilima in #484
-* Force disabling of shared libs for VecGeom 1.2.0+ by @sethrj in #489
-* Add minor fixes for UrbanMsc by @whokion in #492
-* Set remaining model lower limits to zero and make sure demo loop runs with integral approach off by @amandalund in #490
-* Fix VecGeomTrack::move_internal assertion failure by @mrguilima in #493
-* Fix clang-14/ROCM build with JSON enabled by @sethrj in #496
-* Better workaround for VecGeom 1.2 crashes by @sethrj in #495
-* Fix imported model microscopic cross sections by @amandalund in #487
-* Fix unintentional MSC enable and some displacement logic by @sethrj in #500
-* Fix unusual errors in field propagation by @sethrj in #499
-* Fix vecgeom boundary state and add more thorough testing by @sethrj in #494
-* Improve static/shared CUDA library choice when linking VecGeom by @pcanal in #497
-* Fix ORANGE reentrant boundary crossings by @sethrj in #501
+* Fix uninitialized data access in primary generator by *(@sethrj, #472)*
+* Build processes based on exported data by *(@sethrj, #483)*
+* NVHPC: silence warnings by *(@sethrj, #486)*
+* Bring latest upstream updates to the BVHNavigator by *(@mrguilima, #484)*
+* Force disabling of shared libs for VecGeom 1.2.0+ by *(@sethrj, #489)*
+* Add minor fixes for UrbanMsc by *(@whokion, #492)*
+* Set remaining model lower limits to zero and make sure demo loop runs with integral approach off by *(@amandalund, #490)*
+* Fix VecGeomTrack::move_internal assertion failure by *(@mrguilima, #493)*
+* Fix clang-14/ROCM build with JSON enabled by *(@sethrj, #496)*
+* Better workaround for VecGeom 1.2 crashes by *(@sethrj, #495)*
+* Fix imported model microscopic cross sections by *(@amandalund, #487)*
+* Fix unintentional MSC enable and some displacement logic by *(@sethrj, #500)*
+* Fix unusual errors in field propagation by *(@sethrj, #499)*
+* Fix vecgeom boundary state and add more thorough testing by *(@sethrj, #494)*
+* Improve static/shared CUDA library choice when linking VecGeom by *(@pcanal, #497)*
+* Fix ORANGE reentrant boundary crossings by *(@sethrj, #501)*
 
 Internal changes
 ----------------
 
-* Rewrite field tests by @sethrj in #471
-* Add range-to-step tests and remove min by @sethrj in #479
-* Add unit tests and make minor changes to FieldDriver by @sethrj in #478
-* Unify units in EM interactors/data by @sethrj in #477
-* Add tests for field propagator near boundaries by @sethrj in #480
-* Return one event at a time from EventReader and PrimaryGenerator by @amandalund in #488
-* Infrastructure changes for geo heuristic test by @sethrj in #498
+* Rewrite field tests by *(@sethrj, #471)*
+* Add range-to-step tests and remove min by *(@sethrj, #479)*
+* Add unit tests and make minor changes to FieldDriver by *(@sethrj, #478)*
+* Unify units in EM interactors/data by *(@sethrj, #477)*
+* Add tests for field propagator near boundaries by *(@sethrj, #480)*
+* Return one event at a time from EventReader and PrimaryGenerator by *(@amandalund, #488)*
+* Infrastructure changes for geo heuristic test by *(@sethrj, #498)*
 
 Version 0.1.0
 =============

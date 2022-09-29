@@ -16,6 +16,7 @@ needed.
 
 .. _CMake: https://cmake.org
 
+
 Installation
 ============
 
@@ -69,6 +70,38 @@ fewer available components.
 .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
 
 
+Ideally you will build Celeritas with all dependencies to gain the full
+functionality of the code, but there are circumstances in which you may not
+have (or want) all the dependencies or features available. By default, the CMake code in
+Celeritas queries available packages and sets several `CELERITAS_USE_{package}`
+options based on what it finds, so you have a good chance of successfully
+configuring Celeritas on the first go. Two optional components,
+`CELERITAS_BUILD_<DEMOS|TESTS>`, will error in the configure if their required
+components are missing, but they will update the CMake cache variable so that
+the next configure will succeed (but with that component disabled).
+
+For a slightly more advanced but potentially simpler setup, you can use the
+CMake presets provided by Celeritas via the `CMakePresets.json` file for CMake
+3.21 and higher:
+
+.. code-block:: console
+
+   $ cmake --preset=default
+
+The three main options are "minimal", "default", and "full", which all set
+different expectations for available dependencies.
+
+If your CMake version is too old, you may get an unhelpful message:
+
+.. code-block:: console
+
+   CMake Error: Could not read presets from celeritas: Unrecognized "version"
+   field
+
+which is just a poor way of saying the version in the ``CMakePresets.json`` file
+is newer than that version knows how to handle.
+
+
 Downstream usage as a library
 =============================
 
@@ -88,7 +121,18 @@ of ``target_link_libraries`` with a customized version::
   include(CeleritasLibrary)
   celeritas_target_link_libraries(mycode PUBLIC Celeritas::Core)
 
-Developing
-==========
 
-See the :ref:`development` section for additional development guidelines.
+Setting up for development
+==========================
+
+If you want to add your own set of custom options and flags, create a
+``CMakeUserPresets.json`` file or, if you wish to contribute on a regular
+basis, create a preset at ``scripts/cmake-presets/${HOSTNAME%%.*}.json`` and
+call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
+build, and test. See :file:`scripts/README.md` for more details.
+
+Run :file:`scripts/dev/install-commit-hooks.sh` to to install a git post-commit
+hook that will amend each commit with clang-format updates if necessary. Use
+:file:`scripts/dev/celeritas-gen.py` to generate new files.
+
+The :ref:`development` appendix for development guidelines.

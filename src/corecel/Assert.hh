@@ -71,9 +71,9 @@
  * - min_range={opts.min_range} (must be positive)"
  *
  * \code
- * CELER_VALIDATE(file_stream,
- *                << "failed to open '" << filename
- *                << "' (should contain relaxation data)");
+   CELER_VALIDATE(file_stream,
+                  << "failed to open '" << filename
+                  << "' (should contain relaxation data)");
  * \endcode
  *
  * An always-on debug-type assertion without a detailed message can be
@@ -101,7 +101,7 @@
     {
         CELER_NOT_CONFIGURED("CUDA");
     }
- \endcode
+ * \endcode
  */
 /*!
  * \def CELER_NOT_IMPLEMENTED
@@ -222,8 +222,8 @@
  * If it fails, we call \c cudaGetLastError to clear the error code.
  *
  * \code
-       CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
-       CELER_CUDA_CALL(cudaDeviceSynchronize());
+   CELER_CUDA_CALL(cudaMalloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_CUDA_CALL(cudaDeviceSynchronize());
  * \endcode
  *
  * \note A file that uses this macro must include \c
@@ -263,8 +263,8 @@
  * If it fails, we call \c hipGetLastError to clear the error code.
  *
  * \code
-       CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
-       CELER_HIP_CALL(hipDeviceSynchronize());
+   CELER_HIP_CALL(hipMalloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_HIP_CALL(hipDeviceSynchronize());
  * \endcode
  *
  * \note A file that uses this macro must include \c hip_runtime_api.h or be
@@ -302,8 +302,8 @@
  * Example:
  *
  * \code
-       CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
-       CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+   CELER_DEVICE_CALL_PREFIX(Malloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
  * \endcode
  *
  */

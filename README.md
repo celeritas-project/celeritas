@@ -2,31 +2,17 @@
 
 The Celeritas project implements HEP detector physics on GPU accelerator
 hardware with the ultimate goal of supporting the massive computational
-requirements of LHC-HL upgrade.
+requirements of the [HL-LHC upgrade][HLLHC].
 
-# Installation and development
+[HLLHC]: https://home.cern/science/accelerators/high-luminosity-lhc
 
-This project requires external dependencies to build with full functionality.
-However, any combination of these requirements can be omitted to enable
-limited development on personal machines with fewer available components.
+# Installation
 
-- [CUDA](https://developer.nvidia.com/cuda-toolkit): on-device computation
-- an MPI implementation (such as [Open MPI](https://www.open-mpi.org)): distributed-memory parallelism
-- [ROOT](https://root.cern): I/O
-- [nljson](https://github.com/nlohmann/json): simple text-based I/O for
-  diagnostics and program setup
-- [VecGeom](https://gitlab.cern.ch/VecGeom/VecGeom): on-device navigation of GDML-defined detector geometry
-- [Geant4](https://geant4.web.cern.ch/support/download): preprocessing physics data for a problem input
-- [G4EMLOW](https://geant4.web.cern.ch/support/download): EM physics model data
-- [HepMC3](http://hepmc.web.cern.ch/hepmc/): Event input
-- [SWIG](http://swig.org): limited set of Python wrappers for analyzing input
-  data
-
-Build/test dependencies are:
-
-- [CMake](https://cmake.org): build system
-- [clang-format](https://clang.llvm.org/docs/ClangFormat.html): formatting enforcement
-- [GoogleTest](https://github.com/google/googletest): test harness
+This project requires external dependencies such as CUDA to build with full
+functionality.  However, any combination of these requirements can be omitted
+to enable limited development on personal machines with fewer available
+components. See [the infrastructure documentation](doc/infrastructure.rst) for
+details on installing.
 
 ## Installing with Spack
 
@@ -35,32 +21,19 @@ includes numerous scientific packages, including those used in HEP. An included
 Spack "environment" (at `scripts/dev/env/celeritas-{platform}.yaml`) defines
 the required prerequisites for this project.
 
-The script at `scripts/dev/install-spack.sh` provides a "one-button solution"
-to installing and activating the Spack prerequisites for building Celeritas.
-Alternatively, you can manually perform the following steps:
-- Clone Spack following its [getting started instructions](https://spack.readthedocs.io/en/latest/getting_started.html)
-- Add CUDA to your `$SPACK_ROOT/etc/spack/packages.yaml` file
-- Run `spack env create celeritas scripts/dev/env/celeritas-linux.yaml` (or
-  replace `linux` with `darwin` if running on a mac); then `spack -e
-  celeritas concretize` and `spack -e celeritas install`
-- Run and add to your startup environment profile `spack env activate
-  celeritas`
-- Configure Celeritas by creating a build directory and running CMake (or
-  `ccmake` for an interactive prompt for configuring options).
+- Clone Spack following its [getting started instructions][1]
+- To install with CUDA, run `spack external find cuda` and
+  `spack install celeritas +cuda cuda_arch=<ARCH>`, where `<ARCH>` is the
+  numeric portion of the [CUDA architecture flags][2]
 
-An example file for a `packages.yaml` that defines an externally installed CUDA
-on a system with an NVIDIA GPU that has architecture capability 3.5 is thus:
-```yaml
-packages:
-  cuda:
-    paths:
-      cuda@10.2: /usr/local/cuda-10.2
-    buildable: False
-  all:
-    variants: cuda_arch=35
-```
+[1]: https://spack.readthedocs.io/en/latest/getting_started.html
+[2]: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 
-## Configuring and building Celeritas
+## Configuring and building Celeritas manually
+
+The Spack environment at [dev/scripts.yaml](dev/scripts.yaml) lists the full
+dependencies used by the CI for building, testing, and documenting. Install
+those dependencies via Spack or independently, then configure Celeritas.
 
 To configure Celeritas, assuming the dependencies you want are located in the
 `CMAKE_PREFIX_PATH` search path, and other environment variables such as `CXX`
@@ -71,57 +44,16 @@ $ cd build && cmake ..
 $ make
 ```
 
-Ideally you will build Celeritas with all dependencies to gain the full
-functionality of the code, but there are circumstances in which you may not
-have all the dependencies or features available. By default, the CMake code in
-Celeritas queries available packages and sets several `CELERITAS_USE_{package}`
-options based on what it finds, so you have a good chance of successfully
-configuring Celeritas on the first go. Two optional components,
-`CELERITAS_BUILD_<DEMOS|TESTS>`, will error in the configure if their required
-components are missing, but they will update the CMake cache variable so that
-the next configure will succeed (but with that component disabled).
+# Development
 
-For a slightly more advanced but potentially simpler setup, you can use the
-CMake presets provided by Celeritas via the `CMakePresets.json` file for CMake
-3.21 and higher:
-```console
-$ cmake --preset=default
-```
-The three main options are "minimal", "default", and "full", which all set
-different expectations for available dependencies.
+See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
+[the development guidelines](doc/appendices/development.rst) for further
+details on coding in Celeritas, and [the administration guidelines](doc/appendices/administration.rst) for community standards and roles.
 
-If you want to add your own set of custom options and flags, create a
-`CMakeUserPresets.json` file or, if you are a developer, create a preset at
-`scripts/cmake-presets/${HOSTNAME%%.*}.json` and call `scripts/build.sh
-{preset}` to create the symlink, configure the preset, build, and test. See
-[the scripts readme](scripts/README.md) for more details.
+# Documentation
 
-If your CMake version is too old, you may get an unhelpful message:
-```
-CMake Error: Could not read presets from celeritas: Unrecognized "version" field
-```
-which is just a poor way of saying the version in the `CMakePresets.json` file
-is newer than that version knows how to handle.
+The full code documentation (including API descriptions) is available by
+setting the `CELERITAS_BUILD_DOCS=ON` configuration option. A mostly complete
+version of the [Celeritas documentation][docs] is hosted on `readthedocs.io`.
 
-## Commit hooks
-
-Run `scripts/dev/install-commit-hooks.sh` to install a git post-commit hook
-that will amend each commit with clang-format updates if necessary.
-
-## Contributing
-
-See the [development wiki
-page](https://github.com/celeritas-project/celeritas/wiki/Development) for
-guidelines and best practices for code in the project.
-
-The [code design
-page](https://github.com/celeritas-project/celeritas/wiki/Code-design) outlines
-the basic physics design philosophy and classes, and [the layout of some
-algorithms and
-classes](https://github.com/celeritas-project/celeritas-docs/tree/master/graphs)
-are available on the `celeritas-docs` repo.
-
-All submissions to the Celeritas project are automatically licensed under the
-terms of [the project copyright](COPYRIGHT) as formalized by the [GitHub terms
-of service](https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license).
-
+[docs]: https://celeritas.readthedocs.io/en/latest/

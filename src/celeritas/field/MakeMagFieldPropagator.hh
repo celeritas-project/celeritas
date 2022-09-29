@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Create a stepper for a charge in a magnetic field.
  *
- * \example
+ * Example:
  * \code
  * auto step = make_stepper<DormandPrinceStepper>(
  *    UniformField{{1, 2, 3}},
@@ -42,7 +42,7 @@ make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
 /*!
  * Create a field propagator from an existing stepper.
  *
- * \example
+ * Example:
  * \code
  * FieldDriverOptions driver_options,
  * auto propagate = make_field_propagator(
