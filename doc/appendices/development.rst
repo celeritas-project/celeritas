@@ -381,7 +381,7 @@ exact same device/host code. Furthermore, state data (one per track) and
 shared data (definitions, persistent data, model data) should be separately
 allocated and managed.
 
-Params (model parameters)
+Params
   Provide a CPU-based interface to manage and provide access to constant shared
   GPU data, usually model parameters or the like. The Params class itself can
   only be accessed via host code. A params class can contain metadata (string
@@ -389,7 +389,7 @@ Params (model parameters)
   classes convert from user-friendly input (e.g. particle name) to
   device-friendly IDs (e.g. particle def ID).
 
-State (state variables)
+State
   Thread-local data specifying the state of a single particle track with
   respect to a corresponding model (``FooParams``).
 

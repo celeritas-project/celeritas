@@ -48,7 +48,7 @@ $ make
 
 See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
 [the development guidelines](doc/appendices/development.rst) for further
-details on coding in Celeritas, and [the development guidelines](doc/appendices/development.rst).
+details on coding in Celeritas, and [the administration guidelines](doc/appendices/administration.rst) for community standards and roles.
 
 # Documentation
 

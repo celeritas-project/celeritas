@@ -93,8 +93,9 @@ Since there are few enough merge requests these days, only :ref:`maintainers
 Ownership and Authorship
 ------------------------
 
-The person who writes a line of code is its author but not its owner.
-Celeritas is a collaborative project with collective ownership: as much as
-possible, there should be a shared responsibility for the code.
+The person who writes a line of code is its author and copyright holder, but
+the new code should be the shared responsibility of the project rather than the
+exclusive property of a single contributor.
+Celeritas is a collaborative project with *collective* ownership.
 If the code is reviewed according to the guidelines above, at least two people
 should always be comfortable modifying any piece of code.

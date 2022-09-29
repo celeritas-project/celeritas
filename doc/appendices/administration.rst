@@ -40,10 +40,10 @@ set out in the SciDAC project management plan (PMP). These roles should be
 reflected in the different teams and/or access restrictions in GitHub.
 
 Leadership team member
-   The "leadership team" comprises the PIs and capability leads in the PMP who
-   work directly on the Celeritas code. They are responsible for
-   the long-term and big-picture project goals, and they ensure that project
-   milestones are met.
+   The "leadership team" comprises the PIs and capability leads in the PMP, or
+   their designated proxies who work directly on the Celeritas code. They are
+   responsible for the long-term and big-picture project goals, and they ensure
+   that project milestones are met.
 
 Code lead
    The code lead is the "core capability lead" described in the PMP and
@@ -60,7 +60,8 @@ Core team member
    The "core team" are those currently funded to work on Celeritas. Core team
    members are responsible for reviewing pull requests in accordance with the
    :ref:`contributing guidelines <contributing>`. They should regularly
-   contribute new code or publish new results using Celeritas.
+   contribute new code, perform code reviews, publish new results using
+   Celeritas, and/or participate in Celeritas stand-up meetings and hackathons.
 
 Contributor
    Anyone can submit a pull request that conforms to the contribution
@@ -114,10 +115,11 @@ may need iteration to converge) for each release.
   minor updates are needed to fix the build or tests on a particular machine,
   include those as part of the "pre-release" pull request that includes new
   documentation.
-- [TODO: define high-level validation tests and a test matrix correlating
-  capability areas (code files/directories changed) to test names.] Rerun
-  and check all validation tests that might be affected by changes since the
-  previous release.
+- [TODO: define high-level validation tests like `geant-val`_ and a test matrix
+  correlating capability areas (code files/directories changed) to test names.]
+  Rerun and perform a cursory check on all validation tests that might be
+  affected by changes since the previous release. More complete validation
+  (since a change in results might not be an error) can be done separately.
 - Update documentation with release notes from all pull requests newly included
   in the release. Follow the format for previous releases: add a summary of
   highlights, and enumerate the pull requests (with PR numbers and
@@ -146,3 +148,4 @@ After committing the release tag:
   the Spack project.
 
 
+.. _geant-val: https://geant-val.cern.ch
