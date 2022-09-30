@@ -495,7 +495,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
-        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
     }
     {
         SCOPED_TRACE("Small step intersected by boundary");
@@ -512,7 +512,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
-        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 2 * delta, 0}), geo.dir());
     }
     {
         SCOPED_TRACE("Cross boundary");
@@ -538,7 +538,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5 + delta, 0, 0}), geo.pos());
-        EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 3 * delta, 0}), geo.dir());
     }
 }
 

@@ -215,10 +215,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         {
             // i.e.: substep * (linear_step / chord_length) <= min_step
             // We're close enough to the boundary that the next trial step
-            // would be less than the driver's minimum step. Hop to the
-            // boundary without committing the substep.
+            // would be less than the driver's minimum step. Accept the
+            // momentum update, but use the position from the new boundary.
             result.boundary = true;
             result.distance += min(linear_step.distance, remaining);
+            state_.mom = substep.state.mom;
             remaining = 0;
             cout << " + next trial step exceeds driver minimum "
                  << driver_.minimum_step() << endl;
