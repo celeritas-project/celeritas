@@ -19,14 +19,22 @@ namespace celeritas
  */
 struct FieldDriverOptions
 {
+    //!@{
+    //! \name Propagator options
+
+    //! Accuracy of intersection of the boundary crossing
+    real_type delta_intersection = 1.0e-4 * units::millimeter;
+
+    //!@}
+
+    //!@{
+    //! \name Driver options
+
     //! The minimum length of the field step
     real_type minimum_step = 1.0e-5 * units::millimeter;
 
     //! The closest miss distance
     real_type delta_chord = 0.25 * units::millimeter;
-
-    //! Accuracy of intersection of the boundary crossing
-    real_type delta_intersection = 1.0e-4 * units::millimeter;
 
     //! Relative error scale on the step length
     real_type epsilon_step = 1.0e-5;
@@ -60,6 +68,8 @@ struct FieldDriverOptions
 
     //! Chord distance fudge factor
     static constexpr real_type dchord_tol = 1e-5 * units::millimeter;
+
+    //!@}
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
