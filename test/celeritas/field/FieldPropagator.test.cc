@@ -1143,10 +1143,13 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }
     {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ(92, stepper.count());
         ASSERT_TRUE(geo.is_on_boundary());
         if (!CELERITAS_USE_VECGEOM)
         {
@@ -1192,12 +1195,15 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         auto particle
             = this->init_particle(this->particle()->find(pdg::electron()),
                                   MevEnergy{3.27089632881079409e-02});
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1.39170198361108938e-05);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
+        EXPECT_EQ(2, stepper.count());
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
