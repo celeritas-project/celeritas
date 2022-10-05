@@ -143,8 +143,7 @@ list(APPEND SOURCES
   orange/OrangeParams.cc
   orange/Types.cc
   orange/construct/SurfaceInputBuilder.cc
-  orange/detail/SurfaceInserter.cc
-  orange/detail/VolumeInserter.cc
+  orange/detail/UnitInserter.cc
   orange/surf/SurfaceIO.cc
 
   celeritas/em/AtomicRelaxationParams.cc

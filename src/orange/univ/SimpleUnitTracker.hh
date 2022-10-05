@@ -42,7 +42,24 @@ class SimpleUnitTracker
 
   public:
     // Construct with parameters (surfaces, cells)
-    inline CELER_FUNCTION SimpleUnitTracker(const ParamsRef& params);
+    inline CELER_FUNCTION
+    SimpleUnitTracker(const ParamsRef& params, SimpleUnitId id);
+
+    //// ACCESSORS ////
+
+    //! Number of local volumes
+    CELER_FUNCTION VolumeId::size_type num_volumes() const
+    {
+        return unit_record_.volumes.size();
+    }
+
+    //! Number of local surfaces
+    CELER_FUNCTION SurfaceId::size_type num_surfaces() const
+    {
+        return unit_record_.surfaces.size();
+    }
+
+    //// OPERATIONS ////
 
     // Find the local volume from a position
     inline CELER_FUNCTION Initialization
@@ -69,11 +86,9 @@ class SimpleUnitTracker
   private:
     //// DATA ////
     const ParamsRef& params_;
+    const SimpleUnitRecord& unit_record_;
 
     //// METHODS ////
-
-    // Create a Surfaces object from the params
-    inline CELER_FUNCTION Surfaces make_local_surfaces() const;
 
     // Get volumes that have the given surface as a "face" (connectivity)
     inline CELER_FUNCTION Span<const VolumeId> get_neighbors(SurfaceId) const;
@@ -88,6 +103,12 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection complex_intersect(const LocalState&,
                                                          const VolumeView&,
                                                          size_type) const;
+
+    // Create a Surfaces object from the params
+    inline CELER_FUNCTION Surfaces make_local_surfaces() const;
+
+    // Create a Volumes object from the params
+    inline CELER_FUNCTION VolumeView make_local_volume(VolumeId vid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -100,8 +121,9 @@ class SimpleUnitTracker
  * that belong to this unit. For now we assume all volumes and surfaces belong
  * to us.
  */
-CELER_FUNCTION SimpleUnitTracker::SimpleUnitTracker(const ParamsRef& params)
-    : params_(params)
+CELER_FUNCTION
+SimpleUnitTracker::SimpleUnitTracker(const ParamsRef& params, SimpleUnitId suid)
+    : params_(params), unit_record_(params.simple_unit[suid])
 {
     CELER_EXPECT(params_);
 }
@@ -123,9 +145,9 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
     // Loop over all volumes (TODO: use BVH)
-    for (VolumeId volid : range(VolumeId{params_.volumes.size()}))
+    for (VolumeId volid : range(VolumeId{this->num_volumes()}))
     {
-        VolumeView vol{params_.volumes, volid};
+        VolumeView vol = this->make_local_volume(volid);
 
         // Calculate the local senses, and see if we're inside.
         auto logic_state = calc_senses(vol);
@@ -173,7 +195,7 @@ SimpleUnitTracker::cross_boundary(const LocalState& state) const
             // Cannot cross surface into the same volume
             continue;
         }
-        VolumeView vol{params_.volumes, volid};
+        VolumeView vol = this->make_local_volume(volid);
 
         // Calculate the local senses and face
         auto logic_state
@@ -231,7 +253,7 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
  * distance: it's the nearest distance to any surface, for a certain subset of
  * surfaces.  Other surface types will return a safety distance of zero.
  * Complex surfaces might return the distance to internal surfaces that do not
- * represent the edge of a cell. Such distances are conservative but will
+ * represent the edge of a volume. Such distances are conservative but will
  * necessarily slow down the simulation.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
@@ -239,7 +261,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
 {
     CELER_EXPECT(volid);
 
-    VolumeView vol{params_.volumes, volid};
+    VolumeView vol = this->make_local_volume(volid);
     if (!(vol.flags() & VolumeRecord::simple_safety))
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
@@ -279,26 +301,19 @@ SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
 // PRIVATE INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Create a Surfaces object from the params.
- */
-CELER_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() const
-{
-    return Surfaces{params_.surfaces, params_.reals};
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get volumes that have the given surface as a "face" (connectivity).
  */
 CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
     -> Span<const VolumeId>
 {
-    CELER_EXPECT(surf < params_.volumes.connectivity.size());
+    CELER_EXPECT(surf < this->num_surfaces());
 
-    const Connectivity& conn = params_.volumes.connectivity[surf];
+    OpaqueId<Connectivity> conn_id
+        = unit_record_.connectivity[surf.unchecked_get()];
+    const Connectivity& conn = params_.connectivities[conn_id];
 
     CELER_ENSURE(!conn.neighbors.empty());
-    return params_.volumes.volumes[conn.neighbors];
+    return params_.volume_ids[conn.neighbors];
 }
 
 //---------------------------------------------------------------------------//
@@ -316,10 +331,9 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
  *   surfaes).
  * - If no intersecting surfaces are found, return immediately. (Rely on the
  *   caller to set the "maximum distance" if we're not searching to infinity.)
- * - If the volume has no internal surfaces, find the closest one by calling \c
+ * - If the volume has no special cases, find the closest surface by calling \c
  *   simple_intersect.
- * - Otherwise, the volume has internal surfaces and we call \c
- *   complex_intersect.
+ * - If the volume has internal surfaces call \c complex_intersect.
  */
 template<class F>
 CELER_FUNCTION auto
@@ -329,7 +343,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
     // Resize temporaries based on volume properties
-    VolumeView vol{params_.volumes, state.volume};
+    VolumeView vol = this->make_local_volume(state.volume);
     CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
     const bool is_simple = !(vol.flags() & VolumeRecord::internal_surfaces);
 
@@ -381,7 +395,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
 {
     CELER_EXPECT(num_isect > 0);
 
-    // Crossing any surface will leave the cell; perform a linear search for
+    // Crossing any surface will leave the volume; perform a linear search for
     // the smallest (but positive) distance
     size_type distance_idx
         = celeritas::min_element(state.temp_next.distance,
@@ -455,14 +469,14 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
         this->make_local_surfaces(), state.pos, state.temp_sense)(
         vol, detail::find_face(vol, state.surface));
 
-    // Current senses should put us inside the cell
+    // Current senses should put us inside the volume
     detail::LogicEvaluator is_inside(vol.logic());
     CELER_ASSERT(is_inside(logic_state.senses));
 
     // Loop over distances and surface indices to cross by iterating over
     // temp_next.isect[:num_isect].
     // Evaluate the logic expression at each crossing to determine whether
-    // we're actually leaving the cell.
+    // we're actually leaving the volume.
     for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
     {
         // Index into the distance/face arrays
@@ -486,9 +500,28 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
         }
     }
 
-    // No intersection: perhaps leaving an exterior cell? Perhaps geometry
+    // No intersection: perhaps leaving an exterior volume? Perhaps geometry
     // error.
     return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a Surfaces object from the params for this unit.
+ */
+CELER_FORCEINLINE_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() const
+{
+    return Surfaces{params_, unit_record_.surfaces};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a Volume view object from the params for this unit.
+ */
+CELER_FORCEINLINE_FUNCTION VolumeView
+SimpleUnitTracker::make_local_volume(VolumeId vid) const
+{
+    return VolumeView{params_, unit_record_, vid};
 }
 
 //---------------------------------------------------------------------------//

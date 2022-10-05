@@ -328,7 +328,7 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 
 TEST_F(OneVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         // Anywhere is valid
@@ -341,7 +341,7 @@ TEST_F(OneVolumeTest, initialize)
 
 TEST_F(OneVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         auto state = this->make_state({1, 2, 3}, {0, 0, 1}, "infinite");
@@ -357,7 +357,7 @@ TEST_F(OneVolumeTest, intersect)
 
 TEST_F(OneVolumeTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     EXPECT_SOFT_EQ(inf,
                    tracker.safety({1, 2, 3}, this->find_volume("infinite")));
@@ -389,7 +389,7 @@ TEST_F(OneVolumeTest, heuristic_init)
 
 TEST_F(TwoVolumeTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("In the inner sphere");
@@ -416,7 +416,7 @@ TEST_F(TwoVolumeTest, initialize)
 
 TEST_F(TwoVolumeTest, cross_boundary)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Crossing the boundary from the inside");
@@ -438,7 +438,7 @@ TEST_F(TwoVolumeTest, cross_boundary)
 
 TEST_F(TwoVolumeTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Inside");
@@ -545,7 +545,7 @@ TEST_F(TwoVolumeTest, intersect)
 
 TEST_F(TwoVolumeTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
     VolumeId          outside = this->find_volume("outside");
     VolumeId          inside  = this->find_volume("inside");
 
@@ -565,7 +565,7 @@ TEST_F(TwoVolumeTest, safety)
 
 TEST_F(TwoVolumeTest, normal)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     if (CELERITAS_DEBUG)
     {
@@ -621,7 +621,7 @@ TEST_F(FiveVolumesTest, properties)
 
 TEST_F(FiveVolumesTest, initialize)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Exterior");
@@ -662,7 +662,7 @@ TEST_F(FiveVolumesTest, initialize)
 
 TEST_F(FiveVolumesTest, cross_boundary)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("Crossing the boundary from the inside of 'e'");
@@ -735,7 +735,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
 
 TEST_F(FiveVolumesTest, intersect)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     {
         SCOPED_TRACE("internal surface for a");
@@ -773,7 +773,7 @@ TEST_F(FiveVolumesTest, intersect)
 
 TEST_F(FiveVolumesTest, safety)
 {
-    SimpleUnitTracker tracker(this->params().host_ref());
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
 
     VolumeId a = this->find_volume("a");
     VolumeId d = this->find_volume("d");

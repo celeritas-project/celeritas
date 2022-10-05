@@ -36,13 +36,15 @@ class VolumeView
   public:
     //@{
     //! Type aliases
-    using VolumeRef = NativeCRef<VolumeData>;
+    using ParamsRef = NativeCRef<OrangeParamsData>;
     using Flags     = VolumeRecord::Flags;
     //@}
 
   public:
     // Construct with reference to persistent data
-    inline CELER_FUNCTION VolumeView(const VolumeRef& params, VolumeId id);
+    inline CELER_FUNCTION VolumeView(const ParamsRef&        params,
+                                     const SimpleUnitRecord& unit_record,
+                                     VolumeId                id);
 
     //// ACCESSORS ////
 
@@ -68,18 +70,25 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
 
   private:
-    const VolumeRef&   params_;
-    const VolumeRecord def_;
+    const ParamsRef&    params_;
+    const VolumeRecord& def_;
+
+    static inline CELER_FUNCTION const VolumeRecord&
+    volume_record(const ParamsRef&,
+                  const SimpleUnitRecord& unit_record,
+                  VolumeId                id);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION VolumeView::VolumeView(const VolumeRef& params, VolumeId id)
-    : params_(params), def_(params.defs[id])
+CELER_FUNCTION
+VolumeView::VolumeView(const ParamsRef&        params,
+                       const SimpleUnitRecord& unit_record,
+                       VolumeId                id)
+    : params_(params), def_(VolumeView::volume_record(params, unit_record, id))
 {
-    CELER_EXPECT(id < params.defs.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -102,7 +111,7 @@ CELER_FUNCTION SurfaceId VolumeView::get_surface(FaceId id) const
     CELER_EXPECT(id < this->num_faces());
     auto offset = def_.faces.begin()->unchecked_get();
     offset += id.unchecked_get();
-    return params_.faces[ItemId<SurfaceId>(offset)];
+    return params_.surface_ids[ItemId<SurfaceId>(offset)];
 }
 
 //---------------------------------------------------------------------------//
@@ -138,7 +147,7 @@ CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
  */
 CELER_FUNCTION Span<const SurfaceId> VolumeView::faces() const
 {
-    return params_.faces[def_.faces];
+    return params_.surface_ids[def_.faces];
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +156,7 @@ CELER_FUNCTION Span<const SurfaceId> VolumeView::faces() const
  */
 CELER_FUNCTION Span<const logic_int> VolumeView::logic() const
 {
-    return params_.logic[def_.logic];
+    return params_.logic_ints[def_.logic];
 }
 
 //---------------------------------------------------------------------------//
@@ -168,6 +177,22 @@ CELER_FUNCTION logic_int VolumeView::flags() const
 CELER_FUNCTION logic_int VolumeView::max_intersections() const
 {
     return def_.max_intersections;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the volume record data for the current volume.
+ *
+ * This is called during construction.
+ */
+inline CELER_FUNCTION const VolumeRecord&
+VolumeView::volume_record(const ParamsRef&        params,
+                          const SimpleUnitRecord& unit,
+                          VolumeId                vid)
+{
+    CELER_EXPECT(vid < unit.volumes.size());
+    OpaqueId<VolumeRecord> vrid = unit.volumes[vid.unchecked_get()];
+    return params.volume_records[vrid];
 }
 
 //---------------------------------------------------------------------------//

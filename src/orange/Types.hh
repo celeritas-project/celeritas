@@ -27,13 +27,20 @@ using logic_int = unsigned short int;
 //! Identifier for a face local to a particular volume (internal use only)
 using FaceId = OpaqueId<struct Face>;
 
-//! Identifier for a surface in a universe
+//! Identifier for a surface in a universe (or globally)
 using SurfaceId = OpaqueId<struct Surface>;
 
-//! Identifier for a geometry volume
+//! Identifier for a geometry volume (local or global)
 using VolumeId = OpaqueId<struct Volume>;
 
+//! Fixed-size array for 3D space
 using Real3 = Array<real_type, 3>;
+
+//! Identifier for a relocatable set of volumes
+using UniverseId = OpaqueId<struct Universe>;
+
+//! Opaque index for "simple unit" data
+using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
@@ -73,6 +80,8 @@ enum class Sense : bool
  *
  * These are ordered by number of coefficients needed for their representation:
  * 1 for `[ps].|c.o`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
+ *
+ * See \c orange/surf/SurfaceTypeTraits.hh for how these map to classes.
  */
 enum class SurfaceType : unsigned char
 {
@@ -98,6 +107,24 @@ enum class SurfaceType : unsigned char
 #endif
     gq,   //!< General quadric
     size_ //!< Sentinel value for number of surface types
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enumeration for type-deleted universe storage.
+ *
+ * See \c orange/univ/UniverseTypeTraits.hh for how these map to data and
+ * classes.
+ */
+enum class UniverseType : unsigned char
+{
+    simple,
+#if 0
+    rect_array,
+    hex_array,
+    dode_array,
+    ...
+#endif
 };
 
 //---------------------------------------------------------------------------//

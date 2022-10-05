@@ -50,22 +50,18 @@ TEST(Types, OnFace)
 class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
-    using SurfaceRef = Surfaces::SurfaceRef;
-    using VolumeRef  = VolumeView::VolumeRef;
-
-    const SurfaceRef& surface_ref() const
+    VolumeView make_volume_view(VolumeId v) const
     {
-        return this->params().host_ref().surfaces;
-    }
-    const VolumeRef& volume_ref() const
-    {
-        return this->params().host_ref().volumes;
+        CELER_EXPECT(v);
+        const auto& host_ref = this->params().host_ref();
+        return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
     }
 
     Surfaces make_surfaces() const
     {
-        const auto& host_data = this->params().host_ref();
-        return Surfaces{host_data.surfaces, host_data.reals};
+        const auto& host_ref = this->params().host_ref();
+        return Surfaces(host_ref,
+                        host_ref.simple_unit[SimpleUnitId{0}].surfaces);
     }
 
     //! Access the shared CPU storage space for senses
@@ -90,7 +86,7 @@ TEST_F(SenseCalculatorTest, one_volume)
     SenseCalculator calc_senses(
         this->make_surfaces(), Real3{123, 345, 567}, this->sense_storage());
 
-    auto result = calc_senses(VolumeView(this->volume_ref(), VolumeId{0}));
+    auto result = calc_senses(this->make_volume_view(VolumeId{0}));
     EXPECT_EQ(0, result.senses.size());
     EXPECT_FALSE(result.face);
 }
@@ -105,8 +101,8 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
     // Note that since these have the same faces, the results should be the
     // same for both.
-    VolumeView outer(this->volume_ref(), VolumeId{0});
-    VolumeView inner(this->volume_ref(), VolumeId{1});
+    VolumeView outer = this->make_volume_view(VolumeId{0});
+    VolumeView inner = this->make_volume_view(VolumeId{1});
 
     {
         // Point is in the inner sphere
@@ -170,9 +166,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
     // this->describe(std::cout);
 
     // Volume definitions
-    VolumeView vol_b(this->volume_ref(), VolumeId{2});
-    VolumeView vol_c(this->volume_ref(), VolumeId{3});
-    VolumeView vol_e(this->volume_ref(), VolumeId{5});
+    VolumeView vol_b = this->make_volume_view(VolumeId{2});
+    VolumeView vol_c = this->make_volume_view(VolumeId{3});
+    VolumeView vol_e = this->make_volume_view(VolumeId{5});
 
     {
         // Point is in the inner sphere
