@@ -62,6 +62,9 @@ class FieldPropagator
     //! Limit on substeps
     static CELER_CONSTEXPR_FUNCTION int max_substeps() { return 128; }
 
+    // Distance to bump or to consider a "zero" movement
+    inline CELER_FUNCTION real_type bump_distance() const;
+
   private:
     //// DATA ////
 
@@ -133,6 +136,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     -> result_type
 {
     result_type result;
+    result.boundary = geo_.is_on_boundary();
     result.distance = 0;
 
     // Break the curved steps into substeps as determined by the driver *and*
@@ -144,6 +148,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
+        CELER_ASSERT(result.boundary == geo_.is_on_boundary());
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
@@ -174,16 +179,15 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             geo_.move_internal(state_.pos);
             --remaining_substeps;
         }
-        else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
-                                && geo_.is_on_boundary()))
+        else if (CELER_UNLIKELY(result.boundary
+                                && linear_step.distance < this->bump_distance()))
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
             // near tangent). Reduce substep size and try again. Assume a
             // boundary crossing if repeated bisection of the substep fails to
             // converge.
-            result.boundary = true;
-            remaining       = substep.step / 2;
+            remaining = substep.step / 2;
         }
         else if (substep.step * linear_step.distance
                  <= driver_.minimum_step() * chord.length)
@@ -226,17 +230,24 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
-    if (result.boundary)
+    if (result.distance > 0)
     {
-        geo_.move_to_boundary();
-        state_.pos = geo_.pos();
-    }
-    else if (remaining > 0 && remaining_substeps > 0)
-    {
-        // Bad luck with substep accumulation or possible very small initial
-        // value for "step". Return that we've moved this tiny amount (for e.g.
-        // dE/dx purposes) but don't physically propagate the track.
-        result.distance += remaining;
+        if (result.boundary)
+        {
+            // We moved to a new boundary. Update the position to reflect the
+            // geometry's state (and possibly "bump" the ODE state's position
+            // because of the tolerance in the intercept checks above).
+            geo_.move_to_boundary();
+            state_.pos = geo_.pos();
+        }
+        else if (remaining_substeps > 0)
+        {
+            // Bad luck with substep accumulation or possible very small
+            // initial value for "step". Return that we've moved this tiny
+            // amount (for, e.g., dE/dx purposes) but don't physically
+            // propagate the track.
+            result.distance += remaining;
+        }
     }
 
     // Even though the along-substep movement was through chord lengths,
@@ -246,9 +257,32 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     normalize_direction(&dir);
     geo_.set_dir(dir);
 
+    if (CELER_UNLIKELY(result.distance == 0))
+    {
+        // We failed to move at all, which means we hit a boundary no matter
+        // what step length we took, which means we're stuck.
+        // Using the just-reapplied direction, hope that we're pointing deeper
+        // into the current volume and bump the particle.
+        axpy(this->bump_distance(), dir, &state_.pos);
+        geo_.move_internal(state_.pos);
+    }
+
     CELER_ENSURE(result.boundary == geo_.is_on_boundary());
     CELER_ENSURE(result.distance > 0 && result.distance <= step);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distance to bump or to consider a "zero" movement.
+ *
+ * Currently this is set to the field driver's minimum step, but it should
+ * probably be related to the geometry instead.
+ */
+template<class DriverT>
+CELER_FUNCTION real_type FieldPropagator<DriverT>::bump_distance() const
+{
+    return driver_.minimum_step();
 }
 
 //---------------------------------------------------------------------------//
