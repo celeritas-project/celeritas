@@ -68,9 +68,6 @@ class FieldPropagator
     //! Limit on substeps
     static CELER_CONSTEXPR_FUNCTION int max_substeps() { return 128; }
 
-    //! Bisect instead of reducing substep below this fraction to boundary
-    static CELER_CONSTEXPR_FUNCTION real_type bisect_tol() { return 0.5; }
-
   private:
     //// DATA ////
 
@@ -204,14 +201,11 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         else if (CELER_UNLIKELY(linear_step.distance < driver_.minimum_step()
                                 && geo_.is_on_boundary()))
         {
-            // Distance to boundary is very small (zero for ORANGE, some
-            // epsilon for VecGeom) and we're currently on a boundary.
-            // This means we're likely heading back into the old volume when
-            // starting on a surface (this can happen when tracking through a
-            // volume at a near tangent).
-            // Reduce substep size and try again.
-            // Assume a boundary crossing if repeated bisection of the substep
-            // fails to converge.
+            // Likely heading back into the old volume when starting on a
+            // surface (this can happen when tracking through a volume at a
+            // near tangent). Reduce substep size and try again. Assume a
+            // boundary crossing if repeated bisection of the substep fails to
+            // converge.
             result.boundary = true;
             remaining       = substep.step / 2;
             cout << " + halving substep distance" << endl;
@@ -252,17 +246,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
             cout << " + intercept is sufficiently close (miss distance = "
                  << miss_distance << ") to substep point" << endl;
-        }
-        else if (linear_step.distance > (1 - this->bisect_tol()) * chord.length)
-        {
-            // i.e. 1 - linear_step.distance / chord.length < bisect_tol
-            // The intercept point is "close" to the end of the the substep.
-            // Instead of reducing the trial substep value by a small fraction,
-            // advance halfway to the end
-            remaining = substep.step * 0.5;
-
-            cout << " + Endpoint is pretty close; halve step size to converge"
-                 << endl;
         }
         else
         {

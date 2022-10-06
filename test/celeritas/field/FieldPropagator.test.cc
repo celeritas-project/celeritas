@@ -351,7 +351,7 @@ TEST_F(TwoBoxTest, gamma_interior)
         EXPECT_TRUE(result.boundary);
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 5}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), geo.dir());
-        EXPECT_EQ(4, stepper.count());
+        EXPECT_EQ(2, stepper.count());
     }
     // Cross boundary
     {
@@ -462,6 +462,7 @@ TEST_F(TwoBoxTest, gamma_exit)
         EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
+        EXPECT_EQ(2, stepper.count());
         EXPECT_EQ("inner", this->volume_name(geo));
         ASSERT_TRUE(result.boundary);
         geo.cross_boundary();
@@ -1064,8 +1065,8 @@ TEST_F(LayersTest, revolutions_through_layers)
         }
     }
 
-    EXPECT_SOFT_NEAR(-0.13150565, geo.pos()[0], 1e-3);
-    EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], 1e-3);
+    EXPECT_SOFT_NEAR(-0.13150565, geo.pos()[0], 1e-6);
+    EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], 1e-6);
     EXPECT_SOFT_NEAR(221.48171708, total_length, 1e-6);
     EXPECT_EQ(148, icross);
 }
@@ -1148,7 +1149,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_EQ(211, stepper.count());
+        EXPECT_EQ(92, stepper.count());
         ASSERT_TRUE(geo.is_on_boundary());
         if (!CELERITAS_USE_VECGEOM)
         {
