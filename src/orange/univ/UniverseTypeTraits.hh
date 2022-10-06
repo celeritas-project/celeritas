@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct SimpleUnitRecord;
-struct SimpleUnitTracker;
+class SimpleUnitTracker;
 
 //---------------------------------------------------------------------------//
 /*!

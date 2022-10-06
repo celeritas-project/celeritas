@@ -29,15 +29,10 @@ struct OrangeParamsScalars
     size_type max_intersections{};
     size_type max_logic_depth{};
 
-    // Multiplicative and additive values for bumping particles
-    real_type bump_rel{1e-8};
-    real_type bump_abs{1e-8};
-
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_level > 0 && max_faces > 0 && max_intersections > 0
-               && bump_rel > 0 && bump_abs > 0;
+        return max_level > 0 && max_faces > 0 && max_intersections > 0;
     }
 };
 
@@ -113,11 +108,11 @@ struct SimpleUnitRecord
     ItemRange<VolumeRecord> volumes;
 
     // TODO: transforms
-
     // TODO: acceleration structure (bvh/kdtree/grid)
     // TODO: background
     bool simple_safety{};
 
+    //! True if defined
     explicit CELER_FUNCTION operator bool() const
     {
         return surfaces && connectivity.size() == surfaces.types.size()
