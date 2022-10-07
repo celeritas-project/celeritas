@@ -73,6 +73,9 @@ class CoreTrackView
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId boundary_action() const;
 
+    // Action ID for some other propagation limit (e.g. field stepping)
+    inline CELER_FUNCTION ActionId propagation_limit_action() const;
+
   private:
     const StateRef&  states_;
     const ParamsRef& params_;
@@ -193,6 +196,15 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
 {
     return params_.scalars.boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for having to pause the step during propagation.
+ */
+CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
+{
+    return params_.scalars.propagation_limit_action;
 }
 
 //---------------------------------------------------------------------------//

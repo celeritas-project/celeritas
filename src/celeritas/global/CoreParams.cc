@@ -13,14 +13,13 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/generated/BoundaryAction.hh"
-#include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/ActionManager.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/random/RngParams.hh"
 
+#include "ActionInterface.hh"
 #include "ActionManager.hh"
 
 namespace celeritas
@@ -51,6 +50,15 @@ build_params_refs(const CoreParams::Input& p, CoreScalars scalars)
     CELER_ENSURE(ref);
     return ref;
 }
+
+//---------------------------------------------------------------------------//
+class ImplicitGeometryAction final : public ImplicitActionInterface,
+                                     public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -60,7 +68,8 @@ build_params_refs(const CoreParams::Input& p, CoreScalars scalars)
 CoreParams::CoreParams(Input input) : input_(std::move(input))
 {
 #define CP_VALIDATE_INPUT(MEMBER) \
-    CELER_VALIDATE(input_.MEMBER, << "core input is missing " #MEMBER " data")
+    CELER_VALIDATE(input_.MEMBER, \
+                   << "core input is missing " << #MEMBER << " data")
     CP_VALIDATE_INPUT(geometry);
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(geomaterial);
@@ -79,6 +88,13 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.action_mgr->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
             scalars_.boundary_action, "geo-boundary", "Boundary crossing"));
+
+    // Construct implicit limit for propagator pausing midstep
+    scalars_.propagation_limit_action = input_.action_mgr->next_id();
+    input_.action_mgr->insert(std::make_shared<ImplicitGeometryAction>(
+        scalars_.propagation_limit_action,
+        "geo-propagation-limit",
+        "Propagation substep/range limit"));
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars_);
