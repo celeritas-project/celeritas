@@ -40,6 +40,8 @@ struct OrangeParamsScalars
 /*!
  * Data for a single volume definition.
  *
+ * Surface IDs are local to the unit.
+ *
  * \sa VolumeView
  */
 struct VolumeRecord
@@ -62,7 +64,19 @@ struct VolumeRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for surface-to-volume connectivity.
+ * Data for surfaces within a single unit.
+ *
+ * Surfaces each have a compile-time number of real data needed to define them.
+ * (These usually are the nonzero coefficients of the quadric equation.) The
+ * two fields in this record point to the collapsed surface types and
+ * linearized data for all surfaces in a unit.
+ *
+ * The "types" and "data offsets" are both indexed into using the local surface
+ * ID. The result of accessing "data offset" is an index into the \c real_ids
+ * array, which then points us to the start address in \c reals. This marks the
+ * beginning of the data used by the surface. Since the surface type tells us
+ * the number of real values needed for that surface, we implicitly get a Span
+ * of real values with a single indirection.
  */
 struct SurfacesRecord
 {
@@ -84,6 +98,9 @@ struct SurfacesRecord
 //---------------------------------------------------------------------------//
 /*!
  * Data for surface-to-volume connectivity.
+ *
+ * This struct is associated with a specific surface; the \c neighbors range is
+ * a list of local volume IDs for that surface.
  */
 struct Connectivity
 {
@@ -93,16 +110,12 @@ struct Connectivity
 //---------------------------------------------------------------------------//
 /*!
  * Scalar data for a single "unit" of volumes defined by surfaces.
- *
- * Surfaces each have a compile-time number of real data needed to define them.
- * (These usually are the nonzero coefficients of the quadric equation.) A
- * surface ID points to an offset into the `data` field.
  */
 struct SimpleUnitRecord
 {
     // Surface data
     SurfacesRecord          surfaces;
-    ItemRange<Connectivity> connectivity;
+    ItemRange<Connectivity> connectivity; // Index by SurfaceId
 
     // Volume data [index by VolumeId]
     ItemRange<VolumeRecord> volumes;
