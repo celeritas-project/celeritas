@@ -8,6 +8,7 @@
 #include "celeritas/field/FieldPropagator.hh"
 
 #include <cmath>
+
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/Algorithms.hh"
@@ -29,6 +30,7 @@
 
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
+#include "celeritas_cmake_strings.h"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -1183,14 +1185,18 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
 {
     UniformZField      field(1000);
     FieldDriverOptions driver_options;
-    auto               geo = this->init_geo({1.23254142755319734e+02,
-                                             -2.08186543568394598e+01,
-                                             -4.08262349901495583e+01},
+
+    auto geo = this->init_geo({1.23254142755319734e+02,
+                               -2.08186543568394598e+01,
+                               -4.08262349901495583e+01},
                               {-2.59700373666105766e-01,
-                                             -8.11661685885768147e-01,
-                                             -5.23221772848529443e-01});
-    auto               calc_radius
+                               -8.11661685885768147e-01,
+                               -5.23221772848529443e-01});
+
+    auto calc_radius
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+
+    bool successful_reentry = false;
     {
         auto particle
             = this->init_particle(this->particle()->find(pdg::electron()),
@@ -1204,12 +1210,23 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
         EXPECT_EQ(2, stepper.count());
+    }
+    {
+        ASSERT_TRUE(geo.is_on_boundary());
+        // Simulate MSC making us reentrant
         geo.set_dir({-1.31178657592616127e-01,
                      -8.29310561920304168e-01,
                      -5.43172303859124073e-01});
-        ASSERT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        if (!CELERITAS_USE_VECGEOM
+            || !starts_with(celeritas_vecgeom_version, "1.1."))
+        {
+            // Both ORANGE and newer VecGeom versions should successfully
+            // reenter. Some older versions on some systems will sometimes move
+            // into the world volume.
+            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        }
     }
     {
         auto particle
@@ -1219,13 +1236,25 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
+        // This absurdly long step is because in the "failed" case the track
+        // thinks it's in the world volume (nearly vacuum)
         auto result = propagate(2.12621374950874703e+21);
-        EXPECT_SOFT_EQ(14.946488966946923, result.distance);
         EXPECT_FALSE(result.boundary);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         EXPECT_SOFT_NEAR(125, calc_radius(), 1e-4);
-        EXPECT_EQ(9984, stepper.count());
+        if (successful_reentry)
+        {
+            // Extremely long propagation stopped by substep countdown
+            EXPECT_SOFT_EQ(14.946488966946923, result.distance);
+            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+            EXPECT_EQ(9984, stepper.count());
+        }
+        else
+        {
+            // Repeated substep bisection failed; particle is bumped
+            EXPECT_SOFT_EQ(1e-6, result.distance);
+            EXPECT_EQ(102, stepper.count());
+        }
     }
 }
 
