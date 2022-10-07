@@ -265,6 +265,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // into the current volume and bump the particle.
         axpy(this->bump_distance(), dir, &state_.pos);
         geo_.move_internal(state_.pos);
+        result.distance = this->bump_distance();
+        result.boundary = false;
     }
 
     CELER_ENSURE(result.boundary == geo_.is_on_boundary());
