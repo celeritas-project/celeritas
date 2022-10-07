@@ -60,7 +60,7 @@ class FieldPropagator
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
     //! Limit on substeps
-    static CELER_CONSTEXPR_FUNCTION int max_substeps() { return 128; }
+    static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 128; }
 
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
@@ -144,7 +144,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
-    int       remaining_substeps = this->max_substeps();
+    auto       remaining_substeps = this->max_substeps();
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
