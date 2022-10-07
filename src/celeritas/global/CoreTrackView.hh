@@ -201,6 +201,11 @@ CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
 //---------------------------------------------------------------------------//
 /*!
  * Get the action ID for having to pause the step during propagation.
+ *
+ * This could be from an internal limiter (number of substeps during field
+ * propagation) or from having to "bump" the track position for some reason
+ * (geometry issue). The volume *must not* change as a result of the
+ * propagation, and this should be an extremely rare case.
  */
 CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 {
