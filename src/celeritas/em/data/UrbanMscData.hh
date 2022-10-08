@@ -36,7 +36,8 @@ struct UrbanMscParameters
     real_type safety_fact{0.6}; //!< safety factor
     real_type safety_tol{0.01}; //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter}; //!< minimum step
-    Energy    energy_limit{1e-5};                   //!< 10 eV
+    Energy    low_energy_limit{1e-5};               //!< 10 eV
+    Energy    high_energy_limit{1e+2};              //!< 100 MeV
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
@@ -79,6 +80,7 @@ struct UrbanMscMaterialData
     using Real4 = Array<real_type, 4>;
 
     real_type zeff{};        //!< effective atomic_number
+    real_type scaled_zeff{}; //!< 0.70 * sqrt(zeff)
     real_type z23{};         //!< zeff^(2/3)
     real_type coeffth1{};    //!< correction in theta_0 formula
     real_type coeffth2{};    //!< correction in theta_0 formula
