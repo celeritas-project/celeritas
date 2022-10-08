@@ -135,6 +135,7 @@ template<class DriverT>
 CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     -> result_type
 {
+    CELER_EXPECT(step > 0);
     result_type result;
     result.boundary = geo_.is_on_boundary();
     result.distance = 0;
@@ -143,8 +144,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // by the proximity of geometry boundaries. Test for intersection with the
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
-    real_type remaining = step;
-    auto       remaining_substeps = this->max_substeps();
+    real_type remaining          = step;
+    auto      remaining_substeps = this->max_substeps();
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -263,10 +264,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // what step length we took, which means we're stuck.
         // Using the just-reapplied direction, hope that we're pointing deeper
         // into the current volume and bump the particle.
-        axpy(this->bump_distance(), dir, &state_.pos);
-        geo_.move_internal(state_.pos);
-        result.distance = this->bump_distance();
+        result.distance = celeritas::min(this->bump_distance(), step);
         result.boundary = false;
+        axpy(result.distance, dir, &state_.pos);
+        geo_.move_internal(state_.pos);
     }
 
     CELER_ENSURE(result.boundary == geo_.is_on_boundary());

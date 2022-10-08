@@ -1220,12 +1220,11 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
                      -5.43172303859124073e-01});
         geo.cross_boundary();
         successful_reentry = (this->volume_name(geo) == "em_calorimeter");
-        if (!CELERITAS_USE_VECGEOM
-            || !starts_with(celeritas_vecgeom_version, "1.1."))
+        if (!CELERITAS_USE_VECGEOM)
         {
-            // Both ORANGE and newer VecGeom versions should successfully
-            // reenter. Some older versions on some systems will sometimes move
-            // into the world volume.
+            // ORANGE should successfully reenter. However, under certain
+            // system configurations, VecGeom will end up in the world volume,
+            // so we don't test in all cases.
             EXPECT_EQ("em_calorimeter", this->volume_name(geo));
         }
     }
