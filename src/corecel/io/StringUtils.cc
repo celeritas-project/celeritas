@@ -14,6 +14,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the string starts with another string.
+ */
+bool starts_with(const std::string& main_string, const std::string& prefix)
+{
+    if (main_string.size() < prefix.size())
+        return false;
+
+    return std::equal(
+        main_string.begin(), main_string.begin() + prefix.size(), prefix.begin());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the string ends with another string.
  */
 bool ends_with(const std::string& main_string, const std::string& suffix)

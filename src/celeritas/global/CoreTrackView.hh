@@ -73,6 +73,9 @@ class CoreTrackView
     // Action ID for encountering a geometry boundary
     inline CELER_FUNCTION ActionId boundary_action() const;
 
+    // Action ID for some other propagation limit (e.g. field stepping)
+    inline CELER_FUNCTION ActionId propagation_limit_action() const;
+
   private:
     const StateRef&  states_;
     const ParamsRef& params_;
@@ -193,6 +196,20 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 CELER_FUNCTION ActionId CoreTrackView::boundary_action() const
 {
     return params_.scalars.boundary_action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the action ID for having to pause the step during propagation.
+ *
+ * This could be from an internal limiter (number of substeps during field
+ * propagation) or from having to "bump" the track position for some reason
+ * (geometry issue). The volume *must not* change as a result of the
+ * propagation, and this should be an extremely rare case.
+ */
+CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
+{
+    return params_.scalars.propagation_limit_action;
 }
 
 //---------------------------------------------------------------------------//

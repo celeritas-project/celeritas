@@ -84,6 +84,13 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
             local.geo_step          = p.distance;
             local.step_limit.action = track.boundary_action();
         }
+        else if (p.distance < local.geo_step)
+        {
+            // Some other internal non-boundary geometry limit has been reached
+            // (e.g. too many substeps)
+            local.geo_step          = p.distance;
+            local.step_limit.action = track.propagation_limit_action();
+        }
     }
 
     if (use_msc)

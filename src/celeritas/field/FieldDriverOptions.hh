@@ -53,7 +53,7 @@ struct FieldDriverOptions
     real_type max_stepping_decrease = 0.1;
 
     //! Maximum number of steps (or trials)
-    size_type max_nsteps = 100;
+    short int max_nsteps = 100;
 
     //! Initial step tolerance
     static constexpr real_type initial_step_tol = 1e-6;

@@ -50,6 +50,10 @@ class UrbanMsc
 
   private:
     const ParamsRef& msc_params_;
+
+    // Whether the step was limited by geometry
+    static inline CELER_FUNCTION bool
+    is_geo_limited(CoreTrackView const&, const StepLimit&);
 };
 
 //---------------------------------------------------------------------------//
@@ -147,7 +151,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
                                 phys,
                                 mat.make_material_view(),
                                 msc_step_result,
-                                /* geo_limited = */ geo.is_on_boundary());
+                                is_geo_limited(track, local->step_limit));
 
     auto rng        = track.make_rng_engine();
     auto msc_result = msc_scatter(rng);
@@ -175,6 +179,21 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
         }
         geo.move_internal(new_pos);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the step was limited by geometry.
+ *
+ * Usually the track is limited only if it's on the boundary (in which case
+ * it should be "boundary action") but in rare circumstances the propagation
+ * has to pause before the end of the step is reached.
+ */
+CELER_FUNCTION bool
+UrbanMsc::is_geo_limited(CoreTrackView const& track, const StepLimit& limit)
+{
+    return (limit.action == track.boundary_action()
+            || limit.action == track.propagation_limit_action());
 }
 
 //---------------------------------------------------------------------------//

@@ -22,6 +22,7 @@
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionManager.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"

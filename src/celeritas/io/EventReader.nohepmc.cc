@@ -22,6 +22,7 @@ EventReader::~EventReader() = default;
 
 auto EventReader::operator()() -> result_type
 {
+    (void)sizeof(event_count_);
     CELER_ASSERT_UNREACHABLE();
 }
 

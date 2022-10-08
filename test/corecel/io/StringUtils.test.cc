@@ -3,22 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/StringUtils.hh
-//! \brief Helper functions for string processing
+//! \file corecel/io/StringUtils.test.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "corecel/io/StringUtils.hh"
 
-#include <string>
+#include "celeritas_test.hh"
 
 namespace celeritas
 {
+namespace test
+{
 //---------------------------------------------------------------------------//
-// Whether the string starts with another string.
-bool starts_with(const std::string& main_string, const std::string& prefix);
+TEST(StringUtils, starts_with)
+{
+    EXPECT_TRUE(starts_with("prefix", "pre"));
+    EXPECT_FALSE(starts_with("abcd", "b"));
+    EXPECT_FALSE(starts_with("a", "abcd"));
+    EXPECT_TRUE(starts_with("", ""));
+}
 
 //---------------------------------------------------------------------------//
-// Whether the string ends with another string.
-bool ends_with(const std::string& main_string, const std::string& suffix);
+TEST(StringUtils, ends_with)
+{
+    EXPECT_TRUE(ends_with("prefix", "fix"));
+    EXPECT_FALSE(ends_with("abcd", "c"));
+    EXPECT_FALSE(ends_with("d", "abcd"));
+    EXPECT_TRUE(ends_with("", ""));
+}
 
 //---------------------------------------------------------------------------//
+} // namespace test
 } // namespace celeritas
