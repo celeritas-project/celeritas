@@ -310,8 +310,16 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(63, result.num_step_iters());
-        EXPECT_SOFT_EQ(62.375, result.calc_avg_steps_per_primary());
+        if (CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ(64, result.num_step_iters());
+            EXPECT_SOFT_EQ(62.5, result.calc_avg_steps_per_primary());
+        }
+        else
+        {
+            EXPECT_EQ(63, result.num_step_iters());
+            EXPECT_SOFT_EQ(62.375, result.calc_avg_steps_per_primary());
+        }
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 7}), result.calc_queue_hwm());
     }
