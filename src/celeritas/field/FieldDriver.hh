@@ -49,8 +49,6 @@ class FieldDriver
         return options_.minimum_step;
     }
 
-    CELER_FUNCTION size_type max_nsteps() const { return options_.max_nsteps; }
-
     // TODO: this should be field propagator data
     CELER_FUNCTION real_type delta_intersection() const
     {
@@ -172,7 +170,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
     ChordSearch output;
 
     bool               succeeded       = false;
-    size_type          remaining_steps = options_.max_nsteps;
+    auto               remaining_steps = options_.max_nsteps;
     FieldStepperResult result;
 
     do
@@ -180,7 +178,8 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
         // Try with the proposed step
         result = apply_step_(step, state);
 
-        // Check whether the distance to the chord is small than the reference
+        // Check whether the distance to the chord is smaller than the
+        // reference
         real_type dchord = detail::distance_chord(
             state, result.mid_state, result.end_state);
 
@@ -191,9 +190,7 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
         }
         else
         {
-            succeeded    = true;
-            output.error = detail::truncation_error(
-                step, options_.epsilon_rel_max, state, result.err_state);
+            succeeded = true;
         }
     } while (!succeeded && --remaining_steps > 0);
 
@@ -203,6 +200,8 @@ FieldDriver<StepperT>::find_next_chord(real_type       step,
     // Update step, position and momentum
     output.end.step  = step;
     output.end.state = result.end_state;
+    output.error     = detail::truncation_error(
+        step, options_.epsilon_rel_max, state, result.err_state);
 
     return output;
 }
@@ -240,7 +239,7 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     // Perform integration
     bool      succeeded       = false;
     real_type curve_length    = 0;
-    size_type remaining_steps = options_.max_nsteps;
+    auto      remaining_steps = options_.max_nsteps;
 
     do
     {

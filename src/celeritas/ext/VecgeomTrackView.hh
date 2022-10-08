@@ -410,6 +410,8 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     }
 
     vgstate_ = vgnext_;
+
+    CELER_ENSURE(this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
@@ -429,20 +431,24 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
     vgstate_.SetBoundaryState(false);
+
+    CELER_ENSURE(!this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Move within the current volume to a nearby point.
  *
- * \todo Currently it's up to the caller to make sure that the position is
- * "nearby". We should actually test this with a safety distance.
+ * \warning It's up to the caller to make sure that the position is
+ * "nearby" and within the same volume.
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
 {
     pos_       = pos;
     next_step_ = 0;
     vgstate_.SetBoundaryState(false);
+
+    CELER_ENSURE(!this->is_on_boundary());
 }
 
 //---------------------------------------------------------------------------//

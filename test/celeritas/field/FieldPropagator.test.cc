@@ -11,6 +11,7 @@
 
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
@@ -29,6 +30,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "DiagnosticStepper.hh"
+#include "celeritas_cmake_strings.h"
 #include "celeritas_test.hh"
 #include "detail/CMSParameterizedField.hh"
 
@@ -494,7 +496,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
-        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
     }
     {
         SCOPED_TRACE("Small step intersected by boundary");
@@ -511,7 +513,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
-        EXPECT_VEC_EQ(Real3({1, 0, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 2 * delta, 0}), geo.dir());
     }
     {
         SCOPED_TRACE("Cross boundary");
@@ -537,7 +539,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         EXPECT_FALSE(result.boundary);
         EXPECT_FALSE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5 + delta, 0, 0}), geo.pos());
-        EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
+        EXPECT_VEC_SOFT_EQ(Real3({1, 3 * delta, 0}), geo.dir());
     }
 }
 
@@ -1139,10 +1141,13 @@ TEST_F(SimpleCmsTest, electron_stuck)
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
     }
     {
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ(92, stepper.count());
         ASSERT_TRUE(geo.is_on_boundary());
         if (!CELERITAS_USE_VECGEOM)
         {
@@ -1169,5 +1174,81 @@ TEST_F(SimpleCmsTest, electron_stuck)
         }
         geo.cross_boundary();
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
+    }
+}
+
+TEST_F(SimpleCmsTest, vecgeom_failure)
+{
+    UniformZField      field(1000);
+    FieldDriverOptions driver_options;
+
+    auto geo = this->init_geo({1.23254142755319734e+02,
+                               -2.08186543568394598e+01,
+                               -4.08262349901495583e+01},
+                              {-2.59700373666105766e-01,
+                               -8.11661685885768147e-01,
+                               -5.23221772848529443e-01});
+
+    auto calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
+
+    bool successful_reentry = false;
+    {
+        auto particle
+            = this->init_particle(this->particle()->find(pdg::electron()),
+                                  MevEnergy{3.27089632881079409e-02});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        auto result = propagate(1.39170198361108938e-05);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        EXPECT_SOFT_EQ(125.00000000000001, calc_radius());
+        EXPECT_EQ(2, stepper.count());
+    }
+    {
+        ASSERT_TRUE(geo.is_on_boundary());
+        // Simulate MSC making us reentrant
+        geo.set_dir({-1.31178657592616127e-01,
+                     -8.29310561920304168e-01,
+                     -5.43172303859124073e-01});
+        geo.cross_boundary();
+        successful_reentry = (this->volume_name(geo) == "em_calorimeter");
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            // ORANGE should successfully reenter. However, under certain
+            // system configurations, VecGeom will end up in the world volume,
+            // so we don't test in all cases.
+            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+        }
+    }
+    {
+        auto particle
+            = this->init_particle(this->particle()->find(pdg::electron()),
+                                  MevEnergy{3.25917780979408864e-02});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        // This absurdly long step is because in the "failed" case the track
+        // thinks it's in the world volume (nearly vacuum)
+        auto result = propagate(2.12621374950874703e+21);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_EQ(result.boundary, geo.is_on_boundary());
+        EXPECT_SOFT_NEAR(125, calc_radius(), 1e-4);
+        if (successful_reentry)
+        {
+            // Extremely long propagation stopped by substep countdown
+            EXPECT_SOFT_EQ(14.946488966946923, result.distance);
+            EXPECT_EQ("em_calorimeter", this->volume_name(geo));
+            EXPECT_EQ(9984, stepper.count());
+        }
+        else
+        {
+            // Repeated substep bisection failed; particle is bumped
+            EXPECT_SOFT_EQ(1e-6, result.distance);
+            EXPECT_EQ(102, stepper.count());
+        }
     }
 }

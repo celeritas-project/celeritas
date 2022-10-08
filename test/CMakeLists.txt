@@ -137,6 +137,7 @@ celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc)
 celeritas_add_test(corecel/io/Repr.test.cc)
+celeritas_add_test(corecel/io/StringUtils.test.cc)
 
 # Math
 celeritas_add_test(corecel/math/Algorithms.test.cc)

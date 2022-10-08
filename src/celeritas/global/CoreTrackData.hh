@@ -25,11 +25,12 @@ namespace celeritas
 struct CoreScalars
 {
     ActionId boundary_action;
+    ActionId propagation_limit_action;
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return bool(boundary_action);
+        return boundary_action && propagation_limit_action;
     }
 };
 
