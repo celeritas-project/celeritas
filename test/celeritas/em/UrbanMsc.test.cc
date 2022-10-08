@@ -308,7 +308,6 @@ TEST_F(UrbanMscTest, msc_scattering)
                                        *part_view_,
                                        phys,
                                        material_view.material_id(),
-                                       sim_track_view.num_steps() == 0,
                                        geo_view.find_safety(),
                                        step[i]);
 
