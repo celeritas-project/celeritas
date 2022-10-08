@@ -150,7 +150,8 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 
     MaterialData data;
 
-    data.zeff = zeff;
+    data.zeff        = zeff;
+    data.scaled_zeff = real_type(0.70) * std::sqrt(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
     const double z16 = fastpow(zeff, 1.0 / 6.0);
