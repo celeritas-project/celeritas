@@ -81,7 +81,8 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
         return false;
 
     auto particle = track.make_particle_view();
-    return particle.energy() > msc_params_.params.energy_limit;
+    return particle.energy() > msc_params_.params.low_energy_limit
+           && particle.energy() < msc_params_.params.high_energy_limit;
 }
 
 //---------------------------------------------------------------------------//
@@ -96,14 +97,12 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
     auto particle = track.make_particle_view();
     auto geo      = track.make_geo_view();
     auto phys     = track.make_physics_view();
-    auto sim      = track.make_sim_view();
 
     // Sample multiple scattering step length
     UrbanMscStepLimit msc_step_limit(msc_params_,
                                      particle,
                                      phys,
                                      track.make_material_view().material_id(),
-                                     sim.num_steps() == 0,
                                      geo.find_safety(),
                                      local->step_limit.step);
 
