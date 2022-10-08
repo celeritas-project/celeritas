@@ -276,7 +276,7 @@ TEST_F(TestEm3MscTest, host)
     Stepper<MemSpace::host> step(
         this->make_stepper_input(num_tracks, inits_per_track));
     auto result = this->run(step, num_primaries);
-    EXPECT_SOFT_NEAR(55, result.calc_avg_steps_per_primary(), 0.25);
+    EXPECT_SOFT_NEAR(30.5, result.calc_avg_steps_per_primary(), 0.25);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
