@@ -51,7 +51,7 @@ class UrbanMsc
   private:
     const ParamsRef& msc_params_;
 
-    // Whether a
+    // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool
     is_geo_limited(CoreTrackView const&, const StepLimit&);
 };
