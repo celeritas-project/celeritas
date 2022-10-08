@@ -52,8 +52,7 @@ class UrbanMscStepLimit
                                             const ParticleTrackView& particle,
                                             const PhysicsTrackView&  physics,
                                             MaterialId               matid,
-                                            bool      is_first_step,
-                                            real_type safety,
+                                            real_type                safety,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
@@ -78,7 +77,6 @@ class UrbanMscStepLimit
     // Urban MSC helper class
     UrbanMscHelper helper_;
 
-    bool      on_boundary_{};
     real_type lambda_{};
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
@@ -118,7 +116,6 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
                                      const PhysicsTrackView&  physics,
                                      MaterialId               matid,
-                                     bool                     is_first_step,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
@@ -128,7 +125,6 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics)
-    , on_boundary_(is_first_step || safety_ <= 0)
     , phys_step_(phys_step)
     , range_(physics.dedx_range())
 {
@@ -184,21 +180,15 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     real_type range_fact = params_.range_fact;
     real_type range_init = max<real_type>(range_, lambda_);
 
-    // G4StepStatus = fGeomBoundary: step defined by a geometry boundary
-    if (on_boundary_)
+    // Note: The minimum of the true path length limit is calculated at every
+    // msc step instead of using a cached value evaluated at the first step
+    // of tracking or on a volume boundary.
+    if (lambda_ > params_.lambda_limit)
     {
-        // For the first step of a track or after entering in a new volume
-        if (lambda_ > params_.lambda_limit)
-        {
-            range_fact *= (real_type(0.75)
-                           + real_type(0.25) * lambda_ / params_.lambda_limit);
-        }
-        result.limit_min = this->calc_limit_min();
+        range_fact *= (real_type(0.75)
+                       + real_type(0.25) * lambda_ / params_.lambda_limit);
     }
-    else
-    {
-        result.limit_min = shared_.params.limit_min();
-    }
+    result.limit_min = this->calc_limit_min();
 
     // The step limit
     real_type limit = range_;
@@ -326,9 +316,7 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
 
     // Scale based on particle type and effective atomic number:
     // 0.7 * z^{1/2} for positrons, otherwise 0.87 * z^{2/3}
-    // TODO: tabulate these two values to avoid the sqrt?
-    xm *= is_positron_ ? real_type(0.70) * std::sqrt(msc_.zeff)
-                       : real_type(0.87) * msc_.z23;
+    xm *= is_positron_ ? msc_.scaled_zeff : real_type(0.87) * msc_.z23;
 
     if (inc_energy_ < value_as<Energy>(this->tlow()))
     {
