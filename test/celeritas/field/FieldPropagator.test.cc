@@ -286,9 +286,9 @@ TEST_F(TwoBoxTest, electron_interior)
         result = propagate(1e-10);
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_VEC_SOFT_EQ(Real3({3.8085385881855, -2.3814749713353e-07, 0}),
-                           geo.pos());
-        EXPECT_VEC_SOFT_EQ(Real3({6.2529888474538e-08, 1, 0}), geo.dir());
+        EXPECT_VEC_NEAR(
+            Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
+        EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
     }
 }
