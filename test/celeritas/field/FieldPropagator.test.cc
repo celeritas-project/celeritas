@@ -203,7 +203,8 @@ struct HorribleZField
 
 // Field value (native units) for 10 MeV electron/positron to have a radius of
 // 1 cm
-constexpr real_type unit_radius_field_strength{3501.9461121752274};
+constexpr real_type unit_radius_field_strength{3.5019461121752274
+                                               * units::tesla};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -386,7 +387,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
                                         MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
-    HorribleZField     field{1234.5, 5};
+    HorribleZField     field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
     auto               stepper = make_mag_field_stepper<DiagnosticDPStepper>(
         field, particle.charge());
@@ -1119,7 +1120,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
 {
     auto particle = this->init_particle(this->particle()->find(pdg::electron()),
                                         MevEnergy{4.25402379798713e-01});
-    UniformZField      field(1000);
+    UniformZField      field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
     auto geo = this->init_geo(
@@ -1184,7 +1185,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
 
 TEST_F(SimpleCmsTest, vecgeom_failure)
 {
-    UniformZField      field(1000);
+    UniformZField      field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
     auto geo = this->init_geo({1.23254142755319734e+02,

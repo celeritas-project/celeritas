@@ -62,7 +62,9 @@ TEST(CMSParameterizedFieldTest, all)
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};
-        EXPECT_VEC_NEAR(expected[i], calc_field(pos), 1.0e-6);
+        EXPECT_VEC_NEAR(expected[i] * 1e-3 * units::tesla,
+                        calc_field(pos) * units::tesla,
+                        1.0e-6);
     }
 }
 
@@ -102,7 +104,9 @@ TEST(CMSMapField, all)
     {
         // Get the field value at a given position
         Real3 pos{i * delta_r, i * delta_r, i * delta_z};
-        EXPECT_VEC_NEAR(expected[i], calc_field(pos), 1.0e-6);
+        EXPECT_VEC_NEAR(expected[i] * 1e-3 * units::tesla,
+                        calc_field(pos) * units::tesla,
+                        1.0e-6);
     }
 }
 //---------------------------------------------------------------------------//
