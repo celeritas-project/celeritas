@@ -48,24 +48,42 @@ TEST(CMSParameterizedFieldTest, all)
     real_type delta_z  = 25.0;
     real_type delta_r  = 12.0;
 
-    static const Real3 expected[nsamples]
-        = {{-0.000000, -0.000000, 3811.202302},
-           {0.609459, 0.609459, 3810.356958},
-           {2.458195, 2.458195, 3807.469253},
-           {5.463861, 5.463861, 3802.600730},
-           {9.587723, 9.587723, 3795.850658},
-           {14.834625, 14.834625, 3787.348683},
-           {21.253065, 21.253065, 3777.244454},
-           {28.935544, 28.935544, 3765.695087}};
+    std::vector<real_type> actual;
 
     for (int i : range(nsamples))
     {
-        // Get the field value at a given position
-        Real3 pos{i * delta_r, i * delta_r, i * delta_z};
-        EXPECT_VEC_NEAR(expected[i] * 1e-3 * units::tesla,
-                        calc_field(pos) * units::tesla,
-                        1.0e-6);
+        Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
+        for (real_type f : field)
+        {
+            actual.push_back(f / units::tesla);
+        }
     }
+
+    static const real_type expected_field[] = {-0,
+                                               -0,
+                                               3.8112023023834,
+                                               0.00060945895519578,
+                                               0.00060945895519578,
+                                               3.8103569576023,
+                                               0.0024581951993005,
+                                               0.0024581951993005,
+                                               3.8074692533866,
+                                               0.0054638612329989,
+                                               0.0054638612329989,
+                                               3.8026007301972,
+                                               0.0095877228523849,
+                                               0.0095877228523849,
+                                               3.7958506580647,
+                                               0.014834624748597,
+                                               0.014834624748597,
+                                               3.7873486828586,
+                                               0.021253065345318,
+                                               0.021253065345318,
+                                               3.7772444535824,
+                                               0.028935543902684,
+                                               0.028935543902684,
+                                               3.7656950871883};
+    EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
 TEST(CMSMapField, all)
@@ -90,24 +108,42 @@ TEST(CMSMapField, all)
     real_type delta_z  = 25.0;
     real_type delta_r  = 12.0;
 
-    static const Real3 expected[nsamples]
-        = {{-0.000000, -0.000000, 3811.202288},
-           {-0.0475228, -0.0475228, 3806.21},
-           {-0.0950456, -0.0950456, 3801.22},
-           {-0.1425684, -0.1425684, 3796.23},
-           {9.49396, 9.49396, 3791.24},
-           {11.86745, 11.86745, 3775.99},
-           {14.241, 14.241, 3771.88},
-           {16.6149, 16.6149, 3757.2}};
+    std::vector<real_type> actual;
 
     for (int i : range(nsamples))
     {
-        // Get the field value at a given position
-        Real3 pos{i * delta_r, i * delta_r, i * delta_z};
-        EXPECT_VEC_NEAR(expected[i] * 1e-3 * units::tesla,
-                        calc_field(pos) * units::tesla,
-                        1.0e-6);
+        Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
+        for (real_type f : field)
+        {
+            actual.push_back(f / units::tesla);
+        }
     }
+
+    static const real_type expected_field[] = {-0,
+                                               -0,
+                                               3.811202287674,
+                                               -4.7522817039862e-05,
+                                               -4.7522817039862e-05,
+                                               3.8062113523483,
+                                               -9.5045634079725e-05,
+                                               -9.5045634079725e-05,
+                                               3.8012204170227,
+                                               -0.00014256845111959,
+                                               -0.00014256845111959,
+                                               3.7962294816971,
+                                               0.0094939613342285,
+                                               0.0094939613342285,
+                                               3.7912385463715,
+                                               0.011867451667786,
+                                               0.011867451667786,
+                                               3.775991499424,
+                                               0.014240986622126,
+                                               0.014240986622126,
+                                               3.771880030632,
+                                               0.016614892251046,
+                                               0.016614892251046,
+                                               3.757196366787};
+    EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 //---------------------------------------------------------------------------//
 } // namespace test
