@@ -51,7 +51,7 @@ TEST(MagFieldEquationTest, charged)
     {
         OdeState result = eval({{1, 2, 3}, {0, 0, 1}});
         EXPECT_VEC_SOFT_EQ(Real3({0, 0, 1}), result.pos);
-        EXPECT_VEC_SOFT_EQ(Real3({-0.02698132122, 0.00899377374, 0}),
+        EXPECT_VEC_SOFT_EQ(Real3({-0.002698132122, 0.000899377374, 0}),
                            result.mom);
     }
     {
@@ -59,9 +59,10 @@ TEST(MagFieldEquationTest, charged)
         EXPECT_VEC_SOFT_EQ(
             Real3({0.26726124191242, 0.53452248382485, 0.80178372573727}),
             result.pos);
-        EXPECT_VEC_SOFT_EQ(
-            Real3({0.012018435696159, -0.009614748556927, 0.0024036871392318}),
-            result.mom);
+        EXPECT_VEC_SOFT_EQ(Real3({0.0012018435696159,
+                                  -0.0009614748556927,
+                                  0.00024036871392318}),
+                           result.mom);
     }
     if (CELERITAS_DEBUG)
     {

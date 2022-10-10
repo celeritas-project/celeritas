@@ -51,7 +51,7 @@ struct LDemoArgs
     bool         use_device{};
     bool         sync{};
 
-    // Magnetic field vector (mT) and associated field options
+    // Magnetic field vector [* 1/Tesla] and associated field options
     Real3                         mag_field{no_field()};
     celeritas::FieldDriverOptions field_options;
 

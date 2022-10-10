@@ -203,7 +203,8 @@ struct HorribleZField
 
 // Field value (native units) for 10 MeV electron/positron to have a radius of
 // 1 cm
-constexpr real_type unit_radius_field_strength{3501.9461121752274};
+constexpr real_type unit_radius_field_strength{3.5019461121752274
+                                               * units::tesla};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -285,9 +286,9 @@ TEST_F(TwoBoxTest, electron_interior)
         result = propagate(1e-10);
         EXPECT_DOUBLE_EQ(1e-10, result.distance);
         EXPECT_FALSE(result.boundary);
-        EXPECT_VEC_SOFT_EQ(Real3({3.8085385881855, -2.3814749713353e-07, 0}),
-                           geo.pos());
-        EXPECT_VEC_SOFT_EQ(Real3({6.2529888474538e-08, 1, 0}), geo.dir());
+        EXPECT_VEC_NEAR(
+            Real3({3.8085385881855, -2.3814749713353e-07, 0}), geo.pos(), 1e-7);
+        EXPECT_VEC_NEAR(Real3({6.2529888474538e-08, 1, 0}), geo.dir(), 1e-7);
         EXPECT_EQ(1, stepper.count());
     }
 }
@@ -386,7 +387,7 @@ TEST_F(TwoBoxTest, gamma_pathological)
                                         MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
-    HorribleZField     field{1234.5, 5};
+    HorribleZField     field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
     auto               stepper = make_mag_field_stepper<DiagnosticDPStepper>(
         field, particle.charge());
@@ -1119,7 +1120,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
 {
     auto particle = this->init_particle(this->particle()->find(pdg::electron()),
                                         MevEnergy{4.25402379798713e-01});
-    UniformZField      field(1000);
+    UniformZField      field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
     auto geo = this->init_geo(
@@ -1184,7 +1185,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
 
 TEST_F(SimpleCmsTest, vecgeom_failure)
 {
-    UniformZField      field(1000);
+    UniformZField      field(1 * units::tesla);
     FieldDriverOptions driver_options;
 
     auto geo = this->init_geo({1.23254142755319734e+02,
@@ -1253,7 +1254,8 @@ TEST_F(SimpleCmsTest, vecgeom_failure)
         {
             // Repeated substep bisection failed; particle is bumped
             EXPECT_SOFT_EQ(1e-6, result.distance);
-            EXPECT_EQ(102, stepper.count());
+            // Minor floating point differences could make this 102 or 103
+            EXPECT_SOFT_NEAR(real_type(103), real_type(stepper.count()), 0.02);
         }
     }
 }

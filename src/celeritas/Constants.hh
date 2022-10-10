@@ -49,7 +49,7 @@ namespace constants
  */
 
 //!@{
-//! Mathemetical constants (truncated)
+//! \name Mathemetical constants (truncated)
 constexpr real_type pi         = 3.14159265358979323846;
 constexpr real_type euler      = 2.71828182845904523536;
 constexpr real_type sqrt_two   = 1.41421356237309504880;
@@ -57,7 +57,7 @@ constexpr real_type sqrt_three = 1.73205080756887729353;
 //!@}
 
 //!@{
-//! Physical constant with *exact* value as defined by SI
+//! \name Physical constants with *exact* value as defined by SI
 constexpr real_type c_light    = 299792458. * units::meter / units::second;
 constexpr real_type h_planck   = 6.62607015e-34 * units::joule * units::second;
 constexpr real_type e_electron = 1.602176634e-19 * units::coulomb;
@@ -67,12 +67,12 @@ constexpr real_type kcd_luminous = 683;
 //!@}
 
 //!@{
-//! Exact derivative constant
+//! \name Exact derivative constants
 constexpr real_type hbar_planck = h_planck / (2 * pi);
 //!@}
 
 //!@{
-//! Experimental physical constant from CODATA 2018
+//! \name Experimental physical constants from CODATA 2018
 constexpr real_type a0_bohr              = 5.29177210903e-11 * units::meter;
 constexpr real_type alpha_fine_structure = 7.2973525693e-3;
 constexpr real_type atomic_mass          = 1.66053906660e-24 * units::gram;

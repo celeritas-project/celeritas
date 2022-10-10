@@ -347,6 +347,12 @@ TransporterInput load_input(const LDemoArgs& args)
         field_params.field   = args.mag_field;
         field_params.options = args.field_options;
 
+        // Interpret input in units of Tesla
+        for (real_type& f : field_params.field)
+        {
+            f *= units::tesla;
+        }
+
         auto along_step = AlongStepUniformMscAction::from_params(
             *params.physics, field_params, params.action_mgr.get());
         CELER_ASSERT(args.mag_field == along_step->field());

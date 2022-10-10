@@ -4,13 +4,13 @@
 
 .. doxygenfile:: celeritas_version.h
 
+.. _corecel:
+
 Core package
 ============
 
 The ``corecel`` directory contains functionality shared by Celeritas and ORANGE
 primarily pertaining to GPU abstractions.
-
-.. _corecel:
 
 Fundamentals
 ------------
