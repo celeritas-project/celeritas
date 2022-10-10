@@ -12,7 +12,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -29,7 +29,7 @@ namespace celeritas
 std::shared_ptr<AlongStepUniformMscAction>
 AlongStepUniformMscAction::from_params(const PhysicsParams&      physics,
                                        const UniformFieldParams& field_params,
-                                       ActionManager*            actions)
+                                       ActionRegistry*           actions)
 {
     CELER_EXPECT(actions);
     // Super hacky!! This will be cleaned up later.

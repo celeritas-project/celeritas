@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManagerOutput.cc
+//! \file celeritas/global/ActionRegistryOutput.cc
 //---------------------------------------------------------------------------//
-#include "ActionManagerOutput.hh"
+#include "ActionRegistryOutput.hh"
 
 #include <utility>
 
@@ -14,7 +14,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
-#include "ActionManager.hh"
+#include "ActionRegistry.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -25,7 +25,7 @@ namespace celeritas
 /*!
  * Construct from a shared action manager.
  */
-ActionManagerOutput::ActionManagerOutput(SPConstActionManager actions)
+ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions)
     : actions_(std::move(actions))
 {
     CELER_EXPECT(actions_);
@@ -35,7 +35,7 @@ ActionManagerOutput::ActionManagerOutput(SPConstActionManager actions)
 /*!
  * Write output to the given JSON object.
  */
-void ActionManagerOutput::output(JsonPimpl* j) const
+void ActionRegistryOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
     auto obj        = nlohmann::json::array();

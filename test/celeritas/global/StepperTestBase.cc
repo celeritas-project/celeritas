@@ -13,7 +13,7 @@
 #include <gtest/gtest.h>
 
 #include "corecel/io/Repr.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 
 using std::cout;
@@ -26,12 +26,12 @@ namespace test
 //! Construct dummy action at creation
 StepperTestBase::StepperTestBase()
 {
-    auto& action_mgr = *this->action_mgr();
+    auto& action_reg = *this->action_reg();
 
     static const char desc[] = "count the number of executions";
     dummy_action_            = std::make_shared<DummyAction>(
-        action_mgr.next_id(), "dummy-action", desc);
-    action_mgr.insert(dummy_action_);
+        action_reg.next_id(), "dummy-action", desc);
+    action_reg.insert(dummy_action_);
 }
 
 //---------------------------------------------------------------------------//

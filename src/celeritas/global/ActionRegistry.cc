@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManager.cc
+//! \file celeritas/global/ActionRegistry.cc
 //---------------------------------------------------------------------------//
-#include "ActionManager.hh"
+#include "ActionRegistry.hh"
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/Stopwatch.hh"
@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Register an implicit action.
  */
-void ActionManager::insert(SPConstImplicit action)
+void ActionRegistry::insert(SPConstImplicit action)
 {
     CELER_EXPECT(action);
     this->insert_impl(std::move(action), nullptr);
@@ -26,7 +26,7 @@ void ActionManager::insert(SPConstImplicit action)
 /*!
  * Register an explicit action.
  */
-void ActionManager::insert(SPConstExplicit action)
+void ActionRegistry::insert(SPConstExplicit action)
 {
     CELER_EXPECT(action);
     // Get explicit action pointer
@@ -41,7 +41,7 @@ void ActionManager::insert(SPConstExplicit action)
  * The given action ID \em must be an explicit action.
  */
 template<MemSpace M>
-void ActionManager::invoke(ActionId id, const CoreRef<M>& data) const
+void ActionRegistry::invoke(ActionId id, const CoreRef<M>& data) const
 {
     CELER_ASSERT(id < actions_.size());
     const auto& action_data = actions_[id.unchecked_get()];
@@ -69,7 +69,7 @@ void ActionManager::invoke(ActionId id, const CoreRef<M>& data) const
 /*!
  * Find the action corresponding to an label.
  */
-ActionId ActionManager::find_action(const std::string& label) const
+ActionId ActionRegistry::find_action(const std::string& label) const
 {
     auto iter = action_ids_.find(label);
     if (iter == action_ids_.end())
@@ -80,7 +80,7 @@ ActionId ActionManager::find_action(const std::string& label) const
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-void ActionManager::insert_impl(SPConstAction&& action, PConstExplicit expl)
+void ActionRegistry::insert_impl(SPConstAction&& action, PConstExplicit expl)
 {
     CELER_ASSERT(action);
 
@@ -105,9 +105,9 @@ void ActionManager::insert_impl(SPConstAction&& action, PConstExplicit expl)
 //---------------------------------------------------------------------------//
 
 template void
-ActionManager::invoke(ActionId, const CoreRef<MemSpace::host>&) const;
+ActionRegistry::invoke(ActionId, const CoreRef<MemSpace::host>&) const;
 template void
-ActionManager::invoke(ActionId, const CoreRef<MemSpace::device>&) const;
+ActionRegistry::invoke(ActionId, const CoreRef<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

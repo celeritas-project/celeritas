@@ -17,7 +17,7 @@
 #include "corecel/math/VectorUtils.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 
@@ -144,8 +144,8 @@ Transporter<M>::Transporter(TransporterInput inp)
         }
 
         // Add diagnostic adapters to action manager
-        diagnostic_action_ = params.action_mgr()->next_id();
-        params.action_mgr()->insert(std::make_shared<DiagnosticActionAdapter>(
+        diagnostic_action_ = params.action_reg()->next_id();
+        params.action_reg()->insert(std::make_shared<DiagnosticActionAdapter>(
             diagnostic_action_, diagnostics_));
     }
 }

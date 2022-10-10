@@ -14,7 +14,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-#include "ActionManager.hh"
+#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 
 namespace celeritas
@@ -25,9 +25,9 @@ namespace
 std::vector<ActionId> build_action_vec(const CoreParams& core)
 {
     std::vector<ActionId> actions;
-    auto insert_from_label = [&actions, action_mgr = *core.action_mgr()](
+    auto insert_from_label = [&actions, action_reg = *core.action_reg()](
                                  const std::string& label) {
-        actions.push_back(action_mgr.find_action(label));
+        actions.push_back(action_reg.find_action(label));
         CELER_VALIDATE(actions.back(), << "missing action '" << label << "'");
     };
 
@@ -110,10 +110,10 @@ auto Stepper<M>::operator()() -> result_type
     result.active = states_.size() - inits_.vacancies.size();
 
     // Launch all actions in their proper order
-    const ActionManager& action_mgr = *params_->action_mgr();
+    const ActionRegistry& action_reg = *params_->action_reg();
     for (ActionId action : actions_)
     {
-        action_mgr.invoke<M>(action, core_ref_);
+        action_reg.invoke<M>(action, core_ref_);
     }
 
     // Create track initializers from surviving secondaries

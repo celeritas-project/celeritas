@@ -13,7 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -125,7 +125,7 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1};
         auto result        = AlongStepUniformMscAction::from_params(
-            *this->physics(), field_params, this->action_mgr().get());
+            *this->physics(), field_params, this->action_reg().get());
         CELER_ENSURE(result);
         CELER_ENSURE(result->has_msc() == this->enable_msc());
         return result;

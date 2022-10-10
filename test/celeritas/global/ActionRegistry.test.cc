@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManager.test.cc
+//! \file celeritas/global/ActionRegistry.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 
-#include "celeritas/global/ActionManagerOutput.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -59,7 +59,7 @@ class MyImplicitAction final : public ImplicitActionInterface,
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ActionManagerTest : public Test
+class ActionRegistryTest : public Test
 {
   protected:
     void SetUp() override
@@ -79,7 +79,7 @@ class ActionManagerTest : public Test
         mgr.insert(impl2);
     }
 
-    ActionManager                     mgr;
+    ActionRegistry                    mgr;
     std::shared_ptr<MyExplicitAction> expl_action;
 };
 
@@ -87,7 +87,7 @@ class ActionManagerTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ActionManagerTest, accessors)
+TEST_F(ActionRegistryTest, accessors)
 {
     EXPECT_EQ(3, mgr.num_actions());
 
@@ -104,11 +104,11 @@ TEST_F(ActionManagerTest, accessors)
     EXPECT_STREQ("along", to_cstring(expl_action->order()));
 }
 
-TEST_F(ActionManagerTest, output)
+TEST_F(ActionRegistryTest, output)
 {
     // Create output handler from a shared pointer (with a null deleter)
-    ActionManagerOutput out(std::shared_ptr<const ActionManager>(
-        &mgr, [](const ActionManager*) {}));
+    ActionRegistryOutput out(std::shared_ptr<const ActionRegistry>(
+        &mgr, [](const ActionRegistry*) {}));
     EXPECT_EQ("actions", out.label());
 
     if (CELERITAS_USE_JSON)
@@ -119,7 +119,7 @@ TEST_F(ActionManagerTest, output)
     }
 }
 
-TEST_F(ActionManagerTest, invocation)
+TEST_F(ActionRegistryTest, invocation)
 {
     EXPECT_EQ(0, expl_action->device_count());
     EXPECT_EQ(0, expl_action->host_count());
@@ -134,7 +134,7 @@ TEST_F(ActionManagerTest, invocation)
     EXPECT_EQ(1, expl_action->device_count());
 }
 
-TEST_F(ActionManagerTest, errors)
+TEST_F(ActionRegistryTest, errors)
 {
     // Incorrect ID
     EXPECT_THROW(

@@ -21,7 +21,7 @@
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
@@ -223,9 +223,9 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Create action manager
     {
-        ActionManager::Options opts;
+        ActionRegistry::Options opts;
         opts.sync         = args.sync;
-        params.action_mgr = std::make_shared<ActionManager>(opts);
+        params.action_reg = std::make_shared<ActionRegistry>(opts);
     }
 
     // Load geometry
@@ -297,7 +297,7 @@ TransporterInput load_input(const LDemoArgs& args)
         input.materials                      = params.material;
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
-        input.action_manager                 = params.action_mgr.get();
+        input.action_registry                = params.action_reg.get();
 
         {
             ProcessBuilder::Options opts;
@@ -335,7 +335,7 @@ TransporterInput load_input(const LDemoArgs& args)
             *params.particle,
             *params.physics,
             eloss,
-            params.action_mgr.get());
+            params.action_reg.get());
         params.along_step = std::move(along_step);
     }
     else
@@ -348,7 +348,7 @@ TransporterInput load_input(const LDemoArgs& args)
         field_params.options = args.field_options;
 
         auto along_step = AlongStepUniformMscAction::from_params(
-            *params.physics, field_params, params.action_mgr.get());
+            *params.physics, field_params, params.action_reg.get());
         CELER_ASSERT(args.mag_field == along_step->field());
         params.along_step = std::move(along_step);
     }

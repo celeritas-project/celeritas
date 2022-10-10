@@ -132,7 +132,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
     physics_inp.materials      = this->material();
     physics_inp.particles      = this->particle();
     physics_inp.options        = this->build_physics_options();
-    physics_inp.action_manager = this->action_mgr().get();
+    physics_inp.action_registry = this->action_reg().get();
 
     // Add a few processes
     MockProcess::Input inp;
@@ -205,7 +205,7 @@ auto MockTestBase::build_along_step() -> SPConstAction
                                                     *this->particle(),
                                                     *this->physics(),
                                                     false,
-                                                    this->action_mgr().get());
+                                                    this->action_reg().get());
     CELER_ENSURE(result);
     CELER_ENSURE(!result->has_fluct());
     CELER_ENSURE(!result->has_msc());

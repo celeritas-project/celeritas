@@ -172,8 +172,8 @@ list(APPEND SOURCES
   celeritas/ext/ScopedMpiInit.cc
   celeritas/geo/GeoMaterialParams.cc
   celeritas/global/ActionInterface.cc
-  celeritas/global/ActionManager.cc
-  celeritas/global/ActionManagerOutput.cc
+  celeritas/global/ActionRegistry.cc
+  celeritas/global/ActionRegistryOutput.cc
   celeritas/global/CoreParams.cc
   celeritas/global/Stepper.cc
   celeritas/grid/ValueGridBuilder.cc

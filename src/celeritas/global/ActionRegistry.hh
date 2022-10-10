@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManager.hh
+//! \file celeritas/global/ActionRegistry.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
@@ -40,12 +39,11 @@ struct CoreRef;
  * New actions should be created with an action ID corresponding to \c
  * next_id . Registering an action checks its ID.
  */
-class ActionManager
+class ActionRegistry
 {
   public:
     //!@{
     //! Type aliases
-    using ActionRange     = Range<ActionId>;
     using SPConstImplicit = std::shared_ptr<const ImplicitActionInterface>;
     using SPConstExplicit = std::shared_ptr<const ExplicitActionInterface>;
     //!@}
@@ -58,10 +56,10 @@ class ActionManager
 
   public:
     //! Construct with options
-    explicit ActionManager(Options options) : options_(options) {}
+    explicit ActionRegistry(Options options) : options_(options) {}
 
     //! Construct with default options
-    ActionManager() : ActionManager(Options{}) {}
+    ActionRegistry() : ActionRegistry(Options{}) {}
 
     //// CONSTRUCTION ////
 
@@ -130,7 +128,7 @@ class ActionManager
 /*!
  * Get the next available action ID.
  */
-ActionId ActionManager::next_id() const
+ActionId ActionRegistry::next_id() const
 {
     return ActionId(actions_.size());
 }
@@ -139,7 +137,7 @@ ActionId ActionManager::next_id() const
 /*!
  * Get the number of defined actions.
  */
-ActionId::size_type ActionManager::num_actions() const
+ActionId::size_type ActionRegistry::num_actions() const
 {
     return actions_.size();
 }
@@ -148,7 +146,7 @@ ActionId::size_type ActionManager::num_actions() const
 /*!
  * Access an action.
  */
-const ActionInterface& ActionManager::action(ActionId id) const
+const ActionInterface& ActionRegistry::action(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
     return *actions_[id.unchecked_get()].action;
@@ -158,7 +156,7 @@ const ActionInterface& ActionManager::action(ActionId id) const
 /*!
  * Get the label corresponding to an action.
  */
-const std::string& ActionManager::id_to_label(ActionId id) const
+const std::string& ActionRegistry::id_to_label(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
     return actions_[id.unchecked_get()].label;
@@ -168,7 +166,7 @@ const std::string& ActionManager::id_to_label(ActionId id) const
 /*!
  * Get the accumulated launch time if syncing is enabled.
  */
-double ActionManager::accum_time(ActionId id) const
+double ActionRegistry::accum_time(ActionId id) const
 {
     CELER_EXPECT(this->sync());
     CELER_EXPECT(id < actions_.size());

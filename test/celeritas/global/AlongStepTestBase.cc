@@ -12,7 +12,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
@@ -73,7 +73,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         phys.interaction_mfp(inp.phys_mfp);
     }
 
-    const auto& am = *this->action_mgr();
+    const auto& am = *this->action_reg();
     {
         // Call pre-step action to set range, physics step
         auto prestep_action = am.find_action("pre-step");
