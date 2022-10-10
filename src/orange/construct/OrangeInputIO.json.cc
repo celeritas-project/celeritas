@@ -117,7 +117,7 @@ std::vector<logic_int> parse_logic(const char* c)
 void from_json(const nlohmann::json& j, SurfaceInput& value)
 {
     // Read and convert types
-    auto type_labels = j.at("types").get<std::vector<std::string>>();
+    const auto& type_labels = j.at("types").get<std::vector<std::string>>();
     value.types.resize(type_labels.size());
     std::transform(type_labels.begin(),
                    type_labels.end(),
@@ -145,13 +145,14 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
     }
 
     // Convert logic string to vector
-    auto temp_logic = j.at("logic").get<std::string>();
-    value.logic     = parse_logic(temp_logic.c_str());
+    const auto& temp_logic = j.at("logic").get<std::string>();
+    value.logic            = parse_logic(temp_logic.c_str());
 
     // Read scalars, including optional flags
-    j.at("num_intersections").get_to(value.max_intersections);
     auto flag_iter = j.find("flags");
     value.flags    = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
+
+    // TODO: bbox
 }
 
 //---------------------------------------------------------------------------//
@@ -180,21 +181,6 @@ void from_json(const nlohmann::json& j, UnitInput& value)
     {
         const auto& bbox = j.at("bbox");
         value.bbox       = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
-    }
-
-    value.connectivity.reserve(value.surfaces.size());
-    CELER_VALIDATE(j.at("surfaces").contains("connectivity"),
-                   << "input geometry is missing surface connectivity; "
-                      "regenerate the JSON file with orange2celeritas");
-    for (const auto& surf_to_vol : j.at("surfaces").at("connectivity"))
-    {
-        std::vector<VolumeId> temp_vols(surf_to_vol.size());
-        for (auto i : range(surf_to_vol.size()))
-        {
-            temp_vols[i] = VolumeId(surf_to_vol[i]);
-        }
-
-        value.connectivity.push_back(std::move(temp_vols));
     }
 }
 

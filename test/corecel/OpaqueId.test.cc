@@ -34,9 +34,6 @@ TEST(OpaqueIdTest, operations)
     EXPECT_TRUE(!unassigned);
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
-#if CELERITAS_DEBUG
-    EXPECT_THROW(unassigned.get(), DebugError);
-#endif
     EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
     EXPECT_EQ(std::hash<std::size_t>()(sizemax), std::hash<Id_t>()(unassigned));
 
@@ -50,6 +47,23 @@ TEST(OpaqueIdTest, operations)
 
     EXPECT_EQ(10, Id_t{22} - Id_t{12});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
+    EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
+    EXPECT_EQ(Id_t{24}, Id_t{22} - (-2));
+    EXPECT_EQ(Id_t{22}, Id_t{22} + 0);
+    EXPECT_EQ(Id_t{22}, Id_t{22} - 0);
+    EXPECT_EQ(Id_t{21}, Id_t{22} + (-1));
+    EXPECT_EQ(Id_t{21}, Id_t{22} - 1);
+    EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
+    EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));
+}
+
+TEST(OpaqueIdTest, TEST_IF_CELERITAS_DEBUG(assertions))
+{
+    using Id_t = OpaqueId<TestInstantiator, unsigned int>;
+
+    EXPECT_THROW(Id_t{}.get(), DebugError);
+    EXPECT_THROW(Id_t{1} + (-2), DebugError);
+    EXPECT_THROW(Id_t{1} - 2, DebugError);
 }
 
 TEST(OpaqueIdTest, multi_int)

@@ -65,11 +65,18 @@ class SurfaceActionTest : public OrangeGeoTestBase
         }
         {
             // Create a volume
-            unit.volumes.resize(1);
-            unit.volumes.back().logic = {logic::ltrue};
-        }
-        {
-            unit.connectivity.resize(unit.surfaces.size());
+            VolumeInput v;
+            for (logic_int i : range(8))
+            {
+                v.logic.push_back(i);
+                if (i != 0)
+                {
+                    v.logic.push_back(logic::lor);
+                }
+                v.faces.push_back(SurfaceId{i});
+            }
+            v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
+            unit.volumes = {std::move(v)};
         }
         {
             unit.bbox = {{-1, -1, -1}, {1, 1, 1}};
@@ -151,7 +158,7 @@ TEST_F(SurfaceActionTest, string)
 {
     // Create functor
     const auto& host_ref = this->params().host_ref();
-    Surfaces    surfaces(host_ref.surfaces, host_ref.reals);
+    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
     auto     surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply

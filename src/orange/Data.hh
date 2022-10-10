@@ -19,51 +19,28 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Data for type-deleted surface definitions.
- *
- * Surfaces each have a compile-time number of real data needed to define them.
- * (These usually are the nonzero coefficients of the quadric equation.) A
- * surface ID points to an offset into the `data` field. These surface IDs are
- * *global* over all universes.
+ * Scalar values particular to an ORANGE geometry instance.
  */
-template<Ownership W, MemSpace M>
-struct SurfaceData
+struct OrangeParamsScalars
 {
-    //// TYPES ////
+    static constexpr size_type max_level{1};
 
-    template<class T>
-    using Items = Collection<T, W, M, SurfaceId>;
+    size_type max_faces{};
+    size_type max_intersections{};
+    size_type max_logic_depth{};
 
-    //// DATA ////
-
-    Items<SurfaceType>          types;
-    Items<OpaqueId<real_type>>  offsets;
-
-    //// METHODS ////
-
-    //! Number of surfaces
-    CELER_FUNCTION SurfaceId::size_type size() const { return types.size(); }
-
-    //! True if sizes are valid
+    //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return offsets.size() == types.size();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    SurfaceData& operator=(const SurfaceData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        types   = other.types;
-        offsets = other.offsets;
-        return *this;
+        return max_level > 0 && max_faces > 0 && max_intersections > 0;
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Data for a single volume definition.
+ *
+ * Surface IDs are local to the unit.
  *
  * \sa VolumeView
  */
@@ -74,6 +51,7 @@ struct VolumeRecord
 
     logic_int max_intersections{0};
     logic_int flags{0};
+    // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
     enum Flags : logic_int
@@ -86,9 +64,43 @@ struct VolumeRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Data for surfaces within a single unit.
+ *
+ * Surfaces each have a compile-time number of real data needed to define them.
+ * (These usually are the nonzero coefficients of the quadric equation.) The
+ * two fields in this record point to the collapsed surface types and
+ * linearized data for all surfaces in a unit.
+ *
+ * The "types" and "data offsets" are both indexed into using the local surface
+ * ID. The result of accessing "data offset" is an index into the \c real_ids
+ * array, which then points us to the start address in \c reals. This marks the
+ * beginning of the data used by the surface. Since the surface type tells us
+ * the number of real values needed for that surface, we implicitly get a Span
+ * of real values with a single indirection.
+ */
+struct SurfacesRecord
+{
+    using RealId = OpaqueId<real_type>;
+
+    ItemRange<SurfaceType> types;
+    ItemRange<RealId>      data_offsets;
+
+    //! Number of surfaces stored
+    CELER_FUNCTION size_type size() const { return types.size(); }
+
+    //! True if defined consistently
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return data_offsets.size() == types.size();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Data for surface-to-volume connectivity.
  *
- * \sa VolumeView
+ * This struct is associated with a specific surface; the \c neighbors range is
+ * a list of local volume IDs for that surface.
  */
 struct Connectivity
 {
@@ -97,101 +109,103 @@ struct Connectivity
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for volume definitions.
+ * Scalar data for a single "unit" of volumes defined by surfaces.
  */
-template<Ownership W, MemSpace M>
-struct VolumeData
+struct SimpleUnitRecord
 {
-    //// TYPES ////
+    // Surface data
+    SurfacesRecord          surfaces;
+    ItemRange<Connectivity> connectivity; // Index by SurfaceId
 
-    template<class T>
-    using Items = Collection<T, W, M, VolumeId>;
+    // Volume data [index by VolumeId]
+    ItemRange<VolumeRecord> volumes;
 
-    //// DATA ////
+    // TODO: transforms
+    // TODO: acceleration structure (bvh/kdtree/grid)
+    // TODO: background
+    bool simple_safety{};
 
-    Items<VolumeRecord>                       defs;
-    Collection<Connectivity, W, M, SurfaceId> connectivity;
-
-    // Storage
-    Collection<SurfaceId, W, M> faces;
-    Collection<logic_int, W, M> logic;
-    Collection<VolumeId, W, M>  volumes;
-
-    //// METHODS ////
-
-    //! Number of volumes
-    CELER_FUNCTION VolumeId::size_type size() const { return defs.size(); }
-
-    //! True if sizes are valid
-    explicit CELER_FUNCTION operator bool() const { return !defs.empty(); }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    VolumeData& operator=(const VolumeData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-
-        defs         = other.defs;
-        connectivity = other.connectivity;
-        faces        = other.faces;
-        logic        = other.logic;
-        volumes      = other.volumes;
-
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Scalar values particular to an ORANGE geometry instance.
- */
-struct OrangeParamsScalars
-{
-    static constexpr size_type max_level{1};
-    size_type                  max_faces{};
-    size_type                  max_intersections{};
-
-    // TODO: fuzziness/length scale
-
-    //! True if assigned
+    //! True if defined
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_level > 0 && max_faces > 0 && max_intersections > 0;
+        return surfaces && connectivity.size() == surfaces.types.size()
+               && !volumes.empty();
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Data to persistent data used by ORANGE implementation.
+ * Persistent data used by ORANGE implementation.
+ *
+ * Most data will be accessed through the invidual units, which reference data
+ * in the "storage" below. The type and index for a universe ID will determine
+ * the class type and data of the Tracker to instantiate. If *only* simple
+ * units are present, then the \c simple_unit data structure will just be equal
+ * to a range (with the total number of universes present). Use `universe_type`
+ * to switch on the type of universe; then `universe_index` to index into
+ * `simple_unit` or `rect_array` or ...
  */
 template<Ownership W, MemSpace M>
 struct OrangeParamsData
 {
+    template<class T>
+    using Items = Collection<T, W, M>;
+    template<class T>
+    using UnivItems = Collection<T, W, M, UniverseId>;
+    using RealId    = OpaqueId<real_type>;
+
     //// DATA ////
 
-    SurfaceData<W, M> surfaces;
-    VolumeData<W, M>  volumes;
-
-    Collection<real_type, W, M> reals;
+    // Scalar attributes
     OrangeParamsScalars scalars;
+
+    // High-level universe definitions
+    UnivItems<UniverseType> universe_type;
+    UnivItems<size_type>    universe_index;
+    Items<SimpleUnitRecord> simple_unit;
+
+    // Low-level storage
+    Items<SurfaceId>    surface_ids;
+    Items<VolumeId>     volume_ids;
+    Items<RealId>       real_ids;
+    Items<logic_int>    logic_ints;
+    Items<real_type>    reals;
+    Items<SurfaceType>  surface_types;
+    Items<Connectivity> connectivities;
+    Items<VolumeRecord> volume_records;
 
     //// METHODS ////
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return surfaces && volumes && scalars;
+        return scalars && !universe_type.empty()
+               && universe_index.size() == universe_type.size()
+               && ((!volume_ids.empty() && !logic_ints.empty() && !reals.empty())
+                   || surface_types.empty())
+               && !volume_records.empty();
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     OrangeParamsData& operator=(const OrangeParamsData<W2, M2>& other)
     {
-        CELER_EXPECT(other);
-        surfaces = other.surfaces;
-        volumes  = other.volumes;
-        reals    = other.reals;
-        scalars  = other.scalars;
+        scalars = other.scalars;
+
+        universe_type  = other.universe_type;
+        universe_index = other.universe_index;
+        simple_unit    = other.simple_unit;
+
+        surface_ids    = other.surface_ids;
+        volume_ids     = other.volume_ids;
+        real_ids       = other.real_ids;
+        logic_ints     = other.logic_ints;
+        reals          = other.reals;
+        surface_types  = other.surface_types;
+        connectivities = other.connectivities;
+        volume_records = other.volume_records;
+
+        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;
     }
 };
@@ -200,7 +214,7 @@ struct OrangeParamsData
 // STATE
 //---------------------------------------------------------------------------//
 /*!
- * Data to persistent data used by ORANGE implementation.
+ * ORANGE state data.
  */
 template<Ownership W, MemSpace M>
 struct OrangeStateData

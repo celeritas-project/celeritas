@@ -12,8 +12,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// FORWARD DECLARATIONS
-//---------------------------------------------------------------------------//
 template<Axis T>
 class PlaneAligned;
 template<Axis T>

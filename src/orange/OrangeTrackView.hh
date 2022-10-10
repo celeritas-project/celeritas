@@ -14,6 +14,7 @@
 #include "Data.hh"
 #include "Types.hh"
 #include "univ/SimpleUnitTracker.hh"
+#include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
 
 namespace celeritas
@@ -132,6 +133,9 @@ class OrangeTrackView
 
     //// HELPER FUNCTIONS ////
 
+    // Create a local tracker
+    inline CELER_FUNCTION SimpleUnitTracker make_tracker(UniverseId) const;
+
     // Create local sense reference
     inline CELER_FUNCTION Span<Sense> make_temp_sense() const;
 
@@ -198,8 +202,8 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
-    SimpleUnitTracker tracker(params_);
-    auto              tinit = tracker.initialize(local);
+    auto tracker = this->make_tracker(UniverseId{0});
+    auto tinit   = tracker.initialize(local);
     // TODO: error correction/graceful failure if initialiation failured
     CELER_ASSERT(tinit.volume && !tinit.surface);
 
@@ -275,8 +279,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 
     if (!this->has_next_step())
     {
-        SimpleUnitTracker tracker(params_);
-
+        auto tracker  = this->make_tracker(UniverseId{0});
         auto isect    = tracker.intersect(this->make_local_state());
         next_step_    = isect.distance;
         next_surface_ = isect.surface;
@@ -317,8 +320,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
-        SimpleUnitTracker tracker(params_);
-
+        auto tracker  = this->make_tracker(UniverseId{0});
         auto isect    = tracker.intersect(this->make_local_state(), max_step);
         next_step_    = isect.distance;
         next_surface_ = isect.surface;
@@ -344,7 +346,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
         return real_type{0};
     }
 
-    SimpleUnitTracker tracker(params_);
+    auto tracker = this->make_tracker(UniverseId{0});
     return tracker.safety(this->pos(), this->volume_id());
 }
 
@@ -428,7 +430,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
-    SimpleUnitTracker tracker(params_);
+    auto              tracker = this->make_tracker(UniverseId{0});
     auto              init = tracker.cross_boundary(local);
     CELER_ASSERT(init.volume);
     if (!CELERITAS_DEBUG && CELER_UNLIKELY(!init.volume))
@@ -469,7 +471,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
         // don't leave the volume after all. Evaluate whether the direction
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
-        SimpleUnitTracker tracker(params_);
+        auto        tracker = this->make_tracker(UniverseId{0});
         const Real3 normal = tracker.normal(this->pos(), this->surface_id());
 
         if ((dot_product(normal, newdir) >= 0)
@@ -490,6 +492,25 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Create a local tracker for a universe.
+ *
+ * \todo Template on tracker type, allow multiple universe types (see
+ * UniverseTypeTraits.hh)
+ */
+CELER_FUNCTION SimpleUnitTracker OrangeTrackView::make_tracker(UniverseId id) const
+{
+    CELER_EXPECT(id < params_.universe_type.size());
+    CELER_EXPECT(id.unchecked_get() == params_.universe_index[id]);
+
+    using TraitsT  = UniverseTypeTraits<UniverseType::simple>;
+    using IdT      = OpaqueId<typename TraitsT::record_type>;
+    using TrackerT = typename TraitsT::tracker_type;
+
+    return TrackerT{params_, IdT{id.unchecked_get()}};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Get a reference to the current volume, or to world volume if outside.

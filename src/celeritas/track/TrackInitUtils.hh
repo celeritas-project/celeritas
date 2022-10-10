@@ -66,7 +66,7 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize track states
+ * Initialize track states.
  *
  * Tracks created from secondaries produced in this step will have the geometry
  * state copied over from the parent instead of initialized from the position.

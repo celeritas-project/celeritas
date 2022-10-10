@@ -8,8 +8,6 @@
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/construct/OrangeInput.hh"
-#include "orange/detail/SurfaceInserter.hh"
-#include "orange/detail/VolumeInserter.hh"
 #include "celeritas/Constants.hh"
 
 #include "OrangeGeoTestBase.hh"
@@ -19,67 +17,6 @@ using celeritas::constants::sqrt_two;
 
 namespace celeritas
 {
-namespace detail
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
-TEST(VolumeInserterTest, manual)
-{
-    HostVal<OrangeParamsData> host_data;
-
-    {
-        SurfaceInput input;
-        input.types  = {SurfaceType::px, SurfaceType::s};
-        input.data   = {1.25, 4, 0, 1, 2};
-        input.sizes  = {1, 4};
-        input.labels = {"plane", "sphere"};
-
-        SurfaceInserter insert(&host_data);
-        insert(input);
-    }
-
-    VolumeInserter insert(&host_data);
-
-    {
-        // Empty volume
-        VolumeInput input;
-        input.logic = {logic::ltrue};
-        EXPECT_EQ(VolumeId{0}, insert(input));
-        EXPECT_EQ(1, insert.max_logic_depth());
-    }
-
-    {
-        // Volume with one face
-        VolumeInput input;
-        input.faces = {SurfaceId{0}};
-        input.logic = {0};
-        EXPECT_EQ(VolumeId{1}, insert(input));
-        EXPECT_EQ(1, insert.max_logic_depth());
-    }
-
-    {
-        // Volume with two joined face
-        VolumeInput input;
-        input.faces = {SurfaceId{0}, SurfaceId{1}};
-        input.logic = {0, logic::lnot, 1, logic::land};
-        EXPECT_EQ(VolumeId{2}, insert(input));
-        EXPECT_EQ(2, insert.max_logic_depth());
-    }
-
-    {
-        // Invalid definition (needs 'and'/'or')
-        VolumeInput input;
-        input.faces = {SurfaceId{0}, SurfaceId{1}};
-        input.logic = {0, logic::lnot, 1};
-        EXPECT_THROW(insert(input), RuntimeError);
-    }
-}
-
-//---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-
 namespace test
 {
 //---------------------------------------------------------------------------//

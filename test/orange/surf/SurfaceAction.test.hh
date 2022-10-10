@@ -118,7 +118,9 @@ struct CalcSenseDistanceLauncher
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
-        Surfaces surfaces(this->params.surfaces, this->params.reals);
+        CELER_EXPECT(this->params.simple_unit.size() == 1);
+        Surfaces surfaces(this->params,
+                          this->params.simple_unit[SimpleUnitId{0}].surfaces);
 
         auto calc_sense_dist = make_surface_action(
             surfaces,

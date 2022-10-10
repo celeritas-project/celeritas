@@ -22,14 +22,13 @@ class Surfaces
   public:
     //@{
     //! Type aliases
-    using SurfaceRef = NativeCRef<SurfaceData>;
-    using Reals
-        = Collection<real_type, Ownership::const_reference, MemSpace::native>;
+    using ParamsRef = NativeCRef<OrangeParamsData>;
     //@}
 
   public:
     // Construct with reference to persistent data
-    inline CELER_FUNCTION Surfaces(const SurfaceRef&, const Reals&);
+    inline CELER_FUNCTION
+    Surfaces(const ParamsRef& params, const SurfacesRecord& surf_record);
 
     // Number of surfaces
     inline CELER_FUNCTION SurfaceId::size_type num_surfaces() const;
@@ -42,8 +41,8 @@ class Surfaces
     inline CELER_FUNCTION T make_surface(SurfaceId) const;
 
   private:
-    const SurfaceRef& data_;
-    const Reals&      reals_;
+    const ParamsRef&      params_;
+    const SurfacesRecord& surf_record_;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,10 +51,10 @@ class Surfaces
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION Surfaces::Surfaces(const SurfaceRef& data, const Reals& reals)
-    : data_(data), reals_(reals)
+CELER_FUNCTION
+Surfaces::Surfaces(const ParamsRef& params, const SurfacesRecord& surf_record)
+    : params_(params), surf_record_(surf_record)
 {
-    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +63,7 @@ CELER_FUNCTION Surfaces::Surfaces(const SurfaceRef& data, const Reals& reals)
  */
 CELER_FUNCTION SurfaceId::size_type Surfaces::num_surfaces() const
 {
-    return data_.types.size();
+    return surf_record_.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -74,7 +73,10 @@ CELER_FUNCTION SurfaceId::size_type Surfaces::num_surfaces() const
 CELER_FUNCTION SurfaceType Surfaces::surface_type(SurfaceId sid) const
 {
     CELER_EXPECT(sid < this->num_surfaces());
-    return data_.types[sid];
+    OpaqueId<SurfaceType> offset = *surf_record_.types.begin();
+    CELER_ASSERT(sid.unchecked_get() + offset.unchecked_get()
+                 < params_.surface_types.size());
+    return params_.surface_types[offset + sid.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -86,16 +88,18 @@ CELER_FUNCTION T Surfaces::make_surface(SurfaceId sid) const
 {
     static_assert(T::Storage::extent > 0,
                   "Template parameter must be a surface class");
-    CELER_EXPECT(sid < this->num_surfaces());
+    CELER_EXPECT(sid < surf_record_.data_offsets.size());
     CELER_EXPECT(this->surface_type(sid) == T::surface_type());
 
-    const real_type* data = reals_[AllItems<real_type>{}].data();
+    const real_type* data = params_.reals[AllItems<real_type>{}].data();
 
-    auto start_offset = data_.offsets[sid].unchecked_get();
-    auto stop_offset  = start_offset
+    OpaqueId<real_type> start_offset
+        = params_.real_ids[surf_record_.data_offsets[sid.unchecked_get()]];
+    auto stop_offset = start_offset.unchecked_get()
                        + static_cast<size_type>(T::Storage::extent);
-    CELER_ASSERT(stop_offset <= reals_.size());
-    return T{Span<const real_type>{data + start_offset, data + stop_offset}};
+    CELER_ASSERT(stop_offset <= params_.reals.size());
+    return T{Span<const real_type>{data + start_offset.unchecked_get(),
+                                   data + stop_offset}};
 }
 
 //---------------------------------------------------------------------------//
