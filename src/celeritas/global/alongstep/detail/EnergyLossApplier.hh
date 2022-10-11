@@ -53,12 +53,14 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
 
     auto   particle = track.make_particle_view();
     Energy eloss;
-    if (particle.energy() < phys.scalars().eloss_calc_limit)
+    if (particle.energy() < phys.scalars().eloss_calc_limit
+        && step_limit->action != track.boundary_action())
     {
-        // Immediately stop low-energy particles
+        // Immediately stop low-energy tracks (as long as they're not crossing
+        // a boundary)
         // TODO: this should happen before creating tracks from secondaries
         // *OR* after slowing down tracks: duplicated in
-        // EnergyLossApplier.hh
+        // EnergyLossFluctApplier.hh
         eloss = particle.energy();
     }
     else
