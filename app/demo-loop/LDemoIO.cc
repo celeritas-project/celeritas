@@ -355,7 +355,7 @@ TransporterInput load_input(const LDemoArgs& args)
 
         auto along_step = AlongStepUniformMscAction::from_params(
             *params.physics, field_params, params.action_mgr.get());
-        CELER_ASSERT(args.mag_field == along_step->field());
+        CELER_ASSERT(along_step->field() != LDemoArgs::no_field());
         params.along_step = std::move(along_step);
     }
 
