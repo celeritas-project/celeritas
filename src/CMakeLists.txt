@@ -35,20 +35,33 @@ configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#
 
-# TODO: add build flags
-set(CELERITAS_CMAKE_STRINGS
-    "static const char celeritas_rng[] = \"${CELERITAS_RNG}\";\n"
-)
-set(BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
+# Get host system information
+if(NOT DEFINED CELERITAS_HOSTNAME)
+  set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
+  if(NOT _hostname)
+    cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
+    string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
+  endif()
+  set(CELERITAS_HOSTNAME "${_hostname}" CACHE INTERNAL
+    "Build/deploy system name")
+endif()
+
+set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+foreach(_var CELERITAS_BUILD_TYPE CELERITAS_HOSTNAME CELERITAS_RNG)
+  string(TOLOWER "${_var}" _lower)
+  string(APPEND CELERITAS_CMAKE_STRINGS
+    "static const char ${_lower}[] = \"${${_var}}\";\n"
+  )
+endforeach()
+
+foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
     "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
 configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
-
-#----------------------------------------------------------------------------#
 
 #----------------------------------------------------------------------------#
 # LIBRARY
