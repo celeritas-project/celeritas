@@ -24,11 +24,11 @@ namespace test
 class VolumeViewTest : public OrangeGeoTestBase
 {
   protected:
-    using VolumeRef = VolumeView::VolumeRef;
-
-    const VolumeRef& volume_ref() const
+    VolumeView make_view(VolumeId v) const
     {
-        return this->params().host_ref().volumes;
+        CELER_EXPECT(v);
+        const auto& host_ref = this->params().host_ref();
+        return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
     }
 
     void test_face_accessors(const VolumeView& volumes)
@@ -53,9 +53,9 @@ TEST_F(VolumeViewTest, one_volume)
 {
     // Build a volume that's infinite
     this->build_geometry(OneVolInput{});
-    ASSERT_EQ(1, this->volume_ref().size());
+    ASSERT_EQ(1, this->params().num_volumes());
 
-    VolumeView vol(this->volume_ref(), VolumeId{0});
+    VolumeView vol = this->make_view(VolumeId{0});
     EXPECT_EQ(0, vol.num_faces());
     this->test_face_accessors(vol);
 
@@ -79,17 +79,30 @@ TEST_F(VolumeViewTest, five_volumes)
     this->build_geometry("five-volumes.org.json");
 
     std::vector<size_type> num_faces;
+    std::vector<logic_int> flags;
 
-    for (auto vol_id : range(VolumeId{this->volume_ref().size()}))
+    for (auto vol_id : range(VolumeId{this->params().num_volumes()}))
     {
-        VolumeView vol(this->volume_ref(), vol_id);
+        VolumeView vol = this->make_view(vol_id);
         num_faces.push_back(vol.num_faces());
+        flags.push_back(vol.flags());
         this->test_face_accessors(vol);
     }
 
-    const unsigned long expected_num_faces[] = {1ul, 7ul, 7ul, 2ul, 11ul, 1ul};
+    const size_type expected_num_faces[] = {1u, 7u, 7u, 2u, 11u, 1u};
     EXPECT_VEC_EQ(expected_num_faces, num_faces);
+
+    using Flags = VolumeView::Flags;
+    const logic_int expected_flags[]
+        = {Flags::simple_safety,
+           Flags::simple_safety,
+           Flags::simple_safety,
+           Flags::simple_safety,
+           Flags::simple_safety | Flags::internal_surfaces,
+           Flags::simple_safety};
+    EXPECT_VEC_EQ(expected_flags, flags);
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

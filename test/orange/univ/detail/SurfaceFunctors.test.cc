@@ -11,7 +11,6 @@
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/construct/SurfaceInputBuilder.hh"
-#include "orange/detail/SurfaceInserter.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
 
@@ -43,12 +42,12 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         }
         {
             // Create a volume
-            unit.volumes.resize(1);
-            unit.volumes.back().logic = {logic::ltrue};
+            VolumeInput v;
+            v.logic      = {0, 1, logic::lor, logic::ltrue, logic::lor};
+            v.faces      = {SurfaceId{0}, SurfaceId{1}};
+            unit.volumes = {std::move(v)};
         }
-        {
-            unit.connectivity.resize(unit.surfaces.size());
-        }
+
         {
             unit.bbox = {{-1, -1, -1}, {1, 1, 1}};
         }
@@ -57,8 +56,9 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         this->build_geometry(std::move(unit));
 
         const auto& host_ref = this->params().host_ref();
-        surfaces_
-            = std::make_unique<Surfaces>(host_ref.surfaces, host_ref.reals);
+
+        surfaces_ = std::make_unique<Surfaces>(
+            host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
     }
 
     template<class T>

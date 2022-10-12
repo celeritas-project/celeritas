@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 
 #include "Assert.hh"
 #include "Macros.hh"
@@ -107,13 +108,33 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
     return lhs && (U(lhs.unchecked_get()) < rhs);
 }
 
-//! Get the number of IDs enclosed by two opaque IDs.
+//! Get the distance between two opaque IDs
 template<class V, class S>
 inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
 {
     CELER_EXPECT(self);
     CELER_EXPECT(other);
     return self.unchecked_get() - other.unchecked_get();
+}
+
+//! Increment an opaque ID by an offset
+template<class V, class S>
+inline CELER_FUNCTION OpaqueId<V, S>
+operator+(OpaqueId<V, S> id, std::make_signed_t<S> offset)
+{
+    CELER_EXPECT(id);
+    CELER_EXPECT(offset >= 0 || static_cast<S>(-offset) <= id.unchecked_get());
+    return OpaqueId<V, S>{id.unchecked_get() + static_cast<S>(offset)};
+}
+
+//! Decrement an opaque ID by an offset
+template<class V, class S>
+inline CELER_FUNCTION OpaqueId<V, S>
+operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
+{
+    CELER_EXPECT(id);
+    CELER_EXPECT(offset <= 0 || static_cast<S>(offset) <= id.unchecked_get());
+    return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
 }
 
 //---------------------------------------------------------------------------//

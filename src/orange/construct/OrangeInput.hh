@@ -49,15 +49,15 @@ struct VolumeInput
     using Flags = VolumeRecord::Flags;
 
     //! Volume label
-    Label label;
+    Label label{};
 
     //! Sorted list of surface IDs in this cell
     std::vector<SurfaceId> faces{};
     //! RPN region definition for this cell, using local surface index
     std::vector<logic_int> logic{};
+    //! Axis-aligned bounding box (TODO: currently unused)
+    BoundingBox bbox{};
 
-    //! Maximum possible number of surface intersections in this volume
-    logic_int max_intersections{0};
     //! Special flags
     logic_int flags{0};
 
@@ -69,8 +69,7 @@ struct VolumeInput
 /*!
  * Input definition for a unit.
  *
- * TODO: vector of UniverseId for daughters, ...
- * TODO: build connectivity on the fly
+ * TODO: universe connectivity data
  */
 struct UnitInput
 {
@@ -80,9 +79,6 @@ struct UnitInput
 
     // Unit metadata
     Label label;
-
-    // TODO: delete this (connectivity: list of volumes for every surface)
-    std::vector<std::vector<VolumeId>> connectivity;
 
     //! Whether the unit definition is valid
     explicit operator bool() const { return !volumes.empty(); }

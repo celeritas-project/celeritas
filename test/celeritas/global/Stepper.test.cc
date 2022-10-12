@@ -119,7 +119,7 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
     {
         CELER_EXPECT(!this->enable_fluctuation());
         UniformFieldParams field_params;
-        field_params.field = {0, 0, 1};
+        field_params.field = {0, 0, 1e-3 * units::tesla};
         auto result        = AlongStepUniformMscAction::from_params(
             *this->physics(), field_params, this->action_reg().get());
         CELER_ENSURE(result);

@@ -96,7 +96,7 @@ using CLightSq = UnitProduct<CLight, CLight>;
 
 //---------------------------------------------------------------------------//
 //!@{
-//! Units for particle quantities
+//! \name Units for particle quantities
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy        = Quantity<Mev>;
 using LogMevEnergy     = Quantity<LogMev>;

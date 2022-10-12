@@ -140,8 +140,7 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
     {
         // Insert volumes
         VolumeInput vi;
-        vi.faces             = {SurfaceId{0}};
-        vi.max_intersections = 2;
+        vi.faces = {SurfaceId{0}};
 
         // Outside
         vi.logic = {0};
@@ -159,9 +158,6 @@ void OrangeGeoTestBase::build_geometry(TwoVolInput inp)
                   {inp.radius, inp.radius, inp.radius}};
 
     input.label = "two volumes";
-
-    // Define connectivity
-    input.connectivity = {{VolumeId{0}, VolumeId{1}}};
 
     return this->build_geometry(std::move(input));
 }
@@ -201,9 +197,12 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 {
     CELER_EXPECT(params_);
 
+    // TODO: update when multiple units are in play
+    const auto& host_ref = this->params().host_ref();
+    CELER_ASSERT(host_ref.simple_unit.size() == 1);
+
     os << "# Surfaces\n";
-    Surfaces surfaces(this->params().host_ref().surfaces,
-                      this->params().host_ref().reals);
+    Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
     auto     surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
