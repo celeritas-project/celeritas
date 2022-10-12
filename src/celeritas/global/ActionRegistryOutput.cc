@@ -38,24 +38,18 @@ ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions)
 void ActionRegistryOutput::output(JsonPimpl* j) const
 {
 #if CELERITAS_USE_JSON
-    auto obj        = nlohmann::json::array();
-    bool has_timing = actions_->sync();
+    auto obj = nlohmann::json::array();
     for (auto id : range(ActionId{actions_->num_actions()}))
     {
         nlohmann::json entry{
             {"label", actions_->id_to_label(id)},
         };
 
-        const ActionInterface& action = actions_->action(id);
-        std::string            desc   = action.description();
+        const ActionInterface& action = *actions_->action(id);
+        auto&&                 desc   = action.description();
         if (!desc.empty())
         {
             entry["description"] = std::move(desc);
-        }
-        if (has_timing)
-        {
-            // TODO: only output if explicit
-            entry["time"] = actions_->accum_time(id);
         }
         obj.push_back(entry);
     }

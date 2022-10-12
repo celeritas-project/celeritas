@@ -175,7 +175,9 @@ list(APPEND SOURCES
   celeritas/global/ActionRegistry.cc
   celeritas/global/ActionRegistryOutput.cc
   celeritas/global/CoreParams.cc
+  celeritas/global/CoreParams.cc
   celeritas/global/Stepper.cc
+  celeritas/global/detail/ActionSequence.cc
   celeritas/grid/ValueGridBuilder.cc
   celeritas/grid/ValueGridInserter.cc
   celeritas/grid/ValueGridInterface.cc

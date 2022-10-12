@@ -22,10 +22,14 @@ struct CoreRef;
  * Pure abstract interface for an end-of-step action.
  *
  * The action ID is used to select between post-step actions such as discrete
- * processes, geometry boundary, and range limitation.
+ * processes, geometry boundary, and range limitation. Only "explicit" actions
+ * (see \c ExplicitActionInterface ) call kernels; otherwise the action should
+ * be a placeholder for ending the step without any additional state change
+ * (see \c ImplicitActionInterface ).
  *
  * The ActionInterface provides a no-overhead virtual interface for gathering
- * metadata (and someday for launching kernels).
+ * metadata. The ExplicitActionInterface provides additional interfaces for
+ * launching kernels.
  */
 class ActionInterface
 {

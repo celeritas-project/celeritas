@@ -27,13 +27,12 @@
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
 
+using celeritas::units::MevEnergy;
+
 namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-using units::MevEnergy;
-
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -75,9 +74,7 @@ class TestEm3Test : public TestEm3Base, public StepperTestBase
 };
 
 //---------------------------------------------------------------------------//
-// TODO: these tests sporadically fail
 #define TestEm3MscTest TEST_IF_CELERITAS_GEANT(TestEm3MscTest)
-// #define TestEm3MscTest DISABLED_TestEm3MscTest
 class TestEm3MscTest : public TestEm3Test
 {
   public:
@@ -94,9 +91,7 @@ class TestEm3MscTest : public TestEm3Test
 };
 
 //---------------------------------------------------------------------------//
-// TODO: these tests sporadically fail
 #define TestEm3MscNofluctTest TEST_IF_CELERITAS_GEANT(TestEm3MscNofluctTest)
-// #define TestEm3MscNofluctTest DISABLED_TestEm3MscNofluctTest
 class TestEm3MscNofluctTest : public TestEm3Test
 {
   public:
@@ -114,6 +109,7 @@ class TestEm3MscNofluctTest : public TestEm3Test
     size_type max_average_steps() const override { return 100; }
 };
 
+//---------------------------------------------------------------------------//
 #define TestEm15Test TEST_IF_CELERITAS_GEANT(TestEm15Test)
 class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
 {
@@ -165,6 +161,35 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
+
+TEST_F(TestEm3Test, setup)
+{
+    auto result = this->check_setup();
+
+    static const char* const expected_processes[] = {
+        "Compton scattering",
+        "Photoelectric effect",
+        "Photon annihiliation",
+        "Positron annihiliation",
+        "Electron/positron ionization",
+        "Bremsstrahlung",
+    };
+    EXPECT_VEC_EQ(expected_processes, result.processes);
+    static const char* const expected_actions[] = {
+        "pre-step",
+        "along-step-general-linear",
+        "physics-discrete-select",
+        "scat-klein-nishina",
+        "photoel-livermore",
+        "conv-bethe-heitler",
+        "annihil-2-gamma",
+        "ioni-moller-bhabha",
+        "brems-combined",
+        "geo-boundary",
+        "dummy-action",
+    };
+    EXPECT_VEC_EQ(expected_actions, result.actions);
+}
 
 TEST_F(TestEm3Test, host)
 {
@@ -266,6 +291,37 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 //---------------------------------------------------------------------------//
 // TESTEM3_MSC
 //---------------------------------------------------------------------------//
+
+TEST_F(TestEm3MscTest, setup)
+{
+    auto result = this->check_setup();
+
+    static const char* const expected_processes[] = {
+        "Compton scattering",
+        "Photoelectric effect",
+        "Photon annihiliation",
+        "Positron annihiliation",
+        "Electron/positron ionization",
+        "Bremsstrahlung",
+        "Multiple scattering",
+    };
+    EXPECT_VEC_EQ(expected_processes, result.processes);
+    static const char* const expected_actions[] = {
+        "pre-step",
+        "along-step-general-linear",
+        "physics-discrete-select",
+        "scat-klein-nishina",
+        "photoel-livermore",
+        "conv-bethe-heitler",
+        "annihil-2-gamma",
+        "ioni-moller-bhabha",
+        "brems-combined",
+        "msc-urban",
+        "geo-boundary",
+        "dummy-action",
+    };
+    EXPECT_VEC_EQ(expected_actions, result.actions);
+}
 
 TEST_F(TestEm3MscTest, host)
 {
@@ -410,6 +466,38 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 // TESTEM15_MSC_FIELD
 //---------------------------------------------------------------------------//
 
+TEST_F(TestEm15FieldTest, setup)
+{
+    auto result = this->check_setup();
+
+    static const char* const expected_processes[] = {
+        "Compton scattering",
+        "Photoelectric effect",
+        "Photon annihiliation",
+        "Positron annihiliation",
+        "Electron/positron "
+        "ionization",
+        "Bremsstrahlung",
+        "Multiple scattering",
+    };
+    EXPECT_VEC_EQ(expected_processes, result.processes);
+    static const char* const expected_actions[] = {
+        "pre-step",
+        "along-step-uniform-msc",
+        "physics-discrete-select",
+        "scat-klein-nishina",
+        "photoel-livermore",
+        "conv-bethe-heitler",
+        "annihil-2-gamma",
+        "ioni-moller-bhabha",
+        "brems-sb",
+        "brems-rel",
+        "msc-urban",
+        "geo-boundary",
+        "dummy-action",
+    };
+}
+
 TEST_F(TestEm15FieldTest, host)
 {
     size_type num_primaries   = 4;
@@ -472,6 +560,7 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
         }
     }
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

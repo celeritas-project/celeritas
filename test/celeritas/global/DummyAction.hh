@@ -26,7 +26,7 @@ class DummyAction final : public ExplicitActionInterface, public ConcreteAction
     int num_execute_host() const { return num_execute_host_; }
     int num_execute_device() const { return num_execute_device_; }
 
-    ActionOrder order() const final { return ActionOrder::along; }
+    ActionOrder order() const final { return ActionOrder::post_post; }
 
   private:
     mutable int num_execute_host_{0};

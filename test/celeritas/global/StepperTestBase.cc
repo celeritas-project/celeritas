@@ -15,6 +15,7 @@
 #include "corecel/io/Repr.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 
 using std::cout;
 
@@ -47,9 +48,31 @@ StepperTestBase::make_stepper_input(size_type tracks, size_type init_scaling)
     result.num_track_slots  = tracks;
     result.num_initializers = init_scaling * tracks;
 
-    CELER_ASSERT(dummy_action_);
-    result.post_step_callback = dummy_action_->action_id();
-    CELER_ENSURE(result.post_step_callback);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get physics attributes for checking.
+ */
+auto StepperTestBase::check_setup() -> SetupCheckResult
+{
+    const PhysicsParams& p = *this->physics();
+    SetupCheckResult     result;
+
+    for (auto process_id : range(ProcessId{p.num_processes()}))
+    {
+        result.processes.push_back(p.process(process_id)->label());
+    }
+
+    // Create temporary host stepper to get action ordering
+    Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1, 2));
+    const auto&             action_seq = temp_stepper.actions();
+    for (const auto& sp_action : action_seq.actions())
+    {
+        result.actions.push_back(sp_action->label());
+    }
+
     return result;
 }
 
@@ -144,6 +167,22 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 
 //---------------------------------------------------------------------------//
 //! Print the expected result
+void StepperTestBase::SetupCheckResult::print_expected() const
+{
+    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "static const char* const expected_processes[] = "
+         << repr(this->processes)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_processes, result.processes);\n"
+            "static const char* const expected_actions[] = "
+         << repr(this->actions)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
+            "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+//! Print the expected result
 void StepperTestBase::RunResult::print_expected() const
 {
     CELER_EXPECT(*this);
@@ -163,6 +202,7 @@ void StepperTestBase::RunResult::print_expected() const
          << "}), result.calc_queue_hwm());\n"
             "/*** END CODE ***/\n";
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

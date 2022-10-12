@@ -76,9 +76,12 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     const auto& am = *this->action_reg();
     {
         // Call pre-step action to set range, physics step
-        auto prestep_action = am.find_action("pre-step");
-        CELER_ASSERT(prestep_action);
-        am.invoke(prestep_action, core_ref);
+        auto prestep_action_id = am.find_action("pre-step");
+        CELER_ASSERT(prestep_action_id);
+        const auto& prestep_action
+            = dynamic_cast<const ExplicitActionInterface&>(
+                *am.action(prestep_action_id));
+        prestep_action.execute(core_ref);
 
         // Call along-step action
         const auto& along_step = *this->along_step();

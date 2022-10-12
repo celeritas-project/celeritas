@@ -20,10 +20,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<MemSpace M>
-struct CoreRef;
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct and store metadata about end-of-step actions.
  *
@@ -44,82 +40,41 @@ class ActionRegistry
   public:
     //!@{
     //! Type aliases
-    using SPConstImplicit = std::shared_ptr<const ImplicitActionInterface>;
-    using SPConstExplicit = std::shared_ptr<const ExplicitActionInterface>;
+    using SPConstAction = std::shared_ptr<const ActionInterface>;
     //!@}
 
-    //! Construction/execution options
-    struct Options
-    {
-        bool sync{false}; //!< Call DeviceSynchronize and add timer
-    };
-
   public:
-    //! Construct with options
-    explicit ActionRegistry(Options options) : options_(options) {}
-
-    //! Construct with default options
-    ActionRegistry() : ActionRegistry(Options{}) {}
+    //! Construct without any registered actions
+    ActionRegistry() = default;
 
     //// CONSTRUCTION ////
 
     // Get the next action ID
     inline ActionId next_id() const;
 
-    // Register an implicit action
-    void insert(SPConstImplicit);
-
-    // Register an explicit action
-    void insert(SPConstExplicit);
-
-    //// INVOCATION ////
-
-    // Call the given action ID with host or device data.
-    template<MemSpace M>
-    void invoke(ActionId explicit_id, const CoreRef<M>& data) const;
+    // Register an action
+    void insert(SPConstAction);
 
     //// ACCESSORS ////
-
-    //! Whether synchronization is taking place
-    bool sync() const { return options_.sync; }
 
     // Get the number of defined actions
     inline ActionId::size_type num_actions() const;
 
     // Access an action
-    inline const ActionInterface& action(ActionId id) const;
+    inline const SPConstAction& action(ActionId id) const;
 
     // Get the label corresponding to an action
     inline const std::string& id_to_label(ActionId id) const;
-
-    // Get the accumulated launch time if syncing is enabled
-    inline double accum_time(ActionId id) const;
 
     // Find the action corresponding to an label
     ActionId find_action(const std::string& label) const;
 
   private:
-    //// TYPES ////
-
-    using SPConstAction  = std::shared_ptr<const ActionInterface>;
-    using PConstExplicit = ExplicitActionInterface const*;
-
-    struct ActionData
-    {
-        std::string    label;
-        SPConstAction  action;
-        PConstExplicit expl{nullptr}; //!< dynamic_cast of action
-        mutable double time{0};
-    };
-
     //// DATA ////
 
-    Options                                   options_;
-    std::vector<ActionData>                   actions_;
+    std::vector<SPConstAction>                actions_;
+    std::vector<std::string>                  labels_;
     std::unordered_map<std::string, ActionId> action_ids_;
-
-    //// HELPER_FUNCTIONS ////
-    void insert_impl(SPConstAction&& action, PConstExplicit expl);
 };
 
 //---------------------------------------------------------------------------//
@@ -146,10 +101,10 @@ ActionId::size_type ActionRegistry::num_actions() const
 /*!
  * Access an action.
  */
-const ActionInterface& ActionRegistry::action(ActionId id) const
+auto ActionRegistry::action(ActionId id) const -> const SPConstAction&
 {
     CELER_EXPECT(id < actions_.size());
-    return *actions_[id.unchecked_get()].action;
+    return actions_[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -159,18 +114,7 @@ const ActionInterface& ActionRegistry::action(ActionId id) const
 const std::string& ActionRegistry::id_to_label(ActionId id) const
 {
     CELER_EXPECT(id < actions_.size());
-    return actions_[id.unchecked_get()].label;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the accumulated launch time if syncing is enabled.
- */
-double ActionRegistry::accum_time(ActionId id) const
-{
-    CELER_EXPECT(this->sync());
-    CELER_EXPECT(id < actions_.size());
-    return actions_[id.unchecked_get()].time;
+    return labels_[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

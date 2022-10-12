@@ -55,17 +55,17 @@ struct TransporterInput
         return celeritas::numeric_limits<size_type>::max();
     }
 
-    // Problem parameters
+    // Stepper input
     std::shared_ptr<const CoreParams> params;
-
-    // Run setup
     size_type num_track_slots{};  //!< AKA max_num_tracks
     size_type num_initializers{}; //!< AKA initializer_capacity
+    bool      sync{false};
+
+    // Loop control
     size_type max_steps{};
-    bool      eloss_fluctuation{true};
-    bool      enable_diagnostics{true};
 
     // Diagnostic setup
+    bool            enable_diagnostics{true};
     EnergyDiagInput energy_diag;
 
     //! True if all params are assigned
@@ -80,12 +80,14 @@ struct TransporterInput
 //! Simulation timing results.
 struct TransporterTiming
 {
-    using real_type = celeritas::real_type;
-    using VecReal   = std::vector<real_type>;
+    using real_type  = celeritas::real_type;
+    using VecReal    = std::vector<real_type>;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
 
     VecReal   steps;   //!< Real time per step
     real_type total{}; //!< Total simulation time
     real_type setup{}; //!< One-time initialization cost
+    MapStrReal actions{}; //!< Accumulated action timing
 };
 
 //---------------------------------------------------------------------------//

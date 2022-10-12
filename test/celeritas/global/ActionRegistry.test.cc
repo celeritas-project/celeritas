@@ -39,10 +39,11 @@ class MyExplicitAction final : public ExplicitActionInterface
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
 
-    ActionOrder order() const final { return ActionOrder::along; }
+    ActionOrder order() const final { return order_; }
 
   private:
     ActionId    action_id_;
+    ActionOrder order_;
     mutable int host_count_{0};
     mutable int device_count_{0};
 };
@@ -98,7 +99,7 @@ TEST_F(ActionRegistryTest, accessors)
     EXPECT_EQ(ActionId{}, mgr.find_action("nonexistent"));
 
     // Access an action
-    EXPECT_EQ("explicit action test", mgr.action(expl_id).description());
+    EXPECT_EQ("explicit action test", mgr.action(expl_id)->description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
 
     EXPECT_STREQ("along", to_cstring(expl_action->order()));
@@ -119,21 +120,6 @@ TEST_F(ActionRegistryTest, output)
     }
 }
 
-TEST_F(ActionRegistryTest, invocation)
-{
-    EXPECT_EQ(0, expl_action->device_count());
-    EXPECT_EQ(0, expl_action->host_count());
-
-    CoreRef<MemSpace::host>   host_data;
-    CoreRef<MemSpace::device> device_data;
-    auto                      expl_id = mgr.find_action("explicit");
-    mgr.invoke(expl_id, host_data);
-    EXPECT_EQ(0, expl_action->device_count());
-    EXPECT_EQ(1, expl_action->host_count());
-    mgr.invoke(expl_id, device_data);
-    EXPECT_EQ(1, expl_action->device_count());
-}
-
 TEST_F(ActionRegistryTest, errors)
 {
     // Incorrect ID
@@ -145,11 +131,8 @@ TEST_F(ActionRegistryTest, errors)
     EXPECT_THROW(
         mgr.insert(std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1")),
         RuntimeError);
-
-    // Invoke a nonexplicit kernel
-    CoreRef<MemSpace::host> host_data;
-    EXPECT_THROW(mgr.invoke(ActionId{0}, host_data), RuntimeError);
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

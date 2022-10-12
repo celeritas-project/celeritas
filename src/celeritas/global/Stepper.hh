@@ -20,8 +20,15 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class CoreParams;
 struct Primary;
+
+namespace detail
+{
+class ActionSequence;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * State-specific options for the stepper.
@@ -35,9 +42,13 @@ struct StepperInput
     std::shared_ptr<const CoreParams> params;
     size_type                         num_track_slots{};
     size_type                         num_initializers{};
+    bool                              sync{false};
 
-    // TODO: integrate into action interface
-    ActionId post_step_callback;
+    //! True if defined
+    explicit operator bool() const
+    {
+        return params && num_track_slots > 0 && num_initializers > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -61,9 +72,10 @@ class StepperInterface
   public:
     //!@{
     //! \name Type aliases
-    using Input       = StepperInput;
-    using VecPrimary  = std::vector<Primary>;
-    using result_type = StepperResult;
+    using Input          = StepperInput;
+    using ActionSequence = detail::ActionSequence;
+    using VecPrimary     = std::vector<Primary>;
+    using result_type    = StepperResult;
     //!@}
 
   public:
@@ -75,6 +87,9 @@ class StepperInterface
 
     //! Whether the stepper is assigned/valid
     virtual explicit operator bool() const = 0;
+
+    //! Get action sequence for timing diagnostics
+    virtual const ActionSequence& actions() const = 0;
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
@@ -98,7 +113,7 @@ class StepperInterface
    \endcode
  */
 template<MemSpace M>
-class Stepper : public StepperInterface
+class Stepper final : public StepperInterface
 {
   public:
     //!@{
@@ -133,10 +148,13 @@ class Stepper : public StepperInterface
     //! Whether the stepper is assigned/valid
     explicit operator bool() const final { return static_cast<bool>(states_); }
 
+    //! Get action sequence for timing diagnostics
+    const ActionSequence& actions() const final { return *actions_; }
+
   private:
     // Params and call sequence
     std::shared_ptr<const CoreParams> params_;
-    std::vector<ActionId>             actions_;
+    std::shared_ptr<detail::ActionSequence> actions_;
 
     // State data
     size_type                               num_initializers_;

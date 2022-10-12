@@ -20,6 +20,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/global/detail/ActionSequence.hh"
 
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
@@ -182,7 +183,7 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     input.params             = input_.params;
     input.num_track_slots    = input_.num_track_slots;
     input.num_initializers   = input_.num_initializers;
-    input.post_step_callback = diagnostic_action_; // May be "false"
+    input.sync               = input_.sync;
     Stepper<M> step(std::move(input));
 
     Stopwatch get_step_time;
@@ -213,6 +214,21 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
         track_counts  = step();
         append_track_counts(track_counts);
         result.time.steps.push_back(get_step_time());
+    }
+
+    // Save kernel timing if host or synchronization is enabled
+    if (M == MemSpace::host || input_.sync)
+    {
+        const auto& action_seq  = step.actions();
+        const auto& action_ptrs = action_seq.actions();
+        const auto& times       = action_seq.accum_time();
+
+        CELER_ASSERT(action_ptrs.size() == times.size());
+        for (auto i : range(action_ptrs.size()))
+        {
+            auto&& label               = action_ptrs[i]->label();
+            result.time.actions[label] = times[i];
+        }
     }
 
     if (diagnostics_)

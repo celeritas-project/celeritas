@@ -46,9 +46,7 @@ auto GlobalTestBase::build_rng() const -> SPConstRng
 //---------------------------------------------------------------------------//
 auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 {
-    ActionRegistry::Options opts;
-    opts.sync = true;
-    return std::make_shared<ActionRegistry>(opts);
+    return std::make_shared<ActionRegistry>();
 }
 
 //---------------------------------------------------------------------------//
