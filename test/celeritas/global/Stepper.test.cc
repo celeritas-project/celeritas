@@ -475,8 +475,7 @@ TEST_F(TestEm15FieldTest, setup)
         "Photoelectric effect",
         "Photon annihiliation",
         "Positron annihiliation",
-        "Electron/positron "
-        "ionization",
+        "Electron/positron ionization",
         "Bremsstrahlung",
         "Multiple scattering",
     };
@@ -496,6 +495,7 @@ TEST_F(TestEm15FieldTest, setup)
         "geo-boundary",
         "dummy-action",
     };
+    EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
 TEST_F(TestEm15FieldTest, host)

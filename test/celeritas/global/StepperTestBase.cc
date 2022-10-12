@@ -15,6 +15,7 @@
 #include "corecel/io/Repr.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
 using std::cout;
