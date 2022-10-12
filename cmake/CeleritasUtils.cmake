@@ -49,6 +49,16 @@ CMake configuration utility functions for Celeritas.
 
       celeritas_check_python_module(has_numpy "numpy")
 
+.. command:: celeritas_configure_file
+
+  Configure to the internal include directory and install::
+
+    celeritasscale_configure_file(<input> <output> [ARGS])
+
+  The ``<input>`` must be a relative path to the current source directory, and
+  the ``<output>` path is configured to the project build "include" directory.
+
+
 #]=======================================================================]
 include_guard(GLOBAL)
 
@@ -141,6 +151,17 @@ function(celeritas_check_python_module varname module)
 
   # Save outgoing variable
   set(${varname} "${_found}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_configure_file input output)
+  if(NOT IS_ABSOLUTE "${input}")
+    set(input "${CMAKE_CURRENT_SOURCE_DIR}/${input}")
+  endif()
+  configure_file("${input}"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
+    ${ARGN})
 endfunction()
 
 #-----------------------------------------------------------------------------#

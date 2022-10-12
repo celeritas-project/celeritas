@@ -81,6 +81,7 @@ define_property(TARGET PROPERTY CELERITAS_CUDA_MIDDLE_LIBRARY
 define_property(TARGET PROPERTY CELERITAS_CUDA_OBJECT_LIBRARY
   BRIEF_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
   FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
+set(CELERITAS_HEADER_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/include")
 )
 
 #-----------------------------------------------------------------------------#
@@ -166,6 +167,13 @@ function(celeritas_add_library target)
   set(_staticsuf "_static")
   celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
 
+  set(_library_output)
+  if(PROJECT_NAME STREQUAL "Celeritas")
+    set(_library_output
+      LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+  endif()
+
   # Whether we need the special code or not is actually dependent on information
   # we don't have ... yet
   # - whether the user request CUDA_SEPARABLE_COMPILATION
@@ -175,6 +183,11 @@ function(celeritas_add_library target)
 
   if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
     add_library(${target} ${ARGN})
+    if(_library_output)
+      set_target_properties(${target} PROPERTIES
+        ${_library_output}
+      )
+    endif()
     return()
   endif()
 
@@ -225,6 +238,7 @@ function(celeritas_add_library target)
   )
 
   set_target_properties(${target}${_midsuf} PROPERTIES
+    ${_library_output}
     POSITION_INDEPENDENT_CODE ON
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
@@ -238,6 +252,7 @@ function(celeritas_add_library target)
 
   if(NOT _static_build)
     set_target_properties(${target}${_staticsuf} PROPERTIES
+      ${_library_output}
       LINKER_LANGUAGE CUDA
       CUDA_SEPARABLE_COMPILATION ON
       CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
@@ -251,6 +266,7 @@ function(celeritas_add_library target)
   endif()
 
   set_target_properties(${target}_final PROPERTIES
+    ${_library_output}
     LINKER_LANGUAGE CUDA
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
     CUDA_SEPARABLE_COMPILATION ON

@@ -133,6 +133,16 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 #----------------------------------------------------------------------------#
+# Output locations for Celeritas products (used by CeleritasLibrary.cmake,
+# CeleritasUtils.cmake, install code below) will mirror the installation layout
+set(CELERITAS_CMAKE_CONFIG_DIRECTORY
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
+set(CELERITAS_HEADER_CONFIG_DIRECTORY
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
+set(CELERITAS_LIBRARY_OUTPUT_DIRECTORY
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}")
+
+#----------------------------------------------------------------------------#
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
 
@@ -281,6 +291,7 @@ install(TARGETS celeritas_device_toolkit
   EXPORT celeritas-targets
 )
 
+#----------------------------------------------------------------------------#
 # Add the main libraries
 add_subdirectory(src)
 
@@ -320,10 +331,8 @@ endif()
 # CONFIG FILE INSTALLATION
 #----------------------------------------------------------------------------#
 
-# Where to configure cmake files
-set(CELER_CMAKE_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/lib/cmake")
 # Where to install configured cmake files
-set(CELER_INSTALL_CMAKECONFIGDIR
+set(CELERITAS_INSTALL_CMAKECONFIGDIR
   "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
 
 # Build list of CMake files to install
@@ -344,30 +353,30 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 install(FILES ${_cmake_files}
-  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
-  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )
 
 # Export all cache variables that start with CELERITAS_
-set(CELER_EXPORT_VARIABLES)
+set(CELERITAS_EXPORT_VARIABLES)
 get_directory_property(_cachevar_keys CACHE_VARIABLES)
 foreach(_key IN LISTS _cachevar_keys)
   if(_key MATCHES "^CELERITAS_")
-    list(APPEND CELER_EXPORT_VARIABLES "set(${_key} \"${${_key}}\")")
+    list(APPEND CELERITAS_EXPORT_VARIABLES "set(${_key} \"${${_key}}\")")
   endif()
 endforeach()
 
-# Add other cache variables, prefixed with CELER_
+# Add other cache variables, prefixed with CELERITAS_
 foreach(_key BUILD_SHARED_LIBS)
-  list(APPEND CELER_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
+  list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
 
 # Add hints for direct dependencies and indirect geant dependencies
-list(APPEND CELER_EXPORT_VARIABLES "# Hints for upstream dependencies")
+list(APPEND CELERITAS_EXPORT_VARIABLES "# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
   Geant4_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
@@ -378,33 +387,40 @@ foreach(_key
 )
   set(_val "${${_key}}")
   if(_val)
-    list(APPEND CELER_EXPORT_VARIABLES
+    list(APPEND CELERITAS_EXPORT_VARIABLES
       "if(NOT DEFINED ${_key})"
       "  set(${_key} \"${_val}\")"
       "endif()"
     )
   endif()
 endforeach()
-list(JOIN CELER_EXPORT_VARIABLES "\n" CELER_EXPORT_VARIABLES)
+list(JOIN CELERITAS_EXPORT_VARIABLES "\n" CELERITAS_EXPORT_VARIABLES)
 
 # Generate the file needed by downstream "find_package(CELER)"
 configure_file(
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasConfig.cmake.in"
-  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
+  "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
   @ONLY
 )
 
 # Export version info
 write_basic_package_version_file(
-  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
+  "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
   COMPATIBILITY ExactVersion
+)
+
+# Install generated config files
+install(DIRECTORY "${CELERITAS_HEADER_CONFIG_DIRECTORY}/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  COMPONENT development
+  FILES_MATCHING REGEX ".*\\.hh?$"
 )
 
 # Install the config and version files
 install(FILES
-  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
-  "${CELER_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
-  DESTINATION ${CELER_INSTALL_CMAKECONFIGDIR}
+  "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfig.cmake"
+  "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
+  DESTINATION ${CELERITAS_INSTALL_CMAKECONFIGDIR}
   COMPONENT development
 )
 
@@ -413,7 +429,7 @@ install(FILES
 install(EXPORT celeritas-targets
   FILE CeleritasTargets.cmake
   NAMESPACE Celeritas::
-  DESTINATION "${CELER_INSTALL_CMAKECONFIGDIR}"
+  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )
 

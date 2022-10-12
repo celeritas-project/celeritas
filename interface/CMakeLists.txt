@@ -67,12 +67,12 @@ function(celeritas_swig_python_module target module_source)
 
   # Install built module and wrapper files
   install(TARGETS ${target}
-    DESTINATION python
+    DESTINATION interface
     COMPONENT runtime
   )
   get_property(_WRAPPERS TARGET ${target} PROPERTY SWIG_SUPPORT_FILES)
   install(FILES "${_WRAPPERS}"
-    DESTINATION python
+    DESTINATION interface
     COMPONENT runtime
   )
 endfunction()

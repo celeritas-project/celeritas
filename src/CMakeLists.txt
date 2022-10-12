@@ -31,7 +31,7 @@ string(JOIN "\n" CELERITAS_RNG_MACROS
   ${CELERITAS_RNG_MACROS}
   "#define CELERITAS_RNG CELERITAS_RNG_${CELERITAS_RNG}"
 )
-configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
+celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#
 
@@ -61,7 +61,7 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
     "static const char celeritas_${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
-configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
+celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
 #----------------------------------------------------------------------------#
 # LIBRARY
@@ -318,7 +318,7 @@ celeritas_target_link_libraries(celeritas
 celeritas_target_include_directories(celeritas
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CELERITAS_HEADER_CONFIG_DIRECTORY}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -339,6 +339,7 @@ set(_IO_PRIVATE_DEPS celeritas)
 
 if(CELERITAS_USE_ROOT)
   include(${ROOT_USE_FILE})
+  include_directories("${CELERITAS_HEADER_CONFIG_DIRECTORY}")
 
   root_generate_dictionary(CeleritasRootInterface
     celeritas/io/ImportData.hh
@@ -430,14 +431,6 @@ endif()
 #----------------------------------------------------------------------------#
 # HEADERS
 #----------------------------------------------------------------------------#
-
-# C/generated headers
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_config.h"
-  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_cmake_strings.h"
-  COMPONENT development
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
 
 # C++ source headers
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
