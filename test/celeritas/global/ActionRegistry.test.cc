@@ -102,7 +102,7 @@ TEST_F(ActionRegistryTest, accessors)
     EXPECT_EQ("explicit action test", mgr.action(expl_id)->description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
 
-    EXPECT_STREQ("along", to_cstring(expl_action->order()));
+    EXPECT_STREQ("start", to_cstring(expl_action->order()));
 }
 
 TEST_F(ActionRegistryTest, output)

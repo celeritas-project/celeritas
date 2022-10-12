@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ActionSequence.hh"
 
+#include <algorithm>
 #include <tuple>
 
 #include "corecel/device_runtime_api.h"
