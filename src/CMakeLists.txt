@@ -9,6 +9,10 @@ include(CeleritasGen)
 #----------------------------------------------------------------------------#
 # CONFIGURE FILES
 #----------------------------------------------------------------------------#
+# Celeritas version
+
+celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
+
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
 set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
@@ -71,12 +75,6 @@ set(SOURCES)
 set(DEVICE_SOURCES)
 set(PRIVATE_DEPS)
 set(PUBLIC_DEPS)
-
-# Version information
-configure_file("celeritas_version.cc.in" "celeritas_version.cc" @ONLY)
-list(APPEND SOURCES
-  "${CMAKE_CURRENT_BINARY_DIR}/celeritas_version.cc"
-)
 
 # Generate model launcher and track initialization code for host/device
 set(_gen_sources)
