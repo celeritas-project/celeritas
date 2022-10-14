@@ -23,7 +23,7 @@
 
 namespace celeritas
 {
-class ActionManager;
+class ActionRegistry;
 class AtomicRelaxationParams;
 class MaterialParams;
 class ParticleParams;
@@ -115,7 +115,7 @@ class PhysicsParams
         SPConstMaterials  materials;
         VecProcess        processes;
         SPConstRelaxation relaxation; //!< Optional atomic relaxation
-        ActionManager*    action_manager = nullptr;
+        ActionRegistry*   action_registry = nullptr;
 
         Options options;
     };
@@ -181,7 +181,7 @@ class PhysicsParams
     CollectionMirror<PhysicsParamsData> data_;
 
   private:
-    VecModel build_models(ActionManager*) const;
+    VecModel build_models(ActionRegistry*) const;
     void     build_options(const Options& opts, HostValue* data) const;
     void     build_ids(const ParticleParams& particles, HostValue* data) const;
     void     build_xs(const Options&        opts,

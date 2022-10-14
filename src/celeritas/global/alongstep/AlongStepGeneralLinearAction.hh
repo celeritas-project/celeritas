@@ -24,7 +24,7 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-class ActionManager;
+class ActionRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,7 +49,7 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
                 const ParticleParams& particles,
                 const PhysicsParams&  physics,
                 bool                  eloss_fluctuation,
-                ActionManager*        actions);
+                ActionRegistry*       actions);
 
     // Construct with next action ID, and optional EM energy fluctuation
     AlongStepGeneralLinearAction(ActionId            id,
@@ -76,6 +76,9 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     {
         return "along-step for particles with no field";
     }
+
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::along; }
 
     //// ACCESSORS ////
 

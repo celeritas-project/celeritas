@@ -10,7 +10,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -138,7 +138,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
     input.materials = this->material();
     input.processes
         = {std::make_shared<ComptonProcess>(input.particles, process_data)};
-    input.action_manager = this->action_mgr().get();
+    input.action_registry = this->action_reg().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));
 }
@@ -147,8 +147,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 auto SimpleTestBase::build_along_step() -> SPConstAction
 {
     auto result = std::make_shared<AlongStepNeutralAction>(
-        this->action_mgr()->next_id());
-    this->action_mgr()->insert(result);
+        this->action_reg()->next_id());
+    this->action_reg()->insert(result);
     return result;
 }
 

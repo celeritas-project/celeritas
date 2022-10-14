@@ -49,8 +49,6 @@ endforeach()
 configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
 #----------------------------------------------------------------------------#
-
-#----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
 
@@ -73,10 +71,10 @@ macro(celeritas_gen_interactor class func)
     --class ${class}  --func ${func}
   )
 endmacro()
-macro(celeritas_gen_action basedir class func)
+macro(celeritas_gen_action basedir class func order)
   celeritas_gen(_gen_sources
     "gen-action.py" "celeritas/${basedir}/generated/${class}"
-    --class ${class} --func ${func}
+    --class ${class} --func ${func} --actionorder ${order}
   )
 endmacro()
 macro(celeritas_gen_trackinit class)
@@ -104,9 +102,9 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select")
-celeritas_gen_action("phys" "PreStepAction" "pre_step")
-celeritas_gen_action("geo" "BoundaryAction" "boundary")
+celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
+celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
+celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
@@ -146,6 +144,7 @@ list(APPEND SOURCES
   orange/detail/UnitInserter.cc
   orange/surf/SurfaceIO.cc
 
+  celeritas/Types.cc
   celeritas/em/AtomicRelaxationParams.cc
   celeritas/em/FluctuationParams.cc
   celeritas/em/detail/Utils.cc
@@ -172,10 +171,12 @@ list(APPEND SOURCES
   celeritas/ext/ScopedMpiInit.cc
   celeritas/geo/GeoMaterialParams.cc
   celeritas/global/ActionInterface.cc
-  celeritas/global/ActionManager.cc
-  celeritas/global/ActionManagerOutput.cc
+  celeritas/global/ActionRegistry.cc
+  celeritas/global/ActionRegistryOutput.cc
+  celeritas/global/CoreParams.cc
   celeritas/global/CoreParams.cc
   celeritas/global/Stepper.cc
+  celeritas/global/detail/ActionSequence.cc
   celeritas/grid/ValueGridBuilder.cc
   celeritas/grid/ValueGridInserter.cc
   celeritas/grid/ValueGridInterface.cc

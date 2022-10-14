@@ -14,43 +14,12 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-#include "ActionManager.hh"
+#include "ActionRegistry.hh"
 #include "CoreParams.hh"
+#include "detail/ActionSequence.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-std::vector<ActionId> build_action_vec(const CoreParams& core)
-{
-    std::vector<ActionId> actions;
-    auto insert_from_label = [&actions, action_mgr = *core.action_mgr()](
-                                 const std::string& label) {
-        actions.push_back(action_mgr.find_action(label));
-        CELER_VALIDATE(actions.back(), << "missing action '" << label << "'");
-    };
-
-    // TODO: add accessors to physics instead of looking these up as strings
-    insert_from_label("pre-step");
-    actions.push_back(core.along_step()->action_id());
-    insert_from_label("physics-discrete-select");
-    actions.push_back(core.host_ref().scalars.boundary_action);
-
-    for (ActionId aid : core.physics()->model_actions())
-    {
-        CELER_ASSERT(aid);
-        actions.push_back(aid);
-    }
-
-    CELER_ENSURE(std::all_of(actions.begin(), actions.end(), [](ActionId i) {
-        return static_cast<bool>(i);
-    }));
-    return actions;
-}
-//---------------------------------------------------------------------------//
-} // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with problem parameters and setup options.
@@ -68,18 +37,18 @@ Stepper<M>::Stepper(Input input)
     states_ = CollectionStateStore<CoreStateData, M>(params_->host_ref(),
                                                      input.num_track_slots);
 
-    // Construct main actions
-    actions_ = build_action_vec(*params_);
-
-    if (input.post_step_callback)
+    // Create action sequence
     {
-        actions_.push_back(input.post_step_callback);
+        ActionSequence::Options opts;
+        opts.sync = input.sync;
+        actions_
+            = std::make_shared<ActionSequence>(*params_->action_reg(), opts);
     }
 
     core_ref_.params = get_ref<M>(*params_);
     core_ref_.states = states_.ref();
 
-    CELER_ENSURE(!actions_.empty());
+    CELER_ENSURE(actions_ && *actions_);
 }
 
 //---------------------------------------------------------------------------//
@@ -92,8 +61,7 @@ Stepper<M>::~Stepper() = default;
  * Transport already-initialized states.
  *
  * A single transport step is simply a loop over a toplogically sorted DAG
- * of kernels. Currently the ordering is done manually, but we could introduce
- * dependencies between the actions to make the action list more bulletproof.
+ * of kernels.
  */
 template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
@@ -109,12 +77,7 @@ auto Stepper<M>::operator()() -> result_type
     initialize_tracks(core_ref_, &inits_);
     result.active = states_.size() - inits_.vacancies.size();
 
-    // Launch all actions in their proper order
-    const ActionManager& action_mgr = *params_->action_mgr();
-    for (ActionId action : actions_)
-    {
-        action_mgr.invoke<M>(action, core_ref_);
-    }
+    actions_->execute(core_ref_);
 
     // Create track initializers from surviving secondaries
     extend_from_secondaries(core_ref_, &inits_);

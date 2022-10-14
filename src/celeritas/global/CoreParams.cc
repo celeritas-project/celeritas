@@ -20,7 +20,7 @@
 #include "celeritas/random/RngParams.hh"
 
 #include "ActionInterface.hh"
-#include "ActionManager.hh"
+#include "ActionRegistry.hh"
 
 namespace celeritas
 {
@@ -78,20 +78,20 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(along_step);
-    CP_VALIDATE_INPUT(action_mgr);
+    CP_VALIDATE_INPUT(action_reg);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
     // Construct geometry action
-    scalars_.boundary_action = input_.action_mgr->next_id();
-    input_.action_mgr->insert(
+    scalars_.boundary_action = input_.action_reg->next_id();
+    input_.action_reg->insert(
         std::make_shared<celeritas::generated::BoundaryAction>(
             scalars_.boundary_action, "geo-boundary", "Boundary crossing"));
 
     // Construct implicit limit for propagator pausing midstep
-    scalars_.propagation_limit_action = input_.action_mgr->next_id();
-    input_.action_mgr->insert(std::make_shared<ImplicitGeometryAction>(
+    scalars_.propagation_limit_action = input_.action_reg->next_id();
+    input_.action_reg->insert(std::make_shared<ImplicitGeometryAction>(
         scalars_.propagation_limit_action,
         "geo-propagation-limit",
         "Propagation substep/range limit"));

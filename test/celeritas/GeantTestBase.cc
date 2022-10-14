@@ -21,7 +21,7 @@
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -141,7 +141,7 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
     input.materials      = this->material();
     input.particles      = this->particle();
     input.options        = this->build_physics_options();
-    input.action_manager = this->action_mgr().get();
+    input.action_registry = this->action_reg().get();
 
     BremsstrahlungProcess::Options brem_options;
     brem_options.combined_model  = this->combined_brems();
@@ -187,12 +187,11 @@ auto GeantTestBase::build_along_step() -> SPConstAction
                                                     *this->particle(),
                                                     *this->physics(),
                                                     this->enable_fluctuation(),
-                                                    this->action_mgr().get());
+                                                    this->action_reg().get());
     CELER_ENSURE(result);
     CELER_ENSURE(result->has_fluct() == this->enable_fluctuation());
     CELER_ENSURE(result->has_msc() == this->enable_msc());
-    CELER_ENSURE(&this->action_mgr()->action(result->action_id())
-                 == result.get());
+    CELER_ENSURE(this->action_reg()->action(result->action_id()) == result);
     return result;
 }
 
@@ -219,9 +218,11 @@ auto GeantTestBase::imported_data() const -> const ImportData&
         CELER_VALIDATE(i.geometry_basename.empty(),
                        << "Geant4 currently crashes on second G4RunManager "
                           "instantiation (see issue #462)");
-        i.geometry_basename = cur_basename;
+        // Note: importing may crash if Geant4 has an error
         i.imported          = load_import_data(this->test_data_path(
             "celeritas", gdml_filename(cur_basename.c_str()).c_str()));
+        // Save basename *after* load
+        i.geometry_basename = cur_basename;
     }
     CELER_ENSURE(i.imported);
     return i.imported;

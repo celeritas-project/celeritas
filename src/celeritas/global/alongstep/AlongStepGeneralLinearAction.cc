@@ -13,7 +13,7 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -31,8 +31,8 @@ std::shared_ptr<AlongStepGeneralLinearAction>
 AlongStepGeneralLinearAction::from_params(const MaterialParams& materials,
                                           const ParticleParams& particles,
                                           const PhysicsParams&  physics,
-                                          bool           eloss_fluctuation,
-                                          ActionManager* actions)
+                                          bool            eloss_fluctuation,
+                                          ActionRegistry* actions)
 {
     CELER_EXPECT(actions);
     SPConstFluctuations fluct;

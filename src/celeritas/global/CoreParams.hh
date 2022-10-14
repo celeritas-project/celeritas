@@ -18,7 +18,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-class ActionManager;
+class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
 class FluctuationParams;
@@ -44,7 +44,7 @@ class CoreParams
     using SPConstCutoff      = std::shared_ptr<const CutoffParams>;
     using SPConstPhysics     = std::shared_ptr<const PhysicsParams>;
     using SPConstRng         = std::shared_ptr<const RngParams>;
-    using SPActionManager    = std::shared_ptr<ActionManager>;
+    using SPActionRegistry   = std::shared_ptr<ActionRegistry>;
     using SPConstAction      = std::shared_ptr<const ExplicitActionInterface>;
 
     using HostRef   = HostCRef<CoreParamsData>;
@@ -62,13 +62,13 @@ class CoreParams
         SPConstRng         rng;
 
         SPConstAction   along_step;
-        SPActionManager action_mgr;
+        SPActionRegistry action_reg;
 
         //! True if all params are assigned
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && action_mgr;
+                   && physics && rng && action_reg;
         }
     };
 
@@ -89,7 +89,7 @@ class CoreParams
     const SPConstPhysics&  physics() const { return input_.physics; }
     const SPConstAction&   along_step() const { return input_.along_step; }
     const SPConstRng&      rng() const { return input_.rng; }
-    const SPActionManager& action_mgr() const { return input_.action_mgr; }
+    const SPActionRegistry& action_reg() const { return input_.action_reg; }
     //!@}
 
     // Access properties on the host

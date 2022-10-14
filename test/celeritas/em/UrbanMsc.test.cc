@@ -20,7 +20,7 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -119,7 +119,7 @@ class UrbanMscTest : public GlobalGeoTestBase
             this->particle(), this->material(), processes_data_));
 
         // Add action manager
-        input.action_manager = this->action_mgr().get();
+        input.action_registry = this->action_reg().get();
 
         return std::make_shared<PhysicsParams>(std::move(input));
     }
