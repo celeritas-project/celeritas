@@ -14,8 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 
 #include "ColorUtils.hh"
 

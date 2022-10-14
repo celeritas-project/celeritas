@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/MpiTypes.nompi.hh
+//! \file corecel/sys/detail/MpiTypes.nompi.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

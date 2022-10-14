@@ -11,11 +11,11 @@
 
 #include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/ext/RootExporter.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
 
 #if CELERITAS_USE_JSON
 #    include <fstream>

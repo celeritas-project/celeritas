@@ -153,6 +153,8 @@ celeritas_add_test(corecel/math/VectorUtils.test.cc)
 celeritas_add_test(corecel/sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
 )
+celeritas_add_test(corecel/sys/MpiCommunicator.test.cc
+  NP ${CELERITASTEST_NP_DEFAULT})
 celeritas_add_test(corecel/sys/TypeDemangler.test.cc)
 celeritas_add_test(corecel/sys/ScopedSignalHandler.test.cc)
 celeritas_add_test(corecel/sys/ScopedStreamRedirect.test.cc)
@@ -259,8 +261,6 @@ endif()
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4}
   LINK_LIBRARIES Celeritas::IO)
-celeritas_add_test(celeritas/ext/MpiCommunicator.test.cc
-  NP ${CELERITASTEST_NP_DEFAULT})
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
   LINK_LIBRARIES Celeritas::IO)
 

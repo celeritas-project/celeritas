@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/ScopedMpiInit.hh
+//! \file corecel/sys/ScopedMpiInit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

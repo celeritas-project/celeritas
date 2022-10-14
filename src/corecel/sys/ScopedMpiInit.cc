@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/ScopedMpiInit.cc
+//! \file corecel/sys/ScopedMpiInit.cc
 //---------------------------------------------------------------------------//
 #include "ScopedMpiInit.hh"
 
@@ -17,8 +17,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/Stopwatch.hh"
+
+#include "Environment.hh"
+#include "Stopwatch.hh"
 
 namespace celeritas
 {

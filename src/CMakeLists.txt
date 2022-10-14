@@ -148,6 +148,8 @@ list(APPEND SOURCES
   corecel/sys/Device.cc
   corecel/sys/Environment.cc
   corecel/sys/KernelDiagnostics.cc
+  corecel/sys/MpiCommunicator.cc
+  corecel/sys/ScopedMpiInit.cc
   corecel/sys/ScopedSignalHandler.cc
   corecel/sys/TypeDemangler.cc
 
@@ -179,8 +181,6 @@ list(APPEND SOURCES
   celeritas/em/process/MultipleScatteringProcess.cc
   celeritas/em/process/PhotoelectricProcess.cc
   celeritas/em/process/RayleighProcess.cc
-  celeritas/ext/MpiCommunicator.cc
-  celeritas/ext/ScopedMpiInit.cc
   celeritas/geo/GeoMaterialParams.cc
   celeritas/global/ActionInterface.cc
   celeritas/global/ActionManager.cc
