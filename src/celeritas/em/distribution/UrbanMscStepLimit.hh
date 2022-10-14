@@ -52,12 +52,13 @@ class UrbanMscStepLimit
                                             const ParticleTrackView& particle,
                                             const PhysicsTrackView&  physics,
                                             MaterialId               matid,
-                                            real_type                safety,
+                                            bool      is_first_step,
+                                            real_type safety,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
-    inline CELER_FUNCTION MscStep operator()(Engine& rng);
+    inline CELER_FUNCTION MscStepLimit operator()(Engine& rng);
 
   private:
     //// DATA ////
@@ -76,7 +77,10 @@ class UrbanMscStepLimit
     const MaterialData& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
+    // Urban MSC range properties
+    MscRange msc_range_;
 
+    bool      on_boundary_{};
     real_type lambda_{};
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
@@ -116,6 +120,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
                                      const PhysicsTrackView&  physics,
                                      MaterialId               matid,
+                                     bool                     is_first_step,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
@@ -125,6 +130,8 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , params_(shared.params)
     , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics)
+    , msc_range_(physics.msc_range())
+    , on_boundary_(is_first_step || safety_ <= shared.params.geom_limit)
     , phys_step_(phys_step)
     , range_(physics.dedx_range())
 {
@@ -154,22 +161,28 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
  * selected for the interaction by the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
+CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
 {
-    MscStep result;
+    MscStepLimit result;
 
-    result.phys_step = phys_step_;
-    result.true_path = phys_step_;
+    MscStep msc_step;
+
+    msc_step.phys_step = phys_step_;
+    msc_step.true_path = phys_step_;
 
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
     // NOTE: use d_over_r_mh for muons and charged hadrons
-    if (result.true_path < shared_.params.limit_min_fix()
+    if (msc_step.true_path < shared_.params.limit_min_fix()
         || range_ * msc_.d_over_r < safety_)
     {
-        result.is_displaced = false;
-        auto temp           = this->calc_geom_path(result.true_path);
-        result.geom_path    = temp.geom_path;
+        msc_step.is_displaced = false;
+        auto temp             = this->calc_geom_path(msc_step.true_path);
+        msc_step.geom_path    = temp.geom_path;
+
+        result.msc_step  = msc_step;
+        result.msc_range = msc_range_;
+
         return result;
     }
 
@@ -177,47 +190,49 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
 
     // Initialisation at the first step or at the boundary
-    real_type range_fact = params_.range_fact;
-    real_type range_init = max<real_type>(range_, lambda_);
-
-    // Note: The minimum of the true path length limit is calculated at every
-    // msc step instead of using a cached value evaluated at the first step
-    // of tracking or on a volume boundary.
-    if (lambda_ > params_.lambda_limit)
+    if (on_boundary_ || !msc_range_.is_filled())
     {
-        range_fact *= (real_type(0.75)
-                       + real_type(0.25) * lambda_ / params_.lambda_limit);
+        msc_range_.range_fact = params_.range_fact;
+        msc_range_.range_init = max<real_type>(range_, lambda_);
+        if (lambda_ > params_.lambda_limit)
+        {
+            msc_range_.range_fact
+                *= (real_type(0.75)
+                    + real_type(0.25) * lambda_ / params_.lambda_limit);
+        }
+        msc_range_.limit_min = this->calc_limit_min();
     }
-    result.limit_min = this->calc_limit_min();
-
     // The step limit
     real_type limit = range_;
     if (limit > safety_)
     {
-        limit = max<real_type>(range_fact * range_init,
+        limit = max<real_type>(msc_range_.range_fact * msc_range_.range_init,
                                params_.safety_fact * safety_);
     }
-    limit = max<real_type>(limit, result.limit_min);
+    limit = max<real_type>(limit, msc_range_.limit_min);
 
-    if (limit < result.true_path)
+    if (limit < msc_step.true_path)
     {
         // Randomize the limit if this step should be determined by msc
-        real_type sampled_limit = result.limit_min;
+        real_type sampled_limit = msc_range_.limit_min;
         if (limit > sampled_limit)
         {
             NormalDistribution<real_type> sample_gauss(
-                limit, real_type(0.1) * (limit - result.limit_min));
+                limit, real_type(0.1) * (limit - msc_range_.limit_min));
             sampled_limit = sample_gauss(rng);
-            sampled_limit = max<real_type>(sampled_limit, result.limit_min);
+            sampled_limit = max<real_type>(sampled_limit, msc_range_.limit_min);
         }
-        result.true_path = min<real_type>(result.true_path, sampled_limit);
+        msc_step.true_path = min<real_type>(msc_step.true_path, sampled_limit);
     }
 
     {
-        auto temp        = this->calc_geom_path(result.true_path);
-        result.geom_path = temp.geom_path;
-        result.alpha     = temp.alpha;
+        auto temp          = this->calc_geom_path(msc_step.true_path);
+        msc_step.geom_path = temp.geom_path;
+        msc_step.alpha     = temp.alpha;
     }
+
+    result.msc_step  = msc_step;
+    result.msc_range = msc_range_;
 
     return result;
 }
