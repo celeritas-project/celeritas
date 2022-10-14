@@ -76,8 +76,36 @@ struct MscStep
     real_type phys_step{};        //!< Step length from physics processes
     real_type true_path{};        //!< True path length due to the msc
     real_type geom_path{};        //!< Geometrical path length
-    real_type limit_min{};        //!< Minimum of the true path limit
     real_type alpha{-1};          //!< An effecive mfp rate by distance
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent range properties for multiple scattering (msc) within a volume.
+ *
+ * These values are calculated at the first step in every msc tracking volume
+ * and reused at subsequent steps within the same volume.
+ */
+struct MscRange
+{
+    real_type range_init{}; //!< Initial msc range
+    real_type range_fact{}; //!< Scale factor for the msc range
+    real_type limit_min{};  //!< Minimum of the true path limit
+
+    CELER_FUNCTION bool is_filled() const
+    {
+        return range_init > 0 && range_fact > 0 && limit_min > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Result of the step limitation of multiple scattering.
+ */
+struct MscStepLimit
+{
+    MscStep  msc_step;
+    MscRange msc_range;
 };
 
 //---------------------------------------------------------------------------//
