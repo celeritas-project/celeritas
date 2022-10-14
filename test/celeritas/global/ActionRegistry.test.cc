@@ -27,7 +27,9 @@ namespace test
 class MyExplicitAction final : public ExplicitActionInterface
 {
   public:
-    explicit MyExplicitAction(ActionId ai) : action_id_(ai) {}
+    MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
+    {
+    }
 
     ActionId    action_id() const final { return action_id_; }
     std::string label() const final { return "explicit"; }
@@ -72,7 +74,8 @@ class ActionRegistryTest : public Test
         auto impl1 = std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1");
         mgr.insert(impl1);
 
-        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id());
+        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
+                                                         ActionOrder::pre);
         mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
@@ -102,7 +105,7 @@ TEST_F(ActionRegistryTest, accessors)
     EXPECT_EQ("explicit action test", mgr.action(expl_id)->description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
 
-    EXPECT_STREQ("start", to_cstring(expl_action->order()));
+    EXPECT_STREQ("pre", to_cstring(expl_action->order()));
 }
 
 TEST_F(ActionRegistryTest, output)
