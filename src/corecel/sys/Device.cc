@@ -18,9 +18,9 @@
 #include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
-#include "Stopwatch.hh"
 
 namespace celeritas
 {
@@ -222,20 +222,15 @@ void activate_device(Device&& device)
     if (!device)
         return;
 
-    Stopwatch get_time;
-
-    // Set device based on communicator, and call cudaFree to wake up the
-    // device
     CELER_LOG_LOCAL(debug) << "Initializing '" << device.name() << "', ID "
                            << device.device_id() << " of "
                            << Device::num_devices();
+    ScopedTimeLog scoped_time;
     CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-
     global_device() = std::move(device);
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
-    CELER_LOG(debug) << "Device initialization took " << get_time() << "s";
 }
 
 //---------------------------------------------------------------------------//
