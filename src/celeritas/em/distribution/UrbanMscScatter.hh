@@ -158,7 +158,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , helper_(shared, particle, physics)
     , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
-    , limit_min_(input.limit_min)
+    , limit_min_(physics.msc_range().limit_min)
     , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
