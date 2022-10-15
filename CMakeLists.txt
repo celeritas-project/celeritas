@@ -6,6 +6,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 
+set(CGV_TAG_REGEX "v([0-9.]+)(-dev)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE
@@ -404,9 +405,10 @@ configure_file(
 )
 
 # Export version info
+# TODO for version 1.0.0: change COMPATIBILITY to MajorVersion
 write_basic_package_version_file(
   "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasConfigVersion.cmake"
-  COMPATIBILITY ExactVersion
+  COMPATIBILITY SameMinorVersion
 )
 
 # Install generated config files
