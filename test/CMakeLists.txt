@@ -13,8 +13,7 @@ include(CeleritasAddTest)
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
 
-set(CELER_SOURCES)
-list(APPEND CELER_SOURCES
+add_library(testcel
   Test.cc
   testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
@@ -22,13 +21,12 @@ list(APPEND CELER_SOURCES
   testdetail/TestMainImpl.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
-
-add_library(CelerTest ${CELER_SOURCES})
-add_library(Celeritas::Test ALIAS CelerTest)
-set_property(TARGET CelerTest PROPERTY CXX_STANDARD 14)
-celeritas_target_link_libraries(CelerTest PRIVATE celeritas PUBLIC GTest::GTest)
-
-target_include_directories(CelerTest
+add_library(Celeritas::testcel ALIAS testcel)
+set_property(TARGET testcel PROPERTY CXX_STANDARD 14)
+target_link_libraries(testcel
+  PUBLIC Celeritas::corecel GTest::GTest
+)
+target_include_directories(testcel
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -40,24 +38,24 @@ target_include_directories(CelerTest
 
 if(CELERITAS_USE_HIP)
   set_source_files_properties(
-    corecel/data/Collection.test.cu
-    corecel/math/NumericLimits.test.cu
-    corecel/cont/Range.test.cu
-    corecel/data/StackAllocator.test.cu
     celeritas/field/FieldDriver.test.cu
     celeritas/field/FieldPropagator.test.cu
     celeritas/field/Steppers.test.cu
     celeritas/field/UserMapField.test.cu
     celeritas/field/UserParamField.test.cu
-    orange/surf/SurfaceAction.test.cu
-    orange/univ/SimpleUnitTracker.test.cu
-    celeritas/phys/Particle.test.cu
-    celeritas/phys/Physics.test.cu
     celeritas/geo/HeuristicGeoTestBase.cu
     celeritas/mat/Material.test.cu
+    celeritas/phys/Particle.test.cu
+    celeritas/phys/Physics.test.cu
     celeritas/random/RngEngine.test.cu
     celeritas/random/curand/CurandPerformance.test.cu
     celeritas/track/TrackInit.test.cu
+    corecel/cont/Range.test.cu
+    corecel/data/Collection.test.cu
+    corecel/data/StackAllocator.test.cu
+    corecel/math/NumericLimits.test.cu
+    orange/surf/SurfaceAction.test.cu
+    orange/univ/SimpleUnitTracker.test.cu
     PROPERTIES LANGUAGE HIP
   )
 endif()
@@ -109,6 +107,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # TESTING ADDITION TESTS
 #-----------------------------------------------------------------------------#
+
 celeritas_setup_tests(SERIAL PREFIX detail)
 
 celeritas_add_test(TestMacros.test.cc)
@@ -116,23 +115,28 @@ celeritas_add_test(TestMacros.test.cc)
 #-----------------------------------------------------------------------------#
 # CORECEL TESTS
 #-----------------------------------------------------------------------------#
+
 celeritas_setup_tests(SERIAL PREFIX corecel)
 
+celeritas_add_test(corecel/OpaqueId.test.cc)
+
 # Cont
+set(CELERITASTEST_PREFIX corecel/cont)
 celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
 celeritas_device_test(corecel/cont/Range)
 
 # Data
+set(CELERITASTEST_PREFIX corecel/data)
 celeritas_device_test(corecel/data/Collection)
 celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
-celeritas_add_test(corecel/OpaqueId.test.cc)
 celeritas_device_test(corecel/data/StackAllocator)
 
 # IO
+set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc)
@@ -141,6 +145,7 @@ celeritas_add_test(corecel/io/StringEnumMap.test.cc)
 celeritas_add_test(corecel/io/StringUtils.test.cc)
 
 # Math
+set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(corecel/math/Algorithms.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
@@ -150,6 +155,7 @@ celeritas_add_test(corecel/math/SoftEqual.test.cc)
 celeritas_add_test(corecel/math/VectorUtils.test.cc)
 
 # Sys
+set(CELERITASTEST_PREFIX corecel/sys)
 celeritas_add_test(corecel/sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
 )
@@ -164,20 +170,26 @@ set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 #-----------------------------------------------------------------------------#
 # ORANGE TESTS
 #-----------------------------------------------------------------------------#
-add_library(CeleritasOrangeTest
+
+add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
 )
-celeritas_target_link_libraries(CeleritasOrangeTest
-  PRIVATE Celeritas::Test
-  PUBLIC Celeritas::Core
+celeritas_target_link_libraries(testcel_orange
+  PRIVATE Celeritas::testcel Celeritas::orange
 )
 
-celeritas_setup_tests(SERIAL PREFIX orange LINK_LIBRARIES CeleritasOrangeTest)
+celeritas_setup_tests(SERIAL PREFIX orange
+  LINK_LIBRARIES testcel_orange Celeritas::orange
+)
 
-# Base-level
+#-----------------------------------------------------------------------------#
+# Base
 celeritas_add_test(orange/BoundingBox.test.cc)
+celeritas_add_test(orange/Orange.test.cc)
 
+#-------------------------------------#
 # Surfaces
+set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/CylCentered.test.cc)
 celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
@@ -186,22 +198,22 @@ celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
 celeritas_device_test(orange/surf/SurfaceAction)
 
+
+#-------------------------------------#
 # Universe details
+set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(orange/univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(orange/univ/detail/LogicStack.test.cc)
 celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
-
-### Tests that require a geometry input ###
-
 celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)
 celeritas_device_test(orange/univ/SimpleUnitTracker)
-celeritas_add_test(orange/Orange.test.cc)
 
 #-----------------------------------------------------------------------------#
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
-add_library(CeleritasTest
+
+add_library(testcel_celeritas
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
@@ -216,13 +228,15 @@ add_library(CeleritasTest
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
 )
-celeritas_target_link_libraries(CeleritasTest
-  PRIVATE celeritas celeritas_io CelerTest)
+celeritas_target_link_libraries(testcel_celeritas
+  PRIVATE Celeritas::celeritas Celeritas::testcel
+)
+
+celeritas_setup_tests(SERIAL PREFIX celeritas
+  LINK_LIBRARIES testcel_celeritas Celeritas::celeritas
+)
 
 #-----------------------------------------------------------------------------#
-celeritas_setup_tests(SERIAL PREFIX celeritas LINK_LIBRARIES CeleritasTest)
-
-#-------------------------------------#
 # (Root level tests)
 celeritas_add_test(celeritas/Constants.test.cc ${_optional_geant4_link})
 
@@ -243,11 +257,9 @@ celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
 celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
 
 celeritas_add_test(celeritas/em/ImportedProcesses.test.cc ${_needs_root}
-  ${_optional_geant4_env}
-  LINK_LIBRARIES Celeritas::IO)
+  ${_optional_geant4_env})
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
-  ${_optional_geant4_env}
-  LINK_LIBRARIES Celeritas::IO)
+  ${_optional_geant4_env})
 
 #-------------------------------------#
 # External
@@ -259,10 +271,8 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4}
-  LINK_LIBRARIES Celeritas::IO)
-celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root}
-  LINK_LIBRARIES Celeritas::IO)
+celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4})
+celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#
 # Field
@@ -297,8 +307,7 @@ endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc ${_geo_args})
 
 celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
-  ${_needs_root} ${_needs_geo}
-  LINK_LIBRARIES Celeritas::IO)
+  ${_needs_root} ${_needs_geo})
 
 #-------------------------------------#
 # Global
@@ -339,16 +348,13 @@ celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Mat
 set(CELERITASTEST_PREFIX celeritas/mat)
 celeritas_add_test(celeritas/mat/ElementSelector.test.cc)
-celeritas_device_test(celeritas/mat/Material
-  LINK_LIBRARIES Celeritas::IO)
+celeritas_device_test(celeritas/mat/Material)
 
 #-------------------------------------#
 # Phys
 set(CELERITASTEST_PREFIX celeritas/phys)
-celeritas_add_test(celeritas/phys/CutoffParams.test.cc
-  LINK_LIBRARIES Celeritas::IO)
-celeritas_device_test(celeritas/phys/Particle
-  LINK_LIBRARIES Celeritas::IO)
+celeritas_add_test(celeritas/phys/CutoffParams.test.cc)
+celeritas_device_test(celeritas/phys/Particle)
 celeritas_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
@@ -407,3 +413,4 @@ add_custom_target(update-four-slabs
 )
 add_dependencies(update-four-slabs celer-export-geant)
 
+#-----------------------------------------------------------------------------#

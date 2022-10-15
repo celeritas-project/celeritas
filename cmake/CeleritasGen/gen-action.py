@@ -7,8 +7,8 @@
 Tool to generate simpled "Action"-based kernel implementations automatically.
 """
 
-import os.path
 import sys
+from pathlib import Path
 from launchbounds import make_launch_bounds
 
 CLIKE_TOP = '''\
@@ -145,9 +145,10 @@ def generate(**subs):
     ext = subs['ext']
     subs['modeline'] = "-*-{}-*-".format(LANG[ext])
     template = TEMPLATES[ext]
-    filename = "{basename}.{ext}".format(**subs)
-    subs['filename'] = filename
-    subs['script'] = os.path.basename(sys.argv[0])
+    script = Path(sys.argv[0])
+    filename = Path("{basename}.{ext}".format(**subs))
+    subs['filename'] = Path(subs['basedir']) / filename
+    subs['script'] = script.name
     subs['launch_bounds'] = make_launch_bounds(subs['func'])
     with open(filename, 'w') as f:
         f.write(template.format(**subs))
@@ -155,6 +156,10 @@ def generate(**subs):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--basedir',
+        default='celeritas',
+        help='execution path relative to src/')
     parser.add_argument(
         '--basename',
         help='File name (without extension) of output')

@@ -35,15 +35,14 @@ endif()
 # Exporter
 add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
-  Celeritas::Core
-  Celeritas::IO
+  Celeritas::celeritas
+  nlohmann_json::nlohmann_json
 )
 
 # Reader
 add_executable(celer-dump-data celer-dump-data.cc)
 celeritas_target_link_libraries(celer-dump-data
-  Celeritas::Core
-  Celeritas::IO
+  Celeritas::celeritas
 )
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
@@ -96,7 +95,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/XsGridParams.cc
   )
   celeritas_target_link_libraries(celeritas_demo_interactor PUBLIC
-    celeritas
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
   )
 
@@ -134,7 +133,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/HostKNDemoRunner.cc
   )
   celeritas_target_link_libraries(host-demo-interactor
-    celeritas
+    Celeritas::celeritas
     celeritas_demo_interactor
   )
 
@@ -170,7 +169,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/ImageStore.cc
   )
   celeritas_target_link_libraries(demo-rasterizer
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
     VecGeom::vecgeom
   )
@@ -217,9 +216,8 @@ if(CELERITAS_BUILD_DEMOS)
   endif()
 
   set(_demo_loop_libs
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
-    Celeritas::IO
     Celeritas::DeviceToolkit
   )
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
@@ -326,7 +324,7 @@ if(CELERITAS_BUILD_DEMOS)
   endif()
 
   set(_geo_check_libs
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
     Celeritas::DeviceToolkit
   )
