@@ -81,7 +81,6 @@ define_property(TARGET PROPERTY CELERITAS_CUDA_MIDDLE_LIBRARY
 define_property(TARGET PROPERTY CELERITAS_CUDA_OBJECT_LIBRARY
   BRIEF_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
   FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
-set(CELERITAS_HEADER_CONFIG_DIRECTORY "${PROJECT_BINARY_DIR}/include")
 )
 
 #-----------------------------------------------------------------------------#
