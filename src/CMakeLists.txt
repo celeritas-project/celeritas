@@ -276,19 +276,9 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
 endif()
 
-if(CELERITAS_USE_HIP)
-  # Compile with HIP instead of CUDA (since we don't change our source
-  # extensions)
-  set_source_files_properties(
-    ${DEVICE_SOURCES}
-    PROPERTIES LANGUAGE HIP
-  )
-endif()
-
 celeritas_add_library(celeritas ${SOURCES} ${DEVICE_SOURCES})
 celeritas_strip_alias(_TARGET celeritas)
 add_library(Celeritas::Core ALIAS ${_TARGET})
-add_library(Celeritas::celeritas ALIAS ${_TARGET})
 
 # Require at least C++14
 set_property(TARGET ${_TARGET} PROPERTY CXX_STANDARD 14)
@@ -318,13 +308,6 @@ celeritas_target_include_directories(celeritas
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CELERITAS_HEADER_CONFIG_DIRECTORY}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
-celeritas_install(TARGETS celeritas
-  EXPORT celeritas-targets
-  ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  COMPONENT runtime
 )
 
 #----------------------------------------------------------------------------#
