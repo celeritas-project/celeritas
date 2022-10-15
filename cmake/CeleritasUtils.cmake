@@ -51,9 +51,9 @@ CMake configuration utility functions for Celeritas.
 
 .. command:: celeritas_configure_file
 
-  Configure to the internal include directory and install::
+  Configure to the build "include" directory for later installation::
 
-    celeritasscale_configure_file(<input> <output> [ARGS])
+    celeritas_configure_file(<input> <output> [ARGS...])
 
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
