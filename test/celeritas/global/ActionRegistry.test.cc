@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManager.test.cc
+//! \file celeritas/global/ActionRegistry.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 
-#include "celeritas/global/ActionManagerOutput.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -27,7 +27,9 @@ namespace test
 class MyExplicitAction final : public ExplicitActionInterface
 {
   public:
-    explicit MyExplicitAction(ActionId ai) : action_id_(ai) {}
+    MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
+    {
+    }
 
     ActionId    action_id() const final { return action_id_; }
     std::string label() const final { return "explicit"; }
@@ -39,8 +41,11 @@ class MyExplicitAction final : public ExplicitActionInterface
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
 
+    ActionOrder order() const final { return order_; }
+
   private:
     ActionId    action_id_;
+    ActionOrder order_;
     mutable int host_count_{0};
     mutable int device_count_{0};
 };
@@ -57,7 +62,7 @@ class MyImplicitAction final : public ImplicitActionInterface,
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ActionManagerTest : public Test
+class ActionRegistryTest : public Test
 {
   protected:
     void SetUp() override
@@ -69,7 +74,8 @@ class ActionManagerTest : public Test
         auto impl1 = std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1");
         mgr.insert(impl1);
 
-        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id());
+        expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
+                                                         ActionOrder::pre);
         mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(
@@ -77,7 +83,7 @@ class ActionManagerTest : public Test
         mgr.insert(impl2);
     }
 
-    ActionManager                     mgr;
+    ActionRegistry                    mgr;
     std::shared_ptr<MyExplicitAction> expl_action;
 };
 
@@ -85,7 +91,7 @@ class ActionManagerTest : public Test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ActionManagerTest, accessors)
+TEST_F(ActionRegistryTest, accessors)
 {
     EXPECT_EQ(3, mgr.num_actions());
 
@@ -96,15 +102,17 @@ TEST_F(ActionManagerTest, accessors)
     EXPECT_EQ(ActionId{}, mgr.find_action("nonexistent"));
 
     // Access an action
-    EXPECT_EQ("explicit action test", mgr.action(expl_id).description());
+    EXPECT_EQ("explicit action test", mgr.action(expl_id)->description());
     EXPECT_EQ("explicit", mgr.id_to_label(expl_id));
+
+    EXPECT_STREQ("pre", to_cstring(expl_action->order()));
 }
 
-TEST_F(ActionManagerTest, output)
+TEST_F(ActionRegistryTest, output)
 {
     // Create output handler from a shared pointer (with a null deleter)
-    ActionManagerOutput out(std::shared_ptr<const ActionManager>(
-        &mgr, [](const ActionManager*) {}));
+    ActionRegistryOutput out(std::shared_ptr<const ActionRegistry>(
+        &mgr, [](const ActionRegistry*) {}));
     EXPECT_EQ("actions", out.label());
 
     if (CELERITAS_USE_JSON)
@@ -115,22 +123,7 @@ TEST_F(ActionManagerTest, output)
     }
 }
 
-TEST_F(ActionManagerTest, invocation)
-{
-    EXPECT_EQ(0, expl_action->device_count());
-    EXPECT_EQ(0, expl_action->host_count());
-
-    CoreRef<MemSpace::host>   host_data;
-    CoreRef<MemSpace::device> device_data;
-    auto                      expl_id = mgr.find_action("explicit");
-    mgr.invoke(expl_id, host_data);
-    EXPECT_EQ(0, expl_action->device_count());
-    EXPECT_EQ(1, expl_action->host_count());
-    mgr.invoke(expl_id, device_data);
-    EXPECT_EQ(1, expl_action->device_count());
-}
-
-TEST_F(ActionManagerTest, errors)
+TEST_F(ActionRegistryTest, errors)
 {
     // Incorrect ID
     EXPECT_THROW(
@@ -141,11 +134,8 @@ TEST_F(ActionManagerTest, errors)
     EXPECT_THROW(
         mgr.insert(std::make_shared<MyImplicitAction>(mgr.next_id(), "impl1")),
         RuntimeError);
-
-    // Invoke a nonexplicit kernel
-    CoreRef<MemSpace::host> host_data;
-    EXPECT_THROW(mgr.invoke(ActionId{0}, host_data), RuntimeError);
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

@@ -46,6 +46,9 @@ public:
 
   // Launch kernel with device data
   void execute(CoreDeviceRef const&) const final;
+
+  //! Dependency ordering of the action
+  ActionOrder order() const final {{ return ActionOrder::{actionorder}; }}
 }};
 
 #if !CELER_USE_DEVICE
@@ -169,6 +172,9 @@ def main():
     parser.add_argument(
         '--func',
         help='snake_case name of the function')
+    parser.add_argument(
+        '--actionorder',
+        help='Inter-kernel dependency order')
 
     kwargs = vars(parser.parse_args())
     for ext in ['hh', 'cc', 'cu']:

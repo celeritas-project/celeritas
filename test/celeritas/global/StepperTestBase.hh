@@ -17,13 +17,11 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 struct StepperInput;
 struct Primary;
 class StepperInterface;
-} // namespace celeritas
 
-namespace celeritas
-{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -47,10 +45,14 @@ namespace test
 class StepperTestBase : virtual public GlobalTestBase
 {
   public:
-    //!@{
-    //! \name Type aliases
+    struct SetupCheckResult
+    {
+        std::vector<std::string> processes;
+        std::vector<std::string> actions;
 
-    //!@}
+        // Print code for the expected attributes
+        void print_expected() const;
+    };
 
     struct RunResult
     {
@@ -90,6 +92,9 @@ class StepperTestBase : virtual public GlobalTestBase
 
     //! Maximum number of steps on average before aborting
     virtual size_type max_average_steps() const = 0;
+
+    // Get the physics output
+    SetupCheckResult check_setup();
 
     // Run a bunch of primaries to completion
     RunResult run(StepperInterface& step, size_type num_primaries) const;

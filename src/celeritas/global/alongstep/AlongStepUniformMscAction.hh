@@ -23,7 +23,7 @@ class UrbanMscModel;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-class ActionManager;
+class ActionRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,7 +41,7 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     static std::shared_ptr<AlongStepUniformMscAction>
     from_params(const PhysicsParams&      physics,
                 const UniformFieldParams& field_params,
-                ActionManager*            actions);
+                ActionRegistry*           actions);
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId                  id,
@@ -68,6 +68,9 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     {
         return "along-step in a uniform field with Urban MSC";
     }
+
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::along; }
 
     //// ACCESSORS ////
 

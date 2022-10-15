@@ -14,8 +14,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputManager.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionManager.hh"
-#include "celeritas/global/ActionManagerOutput.hh"
+#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/random/RngParams.hh"
@@ -44,11 +44,9 @@ auto GlobalTestBase::build_rng() const -> SPConstRng
 }
 
 //---------------------------------------------------------------------------//
-auto GlobalTestBase::build_action_mgr() const -> SPActionManager
+auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 {
-    ActionManager::Options opts;
-    opts.sync = true;
-    return std::make_shared<ActionManager>(opts);
+    return std::make_shared<ActionRegistry>();
 }
 
 //---------------------------------------------------------------------------//
@@ -63,7 +61,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.physics     = this->physics();
     inp.along_step  = this->along_step();
     inp.rng         = this->rng();
-    inp.action_mgr  = this->action_mgr();
+    inp.action_reg  = this->action_reg();
     CELER_ASSERT(inp);
     return std::make_shared<CoreParams>(std::move(inp));
 }
@@ -106,10 +104,10 @@ void GlobalTestBase::register_physics_output()
 }
 
 //---------------------------------------------------------------------------//
-void GlobalTestBase::register_action_mgr_output()
+void GlobalTestBase::register_action_reg_output()
 {
-    CELER_ASSERT(action_mgr_);
-    output_->insert(std::make_shared<ActionManagerOutput>(action_mgr_));
+    CELER_ASSERT(action_reg_);
+    output_->insert(std::make_shared<ActionRegistryOutput>(action_reg_));
 }
 
 //---------------------------------------------------------------------------//

@@ -31,7 +31,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/global/ActionManagerOutput.hh"
+#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
@@ -88,7 +88,7 @@ void run(std::istream* is, OutputManager* output)
         const CoreParams& params = transport_ptr->params();
         output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
         output->insert(
-            std::make_shared<ActionManagerOutput>(params.action_mgr()));
+            std::make_shared<ActionRegistryOutput>(params.action_reg()));
     }
 
     // Run all the primaries

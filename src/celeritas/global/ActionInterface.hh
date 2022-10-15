@@ -22,10 +22,14 @@ struct CoreRef;
  * Pure abstract interface for an end-of-step action.
  *
  * The action ID is used to select between post-step actions such as discrete
- * processes, geometry boundary, and range limitation.
+ * processes, geometry boundary, and range limitation. Only "explicit" actions
+ * (see \c ExplicitActionInterface ) call kernels; otherwise the action should
+ * be a placeholder for ending the step without any additional state change
+ * (see \c ImplicitActionInterface ).
  *
  * The ActionInterface provides a no-overhead virtual interface for gathering
- * metadata (and someday for launching kernels).
+ * metadata. The ExplicitActionInterface provides additional interfaces for
+ * launching kernels.
  */
 class ActionInterface
 {
@@ -78,6 +82,9 @@ class ExplicitActionInterface : public virtual ActionInterface
     //! Execute the action with device data
     virtual void execute(CoreDeviceRef const&) const = 0;
 
+    //! Dependency ordering of the action
+    virtual ActionOrder order() const = 0;
+
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~ExplicitActionInterface() = default;
@@ -98,6 +105,8 @@ class ExplicitActionInterface : public virtual ActionInterface
 
       void execute(CoreHostRef const&) const final;
       void execute(CoreDeviceRef const&) const final;
+
+      ActionOrder order() const final { return ActionOrder::post; }
   };
 
   class PlaceholderPhysicsAction final : public ImplicitActionInterface,

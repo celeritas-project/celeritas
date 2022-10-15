@@ -312,7 +312,7 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 #-------------------------------------#
 # Global
 set(CELERITASTEST_PREFIX celeritas/global)
-celeritas_add_test(celeritas/global/ActionManager.test.cc)
+celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 celeritas_add_test(celeritas/global/AlongStep.test.cc
   ${_optional_geant4_env})
 celeritas_add_test(celeritas/global/Stepper.test.cc

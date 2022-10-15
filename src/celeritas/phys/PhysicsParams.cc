@@ -23,7 +23,7 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
@@ -61,48 +61,48 @@ PhysicsParams::PhysicsParams(Input inp)
                              [](const SPConstProcess& p) { return bool(p); }));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
-    CELER_EXPECT(inp.action_manager);
+    CELER_EXPECT(inp.action_registry);
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {
         using std::make_shared;
-        auto& action_mgr = *inp.action_manager;
+        auto& action_reg = *inp.action_registry;
 
         auto pre_step_action = make_shared<generated::PreStepAction>(
-            action_mgr.next_id(), "pre-step", "beginning of step physics");
-        inp.action_manager->insert(pre_step_action);
+            action_reg.next_id(), "pre-step", "beginning of step physics");
+        inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
         auto range_action = make_shared<ImplicitPhysicsAction>(
-            action_mgr.next_id(),
+            action_reg.next_id(),
             "eloss-range",
             "range limitation due to energy loss");
-        action_mgr.insert(range_action);
+        action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
         auto discrete_action = make_shared<generated::DiscreteSelectAction>(
-            action_mgr.next_id(),
+            action_reg.next_id(),
             "physics-discrete-select",
             "discrete interaction");
-        inp.action_manager->insert(discrete_action);
+        inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
         auto integral_action = make_shared<ImplicitPhysicsAction>(
-            action_mgr.next_id(),
+            action_reg.next_id(),
             "physics-integral-rejected",
             "rejection by integral cross section");
-        inp.action_manager->insert(integral_action);
+        inp.action_registry->insert(integral_action);
         integral_rejection_action_ = std::move(integral_action);
 
         // Emit models for associated proceses
-        models_ = this->build_models(inp.action_manager);
+        models_ = this->build_models(inp.action_registry);
 
         // Place "failure" *after* all the model IDs
         auto failure_action = make_shared<ImplicitPhysicsAction>(
-            action_mgr.next_id(),
+            action_reg.next_id(),
             "physics-failure",
             "interaction sampling failure");
-        inp.action_manager->insert(failure_action);
+        inp.action_registry->insert(failure_action);
         failure_action_ = std::move(failure_action);
     }
 
@@ -117,13 +117,13 @@ PhysicsParams::PhysicsParams(Input inp)
     if (inp.options.fixed_step_limiter > 0)
     {
         using std::make_shared;
-        auto& action_mgr = *inp.action_manager;
+        auto& action_reg = *inp.action_registry;
 
         auto fixed_step_action = make_shared<ImplicitPhysicsAction>(
-            action_mgr.next_id(),
+            action_reg.next_id(),
             "physics-fixed-step",
             "fixed step limiter for charged particles");
-        inp.action_manager->insert(fixed_step_action);
+        inp.action_registry->insert(fixed_step_action);
         host_data.scalars.fixed_step_limiter = inp.options.fixed_step_limiter;
         host_data.scalars.fixed_step_action  = fixed_step_action->action_id();
         fixed_step_action_                   = std::move(fixed_step_action);
@@ -156,7 +156,7 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto PhysicsParams::build_models(ActionManager* mgr) const -> VecModel
+auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 {
     VecModel models;
 

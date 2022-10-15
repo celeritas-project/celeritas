@@ -25,6 +25,7 @@ endmacro()
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  Types.cc
   em/AtomicRelaxationParams.cc
   em/FluctuationParams.cc
   em/detail/Utils.cc
@@ -47,14 +48,13 @@ list(APPEND SOURCES
   em/process/MultipleScatteringProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
-  # ext/MpiCommunicator.cc
-  # ext/ScopedMpiInit.cc
   geo/GeoMaterialParams.cc
   global/ActionInterface.cc
-  global/ActionManager.cc
-  global/ActionManagerOutput.cc
+  global/ActionRegistry.cc
+  global/ActionRegistryOutput.cc
   global/CoreParams.cc
   global/Stepper.cc
+  global/detail/ActionSequence.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridInterface.cc
@@ -203,10 +203,10 @@ macro(celeritas_gen_interactor class func)
   )
 endmacro()
 
-macro(celeritas_gen_action basedir class func)
+macro(celeritas_gen_action basedir class func order)
   celeritas_gen(SOURCES
     "gen-action.py" "${basedir}/generated/${class}"
-    --class ${class} --func ${func}
+    --class ${class} --func ${func} --actionorder ${order}
   )
 endmacro()
 
@@ -235,9 +235,9 @@ celeritas_gen_interactor("Rayleigh" "rayleigh")
 celeritas_gen_interactor("RelativisticBrem" "relativistic_brem")
 celeritas_gen_interactor("SeltzerBerger" "seltzer_berger")
 
-celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select")
-celeritas_gen_action("phys" "PreStepAction" "pre_step")
-celeritas_gen_action("geo" "BoundaryAction" "boundary")
+celeritas_gen_action("phys" "DiscreteSelectAction" "discrete_select" "pre_post")
+celeritas_gen_action("phys" "PreStepAction" "pre_step" "pre")
+celeritas_gen_action("geo" "BoundaryAction" "boundary" "post")
 
 celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")

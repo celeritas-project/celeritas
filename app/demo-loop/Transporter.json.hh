@@ -17,8 +17,10 @@ namespace demo_loop
 //! Save data to json
 inline void to_json(nlohmann::json& j, const TransporterTiming& v)
 {
-    j = nlohmann::json{
-        {"steps", v.steps}, {"total", v.total}, {"setup", v.setup}};
+    j = nlohmann::json{{"steps", v.steps},
+                       {"total", v.total},
+                       {"setup", v.setup},
+                       {"actions", v.actions}};
 }
 
 inline void to_json(nlohmann::json& j, const TransporterResult& v)

@@ -63,6 +63,9 @@ class Model : public ExplicitActionInterface
 
     //! Get the microscopic cross sections for the given particle and material
     virtual MicroXsBuilders micro_xs(Applicability range) const = 0;
+
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

@@ -29,6 +29,9 @@ public:
 
   // Launch kernel with device data
   void execute(CoreDeviceRef const&) const final;
+
+  //! Dependency ordering of the action
+  ActionOrder order() const final { return ActionOrder::pre; }
 };
 
 #if !CELER_USE_DEVICE

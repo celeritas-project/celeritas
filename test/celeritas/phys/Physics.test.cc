@@ -751,7 +751,7 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
     physics_inp.materials      = this->material();
     physics_inp.particles      = this->particles();
     physics_inp.options        = this->build_physics_options();
-    physics_inp.action_manager = this->action_mgr().get();
+    physics_inp.action_registry = this->action_reg().get();
 
     EPlusAnnihilationProcess::Options epgg_options;
     epgg_options.use_integral_xs = true;

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionManagerOutput.hh
+//! \file celeritas/global/ActionRegistryOutput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,22 +13,22 @@
 
 namespace celeritas
 {
-class ActionManager;
+class ActionRegistry;
 //---------------------------------------------------------------------------//
 /*!
  * Save action manager data.
  */
-class ActionManagerOutput final : public OutputInterface
+class ActionRegistryOutput final : public OutputInterface
 {
   public:
     //!@{
     //! Type aliases
-    using SPConstActionManager = std::shared_ptr<const ActionManager>;
+    using SPConstActionRegistry = std::shared_ptr<const ActionRegistry>;
     //!@}
 
   public:
     // Construct from a shared action manager
-    explicit ActionManagerOutput(SPConstActionManager actions);
+    explicit ActionRegistryOutput(SPConstActionRegistry actions);
 
     //! Category of data to write
     Category category() const final { return Category::internal; }
@@ -40,7 +40,7 @@ class ActionManagerOutput final : public OutputInterface
     void output(JsonPimpl*) const final;
 
   private:
-    SPConstActionManager actions_;
+    SPConstActionRegistry actions_;
 };
 
 //---------------------------------------------------------------------------//

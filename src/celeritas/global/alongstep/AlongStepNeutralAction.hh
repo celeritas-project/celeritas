@@ -45,6 +45,9 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
         return "along-step for neutral particles";
     }
 
+    //! Dependency ordering of the action
+    ActionOrder order() const final { return ActionOrder::along; }
+
   private:
     ActionId id_;
 };
