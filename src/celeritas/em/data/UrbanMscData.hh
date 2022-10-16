@@ -35,9 +35,10 @@ struct UrbanMscParameters
     real_type range_fact{0.04}; //!< range_factor for e-/e+ (0.2 for muon/h)
     real_type safety_fact{0.6}; //!< safety factor
     real_type safety_tol{0.01}; //!< safety tolerance
-    real_type geom_limit{5e-9 * units::millimeter}; //!< minimum step
-    Energy    low_energy_limit{1e-5};               //!< 10 eV
-    Energy    high_energy_limit{1e+2};              //!< 100 MeV
+    real_type geom_limit{5e-8 * units::millimeter};    //!< minimum step
+    real_type safety_limit{1e-11 * units::millimeter}; //!< minimum safety
+    Energy    low_energy_limit{1e-5};                  //!< 10 eV
+    Energy    high_energy_limit{1e+2};                 //!< 100 MeV
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
