@@ -106,7 +106,7 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
     // Sample multiple scattering step length
     UrbanMscStepLimit msc_step_limit(msc_params_,
                                      particle,
-                                     phys,
+                                     &phys,
                                      track.make_material_view().material_id(),
                                      sim.num_steps() == 0,
                                      geo.find_safety(),
@@ -114,20 +114,17 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
 
     auto rng             = track.make_rng_engine();
     auto msc_step_result = msc_step_limit(rng);
-    track.make_physics_step_view().msc_step(msc_step_result.msc_step);
-
-    // Store range properties for multiple scattering
-    phys.msc_range(msc_step_result.msc_range);
+    track.make_physics_step_view().msc_step(msc_step_result);
 
     // Use "straight line" path calculated for geometry step
-    local->geo_step = msc_step_result.msc_step.geom_path;
+    local->geo_step = msc_step_result.geom_path;
 
-    if (msc_step_result.msc_step.true_path < local->step_limit.step)
+    if (msc_step_result.true_path < local->step_limit.step)
     {
         // True/physical step might be further limited by MSC
         // TODO: this is already kinda sorta determined inside the
         // UrbanMscStepLimit calculation
-        local->step_limit.step   = msc_step_result.msc_step.true_path;
+        local->step_limit.step   = msc_step_result.true_path;
         local->step_limit.action = msc_params_.ids.action;
     }
 }

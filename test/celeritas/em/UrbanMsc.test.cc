@@ -236,7 +236,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
     // Test the step limitation algorithm and the msc sample scattering
-    MscStepLimit   step_result;
+    MscStep        step_result;
     MscInteraction sample_result;
 
     // Input
@@ -306,7 +306,7 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,
-                                       phys,
+                                       &phys,
                                        material_view.material_id(),
                                        sim_track_view.num_steps() == 0,
                                        geo_view.find_safety(),
@@ -319,7 +319,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                 &geo_view,
                                 phys,
                                 material_view,
-                                step_result.msc_step,
+                                step_result,
                                 /* geo_limited = */ false);
 
         sample_result = scatter(rng_engine);
