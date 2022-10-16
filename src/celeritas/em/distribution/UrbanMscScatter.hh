@@ -377,7 +377,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
         // Sampling of cos(theta)
         if (generate_canonical(rng) < qprob)
         {
-            if (BernoulliDistribution(prob)(rng))
+            // Note: prob is sometime a little greater than one
+            if (generate_canonical(rng) < prob)
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
                 UniformRealDistribution<real_type> sample_inner(ea, 1);
