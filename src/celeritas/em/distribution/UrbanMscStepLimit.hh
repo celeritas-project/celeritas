@@ -50,7 +50,7 @@ class UrbanMscStepLimit
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
                                             const ParticleTrackView& particle,
-                                            const PhysicsTrackView&  physics,
+                                            PhysicsTrackView*        physics,
                                             MaterialId               matid,
                                             bool      is_first_step,
                                             real_type safety,
@@ -58,13 +58,15 @@ class UrbanMscStepLimit
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
-    inline CELER_FUNCTION MscStepLimit operator()(Engine& rng);
+    inline CELER_FUNCTION MscStep operator()(Engine& rng);
 
   private:
     //// DATA ////
 
     // Shared constant data
     const UrbanMscRef& shared_;
+    // PhysicsTrackView
+    PhysicsTrackView& physics_;
     // Incident particle energy [Energy]
     const real_type inc_energy_;
     // Incident particle flag for positron
@@ -118,22 +120,23 @@ class UrbanMscStepLimit
 CELER_FUNCTION
 UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
-                                     const PhysicsTrackView&  physics,
+                                     PhysicsTrackView*        physics,
                                      MaterialId               matid,
                                      bool                     is_first_step,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
+    , physics_(*physics)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , safety_(safety)
     , params_(shared.params)
     , msc_(shared_.msc_data[matid])
-    , helper_(shared, particle, physics)
-    , msc_range_(physics.msc_range())
-    , on_boundary_(is_first_step || safety_ <= shared.params.geom_limit)
+    , helper_(shared, particle, physics_)
+    , msc_range_(physics_.msc_range())
+    , on_boundary_(is_first_step || safety_ <= shared.params.safety_limit)
     , phys_step_(phys_step)
-    , range_(physics.dedx_range())
+    , range_(physics_.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -161,27 +164,22 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
  * selected for the interaction by the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
+CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
-    MscStepLimit result;
+    MscStep result;
 
-    MscStep msc_step;
-
-    msc_step.phys_step = phys_step_;
-    msc_step.true_path = phys_step_;
+    result.phys_step = phys_step_;
+    result.true_path = phys_step_;
 
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
     // NOTE: use d_over_r_mh for muons and charged hadrons
-    if (msc_step.true_path < shared_.params.limit_min_fix()
+    if (result.true_path < shared_.params.limit_min_fix()
         || range_ * msc_.d_over_r < safety_)
     {
-        msc_step.is_displaced = false;
-        auto temp             = this->calc_geom_path(msc_step.true_path);
-        msc_step.geom_path    = temp.geom_path;
-
-        result.msc_step  = msc_step;
-        result.msc_range = msc_range_;
+        result.is_displaced = false;
+        auto temp           = this->calc_geom_path(result.true_path);
+        result.geom_path    = temp.geom_path;
 
         return result;
     }
@@ -190,7 +188,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
     // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
 
     // Initialisation at the first step or at the boundary
-    if (on_boundary_ || !msc_range_.is_filled())
+    if (on_boundary_ || !msc_range_)
     {
         msc_range_.range_fact = params_.range_fact;
         msc_range_.range_init = max<real_type>(range_, lambda_);
@@ -201,6 +199,9 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
                     + real_type(0.25) * lambda_ / params_.lambda_limit);
         }
         msc_range_.limit_min = this->calc_limit_min();
+
+        // Store persistent range properties within this tracking volume
+        physics_.msc_range(msc_range_);
     }
     // The step limit
     real_type limit = range_;
@@ -211,7 +212,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
     }
     limit = max<real_type>(limit, msc_range_.limit_min);
 
-    if (limit < msc_step.true_path)
+    if (limit < result.true_path)
     {
         // Randomize the limit if this step should be determined by msc
         real_type sampled_limit = msc_range_.limit_min;
@@ -222,17 +223,14 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStepLimit
             sampled_limit = sample_gauss(rng);
             sampled_limit = max<real_type>(sampled_limit, msc_range_.limit_min);
         }
-        msc_step.true_path = min<real_type>(msc_step.true_path, sampled_limit);
+        result.true_path = min<real_type>(result.true_path, sampled_limit);
     }
 
     {
-        auto temp          = this->calc_geom_path(msc_step.true_path);
-        msc_step.geom_path = temp.geom_path;
-        msc_step.alpha     = temp.alpha;
+        auto temp        = this->calc_geom_path(result.true_path);
+        result.geom_path = temp.geom_path;
+        result.alpha     = temp.alpha;
     }
-
-    result.msc_step  = msc_step;
-    result.msc_range = msc_range_;
 
     return result;
 }
