@@ -92,20 +92,10 @@ struct MscRange
     real_type range_fact{}; //!< Scale factor for the msc range
     real_type limit_min{};  //!< Minimum of the true path limit
 
-    CELER_FUNCTION bool is_filled() const
+    explicit CELER_FUNCTION operator bool() const
     {
         return range_init > 0 && range_fact > 0 && limit_min > 0;
     }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Result of the step limitation of multiple scattering.
- */
-struct MscStepLimit
-{
-    MscStep  msc_step;
-    MscRange msc_range;
 };
 
 //---------------------------------------------------------------------------//
