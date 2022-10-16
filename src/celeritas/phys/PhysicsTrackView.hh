@@ -64,7 +64,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION void dedx_range(real_type);
 
     // Set the range properties for multiple scattering
-    inline CELER_FUNCTION void msc_range(MscRange);
+    inline CELER_FUNCTION void msc_range(const MscRange&);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -78,7 +78,7 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION real_type dedx_range() const;
 
     // Range properties for multiple scattering
-    CELER_FORCEINLINE_FUNCTION MscRange msc_range() const;
+    CELER_FORCEINLINE_FUNCTION const MscRange& msc_range() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -248,7 +248,7 @@ CELER_FUNCTION void PhysicsTrackView::dedx_range(real_type range)
  *
  * These values will be calculated at the first step in every tracking volume.
  */
-CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange msc_range)
+CELER_FUNCTION void PhysicsTrackView::msc_range(const MscRange& msc_range)
 {
     this->state().msc_range = msc_range;
 }
@@ -288,10 +288,9 @@ CELER_FUNCTION real_type PhysicsTrackView::dedx_range() const
 /*!
  * Persistent range properties for multiple scattering within a same volume.
  */
-CELER_FUNCTION MscRange PhysicsTrackView::msc_range() const
+CELER_FUNCTION const MscRange& PhysicsTrackView::msc_range() const
 {
-    MscRange msc_range = this->state().msc_range;
-    return msc_range;
+    return this->state().msc_range;
 }
 
 //---------------------------------------------------------------------------//
