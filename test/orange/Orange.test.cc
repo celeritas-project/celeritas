@@ -69,6 +69,12 @@ class FiveVolumesTest : public OrangeTest
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
 };
 
+#define UniversesTest TEST_IF_CELERITAS_JSON(UniversesTest)
+class UniversesTest : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("universes.org.json"); }
+};
+
 #define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
 class Geant4Testem15Test : public OrangeTest
 {
@@ -500,6 +506,34 @@ TEST_F(FiveVolumesTest, params)
     EXPECT_EQ(6, geo.num_volumes());
     EXPECT_EQ(12, geo.num_surfaces());
     EXPECT_FALSE(geo.supports_safety());
+}
+
+TEST_F(UniversesTest, params)
+{
+    const OrangeParams& geo = this->params();
+    EXPECT_EQ(9, geo.num_volumes());
+    EXPECT_EQ(21, geo.num_surfaces());
+    EXPECT_FALSE(geo.supports_safety());
+
+    EXPECT_VEC_SOFT_EQ(Real3({-2, -6, -1}), geo.bbox().lower());
+    EXPECT_VEC_SOFT_EQ(Real3({8, 4, 2}), geo.bbox().upper());
+
+    std::vector<std::string> expected = {"[EXTERIOR]",
+                                         "inner_a",
+                                         "inner_b",
+                                         "bobby",
+                                         "johnny",
+                                         "[EXTERIOR]",
+                                         "a",
+                                         "b",
+                                         "c"};
+    std::vector<std::string> actual;
+    for (const auto id : range(VolumeId{geo.num_volumes()}))
+    {
+        actual.push_back(geo.id_to_label(id).name);
+    }
+
+    EXPECT_VEC_EQ(expected, actual);
 }
 
 TEST_F(Geant4Testem15Test, params)

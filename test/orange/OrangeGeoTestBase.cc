@@ -106,7 +106,7 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
     UnitInput input;
     {
         // Insert volumes
-        VolumeInput    vi;
+        VolumeInput vi;
         vi.logic = {logic::ltrue};
         vi.flags = (inp.complex_tracking ? VolumeInput::Flags::internal_surfaces
                                          : 0);

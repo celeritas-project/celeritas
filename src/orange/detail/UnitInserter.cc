@@ -154,11 +154,20 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
 
     // Define volumes
     std::vector<VolumeRecord>       vol_records(inp.volumes.size());
+    std::vector<Translation>        translations;
     std::vector<std::set<VolumeId>> connectivity(inp.surfaces.size());
     for (auto i : range(inp.volumes.size()))
     {
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
+
+        // Add emdeded universes
+        if (inp.daughter_map.find(VolumeId(i)) != inp.daughter_map.end())
+        {
+            process_daughter(&(vol_records[i]),
+                             &translations,
+                             inp.daughter_map.at(VolumeId(i)));
+        }
 
         // Add connectivity for explicitly connected volumes
         if (!(vol_records[i].flags & VolumeRecord::implicit_vol))
@@ -174,6 +183,11 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
     // Save volumes
     unit.volumes = make_builder(&orange_data_->volume_records)
                        .insert_back(vol_records.begin(), vol_records.end());
+
+    // Save translations
+    unit.translations
+        = make_builder(&orange_data_->translations)
+              .insert_back(translations.begin(), translations.end());
 
     // Save connectivity
     {
@@ -297,7 +311,7 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     }
 
     auto input_logic = make_span(v.logic);
-    if (v.flags & VolumeRecord::Flags::implicit_vol)
+    if (v.zorder == 1)
     {
         // Currently SCALE ORANGE writes background volumes as having "empty"
         // logic, whereas we really want them to be "nowhere" (at least
@@ -336,6 +350,17 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
 
     return output;
+}
+
+void UnitInserter::process_daughter(VolumeRecord*              vol_record,
+                                    std::vector<Translation>*  translations,
+                                    const UnitInput::Daughter& daughter)
+{
+    vol_record->flags &= VolumeRecord::embedded_universe;
+    vol_record->daughter = daughter.universe_id;
+
+    vol_record->daughter_translation = TranslationId(translations->size());
+    translations->push_back(daughter.translation);
 }
 
 //---------------------------------------------------------------------------//

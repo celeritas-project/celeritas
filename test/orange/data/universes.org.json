@@ -1,0 +1,329 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+-1,
+-1,
+3,
+4,
+-1,
+0,
+1,
+2
+],
+"names": [
+"media 0",
+"media 1",
+"media 2",
+"media 3",
+"media 4"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-2.0,
+-6.0,
+-1.0
+],
+[
+8.0,
+4.0,
+2.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"inner_a",
+"inner_b",
+"bobby",
+"johnny"
+],
+"cells": [
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+8,
+9,
+10,
+11
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+8,
+9,
+11,
+12
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+9,
+10,
+12,
+13
+],
+"logic": "0 1 ~ & 2 & 3 & 4 ~ & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+11,
+12,
+13
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 ~ & 8 & 9 ~ & 10 & 11 ~ & ~ & 6 7 ~ & 8 & 9 ~ & 11 & 12 ~ & ~ & 6 7 ~ & 9 & 10 & 12 ~ & 13 ~ & ~ &",
+"num_intersections": 14,
+"zorder": 2
+}
+],
+"md": {
+"name": "outer",
+"provenance": "universes.org.omn:48"
+},
+"surface_names": [
+"john.mx",
+"john.px",
+"john.my",
+"john.py",
+"john.mz",
+"john.pz",
+"bob.mx",
+"bob.px",
+"inner_a.my",
+"bob.my",
+"bob.mz",
+"inner_a.pz",
+"bob.pz",
+"bob.py"
+],
+"surfaces": {
+"data": [
+-2.0,
+8.0,
+-6.0,
+4.0,
+-1.0,
+2.0,
+0.0,
+6.0,
+-4.0,
+0.0,
+-0.5,
+0.5,
+1.5,
+2.0
+],
+"sizes": [
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+],
+"types": [
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"pz",
+"py"
+]
+}
+},
+{
+"_type": "simple unit",
+"bbox": [
+[
+-2.0,
+-2.0,
+0.0
+],
+[
+4.0,
+2.0,
+1.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"a",
+"b",
+"c"
+],
+"cells": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"num_intersections": 0,
+"zorder": 65534
+},
+{
+"faces": [
+0,
+1,
+2,
+3
+],
+"logic": "0 1 ~ & 2 & 3 ~ & * &",
+"num_intersections": 4,
+"zorder": 2
+},
+{
+"faces": [
+1,
+2,
+3,
+6
+],
+"logic": "0 1 & 2 ~ & * & 3 ~ &",
+"num_intersections": 4,
+"zorder": 2
+},
+{
+"faces": [
+0,
+1,
+2,
+3,
+6
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & * & ~ 1 2 & 3 ~ & * & 4 ~ & ~ &",
+"num_intersections": 5,
+"zorder": 2
+}
+],
+"md": {
+"name": "inner",
+"provenance": "universes.org.omn:16"
+},
+"surface_names": [
+"alpha.mx",
+"alpha.px",
+"alpha.my",
+"alpha.py",
+"alpha.mz",
+"alpha.pz",
+"beta.px"
+],
+"surfaces": {
+"connectivity": [
+[
+1,
+3
+],
+[
+1,
+2,
+3
+],
+[
+1,
+2,
+3
+],
+[
+1,
+2,
+3
+],
+[],
+[],
+[
+2,
+3
+]
+],
+"data": [
+-1.0,
+1.0,
+-1.0,
+1.0,
+0.0,
+1.0,
+3.0
+],
+"sizes": [
+1,
+1,
+1,
+1,
+1,
+1,
+1
+],
+"types": [
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"px"
+]
+}
+}
+]
+}

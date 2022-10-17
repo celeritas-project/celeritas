@@ -54,8 +54,10 @@ struct VolumeRecord
     ItemRange<SurfaceId> faces;
     ItemRange<logic_int> logic;
 
-    logic_int max_intersections{0};
-    logic_int flags{0};
+    logic_int     max_intersections{0};
+    logic_int     flags{0};
+    UniverseId    daughter;
+    TranslationId daughter_translation;
     // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
@@ -63,7 +65,8 @@ struct VolumeRecord
     {
         internal_surfaces = 0x1, //!< "Complex" distance-to-boundary
         implicit_vol      = 0x2, //!< Background/exterior volume
-        simple_safety     = 0x4  //!< Fast safety calculation
+        simple_safety     = 0x4, //!< Fast safety calculation
+        embedded_universe = 0x8  //!< Volume contains embeddded universe
     };
 };
 
@@ -125,6 +128,9 @@ struct SimpleUnitRecord
     // Volume data [index by VolumeId]
     ItemRange<VolumeRecord> volumes;
 
+    // Translation data [index by TranslationId]
+    ItemRange<Translation> translations;
+
     // TODO: transforms
     // TODO: acceleration structure (bvh/kdtree/grid)
     VolumeId background{}; //!< Default if not in any other volume
@@ -178,6 +184,7 @@ struct OrangeParamsData
     Items<SurfaceType>  surface_types;
     Items<Connectivity> connectivities;
     Items<VolumeRecord> volume_records;
+    Items<Translation>  translations;
 
     //// METHODS ////
 

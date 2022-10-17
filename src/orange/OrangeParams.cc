@@ -76,6 +76,23 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Create a UnitIndexer
+ */
+detail::UnitIndexer make_unit_indexer(const std::vector<UnitInput>& units)
+{
+    detail::UnitIndexer::VecSize surface_count(units.size());
+    detail::UnitIndexer::VecSize cell_count(units.size());
+    for (auto i : range(surface_count.size()))
+    {
+        const auto& unit = units[i];
+        surface_count[i] = unit.surfaces.size();
+        cell_count[i]    = unit.volumes.size();
+    }
+    return detail::UnitIndexer(std::move(surface_count), std::move(cell_count));
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -97,11 +114,10 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  * Volume and surface labels must be unique for the time being.
  */
 OrangeParams::OrangeParams(OrangeInput input)
+    : unit_indexer_(make_unit_indexer(input.units))
 {
-    CELER_VALIDATE(input.units.size() == 1,
-                   << "input geometry has " << input.units.size()
-                   << "universes; at present there must be a single global "
-                      "universe");
+    CELER_VALIDATE(!input.units.empty(),
+                   << "input geometry has must contain at least one universe");
 
     // Insert all units
     HostVal<OrangeParamsData> host_data;
@@ -125,22 +141,30 @@ OrangeParams::OrangeParams(OrangeInput input)
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
 
-    // TODO: update this to work over multiple universe levels
+    std::vector<Label> surface_labels;
+    std::vector<Label> volume_labels;
+
+    for (const UnitInput& u : input.units)
     {
         // Capture metadata
-        UnitInput& u = input.units.front();
-        surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(u.surfaces.labels)};
-        std::vector<Label> volume_labels;
-        volume_labels.resize(u.volumes.size());
-        for (auto i : range(u.volumes.size()))
-        {
-            volume_labels[i] = std::move(u.volumes[i].label);
-        }
-        vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
-        bbox_       = u.bbox;
+
+        std::copy(u.surfaces.labels.begin(),
+                  u.surfaces.labels.end(),
+                  std::back_inserter(surface_labels));
+
+        std::transform(u.volumes.begin(),
+                       u.volumes.end(),
+                       std::back_inserter(volume_labels),
+                       [](VolumeInput v) -> Label { return v.label; });
+
+        bbox_ = u.bbox;
     }
-    CELER_ASSERT(host_data.simple_unit.size() == 1);
+
+    surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
+    vol_labels_  = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
+
     supports_safety_ = host_data.simple_unit[SimpleUnitId{0}].simple_safety;
+    bbox_            = input.units.front().bbox;
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);

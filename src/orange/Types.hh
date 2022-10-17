@@ -36,6 +36,12 @@ using VolumeId = OpaqueId<struct Volume>;
 //! Fixed-size array for 3D space
 using Real3 = Array<real_type, 3>;
 
+//! Translation of a single embedded universe
+using Translation = Real3;
+
+//! Identifier for a translation of a single embedded universe
+using TranslationId = OpaqueId<Translation>;
+
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe>;
 
