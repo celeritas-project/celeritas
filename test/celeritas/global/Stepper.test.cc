@@ -398,7 +398,7 @@ TEST_F(TestEm3MscNofluctTest, host)
         EXPECT_EQ(69, result.num_step_iters());
         if (CELERITAS_USE_VECGEOM)
         {
-            EXPECT_SOFT_EQ(60.5, result.calc_avg_steps_per_primary());
+            EXPECT_SOFT_EQ(58.125, result.calc_avg_steps_per_primary());
         }
         else
         {
