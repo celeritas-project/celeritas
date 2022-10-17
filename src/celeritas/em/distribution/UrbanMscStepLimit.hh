@@ -52,7 +52,7 @@ class UrbanMscStepLimit
                                             const ParticleTrackView& particle,
                                             PhysicsTrackView*        physics,
                                             MaterialId               matid,
-                                            bool      is_first_step,
+                                            bool      on_boundary,
                                             real_type safety,
                                             real_type phys_step);
 
@@ -122,7 +122,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
                                      PhysicsTrackView*        physics,
                                      MaterialId               matid,
-                                     bool                     is_first_step,
+                                     bool                     on_boundary,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
@@ -134,7 +134,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     , msc_(shared_.msc_data[matid])
     , helper_(shared, particle, physics_)
     , msc_range_(physics_.msc_range())
-    , on_boundary_(is_first_step || safety_ <= shared.params.safety_limit)
+    , on_boundary_(on_boundary)
     , phys_step_(phys_step)
     , range_(physics_.dedx_range())
 {
@@ -188,7 +188,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
 
     // Initialisation at the first step or at the boundary
-    if (on_boundary_ || !msc_range_)
+    if (!msc_range_ || on_boundary_)
     {
         msc_range_.range_fact = params_.range_fact;
         msc_range_.range_init = max<real_type>(range_, lambda_);
