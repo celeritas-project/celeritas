@@ -304,8 +304,9 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
                                        *part_view_,
-                                       phys,
+                                       &phys,
                                        material_view.material_id(),
+                                       geo_view.is_on_boundary(),
                                        geo_view.find_safety(),
                                        step[i]);
 

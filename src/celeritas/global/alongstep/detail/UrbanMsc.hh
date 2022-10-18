@@ -105,8 +105,9 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
     // Sample multiple scattering step length
     UrbanMscStepLimit msc_step_limit(msc_params_,
                                      particle,
-                                     phys,
+                                     &phys,
                                      track.make_material_view().material_id(),
+                                     geo.is_on_boundary(),
                                      geo.find_safety(),
                                      local->step_limit.step);
 

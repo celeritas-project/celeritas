@@ -63,6 +63,9 @@ class PhysicsTrackView
     // Set the energy loss range for the current material and particle energy
     inline CELER_FUNCTION void dedx_range(real_type);
 
+    // Set the range properties for multiple scattering
+    inline CELER_FUNCTION void msc_range(const MscRange&);
+
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
     // Whether the remaining MFP has been calculated
@@ -73,6 +76,9 @@ class PhysicsTrackView
 
     // Energy loss range for the current material and particle energy
     CELER_FORCEINLINE_FUNCTION real_type dedx_range() const;
+
+    // Range properties for multiple scattering
+    CELER_FORCEINLINE_FUNCTION const MscRange& msc_range() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
@@ -198,6 +204,7 @@ CELER_FUNCTION PhysicsTrackView&
 PhysicsTrackView::operator=(const Initializer_t&)
 {
     this->state().interaction_mfp = 0;
+    this->state().msc_range       = {};
     return *this;
 }
 
@@ -238,6 +245,17 @@ CELER_FUNCTION void PhysicsTrackView::dedx_range(real_type range)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the range properties for multiple scattering.
+ *
+ * These values will be calculated at the first step in every tracking volume.
+ */
+CELER_FUNCTION void PhysicsTrackView::msc_range(const MscRange& msc_range)
+{
+    this->state().msc_range = msc_range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether the remaining MFP has been calculated.
  */
 CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
@@ -265,6 +283,15 @@ CELER_FUNCTION real_type PhysicsTrackView::dedx_range() const
     real_type range = this->state().dedx_range;
     CELER_ENSURE(range > 0);
     return range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent range properties for multiple scattering within a same volume.
+ */
+CELER_FUNCTION const MscRange& PhysicsTrackView::msc_range() const
+{
+    return this->state().msc_range;
 }
 
 //---------------------------------------------------------------------------//
