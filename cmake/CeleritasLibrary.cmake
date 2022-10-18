@@ -10,7 +10,7 @@ CeleritasLibrary
 The set of functions here are required to link Celeritas against upstream
 relocatable device code in the VecGeom library.
 
-.. command:: celeritas_add_library
+.. command:: celeritas_rdc_add_library
 
   Add a library to the project using the specified source files *with* special handling
   for the case where the library contains CUDA separatable code.
@@ -31,14 +31,14 @@ relocatable device code in the VecGeom library.
 
   ::
 
-    celeritas_add_library(<name> [STATIC | SHARED | MODULE]
+    celeritas_rdc_add_library(<name> [STATIC | SHARED | MODULE]
             [EXCLUDE_FROM_ALL]
             [<source>...])
 
 .. command: celeritas_target_link_libraries
 
   Specify libraries or flags to use when linking a given target and/or its dependents, taking
-  in account the extra targets (see celeritas_add_library) needed to support CUDA separatable code
+  in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA separatable code
   Usage requirements from linked library targets will be propagated. Usage requirements
   of a target's dependencies affect compilation of its own sources.
 
@@ -152,19 +152,20 @@ function(celeritas_transfer_setting fromlib tolib what)
 endfunction()
 
 #-----------------------------------------------------------------------------#
-# celeritas_add_library
+# celeritas_rdc_add_library
 #
 # Add a library taking into account whether it contains
 # or depends on separatable CUDA code.
 #
-function(celeritas_add_library target)
-
+function(celeritas_rdc_add_library target)
   celeritas_sources_contains_cuda(_cuda_sources ${ARGN})
 
-  set(_all_props)
-  if(PROJECT_NAME STREQUAL "Celeritas")
-    set(_all_props
-      LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+  if(CELERITAS_USE_HIP AND _cuda_sources)
+    # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+    # suffixed files. Override the language if using HIP.
+    set_source_files_properties(
+      ${_cuda_sources}
+      PROPERTIES LANGUAGE HIP
     )
   endif()
 
@@ -176,28 +177,7 @@ function(celeritas_add_library target)
   # So in the meantime we use CELERITAS_USE_VecGeom as a proxy.
 
   if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA OR NOT _cuda_sources)
-    if(CELERITAS_USE_HIP AND _cuda_sources)
-      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
-      # suffixed files. Override the language if using HIP.
-      set_source_files_properties(
-        ${_cuda_sources}
-        PROPERTIES LANGUAGE HIP
-      )
-    endif()
-
     add_library(${target} ${ARGN})
-    if(_all_props)
-      set_target_properties(${target} PROPERTIES ${_all_props})
-    endif()
-    if(PROJECT_NAME STREQUAL "Celeritas")
-      add_library(Celeritas::${target} ALIAS ${target})
-      install(TARGETS ${target}
-        EXPORT celeritas-targets
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        COMPONENT runtime
-      )
-    endif()
     return()
   endif()
 
@@ -217,10 +197,10 @@ function(celeritas_add_library target)
     set(_staticsuf "")
   endif()
   if(_ADDLIB_PARSE_MODULE)
-    message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing device code")
+    message(FATAL_ERROR "celeritas_rdc_add_library does not support MODULE library containing device code")
   endif()
   if(_ADDLIB_PARSE_OBJECT)
-    message(FATAL_ERROR "celeritas_add_library does not support OBJECT library")
+    message(FATAL_ERROR "celeritas_rdc_add_library does not support OBJECT library")
   endif()
 
   ## OBJECTS ##
@@ -242,7 +222,7 @@ function(celeritas_add_library target)
   add_library(${target} ${_lib_requested_type}
     $<TARGET_OBJECTS:${target}_objects>
   )
-  list(APPEND _all_props
+  set(_all_props
     ${_object_props}
     LINKER_LANGUAGE CUDA
     CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
@@ -258,9 +238,7 @@ function(celeritas_add_library target)
 
   ## STATIC ##
 
-  if(NOT _staticsuf)
-      message(FATAL_ERROR "The static suffix must be set for shared library build of ${target}")
-  endif()
+  if(_staticsuf)
     add_library(${target}${_staticsuf} STATIC
       $<TARGET_OBJECTS:${target}_objects>
     )
@@ -282,8 +260,8 @@ function(celeritas_add_library target)
   # If both the middle and `_final` contains the `.o` files we would
   # then have duplicated symbols .  If both the middle and `_final`
   # library contained the result of `nvcc -dlink` then we would get
-  # conflicting but duplicated *weak* symbols and here the symptoms 
-  # will be a crash during the cuda library initialization or a failure to 
+  # conflicting but duplicated *weak* symbols and here the symptoms
+  # will be a crash during the cuda library initialization or a failure to
   # launch some kernels rather than a link error.
   celeritas_generate_empty_cu_file(_emptyfilename ${target})
   add_library(${target}_final ${_lib_requested_type} ${_emptyfilename})
@@ -297,22 +275,6 @@ function(celeritas_add_library target)
     PRIVATE $<DEVICE_LINK:$<TARGET_FILE:${target}${_staticsuf}>>
   )
   add_dependencies(${target}_final ${target}${_staticsuf})
-
-  ## ALIAS/INSTALL ##
-
-  if(PROJECT_NAME STREQUAL "Celeritas")
-    add_library(Celeritas::${target} ALIAS ${target})
-    set(_install_targets ${target} ${target}_final)
-    if(_staticsuf)
-      list(APPEND _install_targets ${target}${_staticsuf})
-    endif()
-    install(TARGETS ${_install_targets}
-      EXPORT celeritas-targets
-      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-      COMPONENT runtime
-    )
-  endif()
 endfunction()
 
 # Replacement for target_include_directories that is aware of
