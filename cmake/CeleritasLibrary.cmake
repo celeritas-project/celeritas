@@ -217,7 +217,7 @@ function(celeritas_add_library target)
     set(_staticsuf "")
   endif()
   if(_ADDLIB_PARSE_MODULE)
-    message(FATAL_ERROR "celeritas_add_library does not support MODULE library")
+    message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing device code")
   endif()
   if(_ADDLIB_PARSE_OBJECT)
     message(FATAL_ERROR "celeritas_add_library does not support OBJECT library")
@@ -258,7 +258,9 @@ function(celeritas_add_library target)
 
   ## STATIC ##
 
-  if(_staticsuf)
+  if(NOT _staticsuf)
+      message(FATAL_ERROR "The static suffix must be set for shared library build of ${target}")
+  endif()
     add_library(${target}${_staticsuf} STATIC
       $<TARGET_OBJECTS:${target}_objects>
     )
@@ -278,8 +280,11 @@ function(celeritas_add_library target)
   # that the depends on and that uses Celeritas::Core (for example
   # libCeleritasTest.so) will need to be linked against `libceleritas`.
   # If both the middle and `_final` contains the `.o` files we would
-  # then have duplicated symbols (Here the symptoms will a crash
-  # during the cuda library initialization rather than a link error).
+  # then have duplicated symbols .  If both the middle and `_final`
+  # library contained the result of `nvcc -dlink` then we would get
+  # conflicting but duplicated *weak* symbols and here the symptoms 
+  # will be a crash during the cuda library initialization or a failure to 
+  # launch some kernels rather than a link error.
   celeritas_generate_empty_cu_file(_emptyfilename ${target})
   add_library(${target}_final ${_lib_requested_type} ${_emptyfilename})
   set_target_properties(${target}_final PROPERTIES

@@ -6,6 +6,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 
+# Set the version tag regular expression to be used in `CgvFindVersion`
 set(CGV_TAG_REGEX "v([0-9.]+)(-dev)?")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
