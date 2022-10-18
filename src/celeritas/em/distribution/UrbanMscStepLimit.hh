@@ -50,9 +50,10 @@ class UrbanMscStepLimit
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
                                             const ParticleTrackView& particle,
-                                            const PhysicsTrackView&  physics,
+                                            PhysicsTrackView*        physics,
                                             MaterialId               matid,
-                                            real_type                safety,
+                                            bool      on_boundary,
+                                            real_type safety,
                                             real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
@@ -64,6 +65,8 @@ class UrbanMscStepLimit
 
     // Shared constant data
     const UrbanMscRef& shared_;
+    // PhysicsTrackView
+    PhysicsTrackView& physics_;
     // Incident particle energy [Energy]
     const real_type inc_energy_;
     // Incident particle flag for positron
@@ -76,7 +79,10 @@ class UrbanMscStepLimit
     const MaterialData& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
+    // Urban MSC range properties
+    MscRange msc_range_;
 
+    bool      on_boundary_{};
     real_type lambda_{};
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
@@ -114,19 +120,23 @@ class UrbanMscStepLimit
 CELER_FUNCTION
 UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
                                      const ParticleTrackView& particle,
-                                     const PhysicsTrackView&  physics,
+                                     PhysicsTrackView*        physics,
                                      MaterialId               matid,
+                                     bool                     on_boundary,
                                      real_type                safety,
                                      real_type                phys_step)
     : shared_(shared)
+    , physics_(*physics)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , safety_(safety)
     , params_(shared.params)
     , msc_(shared_.msc_data[matid])
-    , helper_(shared, particle, physics)
+    , helper_(shared, particle, physics_)
+    , msc_range_(physics_.msc_range())
+    , on_boundary_(on_boundary)
     , phys_step_(phys_step)
-    , range_(physics.dedx_range())
+    , range_(physics_.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -170,6 +180,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         result.is_displaced = false;
         auto temp           = this->calc_geom_path(result.true_path);
         result.geom_path    = temp.geom_path;
+
         return result;
     }
 
@@ -177,38 +188,40 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
 
     // Initialisation at the first step or at the boundary
-    real_type range_fact = params_.range_fact;
-    real_type range_init = max<real_type>(range_, lambda_);
-
-    // Note: The minimum of the true path length limit is calculated at every
-    // msc step instead of using a cached value evaluated at the first step
-    // of tracking or on a volume boundary.
-    if (lambda_ > params_.lambda_limit)
+    if (!msc_range_ || on_boundary_)
     {
-        range_fact *= (real_type(0.75)
-                       + real_type(0.25) * lambda_ / params_.lambda_limit);
-    }
-    result.limit_min = this->calc_limit_min();
+        msc_range_.range_fact = params_.range_fact;
+        msc_range_.range_init = max<real_type>(range_, lambda_);
+        if (lambda_ > params_.lambda_limit)
+        {
+            msc_range_.range_fact
+                *= (real_type(0.75)
+                    + real_type(0.25) * lambda_ / params_.lambda_limit);
+        }
+        msc_range_.limit_min = this->calc_limit_min();
 
+        // Store persistent range properties within this tracking volume
+        physics_.msc_range(msc_range_);
+    }
     // The step limit
     real_type limit = range_;
     if (limit > safety_)
     {
-        limit = max<real_type>(range_fact * range_init,
+        limit = max<real_type>(msc_range_.range_fact * msc_range_.range_init,
                                params_.safety_fact * safety_);
     }
-    limit = max<real_type>(limit, result.limit_min);
+    limit = max<real_type>(limit, msc_range_.limit_min);
 
     if (limit < result.true_path)
     {
         // Randomize the limit if this step should be determined by msc
-        real_type sampled_limit = result.limit_min;
+        real_type sampled_limit = msc_range_.limit_min;
         if (limit > sampled_limit)
         {
             NormalDistribution<real_type> sample_gauss(
-                limit, real_type(0.1) * (limit - result.limit_min));
+                limit, real_type(0.1) * (limit - msc_range_.limit_min));
             sampled_limit = sample_gauss(rng);
-            sampled_limit = max<real_type>(sampled_limit, result.limit_min);
+            sampled_limit = max<real_type>(sampled_limit, msc_range_.limit_min);
         }
         result.true_path = min<real_type>(result.true_path, sampled_limit);
     }
