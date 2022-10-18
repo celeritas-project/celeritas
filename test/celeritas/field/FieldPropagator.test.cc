@@ -161,7 +161,7 @@ class TwoBoxTest : public FieldPropagatorTestBase
 
 class LayersTest : public FieldPropagatorTestBase
 {
-    const char* geometry_basename() const override { return "field-test"; }
+    const char* geometry_basename() const override { return "field-layers"; }
 };
 
 class SimpleCmsTest : public FieldPropagatorTestBase
