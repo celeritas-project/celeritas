@@ -148,11 +148,16 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
     const auto& temp_logic = j.at("logic").get<std::string>();
     value.logic            = parse_logic(temp_logic.c_str());
 
+    // Parse bbox
+    if (j.contains("bbox"))
+    {
+        auto bbox  = j.at("bbox").get<Array<Real3, 2>>();
+        value.bbox = {bbox[0], bbox[1]};
+    }
+
     // Read scalars, including optional flags
     auto flag_iter = j.find("flags");
     value.flags    = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
-
-    // TODO: bbox
 }
 
 //---------------------------------------------------------------------------//
