@@ -60,9 +60,14 @@ struct VolumeInput
 
     //! Special flags
     logic_int flags{0};
+    //! Masking priority (2 for regular, 1 for background)
+    int zorder{};
 
     //! Whether the volume definition is valid
-    explicit operator bool() const { return !logic.empty(); }
+    explicit operator bool() const
+    {
+        return !logic.empty() || (flags & Flags::implicit_cell);
+    }
 };
 
 //---------------------------------------------------------------------------//

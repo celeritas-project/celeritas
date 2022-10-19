@@ -28,7 +28,8 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
+constexpr int invalid_max_depth = -1;
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the maximum logic depth of a volume definition.
@@ -39,6 +40,7 @@ namespace
 int calc_max_depth(Span<const logic_int> logic)
 {
     CELER_EXPECT(!logic.empty());
+
     // Calculate max depth
     int max_depth = 1;
     int cur_depth = 0;
@@ -58,8 +60,9 @@ int calc_max_depth(Span<const logic_int> logic)
     if (cur_depth != 1)
     {
         // Input definition is invalid; return a sentinel value
-        max_depth = 0;
+        max_depth = invalid_max_depth;
     }
+    CELER_ENSURE(max_depth > 0 || max_depth == invalid_max_depth);
     return max_depth;
 }
 
@@ -157,11 +160,14 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        // Add connectivity
-        for (SurfaceId f : inp.volumes[i].faces)
+        // Add connectivity for explicitly connected cells
+        if (!(vol_records[i].flags & VolumeRecord::implicit_cell))
         {
-            CELER_ASSERT(f < connectivity.size());
-            connectivity[f.unchecked_get()].insert(VolumeId(i));
+            for (SurfaceId f : inp.volumes[i].faces)
+            {
+                CELER_ASSERT(f < connectivity.size());
+                connectivity[f.unchecked_get()].insert(VolumeId(i));
+            }
         }
     }
 
@@ -186,6 +192,10 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
     }
 
     // Save unit scalars
+    if (inp.volumes.back().zorder == 1)
+    {
+        unit.background = VolumeId(inp.volumes.size() - 1);
+    }
     unit.simple_safety = std::all_of(
         vol_records.begin(), vol_records.end(), [](const VolumeRecord& v) {
             return supports_simple_safety(v.flags);
@@ -286,12 +296,26 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
         max_intersections += get_num_intersections(sid);
     }
 
+    auto input_logic = make_span(v.logic);
+    if (v.flags & VolumeRecord::Flags::implicit_cell)
+    {
+        // Currently SCALE ORANGE writes background cells as having "empty"
+        // logic, whereas we really want them to be "nowhere" (at least
+        // nowhere *explicitly* using the 'inside' logic). It gets away with
+        // this because it always uses BVH to initialize, and the implicit
+        // cells get an empty bbox. To avoid special cases in Celeritas, set
+        // the logic to be explicitly "not true".
+        CELER_EXPECT(input_logic.empty());
+        static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
+        input_logic                            = make_span(nowhere_logic);
+    }
+
     auto faces = make_builder(&orange_data_->surface_ids);
     auto logic = make_builder(&orange_data_->logic_ints);
 
     VolumeRecord output;
     output.faces = faces.insert_back(v.faces.begin(), v.faces.end());
-    output.logic = logic.insert_back(v.logic.begin(), v.logic.end());
+    output.logic = logic.insert_back(input_logic.begin(), input_logic.end());
     output.max_intersections = max_intersections;
     output.flags             = v.flags;
     if (simple_safety)
@@ -300,7 +324,7 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     }
 
     // Calculate the maximum stack depth of the volume definition
-    int max_depth = calc_max_depth(make_span(v.logic));
+    int max_depth = calc_max_depth(input_logic);
     CELER_VALIDATE(max_depth > 0,
                    << "invalid logic definition: operators do not balance");
 

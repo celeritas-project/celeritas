@@ -158,6 +158,7 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
     // Read scalars, including optional flags
     auto flag_iter = j.find("flags");
     value.flags    = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
+    j.at("zorder").get_to(value.zorder);
 }
 
 //---------------------------------------------------------------------------//

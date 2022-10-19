@@ -16,7 +16,6 @@ layer_box = {
     'widths': [18, 1, 18],
 }
 
-world_shapes = []
 shapes = []
 cells = []
 for (i, ymid) in enumerate([-4, -2, 0, 2, 4]):
@@ -24,7 +23,6 @@ for (i, ymid) in enumerate([-4, -2, 0, 2, 4]):
     box['translate'] = [0, ymid, 0]
     box['name'] = name = f"layerbox{i}"
     shapes.append(box)
-    world_shapes.append("~" + name)
     cells.append({
         'name': f"layer{i}",
         'comp': "1",
@@ -36,11 +34,6 @@ shapes.append({
     'widths': [20, 40, 20],
     'name': "worldbox",
 })
-cells.append({
-    'name': "world",
-    'comp': "0",
-    'shapes': ['worldbox'] + world_shapes,
-})
 
 world_univ = {
     '_type': 'unit',
@@ -48,6 +41,7 @@ world_univ = {
     'shape': shapes,
     'cell': cells,
     'interior': "worldbox",
+    'background': "0", # Fill unassigned space with matid 0
 }
 
 db.update({
