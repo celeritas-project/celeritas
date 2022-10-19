@@ -83,6 +83,16 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
     reduce_heuristic_init(const StateHostRef&, double) const;
 };
 
+class DetailTest : public OrangeGeoTestBase
+{
+    void SetUp() override
+    {
+        TwoVolInput geo_inp;
+        geo_inp.radius = 1.5;
+        this->build_geometry(geo_inp);
+    }
+};
+
 class OneVolumeTest : public SimpleUnitTrackerTest
 {
     void SetUp() override
@@ -332,6 +342,15 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(DetailTest, bumpcalculator)
+{
+    detail::BumpCalculator calc_bump(this->params().host_ref().scalars);
+    EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{0,0,0}));
+    EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{1e-14,0,0}));
+    EXPECT_SOFT_EQ(1e-2, calc_bump(Real3{0,0,1e6}));
+    EXPECT_SOFT_EQ(1e1, calc_bump(Real3{0,1e9,1e6}));
+}
 
 TEST_F(OneVolumeTest, initialize)
 {

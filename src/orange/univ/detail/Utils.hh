@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 
 #include "../VolumeView.hh"
@@ -53,6 +54,34 @@ class IsNotFurtherThan
 
   private:
     real_type max_dist_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the bump distance for a position.
+ */
+class BumpCalculator
+{
+  public:
+    explicit CELER_FORCEINLINE_FUNCTION
+    BumpCalculator(const OrangeParamsScalars& scalars)
+        : scalars_(scalars)
+    {
+    }
+
+    inline CELER_FUNCTION real_type operator()(const Real3& pos) const
+    {
+        real_type result = scalars_.bump_abs;
+        for (real_type p : pos)
+        {
+            result = celeritas::max(result, scalars_.bump_rel * std::fabs(p));
+        }
+        CELER_ENSURE(result > 0);
+        return result;
+    }
+
+  private:
+    const OrangeParamsScalars& scalars_;
 };
 
 //---------------------------------------------------------------------------//
