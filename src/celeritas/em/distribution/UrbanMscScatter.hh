@@ -158,7 +158,7 @@ UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
     , helper_(shared, particle, physics)
     , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
-    , limit_min_(input.limit_min)
+    , limit_min_(physics.msc_range().limit_min)
     , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
@@ -377,7 +377,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
         // Sampling of cos(theta)
         if (generate_canonical(rng) < qprob)
         {
-            if (BernoulliDistribution(prob)(rng))
+            // Note: prob is sometime a little greater than one
+            if (generate_canonical(rng) < prob)
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
                 UniformRealDistribution<real_type> sample_inner(ea, 1);

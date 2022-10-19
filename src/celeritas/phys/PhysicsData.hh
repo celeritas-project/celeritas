@@ -378,6 +378,7 @@ struct PhysicsTrackState
     real_type macro_xs; //!< Total cross section for discrete interactions
     real_type energy_deposition; //!< Local energy deposition in a step [MeV]
     real_type dedx_range;        //!< Local energy loss range [cm]
+    MscRange  msc_range;         //!< Range properties for multiple scattering
     Span<Secondary>    secondaries; //!< Emitted secondaries
     ElementComponentId element;     //!< Element sampled for interaction
 };
