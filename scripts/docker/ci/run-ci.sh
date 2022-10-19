@@ -13,6 +13,8 @@ set -x
 cd "$(dirname $0)"/../../..
 ln -fs scripts/cmake-presets/ci.json CMakeUserPresets.json
 
+# Fetch tags for version provenance
+git fetch --tags
 # Configure
 cmake --preset=${CMAKE_PRESET}
 # Build

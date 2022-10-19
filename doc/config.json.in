@@ -1,5 +1,5 @@
 {
- "version": "@Celeritas_VERSION@",
+ "version": "@Celeritas_SHORT_VERSION@",
  "release": "@Celeritas_VERSION_STRING@",
  "options": {
   "breathe": @CELERITAS_USE_BREATHE@,
