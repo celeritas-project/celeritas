@@ -68,21 +68,6 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Check that volume names are consistent between the ROOT file and geometry
-bool volumes_are_consistent(const GeoParams&                 geo,
-                            const std::vector<ImportVolume>& imported)
-{
-    return geo.num_volumes() == imported.size()
-           && std::all_of(RangeIter<VolumeId>(VolumeId{0}),
-                          RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
-                          [&](VolumeId vol) {
-                              return geo.id_to_label(vol)
-                                     == Label::from_geant(
-                                         imported[vol.unchecked_get()].name);
-                          });
-}
-
-//---------------------------------------------------------------------------//
 //! Get the set of all process classes in the input
 auto get_all_process_classes(const std::vector<ImportProcess>& processes)
     -> decltype(auto)
@@ -247,34 +232,8 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Create geometry/material coupling
     {
-        GeoMaterialParams::Input input;
-        input.geometry  = params.geometry;
-        input.materials = params.material;
-
-        input.volume_to_mat.resize(imported_data.volumes.size());
-        for (auto volume_idx :
-             range<VolumeId::size_type>(input.volume_to_mat.size()))
-        {
-            input.volume_to_mat[volume_idx]
-                = MaterialId{imported_data.volumes[volume_idx].material_id};
-        }
-        if (!volumes_are_consistent(*input.geometry, imported_data.volumes))
-        {
-            // Volume names do not match exactly between exported ROOT file and
-            // the geometry (possibly using a ROOT/GDML input with an ORANGE
-            // geometry): try to let the GeoMaterialParams remap them
-            CELER_LOG(warning) << "Volume/material mapping is inconsistent "
-                                  "between Geant4 data and geometry file: "
-                                  "attempting to remap";
-            input.volume_labels.resize(imported_data.volumes.size());
-            for (auto volume_idx : range(imported_data.volumes.size()))
-            {
-                input.volume_labels[volume_idx] = Label::from_geant(
-                    imported_data.volumes[volume_idx].name);
-            }
-        }
-        params.geomaterial
-            = std::make_shared<GeoMaterialParams>(std::move(input));
+        params.geomaterial = GeoMaterialParams::from_import(
+            imported_data, params.geometry, params.material);
     }
 
     // Construct particle params

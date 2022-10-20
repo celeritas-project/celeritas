@@ -103,22 +103,8 @@ auto GeantTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    GeoMaterialParams::Input input;
-    input.geometry       = this->geometry();
-    input.materials      = this->material();
-    const auto& imported = this->imported_data();
-
-    input.volume_to_mat.resize(imported.volumes.size());
-    input.volume_labels.resize(imported.volumes.size());
-    for (auto volume_idx :
-         range<VolumeId::size_type>(input.volume_to_mat.size()))
-    {
-        input.volume_to_mat[volume_idx]
-            = MaterialId{imported.volumes[volume_idx].material_id};
-        input.volume_labels[volume_idx]
-            = Label::from_geant(imported.volumes[volume_idx].name);
-    }
-    return std::make_shared<GeoMaterialParams>(std::move(input));
+    return GeoMaterialParams::from_import(
+        this->imported_data(), this->geometry(), this->material());
 }
 
 //---------------------------------------------------------------------------//
