@@ -32,6 +32,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportParticle.hh"
@@ -511,21 +512,28 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
 {
     ImportData import_data;
 
-    import_data.particles = store_particles(selected.particles);
-    import_data.elements  = store_elements();
-    import_data.materials = store_materials(selected.particles);
-    import_data.processes = store_processes(selected.processes,
-                                            import_data.particles,
-                                            import_data.elements,
-                                            import_data.materials);
-    import_data.volumes   = store_volumes(world_);
-    if (selected.processes & DataSelection::em)
     {
-        import_data.em_params = store_em_parameters();
+        CELER_LOG(status) << "Transferring data from Geant4";
+        ScopedTimeLog scoped_time;
+        import_data.particles = store_particles(selected.particles);
+        import_data.elements  = store_elements();
+        import_data.materials = store_materials(selected.particles);
+        import_data.processes = store_processes(selected.processes,
+                                                import_data.particles,
+                                                import_data.elements,
+                                                import_data.materials);
+        import_data.volumes   = store_volumes(world_);
+        if (selected.processes & DataSelection::em)
+        {
+            import_data.em_params = store_em_parameters();
+        }
     }
 
     if (selected.reader_data)
     {
+        CELER_LOG(status) << "Loading external elemental data";
+        ScopedTimeLog scoped_time;
+
         detail::AllElementReader load_data{import_data.elements};
         // TODO: load only conditionally based on processes in use
         import_data.sb_data           = load_data(SeltzerBergerReader{});
