@@ -8,11 +8,13 @@
 #include "celeritas/ext/GeantImporter.hh"
 
 #include "celeritas_config.h"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas_test.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
@@ -34,6 +36,12 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
     {
         result.push_back(to_cstring(*iter));
     }
+    return result;
+}
+
+bool geant4_is_v10()
+{
+    static const bool result = starts_with(celeritas_geant4_version, "10.");
     return result;
 }
 } // namespace
@@ -336,7 +344,8 @@ TEST_F(FourSteelSlabsEmStandard, materials)
                                                       1.22808845964606,
                                                       1.31345289979559,
                                                       0.0209231725658313};
-    EXPECT_VEC_SOFT_EQ(expected_cutoff_energies, cutoff_energies);
+    EXPECT_VEC_NEAR(expected_cutoff_energies, cutoff_energies,
+                    geant4_is_v10() ? 1e-12 : 0.02);
     static const double expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
@@ -383,6 +392,9 @@ TEST_F(FourSteelSlabsEmStandard, processes)
                             });
     };
 
+    // Some values change substantially between v10 and v11.
+    const real_type tol = geant4_is_v10() ? 1e-12 : 5e-3;
+
     auto ioni
         = find_process(celeritas::pdg::electron(), ImportProcessClass::e_ioni);
     ASSERT_NE(processes.end(), ioni);
@@ -411,8 +423,8 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(839.66835335480653, steel.y.front());
-        EXPECT_SOFT_EQ(11.380485677836065, steel.y.back());
+        EXPECT_SOFT_NEAR(839.66835335480653, steel.y.front(), tol);
+        EXPECT_SOFT_NEAR(11.380485677836065, steel.y.back(), tol);
     }
     {
         // Test range table
@@ -428,8 +440,8 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_EQ(2.3818927937550707e-07, steel.y.front());
-        EXPECT_SOFT_EQ(8786971.3079055995, steel.y.back());
+        EXPECT_SOFT_NEAR(2.3818927937550707e-07, steel.y.front(), tol);
+        EXPECT_SOFT_NEAR(8786971.3079055995, steel.y.back(), tol);
     }
     {
         // Test cross-section table
@@ -443,11 +455,11 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(54, steel.x.size());
-        EXPECT_SOFT_EQ(2.6269057995911775, steel.x.front());
+        EXPECT_SOFT_NEAR(2.6269057995911775, steel.x.front(), tol);
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_EQ(0.18987862452122845, steel.y[1]);
-        EXPECT_SOFT_EQ(0.43566778103861714, steel.y.back());
+        EXPECT_SOFT_NEAR(0.18987862452122845, steel.y[1], tol);
+        EXPECT_SOFT_NEAR(0.43566778103861714, steel.y.back(), tol);
     }
     {
         // Test model microscopic cross sections
@@ -483,8 +495,8 @@ TEST_F(FourSteelSlabsEmStandard, processes)
                                                           23.159721368813,
                                                           88.395455128585};
             EXPECT_VEC_EQ(expected_size, result.size);
-            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
-            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
+            EXPECT_VEC_NEAR(expected_x_bounds, result.x_bounds, tol);
+            EXPECT_VEC_NEAR(expected_y_bounds, result.y_bounds, tol);
         }
         {
             // Check relativistic brems electron micro xs
@@ -505,7 +517,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
 
             EXPECT_VEC_EQ(expected_size, result.size);
             EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
-            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
+            EXPECT_VEC_NEAR(expected_y_bounds, result.y_bounds, tol);
         }
         {
             // Check Bethe-Heitler micro xs
