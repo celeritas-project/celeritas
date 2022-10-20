@@ -225,6 +225,7 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
         particles.push_back(particle);
     }
     CELER_LOG(debug) << "Loaded " << particles.size() << " particles";
+    CELER_ENSURE(!particles.empty());
     return particles;
 }
 
@@ -255,6 +256,7 @@ std::vector<ImportElement> store_elements()
         elements[g4element->GetIndex()] = element;
     }
     CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
+    CELER_ENSURE(!elements.empty());
     return elements;
 }
 
@@ -271,6 +273,9 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
+    CELER_VALIDATE(!materials.empty(),
+                   << "no Geant4 production cuts are defined (you may need "
+                      "to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;
@@ -384,6 +389,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     }
 
     CELER_LOG(debug) << "Loaded " << materials.size() << " materials";
+    CELER_ENSURE(!materials.empty());
     return materials;
 }
 
