@@ -274,16 +274,7 @@ TransporterInput load_input(const LDemoArgs& args)
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
 
-    bool eloss = false;
-    {
-        // TODO: use a struct for import em parameters rather than a map
-        auto iter = imported_data.em_params.find(
-            ImportEmParameter::energy_loss_fluct);
-        if (iter != imported_data.em_params.end())
-        {
-            eloss = static_cast<bool>(iter->second);
-        }
-    }
+    bool eloss = imported_data.em_params.energy_loss_fluct;
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action

@@ -466,25 +466,22 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 /*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
-ImportData::ImportEmParamsMap store_em_parameters()
+ImportEmParameters store_em_parameters()
 {
-    using IEP = ImportEmParameter;
+    ImportEmParameters import;
 
-    const auto& g4_em_params = *G4EmParameters::Instance();
+    const auto& g4 = *G4EmParameters::Instance();
 
-    ImportData::ImportEmParamsMap import_em_params{
-        {IEP::energy_loss_fluct, g4_em_params.LossFluctuation()},
-        {IEP::lpm, g4_em_params.LPM()},
-        {IEP::integral_approach, g4_em_params.Integral()},
-        {IEP::linear_loss_limit, g4_em_params.LinearLossLimit()},
-        {IEP::bins_per_decade, g4_em_params.NumberOfBinsPerDecade()},
-        {IEP::min_table_energy, g4_em_params.MinKinEnergy() / MeV},
-        {IEP::max_table_energy, g4_em_params.MaxKinEnergy() / MeV},
-    };
+    import.energy_loss_fluct = g4.LossFluctuation();
+    import.lpm               = g4.LPM();
+    import.integral_approach = g4.Integral();
+    import.linear_loss_limit = g4.LinearLossLimit();
+    import.bins_per_decade   = g4.NumberOfBinsPerDecade();
+    import.min_table_energy  = g4.MinKinEnergy() / MeV;
+    import.max_table_energy  = g4.MaxKinEnergy() / MeV;
 
-    CELER_LOG(debug) << "Loaded " << import_em_params.size()
-                     << " EM parameters";
-    return import_em_params;
+    CELER_ENSURE(import);
+    return import;
 }
 
 //---------------------------------------------------------------------------//

@@ -308,8 +308,8 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
 /*!
  * Print volume properties.
  */
-void print_volumes(std::vector<ImportVolume>&   volumes,
-                   std::vector<ImportMaterial>& materials)
+void print_volumes(const std::vector<ImportVolume>&   volumes,
+                   const std::vector<ImportMaterial>& materials)
 {
     CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
@@ -339,29 +339,23 @@ void print_volumes(std::vector<ImportVolume>&   volumes,
 /*!
  * Print EM parameters.
  */
-void print_em_params(ImportData::ImportEmParamsMap& em_params_map)
+void print_em_params(const ImportEmParameters& em_params)
 {
-    if (em_params_map.empty())
-    {
-        CELER_LOG(info) << "EM Parameters not available";
-        return;
-    }
-
-    CELER_LOG(info) << "Loaded " << em_params_map.size() << " EM parameters";
-
+#define PEP_STREAM_PARAM(NAME) \
+    "| " << setw(18) << #NAME << " | " << setw(7) << em_params.NAME << " |\n"
     cout << R"gfm(
 # EM parameters
 
 | EM parameter       | Value   |
 | ------------------ | ------- |
-)gfm";
-
-    for (const auto& key : em_params_map)
-    {
-        cout << "| " << setw(18) << to_cstring(key.first) << " | " << setw(7)
-             << key.second << " |\n";
-    }
-    cout << endl;
+)gfm" << std::boolalpha
+         << PEP_STREAM_PARAM(energy_loss_fluct) << PEP_STREAM_PARAM(lpm)
+         << PEP_STREAM_PARAM(integral_approach)
+         << PEP_STREAM_PARAM(linear_loss_limit)
+         << PEP_STREAM_PARAM(bins_per_decade)
+         << PEP_STREAM_PARAM(min_table_energy)
+         << PEP_STREAM_PARAM(max_table_energy) << std::noboolalpha << endl;
+#undef PEP_STREAM_PARAM
 }
 
 //---------------------------------------------------------------------------//
@@ -380,7 +374,6 @@ void print_sb_data(const ImportData::ImportSBMap& sb_map)
 
     cout << R"gfm(
 # Seltzer-Berger data
-
 | Atomic number | Endpoints (x, y, value [mb]) |
 | ------------- | ---------------------------------------------------------- |
 )gfm";
