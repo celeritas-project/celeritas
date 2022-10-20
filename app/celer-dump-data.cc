@@ -351,10 +351,7 @@ void print_em_params(const ImportEmParameters& em_params)
 )gfm" << std::boolalpha
          << PEP_STREAM_PARAM(energy_loss_fluct) << PEP_STREAM_PARAM(lpm)
          << PEP_STREAM_PARAM(integral_approach)
-         << PEP_STREAM_PARAM(linear_loss_limit)
-         << PEP_STREAM_PARAM(bins_per_decade)
-         << PEP_STREAM_PARAM(min_table_energy)
-         << PEP_STREAM_PARAM(max_table_energy) << std::noboolalpha << endl;
+         << PEP_STREAM_PARAM(linear_loss_limit) << std::noboolalpha << endl;
 #undef PEP_STREAM_PARAM
 }
 

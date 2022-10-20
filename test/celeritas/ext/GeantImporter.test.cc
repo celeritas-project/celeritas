@@ -607,9 +607,6 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_EQ(true, em_params.lpm);
     EXPECT_EQ(true, em_params.integral_approach);
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
-    EXPECT_EQ(7, em_params.bins_per_decade);
-    EXPECT_DOUBLE_EQ(1e-4, em_params.min_table_energy);
-    EXPECT_DOUBLE_EQ(100e6, em_params.max_table_energy);
 }
 
 //---------------------------------------------------------------------------//

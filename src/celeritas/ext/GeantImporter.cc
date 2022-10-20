@@ -476,9 +476,6 @@ ImportEmParameters store_em_parameters()
     import.lpm               = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
-    import.bins_per_decade   = g4.NumberOfBinsPerDecade();
-    import.min_table_energy  = g4.MinKinEnergy() / MeV;
-    import.max_table_energy  = g4.MaxKinEnergy() / MeV;
 
     CELER_ENSURE(import);
     return import;

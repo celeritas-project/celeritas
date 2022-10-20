@@ -29,7 +29,7 @@ namespace celeritas
 struct ImportEmParameters
 {
     //! Energy loss fluctuation
-    bool energy_loss_fluct{};
+    bool energy_loss_fluct{false};
     //! LPM effect for bremsstrahlung and pair production
     bool lpm{true};
     //! Integral cross section rejection
@@ -37,19 +37,8 @@ struct ImportEmParameters
     //! Slowing down threshold for linearity assumption
     double linear_loss_limit{0.01};
 
-    //! Cross-section table binning
-    int bins_per_decade{};
-    //! Cross-section table minimum kinetic energy [MeV]
-    double min_table_energy{};
-    //! Cross-section table maximum kinetic energy [MeV]
-    double max_table_energy{};
-
     //! Whether parameters are assigned and valid
-    explicit operator bool() const
-    {
-        return linear_loss_limit > 0 && bins_per_decade > 0
-               && min_table_energy >= 0 && max_table_energy >= min_table_energy;
-    }
+    explicit operator bool() const { return linear_loss_limit > 0; }
 };
 
 //---------------------------------------------------------------------------//
