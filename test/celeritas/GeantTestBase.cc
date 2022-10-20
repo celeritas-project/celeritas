@@ -168,16 +168,17 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_along_step() -> SPConstAction
 {
-    auto result
-        = AlongStepGeneralLinearAction::from_params(*this->material(),
-                                                    *this->particle(),
-                                                    *this->physics(),
-                                                    this->enable_fluctuation(),
-                                                    this->action_reg().get());
-    CELER_ENSURE(result);
-    CELER_ENSURE(result->has_fluct() == this->enable_fluctuation());
-    CELER_ENSURE(result->has_msc() == this->enable_msc());
-    CELER_ENSURE(this->action_reg()->action(result->action_id()) == result);
+    auto& action_reg = *this->action_reg();
+    auto  result     = AlongStepGeneralLinearAction::from_params(
+        action_reg.next_id(),
+        *this->material(),
+        *this->particle(),
+        *this->physics(),
+        this->enable_fluctuation());
+    CELER_ASSERT(result);
+    CELER_ASSERT(result->has_fluct() == this->enable_fluctuation());
+    CELER_ASSERT(result->has_msc() == this->enable_msc());
+    action_reg.insert(result);
     return result;
 }
 

@@ -288,12 +288,12 @@ TransporterInput load_input(const LDemoArgs& args)
     {
         // Create along-step action
         auto along_step = AlongStepGeneralLinearAction::from_params(
+            params.action_reg->next_id(),
             *params.material,
             *params.particle,
             *params.physics,
-            eloss,
-            params.action_reg.get());
-        params.along_step = std::move(along_step);
+            eloss);
+        params.action_reg->insert(along_step);
     }
     else
     {
@@ -311,9 +311,9 @@ TransporterInput load_input(const LDemoArgs& args)
         }
 
         auto along_step = AlongStepUniformMscAction::from_params(
-            *params.physics, field_params, params.action_reg.get());
+            params.action_reg->next_id(), *params.physics, field_params);
         CELER_ASSERT(along_step->field() != LDemoArgs::no_field());
-        params.along_step = std::move(along_step);
+        params.action_reg->insert(along_step);
     }
 
     // Construct RNG params

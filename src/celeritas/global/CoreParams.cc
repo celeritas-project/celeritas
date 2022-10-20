@@ -77,7 +77,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(cutoff);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
-    CP_VALIDATE_INPUT(along_step);
     CP_VALIDATE_INPUT(action_reg);
 #undef CP_VALIDATE_INPUT
 
