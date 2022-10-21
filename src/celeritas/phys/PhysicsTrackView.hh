@@ -427,13 +427,13 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
  * estimate of the maximum cross section over the step. If the energy of the
  * global maximum of the cross section (calculated at initialization) is in the
  * interval \f$ [\xi E_0, E_0) \f$, where \f$ E_0 \f$ is the pre-step energy
- * and \f$ \xi \f$ is \c energy_fraction (defined by default as \f$ \xi = 1 -
- * \alpha \f$, where \f$ \alpha \f$ is \c scaling_fraction), \f$ \sigma_{\max}
- * \f$ is set to the global maximum.  Otherwise, \f$ \sigma_{\max} = \max(
- * \sigma(E_0), \sigma(\xi E_0) ) \f$. If the cross section is not monotonic in
- * the interval \f$ [\xi E_0, E_0) \f$ and the interval does not contain the
- * global maximum, the post-step cross section \f$ \sigma(E_1) \f$ may be
- * larger than \f$ \sigma_{\max} \f$.
+ * and \f$ \xi \f$ is \c min_eprime_over_e (defined by default as \f$ \xi = 1 -
+ * \alpha \f$, where \f$ \alpha \f$ is \c max_step_over_range), \f$
+ * \sigma_{\max} \f$ is set to the global maximum.  Otherwise, \f$
+ * \sigma_{\max} = \max( \sigma(E_0), \sigma(\xi E_0) ) \f$. If the cross
+ * section is not monotonic in the interval \f$ [\xi E_0, E_0) \f$ and the
+ * interval does not contain the global maximum, the post-step cross section
+ * \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
 CELER_FUNCTION real_type
 PhysicsTrackView::calc_max_xs(const IntegralXsProcess& process,
@@ -446,7 +446,7 @@ PhysicsTrackView::calc_max_xs(const IntegralXsProcess& process,
 
     real_type energy_max_xs
         = params_.reals[process.energy_max_xs[material_.get()]];
-    real_type energy_xi = energy.value() * params_.scalars.energy_fraction;
+    real_type energy_xi = energy.value() * params_.scalars.min_eprime_over_e;
     if (energy_max_xs >= energy_xi && energy_max_xs < energy.value())
     {
         return this->calc_xs(ppid, material, Energy{energy_max_xs});
@@ -608,15 +608,15 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
  * Reference Manual, Release 10.6: \f[
    s = \alpha r + \rho (1 - \alpha) (2 - \frac{\rho}{r})
  \f]
- * where alpha is \c scaling_fraction and rho is \c scaling_min_range .
+ * where alpha is \c max_step_over_range and rho is \c min_range .
  *
- * Below scaling_min_range, no step scaling is applied, but the step can still
+ * Below \c min_range, no step scaling is applied, but the step can still
  * be arbitrarily small.
  */
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
-    const real_type rho = params_.scalars.scaling_min_range;
+    const real_type rho = params_.scalars.min_range;
     if (range < rho * real_type(1.000001))
     {
         // Small range returns the step. The fudge factor avoids floating point
@@ -625,7 +625,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
         return range;
     }
 
-    const real_type alpha = params_.scalars.scaling_fraction;
+    const real_type alpha = params_.scalars.max_step_over_range;
     real_type step = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(step > 0 && step <= range);
     return step;

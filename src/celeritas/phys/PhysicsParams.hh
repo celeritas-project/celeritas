@@ -52,6 +52,9 @@ class ParticleParams;
  *   processes use MC integration to sample the discrete interaction length
  *   with the correct probability. Disable this integral approach for all
  *   processes.
+ *
+ * NOTE: min_range/max_step_over_range are not accessible through Geant4, and
+ * they can also be set to be different for electrons, mu/hadrons, and ions.
  */
 struct PhysicsParamsOptions
 {
