@@ -37,6 +37,11 @@ namespace celeritas
  *
  * \todo The active CUDA device is a global property---so this should probably
  * be a singleton, or we could use lower-level API calls.
+ *
+ * \note The current multithreading/multiprocess model is intended to have one
+ * GPU serving multiple CPU threads simultaneously, and one MPI process per
+ * GPU. If we need to add multiple GPUs per process, then \c global_device will
+ * go away in favor of a thread-independent model.
  */
 class Device
 {

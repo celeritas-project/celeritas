@@ -60,6 +60,19 @@ int determine_num_devices()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether to check and warn about inconsistent CUDA/Celeritas device.
+ */
+bool check_device_id()
+{
+    if (CELERITAS_DEBUG)
+    {
+        return true;
+    }
+    return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Active CUDA device for Celeritas calls on the local thread/process.
  *
  * \todo This function is not thread-friendly. It assumes distributed memory
@@ -71,7 +84,7 @@ int determine_num_devices()
 Device& global_device()
 {
     static Device device;
-    if (CELERITAS_DEBUG && device)
+    if (device && check_device_id())
     {
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
@@ -85,16 +98,10 @@ Device& global_device()
         }
     }
 
-#if CELER_USE_DEVICE && CELERITAS_USE_OPENMP
-    if (omp_get_num_threads() > 1)
-    {
-        CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
-    }
-#endif
-
     return device;
 }
 
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
