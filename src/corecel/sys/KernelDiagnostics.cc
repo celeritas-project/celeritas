@@ -26,15 +26,15 @@ namespace celeritas
  */
 void KernelDiagnostics::log_launch(value_type& diag, unsigned int num_threads)
 {
-    static unsigned int remaining_log_msg = 32;
-    if (remaining_log_msg == 0)
-        return;
-
-    CELER_LOG(debug) << "Launching '" << diag.name << "' on "
-                     << diag.threads_per_block << " threads per block with "
-                     << num_threads << " total threads";
-
-    if (--remaining_log_msg == 0)
+    static std::atomic<int> remaining_log_msg{32};
+    int                     remaining = --remaining_log_msg;
+    if (remaining > 0)
+    {
+        CELER_LOG(debug)
+            << "Launching '" << diag.name << "' on " << diag.threads_per_block
+            << " threads per block with " << num_threads << " total threads";
+    }
+    else if (remaining == 0)
     {
         CELER_LOG(debug) << "(Launch log limit reached: suppressing further "
                             "output)";
