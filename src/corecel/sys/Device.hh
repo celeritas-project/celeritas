@@ -55,6 +55,9 @@ class Device
     // Number of devices available on the local compute node
     static int num_devices();
 
+    // Whether verbose messages and error checking are enabled
+    static bool debug();
+
     //// CONSTRUCTORS ////
 
     // Construct an inactive device (disable celeritas CUDA calls)
