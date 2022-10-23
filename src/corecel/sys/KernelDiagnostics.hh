@@ -87,13 +87,22 @@ class KernelDiagnostics
     inline void launch(key_type key, unsigned int num_threads);
 
   private:
+    //// TYPES ////
+
+    using MapAddrId    = std::unordered_map<std::uintptr_t, key_type>;
+    using InsertResult = std::pair<MapAddrId::iterator, bool>;
+
+    //// DATA ////
+
     // Map of kernel function address to kernel IDs
-    std::unordered_map<std::uintptr_t, key_type> keys_;
+    MapAddrId keys_;
 
     // Kernel diagnostics
     std::vector<value_type> values_;
 
     //// HELPER FUNCTIONS ////
+
+    InsertResult threadsafe_insert_new(std::uintptr_t);
     void log_launch(value_type& diag, unsigned int num_threads);
 };
 
@@ -126,6 +135,7 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
 {
     CELER_EXPECT(key < this->size());
     value_type& diag = values_[key.get()];
+    // TODO: the following diagnostics should be atomic in MT environment
     ++diag.num_launches;
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
     if (CELERITAS_DEBUG)
@@ -156,8 +166,8 @@ inline auto KernelDiagnostics::insert(F*           func,
     static_assert(std::is_function<F>::value,
                   "KernelDiagnostics must be called with a function object, "
                   "not a function pointer or anything else.");
-    auto iter_inserted = keys_.insert(
-        {reinterpret_cast<std::uintptr_t>(func), key_type{this->size()}});
+    auto iter_inserted
+        = this->threadsafe_insert_new(reinterpret_cast<std::uintptr_t>(func));
     if (CELER_UNLIKELY(iter_inserted.second))
     {
         // First time this kernel was added

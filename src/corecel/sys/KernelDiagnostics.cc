@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KernelDiagnostics.hh"
 
+#include <atomic>
 #include <iostream>
 
 #include "corecel/Macros.hh"
@@ -17,6 +18,18 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Try adding a new kernel in a thread-safe fashion.
+ */
+auto KernelDiagnostics::threadsafe_insert_new(std::uintptr_t fptr)
+    -> InsertResult
+{
+    static std::mutex           insert_mutex;
+    std::lock_guard<std::mutex> scoped_lock{insert_mutex};
+    return keys_.insert({fptr, key_type{this->size()}});
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * In debug mode, log a message about an impending launch.
