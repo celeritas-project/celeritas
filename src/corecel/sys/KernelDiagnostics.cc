@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <iostream>
+#include <mutex>
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"

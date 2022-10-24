@@ -8,8 +8,8 @@
 #include "Logger.hh"
 
 #include <algorithm>
-#include <atomic>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 
 #include "corecel/Assert.hh"
