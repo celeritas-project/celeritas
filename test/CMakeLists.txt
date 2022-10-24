@@ -7,13 +7,13 @@
 include(CeleritasAddTest)
 
 #-----------------------------------------------------------------------------#
-# CORE TEST LIBRARY
+# TEST HARNESS
 #-----------------------------------------------------------------------------#
 
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
 
-add_library(testcel
+add_library(testcel_harness
   Test.cc
   testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
@@ -21,12 +21,12 @@ add_library(testcel
   testdetail/TestMainImpl.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
-add_library(Celeritas::testcel ALIAS testcel)
-set_property(TARGET testcel PROPERTY CXX_STANDARD 14)
-target_link_libraries(testcel
+add_library(Celeritas::testcel_harness ALIAS testcel)
+set_property(TARGET testcel_harness PROPERTY CXX_STANDARD 14)
+target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
 )
-target_include_directories(testcel
+target_include_directories(testcel_harness
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -175,7 +175,7 @@ add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
-  PRIVATE Celeritas::testcel Celeritas::orange
+  PRIVATE Celeritas::testcel_harness Celeritas::orange
 )
 
 celeritas_setup_tests(SERIAL PREFIX orange
@@ -229,7 +229,7 @@ add_library(testcel_celeritas
   celeritas/global/StepperTestBase.cc
 )
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE Celeritas::celeritas Celeritas::testcel
+  PRIVATE Celeritas::celeritas Celeritas::testcel_harness
 )
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
