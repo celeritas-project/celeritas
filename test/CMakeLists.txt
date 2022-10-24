@@ -64,7 +64,7 @@ endif()
 # TEST OPTIONS
 #-----------------------------------------------------------------------------#
 
-function(celeritas_device_test base)
+function(celeritas_add_device_test base)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     set(_cuda_args GPU SOURCES "${base}.test.cu")
   endif()
@@ -125,15 +125,15 @@ set(CELERITASTEST_PREFIX corecel/cont)
 celeritas_add_test(corecel/cont/Array.test.cc)
 celeritas_add_test(corecel/cont/Span.test.cc)
 celeritas_add_test(corecel/cont/LabelIdMultiMap.test.cc)
-celeritas_device_test(corecel/cont/Range)
+celeritas_add_device_test(corecel/cont/Range)
 
 # Data
 set(CELERITASTEST_PREFIX corecel/data)
-celeritas_device_test(corecel/data/Collection)
+celeritas_add_device_test(corecel/data/Collection)
 celeritas_add_test(corecel/data/Copier.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceAllocation.test.cc GPU)
 celeritas_add_test(corecel/data/DeviceVector.test.cc GPU)
-celeritas_device_test(corecel/data/StackAllocator)
+celeritas_add_device_test(corecel/data/StackAllocator)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
@@ -149,7 +149,7 @@ set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(corecel/math/Algorithms.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
-celeritas_device_test(corecel/math/NumericLimits)
+celeritas_add_device_test(corecel/math/NumericLimits)
 celeritas_add_test(corecel/math/Quantity.test.cc)
 celeritas_add_test(corecel/math/SoftEqual.test.cc)
 celeritas_add_test(corecel/math/VectorUtils.test.cc)
@@ -196,7 +196,7 @@ celeritas_add_test(orange/surf/GeneralQuadric.test.cc)
 celeritas_add_test(orange/surf/PlaneAligned.test.cc)
 celeritas_add_test(orange/surf/Sphere.test.cc)
 celeritas_add_test(orange/surf/SphereCentered.test.cc)
-celeritas_device_test(orange/surf/SurfaceAction)
+celeritas_add_device_test(orange/surf/SurfaceAction)
 
 
 #-------------------------------------#
@@ -207,7 +207,7 @@ celeritas_add_test(orange/univ/detail/LogicStack.test.cc)
 celeritas_add_test(orange/univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(orange/univ/detail/SenseCalculator.test.cc)
 celeritas_add_test(orange/univ/VolumeView.test.cc)
-celeritas_device_test(orange/univ/SimpleUnitTracker)
+celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 
 #-----------------------------------------------------------------------------#
 # CELERITAS TESTS
@@ -266,7 +266,7 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
-  celeritas_device_test(celeritas/ext/Vecgeom
+  celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 
@@ -348,14 +348,14 @@ celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Mat
 set(CELERITASTEST_PREFIX celeritas/mat)
 celeritas_add_test(celeritas/mat/ElementSelector.test.cc)
-celeritas_device_test(celeritas/mat/Material)
+celeritas_add_device_test(celeritas/mat/Material)
 
 #-------------------------------------#
 # Phys
 set(CELERITASTEST_PREFIX celeritas/phys)
 celeritas_add_test(celeritas/phys/CutoffParams.test.cc)
-celeritas_device_test(celeritas/phys/Particle)
-celeritas_device_test(celeritas/phys/Physics)
+celeritas_add_device_test(celeritas/phys/Particle)
+celeritas_add_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
 
@@ -363,7 +363,7 @@ celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
 # Random
 set(CELERITASTEST_PREFIX celeritas/random)
 
-celeritas_device_test(celeritas/random/RngEngine)
+celeritas_add_device_test(celeritas/random/RngEngine)
 celeritas_add_test(celeritas/random/Selector.test.cc)
 celeritas_add_test(celeritas/random/XorwowRngEngine.test.cc GPU)
 
@@ -389,7 +389,7 @@ endif()
 #-------------------------------------#
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
-celeritas_device_test(celeritas/track/TrackInit ${_needs_cuda})
+celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 
 #-----------------------------------------------------------------------------#
 # DATA UPDATE
