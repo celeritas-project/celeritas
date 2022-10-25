@@ -322,7 +322,7 @@ function(celeritas_add_test SOURCE_FILE)
     celeritas_target_link_libraries(${_TARGET}
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
-      Celeritas::testcel
+      Celeritas::testcel_harness
     )
 
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)
