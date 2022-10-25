@@ -314,11 +314,11 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 celeritas_add_test(celeritas/global/AlongStep.test.cc
-  ${_optional_geant4_env})
+  ${_optional_geant4_env} NT 1)
 celeritas_add_test(celeritas/global/Stepper.test.cc
-  GPU ${_needs_geant4}
+  GPU NT 4 ${_needs_geant4}
   FILTER
-    # NOTE: these can be run in the same invocation once Geant4 reload is fixed
+    # NOTE: these can be run in the same invocation once Geant4 reload works
     "TestEm3*"
     "TestEm15FieldTest.*"
 )

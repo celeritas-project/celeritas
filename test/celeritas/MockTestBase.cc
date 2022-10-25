@@ -8,6 +8,7 @@
 #include "MockTestBase.hh"
 
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -200,15 +201,17 @@ auto MockTestBase::build_physics() -> SPConstPhysics
 //---------------------------------------------------------------------------//
 auto MockTestBase::build_along_step() -> SPConstAction
 {
-    auto result
-        = AlongStepGeneralLinearAction::from_params(*this->material(),
+    auto& action_reg = *this->action_reg();
+    auto  result
+        = AlongStepGeneralLinearAction::from_params(action_reg.next_id(),
+                                                    *this->material(),
                                                     *this->particle(),
                                                     *this->physics(),
-                                                    false,
-                                                    this->action_reg().get());
-    CELER_ENSURE(result);
-    CELER_ENSURE(!result->has_fluct());
-    CELER_ENSURE(!result->has_msc());
+                                                    false);
+    CELER_ASSERT(result);
+    CELER_ASSERT(!result->has_fluct());
+    CELER_ASSERT(!result->has_msc());
+    action_reg.insert(result);
     return result;
 }
 

@@ -21,12 +21,48 @@
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
+#include "celeritas/io/ImportData.hh"
 
 #include "GeoMaterialData.hh"
 #include "GeoParams.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data.
+ */
+std::shared_ptr<GeoMaterialParams>
+GeoMaterialParams::from_import(const ImportData& data,
+                               SPConstGeo        geo_params,
+                               SPConstMaterial   material_params)
+{
+    GeoMaterialParams::Input input;
+    input.geometry  = std::move(geo_params);
+    input.materials = std::move(material_params);
+
+    input.volume_to_mat.resize(data.volumes.size());
+    for (auto volume_idx :
+         range<VolumeId::size_type>(input.volume_to_mat.size()))
+    {
+        input.volume_to_mat[volume_idx]
+            = MaterialId{data.volumes[volume_idx].material_id};
+    }
+
+    // Assume that since Geant4 is using internal geometry and
+    // we're using ORANGE or VecGeom that volume IDs will not be
+    // the same. We'll just remap them based on their labels (which may include
+    // Geant4's uniquifying pointer addresses).
+    input.volume_labels.resize(data.volumes.size());
+    for (auto volume_idx : range(data.volumes.size()))
+    {
+        input.volume_labels[volume_idx]
+            = Label::from_geant(data.volumes[volume_idx].name);
+    }
+
+    return std::make_shared<GeoMaterialParams>(std::move(input));
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from geometry and material params.

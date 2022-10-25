@@ -58,7 +58,6 @@ Add a CUDA/HIP/C++ GoogleTest test::
       [FILTER test1 [test2 ...]]
       [INPUTS file1 [file2 ...]]
       [SOURCES file1 [...]]
-      [ISOLATE]
       [DISABLE]
       [DRIVER]
       [REUSE_EXE]
@@ -69,9 +68,13 @@ Add a CUDA/HIP/C++ GoogleTest test::
       Test source file name (or python filename).
 
     ``NP``
-      The number of processors to use for this unit test. The default
-      is to use CELERITASTEST_NP (1, 2, and 4) for MPI builds and 1 for
-      serial builds.
+      A list of the number of processes to launch via MPI for this unit test.
+      The default is to use CELERITASTEST_NP (1, 2, and 4) for MPI builds and 1
+      for serial builds.
+
+    ``NT``
+      The number of threads to reserve for this test and set
+      ``OMP_NUM_THREADS``, ignored if OpenMP is disabled.
 
     ``LINK_LIBRARIES``
       Extra libraries to link to. By default, unit tests will link against the
@@ -96,22 +99,15 @@ Add a CUDA/HIP/C++ GoogleTest test::
       allows one large test file to be executed as several independent CTest
       tests.
 
-    ``INPUTS``
-      Copy the listed files to the test working directory. (Works best with
-      ISOLATE.) TODO: not implemented.
-
-    ``ISOLATE``
-      Run the test in its own directory.
-
     ``DISABLE``
       Omit this test from the list of tests to run through CTest, but still
       build it to reduce the chance of code rot.
 
     ``DRIVER``
       Assume the file acts as a "driver" that launches an underlying
-      process in parallel. The CELERITASTEST_NP environment variable is set for that
-      test and can be used to determine the number of processors to use. The
-      test itself is *not* called with MPI.
+      process in parallel. The CELERITASTEST_NP environment variable is set for
+      that test and can be used to determine the number of processors to use.
+      The test itself is *not* called with MPI.
 
     ``REUSE_EXE``
       Assume the executable was already built from a previous celeritas_add_test
@@ -247,8 +243,8 @@ endfunction()
 
 function(celeritas_add_test SOURCE_FILE)
   cmake_parse_arguments(PARSE
-    "ISOLATE;DISABLE;DRIVER;REUSE_EXE;GPU"
-    "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS"
+    "DISABLE;DRIVER;REUSE_EXE;GPU"
+    "TIMEOUT;DEPTEST;SUFFIX;ADDED_TESTS;NT"
     "LINK_LIBRARIES;ADD_DEPENDENCIES;NP;ENVIRONMENT;ARGS;INPUTS;FILTER;SOURCES"
     ${ARGN}
   )
@@ -383,6 +379,14 @@ function(celeritas_add_test SOURCE_FILE)
     list(APPEND PARSE_ENVIRONMENT "CELER_DISABLE_PARALLEL=1")
   endif()
 
+  if(CELERITAS_USE_OpenMP)
+    if(PARSE_NT)
+      list(APPEND PARSE_ENVIRONMENT "OMP_NUM_THREADS=${PARSE_NT}")
+    endif()
+  else()
+    set(PARSE_NT)
+  endif()
+
   if(NOT PARSE_FILTER)
     # Set to a non-empty but false value
     set(PARSE_FILTER "OFF")
@@ -430,20 +434,13 @@ function(celeritas_add_test SOURCE_FILE)
           PROPERTY ADD_DEPENDENCIES "${_deptest_name}")
       endif()
 
-      if(PARSE_ISOLATE)
-        # Run in a separate working directory
-        string(REGEX REPLACE "[^a-zA-Z0-9-]" "-" _test_dir "${_TEST_NAME}")
-        string(TOLOWER "${_test_dir}" _test_dir)
-        set(_test_dir "${CMAKE_CURRENT_BINARY_DIR}/run-${_test_dir}")
-        set_property(TEST "${_TEST_NAME}"
-          PROPERTY WORKING_DIRECTORY "${_test_dir}")
-        file(MAKE_DIRECTORY "${_test_dir}")
-      endif()
-
       set_property(TEST ${_TEST_NAME}
         PROPERTY ENVIRONMENT ${_test_env}
       )
       if(_np GREATER 1)
+        if(PARSE_NT)
+          math(EXPR _np "${_np} * ${PARSE_NT}")
+        endif()
         set_property(TEST ${_TEST_NAME}
           PROPERTY PROCESSORS ${_np}
         )

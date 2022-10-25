@@ -60,10 +60,23 @@ int determine_num_devices()
 
 //---------------------------------------------------------------------------//
 /*!
- * Active CUDA device for Celeritas calls on the local thread/process.
+ * Whether to check and warn about inconsistent CUDA/Celeritas device.
+ */
+bool determine_debug()
+{
+    if (CELERITAS_DEBUG)
+    {
+        return true;
+    }
+    return !celeritas::getenv("CELER_DEBUG_DEVICE").empty();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Active CUDA device for Celeritas calls on the local process.
  *
- * \todo This function is not thread-friendly. It assumes distributed memory
- * parallelism with one device assigned per process. See
+ * \todo This function assumes distributed memory parallelism with one device
+ * assigned per process. See
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r577997723
  * and
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r578000062
@@ -71,7 +84,7 @@ int determine_num_devices()
 Device& global_device()
 {
     static Device device;
-    if (CELERITAS_DEBUG && device)
+    if (device && Device::debug())
     {
         // Check that CUDA and Celeritas device IDs are consistent
         int cur_id = -1;
@@ -85,16 +98,10 @@ Device& global_device()
         }
     }
 
-#if CELER_USE_DEVICE && CELERITAS_USE_OPENMP
-    if (omp_get_num_threads() > 1)
-    {
-        CELER_NOT_IMPLEMENTED("OpenMP support with CUDA");
-    }
-#endif
-
     return device;
 }
 
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -110,6 +117,19 @@ Device& global_device()
 int Device::num_devices()
 {
     static const int result = determine_num_devices();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether verbose messages and error checking are enabled.
+ *
+ * This is true if \c CELERITAS_DEBUG is set *or* if the \c CELER_DEBUG_DEVICE
+ * environment variable exists and is not empty.
+ */
+bool Device::debug()
+{
+    static const bool result = determine_debug();
     return result;
 }
 

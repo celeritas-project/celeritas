@@ -13,7 +13,6 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -28,13 +27,12 @@ namespace celeritas
  * Construct the along-step action from input parameters.
  */
 std::shared_ptr<AlongStepGeneralLinearAction>
-AlongStepGeneralLinearAction::from_params(const MaterialParams& materials,
+AlongStepGeneralLinearAction::from_params(ActionId              id,
+                                          const MaterialParams& materials,
                                           const ParticleParams& particles,
                                           const PhysicsParams&  physics,
-                                          bool            eloss_fluctuation,
-                                          ActionRegistry* actions)
+                                          bool eloss_fluctuation)
 {
-    CELER_EXPECT(actions);
     SPConstFluctuations fluct;
     if (eloss_fluctuation)
     {
@@ -54,10 +52,8 @@ AlongStepGeneralLinearAction::from_params(const MaterialParams& materials,
         }
     }
 
-    auto result = std::make_shared<AlongStepGeneralLinearAction>(
-        actions->next_id(), std::move(fluct), std::move(msc));
-    actions->insert(result);
-    return result;
+    return std::make_shared<AlongStepGeneralLinearAction>(
+        id, std::move(fluct), std::move(msc));
 }
 
 //---------------------------------------------------------------------------//
