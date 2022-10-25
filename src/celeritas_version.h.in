@@ -13,10 +13,10 @@
 extern "C" {
 #endif
 
-extern const char celeritas_version[];     /*!< Full version string */
-extern const int  celeritas_version_major; /*!< First version component */
-extern const int  celeritas_version_minor; /*!< Second version component */
-extern const int  celeritas_version_patch; /*!< Third version component */
+static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
+static const int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
+static const int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
+static const int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
 
 #ifdef __cplusplus
 } // extern "C"

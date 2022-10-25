@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
@@ -30,8 +31,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/random/RngParams.hh"
-
-#include "celeritas_cmake_strings.h"
 
 namespace celeritas
 {

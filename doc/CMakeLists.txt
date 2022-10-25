@@ -29,9 +29,9 @@ set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/scripts/README.md"
-  "${PROJECT_BINARY_DIR}/src/celeritas_config.h"
-  "${PROJECT_BINARY_DIR}/src/celeritas_cmake_strings.h"
-  "${PROJECT_BINARY_DIR}/src/celeritas_version.cc"
+  "${PROJECT_BINARY_DIR}/include/celeritas_config.h"
+  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
+  "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
 )
 
 # Documentation usage
@@ -160,7 +160,6 @@ file(GLOB _DOXYGEN_SOURCE
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
-  "${PROJECT_SOURCE_DIR}/src/celeritas_version.h"
   ${_DOXYGEN_EXTRA_SOURCE}
   USE_STAMP_FILE
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"

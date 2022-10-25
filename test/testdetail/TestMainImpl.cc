@@ -16,9 +16,9 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelDiagnostics.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "celeritas/ext/MpiOperations.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/MpiOperations.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 
 #include "NonMasterResultPrinter.hh"
 #include "ParallelHandler.hh"
