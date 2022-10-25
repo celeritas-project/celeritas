@@ -22,7 +22,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Enumerator for EM parameters (see G4EmParameters.hh).
+ * Common electromagnetic physics parameters (see G4EmParameters.hh).
  *
  * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
  */
