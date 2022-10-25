@@ -12,7 +12,6 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -27,12 +26,11 @@ namespace celeritas
  * Construct the along-step action from input parameters.
  */
 std::shared_ptr<AlongStepUniformMscAction>
-AlongStepUniformMscAction::from_params(const PhysicsParams&      physics,
-                                       const UniformFieldParams& field_params,
-                                       ActionRegistry*           actions)
+AlongStepUniformMscAction::from_params(ActionId                  id,
+                                       const PhysicsParams&      physics,
+                                       const UniformFieldParams& field_params)
 {
-    CELER_EXPECT(actions);
-    // Super hacky!! This will be cleaned up later.
+    // TODO: Super hacky!! This will be cleaned up later.
     SPConstMsc msc;
     for (auto mid : range(ModelId{physics.num_models()}))
     {
@@ -45,10 +43,8 @@ AlongStepUniformMscAction::from_params(const PhysicsParams&      physics,
         }
     }
 
-    auto result = std::make_shared<AlongStepUniformMscAction>(
-        actions->next_id(), field_params, std::move(msc));
-    actions->insert(result);
-    return result;
+    return std::make_shared<AlongStepUniformMscAction>(
+        id, field_params, std::move(msc));
 }
 
 //---------------------------------------------------------------------------//

@@ -36,7 +36,7 @@ void detail::PVDeleter::operator()(G4VPhysicalVolume* vol) const
  */
 UPG4PhysicalVolume load_gdml(const std::string& filename)
 {
-    CELER_LOG(info) << "Loading geometry from " << filename;
+    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label

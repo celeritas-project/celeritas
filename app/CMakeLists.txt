@@ -26,6 +26,13 @@ if(CELERITAS_BUILD_TESTS)
     set(_python_exe "python3")
     set(_disabled_unless_python DISABLED true)
   endif()
+
+  set(_omp_env)
+  set(_processors)
+  if(CELERITAS_USE_OpenMP)
+    set(_omp_env "OMP_NUM_THREADS=4")
+    set(_processors PROCESSORS 4)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -147,11 +154,13 @@ if(CELERITAS_BUILD_DEMOS)
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
+      ${_omp_env}
     )
     set_tests_properties("app/host-demo-interactor" PROPERTIES
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_driver}"
       ${_disabled_unless_python}
+      ${_processors}
       LABELS "app;nomemcheck"
     )
   endif()
@@ -291,6 +300,7 @@ if(CELERITAS_BUILD_DEMOS)
       "CELER_LOG=debug"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
+      ${_omp_env}
     )
     if(NOT CELERITAS_USE_VecGeom)
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
@@ -299,6 +309,7 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
       LABELS "app;nomemcheck"
+      ${_processors}
     )
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python)

@@ -103,22 +103,8 @@ auto GeantTestBase::build_material() -> SPConstMaterial
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
-    GeoMaterialParams::Input input;
-    input.geometry       = this->geometry();
-    input.materials      = this->material();
-    const auto& imported = this->imported_data();
-
-    input.volume_to_mat.resize(imported.volumes.size());
-    input.volume_labels.resize(imported.volumes.size());
-    for (auto volume_idx :
-         range<VolumeId::size_type>(input.volume_to_mat.size()))
-    {
-        input.volume_to_mat[volume_idx]
-            = MaterialId{imported.volumes[volume_idx].material_id};
-        input.volume_labels[volume_idx]
-            = Label::from_geant(imported.volumes[volume_idx].name);
-    }
-    return std::make_shared<GeoMaterialParams>(std::move(input));
+    return GeoMaterialParams::from_import(
+        this->imported_data(), this->geometry(), this->material());
 }
 
 //---------------------------------------------------------------------------//
@@ -182,16 +168,17 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_along_step() -> SPConstAction
 {
-    auto result
-        = AlongStepGeneralLinearAction::from_params(*this->material(),
-                                                    *this->particle(),
-                                                    *this->physics(),
-                                                    this->enable_fluctuation(),
-                                                    this->action_reg().get());
-    CELER_ENSURE(result);
-    CELER_ENSURE(result->has_fluct() == this->enable_fluctuation());
-    CELER_ENSURE(result->has_msc() == this->enable_msc());
-    CELER_ENSURE(this->action_reg()->action(result->action_id()) == result);
+    auto& action_reg = *this->action_reg();
+    auto  result     = AlongStepGeneralLinearAction::from_params(
+        action_reg.next_id(),
+        *this->material(),
+        *this->particle(),
+        *this->physics(),
+        this->enable_fluctuation());
+    CELER_ASSERT(result);
+    CELER_ASSERT(result->has_fluct() == this->enable_fluctuation());
+    CELER_ASSERT(result->has_msc() == this->enable_msc());
+    action_reg.insert(result);
     return result;
 }
 

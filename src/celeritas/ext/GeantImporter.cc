@@ -32,6 +32,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportParticle.hh"
@@ -224,6 +225,7 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
         particles.push_back(particle);
     }
     CELER_LOG(debug) << "Loaded " << particles.size() << " particles";
+    CELER_ENSURE(!particles.empty());
     return particles;
 }
 
@@ -254,6 +256,7 @@ std::vector<ImportElement> store_elements()
         elements[g4element->GetIndex()] = element;
     }
     CELER_LOG(debug) << "Loaded " << elements.size() << " elements";
+    CELER_ENSURE(!elements.empty());
     return elements;
 }
 
@@ -270,6 +273,9 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
+    CELER_VALIDATE(!materials.empty(),
+                   << "no Geant4 production cuts are defined (you may need "
+                      "to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;
@@ -383,6 +389,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     }
 
     CELER_LOG(debug) << "Loaded " << materials.size() << " materials";
+    CELER_ENSURE(!materials.empty());
     return materials;
 }
 
@@ -459,25 +466,19 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 /*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
-ImportData::ImportEmParamsMap store_em_parameters()
+ImportEmParameters store_em_parameters()
 {
-    using IEP = ImportEmParameter;
+    ImportEmParameters import;
 
-    const auto& g4_em_params = *G4EmParameters::Instance();
+    const auto& g4 = *G4EmParameters::Instance();
 
-    ImportData::ImportEmParamsMap import_em_params{
-        {IEP::energy_loss_fluct, g4_em_params.LossFluctuation()},
-        {IEP::lpm, g4_em_params.LPM()},
-        {IEP::integral_approach, g4_em_params.Integral()},
-        {IEP::linear_loss_limit, g4_em_params.LinearLossLimit()},
-        {IEP::bins_per_decade, g4_em_params.NumberOfBinsPerDecade()},
-        {IEP::min_table_energy, g4_em_params.MinKinEnergy() / MeV},
-        {IEP::max_table_energy, g4_em_params.MaxKinEnergy() / MeV},
-    };
+    import.energy_loss_fluct = g4.LossFluctuation();
+    import.lpm               = g4.LPM();
+    import.integral_approach = g4.Integral();
+    import.linear_loss_limit = g4.LinearLossLimit();
 
-    CELER_LOG(debug) << "Loaded " << import_em_params.size()
-                     << " EM parameters";
-    return import_em_params;
+    CELER_ENSURE(import);
+    return import;
 }
 
 //---------------------------------------------------------------------------//
@@ -511,21 +512,28 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
 {
     ImportData import_data;
 
-    import_data.particles = store_particles(selected.particles);
-    import_data.elements  = store_elements();
-    import_data.materials = store_materials(selected.particles);
-    import_data.processes = store_processes(selected.processes,
-                                            import_data.particles,
-                                            import_data.elements,
-                                            import_data.materials);
-    import_data.volumes   = store_volumes(world_);
-    if (selected.processes & DataSelection::em)
     {
-        import_data.em_params = store_em_parameters();
+        CELER_LOG(status) << "Transferring data from Geant4";
+        ScopedTimeLog scoped_time;
+        import_data.particles = store_particles(selected.particles);
+        import_data.elements  = store_elements();
+        import_data.materials = store_materials(selected.particles);
+        import_data.processes = store_processes(selected.processes,
+                                                import_data.particles,
+                                                import_data.elements,
+                                                import_data.materials);
+        import_data.volumes   = store_volumes(world_);
+        if (selected.processes & DataSelection::em)
+        {
+            import_data.em_params = store_em_parameters();
+        }
     }
 
     if (selected.reader_data)
     {
+        CELER_LOG(status) << "Loading external elemental data";
+        ScopedTimeLog scoped_time;
+
         detail::AllElementReader load_data{import_data.elements};
         // TODO: load only conditionally based on processes in use
         import_data.sb_data           = load_data(SeltzerBergerReader{});

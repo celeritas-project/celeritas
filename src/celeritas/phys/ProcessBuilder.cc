@@ -21,32 +21,6 @@
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-// HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-template<class T>
-T import_em_parameter(const ImportData::ImportEmParamsMap& params,
-                      ImportEmParameter                    key,
-                      T                                    default_value)
-{
-    auto iter = params.find(key);
-    if (iter == params.end())
-    {
-        return default_value;
-    }
-    auto result = static_cast<T>(iter->second);
-    // Since the map is storing everything as a double, check that the value
-    // round-trips
-    CELER_VALIDATE(static_cast<double>(result) == iter->second,
-                   << "type conversion failed for '" << to_cstring(key)
-                   << '\'');
-    return result;
-}
-//---------------------------------------------------------------------------//
-} // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct imported process data.
@@ -58,10 +32,8 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
     : particle_(std::move(particle))
     , material_(std::move(material))
     , brem_combined_(options.brem_combined)
-    , enable_lpm_(
-          import_em_parameter(data.em_params, ImportEmParameter::lpm, true))
-    , use_integral_xs_(import_em_parameter(
-          data.em_params, ImportEmParameter::integral_approach, true))
+    , enable_lpm_(data.em_params.lpm)
+    , use_integral_xs_(data.em_params.integral_approach)
 {
     CELER_EXPECT(particle_);
     CELER_EXPECT(material_);

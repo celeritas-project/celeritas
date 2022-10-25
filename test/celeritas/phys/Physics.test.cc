@@ -127,7 +127,7 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"models":[{"label":"mock-model-4","process":0},{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":1},{"label":"mock-model-7","process":2},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":3},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":4},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"energy_fraction":0.8,"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"scaling_fraction":0.2,"scaling_min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":43}})json",
+            R"json({"models":[{"label":"mock-model-4","process":0},{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":1},{"label":"mock-model-7","process":2},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":3},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":4},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":43}})json",
             to_string(out));
     }
 }
@@ -265,7 +265,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
     // Range-to-step for different ranges
     // (additionally tested in calc_eloss_range)
-    real_type              rho = params_ref.scalars.scaling_min_range;
+    real_type              rho = params_ref.scalars.min_range;
     std::vector<real_type> step;
     const real_type        eps = std::numeric_limits<real_type>::epsilon();
 
@@ -450,9 +450,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1 * units::centimeter,
-                   params_ref.scalars.scaling_min_range);
-    EXPECT_SOFT_EQ(0.2, params_ref.scalars.scaling_fraction);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.min_range);
+    EXPECT_SOFT_EQ(0.2, params_ref.scalars.max_step_over_range);
     std::vector<real_type> eloss;
     std::vector<real_type> range;
     std::vector<real_type> step;
