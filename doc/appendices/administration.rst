@@ -108,7 +108,10 @@ The review process must be based on
 consider what would happen if X?"), not *destructive feedback* ("this code is
 ugly"). When reviewing, you should focus almost exclusively on the new
 changeset, as opposed to larger systemic issues, or smaller problems with
-nearby sections of code that you happen to notice.
+nearby sections of code that you happen to notice. If you do find such issues
+and they can reasonably be bundled into the submitted change set, you can work
+with the author to incorporate the changes, create a follow-on pull request
+yourself, or open an issue for later.
 
 Try to fully review the entirety of the changeset on your first review, *but*
 if major changes are needed it's a good idea to pause, submit your comments so

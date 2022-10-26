@@ -65,9 +65,16 @@ how to structure the decorations.
 Submitting code changes
 -----------------------
 
-When you believe that you've made a nontrivial, self-contained improvement to
-the code, it's time to create a `pull request`_ (PR) to get feedback on your
-changes before they're merged into the code base.
+When you believe that you've made a substantive [#]_ and self-contained
+improvement to the code, it's time to create a `pull request`_ (PR) to get
+feedback on your changes before they're merged into the code base.
+
+.. [#] All changes to the codebase must go through the pull request, but due to
+   the overhead of reviewing, testing, merging, and documenting a PR, we'd like
+   to avoid small changes that have almost no effect in terms of operation or
+   readability. For example, if you find a typo in the documentation, check the
+   rest of the docs for any other typos or improvements you'd like to make, and
+   submit a single PR with those changes.
 
 Before opening the pull request, check that the :ref:`code <code_guidelines>`
 and :ref:`style <style_guidelines>` guidelines have been followed for all new
@@ -88,8 +95,11 @@ constructive feedback on your changes. Their responsibilities are outlined in
 :ref:`code_review`.
 Reviews should not be started until the "draft" status has been removed (if you
 marked it as a draft initially). Once a pull request is under review, *do not*
-rebase, squash, or otherwise alter the branch history. It causes GitHub to lose
-comments and break notifications. You *can* merge the main upstream branch if
+rebase, squash, or otherwise alter the branch history. Such changes can
+drastically increase the difficulty of reviewing, because it may blend in a
+single commit both changes in response to a review *and* changes from upstream
+code. (Furthermore, it breaks GitHub notifications and makes it more difficult
+to find older comments.)  You *can* merge the main upstream branch if
 your changes may interact with the upstream changes, and you *must* merge if
 they conflict.
 
