@@ -118,12 +118,15 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
     SPConstAction build_along_step() override
     {
         CELER_EXPECT(!this->enable_fluctuation());
+
+        auto&              action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1e-3 * units::tesla};
         auto result        = AlongStepUniformMscAction::from_params(
-            *this->physics(), field_params, this->action_reg().get());
-        CELER_ENSURE(result);
-        CELER_ENSURE(result->has_msc() == this->enable_msc());
+            action_reg.next_id(), *this->physics(), field_params);
+        CELER_ASSERT(result);
+        CELER_ASSERT(result->has_msc() == this->enable_msc());
+        action_reg.insert(result);
         return result;
     }
 

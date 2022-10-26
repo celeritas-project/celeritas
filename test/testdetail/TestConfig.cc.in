@@ -14,7 +14,7 @@ namespace testdetail
 {
 //---------------------------------------------------------------------------//
 
-extern const char source_dir[] = "@CELERITAS_SOURCE_DIR@";
+const char source_dir[] = "@CELERITAS_SOURCE_DIR@";
 
 //---------------------------------------------------------------------------//
 } // namespace testdetail

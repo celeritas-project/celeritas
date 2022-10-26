@@ -59,10 +59,14 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.particle    = this->particle();
     inp.cutoff      = this->cutoff();
     inp.physics     = this->physics();
-    inp.along_step  = this->along_step();
     inp.rng         = this->rng();
     inp.action_reg  = this->action_reg();
     CELER_ASSERT(inp);
+
+    // Build along-step action to add to the stepping loop
+    auto&& along_step = this->along_step();
+    CELER_ASSERT(along_step);
+
     return std::make_shared<CoreParams>(std::move(inp));
 }
 

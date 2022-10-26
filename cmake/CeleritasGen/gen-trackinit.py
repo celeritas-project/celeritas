@@ -7,8 +7,8 @@
 Tool to generate celeritas/track/InitTrackUtils implementations on the fly.
 """
 
-import os.path
 import sys
+from pathlib import Path
 from collections import namedtuple
 from launchbounds import make_launch_bounds
 
@@ -226,9 +226,10 @@ def generate(*, ext, **kwargs):
     lang = LANG[ext]
 
     kwargs['modeline'] = "-*-{}-*-".format(lang)
-    filename = "{basename}.{ext}".format(ext=ext, **kwargs)
-    kwargs['filename'] = filename
-    kwargs['script'] = os.path.basename(sys.argv[0])
+    script = Path(sys.argv[0])
+    filename = Path("{basename}.{ext}".format(ext=ext, **kwargs))
+    kwargs['filename'] = Path(kwargs['basedir']) / filename
+    kwargs['script'] = script.name
 
     kdef = DEFS[kwargs['clsname']]
     kwargs['extra_includes'] = "\n".join("#include \"{}\"".format(fn)
@@ -261,6 +262,10 @@ def generate(*, ext, **kwargs):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--basedir',
+        default='celeritas',
+        help='execution path relative to src/')
     parser.add_argument(
         '--basename',
         help='File name (without extension) of output')

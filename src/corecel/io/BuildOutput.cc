@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "BuildOutput.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "celeritas_version.h"
 
 #include "JsonPimpl.hh"
-#include "celeritas_cmake_strings.h"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
