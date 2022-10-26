@@ -81,7 +81,10 @@ if celer_config['options']['breathe']:
 if celer_config['options']['sphinxbib']:
     import pybtex
     extensions.append("sphinxcontrib.bibtex")
-    bibtex_bibfiles = ['_static/references.bib']
+    bibtex_bibfiles = [
+        "_static/references.bib",
+        "_static/celeritas.bib"
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
