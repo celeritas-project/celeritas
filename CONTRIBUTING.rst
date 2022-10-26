@@ -69,13 +69,6 @@ When you believe that you've made a substantive [#]_ and self-contained
 improvement to the code, it's time to create a `pull request`_ (PR) to get
 feedback on your changes before they're merged into the code base.
 
-.. [#] All changes to the codebase must go through the pull request, but due to
-   the overhead of reviewing, testing, merging, and documenting a PR, we'd like
-   to avoid small changes that have almost no effect in terms of operation or
-   readability. For example, if you find a typo in the documentation, check the
-   rest of the docs for any other typos or improvements you'd like to make, and
-   submit a single PR with those changes.
-
 Before opening the pull request, check that the :ref:`code <code_guidelines>`
 and :ref:`style <style_guidelines>` guidelines have been followed for all new
 code and code changes.  Ensure the use of the correct formatting as well as the
@@ -106,5 +99,12 @@ they conflict.
 After the CI tests pass and the reviewers have approved your changes,
 your branch will be squashed and merged, and you will officially be a Celeritas
 :ref:`contributor <roles>`! Congratulations!
+
+.. [#] All changes to the codebase must go through the pull request, but due to
+   the overhead of reviewing, testing, merging, and documenting a PR, we'd like
+   to avoid small changes that have almost no effect in terms of operation or
+   readability. For example, if you find a typo in the documentation, check the
+   rest of the docs for any other typos or improvements you'd like to make, and
+   submit a single PR with those changes.
 
 .. _pull request: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
