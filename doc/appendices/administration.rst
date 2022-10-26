@@ -82,6 +82,72 @@ GitHub is the official record of roles.
 
 .. _team list: https://github.com/orgs/celeritas-project/teams
 
+
+.. _code_review:
+
+Code review
+===========
+
+Reviewing incoming code maintains (and should improve) the quality of the
+codebase in the interests of correctness and long-term maintainability.
+If the code is reviewed according to the guidelines below, at least two people
+(the author and the reviewer) will be able to modify any given piece of code,
+increasing the `bus factor`_.
+
+.. _bus factor: https://en.wikipedia.org/wiki/Bus_factor
+
+Review process
+--------------
+
+Each pull request must be reviewed by at least one
+member of the :ref:`core team <roles>` who is knowledgeable about
+the section of code being modified.
+
+The review process must be based on
+*constructive feedback* ("here's a suggestion to make this better" or "did you
+consider what would happen if X?"), not *destructive feedback* ("this code is
+ugly"). When reviewing, you should focus almost exclusively on the new
+changeset, as opposed to larger systemic issues, or smaller problems with
+nearby sections of code that you happen to notice. If you do find such issues
+and they can reasonably be bundled into the submitted change set, you can work
+with the author to incorporate the changes, create a follow-on pull request
+yourself, or open an issue for later.
+
+Try to fully review the entirety of the changeset on your first review, *but*
+if major changes are needed it's a good idea to pause, submit your comments so
+far, and work with the PR author to address the major issues before continuing
+to the next review iteration.
+
+The correctness of the new code must be ensured by comparing against
+references, verifying the new code is sufficiently tested, and/or running
+regression problems on the incoming branch.
+Physics code should be compared against reference papers and other codes such
+as Geant4.
+
+Ensure readability and maintainability by checking that the :ref:`code
+<code_guidelines>` and :ref:`style <style_guidelines>` guidelines have been
+followed in the new code. Balance the desire for readability with the need to
+avoid bikeshedding_ by asking yourself whether your requests are
+substantive enough to merit a new pull request. Perfect is the enemy of good.
+
+By the time you've finished the code review, you should understand the code
+well enough to maintain it (by extension or modification) in the future.
+
+.. _bikeshedding: https://thedecisionlab.com/biases/bikeshedding
+
+
+Merge process
+-------------
+
+Celeritas uses the "squash and merge" process to ensure continuity of the code
+history and provide easy bisecting because all commits pass all tests.
+Squashing eliminates the potential of broken commits and relieves developers of
+the burden of worrying about clean commit messages within a branch.
+
+Since there are few enough merge requests these days, only :ref:`maintainers
+<roles>` may commit a merge.
+
+
 Release process
 ===============
 

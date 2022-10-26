@@ -144,11 +144,12 @@ Other entities devoted to sustainable programming have their own guidelines.
 The `ISO C++ guidelines`_ are very long but offer a number of insightful
 suggestions about C++ programming. The `Google style guide`_ is a little more
 targeted toward legacy code and large production environments, but it still
-offers good suggestions.
+offers good suggestions. For software engineering best practices, the
+book `Software Engineering at Google`_ is an excellent reference.
 
 .. _ISO C++ guidelines: http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
 .. _Google style guide: https://google.github.io/styleguide/cppguide.html
-
+.. _Software Engineering at Google: https://abseil.io/resources/swe-book
 
 .. _style_guidelines:
 

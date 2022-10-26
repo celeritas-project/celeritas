@@ -57,3 +57,14 @@ setting the `CELERITAS_BUILD_DOCS=ON` configuration option. A mostly complete
 version of the [Celeritas documentation][docs] is hosted on `readthedocs.io`.
 
 [docs]: https://celeritas.readthedocs.io/en/latest/
+
+# Citing Celeritas
+
+If using Celeritas in your work, we ask that you cite the code using its
+[DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
+
+> Johnson, Seth R., Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Paul Romano, Philippe Canal, Ben Morgan, and Tom Evans. “Celeritas,” July 2022. https://doi.org/10.11578/dc.20221011.1.
+
+Additional references for code implementation details, benchmark problem
+results, etc., can be found in our continually evolving [citation
+file](doc/_static/celeritas.bib).
