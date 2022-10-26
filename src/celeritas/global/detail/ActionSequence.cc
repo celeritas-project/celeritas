@@ -11,6 +11,7 @@
 #include <tuple>
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Stopwatch.hh"
 
@@ -29,6 +30,10 @@ ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
 {
     using EAI = ExplicitActionInterface;
 
+    // Whether one action with each sequence is present
+    EnumArray<ActionOrder, bool> available_orders;
+    std::fill(available_orders.begin(), available_orders.end(), false);
+
     // Loop over all action IDs
     for (auto aidx : range(reg.num_actions()))
     {
@@ -36,10 +41,18 @@ ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
         const auto& base = reg.action(ActionId{aidx});
         if (auto expl = std::dynamic_pointer_cast<const EAI>(base))
         {
-            // Add explicit action
+            // Mark order as set
+            available_orders[expl->order()] = true;
+            // Add explicit action to our array
             actions_.push_back(std::move(expl));
         }
     }
+
+    // NOTE: along-step actions are currently the only ones that the user must
+    // add. Extend this as we move more of the stepping loop toward an action
+    // interface.
+    CELER_VALIDATE(available_orders[ActionOrder::along],
+                   << "no along-step actions have been set");
 
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),

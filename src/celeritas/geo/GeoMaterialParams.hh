@@ -21,6 +21,8 @@
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Map a track's geometry state to a material ID.
@@ -38,7 +40,10 @@ class GeoMaterialParams
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
+    using SPConstGeo      = std::shared_ptr<const GeoParams>;
+    using SPConstMaterial = std::shared_ptr<const MaterialParams>;
+
     using HostRef   = HostCRef<GeoMaterialParamsData>;
     using DeviceRef = DeviceCRef<GeoMaterialParamsData>;
     //!@}
@@ -46,13 +51,19 @@ class GeoMaterialParams
     //! Input parameters
     struct Input
     {
-        std::shared_ptr<const GeoParams>      geometry;
-        std::shared_ptr<const MaterialParams> materials;
-        std::vector<MaterialId>               volume_to_mat;
-        std::vector<Label>                    volume_labels; // Optional
+        SPConstGeo              geometry;
+        SPConstMaterial         materials;
+        std::vector<MaterialId> volume_to_mat;
+        std::vector<Label>      volume_labels; // Optional
     };
 
   public:
+    // Construct with imported data
+    static std::shared_ptr<GeoMaterialParams>
+    from_import(const ImportData& data,
+                SPConstGeo        geo_params,
+                SPConstMaterial   material_params);
+
     // Construct from geometry and material params
     explicit GeoMaterialParams(Input);
 

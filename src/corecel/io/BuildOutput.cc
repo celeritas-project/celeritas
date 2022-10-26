@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "BuildOutput.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "celeritas_version.h"
 
 #include "JsonPimpl.hh"
-#include "celeritas_cmake_strings.h"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -45,6 +45,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_LAUNCH_BOUNDS);
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
+        cfg["CELERITAS_HOSTNAME"]   = celeritas_hostname;
         cfg["CELERITAS_RNG"]        = celeritas_rng;
         if (CELERITAS_USE_GEANT4)
         {

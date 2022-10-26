@@ -12,6 +12,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "../SimTrackView.hh"
 #include "../TrackInitData.hh"
@@ -117,14 +118,19 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             {
                 ParticleTrackView particle(
                     params_.particles, states_.particles, tid);
+                PhysicsTrackView phys(
+                    params_.physics, states_.physics, {}, {}, tid);
 
                 // The parent was killed, so initialize the first secondary in
                 // the parent's track slot. Keep the parent's geometry state
-                // but get the direction from the secondary. The material state
-                // will be the same as the parent's.
+                // but get the direction from the secondary. Reset the physics
+                // state so the multiple scattering range properties are
+                // cleared. The material state will be the same as the
+                // parent's.
                 sim = init.sim;
                 geo = GeoTrackView::DetailedInitializer{geo, init.geo.dir};
                 particle    = init.particle;
+                phys        = {};
                 initialized = true;
 
                 // TODO: make it easier to determine what states need to be

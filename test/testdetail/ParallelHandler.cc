@@ -8,8 +8,8 @@
 #include "ParallelHandler.hh"
 
 #include "corecel/io/ColorUtils.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "celeritas/ext/MpiOperations.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/MpiOperations.hh"
 
 namespace celeritas
 {

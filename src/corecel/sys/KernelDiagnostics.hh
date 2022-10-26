@@ -18,6 +18,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 
+#include "Device.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -128,7 +130,7 @@ void KernelDiagnostics::launch(key_type key, unsigned int num_threads)
     value_type& diag = values_[key.get()];
     ++diag.num_launches;
     diag.max_num_threads = std::max(num_threads, diag.max_num_threads);
-    if (CELERITAS_DEBUG)
+    if (Device::debug())
     {
         this->log_launch(diag, num_threads);
     }

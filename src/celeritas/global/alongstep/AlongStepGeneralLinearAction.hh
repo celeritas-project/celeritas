@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -24,7 +25,6 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-class ActionRegistry;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,11 +45,11 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
 
   public:
     static std::shared_ptr<AlongStepGeneralLinearAction>
-    from_params(const MaterialParams& materials,
+    from_params(ActionId              id,
+                const MaterialParams& materials,
                 const ParticleParams& particles,
                 const PhysicsParams&  physics,
-                bool                  eloss_fluctuation,
-                ActionRegistry*       actions);
+                bool                  eloss_fluctuation);
 
     // Construct with next action ID, and optional EM energy fluctuation
     AlongStepGeneralLinearAction(ActionId            id,

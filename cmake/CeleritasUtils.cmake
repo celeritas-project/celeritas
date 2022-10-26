@@ -49,6 +49,22 @@ CMake configuration utility functions for Celeritas.
 
       celeritas_check_python_module(has_numpy "numpy")
 
+.. command:: celeritas_add_library
+
+  Add a library that correctly links against CUDA relocatable device code, has
+  the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
+  directory.
+
+.. command:: celeritas_configure_file
+
+  Configure to the build "include" directory for later installation::
+
+    celeritas_configure_file(<input> <output> [ARGS...])
+
+  The ``<input>`` must be a relative path to the current source directory, and
+  the ``<output>` path is configured to the project build "include" directory.
+
+
 #]=======================================================================]
 include_guard(GLOBAL)
 
@@ -141,6 +157,50 @@ function(celeritas_check_python_module varname module)
 
   # Save outgoing variable
   set(${varname} "${_found}" PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_add_library target)
+  celeritas_rdc_add_library(${target} ${ARGN})
+
+  # Install to lib/
+  set(_props LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}")
+  set_target_properties(${target} PROPERTIES ${_props})
+
+  # Add Celeritas:: namespace alias
+  add_library(Celeritas::${target} ALIAS ${target})
+
+  set(_targets ${target})
+  get_target_property(_tgt ${target} CELERITAS_CUDA_FINAL_LIBRARY)
+  if(_tgt)
+    # Building with CUDA RDC support: add final library
+    list(APPEND _targets ${_tgt})
+    get_target_property(_tgt ${target} CELERITAS_CUDA_STATIC_LIBRARY)
+    if(NOT _tgt STREQUAL target)
+      # Shared and static library have different names
+      list(APPEND _targets ${_tgt})
+    endif()
+  endif()
+
+  install(TARGETS ${_targets}
+    EXPORT celeritas-targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    COMPONENT runtime
+  )
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_configure_file input output)
+  if(NOT IS_ABSOLUTE "${input}")
+    set(input "${CMAKE_CURRENT_SOURCE_DIR}/${input}")
+  endif()
+  configure_file("${input}"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
+    ${ARGN})
 endfunction()
 
 #-----------------------------------------------------------------------------#

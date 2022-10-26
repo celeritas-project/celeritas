@@ -30,10 +30,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Calculate launch params given the number of threads.
- *
- * \todo Once we start worrying about multiple devices on a single machine, we
- * could add a check for the device ID being the same one used to initialize
- * the param calculator.
  */
 KernelParamCalculator::LaunchParams
 KernelParamCalculator::operator()(size_type min_num_threads) const

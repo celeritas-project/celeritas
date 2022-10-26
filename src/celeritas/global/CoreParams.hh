@@ -61,7 +61,6 @@ class CoreParams
         SPConstPhysics     physics;
         SPConstRng         rng;
 
-        SPConstAction   along_step;
         SPActionRegistry action_reg;
 
         //! True if all params are assigned
@@ -86,8 +85,7 @@ class CoreParams
     }
     const SPConstParticle& particle() const { return input_.particle; }
     const SPConstCutoff&   cutoff() const { return input_.cutoff; }
-    const SPConstPhysics&  physics() const { return input_.physics; }
-    const SPConstAction&   along_step() const { return input_.along_step; }
+    const SPConstPhysics&   physics() const { return input_.physics; }
     const SPConstRng&      rng() const { return input_.rng; }
     const SPActionRegistry& action_reg() const { return input_.action_reg; }
     //!@}

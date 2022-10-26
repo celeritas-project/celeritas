@@ -4,20 +4,14 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-# Helper scripts, see CMakePackageConfigHelpers
-set(Celeritas_VERSION @Celeritas_VERSION@)
-
-#-----------------------------------------------------------------------------#
-# Helper scripts
-#-----------------------------------------------------------------------------#
-
-get_filename_component(CELER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+# Set up CMAKE paths
+get_filename_component(CELERITAS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 list(APPEND CMAKE_MODULE_PATH
-  "${CELER_CMAKE_DIR}"
+  "${CELERITAS_CMAKE_DIR}"
 )
 if(CMAKE_VERSION VERSION_LESS 3.18)
   list(APPEND CMAKE_MODULE_PATH
-    "${CELER_CMAKE_DIR}/backport/3.18"
+    "${CELERITAS_CMAKE_DIR}/backport/3.18"
   )
 endif()
 
@@ -25,7 +19,7 @@ endif()
 # Variables
 #-----------------------------------------------------------------------------#
 
-@CELER_EXPORT_VARIABLES@
+@CELERITAS_EXPORT_VARIABLES@
 
 #-----------------------------------------------------------------------------#
 # Dependencies
@@ -45,16 +39,16 @@ if(CELERITAS_USE_Geant4)
   # Save and restore include directories around the call -- even though as a
   # standalone project Celeritas will never have directory-level includes
   get_directory_property(_include_dirs INCLUDE_DIRECTORIES)
-  find_dependency(Geant4 REQUIRED)
+  find_dependency(Geant4 @Geant4_VERSION@ REQUIRED)
   set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${_include_dirs}")
 endif()
 
 if(CELERITAS_USE_HepMC3)
-  find_dependency(HepMC3 REQUIRED)
+  find_dependency(HepMC3 @HepMC3_VERSION@ REQUIRED)
 endif()
 
 if(CELERITAS_USE_JSON)
-  find_dependency(nlohmann_json 3.7.0 REQUIRED)
+  find_dependency(nlohmann_json @nlohmann_json_VERSION@ REQUIRED)
 endif()
 
 if(CELERITAS_USE_MPI)
@@ -67,18 +61,21 @@ endif()
 
 if(CELERITAS_USE_Python)
   set(_components Interpreter)
+  set(_version 3.6)
   if(CELERITAS_USE_SWIG)
     list(APPEND _components Development)
+    set(_version @Python_VERSION@)
   endif()
-  find_dependency(Python 3.6 REQUIRED COMPONENTS ${_components})
+  find_dependency(Python ${_version} REQUIRED COMPONENTS ${_components})
+  unset(_components _version)
 endif()
 
 if(CELERITAS_USE_ROOT)
-  find_dependency(ROOT REQUIRED)
+  find_dependency(ROOT @ROOT_VERSION@ REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  find_dependency(VecGeom 1.1.17 REQUIRED)
+  find_dependency(VecGeom @VecGeom_VERSION@ REQUIRED)
 
   if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
       OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
@@ -92,11 +89,11 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELER_BUILD_TESTS)
+if(CELERITAS_BUILD_TESTS)
   if(CMAKE_VERSION VERSION_LESS 3.20)
     # First look for standard CMake installation
     # (automatically done for CMake >= 3.20)
-    find_dependency(GTest QUIET NO_MODULE)
+    find_dependency(GTest @GTest_VERSION@ QUIET NO_MODULE)
   endif()
   if(NOT GTest_FOUND)
     # If not found, try again
@@ -109,9 +106,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(NOT TARGET celeritas)
-  include("${CELER_CMAKE_DIR}/CeleritasTargets.cmake")
-  add_library(Celeritas::Core ALIAS Celeritas::celeritas)
-  add_library(Celeritas::IO ALIAS Celeritas::celeritas_io)
+  include("${CELERITAS_CMAKE_DIR}/CeleritasTargets.cmake")
 endif()
 
 #-----------------------------------------------------------------------------#

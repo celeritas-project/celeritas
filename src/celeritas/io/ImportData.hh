@@ -22,19 +22,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Enumerator for EM parameters (see G4EmParameters.hh).
+ * Common electromagnetic physics parameters (see G4EmParameters.hh).
  *
  * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.
  */
-enum class ImportEmParameter
+struct ImportEmParameters
 {
-    energy_loss_fluct, //!< Energy loss fluctuation flag
-    lpm,               //!< LPM effect flag (bremsstrahlung, pair production)
-    integral_approach, //!< Integral approach flag
-    linear_loss_limit, //!< Linear loss limit
-    bins_per_decade,   //!< Cross-section table binning
-    min_table_energy,  //!< Cross-section table minimum kinetic energy [MeV]
-    max_table_energy,  //!< Cross-section table maximum kinetic energy [MeV]
+    //! Energy loss fluctuation
+    bool energy_loss_fluct{false};
+    //! LPM effect for bremsstrahlung and pair production
+    bool lpm{true};
+    //! Integral cross section rejection
+    bool integral_approach{true};
+    //! Slowing down threshold for linearity assumption
+    double linear_loss_limit{0.01};
+
+    //! Whether parameters are assigned and valid
+    explicit operator bool() const { return linear_loss_limit > 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -72,7 +76,6 @@ struct ImportData
     //!@{
     //! \name Type aliases
     using AtomicNumber         = int;
-    using ImportEmParamsMap    = std::map<ImportEmParameter, double>;
     using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;
     using ImportLivermorePEMap = std::map<AtomicNumber, ImportLivermorePE>;
     using ImportAtomicRelaxationMap
@@ -84,7 +87,7 @@ struct ImportData
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess>  processes;
     std::vector<ImportVolume>   volumes;
-    ImportEmParamsMap           em_params;
+    ImportEmParameters          em_params;
     ImportSBMap                 sb_data;
     ImportLivermorePEMap        livermore_pe_data;
     ImportAtomicRelaxationMap   atomic_relaxation_data;
@@ -95,12 +98,6 @@ struct ImportData
                && !volumes.empty();
     }
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-const char* to_cstring(ImportEmParameter value);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

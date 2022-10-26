@@ -46,13 +46,13 @@ class CutoffParams
 {
   public:
     //!@{
-    //! References to constructed data
-    using HostRef   = HostCRef<CutoffParamsData>;
-    using DeviceRef = DeviceCRef<CutoffParamsData>;
-
+    //! \name Type aliases
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using MaterialCutoffs  = std::vector<ParticleCutoff>;
+
+    using HostRef   = HostCRef<CutoffParamsData>;
+    using DeviceRef = DeviceCRef<CutoffParamsData>;
     //!@}
 
     //! Input data to construct this class

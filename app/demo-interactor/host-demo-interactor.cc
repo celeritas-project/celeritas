@@ -18,8 +18,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelDiagnosticsIO.json.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "HostKNDemoRunner.hh"

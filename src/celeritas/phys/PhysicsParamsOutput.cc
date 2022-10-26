@@ -78,9 +78,9 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
         auto options = json::object();
 #    define PPO_SAVE_OPTION(NAME) options[#    NAME] = scalars.NAME
-        PPO_SAVE_OPTION(scaling_min_range);
-        PPO_SAVE_OPTION(scaling_fraction);
-        PPO_SAVE_OPTION(energy_fraction);
+        PPO_SAVE_OPTION(min_range);
+        PPO_SAVE_OPTION(max_step_over_range);
+        PPO_SAVE_OPTION(min_eprime_over_e);
         PPO_SAVE_OPTION(eloss_calc_limit);
         PPO_SAVE_OPTION(linear_loss_limit);
         PPO_SAVE_OPTION(fixed_step_limiter);

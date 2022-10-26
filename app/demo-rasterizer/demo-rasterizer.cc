@@ -20,9 +20,9 @@
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelDiagnostics.hh"
 #include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
-#include "celeritas/ext/ScopedMpiInit.hh"
 
 #include "RDemoRunner.hh"
 

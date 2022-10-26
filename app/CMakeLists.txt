@@ -26,6 +26,13 @@ if(CELERITAS_BUILD_TESTS)
     set(_python_exe "python3")
     set(_disabled_unless_python DISABLED true)
   endif()
+
+  set(_omp_env)
+  set(_processors)
+  if(CELERITAS_USE_OpenMP)
+    set(_omp_env "OMP_NUM_THREADS=4")
+    set(_processors PROCESSORS 4)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -35,15 +42,14 @@ endif()
 # Exporter
 add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
-  Celeritas::Core
-  Celeritas::IO
+  Celeritas::celeritas
+  nlohmann_json::nlohmann_json
 )
 
 # Reader
 add_executable(celer-dump-data celer-dump-data.cc)
 celeritas_target_link_libraries(celer-dump-data
-  Celeritas::Core
-  Celeritas::IO
+  Celeritas::celeritas
 )
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4 AND CELERITAS_BUILD_TESTS)
@@ -96,7 +102,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/XsGridParams.cc
   )
   celeritas_target_link_libraries(celeritas_demo_interactor PUBLIC
-    celeritas
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
   )
 
@@ -134,7 +140,7 @@ if(CELERITAS_BUILD_DEMOS)
     demo-interactor/HostKNDemoRunner.cc
   )
   celeritas_target_link_libraries(host-demo-interactor
-    celeritas
+    Celeritas::celeritas
     celeritas_demo_interactor
   )
 
@@ -147,11 +153,13 @@ if(CELERITAS_BUILD_DEMOS)
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:host-demo-interactor>"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
+      ${_omp_env}
     )
     set_tests_properties("app/host-demo-interactor" PROPERTIES
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_driver}"
       ${_disabled_unless_python}
+      ${_processors}
       LABELS "app;nomemcheck"
     )
   endif()
@@ -170,7 +178,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     demo-rasterizer/ImageStore.cc
   )
   celeritas_target_link_libraries(demo-rasterizer
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
     VecGeom::vecgeom
   )
@@ -217,9 +225,8 @@ if(CELERITAS_BUILD_DEMOS)
   endif()
 
   set(_demo_loop_libs
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
-    Celeritas::IO
     Celeritas::DeviceToolkit
   )
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
@@ -291,6 +298,7 @@ if(CELERITAS_BUILD_DEMOS)
       "CELER_LOG=debug"
       "CELER_DISABLE_DEVICE=1"
       "CELER_DISABLE_PARALLEL=1"
+      ${_omp_env}
     )
     if(NOT CELERITAS_USE_VecGeom)
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
@@ -299,6 +307,7 @@ if(CELERITAS_BUILD_DEMOS)
       ENVIRONMENT "${_env};${_geant_test_env}"
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
       LABELS "app;nomemcheck"
+      ${_processors}
     )
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python)
@@ -326,7 +335,7 @@ if(CELERITAS_BUILD_DEMOS)
   endif()
 
   set(_geo_check_libs
-    Celeritas::Core
+    Celeritas::celeritas
     nlohmann_json::nlohmann_json
     Celeritas::DeviceToolkit
   )

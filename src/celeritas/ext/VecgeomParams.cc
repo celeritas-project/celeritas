@@ -70,7 +70,7 @@ std::vector<Label> get_volume_labels()
  */
 VecgeomParams::VecgeomParams(const std::string& filename)
 {
-    CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+    CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
     {
         CELER_LOG(warning) << "Expected '.gdml' extension for GDML input";

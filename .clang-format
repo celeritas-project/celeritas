@@ -71,7 +71,7 @@ IncludeCategories:
   - Regex:           '^<.+>$'
     Priority:        1
     SortPriority:    2
-  - Regex:           '^"celeritas_[a-z]+\.h"'
+  - Regex:           '^"celeritas_[a-z_]+\.h"'
     Priority:        2
     SortPriority:    3
   - Regex:           '^"corecel/device_runtime_api\.h"$'
