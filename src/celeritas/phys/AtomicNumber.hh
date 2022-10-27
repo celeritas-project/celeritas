@@ -30,7 +30,7 @@ class AtomicNumber
 {
   public:
     //! Construct with an invalid/unassigned value of zero
-    CELER_CONSTEXPR_FUNCTION AtomicNumber() = default;
+    constexpr AtomicNumber() = default;
 
     //! Construct with the Z value
     explicit CELER_CONSTEXPR_FUNCTION AtomicNumber(int z_value) : z_(z_value)
