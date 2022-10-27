@@ -2,7 +2,7 @@
 <!-- Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers. -->
 <!-- See the top-level COPYRIGHT file for details. -->
 <!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
-<!-- \file field-test.gdml -->
+<!-- \file field-layers.gdml -->
 <!-- \brief geometry of 6 layers  along y-->
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 

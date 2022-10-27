@@ -24,6 +24,7 @@
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
+using celeritas::constants::sqrt_three;
 using celeritas::constants::sqrt_two;
 
 namespace celeritas
@@ -82,6 +83,16 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
     reduce_heuristic_init(const StateHostRef&, double) const;
 };
 
+class DetailTest : public OrangeGeoTestBase
+{
+    void SetUp() override
+    {
+        TwoVolInput geo_inp;
+        geo_inp.radius = 1.5;
+        this->build_geometry(geo_inp);
+    }
+};
+
 class OneVolumeTest : public SimpleUnitTrackerTest
 {
     void SetUp() override
@@ -99,6 +110,12 @@ class TwoVolumeTest : public SimpleUnitTrackerTest
         geo_inp.radius = 1.5;
         this->build_geometry(geo_inp);
     }
+};
+
+#define FieldLayersTest TEST_IF_CELERITAS_JSON(FieldLayersTest)
+class FieldLayersTest : public SimpleUnitTrackerTest
+{
+    void SetUp() override { this->build_geometry("field-layers.org.json"); }
 };
 
 #define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
@@ -325,6 +342,15 @@ void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
+TEST_F(DetailTest, bumpcalculator)
+{
+    detail::BumpCalculator calc_bump(this->params().host_ref().scalars);
+    EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{0,0,0}));
+    EXPECT_SOFT_EQ(1e-8, calc_bump(Real3{1e-14,0,0}));
+    EXPECT_SOFT_EQ(1e-2, calc_bump(Real3{0,0,1e6}));
+    EXPECT_SOFT_EQ(1e1, calc_bump(Real3{0,1e9,1e6}));
+}
 
 TEST_F(OneVolumeTest, initialize)
 {
@@ -611,6 +637,111 @@ TEST_F(TwoVolumeTest, heuristic_init)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(FieldLayersTest, initialize)
+{
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+
+    {
+        SCOPED_TRACE("Exterior");
+        auto init
+            = tracker.initialize(this->make_state({0, 50, 0}, {0, -1, 0}));
+        EXPECT_EQ("[EXTERIOR]", this->id_to_label(init.volume));
+        EXPECT_FALSE(init.surface);
+    }
+    {
+        auto init = tracker.initialize(this->make_state({0, -3, 0}, {0, 0, 1}));
+        EXPECT_EQ("world", this->id_to_label(init.volume));
+        EXPECT_FALSE(init.surface);
+    }
+    {
+        auto init
+            = tracker.initialize(this->make_state({0, -2.4, 0}, {0, 0, 1}));
+        EXPECT_EQ("layer1", this->id_to_label(init.volume));
+        EXPECT_FALSE(init.surface);
+    }
+}
+
+TEST_F(FieldLayersTest, cross_boundary)
+{
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+
+    // Test crossing into and out of the "background" with varying levels
+    // of numerical imprecision
+    for (real_type eps : {-1e-6, -1e-10, -1e-14, 0.0, 1e-14, 1e-10, 1e-6})
+    {
+        SCOPED_TRACE(eps);
+        {
+            // From background to volume
+            auto init = tracker.cross_boundary(this->make_state_crossing(
+                {0, -1.5 + eps, 0}, {0, -1, 0}, "world", "layerbox1.py", '+'));
+            EXPECT_EQ("layer1", this->id_to_label(init.volume));
+            EXPECT_EQ("layerbox1.py", this->id_to_label(init.surface.id()));
+            EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
+        }
+        {
+            // From volume to background
+            auto init = tracker.cross_boundary(this->make_state_crossing(
+                {0, -2.5 - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
+            EXPECT_EQ("world", this->id_to_label(init.volume));
+            EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
+            EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
+        }
+    }
+}
+
+TEST_F(FieldLayersTest, intersect)
+{
+    SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+
+    {
+        SCOPED_TRACE("straightforward");
+        auto state = this->make_state({0, -1, 0}, {0, 1, 0}, "world");
+        auto isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("layerbox2.my", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(0.5, isect.distance);
+    }
+    {
+        SCOPED_TRACE("crossing internal planes");
+        auto state = this->make_state({9.6, 4, 9.7}, {-1, -1, -1}, "world");
+        auto isect = tracker.intersect(state);
+        EXPECT_TRUE(isect);
+        EXPECT_EQ("layerbox3.py", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(1.5 * sqrt_three, isect.distance);
+    }
+}
+
+TEST_F(FieldLayersTest, heuristic_init)
+{
+    size_type           num_tracks               = 8192;
+    static const double expected_vol_fractions[] = {0,
+                                                    0.018310546875,
+                                                    0.019775390625,
+                                                    0.020263671875,
+                                                    0.0189208984375,
+                                                    0.021484375,
+                                                    0.9012451171875};
+
+    {
+        SCOPED_TRACE("Host heuristic");
+        auto result = this->run_heuristic_init_host(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+
+    if (CELER_USE_DEVICE)
+    {
+        SCOPED_TRACE("Device heuristic");
+        auto result = this->run_heuristic_init_device(num_tracks);
+        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
+        EXPECT_SOFT_EQ(0, result.failed);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(FiveVolumesTest, properties)
 {
     // NOTE: bbox in the JSON file has been adjusted manually.
@@ -805,6 +936,7 @@ TEST_F(FiveVolumesTest, heuristic_init)
         EXPECT_SOFT_EQ(0, result.failed);
     }
 }
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

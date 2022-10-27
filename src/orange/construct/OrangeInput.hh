@@ -51,18 +51,23 @@ struct VolumeInput
     //! Volume label
     Label label{};
 
-    //! Sorted list of surface IDs in this cell
+    //! Sorted list of surface IDs in this volume
     std::vector<SurfaceId> faces{};
-    //! RPN region definition for this cell, using local surface index
+    //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
     //! Axis-aligned bounding box (TODO: currently unused)
     BoundingBox bbox{};
 
     //! Special flags
     logic_int flags{0};
+    //! Masking priority (2 for regular, 1 for background)
+    int zorder{};
 
     //! Whether the volume definition is valid
-    explicit operator bool() const { return !logic.empty(); }
+    explicit operator bool() const
+    {
+        return !logic.empty() || (flags & Flags::implicit_vol);
+    }
 };
 
 //---------------------------------------------------------------------------//

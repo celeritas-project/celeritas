@@ -4,15 +4,16 @@
 "materials": {
 "cell_to_mat": [
 -1,
-0,
-0,
-0,
-0,
-1
+1,
+1,
+1,
+1,
+1,
+0
 ],
 "names": [
-"G4_STAINLESS-STEEL",
-"G4_Galactic"
+"0",
+"1"
 ]
 },
 "universes": [
@@ -20,23 +21,24 @@
 "_type": "simple unit",
 "bbox": [
 [
--500.0,
--500.0,
--500.0
+-10.0,
+-20.0,
+-10.0
 ],
 [
-500.0,
-500.0,
-500.0
+10.0,
+20.0,
+10.0
 ]
 ],
 "cell_names": [
 "[EXTERIOR]",
-"box@1",
-"box@2",
-"box@3",
-"box@4",
-"World"
+"layer0",
+"layer1",
+"layer2",
+"layer3",
+"layer4",
+"world"
 ],
 "cells": [
 {
@@ -70,8 +72,8 @@
 "faces": [
 6,
 7,
-8,
-9,
+10,
+11,
 12,
 13
 ],
@@ -83,8 +85,8 @@
 "faces": [
 6,
 7,
-8,
-9,
+10,
+11,
 14,
 15
 ],
@@ -96,10 +98,23 @@
 "faces": [
 6,
 7,
-8,
-9,
+10,
+11,
 16,
 17
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+10,
+11,
+18,
+19
 ],
 "logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
 "num_intersections": 6,
@@ -124,60 +139,68 @@
 14,
 15,
 16,
-17
+17,
+18,
+19
 ],
-"flags": 1,
-"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 ~ & 8 & 9 ~ & 10 & 11 ~ & ~ & 6 7 ~ & 8 & 9 ~ & 12 & 13 ~ & ~ & 6 7 ~ & 8 & 9 ~ & 14 & 15 ~ & ~ & 6 7 ~ & 8 & 9 ~ & 16 & 17 ~ & ~ &",
-"num_intersections": 18,
-"zorder": 2
+"flags": 2,
+"logic": "",
+"num_intersections": 20,
+"zorder": 1
 }
 ],
 "md": {
-"name": "global",
-"provenance": "four-steel-slabs.org.omn:10"
+"name": "world",
+"provenance": "<unknown>"
 },
 "surface_names": [
-"World.mx",
-"World.px",
-"World.my",
-"World.py",
-"World.mz",
-"World.pz",
-"box@1.mx",
-"box@1.px",
-"box@1.my",
-"box@1.py",
-"box@1.mz",
-"box@1.pz",
-"box@2.mz",
-"box@2.pz",
-"box@3.mz",
-"box@3.pz",
-"box@4.mz",
-"box@4.pz"
+"worldbox.mx",
+"worldbox.px",
+"worldbox.my",
+"worldbox.py",
+"worldbox.mz",
+"worldbox.pz",
+"layerbox0.mx",
+"layerbox0.px",
+"layerbox0.my",
+"layerbox0.py",
+"layerbox0.mz",
+"layerbox0.pz",
+"layerbox1.my",
+"layerbox1.py",
+"layerbox2.my",
+"layerbox2.py",
+"layerbox3.my",
+"layerbox3.py",
+"layerbox4.my",
+"layerbox4.py"
 ],
 "surfaces": {
 "data": [
--500.0,
-500.0,
--500.0,
-500.0,
--500.0,
-500.0,
 -10.0,
 10.0,
+-20.0,
+20.0,
 -10.0,
 10.0,
--2.0,
-2.0,
-4.0,
-8.0,
-10.0,
-14.0,
-16.0,
-20.0
+-9.0,
+9.0,
+-4.5,
+-3.5,
+-9.0,
+9.0,
+-2.5,
+-1.5,
+-0.5,
+0.5,
+1.5,
+2.5,
+3.5,
+4.5
 ],
 "sizes": [
+1,
+1,
 1,
 1,
 1,
@@ -210,12 +233,14 @@
 "py",
 "pz",
 "pz",
-"pz",
-"pz",
-"pz",
-"pz",
-"pz",
-"pz"
+"py",
+"py",
+"py",
+"py",
+"py",
+"py",
+"py",
+"py"
 ]
 }
 }

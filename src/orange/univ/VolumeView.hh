@@ -37,7 +37,6 @@ class VolumeView
     //@{
     //! Type aliases
     using ParamsRef = NativeCRef<OrangeParamsData>;
-    using Flags     = VolumeRecord::Flags;
     //@}
 
   public:
@@ -57,17 +56,26 @@ class VolumeView
     // Get the face ID of a surface if present
     inline CELER_FUNCTION FaceId find_face(SurfaceId id) const;
 
-    // Get all surface IDs for the cell
+    // Get all surface IDs for the volume
     CELER_FORCEINLINE_FUNCTION Span<const SurfaceId> faces() const;
 
     // Get logic definition
     CELER_FORCEINLINE_FUNCTION Span<const logic_int> logic() const;
 
-    // Get flags
-    CELER_FORCEINLINE_FUNCTION logic_int flags() const;
-
     // Get the number of total intersections
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
+
+    // Whether the volume has internal surface crossings
+    CELER_FORCEINLINE_FUNCTION bool internal_surfaces() const;
+
+    // Whether the volume is an "implicit complement"
+    CELER_FORCEINLINE_FUNCTION bool implicit_vol() const;
+
+    // Whether the safety distance can be calculated with the simple algorithm
+    CELER_FORCEINLINE_FUNCTION bool simple_safety() const;
+
+    // Whether the intersection is the closest interior surface
+    CELER_FORCEINLINE_FUNCTION bool simple_intersection() const;
 
   private:
     const ParamsRef&    params_;
@@ -121,7 +129,8 @@ CELER_FUNCTION SurfaceId VolumeView::get_surface(FaceId id) const
  * - A non-empty surface ID that's among the faces in this volume will return
  *   the face ID, which is just the index of the surface ID in the list of
  *   local faces.
- * - If the given surface is not present in the cell, the result will be false.
+ * - If the given surface is not present in the volume, the result will be
+ * false.
  *
  * This is an O(log(num_faces)) operation.
  */
@@ -143,7 +152,7 @@ CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get all the surface IDs corresponding to the faces of this cell.
+ * Get all the surface IDs corresponding to the faces of this volume.
  */
 CELER_FUNCTION Span<const SurfaceId> VolumeView::faces() const
 {
@@ -161,22 +170,48 @@ CELER_FUNCTION Span<const logic_int> VolumeView::logic() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get boolean attributes of the volume.
- *
- * These flags are bitwise 'or'd values of VolumeRecord::Flags.
- */
-CELER_FUNCTION logic_int VolumeView::flags() const
-{
-    return def_.flags;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the maximum number of surface intersections.
  */
 CELER_FUNCTION logic_int VolumeView::max_intersections() const
 {
     return def_.max_intersections;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the volume has internal surface crossings.
+ */
+CELER_FUNCTION bool VolumeView::internal_surfaces() const
+{
+    return def_.flags & VolumeRecord::internal_surfaces;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the volume is an "implicit complement".
+ */
+CELER_FUNCTION bool VolumeView::implicit_vol() const
+{
+    return def_.flags & VolumeRecord::implicit_vol;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the safety distance can be calculated with the simple algorithm.
+ */
+CELER_FUNCTION bool VolumeView::simple_safety() const
+{
+    return def_.flags & VolumeRecord::simple_safety;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the intersection is the closest interior surface.
+ */
+CELER_FUNCTION bool VolumeView::simple_intersection() const
+{
+    return !(def_.flags
+             & (VolumeRecord::internal_surfaces | VolumeRecord::implicit_vol));
 }
 
 //---------------------------------------------------------------------------//

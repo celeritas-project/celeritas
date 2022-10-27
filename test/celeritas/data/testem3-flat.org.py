@@ -9,7 +9,7 @@ Note that this file cannot be run standalone: it is merely an input to
 the ``orange2celeritas`` executable. The ``db`` variable is passed into this
 script as a global, then it's validated and written as an ORANGE XML input
 file. Finally, the ORANGE geometry is built from the XML and writes out the
-JSON file field-test.org.json.
+JSON file field-layers.org.json.
 """
 
 comps = "Pb lAr vacuum".split()

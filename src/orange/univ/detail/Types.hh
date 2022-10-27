@@ -176,7 +176,7 @@ struct TempNextFace
  * except for the temporary storage references.
  *
  * The temporary vectors should be sufficient to store all the senses and
- * intersections in any cell.
+ * intersections in any volume.
  */
 struct LocalState
 {

@@ -24,8 +24,8 @@ namespace detail
 /*!
  * Calculate senses with a fixed particle position.
  *
- * This is an implementation detail for CellInitializer but is also used by
- * complex intersection methods.
+ * This is an implementation detail used in initialization *and* complex
+ * intersection.
  */
 class SenseCalculator
 {
@@ -94,7 +94,7 @@ SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
     // state position
     auto calc_sense = make_surface_action(surfaces_, CalcSense{pos_});
 
-    // Fill the temp logic vector with values for all surfaces in the cell
+    // Fill the temp logic vector with values for all surfaces in the volume
     for (FaceId cur_face : range(FaceId{vol.num_faces()}))
     {
         Sense cur_sense;
