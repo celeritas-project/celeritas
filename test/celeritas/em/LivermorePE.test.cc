@@ -18,7 +18,6 @@
 #include "celeritas/em/detail/Utils.hh"
 #include "celeritas/em/interactor/LivermorePEInteractor.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"

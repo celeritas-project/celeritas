@@ -11,7 +11,6 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
@@ -19,6 +18,7 @@
 
 namespace celeritas
 {
+struct ImportLivermorePE;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the Livermore photoelectric model interaction.

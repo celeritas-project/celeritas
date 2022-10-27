@@ -22,6 +22,7 @@
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/generated/LivermorePEInteract.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"

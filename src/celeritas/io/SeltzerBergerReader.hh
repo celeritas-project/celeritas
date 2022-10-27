@@ -32,7 +32,7 @@ class SeltzerBergerReader
   public:
     //!@{
     //! Type aliases
-    using result_type  = ImportSBTable;
+    using result_type = ImportSBTable;
     //!@}
 
   public:

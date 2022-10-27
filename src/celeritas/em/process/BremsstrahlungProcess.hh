@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "celeritas/mat/MaterialParams.hh"
@@ -16,6 +17,7 @@
 
 namespace celeritas
 {
+struct ImportSBTable;
 //---------------------------------------------------------------------------//
 /*!
  * Bremsstrahlung process for electrons and positrons.
@@ -28,6 +30,7 @@ class BremsstrahlungProcess : public Process
     using SPConstParticles = std::shared_ptr<const ParticleParams>;
     using SPConstMaterials = std::shared_ptr<const MaterialParams>;
     using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using ReadData         = std::function<ImportSBTable(AtomicNumber)>;
     //!@}
 
     // Options for the Bremsstrahlung process
@@ -47,6 +50,7 @@ class BremsstrahlungProcess : public Process
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
                           SPConstImported  process_data,
+                          ReadData         load_sb_table,
                           Options          options);
 
     // Construct the models associated with this process
@@ -65,6 +69,7 @@ class BremsstrahlungProcess : public Process
     SPConstParticles       particles_;
     SPConstMaterials       materials_;
     ImportedProcessAdapter imported_;
+    ReadData               load_sb_;
     Options                options_;
 };
 

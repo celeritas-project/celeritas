@@ -16,6 +16,9 @@
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportedElementalMapLoader.hh"
+#include "celeritas/io/LivermorePEReader.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 
 #include "ImportedProcessAdapter.hh"
 
@@ -39,6 +42,25 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
     CELER_EXPECT(material_);
 
     processes_ = std::make_shared<ImportedProcesses>(data.processes);
+
+    if (!data.sb_data.empty())
+    {
+        read_sb_ = make_imported_element_loader(data.sb_data);
+    }
+    else
+    {
+        read_sb_ = SeltzerBergerReader{};
+    }
+
+    if (!data.sb_data.empty())
+    {
+        read_livermore_
+            = make_imported_element_loader(data.livermore_pe_data);
+    }
+    else
+    {
+        read_livermore_ = LivermorePEReader{};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -99,14 +121,14 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
     options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<BremsstrahlungProcess>(
-        particle_, material_, processes_, options);
+        particle_, material_, processes_, read_sb_, options);
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
     return std::make_shared<PhotoelectricProcess>(
-        particle_, material_, processes_);
+        particle_, material_, processes_, read_livermore_);
 }
 
 //---------------------------------------------------------------------------//
