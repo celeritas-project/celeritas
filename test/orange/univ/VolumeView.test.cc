@@ -85,22 +85,26 @@ TEST_F(VolumeViewTest, five_volumes)
     {
         VolumeView vol = this->make_view(vol_id);
         num_faces.push_back(vol.num_faces());
-        flags.push_back(vol.flags());
         this->test_face_accessors(vol);
     }
 
     const size_type expected_num_faces[] = {1u, 7u, 7u, 2u, 11u, 1u};
     EXPECT_VEC_EQ(expected_num_faces, num_faces);
 
-    using Flags = VolumeView::Flags;
-    const logic_int expected_flags[]
-        = {Flags::simple_safety,
-           Flags::simple_safety,
-           Flags::simple_safety,
-           Flags::simple_safety,
-           Flags::simple_safety | Flags::internal_surfaces,
-           Flags::simple_safety};
-    EXPECT_VEC_EQ(expected_flags, flags);
+    {
+        VolumeView vol = this->make_view(VolumeId{0});
+        EXPECT_FALSE(vol.internal_surfaces());
+        EXPECT_FALSE(vol.implicit_cell());
+        EXPECT_TRUE(vol.simple_safety());
+        EXPECT_TRUE(vol.simple_intersection());
+    }
+    {
+        VolumeView vol = this->make_view(VolumeId{4});
+        EXPECT_TRUE(vol.internal_surfaces());
+        EXPECT_FALSE(vol.implicit_cell());
+        EXPECT_TRUE(vol.simple_safety());
+        EXPECT_FALSE(vol.simple_intersection());
+    }
 }
 
 //---------------------------------------------------------------------------//

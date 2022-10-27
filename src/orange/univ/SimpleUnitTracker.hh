@@ -43,7 +43,7 @@ class SimpleUnitTracker
     //!@}
 
   public:
-    // Construct with parameters (surfaces, cells)
+    // Construct with parameters (unit definitions and this one's ID)
     inline CELER_FUNCTION
     SimpleUnitTracker(const ParamsRef& params, SimpleUnitId id);
 
@@ -175,7 +175,7 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
         return {volid, {}};
     }
 
-    // Not found, or default to background cell
+    // Not found, or default to background volume
     return {unit_record_.background, {}};
 }
 
@@ -218,7 +218,7 @@ SimpleUnitTracker::cross_boundary(const LocalState& state) const
 
     if (unit_record_.background)
     {
-        // In the background cell on the surface equal to the face ID
+        // In the background volume on the surface equal to the face ID
         return {unit_record_.background, state.surface};
     }
 
@@ -272,7 +272,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
     CELER_EXPECT(volid);
 
     VolumeView vol = this->make_local_volume(volid);
-    if (!(vol.flags() & VolumeRecord::simple_safety))
+    if (!vol.simple_safety())
     {
         // Has a tricky surface: we can't use the simple algorithm to calculate
         // the safety, so return a conservative estimate.
@@ -359,11 +359,6 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
     VolumeView vol = this->make_local_volume(state.volume);
     CELER_ASSERT(state.temp_next.size >= vol.max_intersections());
 
-    // Bitwise 'and' with volume flags if we need to sort the intersections
-    bool is_simple
-        = !((VolumeRecord::internal_surfaces | VolumeRecord::implicit_cell)
-            & vol.flags());
-
     // Find all valid (nearby or finite, depending on F) surface intersection
     // distances inside this volume. Fill the `isect` array if the tracking
     // algorithm requires sorting.
@@ -374,7 +369,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
             state.dir,
             is_valid,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            is_simple,
+            vol.simple_intersection(),
             state.temp_next});
     for (SurfaceId surface : vol.faces())
     {
@@ -390,10 +385,10 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         // no "nearby" distances depending on F)
         return {};
     }
-    else if (is_simple)
+    else if (vol.simple_intersection())
     {
-        // No internal surfaces nor implicit cell: the closest distance is the
-        // next boundary
+        // No internal surfaces nor implicit volume: the closest distance is
+        // the next boundary
         return this->simple_intersect(state, vol, num_isect);
     }
     else
@@ -406,12 +401,12 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
                                    < state.temp_next.distance[b];
                         });
 
-        if (vol.flags() & VolumeRecord::internal_surfaces)
+        if (vol.internal_surfaces())
         {
             // Internal surfaces: find closest surface that puts us outside
             return this->complex_intersect(state, vol, num_isect);
         }
-        else if (vol.flags() & VolumeRecord::implicit_cell)
+        else if (vol.implicit_cell())
         {
             // Search all the volumes "externally"
             return this->background_intersect(state, num_isect);
@@ -423,7 +418,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance to the next boundary for nonreentrant cells.
+ * Calculate distance to the next boundary for nonreentrant volumes.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::simple_intersect(const LocalState& state,
@@ -479,7 +474,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
 /*!
  * Calculate boundary distance if internal surfaces are present.
  *
- * In "complex" cells, crossing a surface can still leave the particle in an
+ * In "complex" volumes, crossing a surface can still leave the particle in an
  * "inside" state.
  *
  * We have to iteratively track through all surfaces, in order of minimum
@@ -539,7 +534,7 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance to enter any other volume.
+ * Calculate distance from the background volume to enter any other volume.
  *
  * This is a slimmed-down version of the masked unit tracker's intersection
  * method. We loop over all surface intersections in ascending order, and test
@@ -555,8 +550,9 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
  *
  * \pre The `state.temp_next.isect` array must be sorted by the caller by
  * ascending distance.
- * \pre The "faces" for the background cell are *all* the surfaces in the cell
- * (alternatively we could introduce a mapping between Face and SurfaceId).
+ * \pre The "faces" for the background volume are *all* the surfaces in the
+ * volume (alternatively we could introduce a mapping between Face and
+ * SurfaceId).
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(const LocalState& state,

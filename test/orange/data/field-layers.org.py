@@ -9,6 +9,20 @@ the ``orange2celeritas`` executable. The ``db`` variable is passed into this
 script as a global, then it's validated and written as an ORANGE XML input
 file. Finally, the ORANGE geometry is built from the XML and writes out the
 JSON file field-test.org.json.
+
+The geometry looks like this (with 5 boxes, shortened for clarity)::
+
+        +--------------------+
+        | world              |
+        |  +--------------+  |
+        |  |  layerbox4   |  |
+        |  +--------------+  |
+        |                    |
+    ^   |  +--------------+  |
+    |   |  |  layerbox3   |  |
+    y   |  +--------------+  |
+    |   |   ........         |
+        +--------------------+
 """
 
 layer_box = {
