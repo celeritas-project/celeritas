@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include "celeritas/phys/AtomicNumber.hh"
+
 #include "ImportLivermorePE.hh"
 
 namespace celeritas
@@ -22,7 +24,6 @@ class LivermorePEReader
   public:
     //!@{
     //! Type aliases
-    using AtomicNumber = int;
     using result_type  = ImportLivermorePE;
     //!@}
 

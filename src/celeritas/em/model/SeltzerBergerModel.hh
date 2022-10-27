@@ -14,6 +14,7 @@
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/io/ImportSBTable.hh"
 #include "celeritas/mat/ElementView.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -48,7 +49,6 @@ class SeltzerBergerModel final : public Model
 {
   public:
     //!@{
-    using AtomicNumber    = int;
     using Mass            = units::MevMass;
     using ReadData        = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef         = HostCRef<SeltzerBergerData>;

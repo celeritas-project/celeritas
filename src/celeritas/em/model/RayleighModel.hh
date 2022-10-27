@@ -10,6 +10,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -75,7 +76,6 @@ class RayleighModel final : public Model
 
     //// TYPES ////
 
-    using AtomicNumber = int;
     using HostValue    = HostVal<RayleighData>;
     using ElScatParams = RayleighParameters;
 

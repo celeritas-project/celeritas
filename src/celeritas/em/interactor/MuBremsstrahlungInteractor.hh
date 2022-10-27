@@ -199,7 +199,7 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
         return dxsection;
     }
 
-    const int       atomic_number = element_.atomic_number();
+    const int       atomic_number = element_.atomic_number().unchecked_get();
     const real_type atomic_mass
         = value_as<units::AmuMass>(element_.atomic_mass());
     const real_type sqrt_e           = std::sqrt(constants::euler);

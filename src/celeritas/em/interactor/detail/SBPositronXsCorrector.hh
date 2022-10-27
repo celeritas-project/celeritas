@@ -98,7 +98,7 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
                                              Energy inc_energy)
     : positron_mass_{positron_mass.value()}
     , alpha_z_{2 * constants::pi * celeritas::constants::alpha_fine_structure
-               * el.atomic_number()}
+               * el.atomic_number().unchecked_get()}
     , inc_energy_(inc_energy.value())
     , cutoff_invbeta_{this->calc_invbeta(min_gamma_energy.value())}
 {

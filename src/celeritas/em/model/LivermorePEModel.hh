@@ -13,6 +13,7 @@
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -26,7 +27,6 @@ class LivermorePEModel final : public Model
 {
   public:
     //!@{
-    using AtomicNumber = int;
     using MevEnergy    = units::MevEnergy;
     using ReadData     = std::function<ImportLivermorePE(AtomicNumber)>;
     using HostRef      = LivermorePEHostRef;

@@ -82,7 +82,6 @@ class RelativisticBremModel final : public Model
 
     using HostValue = HostVal<RelativisticBremData>;
 
-    using AtomicNumber = int;
     using FormFactor   = RelBremFormFactor;
     using ElementData  = RelBremElementData;
 

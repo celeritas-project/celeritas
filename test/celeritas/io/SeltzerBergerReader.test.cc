@@ -33,8 +33,8 @@ TEST(SeltzerBergerReaderTest, read)
            0.7,   0.75,  0.8,   0.85,   0.9,    0.925,   0.95,    0.97,
            0.99,  0.995, 0.999, 0.9995, 0.9999, 0.99995, 0.99999, 1};
 
-    SeltzerBergerReader reader;
-    const auto          result = reader(1); // Hydrogen
+    SeltzerBergerReader read_sb;
+    const auto          result = read_sb(AtomicNumber{1}); // Hydrogen
     EXPECT_VEC_SOFT_EQ(log_incident_energy, result.x);
     EXPECT_VEC_SOFT_EQ(exiting_efrac, result.y);
     EXPECT_EQ(1824, result.value.size());
@@ -43,7 +43,7 @@ TEST(SeltzerBergerReaderTest, read)
     // For Z = 93-99, the incident log energy grid and reduced photon energy
     // grid in the bremsstrahlung data files are incorrect (smaller than the
     // number of DCS values), so this should fail.
-    EXPECT_THROW(reader(94), RuntimeError);
+    EXPECT_THROW(read_sb(AtomicNumber{94}), RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

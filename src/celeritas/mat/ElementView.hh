@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "MaterialData.hh"
 
@@ -46,8 +47,8 @@ class ElementView
 
     //// STATIC PROPERTIES ////
 
-    //! Atomic number Z
-    CELER_FUNCTION int atomic_number() const { return def_.atomic_number; }
+    // Atomic number Z
+    CELER_FORCEINLINE_FUNCTION AtomicNumber atomic_number() const;
 
     //! Abundance-weighted atomic mass M [amu]
     CELER_FUNCTION AmuMass atomic_mass() const { return def_.atomic_mass; }
@@ -82,6 +83,17 @@ ElementView::ElementView(const MaterialParamsRef& params, ElementId el_id)
     : def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Atomic number Z.
+ *
+ * Number of protons in an atom of this element.
+ */
+CELER_FUNCTION AtomicNumber ElementView::atomic_number() const
+{
+    return def_.atomic_number;
 }
 
 //---------------------------------------------------------------------------//

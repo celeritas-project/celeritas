@@ -147,7 +147,7 @@ void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
  */
 auto RayleighModel::get_el_parameters(AtomicNumber z) -> const ElScatParams&
 {
-    CELER_EXPECT(z > 0);
+    CELER_EXPECT(z);
     static const ElScatParams el_params[]
         = {{{0.00000e+00, 1.00000e+00, 0.00000e+00},
             {1.53728e-16, 1.10561e-15, 6.89413e-17},
@@ -450,12 +450,13 @@ auto RayleighModel::get_el_parameters(AtomicNumber z) -> const ElScatParams&
             {1.53226e-15, 2.49104e-16, 1.28308e-16},
             {5.84949e+00, 3.28173e+00, 3.26330e-01}}};
 
-    CELER_VALIDATE((z - 1) * sizeof(ElScatParams) < sizeof(el_params),
-                   << "atomic number " << z
+    int idx = z.unchecked_get() - 1;
+    CELER_VALIDATE(idx >= 0 && idx * sizeof(ElScatParams) < sizeof(el_params),
+                   << "atomic number " << z.get()
                    << " is out of range for Rayleigh model data (must be less "
                       "than "
                    << sizeof(el_params) / sizeof(ElScatParams) << ")");
-    return el_params[z - 1];
+    return el_params[idx];
 }
 
 //---------------------------------------------------------------------------//

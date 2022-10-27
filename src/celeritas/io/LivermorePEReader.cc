@@ -51,17 +51,17 @@ LivermorePEReader::LivermorePEReader(const char* path) : path_(path)
 LivermorePEReader::result_type
 LivermorePEReader::operator()(AtomicNumber atomic_number) const
 {
-    CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
+    CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 
-    CELER_LOG(debug) << "Reading Livermore PE data for Z=" << atomic_number;
+    std::string z_str = std::to_string(atomic_number.unchecked_get());
+    CELER_LOG(debug) << "Reading Livermore PE data for Z=" << z_str;
 
     result_type result;
-    std::string Z = std::to_string(atomic_number);
 
     // Read photoelectric effect total cross section above K-shell energy but
     // below energy limit for parameterization
     {
-        std::string   filename = path_ + "/pe-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -86,7 +86,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read photoelectric effect total cross section below K-shell energy
     {
-        std::string   filename = path_ + "/pe-le-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-le-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -115,7 +115,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read subshell cross section fit parameters in low energy interval
     {
-        std::string   filename = path_ + "/pe-low-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-low-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -143,7 +143,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read subshell cross section fit parameters in high energy interval
     {
-        std::string   filename = path_ + "/pe-high-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-high-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -173,7 +173,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read tabulated subshell cross sections
     {
-        std::string   filename = path_ + "/pe-ss-cs-" + Z + ".dat";
+        std::string   filename = path_ + "/pe-ss-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename

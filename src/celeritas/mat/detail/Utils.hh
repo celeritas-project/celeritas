@@ -10,6 +10,7 @@
 
 #include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas
 {
@@ -18,9 +19,9 @@ struct ElementRecord;
 namespace detail
 {
 //---------------------------------------------------------------------------//
-real_type        calc_coulomb_correction(int atomic_number);
+real_type        calc_coulomb_correction(AtomicNumber atomic_number);
 real_type        calc_mass_rad_coeff(const ElementRecord& el);
-units::MevEnergy get_mean_excitation_energy(int atomic_number);
+units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number);
 
 //---------------------------------------------------------------------------//
 } // namespace detail

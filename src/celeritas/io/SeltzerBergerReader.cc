@@ -53,14 +53,15 @@ SeltzerBergerReader::SeltzerBergerReader(const char* path) : path_(path)
 SeltzerBergerReader::result_type
 SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
 {
-    CELER_EXPECT(atomic_number > 0);
+    CELER_EXPECT(atomic_number);
 
-    CELER_LOG(debug) << "Reading SB cross sections for Z=" << atomic_number;
+    std::string z_str = std::to_string(atomic_number.unchecked_get());
+    CELER_LOG(debug) << "Reading SB cross sections for Z=" << z_str;
 
     result_type result;
 
     // Open file for given atomic number
-    std::string   file = path_ + "/br" + std::to_string(atomic_number);
+    std::string   file = path_ + "/br" + z_str;
     std::ifstream input_stream(file.c_str());
     CELER_VALIDATE(input_stream,
                    << "failed to open '" << file

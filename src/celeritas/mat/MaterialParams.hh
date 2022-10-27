@@ -19,6 +19,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "ElementView.hh"
 #include "MaterialData.hh"
@@ -45,7 +46,7 @@ class MaterialParams
     //! Define an element's input data
     struct ElementInput
     {
-        int            atomic_number; //!< Z number
+        AtomicNumber   atomic_number; //!< Z number
         units::AmuMass atomic_mass;   //!< Isotope-weighted average atomic mass
         Label          label;         //!< Element name
     };

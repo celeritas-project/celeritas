@@ -161,7 +161,7 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
     real_type onemy = 1 - y;
     real_type term0 = onemy + R(0.75) * ipow<2>(y);
 
-    if (element_.atomic_number() < 5)
+    if (element_.atomic_number() < AtomicNumber{5})
     {
         // The Dirac-Fock model
         dxsec = term0 * elem_data_.factor1 + onemy * elem_data_.factor2;
@@ -169,7 +169,9 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
     else
     {
         // Tsai's analytical approximation.
-        real_type invz  = 1 / static_cast<real_type>(element_.atomic_number());
+        real_type invz = 1
+                         / static_cast<real_type>(
+                             element_.atomic_number().unchecked_get());
         real_type term1 = y / (total_energy_ - gamma_energy);
         real_type gamma = term1 * elem_data_.gamma_factor;
         real_type epsilon = term1 * elem_data_.epsilon_factor;

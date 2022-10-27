@@ -12,6 +12,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas
 {
@@ -29,8 +30,8 @@ namespace celeritas
  */
 struct ElementRecord
 {
-    int            atomic_number = 0; //!< Z number
-    units::AmuMass atomic_mass;       //!< Isotope-weighted average atomic mass
+    AtomicNumber   atomic_number; //!< Z number
+    units::AmuMass atomic_mass;   //!< Isotope-weighted average atomic mass
 
     // COMPUTED PROPERTIES
 
