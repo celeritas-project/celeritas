@@ -62,7 +62,7 @@ struct VolumeRecord
     enum Flags : logic_int
     {
         internal_surfaces = 0x1, //!< "Complex" distance-to-boundary
-        implicit_cell     = 0x2, //!< Background/exterior volume
+        implicit_vol      = 0x2, //!< Background/exterior volume
         simple_safety     = 0x4  //!< Fast safety calculation
     };
 };

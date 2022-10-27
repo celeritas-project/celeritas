@@ -66,7 +66,7 @@ struct VolumeInput
     //! Whether the volume definition is valid
     explicit operator bool() const
     {
-        return !logic.empty() || (flags & Flags::implicit_cell);
+        return !logic.empty() || (flags & Flags::implicit_vol);
     }
 };
 

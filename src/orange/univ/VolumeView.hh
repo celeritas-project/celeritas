@@ -69,7 +69,7 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION bool internal_surfaces() const;
 
     // Whether the volume is an "implicit complement"
-    CELER_FORCEINLINE_FUNCTION bool implicit_cell() const;
+    CELER_FORCEINLINE_FUNCTION bool implicit_vol() const;
 
     // Whether the safety distance can be calculated with the simple algorithm
     CELER_FORCEINLINE_FUNCTION bool simple_safety() const;
@@ -190,9 +190,9 @@ CELER_FUNCTION bool VolumeView::internal_surfaces() const
 /*!
  * Whether the volume is an "implicit complement".
  */
-CELER_FUNCTION bool VolumeView::implicit_cell() const
+CELER_FUNCTION bool VolumeView::implicit_vol() const
 {
-    return def_.flags & VolumeRecord::implicit_cell;
+    return def_.flags & VolumeRecord::implicit_vol;
 }
 
 //---------------------------------------------------------------------------//
@@ -211,7 +211,7 @@ CELER_FUNCTION bool VolumeView::simple_safety() const
 CELER_FUNCTION bool VolumeView::simple_intersection() const
 {
     return !(def_.flags
-             & (VolumeRecord::internal_surfaces | VolumeRecord::implicit_cell));
+             & (VolumeRecord::internal_surfaces | VolumeRecord::implicit_vol));
 }
 
 //---------------------------------------------------------------------------//

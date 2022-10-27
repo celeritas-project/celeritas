@@ -70,13 +70,13 @@ int calc_max_depth(Span<const logic_int> logic)
 /*!
  * Whether a volume supports "simple safety".
  *
- * We declare this to be true for "implicit" cells (whose interiors aren't
- * tracked like normal cells), as well as cells that have *both* the simple
+ * We declare this to be true for "implicit" volumes (whose interiors aren't
+ * tracked like normal volumes), as well as volumes that have *both* the simple
  * safety flag (no invalid surface types) *and* no internal surfaces.
  */
 bool supports_simple_safety(logic_int flags)
 {
-    return (flags & VolumeRecord::implicit_cell)
+    return (flags & VolumeRecord::implicit_vol)
            || ((flags & VolumeRecord::simple_safety)
                && !(flags & VolumeRecord::internal_surfaces));
 }
@@ -160,8 +160,8 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        // Add connectivity for explicitly connected cells
-        if (!(vol_records[i].flags & VolumeRecord::implicit_cell))
+        // Add connectivity for explicitly connected volumes
+        if (!(vol_records[i].flags & VolumeRecord::implicit_vol))
         {
             for (SurfaceId f : inp.volumes[i].faces)
             {
@@ -297,13 +297,13 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     }
 
     auto input_logic = make_span(v.logic);
-    if (v.flags & VolumeRecord::Flags::implicit_cell)
+    if (v.flags & VolumeRecord::Flags::implicit_vol)
     {
-        // Currently SCALE ORANGE writes background cells as having "empty"
+        // Currently SCALE ORANGE writes background volumes as having "empty"
         // logic, whereas we really want them to be "nowhere" (at least
         // nowhere *explicitly* using the 'inside' logic). It gets away with
         // this because it always uses BVH to initialize, and the implicit
-        // cells get an empty bbox. To avoid special cases in Celeritas, set
+        // volumes get an empty bbox. To avoid special cases in Celeritas, set
         // the logic to be explicitly "not true".
         CELER_EXPECT(input_logic.empty());
         static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};

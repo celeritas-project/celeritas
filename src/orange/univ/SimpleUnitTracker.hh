@@ -406,7 +406,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
             // Internal surfaces: find closest surface that puts us outside
             return this->complex_intersect(state, vol, num_isect);
         }
-        else if (vol.implicit_cell())
+        else if (vol.implicit_vol())
         {
             // Search all the volumes "externally"
             return this->background_intersect(state, num_isect);

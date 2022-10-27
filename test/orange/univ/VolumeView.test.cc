@@ -94,14 +94,14 @@ TEST_F(VolumeViewTest, five_volumes)
     {
         VolumeView vol = this->make_view(VolumeId{0});
         EXPECT_FALSE(vol.internal_surfaces());
-        EXPECT_FALSE(vol.implicit_cell());
+        EXPECT_FALSE(vol.implicit_vol());
         EXPECT_TRUE(vol.simple_safety());
         EXPECT_TRUE(vol.simple_intersection());
     }
     {
         VolumeView vol = this->make_view(VolumeId{4});
         EXPECT_TRUE(vol.internal_surfaces());
-        EXPECT_FALSE(vol.implicit_cell());
+        EXPECT_FALSE(vol.implicit_vol());
         EXPECT_TRUE(vol.simple_safety());
         EXPECT_FALSE(vol.simple_intersection());
     }
