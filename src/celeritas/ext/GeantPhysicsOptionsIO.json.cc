@@ -104,6 +104,7 @@ void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
         if (j.count(#NAME))                   \
             j.at(#NAME).get_to(options.NAME); \
     } while (0)
+    GPO_LOAD_OPTION(atomic_relaxation);
     GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(rayleigh_scattering);
     GPO_LOAD_OPTION(eloss_fluctuation);
@@ -126,6 +127,7 @@ void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
 {
     j = nlohmann::json::object();
 #define GPO_SAVE_OPTION(NAME) j[#NAME] = options.NAME
+    GPO_SAVE_OPTION(atomic_relaxation);
     GPO_SAVE_OPTION(coulomb_scattering);
     GPO_SAVE_OPTION(rayleigh_scattering);
     GPO_SAVE_OPTION(eloss_fluctuation);

@@ -269,7 +269,7 @@ TEST_F(ImportedProcessesTest, photoelectric)
         GTEST_SKIP() << "Failed to create reader: " << e.what();
     }
     auto process = std::make_shared<PhotoelectricProcess>(
-            particles_, materials_, processes_, reader);
+        particles_, materials_, processes_, reader);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -317,8 +317,8 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     BremsstrahlungProcess::Options options;
     options.combined_model  = false;
     options.use_integral_xs = true;
-    auto process = std::make_shared<BremsstrahlungProcess>(
-            particles_, materials_, processes_, reader, options);
+    auto process            = std::make_shared<BremsstrahlungProcess>(
+        particles_, materials_, processes_, reader, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -375,8 +375,8 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     BremsstrahlungProcess::Options options;
     options.combined_model  = true;
     options.use_integral_xs = true;
-    auto process = std::make_shared<BremsstrahlungProcess>(
-            particles_, materials_, processes_, reader, options);
+    auto process            = std::make_shared<BremsstrahlungProcess>(
+        particles_, materials_, processes_, reader, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});

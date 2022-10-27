@@ -51,6 +51,7 @@ enum class MscModelSelection
  */
 struct GeantPhysicsOptions
 {
+    bool atomic_relaxation{false};
     bool coulomb_scattering{false};
     bool rayleigh_scattering{true};
     bool eloss_fluctuation{true};

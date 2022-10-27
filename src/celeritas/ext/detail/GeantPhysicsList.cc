@@ -57,6 +57,8 @@ GeantPhysicsList::GeantPhysicsList(const Options& options) : options_(options)
     em_parameters.SetMaxEnergy(value_as<units::MevEnergy>(options.max_energy)
                                * CLHEP::MeV);
     em_parameters.SetLPM(options.lpm);
+    em_parameters.SetFluo(options.atomic_relaxation);
+    em_parameters.SetAuger(options.atomic_relaxation);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
 }

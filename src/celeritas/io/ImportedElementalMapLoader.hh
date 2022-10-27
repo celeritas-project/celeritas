@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+
 #include "corecel/Assert.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 

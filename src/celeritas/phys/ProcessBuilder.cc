@@ -54,8 +54,7 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
 
     if (!data.sb_data.empty())
     {
-        read_livermore_
-            = make_imported_element_loader(data.livermore_pe_data);
+        read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
     else
     {
