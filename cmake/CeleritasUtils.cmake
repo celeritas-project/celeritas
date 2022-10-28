@@ -165,10 +165,6 @@ endfunction()
 function(celeritas_add_library target)
   celeritas_rdc_add_library(${target} ${ARGN})
 
-  # Install to lib/
-  set(_props LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}")
-  set_target_properties(${target} PROPERTIES ${_props})
-
   # Add Celeritas:: namespace alias
   add_library(Celeritas::${target} ALIAS ${target})
 
@@ -184,6 +180,12 @@ function(celeritas_add_library target)
     endif()
   endif()
 
+  # Build all targets in lib/
+  set_target_properties(${_targets} PROPERTIES ${_props}
+    LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+  )
+
+  # Install all targets to lib/
   install(TARGETS ${_targets}
     EXPORT celeritas-targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
