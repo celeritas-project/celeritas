@@ -147,6 +147,9 @@ if(CELERITAS_USE_ROOT)
       "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
     )
 
+    # Set the CMAKE output directory locally to inform ROOT where we put our
+    # libs
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
     root_generate_dictionary(CeleritasRootInterface
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
