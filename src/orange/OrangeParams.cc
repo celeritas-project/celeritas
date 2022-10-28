@@ -116,8 +116,7 @@ OrangeParams::OrangeParams(const std::string& json_filename)
 OrangeParams::OrangeParams(OrangeInput input)
     : unit_indexer_(make_unit_indexer(input.units))
 {
-    CELER_VALIDATE(!input.units.empty(),
-                   << "input geometry has must contain at least one universe");
+    CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
 
     // Insert all units
     HostVal<OrangeParamsData> host_data;
@@ -152,10 +151,25 @@ OrangeParams::OrangeParams(OrangeInput input)
                   u.surfaces.labels.end(),
                   std::back_inserter(surface_labels));
 
-        std::transform(u.volumes.begin(),
-                       u.volumes.end(),
-                       std::back_inserter(volume_labels),
-                       [](VolumeInput v) -> Label { return v.label; });
+        for (const auto& s : unit.sufurfaces.labels)
+        {
+            Label surface_label = s;
+            if (surface_label.ext.empty())
+            {
+                surface_label.ext = u.label.name;
+            }
+            surface_labels.push_back(surface_label);
+        }
+
+        for (const auto& v : unit.volumes)
+        {
+            Label volume_label = v.label;
+            if (volume_label.ext.empty())
+            {
+                volume_label.ext = u.label.name;
+            }
+            volume_labels.push_back(volume_label);
+        }
 
         bbox_ = u.bbox;
     }
