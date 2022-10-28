@@ -152,7 +152,8 @@ celeritas_add_test(corecel/math/Algorithms.test.cc)
 celeritas_add_test(corecel/math/ArrayUtils.test.cc)
 celeritas_add_test(corecel/math/HashUtils.test.cc)
 celeritas_add_device_test(corecel/math/NumericLimits)
-celeritas_add_test(corecel/math/Quantity.test.cc)
+celeritas_add_test(corecel/math/Quantity.test.cc
+  LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(corecel/math/SoftEqual.test.cc)
 celeritas_add_test(corecel/math/VectorUtils.test.cc)
 
@@ -160,6 +161,7 @@ celeritas_add_test(corecel/math/VectorUtils.test.cc)
 set(CELERITASTEST_PREFIX corecel/sys)
 celeritas_add_test(corecel/sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
+  LINK_LIBRARIES ${_optional_json_link}
 )
 celeritas_add_test(corecel/sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
@@ -274,7 +276,8 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
-celeritas_add_test(celeritas/ext/GeantImporter.test.cc ${_needs_geant4})
+celeritas_add_test(celeritas/ext/GeantImporter.test.cc
+  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#
@@ -360,7 +363,8 @@ celeritas_add_test(celeritas/phys/CutoffParams.test.cc)
 celeritas_add_device_test(celeritas/phys/Particle)
 celeritas_add_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
-celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc)
+celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc
+  LINK_LIBRARIES ${_optional_json_link})
 
 #-----------------------------------------------------------------------------#
 # Random
