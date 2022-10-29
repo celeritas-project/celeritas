@@ -4,9 +4,6 @@ CMAKE_PRESET=$1
 shift
 
 _ctest_args="-j16 --timeout 180 --no-compress-output --test-output-size-passed=65536 --test-output-size-failed=1048576"
-if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  _ctest_args="-L 'app' ${_ctest_args}"
-fi
 
 set -x
 

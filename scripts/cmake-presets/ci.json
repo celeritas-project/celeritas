@@ -38,9 +38,7 @@
       "hidden": true,
       "description": "Options to enable ROOT on Ubuntu",
       "cacheVariables": {
-        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "ON"},
-        "CMAKE_EXE_LINKER_FLAGS": "-Wl,--no-as-needed",
-        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed"
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "ON"}
       }
     },
     {
@@ -85,7 +83,7 @@
       "inherits": [".ndebug", ".cuda-volta", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
       }
