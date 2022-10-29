@@ -147,11 +147,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     {
         // Capture metadata
 
-        std::copy(u.surfaces.labels.begin(),
-                  u.surfaces.labels.end(),
-                  std::back_inserter(surface_labels));
-
-        for (const auto& s : unit.sufurfaces.labels)
+        for (const auto& s : u.surfaces.labels)
         {
             Label surface_label = s;
             if (surface_label.ext.empty())
@@ -161,7 +157,7 @@ OrangeParams::OrangeParams(OrangeInput input)
             surface_labels.push_back(surface_label);
         }
 
-        for (const auto& v : unit.volumes)
+        for (const auto& v : u.volumes)
         {
             Label volume_label = v.label;
             if (volume_label.ext.empty())
