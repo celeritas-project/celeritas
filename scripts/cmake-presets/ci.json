@@ -103,7 +103,7 @@
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
     {"name": "valgrind"        , "configurePreset": "valgrind"        , "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": "app/all"}
+    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
   "testPresets": [
     {

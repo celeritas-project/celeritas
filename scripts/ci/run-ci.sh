@@ -30,4 +30,7 @@ if [ "${CMAKE_PRESET}" = "valgrind" ]; then
   # Run Valgrind, but skip apps that are launched through python drivers
   ctest -T MemCheck -LE nomemcheck --output-on-failure \
     ${_ctest_args}
+elif [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
+  cd ci
+  exec test-installation.sh
 fi
