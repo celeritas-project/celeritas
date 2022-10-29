@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/StringUtils.hh"
@@ -31,7 +32,6 @@
 
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
-#include "celeritas_cmake_strings.h"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -69,17 +69,17 @@ class FieldPropagatorTestBase : public GlobalGeoTestBase
         // Create particle defs
         constexpr auto        stable = ParticleRecord::stable_decay_constant();
         ParticleParams::Input defs   = {
-              {"electron",
-               pdg::electron(),
-               MevMass{0.5109989461},
-               ElementaryCharge{-1},
-               stable},
-              {"positron",
-               pdg::positron(),
-               MevMass{0.5109989461},
-               ElementaryCharge{1},
-               stable},
-              {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
+            {"electron",
+             pdg::electron(),
+             MevMass{0.5109989461},
+             ElementaryCharge{-1},
+             stable},
+            {"positron",
+             pdg::positron(),
+             MevMass{0.5109989461},
+             ElementaryCharge{1},
+             stable},
+            {"gamma", pdg::gamma(), zero_quantity(), zero_quantity(), stable}};
         return std::make_shared<ParticleParams>(std::move(defs));
     }
 
@@ -332,7 +332,7 @@ TEST_F(TwoBoxTest, gamma_interior)
 
     // Propagate inside box
     {
-        auto geo       = this->init_geo({0, 0, 0}, {0, 0, 1});
+        auto geo = this->init_geo({0, 0, 0}, {0, 0, 1});
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -366,7 +366,7 @@ TEST_F(TwoBoxTest, gamma_interior)
     }
     // Move in new region
     {
-        auto geo       = this->make_geo_view();
+        auto geo = this->make_geo_view();
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
 
@@ -693,7 +693,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
         if (!CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()));
+                      this->geometry()->id_to_label(geo.surface_id()).name);
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -749,7 +749,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         if (!CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()));
+                      this->geometry()->id_to_label(geo.surface_id()).name);
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -778,7 +778,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         if (!CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()));
+                      this->geometry()->id_to_label(geo.surface_id()).name);
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -801,7 +801,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
         if (!CELERITAS_USE_VECGEOM)
         {
             EXPECT_EQ("inner_box.mx",
-                      this->geometry()->id_to_label(geo.surface_id()));
+                      this->geometry()->id_to_label(geo.surface_id()).name);
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -837,8 +837,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3     start_pos{-5 + dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto geo     = this->init_geo(start_pos, {0, 1, 0});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
@@ -871,8 +871,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3     start_pos{-5 + dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto geo     = this->init_geo(start_pos, {0, 1, 0});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
@@ -891,8 +891,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         Real3     start_pos{-5 - dx, 0, 0};
         axpy(real_type(-1), first_pos, &start_pos);
 
-        auto geo       = this->init_geo(start_pos, {0, 1, 0});
-        auto stepper   = make_mag_field_stepper<DiagnosticDPStepper>(
+        auto geo     = this->init_geo(start_pos, {0, 1, 0});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, &geo);
