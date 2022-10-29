@@ -22,7 +22,7 @@ git clone https://github.com/celeritas-project/celeritas src
 cd src
 git fetch origin pull/$1/head:mr/$1
 git checkout mr/$1
-entrypoint-shell ./scripts/docker/ci/run-ci.sh ${BUILD}
+entrypoint-shell ./scripts/ci/run-ci.sh ${BUILD}
 EOF
 docker stop --time=0 $CONTAINER
 echo "To resume: docker start $CONTAINER \\"

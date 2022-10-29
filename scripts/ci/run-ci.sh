@@ -10,14 +10,14 @@ fi
 
 set -x
 
-cd "$(dirname $0)"/../../..
+cd "$(dirname $0)"/../..
 ln -fs scripts/cmake-presets/ci.json CMakeUserPresets.json
 
 # Fetch tags for version provenance
 git fetch --tags
 # Configure
 cmake --preset=${CMAKE_PRESET}
-# Build
+# Build and (optionally) install
 cmake --build --preset=${CMAKE_PRESET}
 
 # Require regression-like tests to be enabled and pass
@@ -26,9 +26,8 @@ export CELER_TEST_STRICT=1
 cd build
 # Test
 ctest -T Test ${_ctest_args}
-# Valgrind
 if [ "${CMAKE_PRESET}" = "valgrind" ]; then
-  # Don't run apps that are launched through python drivers
+  # Run Valgrind, but skip apps that are launched through python drivers
   ctest -T MemCheck -LE nomemcheck --output-on-failure \
     ${_ctest_args}
 fi
