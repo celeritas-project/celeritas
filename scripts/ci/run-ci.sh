@@ -18,7 +18,7 @@ cmake --build --preset=${CMAKE_PRESET}
 # Require regression-like tests to be enabled and pass
 export CELER_TEST_STRICT=1
 
-cmake --test --preset=${CMAKE_PRESET}
+ctest --preset=${CMAKE_PRESET}
 # Test
 if [ "${CMAKE_PRESET}" = "valgrind" ]; then
   # Run Valgrind, but skip apps that are launched through python drivers
