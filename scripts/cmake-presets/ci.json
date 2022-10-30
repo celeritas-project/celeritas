@@ -120,7 +120,7 @@
         "stopOnFailure": false,
         "jobs": 16,
         "timeout": 180
-      }
+      },
       "output": {
         "maxFailedTestOutputSize": 1048576,
         "maxPassedTestOutputSize": 65536,
