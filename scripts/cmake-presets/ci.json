@@ -42,6 +42,16 @@
       }
     },
     {
+      "name": ".vecgeom",
+      "hidden": true,
+      "description": "Options to enable VecGeom on Ubuntu",
+      "cacheVariables": {
+        "CMAKE_EXE_LINKER_FLAGS": "-Wl,--no-as-needed",
+        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
       "name": "full-novg",
       "description": "Build with debug, everything but VecGeom",
       "inherits": [".cuda-volta", ".mpi", ".root", "base"],
@@ -70,21 +80,19 @@
     {
       "name": "vecgeom-tests",
       "description": "Build tests in debug with vecgeom",
-      "inherits": [".cuda-volta", ".root", "base"],
+      "inherits": [".cuda-volta", ".vecgeom", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "vecgeom-demos",
       "description": "Build demonstration with vecgeom",
-      "inherits": [".ndebug", ".cuda-volta", ".root", "base"],
+      "inherits": [".ndebug", ".cuda-volta", ".vecgeom", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
       }
     }
