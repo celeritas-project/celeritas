@@ -18,13 +18,17 @@ cmake --build --preset=${CMAKE_PRESET}
 # Require regression-like tests to be enabled and pass
 export CELER_TEST_STRICT=1
 
-ctest --preset=${CMAKE_PRESET}
-# Test
-if [ "${CMAKE_PRESET}" = "valgrind" ]; then
+if ! [ "${CMAKE_PRESET}" = "valgrind" ]; then
+  # Regular testing
+  ctest --preset=${CMAKE_PRESET} --no-compress-output
+else
   # Run Valgrind, but skip apps that are launched through python drivers
   cd build
   ctest -T MemCheck -LE nomemcheck --output-on-failure --timeout=180
-elif [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  cd ci
+fi
+
+if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
+  # Test installation
+  cd scripts/ci
   exec test-installation.sh
 fi
