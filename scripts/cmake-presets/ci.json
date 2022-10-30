@@ -114,7 +114,6 @@
     {
       "name": "base",
       "configurePreset": "base",
-      "output": {"outputOnFailure": true},
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
