@@ -128,6 +128,37 @@ define_property(TARGET PROPERTY CELERITAS_CUDA_OBJECT_LIBRARY
   FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
 )
 
+##############################################################################
+# Separate the OPTIONS out from the sources
+#
+macro(CUDA_GET_SOURCES_AND_OPTIONS _sources _cmake_options _options)
+  set( ${_sources} )
+  set( ${_cmake_options} )
+  set( ${_options} )
+  set( _found_options FALSE )
+  foreach(arg ${ARGN})
+    if("x${arg}" STREQUAL "xOPTIONS")
+      set( _found_options TRUE )
+    elseif(
+        "x${arg}" STREQUAL "xWIN32" OR
+        "x${arg}" STREQUAL "xMACOSX_BUNDLE" OR
+        "x${arg}" STREQUAL "xEXCLUDE_FROM_ALL" OR
+        "x${arg}" STREQUAL "xSTATIC" OR
+        "x${arg}" STREQUAL "xSHARED" OR
+        "x${arg}" STREQUAL "xMODULE"
+        )
+      list(APPEND ${_cmake_options} ${arg})
+    else()
+      if ( _found_options )
+        list(APPEND ${_options} ${arg})
+      else()
+        # Assume this is a file
+        list(APPEND ${_sources} ${arg})
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
 #-----------------------------------------------------------------------------#
 #
 # Internal routine to figure out if a list contains
