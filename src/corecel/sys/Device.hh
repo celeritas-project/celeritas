@@ -80,6 +80,12 @@ class Device
     //! Total memory capacity (bytes)
     std::size_t total_global_mem() const { return total_global_mem_; }
 
+    //! Maximum number of threads per block (for launch limits)
+    int max_threads_per_block() const { return max_threads_per_block_; }
+
+    //! Maximum number of threads per block (for launch limits)
+    int max_blocks_per_grid() const { return max_blocks_per_grid_; }
+
     //! Maximum number of concurrent threads per compute unit (for occupancy)
     int max_threads_per_cu() const { return max_threads_per_cu_; }
 
@@ -96,13 +102,15 @@ class Device
     const MapStrInt& extra() const { return extra_; }
 
   private:
-    int          id_                 = -1;
-    std::string  name_               = "<DISABLED>";
-    std::size_t  total_global_mem_   = 0;
-    int          max_threads_per_cu_ = 0;
-    unsigned int threads_per_warp_   = 0;
-    unsigned int eu_per_cu_          = 0;
-    unsigned int default_block_size_ = 256u;
+    int          id_                    = -1;
+    std::string  name_                  = "<DISABLED>";
+    std::size_t  total_global_mem_      = 0;
+    int          max_threads_per_block_ = 0;
+    int          max_blocks_per_grid_   = 0;
+    int          max_threads_per_cu_    = 0;
+    unsigned int threads_per_warp_      = 0;
+    unsigned int eu_per_cu_             = 0;
+    unsigned int default_block_size_    = 256u;
     MapStrInt    extra_;
 };
 

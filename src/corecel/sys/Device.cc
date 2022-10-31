@@ -150,10 +150,12 @@ Device::Device(int id) : id_(id)
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    name_               = props.name;
-    total_global_mem_   = props.totalGlobalMem;
-    max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
-    threads_per_warp_   = props.warpSize;
+    name_                  = props.name;
+    total_global_mem_      = props.totalGlobalMem;
+    max_threads_per_block_ = props.maxThreadsDim[0];
+    max_blocks_per_grid_   = props.maxGridSize[0];
+    max_threads_per_cu_    = props.maxThreadsPerMultiProcessor;
+    threads_per_warp_      = props.warpSize;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
@@ -171,16 +173,15 @@ Device::Device(int id) : id_(id)
     }
 #    endif
 
-    extra_["clock_rate"]            = props.clockRate;
-    extra_["multiprocessor_count"]  = props.multiProcessorCount;
-    extra_["max_cache_size"]        = props.l2CacheSize;
-    extra_["max_threads_per_block"] = props.maxThreadsPerBlock;
-    extra_["memory_clock_rate"]     = props.memoryClockRate;
-    extra_["regs_per_block"]        = props.regsPerBlock;
-    extra_["shared_mem_per_block"]  = props.sharedMemPerBlock;
-    extra_["total_const_mem"]       = props.totalConstMem;
-    extra_["capability_major"]      = props.major;
-    extra_["capability_minor"]      = props.minor;
+    extra_["clock_rate"]           = props.clockRate;
+    extra_["multiprocessor_count"] = props.multiProcessorCount;
+    extra_["max_cache_size"]       = props.l2CacheSize;
+    extra_["memory_clock_rate"]    = props.memoryClockRate;
+    extra_["regs_per_block"]       = props.regsPerBlock;
+    extra_["shared_mem_per_block"] = props.sharedMemPerBlock;
+    extra_["total_const_mem"]      = props.totalConstMem;
+    extra_["capability_major"]     = props.major;
+    extra_["capability_minor"]     = props.minor;
 #    if CELERITAS_USE_CUDA
 #        if CUDART_VERSION >= 11000
     extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
@@ -214,6 +215,7 @@ Device::Device(int id) : id_(id)
     CELER_ENSURE(*this);
     CELER_ENSURE(!name_.empty());
     CELER_ENSURE(total_global_mem_ > 0);
+    CELER_ENSURE(max_threads_per_block_ > 0 && max_blocks_per_grid_ > 0);
 }
 
 //---------------------------------------------------------------------------//
