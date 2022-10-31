@@ -19,7 +19,7 @@ namespace
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to the physics list value.
+ * Get a string corresponding to the Bremsstrahlung model selection.
  */
 const char* to_cstring(BremsModelSelection value)
 {
@@ -40,7 +40,7 @@ const char* to_cstring(BremsModelSelection value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to the physics list value.
+ * Get a string corresponding to the multiple scattering model selection.
  */
 const char* to_cstring(MscModelSelection value)
 {
@@ -53,6 +53,27 @@ const char* to_cstring(MscModelSelection value)
     };
     static_assert(
         static_cast<int>(MscModelSelection::size_) * sizeof(const char*)
+            == sizeof(strings),
+        "Enum strings are incorrect");
+
+    return strings[static_cast<int>(value)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the atomic relaxation option.
+ */
+const char* to_cstring(RelaxationSelection value)
+{
+    CELER_EXPECT(value != RelaxationSelection::size_);
+
+    static const char* const strings[] = {
+        "none",
+        "radiative",
+        "all",
+    };
+    static_assert(
+        static_cast<int>(RelaxationSelection::size_) * sizeof(const char*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -91,6 +112,19 @@ void to_json(nlohmann::json& j, const BremsModelSelection& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(const nlohmann::json& j, RelaxationSelection& value)
+{
+    static auto from_string
+        = StringEnumMap<RelaxationSelection>::from_cstring_func(
+            to_cstring, "atomic relaxation");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, const RelaxationSelection& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -104,7 +138,6 @@ void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
         if (j.count(#NAME))                   \
             j.at(#NAME).get_to(options.NAME); \
     } while (0)
-    GPO_LOAD_OPTION(atomic_relaxation);
     GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(rayleigh_scattering);
     GPO_LOAD_OPTION(eloss_fluctuation);
@@ -112,6 +145,7 @@ void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(integral_approach);
     GPO_LOAD_OPTION(brems);
     GPO_LOAD_OPTION(msc);
+    GPO_LOAD_OPTION(relaxation);
     GPO_LOAD_OPTION(em_bins_per_decade);
     GPO_LOAD_OPTION(min_energy);
     GPO_LOAD_OPTION(max_energy);
@@ -127,7 +161,6 @@ void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
 {
     j = nlohmann::json::object();
 #define GPO_SAVE_OPTION(NAME) j[#NAME] = options.NAME
-    GPO_SAVE_OPTION(atomic_relaxation);
     GPO_SAVE_OPTION(coulomb_scattering);
     GPO_SAVE_OPTION(rayleigh_scattering);
     GPO_SAVE_OPTION(eloss_fluctuation);
@@ -135,6 +168,7 @@ void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
     GPO_SAVE_OPTION(integral_approach);
     GPO_SAVE_OPTION(brems);
     GPO_SAVE_OPTION(msc);
+    GPO_SAVE_OPTION(relaxation);
     GPO_SAVE_OPTION(em_bins_per_decade);
     GPO_SAVE_OPTION(min_energy);
     GPO_SAVE_OPTION(max_energy);

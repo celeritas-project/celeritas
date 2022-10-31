@@ -476,6 +476,7 @@ ImportEmParameters store_em_parameters()
     import.lpm               = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
+    import.auger             = g4.Auger();
 
     CELER_ENSURE(import);
     return import;
@@ -552,11 +553,16 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
         {
             import_data.livermore_pe_data = load_data(LivermorePEReader{});
         }
-        if (G4EmParameters::Instance()->Fluo()
-            || G4EmParameters::Instance()->Auger())
+        if (G4EmParameters::Instance()->Fluo())
         {
+            // TODO: only read auger data if that option is enabled
             import_data.atomic_relaxation_data
                 = load_data(AtomicRelaxationReader{});
+        }
+        else if (G4EmParameters::Instance()->Auger())
+        {
+            CELER_LOG(warning) << "Auger emission is ignored because "
+                                  "fluorescent atomic relaxation is disabled";
         }
     }
 

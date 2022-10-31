@@ -36,6 +36,8 @@ struct ImportEmParameters
     bool integral_approach{true};
     //! Slowing down threshold for linearity assumption
     double linear_loss_limit{0.01};
+    //! Whether auger emission should be enabled (valid only for relaxation)
+    bool auger{false};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const { return linear_loss_limit > 0; }
