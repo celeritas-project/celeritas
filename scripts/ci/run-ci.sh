@@ -39,6 +39,8 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
   -j16 --timeout 180 \
   --no-compress-output --output-on-failure \
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \
+# List XML files generated: jenkins will upload these later
+find Testing -name '*.xml'
   
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   # Test installation

@@ -17,6 +17,7 @@ cd build
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 cmake -G Ninja \
   -D CMAKE_INSTALL_PREFIX=${CI_SCRIPT_DIR}/install \
+  -D BUILD_SHARED_LIBS=ON \
   ..
 ninja
 exec ./example
