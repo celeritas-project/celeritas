@@ -45,5 +45,6 @@ find Testing -name '*.xml'
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   # Test installation
   cd ../scripts/ci
+  export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
   exec ./test-installation.sh
 fi
