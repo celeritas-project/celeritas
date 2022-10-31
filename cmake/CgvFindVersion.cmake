@@ -72,9 +72,13 @@ endif()
 #-----------------------------------------------------------------------------#
 
 function(_cgv_store_version string suffix hash)
+  if(NOT string)
+    message(WARNING "The version metadata for ${CGV_PROJECT} could not "
+      "be determined: installed version number may be incorrect")
+  endif()
   set(_CACHED_VERSION "${string}" "${suffix}" "${hash}")
   # Note: extra 'unset' is necessary if using CMake presets with
-  # ${CGV_PROJECT}_GIT_DESCRIBE=""
+  # ${CGV_PROJECT}_GIT_DESCRIBE="", even with INTERNAL/FORCE
   unset(${CGV_CACHE_VAR} CACHE)
   set(${CGV_CACHE_VAR} "${_CACHED_VERSION}" CACHE INTERNAL
     "Version string and hash for ${CGV_PROJECT}")
@@ -114,7 +118,7 @@ function(_cgv_try_git_describe)
   if(NOT Git_FOUND)
     find_package(Git QUIET)
     if(NOT Git_FOUND)
-      message(WARNING "Could not find Git")
+      message(WARNING "Could not find Git, needed to find the version tag")
       return()
     endif()
   endif()

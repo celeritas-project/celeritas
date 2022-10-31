@@ -440,6 +440,7 @@ install(EXPORT celeritas-targets
 if(Celeritas_VERSION VERSION_EQUAL "0.0.0")
   install(CODE "
 message(WARNING \"The Celeritas version was not detected during configuration.
+  (Check the beginning of your initial configure output for more details.)
   This will result in the installation having incorrect version metadata and
   will interfere with downstream CMake version requirements and may obscure
   provenance data in output results.\")
