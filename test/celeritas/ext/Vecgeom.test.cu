@@ -77,17 +77,16 @@ VGGTestOutput vgg_test(VGGTestInput input)
     thrust::device_vector<double> distances(ids.size(), -3.0);
 
     // Run kernel
-    static const KernelParamCalculator calc_launch_params(vgg_test_kernel,
-                                                          "vgg_test");
-    auto params = calc_launch_params(init.size());
-    vgg_test_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
-        input.params,
-        input.state,
-        raw_pointer_cast(init.data()),
-        input.max_segments,
-        raw_pointer_cast(ids.data()),
-        raw_pointer_cast(distances.data()));
-    CELER_CUDA_CALL(cudaPeekAtLastError());
+    CELER_LAUNCH_KERNEL(vgg_test,
+                        celeritas::device().default_block_size(),
+                        init.size(),
+                        input.params,
+                        input.state,
+                        raw_pointer_cast(init.data()),
+                        input.max_segments,
+                        raw_pointer_cast(ids.data()),
+                        raw_pointer_cast(distances.data()));
+
     CELER_CUDA_CALL(cudaDeviceSynchronize());
 
     // Copy result back to CPU
