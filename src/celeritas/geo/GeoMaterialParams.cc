@@ -113,10 +113,10 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         input.volume_to_mat.assign(geo.num_volumes(), MaterialId{});
         for (auto volume_id : range(VolumeId{geo.num_volumes()}))
         {
-            auto iter = lab_to_id.find(geo.id_to_label(volume_id));
+            auto iter = lab_to_id.find(geo.id_to_label(volume_id).name);
             if (iter == lab_to_id.end())
             {
-                const Label& label = geo.id_to_label(volume_id);
+                const Label& label = geo.id_to_label(volume_id).name;
                 if (!label.name.empty()
                     && !(label.name.front() == '[' && label.name.back() == ']'))
                 {
