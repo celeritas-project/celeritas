@@ -382,7 +382,7 @@ endforeach()
 list(APPEND CELERITAS_EXPORT_VARIABLES "# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
-  Geant4_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
+  Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
   VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
