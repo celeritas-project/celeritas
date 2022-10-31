@@ -13,12 +13,13 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/math/QuantityIO.json.hh"
 
 #include "Model.hh"
 #include "PhysicsParams.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
+
+#    include "corecel/math/QuantityIO.json.hh"
 #endif
 
 namespace celeritas

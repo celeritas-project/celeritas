@@ -43,8 +43,12 @@ endif()
 add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
   Celeritas::celeritas
-  nlohmann_json::nlohmann_json
 )
+if(CELERITAS_USE_JSON)
+  celeritas_target_link_libraries(celer-export-geant
+    nlohmann_json::nlohmann_json
+  )
+endif()
 
 # Reader
 add_executable(celer-dump-data celer-dump-data.cc)
