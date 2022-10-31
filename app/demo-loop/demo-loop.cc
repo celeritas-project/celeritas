@@ -26,8 +26,8 @@
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/KernelDiagnostics.hh"
-#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -182,10 +182,10 @@ int main(int argc, char* argv[])
     OutputManager output;
     output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
         OutputInterface::Category::system, "device", celeritas::device()));
-    output.insert(OutputInterfaceAdapter<KernelDiagnostics>::from_const_ref(
+    output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
         OutputInterface::Category::system,
         "kernels",
-        celeritas::kernel_diagnostics()));
+        celeritas::kernel_registry()));
     output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
     output.insert(std::make_shared<BuildOutput>());

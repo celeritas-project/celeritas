@@ -43,12 +43,12 @@ void count_particle_process(
     const CoreStateDeviceRef&                           states,
     ParticleProcessLauncher<MemSpace::device>::ItemsRef counts)
 {
-    static const KernelParamCalculator calc_launch_params(
-        count_particle_process_kernel, "count_particle_process");
-    auto kp = calc_launch_params(states.size());
-    count_particle_process_kernel<<<kp.blocks_per_grid, kp.threads_per_block>>>(
-        params, states, counts);
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(count_particle_process,
+                        celeritas::device().default_block_size(),
+                        states.size(),
+                        params,
+                        states,
+                        counts);
 }
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

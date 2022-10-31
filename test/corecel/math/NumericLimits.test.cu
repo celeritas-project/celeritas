@@ -60,7 +60,7 @@ NLTestOutput<T> nl_test()
     CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
     static const KernelParamCalculator calc_launch_params(
-        nl_test_kernel<T>, "nl_test", device().threads_per_warp());
+        "nl_test", nl_test_kernel<T>, device().threads_per_warp());
     auto grid = calc_launch_params(4);
 
     CELER_LAUNCH_KERNEL_IMPL(nl_test_kernel<T>,

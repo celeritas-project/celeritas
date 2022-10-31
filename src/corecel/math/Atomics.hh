@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Atomics.hh
+//! \brief Atomics for use in kernel code (CUDA/HIP/OpenMP).
 //---------------------------------------------------------------------------//
 #pragma once
 

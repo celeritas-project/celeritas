@@ -233,5 +233,16 @@ TEST(MathTest, rsqrt)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(MathTest, ceil_div)
+{
+    EXPECT_EQ(0u, ceil_div(0u, 32u));
+    EXPECT_EQ(1u, ceil_div(1u, 32u));
+    EXPECT_EQ(1u, ceil_div(32u, 32u));
+    EXPECT_EQ(2u, ceil_div(33u, 32u));
+    EXPECT_EQ(8u, ceil_div(50u, 7u));
+}
+
+//---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

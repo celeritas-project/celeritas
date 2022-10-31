@@ -11,11 +11,12 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/KernelDiagnostics.hh"
+#include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/MpiOperations.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -100,7 +101,13 @@ int test_main(int argc, char** argv)
         // Write diagnostics and overall test result
         if (device())
         {
-            CELER_LOG(debug) << "Kernel diagnostics: " << kernel_diagnostics();
+            const auto& kr  = celeritas::kernel_registry();
+            auto        msg = CELER_LOG(debug);
+            msg << "Kernel diagnostics: ";
+            for (auto kernel_id : range(KernelId{kr.size()}))
+            {
+                msg << kr.at(kernel_id) << '\n';
+            }
         }
         CELER_LOG(debug) << "Celeritas environment variables: "
                          << environment();

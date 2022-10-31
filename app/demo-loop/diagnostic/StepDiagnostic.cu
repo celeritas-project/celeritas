@@ -41,12 +41,12 @@ void count_steps(const CoreParamsDeviceRef&              params,
                  const CoreStateDeviceRef&               states,
                  StepDiagnosticDataRef<MemSpace::device> data)
 {
-    static const KernelParamCalculator calc_launch_params(count_steps_kernel,
-                                                          "count_steps");
-    auto                               kp = calc_launch_params(states.size());
-    count_steps_kernel<<<kp.blocks_per_grid, kp.threads_per_block>>>(
-        params, states, data);
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(count_steps,
+                        celeritas::device().default_block_size(),
+                        states.size(),
+                        params,
+                        states,
+                        data);
 }
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

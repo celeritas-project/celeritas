@@ -81,8 +81,8 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
     thrust::device_vector<T> samples(states.size());
 
     static const KernelParamCalculator calc_launch_params(
-        sample_canonical_kernel<T>,
         "sample_canonical",
+        sample_canonical_kernel<T>,
         device().default_block_size());
     auto grid = calc_launch_params(states.size());
 
