@@ -29,6 +29,7 @@ inp = {
 }
 
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-interactor')
+environ['CELER_PROFILE_DEVICE'] = "1"
 
 print("Input:")
 with open(f'{exe}.inp.json', 'w') as f:
