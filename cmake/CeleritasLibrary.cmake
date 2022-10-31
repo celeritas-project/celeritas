@@ -593,8 +593,8 @@ endfunction()
 #  Check which CUDA runtime is need for a give (depend) library.
 function(celeritas_check_cuda_runtime OUTVAR library)
 
-  get_target_property(_runtime ${library} CUDA_RUNTIME_LIBRARY)
-  if (NOT _runtime)
+  get_target_property(_runtime_setting ${library} CUDA_RUNTIME_LIBRARY)
+  if (NOT _runtime_setting)
     # We could get more exact information by using:
     #  file(GET_RUNTIME_DEPENDENCIES LIBRARIES ${_lib_loc} UNRESOLVED_DEPENDENCIES_VAR _lib_dependcies)
     # but we get
@@ -608,18 +608,18 @@ function(celeritas_check_cuda_runtime OUTVAR library)
     get_target_property(_cuda_find_library ${library} CELERITAS_CUDA_FINAL_LIBRARY)
     if ("${_cuda_library_type}" STREQUAL "Shared")
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime "Shared")
+      set(_runtime_setting "Shared")
     elseif(NOT _cuda_find_library)
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
-      set(_runtime "None")
+      set(_runtime_setting "None")
     else()
       # If we have a final library then the library is shared.
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime "Shared")
+      set(_runtime_setting "Shared")
     endif()
   endif()
 
-  set(${OUTVAR} ${_runtime} PARENT_SCOPE)
+  set(${OUTVAR} ${_runtime_setting} PARENT_SCOPE)
 endfunction()
 
 
