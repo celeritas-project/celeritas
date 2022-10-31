@@ -382,7 +382,7 @@ endforeach()
 list(APPEND CELERITAS_EXPORT_VARIABLES "# Hints for upstream dependencies")
 foreach(_key
   MPIEXEC_EXECUTABLE CUDAToolkit_BIN_DIR
-  Geant4_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
+  Geant4_DIR GTest_DIR HepMC3_DIR nlohmann_json_DIR Python_DIR ROOT_DIR
   VecCore_DIR VecGeom_DIR
   CLHEP_DIR ZLIB_DIR EXPAT_DIR XercesC_DIR PTL_DIR
   EXPAT_INCLUDE_DIR EXPAT_LIBRARY
@@ -436,5 +436,16 @@ install(EXPORT celeritas-targets
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )
+
+if(Celeritas_VERSION VERSION_EQUAL "0.0.0")
+  install(CODE "
+message(WARNING \"The Celeritas version was not detected during configuration.
+  (Check the beginning of your initial configure output for more details.)
+  This will result in the installation having incorrect version metadata and
+  will interfere with downstream CMake version requirements and may obscure
+  provenance data in output results.\")
+")
+endif()
+
 
 #----------------------------------------------------------------------------#
