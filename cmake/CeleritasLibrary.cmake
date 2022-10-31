@@ -13,21 +13,7 @@ relocatable device code in the VecGeom library.
 .. command:: celeritas_add_library
 
   Add a library to the project using the specified source files *with* special handling
-  for the case where the library contains CUDA separatable code.
-
-  To support separatable CUDA code, the following 4 targets will be contruscted:
-
- - A object library used to compile the source code and share the result with the static and shared library
- - A static library used as input to nvcc -dlink
- - A shared “intermediary” library containing all the .o files but NO nvcc -dlink result
- - A shared “final” library containing the result of nvcc -dlink and linked against the above mentioned shared library.
-
- An executable need to load exactly one result of nvcc -dlink (Whose input needs to be
- the .o files from all the “cuda” library it uses/depends-on. So if the executable has cuda code,
- it will call nvcc -dlink itself and link against the intermediary shared libraries.
- If the executable has no cuda code, then it needs to link against the final library
- (of its most derived dependency). If the executable has no cuda code but use two
- independent cuda libraries, it will still need to run its own nvcc -dlink.
+  for the case where the library contains CUDA relocatable device code.
 
   ::
 
@@ -35,22 +21,72 @@ relocatable device code in the VecGeom library.
             [EXCLUDE_FROM_ALL]
             [<source>...])
 
+  To support CUDA relocatable device code, the following 4 targets will be constructed:
+
+  - A object library used to compile the source code and share the result with the static and shared library
+  - A static library used as input to ``nvcc -dlink``
+  - A shared “intermediary” library containing all the ``.o`` files but NO ``nvcc -dlink`` result
+  - A shared “final” library containing the result of ``nvcc -dlink`` and linked against the "intermediary" shared library.
+
+  An executable needs to load exactly one result of ``nvcc -dlink`` whose input needs to be
+  the ``.o`` files from all the CUDA libraries it uses/depends-on. So if the executable has CUDA code,
+  it will call ``nvcc -dlink`` itself and link against the "intermediary" shared libraries.
+  If the executable has no CUDA code, then it needs to link against the "final" library
+  (of its most derived dependency). If the executable has no CUDA code but uses more than one
+  CUDA library, it will still need to run its own ``nvcc -dlink`` step.
+
+
 .. command: celeritas_target_link_libraries
 
   Specify libraries or flags to use when linking a given target and/or its dependents, taking
-  in account the extra targets (see celeritas_add_library) needed to support CUDA separatable code
-  Usage requirements from linked library targets will be propagated. Usage requirements
-  of a target's dependencies affect compilation of its own sources.
+  in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA relocatable
+  device code.
+
+    ::
+
+      celeritas_target_link_libraries(<target>
+        <PRIVATE|PUBLIC|INTERFACE> <item>...
+        [<PRIVATE|PUBLIC|INTERFACE> <item>...]...))
+
+  Usage requirements from linked library targets will be propagated to all four targets. Usage requirements
+  of a target's dependencies affect compilation of its own sources. In the case that ``<target>`` does
+  not contain CUDA code, the command decays to ``target_link_libraries``.
+
+  See ``target_link_libraries`` for additional detail.
 
 
 .. command:: celeritas_target_include_directories
+
   Add include directories to a target.
 
-  Specifies include directories to use when compiling a given target. The named <target> must
-  have been created by a command such as add_executable() or add_library()
-  and can be used with an ALIAS target.   See target_include_directorie for additional detail.
+    ::
+
+      celeritas_target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+        <INTERFACE|PUBLIC|PRIVATE> [items1...]
+        [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  Specifies include directories to use when compiling a given target. The named <target>
+  must have been created by a command such as celeritas_rdc_add_library(), add_executable() or add_library(),
+  and can be used with an ALIAS target. It is aware of the 4 underlying targets (objects, static,
+  middle, final) present when the input target was created celeritas_rdc_add_library() and will propagate
+  the include directories to all four. In the case that ``<target>`` does not contain CUDA code,
+  the command decays to ``target_include_directories``.
+
+  See ``target_include_directories`` for additional detail.
+
+
+.. command:: celeritas_install
+
+  Specify installation rules for a CUDA RDC target.
 
     ::
+      celeritas_install(TARGETS targets... <ARGN>)
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``install``.
+
+  See ``install`` for additional detail.
+
 
   target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
     <INTERFACE|PUBLIC|PRIVATE> [items1...]
