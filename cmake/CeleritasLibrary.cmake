@@ -234,7 +234,9 @@ endfunction()
 # celeritas_add_library
 #
 # Add a library taking into account whether it contains
-# or depends on separatable CUDA code.
+# or depends on separatable CUDA code.  If it contains
+# cuda code, it will be marked as "separatable compilation"
+# (i.e. request "Relocatable device code")
 #
 function(celeritas_add_library target)
 
@@ -249,9 +251,11 @@ function(celeritas_add_library target)
   # - whether the user request CUDA_SEPARABLE_COMPILATION
   # - whether the library depends on a library with CUDA_SEPARABLE_COMPILATION code.
   # I.e. this should really be done at generation time.
-  # So in the meantime we use CELERITAS_USE_VecGeom as a proxy.
+  # So in the meantime we use rely on the user to call this routine
+  # only in the case where they want the CUDA device code to be compiled
+  # as "relocatable device code"
 
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA OR NOT _contains_cuda)
+  if(NOT CMAKE_CUDA_COMPILER OR NOT _contains_cuda)
     add_library(${target} ${ARGN})
     return()
   endif()
@@ -362,7 +366,7 @@ endfunction()
 # the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_include_directories target)
-  if(NOT CELERITAS_USE_CUDA)
+  if(NOT CMAKE_CUDA_COMPILER)
     target_include_directories(${ARGV})
   else()
 
@@ -621,7 +625,7 @@ endfunction()
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_link_libraries target)
-  if(NOT CELERITAS_USE_CUDA)
+  if(NOT CMAKE_CUDA_COMPILER)
     target_link_libraries(${ARGV})
   else()
     celeritas_strip_alias(target ${target})
