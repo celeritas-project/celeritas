@@ -69,103 +69,163 @@ if(CMAKE_SCRIPT_MODE_FILE)
   cmake_minimum_required(VERSION 3.8)
 endif()
 
-function(cgv_find_version)
-  if(ARGC GREATER 0)
-    set(projname "${ARGV0}")
-  else()
-    set(projname "${CMAKE_PROJECT_NAME}")
-    if(NOT projname)
-      message(FATAL_ERROR "Project name is not defined")
-    endif()
-  endif()
+#-----------------------------------------------------------------------------#
 
-  if(NOT CGV_TAG_REGEX)
-    set(CGV_TAG_REGEX "v([0-9.]+)(-dev[0-9.]+)?")
+function(_cgv_store_version string suffix hash)
+  if(NOT string)
+    message(WARNING "The version metadata for ${CGV_PROJECT} could not "
+      "be determined: installed version number may be incorrect")
   endif()
-  set(_HASH_REGEX "([0-9a-f]+)")
+  set(_CACHED_VERSION "${string}" "${suffix}" "${hash}")
+  # Note: extra 'unset' is necessary if using CMake presets with
+  # ${CGV_PROJECT}_GIT_DESCRIBE="", even with INTERNAL/FORCE
+  unset(${CGV_CACHE_VAR} CACHE)
+  set(${CGV_CACHE_VAR} "${_CACHED_VERSION}" CACHE INTERNAL
+    "Version string and hash for ${CGV_PROJECT}")
+endfunction()
 
+#-----------------------------------------------------------------------------#
+
+function(_cgv_try_archive_md)
   # Get a possible Git version generated using git-archive (see the
   # .gitattributes file)
   set(_ARCHIVE_DESCR "$Format:%$")
   set(_ARCHIVE_TAG "$Format:%D$")
   set(_ARCHIVE_HASH "$Format:%h$")
+  if(_ARCHIVE_HASH MATCHES "Format:%h")
+    # Not a git archive
+    return()
+  endif()
 
-  if(_ARCHIVE_HASH MATCHES "%h")
-    # Not a "git archive": use live git information
-    set(_CACHE_VAR "${projname}_GIT_DESCRIBE")
-    set(_CACHED_VERSION "${${_CACHE_VAR}}")
-    if(NOT _CACHED_VERSION)
-      # Building from a git checkout rather than a distribution
-      if(NOT Git_FOUND)
-        find_package(Git QUIET)
-      endif()
-      if(Git_FOUND)
-        execute_process(
-          COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match" "v*"
-          WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
-          ERROR_VARIABLE _GIT_ERR
-          OUTPUT_VARIABLE _VERSION_STRING
-          RESULT_VARIABLE _GIT_RESULT
-          OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-      else()
-        message(AUTHOR_WARNING "Could not find Git")
-      endif()
-      if(_GIT_RESULT)
-        message(AUTHOR_WARNING "No git tags in ${projname} matched 'v*': "
-          "${_GIT_ERR}")
-      elseif(NOT _VERSION_STRING)
-        message(AUTHOR_WARNING "Failed to get ${projname} version from git: "
-          "git describe returned an empty string")
-      else()
-        # Process description tag: e.g. v0.4.0-2-gc4af497 or v0.4.0
-        # or v2.0.0-dev2
-        string(REGEX MATCH "^${CGV_TAG_REGEX}(-([0-9]+)-g${_HASH_REGEX})?" _MATCH
-          "${_VERSION_STRING}"
-        )
-        if(_MATCH)
-          set(_VERSION_STRING "${CMAKE_MATCH_1}")
-          set(_VERSION_STRING_SUFFIX "${CMAKE_MATCH_2}")
-          if(CMAKE_MATCH_3)
-            # *not* a tagged release
-            set(_VERSION_STRING_SUFFIX "${CMAKE_MATCH_2}-${CMAKE_MATCH_4}")
-            set(_VERSION_HASH "${CMAKE_MATCH_5}")
-          endif()
-        endif()
-      endif()
-      if(NOT _VERSION_STRING)
-        execute_process(
-          COMMAND "${GIT_EXECUTABLE}" "log" "-1" "--format=%h" "HEAD"
-          WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
-          OUTPUT_VARIABLE _VERSION_HASH
-          OUTPUT_STRIP_TRAILING_WHITESPACE
-        )
-      endif()
-      set(_CACHED_VERSION "${_VERSION_STRING}" "${_VERSION_STRING_SUFFIX}" "${_VERSION_HASH}")
-      # Note: extra 'unset' is necessary if using CMake presets with
-      # ${projname}_GIT_DESCRIBE=""
-      unset(${_CACHE_VAR} CACHE)
-      set("${_CACHE_VAR}" "${_CACHED_VERSION}" CACHE INTERNAL
-        "Version string and hash for ${projname}")
-    endif()
-    list(GET _CACHED_VERSION 0 _VERSION_STRING)
-    list(GET _CACHED_VERSION 1 _VERSION_STRING_SUFFIX)
-    list(GET _CACHED_VERSION 2 _VERSION_HASH)
+  string(REGEX MATCH "tag: *${CGV_TAG_REGEX}" _MATCH "${_ARCHIVE_TAG}")
+  if(_MATCH)
+    _cgv_store_version("${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}" "")
   else()
-    string(REGEX MATCH "tag: *${CGV_TAG_REGEX}" _MATCH "${_ARCHIVE_TAG}")
+    message(WARNING "Could not match a version tag for "
+      "git description '${_ARCHIVE_TAG}': perhaps this archive was not "
+      "exported from a tagged commit?")
+    string(REGEX MATCH " *([0-9a-f]+)" _MATCH "${_ARCHIVE_HASH}")
     if(_MATCH)
-      set(_VERSION_STRING "${CMAKE_MATCH_1}")
-      set(_VERSION_STRING_SUFFIX "${CMAKE_MATCH_2}")
-    else()
-      message(AUTHOR_WARNING "Could not match a version tag for "
-        "git description '${_ARCHIVE_TAG}': perhaps this archive was not "
-        "exported from a tagged commit?")
-      string(REGEX MATCH " *${_HASH_REGEX}" _MATCH "${_ARCHIVE_HASH}")
-      if(_MATCH)
-        set(_VERSION_HASH "${CMAKE_MATCH_1}")
+      _cgv_store_version("" "" "${CMAKE_MATCH_1}")
+    endif()
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(_cgv_try_git_describe)
+  # First time calling "git describe"
+  if(NOT Git_FOUND)
+    find_package(Git QUIET)
+    if(NOT Git_FOUND)
+      message(WARNING "Could not find Git, needed to find the version tag")
+      return()
+    endif()
+  endif()
+
+  # Load git description
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match" "v*"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+    ERROR_VARIABLE _GIT_ERR
+    OUTPUT_VARIABLE _VERSION_STRING
+    RESULT_VARIABLE _GIT_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(_GIT_RESULT)
+    message(WARNING "No git tags in ${CGV_PROJECT} matched 'v*': "
+      "${_GIT_ERR}")
+    return()
+  elseif(NOT _VERSION_STRING)
+    message(WARNING "Failed to get ${CGV_PROJECT} version from git: "
+      "git describe returned an empty string")
+    return()
+  endif()
+
+  # Process description tag: e.g. v0.4.0-2-gc4af497 or v0.4.0
+  # or v2.0.0-dev2
+  set(_DESCR_REGEX "^${CGV_TAG_REGEX}(-([0-9]+)-g([0-9a-f]+))?")
+  string(REGEX MATCH "${_DESCR_REGEX}" _MATCH "${_VERSION_STRING}")
+  if(NOT _MATCH)
+    message(WARNING "Failed to parse description '${_VERSION_STRING}' "
+      "with regex '${_DESCR_REGEX}'"
+    )
+    return()
+  endif()
+
+  if(NOT CMAKE_MATCH_3)
+    # This is a tagged release!
+    _cgv_store_version("${CMAKE_MATCH_1}" "${CMAKE_MATCH_2}" "")
+  else()
+    # Qualify the version number and save the hash
+    _cgv_store_version(
+      "${CMAKE_MATCH_1}"
+      "${CMAKE_MATCH_2}-${CMAKE_MATCH_4}"
+      "${CMAKE_MATCH_5}"
+    )
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(_cgv_try_git_hash)
+  if(NOT GIT_EXECUTABLE)
+    return()
+  endif()
+  # Fall back to just getting the hash
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" "log" "-1" "--format=%h" "HEAD"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+    OUTPUT_VARIABLE _VERSION_HASH
+    RESULT_VARIABLE _GIT_RESULT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(_GIT_RESULT)
+    message(WARNING "Failed to get current commit hash from git: "
+      "${_GIT_ERR}")
+    return()
+  endif()
+  _cgv_store_version("" "" "${_VERSION_HASH}")
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(cgv_find_version)
+  # Set CGV_ variables that are used in embedded macros/functions
+  if(ARGC GREATER 0)
+    set(CGV_PROJECT "${ARGV0}")
+  elseif(NOT CGV_PROJECT)
+    if(NOT CMAKE_PROJECT_NAME)
+      message(FATAL_ERROR "Project name is not defined")
+    endif()
+    set(CGV_PROJECT "${CMAKE_PROJECT_NAME}")
+  endif()
+
+  if(NOT CGV_TAG_REGEX)
+    set(CGV_TAG_REGEX "v([0-9.]+)(-dev[0-9.]*)?")
+  endif()
+
+  set(CGV_CACHE_VAR "${CGV_PROJECT}_GIT_DESCRIBE")
+
+  # Successively try archive metadata, git description, or just git hash
+  if(NOT ${CGV_CACHE_VAR})
+    _cgv_try_archive_md()
+    if(NOT ${CGV_CACHE_VAR})
+      _cgv_try_git_describe()
+      if(NOT ${CGV_CACHE_VAR})
+        _cgv_try_git_hash()
+        if(NOT ${CGV_CACHE_VAR})
+          set(${CGV_CACHE_VAR} "" "-unknown" "")
+        endif()
       endif()
     endif()
   endif()
+
+  # Unpack stored version
+  set(_CACHED_VERSION "${${CGV_CACHE_VAR}}")
+  list(GET _CACHED_VERSION 0 _VERSION_STRING)
+  list(GET _CACHED_VERSION 1 _VERSION_STRING_SUFFIX)
+  list(GET _CACHED_VERSION 2 _VERSION_HASH)
 
   if(NOT _VERSION_STRING)
     set(_VERSION_STRING "0.0.0")
@@ -177,9 +237,12 @@ function(cgv_find_version)
     set(_FULL_VERSION_STRING "v${_VERSION_STRING}${_VERSION_STRING_SUFFIX}")
   endif()
 
-  set(${projname}_VERSION "${_VERSION_STRING}" PARENT_SCOPE)
-  set(${projname}_VERSION_STRING "${_FULL_VERSION_STRING}" PARENT_SCOPE)
+  # Set version number and descriptive version in parent scope
+  set(${CGV_PROJECT}_VERSION "${_VERSION_STRING}" PARENT_SCOPE)
+  set(${CGV_PROJECT}_VERSION_STRING "${_FULL_VERSION_STRING}" PARENT_SCOPE)
 endfunction()
+
+#-----------------------------------------------------------------------------#
 
 if(CMAKE_SCRIPT_MODE_FILE)
   cgv_find_version(TEMP)
@@ -195,4 +258,4 @@ if(CMAKE_SCRIPT_MODE_FILE)
   endif()
 endif()
 
-# cmake-git-version v1.0.2-2+ac95211
+# cmake-git-version v1.1.0

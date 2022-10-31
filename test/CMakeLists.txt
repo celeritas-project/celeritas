@@ -22,7 +22,7 @@ add_library(testcel_harness
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
 add_library(Celeritas::testcel_harness ALIAS testcel_harness)
-set_property(TARGET testcel_harness PROPERTY CXX_STANDARD 14)
+target_compile_features(testcel_harness PUBLIC cxx_std_14)
 target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
 )

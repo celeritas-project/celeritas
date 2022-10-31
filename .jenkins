@@ -14,11 +14,11 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh valgrind'
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh valgrind'
            }
            post {
              always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
              }
            }
          }
@@ -30,7 +30,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh full-novg'
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh full-novg'
            }
            post {
              always {
@@ -46,7 +46,23 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh full-novg-ndebug'
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh full-novg-ndebug'
+           }
+           post {
+             always {
+               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+             }
+           }
+         }
+         stage('vecgeom-demos') {
+           agent {
+             docker {
+               image 'celeritas/ci-focal-cuda11:2021-12-18'
+               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+             }
+           }
+           steps {
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh vecgeom-demos'
            }
            post {
              always {
@@ -62,7 +78,7 @@ pipeline {
              }
            }
            steps {
-             sh 'entrypoint-shell ./scripts/docker/ci/run-ci.sh vecgeom-tests'
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh vecgeom-tests'
            }
            post {
              always {

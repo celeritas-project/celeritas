@@ -147,7 +147,12 @@ if(CELERITAS_USE_ROOT)
       "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
     )
 
-    root_generate_dictionary(CeleritasRootInterface
+    # Set the CMAKE output directory locally to inform ROOT where we put our
+    # libs
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
+
+    # Generate the
+    root_generate_dictionary(${root_tgt}
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportMaterial.hh"
@@ -168,6 +173,18 @@ if(CELERITAS_USE_ROOT)
     )
     target_link_libraries(${objlib}
       PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
+    )
+
+    # Install the rootmap/pcm files needed for users or downstream apps to use
+    # Celeritas ROOT interfaces
+    set(_lib_prefix
+      "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas"
+    )
+    install(FILES
+      "${_lib_prefix}.rootmap"
+      "${_lib_prefix}_rdict.pcm"
+      COMPONENT runtime
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     )
   endfunction()
 
@@ -267,23 +284,5 @@ celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}
   PUBLIC ${PUBLIC_DEPS}
 )
-
-#-----------------------------------------------------------------------------#
-# Install
-#-----------------------------------------------------------------------------#
-
-if(CELERITAS_USE_ROOT)
-  # Install the rootmap/pcm files needed for users or downstream apps to use
-  # Celeritas ROOT interfaces
-  set(_lib_prefix
-    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas"
-  )
-  install(FILES
-    "${_lib_prefix}.rootmap"
-    "${_lib_prefix}_rdict.pcm"
-    COMPONENT runtime
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  )
-endif()
 
 #-----------------------------------------------------------------------------#

@@ -38,9 +38,17 @@
       "hidden": true,
       "description": "Options to enable ROOT on Ubuntu",
       "cacheVariables": {
-        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": ".vecgeom",
+      "hidden": true,
+      "description": "Options to enable VecGeom on Ubuntu",
+      "cacheVariables": {
         "CMAKE_EXE_LINKER_FLAGS": "-Wl,--no-as-needed",
-        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed"
+        "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },
     {
@@ -72,21 +80,18 @@
     {
       "name": "vecgeom-tests",
       "description": "Build tests in debug with vecgeom",
-      "inherits": [".cuda-volta", ".root", "base"],
+      "inherits": [".cuda-volta", ".vecgeom", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "vecgeom-demos",
       "description": "Build demonstration with vecgeom",
-      "inherits": [".ndebug", ".cuda-volta", ".root", "base"],
+      "inherits": [".ndebug", ".cuda-volta", ".vecgeom", ".root", "base"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"}
       }
     }
@@ -103,19 +108,32 @@
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
     {"name": "valgrind"        , "configurePreset": "valgrind"        , "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": "app/all"}
+    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
   "testPresets": [
     {
       "name": "base",
       "configurePreset": "base",
-      "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 16}
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 16,
+        "timeout": 180
+      },
+      "output": {
+        "maxFailedTestOutputSize": 1048576,
+        "maxPassedTestOutputSize": 65536,
+        "outputOnFailure": true
+      }
     },
     {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
     {"name": "valgrind"        , "configurePreset": "valgrind"        , "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base"},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "filter": {"include": {"label": "app"}}}
+    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base",
+      "filter": {
+        "include": {"label": "app"}
+      }
+    }
   ]
 }

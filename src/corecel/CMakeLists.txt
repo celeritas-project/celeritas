@@ -75,7 +75,7 @@ endif()
 celeritas_add_library(corecel ${SOURCES})
 
 # Require at least C++14
-set_property(TARGET corecel PROPERTY CXX_STANDARD 14)
+target_compile_features(corecel PUBLIC cxx_std_14)
 
 celeritas_target_include_directories(corecel
   PUBLIC
