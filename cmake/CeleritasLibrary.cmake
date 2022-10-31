@@ -87,10 +87,19 @@ relocatable device code in the VecGeom library.
 
   See ``install`` for additional detail.
 
+.. command:: celeritas_target_compile_options
 
-  target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
-    <INTERFACE|PUBLIC|PRIVATE> [items1...]
-    [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+   Specify compile options for a CUDA RDC target
+
+     ::
+       celeritas_target_compile_options(<target> [BEFORE]
+         <INTERFACE|PUBLIC|PRIVATE> [items1...]
+         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``target_compile_options``.
+
+  See ``target_compile_options`` for additional detail.
 
 #]=======================================================================]
 
