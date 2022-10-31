@@ -43,5 +43,5 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   # Test installation
   cd ../scripts/ci
-  exec test-installation.sh
+  exec ./test-installation.sh
 fi
