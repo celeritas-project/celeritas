@@ -19,6 +19,7 @@ add_executable(example example.cc)
 celeritas_target_link_libraries(example
   Celeritas::corecel
   Celeritas::celeritas
+  CUDA::cudart # needed for RDC??
 )
 
 #-----------------------------------------------------------------------------#
