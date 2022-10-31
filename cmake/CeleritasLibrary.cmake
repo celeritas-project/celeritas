@@ -238,9 +238,11 @@ endfunction()
 #
 function(celeritas_add_library target)
 
+  CUDA_GET_SOURCES_AND_OPTIONS(_sources _cmake_options _options ${ARGN})
+
   set(_midsuf "")
   set(_staticsuf "_static")
-  celeritas_sources_contains_cuda(_contains_cuda ${ARGN})
+  celeritas_sources_contains_cuda(_contains_cuda ${_sources})
 
   # Whether we need the special code or not is actually dependent on information
   # we don't have ... yet
@@ -273,7 +275,7 @@ function(celeritas_add_library target)
     message(FATAL_ERROR "celeritas_add_library does not support MODULE library containing CUDA code")
   endif()
 
-  add_library(${target}_objects OBJECT ${ARGN})
+  add_library(${target}_objects OBJECT ${_ADDLIB_PARSE_UNPARSED_ARGUMENTS})
   if(NOT __static_build)
     add_library(${target}${_staticsuf} STATIC $<TARGET_OBJECTS:${target}_objects>)
   endif()
