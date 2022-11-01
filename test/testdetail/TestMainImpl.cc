@@ -104,9 +104,9 @@ int test_main(int argc, char** argv)
             const auto& kr  = celeritas::kernel_registry();
             auto        msg = CELER_LOG(debug);
             msg << "Kernel diagnostics: ";
-            for (auto kernel_id : range(KernelId{kr.size()}))
+            for (auto kernel_id : range(KernelId{kr.num_kernels()}))
             {
-                msg << kr.at(kernel_id) << '\n';
+                msg << kr.kernel(kernel_id) << '\n';
             }
         }
         CELER_LOG(debug) << "Celeritas environment variables: "

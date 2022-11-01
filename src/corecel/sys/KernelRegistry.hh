@@ -48,22 +48,24 @@ using KernelId = OpaqueId<KernelMetadata>;
 /*!
  * Keep track of kernels and launches.
  *
+ * Every "insert" creates a unique \c KernelMetadata entry in a thread-safe
+ * fashion (in case multiple threads are launching kernels for the first time).
+ * Thus every kernel added to the registry needs a \c static local data (i.e.,
+ * \c KernelParamCalculator) to track whether the kernel has been added and to
+ * keep a reference to the returned profiling data counter. Kernels are always
+ * added sequentially and can never be removed from the registry once added.
+ * Kernels that share the same name will create independent entries!
+ *
+ * \warning Until all kernels have been inserted, the \c num_kernels and
+ * \c kernel accessors are not safe to
+ * use. Accessing by ID is expected to be done well after all insertions have
+ * been completed.
+ *
  * This class has a thread-safe *insert* method because it's meant to be shared
- * across multiple threads when running. Since accessing by ID is expected to
- * be done well after all insertions have been completed, the \c size and \c at
- * accessors are *not* thread safe.
+ * across multiple threads when running.
  */
 class KernelRegistry
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using value_type      = KernelMetadata;
-    using const_reference = const KernelMetadata&;
-    using key_type        = KernelId;
-    using size_type       = KernelId::size_type;
-    //!@}
-
   public:
     // Whether profiling metrics (launch count, max threads) are collected
     static bool profiling();
@@ -71,14 +73,18 @@ class KernelRegistry
     // Construct without any data
     KernelRegistry() = default;
 
+    //// CONSTRUCTION ////
+
     // Register a kernel and return optional reference to profiling info
     KernelProfiling* insert(const char* name, KernelAttributes&& attrs);
 
-    //! Number of kernel diagnostics available
-    size_type size() const { return kernels_.size(); }
+    //// ACCESSORS ////
 
-    // Access kernel data for a single kernel
-    inline const_reference at(key_type id) const;
+    //! Number of kernel diagnostics available (not thread-safe)
+    KernelId::size_type num_kernels() const { return kernels_.size(); }
+
+    // Access kernel data for a single kernel (not thread-safe)
+    inline const KernelMetadata& kernel(KernelId id) const;
 
   private:
     using UPKM = std::unique_ptr<KernelMetadata>;
@@ -116,10 +122,10 @@ void KernelProfiling::log_launch(int num_threads)
 /*!
  * Get the kernel metadata for a given ID.
  */
-auto KernelRegistry::at(key_type key) const -> const_reference
+auto KernelRegistry::kernel(KernelId k) const -> const KernelMetadata&
 {
-    CELER_EXPECT(key < this->size());
-    return *kernels_[key.unchecked_get()];
+    CELER_EXPECT(k < this->num_kernels());
+    return *kernels_[k.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

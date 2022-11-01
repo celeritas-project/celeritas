@@ -22,9 +22,9 @@ void to_json(nlohmann::json& j, const KernelRegistry& kr)
     const bool write_profiling = KernelRegistry::profiling();
 
     j = nlohmann::json::array();
-    for (auto kernel_id : range(KernelId{kr.size()}))
+    for (auto kernel_id : range(KernelId{kr.num_kernels()}))
     {
-        const auto& md = kr.at(kernel_id);
+        const auto& md = kr.kernel(kernel_id);
         j.emplace_back(nlohmann::json::object({
             {"name", md.name},
             {"threads_per_block", md.attributes.threads_per_block},
