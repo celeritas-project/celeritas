@@ -76,17 +76,17 @@ class KernelRegistry
 
     //// ACCESSORS ////
 
-    //! Number of kernel diagnostics available (not thread-safe)
-    KernelId::size_type num_kernels() const { return kernels_.size(); }
+    // Number of kernel diagnostics available
+    KernelId::size_type num_kernels() const;
 
-    // Access kernel data for a single kernel (not thread-safe)
+    // Access kernel data for a single kernel
     const KernelMetadata& kernel(KernelId id) const;
 
   private:
     using UPKM = std::unique_ptr<KernelMetadata>;
 
-    std::mutex        kernels_mutex_;
-    std::vector<UPKM> kernels_;
+    mutable std::mutex kernels_mutex_;
+    std::vector<UPKM>  kernels_;
 };
 
 //---------------------------------------------------------------------------//

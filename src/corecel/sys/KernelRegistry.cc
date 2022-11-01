@@ -71,7 +71,7 @@ auto KernelRegistry::insert(const char* name, KernelAttributes&& attrs)
 /*!
  * Number of kernel diagnostics available.
  */
-KernelId::size_type num_kernels() const
+KernelId::size_type KernelRegistry::num_kernels() const
 {
     // Lock while calculating the vector size.
     std::lock_guard<std::mutex> scoped_lock{kernels_mutex_};
