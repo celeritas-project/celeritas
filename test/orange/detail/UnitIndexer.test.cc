@@ -51,6 +51,11 @@ TEST(UnitIndexerTest, single)
     std::tie(univ, cell) = indexer.local_volume(VolumeId{3});
     EXPECT_EQ(UniverseId(0), univ);
     EXPECT_EQ(VolumeId(3), cell);
+}
+
+TEST(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
+{
+    UnitIndexer indexer({4}, {10});
 
     EXPECT_THROW(indexer.global_surface(UniverseId{0}, SurfaceId{4}),
                  DebugError);

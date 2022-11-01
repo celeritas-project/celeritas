@@ -692,8 +692,7 @@ TEST_F(TwoBoxTest, electron_tangent_cross)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()).name);
+            EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -748,8 +747,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()).name);
+            EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -777,8 +775,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.py",
-                      this->geometry()->id_to_label(geo.surface_id()).name);
+            EXPECT_EQ("inner_box.py", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
@@ -800,8 +797,7 @@ TEST_F(TwoBoxTest, electron_corner_hit)
 
         if (!CELERITAS_USE_VECGEOM)
         {
-            EXPECT_EQ("inner_box.mx",
-                      this->geometry()->id_to_label(geo.surface_id()).name);
+            EXPECT_EQ("inner_box.mx", this->surface_name(geo));
         }
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
