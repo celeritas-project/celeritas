@@ -1,0 +1,75 @@
+[GEOMETRY]
+global "outer"
+
+! SCALE media numbers for downstream tests
+! (triton tally builder)
+comp         : matid
+    "media 0"  0
+    "media 1"  1
+    "media 2"  2
+    "media 3"  3
+    "media 4"  4
+
+!#### INNER UNIVERSE ####!
+! Since this is referenced by the outer universe, it must come first !
+
+[UNIVERSE=general inner]
+interior "gamma"
+
+[UNIVERSE][SHAPE=cuboid alpha]
+faces -1 1 -1 1 0 1
+! volume: 2 * 2 * 1 = 4
+
+[UNIVERSE][SHAPE=cuboid beta]
+faces 1 3 -1 1 0 1
+! volume: 2 * 2 * 1 = 4
+
+[UNIVERSE][SHAPE=cuboid gamma]
+faces -2 4 -2 2 0 1
+! volume: 6 * 4 * 1 = 24
+
+[UNIVERSE][CELL a]
+comp "media 0"
+shapes -alpha
+! volume should automatically be calculated
+
+[UNIVERSE][CELL b]
+comp "media 1"
+shapes -beta
+! volume should automatically be calculated
+
+[UNIVERSE][CELL c]
+comp "media 2"
+shapes +alpha +beta -gamma
+volume 16.0 ! 24 - 4 - 4
+
+!#### OUTER UNIVERSE ####!
+
+[UNIVERSE=general outer]
+interior "john"
+
+[UNIVERSE][HOLE inner_a]
+fill inner
+translate 2 -2 -.5
+
+[UNIVERSE][HOLE inner_b]
+fill inner
+translate 2 -2 0.5
+
+[UNIVERSE][SHAPE=cuboid bob]
+faces 0 6 0 2 -.5 1.5
+! 6 * 2 * 2 = 24
+
+[UNIVERSE][SHAPE=cuboid john]
+faces -2 8 -6 4 -1 2
+! 10 * 10 * 3 = 300
+
+[UNIVERSE][CELL bobby]
+comp "media 3"
+shapes -bob
+! volume should automatically be calculated
+
+[UNIVERSE][CELL johnny]
+comp "media 4"
+shapes +bob +inner_a +inner_b -john
+volume 228 ! 300 - 24 - 24 - 24

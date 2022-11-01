@@ -17,6 +17,7 @@ list(APPEND SOURCES
   Types.cc
   construct/SurfaceInputBuilder.cc
   detail/UnitInserter.cc
+  detail/UnitIndexer.cc
   surf/SurfaceIO.cc
 )
 

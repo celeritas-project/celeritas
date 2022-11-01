@@ -9,13 +9,10 @@
 
 #include "orange/Data.hh"
 #include "orange/Types.hh"
+#include "orange/construct/OrangeInput.hh"
 
 namespace celeritas
 {
-struct UnitInput;
-struct SurfaceInput;
-struct VolumeInput;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -49,6 +46,10 @@ class UnitInserter
     SurfacesRecord insert_surfaces(const SurfaceInput& s);
     VolumeRecord
     insert_volume(const SurfacesRecord& unit, const VolumeInput& v);
+
+    void process_daughter(VolumeRecord*              vol_record,
+                          std::vector<Translation>*  translations,
+                          const UnitInput::Daughter& daughter);
 };
 
 //---------------------------------------------------------------------------//
