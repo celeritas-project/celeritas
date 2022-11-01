@@ -57,7 +57,7 @@ class UnitIndexer
     VecSize surfaces_;
     VecSize volumes_;
 
-    // >>> IMPLEMENTATION METHODS
+    //// IMPLEMENTATION METHODS ////
     static inline VecSize::const_iterator
     find_local(const VecSize& offsets, size_type id);
 

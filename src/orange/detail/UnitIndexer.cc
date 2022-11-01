@@ -43,7 +43,7 @@ std::vector<size_type> count_to_offset(std::vector<size_type> v)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Construct from sizes for each universe ID.
+ * Construct from sizes for each universe ID.
  */
 UnitIndexer::UnitIndexer(VecSize num_surfaces, VecSize num_volumes)
 {
@@ -60,7 +60,7 @@ UnitIndexer::UnitIndexer(VecSize num_surfaces, VecSize num_volumes)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Local-to-global
+ * Transform local to global surface ID.
  */
 auto UnitIndexer::global_surface(UniverseId uni, SurfaceId surf) const
     -> SurfaceId
@@ -73,7 +73,7 @@ auto UnitIndexer::global_surface(UniverseId uni, SurfaceId surf) const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Local-to-global
+ * Transform local to global volume ID.
  */
 auto UnitIndexer::global_volume(UniverseId uni, VolumeId volume) const
     -> VolumeId
@@ -86,7 +86,7 @@ auto UnitIndexer::global_volume(UniverseId uni, VolumeId volume) const
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Global-to-local
+ * Transform global to local surface ID.
  */
 auto UnitIndexer::local_surface(SurfaceId id) const -> LocalSurface
 {
@@ -101,7 +101,7 @@ auto UnitIndexer::local_surface(SurfaceId id) const -> LocalSurface
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Global-to-local
+ * Transform global to local volume ID.
  */
 auto UnitIndexer::local_volume(VolumeId id) const -> LocalVolume
 {
@@ -118,7 +118,7 @@ auto UnitIndexer::local_volume(VolumeId id) const -> LocalVolume
 // IMPLEMENTATION METHODS
 //---------------------------------------------------------------------------//
 /*!
- * \brief Locate the given ID in the list of offsets.
+ * Locate the given ID in the list of offsets.
  */
 auto UnitIndexer::find_local(const VecSize& offsets, size_type id)
     -> VecSize::const_iterator
@@ -137,7 +137,7 @@ auto UnitIndexer::find_local(const VecSize& offsets, size_type id)
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Get the number of elements in the given universe.
+ * Get the number of elements in the given universe.
  */
 auto UnitIndexer::local_size(const VecSize& offsets, UniverseId uni)
     -> size_type
