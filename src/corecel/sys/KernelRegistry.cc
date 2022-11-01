@@ -45,7 +45,7 @@ bool KernelRegistry::profiling()
 
 //---------------------------------------------------------------------------//
 /*!
- * Try adding a new kernel in a thread-safe fashion.
+ * Add a new kernel definition to the list
  */
 auto KernelRegistry::insert(const char* name, KernelAttributes&& attrs)
     -> KernelProfiling*
@@ -61,10 +61,33 @@ auto KernelRegistry::insert(const char* name, KernelAttributes&& attrs)
 
     // Move the unique pointer onto the back of the kernel vector in a
     // thread-safe manner.
-    std::lock_guard<std::mutex> scoped_lock{insert_mutex_};
+    std::lock_guard<std::mutex> scoped_lock{kernels_mutex_};
     kernels_.emplace_back(std::move(kmd));
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of kernel diagnostics available.
+ */
+KernelId::size_type num_kernels() const
+{
+    // Lock while calculating the vector size.
+    std::lock_guard<std::mutex> scoped_lock{kernels_mutex_};
+    return kernels_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the kernel metadata for a given ID.
+ */
+auto KernelRegistry::kernel(KernelId k) const -> const KernelMetadata&
+{
+    CELER_EXPECT(k < this->num_kernels());
+    // Lock while accessing the vector; the reference itself is safe.
+    std::lock_guard<std::mutex> scoped_lock{kernels_mutex_};
+    return *kernels_[k.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//

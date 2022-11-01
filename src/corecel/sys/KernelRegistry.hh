@@ -56,13 +56,9 @@ using KernelId = OpaqueId<KernelMetadata>;
  * added sequentially and can never be removed from the registry once added.
  * Kernels that share the same name will create independent entries!
  *
- * \warning Until all kernels have been inserted, the \c num_kernels and
- * \c kernel accessors are not safe to
- * use. Accessing by ID is expected to be done well after all insertions have
- * been completed.
- *
- * This class has a thread-safe *insert* method because it's meant to be shared
- * across multiple threads when running.
+ * This class has a thread-safe methods because it's meant to be shared
+ * across multiple threads when running. Generally \c insert is the only method
+ * expected to have contention across threads.
  */
 class KernelRegistry
 {
@@ -84,12 +80,12 @@ class KernelRegistry
     KernelId::size_type num_kernels() const { return kernels_.size(); }
 
     // Access kernel data for a single kernel (not thread-safe)
-    inline const KernelMetadata& kernel(KernelId id) const;
+    const KernelMetadata& kernel(KernelId id) const;
 
   private:
     using UPKM = std::unique_ptr<KernelMetadata>;
 
-    std::mutex        insert_mutex_;
+    std::mutex        kernels_mutex_;
     std::vector<UPKM> kernels_;
 };
 
@@ -116,16 +112,6 @@ void KernelProfiling::log_launch(int num_threads)
     // We don't care in what order these values are written.
     this->num_launches.fetch_add(1, std::memory_order_relaxed);
     this->accum_threads.fetch_add(num_threads, std::memory_order_relaxed);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the kernel metadata for a given ID.
- */
-auto KernelRegistry::kernel(KernelId k) const -> const KernelMetadata&
-{
-    CELER_EXPECT(k < this->num_kernels());
-    return *kernels_[k.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
