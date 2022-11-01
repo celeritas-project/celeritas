@@ -694,7 +694,16 @@ function(celeritas_target_link_libraries target)
           get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
           set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} ${_current_link_libraries} )
         else()
-          target_link_libraries(${target} ${_finallibs})
+          # We could have used:
+          #    target_link_libraries(${target} PUBLIC ${_finallibs})
+          # but target_link_libraries must used either all plain arguments or all plain
+          # keywords and at the moment I don't know how to detect which of the 2 style the
+          # user used.
+          # Maybe we could use:
+          #     if(ARGV1 MATCHES "^(PRIVATE|PUBLIC|INTERFACE)$")
+          # or simply keep the following:
+          get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
+          set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} )
         endif()
       elseif(${_final_count} GREATER 1)
         # turn into CUDA executable.
