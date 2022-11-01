@@ -54,19 +54,18 @@ AtomicRelaxationReader::AtomicRelaxationReader(const char* fluor_path,
 AtomicRelaxationReader::result_type
 AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
 {
-    CELER_EXPECT(atomic_number > 0 && atomic_number < 101);
+    CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 
     // EADL does not provide transition data for Z < 6
     result_type result;
-    if (atomic_number < 6)
+    if (atomic_number < AtomicNumber{6})
     {
+        CELER_ENSURE(result.shells.empty());
         return result;
     }
 
-    CELER_LOG(debug) << "Reading atomic relaxation data for Z="
-                     << atomic_number;
-
-    std::string Z = std::to_string(atomic_number);
+    std::string z_str = std::to_string(atomic_number.unchecked_get());
+    CELER_LOG(debug) << "Reading atomic relaxation data for Z=" << z_str;
 
     // Read fluorescence transition probabilities and subshell designators. All
     // lines in the data file are 3 columns. The first line of each section is
@@ -76,7 +75,7 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     // transition probability, and transition energy. A row of -1 marks the end
     // of the shell data, and -2 marks the end of the file.
     {
-        std::string   filename = fluor_path_ + "/fl-tr-pr-" + Z + ".dat";
+        std::string   filename = fluor_path_ + "/fl-tr-pr-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -122,7 +121,7 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     // shell, transition probability, and transition energy. A row of -1 marks
     // the end of the shell data, and -2 marks the end of the file.
     {
-        std::string   filename = auger_path_ + "/au-tr-pr-" + Z + ".dat";
+        std::string   filename = auger_path_ + "/au-tr-pr-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename

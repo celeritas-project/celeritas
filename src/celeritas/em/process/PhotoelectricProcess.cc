@@ -13,7 +13,6 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -24,16 +23,19 @@ namespace celeritas
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                                            SPConstMaterials materials,
-                                           SPConstImported  process_data)
+                                           SPConstImported  process_data,
+                                           ReadData         load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
                 particles_,
                 ImportProcessClass::photoelectric,
                 {pdg::gamma()})
+    , load_pe_(std::move(load_data))
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
+    CELER_EXPECT(load_pe_);
 }
 
 //---------------------------------------------------------------------------//
@@ -42,9 +44,8 @@ PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
  */
 auto PhotoelectricProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
-    LivermorePEModel::ReadData load_data = LivermorePEReader();
     return {std::make_shared<LivermorePEModel>(
-        *start_id++, *particles_, *materials_, load_data)};
+        *start_id++, *particles_, *materials_, load_pe_)};
 }
 
 //---------------------------------------------------------------------------//

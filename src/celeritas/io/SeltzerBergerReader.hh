@@ -10,6 +10,7 @@
 #include <string>
 
 #include "corecel/Types.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "ImportSBTable.hh"
 
@@ -18,6 +19,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Read Seltzer-Berger data from Geant4's $G4LEDATA files.
+ *
  * Use \c operator() to retrieve data for different atomic numbers.
  *
  * \code
@@ -30,8 +32,7 @@ class SeltzerBergerReader
   public:
     //!@{
     //! Type aliases
-    using AtomicNumber = int;
-    using result_type  = ImportSBTable;
+    using result_type = ImportSBTable;
     //!@}
 
   public:

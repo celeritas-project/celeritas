@@ -10,7 +10,7 @@ import re
 import subprocess
 from distutils.util import strtobool
 from os import environ, path
-from sys import exit, argv
+from sys import exit, argv, stderr
 
 try:
     (geometry_filename, hepmc3_filename) = argv[1:]
@@ -37,7 +37,7 @@ geant_options = {
 
 if geant_exp_exe:
     physics_filename = run_name + ".root"
-    print("Running", geant_exp_exe)
+    print("Running", geant_exp_exe, file=stderr)
     result_ge = subprocess.run(
         [geant_exp_exe, geometry_filename, "-", physics_filename],
         input=json.dumps(geant_options).encode()
@@ -51,7 +51,7 @@ else:
     physics_filename = geometry_filename
 
 if not use_vecgeom:
-    print("Replacing .gdml extension since VecGeom is disabled")
+    print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 num_tracks = 128*32 if use_device else 32
@@ -84,7 +84,7 @@ with open(f'{run_name}.inp.json', 'w') as f:
     json.dump(inp, f, indent=1)
 
 exe = environ.get('CELERITAS_DEMO_EXE', './demo-loop')
-print("Running", exe)
+print("Running", exe, file=stderr)
 result = subprocess.run([exe, '-'],
                         input=json.dumps(inp).encode(),
                         stdout=subprocess.PIPE)
@@ -92,7 +92,7 @@ if result.returncode:
     print("fatal: run failed with error", result.returncode)
     exit(result.returncode)
 
-print("Received {} bytes of data".format(len(result.stdout)))
+print("Received {} bytes of data".format(len(result.stdout)), file=stderr)
 out_text = result.stdout.decode()
 # Filter out spurious HepMC3 output
 out_text = out_text[out_text.find('\n{') + 1:]
@@ -107,7 +107,7 @@ except json.decoder.JSONDecodeError as e:
 outfilename = f'{run_name}.out.json'
 with open(outfilename, 'w') as f:
     json.dump(result, f, indent=1)
-print("Results written to", outfilename)
+print("Results written to", outfilename, file=stderr)
 
 time = result['result']['time'].copy()
 time.pop('steps')

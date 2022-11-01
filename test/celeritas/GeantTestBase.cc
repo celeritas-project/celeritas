@@ -25,6 +25,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportedElementalMapLoader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -147,7 +148,10 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
     input.processes.push_back(
         std::make_shared<ComptonProcess>(input.particles, process_data));
     input.processes.push_back(std::make_shared<PhotoelectricProcess>(
-        input.particles, input.materials, process_data));
+        input.particles,
+        input.materials,
+        process_data,
+        make_imported_element_loader(this->imported_data().livermore_pe_data)));
     input.processes.push_back(std::make_shared<GammaConversionProcess>(
         input.particles, process_data, conv_options));
     input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
@@ -155,7 +159,11 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
     input.processes.push_back(std::make_shared<EIonizationProcess>(
         input.particles, process_data, ioni_options));
     input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
-        input.particles, input.materials, process_data, brem_options));
+        input.particles,
+        input.materials,
+        process_data,
+        make_imported_element_loader(this->imported_data().sb_data),
+        brem_options));
     if (this->enable_msc())
     {
         input.processes.push_back(std::make_shared<MultipleScatteringProcess>(

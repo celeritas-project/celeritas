@@ -476,6 +476,7 @@ ImportEmParameters store_em_parameters()
     import.lpm               = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
+    import.auger             = g4.Auger();
 
     CELER_ENSURE(import);
     return import;
@@ -535,11 +536,34 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
         ScopedTimeLog scoped_time;
 
         detail::AllElementReader load_data{import_data.elements};
-        // TODO: load only conditionally based on processes in use
-        import_data.sb_data           = load_data(SeltzerBergerReader{});
-        import_data.livermore_pe_data = load_data(LivermorePEReader{});
-        import_data.atomic_relaxation_data
-            = load_data(AtomicRelaxationReader{});
+
+        auto have_process = [&import_data](ImportProcessClass ipc) {
+            return std::any_of(import_data.processes.begin(),
+                               import_data.processes.end(),
+                               [ipc](const ImportProcess& ip) {
+                                   return ip.process_class == ipc;
+                               });
+        };
+
+        if (have_process(ImportProcessClass::e_brems))
+        {
+            import_data.sb_data = load_data(SeltzerBergerReader{});
+        }
+        if (have_process(ImportProcessClass::photoelectric))
+        {
+            import_data.livermore_pe_data = load_data(LivermorePEReader{});
+        }
+        if (G4EmParameters::Instance()->Fluo())
+        {
+            // TODO: only read auger data if that option is enabled
+            import_data.atomic_relaxation_data
+                = load_data(AtomicRelaxationReader{});
+        }
+        else if (G4EmParameters::Instance()->Auger())
+        {
+            CELER_LOG(warning) << "Auger emission is ignored because "
+                                  "fluorescent atomic relaxation is disabled";
+        }
     }
 
     CELER_ENSURE(import_data);

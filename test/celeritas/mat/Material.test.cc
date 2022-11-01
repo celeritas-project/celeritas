@@ -43,11 +43,15 @@ namespace test
 //! Test coulomb correction values
 TEST(MaterialUtils, coulomb_correction)
 {
-    EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(1));
-    EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(13));
-    EXPECT_SOFT_EQ(0.39494589680653375, calc_coulomb_correction(92));
+    constexpr AtomicNumber h{1};
+    constexpr AtomicNumber al{13};
+    constexpr AtomicNumber u{92};
+    EXPECT_SOFT_EQ(6.4008218033384263e-05, calc_coulomb_correction(h));
+    EXPECT_SOFT_EQ(0.010734632775699565, calc_coulomb_correction(al));
+    EXPECT_SOFT_EQ(0.39494589680653375, calc_coulomb_correction(u));
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Test mass radiation coefficient calculation.
  *
@@ -67,9 +71,9 @@ TEST(MaterialUtils, radiation_length)
     auto calc_inv_rad_coeff
         = [](int atomic_number, real_type amu_mass) -> real_type {
         ElementRecord el;
-        el.atomic_number      = atomic_number;
+        el.atomic_number      = AtomicNumber{atomic_number};
         el.atomic_mass        = units::AmuMass{amu_mass};
-        el.coulomb_correction = calc_coulomb_correction(atomic_number);
+        el.coulomb_correction = calc_coulomb_correction(el.atomic_number);
 
         return 1 / detail::calc_mass_rad_coeff(el);
     };
@@ -103,10 +107,10 @@ class MaterialTest : public Test
     {
         MaterialParams::Input inp;
         inp.elements = {
-            {1, units::AmuMass{1.008}, "H"},
-            {13, units::AmuMass{26.9815385}, "Al"},
-            {11, units::AmuMass{22.98976928}, "Na"},
-            {53, units::AmuMass{126.90447}, "I"},
+            {AtomicNumber{1}, units::AmuMass{1.008}, "H"},
+            {AtomicNumber{13}, units::AmuMass{26.9815385}, "Al"},
+            {AtomicNumber{11}, units::AmuMass{22.98976928}, "Na"},
+            {AtomicNumber{53}, units::AmuMass{126.90447}, "I"},
         };
         inp.materials = {
             // Sodium iodide
@@ -253,7 +257,7 @@ TEST_F(MaterialTest, element_view)
     {
         // Test aluminum
         ElementView el = params->get(ElementId{1});
-        EXPECT_EQ(13, el.atomic_number());
+        EXPECT_EQ(AtomicNumber{13}, el.atomic_number());
         EXPECT_SOFT_EQ(26.9815385, el.atomic_mass().value());
         EXPECT_SOFT_EQ(std::pow(13.0, 1.0 / 3), el.cbrt_z());
         EXPECT_SOFT_EQ(std::pow(13.0 * 14.0, 1.0 / 3), el.cbrt_zzp());

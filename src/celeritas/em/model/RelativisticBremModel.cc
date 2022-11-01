@@ -147,30 +147,29 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
 {
     ElementData data;
 
-    AtomicNumber iz = min(elem.atomic_number(), 120);
+    AtomicNumber z = min(elem.atomic_number(), AtomicNumber{120});
 
-    real_type fc      = elem.coulomb_correction();
-    real_type ff_el   = 1.0;
-    real_type ff_inel = 1.0;
-
-    data.fz = elem.log_z() / 3 + fc;
-
-    if (iz < 5)
+    real_type ff_el;
+    real_type ff_inel;
+    if (z < AtomicNumber{5})
     {
-        ff_el   = RelativisticBremModel::get_form_factor(iz).el;
-        ff_inel = RelativisticBremModel::get_form_factor(iz).inel;
+        ff_el   = RelativisticBremModel::get_form_factor(z).el;
+        ff_inel = RelativisticBremModel::get_form_factor(z).inel;
     }
     else
     {
-        ff_el   = std::log(184.15) - elem.log_z() / 3;
-        ff_inel = std::log(1194.0) - 2 * elem.log_z() / 3;
+        ff_el   = real_type(std::log(184.15)) - elem.log_z() / 3;
+        ff_inel = real_type(std::log(1194.0)) - 2 * elem.log_z() / 3;
     }
 
+    real_type fc   = elem.coulomb_correction();
+    real_type invz = real_type(1) / z.unchecked_get();
     real_type z13 = elem.cbrt_z();
     real_type z23 = ipow<2>(z13);
 
-    data.factor1        = (ff_el - fc) + ff_inel / iz;
-    data.factor2        = (1 + real_type(1) / iz) / 12;
+    data.fz             = elem.log_z() / 3 + fc;
+    data.factor1        = (ff_el - fc) + ff_inel * invz;
+    data.factor2        = (1 + invz) / 12;
     data.gamma_factor   = 100 * electron_mass / z13;
     data.epsilon_factor = 100 * electron_mass / z23;
 
@@ -186,7 +185,7 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
  */
 auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
 {
-    CELER_EXPECT(z > 0 && z < 8);
+    CELER_EXPECT(z && z < AtomicNumber{8});
     static const FormFactor form_factor[] = {{5.3104, 5.9173},
                                              {4.7935, 5.6125},
                                              {4.7402, 5.5377},
@@ -195,7 +194,7 @@ auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
                                              {4.6134, 5.3688},
                                              {4.5520, 5.3236}};
 
-    return form_factor[z - 1];
+    return form_factor[z.unchecked_get() - 1];
 }
 
 //---------------------------------------------------------------------------//

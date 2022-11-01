@@ -20,7 +20,7 @@
 %include "celeritas_config.h"
 
 //---------------------------------------------------------------------------//
-// BASE/ASSERT
+// ASSERTIONS
 //---------------------------------------------------------------------------//
 
 %{
@@ -37,49 +37,42 @@
 }
 
 //---------------------------------------------------------------------------//
-// BASE/TYPES
+// CORECEL
 //---------------------------------------------------------------------------//
 
 %{
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 %}
 
 %ignore celeritas::Byte;
+%include "corecel/Macros.hh"
 %include "corecel/Types.hh"
 
 %include <std_vector.i>
 %template(VecReal) std::vector<celeritas::real_type>;
 
 //---------------------------------------------------------------------------//
-// BASE/UNITS
+// CELERITAS
 //---------------------------------------------------------------------------//
 
 %{
 #include "celeritas/Units.hh"
-%}
-
-%include "celeritas/Units.hh"
-
-//---------------------------------------------------------------------------//
-// BASE/CONSTANTS
-//---------------------------------------------------------------------------//
-
-%{
 #include "celeritas/Constants.hh"
 %}
 
+%include "celeritas/Units.hh"
 %include "celeritas/Constants.hh"
 
 //---------------------------------------------------------------------------//
-// PHYSICS
-//---------------------------------------------------------------------------//
 
-namespace celeritas
-{
-class CutoffParams;
-class ParticleParams;
-class MaterialParams;
-}
+%{
+#include "celeritas/phys/AtomicNumber.hh"
+#include "celeritas/phys/PDGNumber.hh"
+%}
+
+%include "celeritas/phys/AtomicNumber.hh"
+%include "celeritas/phys/PDGNumber.hh"
 
 //---------------------------------------------------------------------------//
 // IO

@@ -142,7 +142,8 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     for (auto el_id : range(ElementComponentId{material_view.num_elements()}))
     {
         double weight = material_view.get_element_density(el_id);
-        zeff += material_view.make_element_view(el_id).atomic_number() * weight;
+        AtomicNumber z = material_view.make_element_view(el_id).atomic_number();
+        zeff += z.unchecked_get() * weight;
         norm += weight;
     }
     zeff /= norm;
@@ -151,7 +152,7 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
     MaterialData data;
 
     data.zeff        = zeff;
-    data.scaled_zeff = real_type(0.70) * std::sqrt(zeff);
+    data.scaled_zeff = 0.70 * std::sqrt(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
     const double z16 = fastpow(zeff, 1.0 / 6.0);

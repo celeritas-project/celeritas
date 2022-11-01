@@ -71,7 +71,7 @@ MaterialParams::from_import(const ImportData& data)
     for (const auto& element : data.elements)
     {
         MaterialParams::ElementInput element_params;
-        element_params.atomic_number = element.atomic_number;
+        element_params.atomic_number = AtomicNumber{element.atomic_number};
         element_params.atomic_mass   = units::AmuMass{element.atomic_mass};
         element_params.label         = Label::from_geant(element.name);
 
@@ -227,7 +227,7 @@ auto MaterialParams::find_elements(const std::string& name) const
 void MaterialParams::append_element_def(const ElementInput& inp,
                                         HostValue*          host_data)
 {
-    CELER_EXPECT(inp.atomic_number > 0);
+    CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
 
     ElementRecord result;
@@ -237,7 +237,7 @@ void MaterialParams::append_element_def(const ElementInput& inp,
     result.atomic_mass   = inp.atomic_mass;
 
     // Calculate various factors of the atomic number
-    const real_type z_real = result.atomic_number;
+    const real_type z_real = result.atomic_number.unchecked_get();
     result.cbrt_z          = std::cbrt(z_real);
     result.cbrt_zzp        = std::cbrt(z_real * (z_real + 1));
     result.log_z           = std::log(z_real);
@@ -340,12 +340,13 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     {
         CELER_ASSERT(comp.element < host_data->elements.size());
         const ElementRecord& el = host_data->elements[comp.element];
+        real_type frac_z = comp.fraction * el.atomic_number.unchecked_get();
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
-        avg_z += comp.fraction * el.atomic_number;
+        avg_z += frac_z;
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
         log_mean_exc_energy
-            += comp.fraction * el.atomic_number
+            += frac_z
                * std::log(value_as<units::MevEnergy>(
                    detail::get_mean_excitation_energy(el.atomic_number)));
     }

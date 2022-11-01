@@ -33,9 +33,9 @@ namespace detail
  * This is accurate to 16 digits of precision through Z=92, as compared to 5
  * or 6 digits for equation 34.26 which appears in RPP.
  */
-real_type calc_coulomb_correction(int atomic_number)
+real_type calc_coulomb_correction(AtomicNumber atomic_number)
 {
-    CELER_EXPECT(atomic_number > 0);
+    CELER_EXPECT(atomic_number);
     using constants::alpha_fine_structure;
 
     static const double zeta[] = {2.0205690315959429e-01,
@@ -55,9 +55,10 @@ real_type calc_coulomb_correction(int atomic_number)
                                   4.6566290650337837e-10,
                                   1.1641550172700519e-10};
 
-    const real_type alphazsq = ipow<2>(alpha_fine_structure * atomic_number);
-    real_type       fz       = 1 / (1 + alphazsq);
-    real_type       azpow    = 1;
+    const real_type alphazsq
+        = ipow<2>(alpha_fine_structure * atomic_number.unchecked_get());
+    real_type fz    = 1 / (1 + alphazsq);
+    real_type azpow = 1;
     for (double zeta_i : zeta)
     {
         fz += azpow * zeta_i;
@@ -77,17 +78,17 @@ real_type calc_coulomb_correction(int atomic_number)
  */
 real_type calc_mass_rad_coeff(const ElementRecord& el)
 {
-    CELER_EXPECT(el.atomic_number > 0);
+    CELER_EXPECT(el.atomic_number);
     CELER_EXPECT(el.atomic_mass > zero_quantity());
     CELER_EXPECT(el.coulomb_correction > 0);
     using constants::alpha_fine_structure;
     using constants::r_electron;
 
-    const real_type z_real = el.atomic_number;
+    const real_type z_real = el.atomic_number.unchecked_get();
 
     // Table 34.2 for calculating lrad/lrad prime
     real_type lrad, lrad_prime;
-    switch (el.atomic_number)
+    switch (el.atomic_number.unchecked_get())
     {
         // clang-format off
         case 1: lrad = 5.31; lrad_prime = 6.144; break;
@@ -118,10 +119,9 @@ real_type calc_mass_rad_coeff(const ElementRecord& el)
  * TODO: in Geant4, the mean excitation energies for many compounds are stored
  * rather than calculated as the average over elements.
  */
-units::MevEnergy get_mean_excitation_energy(int atomic_number)
+units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number)
 {
-    CELER_EXPECT(atomic_number > 0 && atomic_number < 99);
-
+    CELER_EXPECT(atomic_number);
     // Mean excitation energy for Z=1-98 [eV]
     static const double mean_excitation_energy[] = {
         19.2,  41.8,  40.0,  63.7,  76.0,  81.0,  82.0,  95.0,  115.0, 137.0,
@@ -135,7 +135,9 @@ units::MevEnergy get_mean_excitation_energy(int atomic_number)
         810.0, 823.0, 823.0, 830.0, 825.0, 794.0, 827.0, 826.0, 841.0, 847.0,
         878.0, 890.0, 902.0, 921.0, 934.0, 939.0, 952.0, 966.0};
 
-    return units::MevEnergy{1e-6 * mean_excitation_energy[atomic_number - 1]};
+    int idx = atomic_number.unchecked_get() - 1;
+    CELER_ASSERT(idx * sizeof(double) < sizeof(mean_excitation_energy));
+    return units::MevEnergy{1e-6 * mean_excitation_energy[idx]};
 }
 
 //---------------------------------------------------------------------------//

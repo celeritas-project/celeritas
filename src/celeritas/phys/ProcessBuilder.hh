@@ -8,16 +8,20 @@
 #pragma once
 
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "Process.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class ImportedProcesses;
 class MaterialParams;
 class ParticleParams;
+
 struct ImportData;
-class ImportedProcesses;
+struct ImportLivermorePE;
+struct ImportSBTable;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -57,12 +61,15 @@ class ProcessBuilder
   private:
     //// DATA ////
 
-    std::shared_ptr<const ParticleParams> particle_;
-    std::shared_ptr<const MaterialParams> material_;
-    std::shared_ptr<ImportedProcesses>    processes_;
-    bool                                  brem_combined_;
-    bool                                  enable_lpm_;
-    bool                                  use_integral_xs_;
+    std::shared_ptr<const ParticleParams>          particle_;
+    std::shared_ptr<const MaterialParams>          material_;
+    std::shared_ptr<ImportedProcesses>             processes_;
+    std::function<ImportSBTable(AtomicNumber)>     read_sb_;
+    std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
+
+    bool brem_combined_;
+    bool enable_lpm_;
+    bool use_integral_xs_;
 
     //// HELPER FUNCTIONS ////
 

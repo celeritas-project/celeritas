@@ -21,7 +21,9 @@ namespace detail
  * Generate a map of read data for all loaded elements.
  *
  * This can be used to load EMLOW and other data into an ImportFile for
- * reproducibility.
+ * reproducibility. Note that the Celeritas interfaces uses the type-safe
+ * \c AtomicNumber class but we store the atomic number as an int in
+ * ImportFile.
  */
 class AllElementReader
 {
@@ -42,15 +44,15 @@ class AllElementReader
     template<class ReadOneElement>
     auto operator()(ReadOneElement&& read_el) const -> decltype(auto)
     {
-        using AtomicNumber = ImportData::AtomicNumber;
         using result_type  = typename ReadOneElement::result_type;
 
-        std::map<AtomicNumber, result_type> result_map;
+        std::map<int, result_type> result_map;
 
         for (const ImportElement& element : elements_)
         {
-            AtomicNumber z = element.atomic_number;
-            result_map.insert({z, read_el(z)});
+            AtomicNumber z{element.atomic_number};
+            CELER_ASSERT(z);
+            result_map.insert({z.unchecked_get(), read_el(z)});
         }
         return result_map;
     }

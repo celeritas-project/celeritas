@@ -32,6 +32,16 @@ enum class MscModelSelection
 };
 
 //---------------------------------------------------------------------------//
+//! Atomic relaxation options
+enum class RelaxationSelection
+{
+    none,
+    radiative,
+    all,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Construction options for geant physics.
  *
@@ -44,6 +54,7 @@ enum class MscModelSelection
  * - \c integral_approach: see \c PhysicsParamsOptions::disable_integral_xs
  * - \c brems: Bremsstrahlung model selection
  * - \c msc: Multiple scattering model selection
+ * - \c relaxation: Atomic relaxation selection
  * - \c em_bins_per_decade: number of log-spaced energy bins per factor of 10
  * - \c min_energy: lowest energy of any EM physics process
  * - \c max_energy: highest energy of any EM physics process
@@ -59,6 +70,7 @@ struct GeantPhysicsOptions
 
     BremsModelSelection brems{BremsModelSelection::all};
     MscModelSelection   msc{MscModelSelection::urban};
+    RelaxationSelection relaxation{RelaxationSelection::none};
 
     int              em_bins_per_decade{7};
     units::MevEnergy min_energy{0.1 * 1e-3}; // 0.1 keV

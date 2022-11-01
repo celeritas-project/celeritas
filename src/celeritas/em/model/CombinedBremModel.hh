@@ -12,6 +12,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "RelativisticBremModel.hh"
@@ -33,7 +34,6 @@ class CombinedBremModel final : public Model
   public:
     //@{
     //! Type aliases
-    using AtomicNumber    = int;
     using ReadData        = std::function<ImportSBTable(AtomicNumber)>;
     using HostRef         = HostCRef<CombinedBremData>;
     using DeviceRef       = DeviceCRef<CombinedBremData>;

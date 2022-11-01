@@ -18,7 +18,6 @@
 #include "celeritas/em/detail/Utils.hh"
 #include "celeritas/em/interactor/LivermorePEInteractor.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
@@ -61,7 +60,7 @@ class LivermorePETest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements  = {{19, AmuMass{39.0983}, "K"}};
+        mi.elements  = {{AtomicNumber{19}, AmuMass{39.0983}, "K"}};
         mi.materials = {{1e-5 * na_avogadro,
                          293.,
                          MatterState::solid,

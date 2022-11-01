@@ -13,7 +13,6 @@
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/RelativisticBremModel.hh"
 #include "celeritas/em/model/SeltzerBergerModel.hh"
-#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -25,6 +24,7 @@ namespace celeritas
 BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                                              SPConstMaterials materials,
                                              SPConstImported  process_data,
+                                             ReadData         load_sb,
                                              Options          options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
@@ -32,10 +32,12 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                 particles_,
                 ImportProcessClass::e_brems,
                 {pdg::electron(), pdg::positron()})
+    , load_sb_(std::move(load_sb))
     , options_(options)
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);
+    CELER_EXPECT(load_sb_);
 }
 
 //---------------------------------------------------------------------------//
@@ -45,7 +47,6 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
 auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    SeltzerBergerModel::ReadData load_data = SeltzerBergerReader();
     if (options_.combined_model)
     {
         // TODO: import micro xs for combined model
@@ -53,7 +54,7 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
                                                     *particles_,
                                                     *materials_,
                                                     imported_.processes(),
-                                                    load_data,
+                                                    load_sb_,
                                                     options_.enable_lpm)};
     }
     else
@@ -62,7 +63,7 @@ auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
                                                      *particles_,
                                                      *materials_,
                                                      imported_.processes(),
-                                                     load_data),
+                                                     load_sb_),
                 std::make_shared<RelativisticBremModel>(*start_id++,
                                                         *particles_,
                                                         *materials_,

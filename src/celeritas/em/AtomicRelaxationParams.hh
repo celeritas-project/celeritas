@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportAtomicRelaxation.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 
 #include "data/AtomicRelaxationData.hh"
 
@@ -33,7 +34,6 @@ class AtomicRelaxationParams
     //! Type aliases
     using HostRef        = HostCRef<AtomicRelaxParamsData>;
     using DeviceRef      = DeviceCRef<AtomicRelaxParamsData>;
-    using AtomicNumber   = int;
     using MevEnergy      = units::MevEnergy;
     using ReadData       = std::function<ImportAtomicRelaxation(AtomicNumber)>;
     using SPConstCutoffs = std::shared_ptr<const CutoffParams>;

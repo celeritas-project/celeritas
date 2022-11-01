@@ -15,6 +15,8 @@
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/LivermorePEReader.hh"
+#include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
@@ -256,17 +258,18 @@ TEST_F(ImportedProcessesTest, msc)
 
 TEST_F(ImportedProcessesTest, photoelectric)
 {
-    // Create photoelectric process (requires Geant4 environment variables)
-    std::shared_ptr<PhotoelectricProcess> process;
+    PhotoelectricProcess::ReadData reader;
     try
     {
-        process = std::make_shared<PhotoelectricProcess>(
-            particles_, materials_, processes_);
+        // Reader requires Geant4 environment variables
+        reader = LivermorePEReader();
     }
     catch (const RuntimeError& e)
     {
-        GTEST_SKIP() << "Failed to create process: " << e.what();
+        GTEST_SKIP() << "Failed to create reader: " << e.what();
     }
+    auto process = std::make_shared<PhotoelectricProcess>(
+        particles_, materials_, processes_, reader);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -299,21 +302,23 @@ TEST_F(ImportedProcessesTest, photoelectric)
 
 TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
 {
-    // Create bremsstrahlung process (requires Geant4 environment variables)
-    // with multiple models (SeltzerBergerModel and RelativisticBremModel)
-    BremsstrahlungProcess::Options options;
-    options.combined_model  = false;
-    options.use_integral_xs = true;
-    std::shared_ptr<BremsstrahlungProcess> process;
+    BremsstrahlungProcess::ReadData reader;
     try
     {
-        process = std::make_shared<BremsstrahlungProcess>(
-            particles_, materials_, processes_, options);
+        reader = SeltzerBergerReader();
     }
     catch (const RuntimeError& e)
     {
-        GTEST_SKIP() << "Failed to create process: " << e.what();
+        GTEST_SKIP() << "Failed to create reader: " << e.what();
     }
+
+    // Create bremsstrahlung process with multiple models (SeltzerBergerModel
+    // and RelativisticBremModel)
+    BremsstrahlungProcess::Options options;
+    options.combined_model  = false;
+    options.use_integral_xs = true;
+    auto process            = std::make_shared<BremsstrahlungProcess>(
+        particles_, materials_, processes_, reader, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -356,20 +361,22 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
 
 TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
 {
+    BremsstrahlungProcess::ReadData reader;
+    try
+    {
+        reader = SeltzerBergerReader();
+    }
+    catch (const RuntimeError& e)
+    {
+        GTEST_SKIP() << "Failed to create reader: " << e.what();
+    }
+
     // Create the combined bremsstrahlung process
     BremsstrahlungProcess::Options options;
     options.combined_model  = true;
     options.use_integral_xs = true;
-    std::shared_ptr<BremsstrahlungProcess> process;
-    try
-    {
-        process = std::make_shared<BremsstrahlungProcess>(
-            particles_, materials_, processes_, options);
-    }
-    catch (const RuntimeError& e)
-    {
-        GTEST_SKIP() << "Failed to create process: " << e.what();
-    }
+    auto process            = std::make_shared<BremsstrahlungProcess>(
+        particles_, materials_, processes_, reader, options);
 
     // Test model
     auto models = process->build_models(ActionIdIter{});

@@ -38,10 +38,10 @@ class CutoffParamsTest : public Test
         // Set up MaterialParams
         MaterialParams::Input m_input;
         m_input.elements = {
-            {1, AmuMass{1.008}, "H"},
-            {13, AmuMass{26.9815385}, "Al"},
-            {11, AmuMass{22.98976928}, "Na"},
-            {53, AmuMass{126.90447}, "I"},
+            {AtomicNumber{1}, AmuMass{1.008}, "H"},
+            {AtomicNumber{13}, AmuMass{26.9815385}, "Al"},
+            {AtomicNumber{11}, AmuMass{22.98976928}, "Na"},
+            {AtomicNumber{53}, AmuMass{126.90447}, "I"},
         };
         m_input.materials = {
             // Sodium iodide

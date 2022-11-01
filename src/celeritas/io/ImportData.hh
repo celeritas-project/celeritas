@@ -36,6 +36,8 @@ struct ImportEmParameters
     bool integral_approach{true};
     //! Slowing down threshold for linearity assumption
     double linear_loss_limit{0.01};
+    //! Whether auger emission should be enabled (valid only for relaxation)
+    bool auger{false};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const { return linear_loss_limit > 0; }
@@ -75,11 +77,9 @@ struct ImportData
 {
     //!@{
     //! \name Type aliases
-    using AtomicNumber         = int;
-    using ImportSBMap          = std::map<AtomicNumber, ImportSBTable>;
-    using ImportLivermorePEMap = std::map<AtomicNumber, ImportLivermorePE>;
-    using ImportAtomicRelaxationMap
-        = std::map<AtomicNumber, ImportAtomicRelaxation>;
+    using ImportSBMap               = std::map<int, ImportSBTable>;
+    using ImportLivermorePEMap      = std::map<int, ImportLivermorePE>;
+    using ImportAtomicRelaxationMap = std::map<int, ImportAtomicRelaxation>;
     //!@}
 
     std::vector<ImportParticle> particles;
