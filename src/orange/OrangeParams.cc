@@ -77,7 +77,7 @@ OrangeInput input_from_json(std::string filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a UnitIndexer
+ * Create a UnitIndexer by concatenating unit definitions.
  */
 detail::UnitIndexer make_unit_indexer(const std::vector<UnitInput>& units)
 {

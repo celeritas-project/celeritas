@@ -161,7 +161,7 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
         vol_records[i] = this->insert_volume(unit.surfaces, inp.volumes[i]);
         CELER_ASSERT(!vol_records.empty());
 
-        // Add emdeded universes
+        // Add embedded universes
         if (inp.daughter_map.find(VolumeId(i)) != inp.daughter_map.end())
         {
             process_daughter(&(vol_records[i]),
