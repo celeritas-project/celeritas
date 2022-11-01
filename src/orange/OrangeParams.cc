@@ -154,7 +154,7 @@ OrangeParams::OrangeParams(OrangeInput input)
             {
                 surface_label.ext = u.label.name;
             }
-            surface_labels.push_back(surface_label);
+            surface_labels.push_back(std::move(surface_label));
         }
 
         for (const auto& v : u.volumes)
@@ -164,7 +164,7 @@ OrangeParams::OrangeParams(OrangeInput input)
             {
                 volume_label.ext = u.label.name;
             }
-            volume_labels.push_back(volume_label);
+            volume_labels.push_back(std::move(volume_label));
         }
 
         bbox_ = u.bbox;

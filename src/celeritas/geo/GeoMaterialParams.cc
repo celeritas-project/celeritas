@@ -116,6 +116,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
             auto iter = lab_to_id.find(geo.id_to_label(volume_id));
             if (iter == lab_to_id.end())
             {
+                // Exact label (name + ext) not found; fall back to matching just the name
                 iter = lab_to_id.find(Label{geo.id_to_label(volume_id).name});
             }
 
