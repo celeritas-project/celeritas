@@ -36,7 +36,7 @@ relocatable device code in the VecGeom library.
   CUDA library, it will still need to run its own ``nvcc -dlink`` step.
 
 
-.. command: celeritas_target_link_libraries
+.. command:: celeritas_target_link_libraries
 
   Specify libraries or flags to use when linking a given target and/or its dependents, taking
   in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA relocatable
