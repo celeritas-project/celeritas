@@ -36,8 +36,8 @@ Environment& environment()
  */
 const std::string& getenv(const std::string& key)
 {
-    static std::mutex           s_getenv_mutex;
-    std::lock_guard<std::mutex> scoped_lock{s_getenv_mutex};
+    static std::mutex           getenv_mutex;
+    std::lock_guard<std::mutex> scoped_lock{getenv_mutex};
     return environment()[key];
 }
 

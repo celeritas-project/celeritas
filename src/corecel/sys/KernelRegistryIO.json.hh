@@ -3,20 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/KernelDiagnosticsIO.json.hh
+//! \file corecel/sys/KernelRegistryIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "KernelDiagnostics.hh"
+#include "KernelRegistry.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
 // Write device diagnostics to JSON
-void to_json(nlohmann::json& j, const KernelDiagnostics& diagnostics);
+void to_json(nlohmann::json& j, const KernelRegistry& diagnostics);
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

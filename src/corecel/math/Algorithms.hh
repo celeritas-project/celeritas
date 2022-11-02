@@ -341,4 +341,15 @@ inline CELER_FUNCTION float rsqrt(float value)
 #endif
 
 //---------------------------------------------------------------------------//
+/*!
+ * Integer division, rounding up, for positive numbers.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T ceil_div(T top, T bottom)
+{
+    static_assert(std::is_unsigned<T>::value, "Value is not an unsigned int");
+    return (top / bottom) + (top % bottom != 0);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

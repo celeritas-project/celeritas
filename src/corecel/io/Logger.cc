@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 
 #include "corecel/Assert.hh"
@@ -28,6 +29,9 @@ using namespace celeritas;
 //! Default global logger prints the error message with basic colors
 void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
 {
+    static std::mutex           log_mutex;
+    std::lock_guard<std::mutex> scoped_lock{log_mutex};
+
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
     {
         // Output problem line/file for debugging or high level

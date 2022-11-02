@@ -14,9 +14,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Device.hh"
-#include "KernelDiagnostics.hh"
+#include "KernelAttributes.hh"
 #include "ThreadId.hh"
 
 /*!
@@ -30,7 +31,7 @@
     do                                                                       \
     {                                                                        \
         static const ::celeritas::KernelParamCalculator calc_launch_params_( \
-            NAME##_kernel, #NAME, BLOCK_SIZE);                               \
+            #NAME, NAME##_kernel, BLOCK_SIZE);                               \
         auto grid_ = calc_launch_params_(THREADS);                           \
                                                                              \
         CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel,                              \
@@ -59,6 +60,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct KernelProfiling;
+
+//---------------------------------------------------------------------------//
 /*!
  * Kernel management helper functions.
  *
@@ -66,13 +70,18 @@ namespace celeritas
  * things easy. The \c dim_type alias should be the same size as the type of a
  * single \c dim3 member (x/y/z).
  *
- * Constructing the param calculator registers kernel diagnostics.
+ * Constructing the param calculator registers kernel attributes with \c
+ * kernel_registry as an implementation detail in the .cc file that hides
+ * inclusion of that interface from CUDA code. If kernel diagnostic profiling
+ * is enabled, the registry will return a pointer that this class uses to
+ * increment thread launch counters over the lifetime of the program.
  *
  * \code
     static KernelParamCalculator calc_params(my_kernel, "my");
     auto params = calc_params(states.size());
     my_kernel<<<params.blocks_per_grid,
- params.threads_per_block>>>(kernel_args...); \endcode
+ params.threads_per_block>>>(kernel_args...);
+ * \endcode
  */
 class KernelParamCalculator
 {
@@ -80,7 +89,6 @@ class KernelParamCalculator
     //!@{
     //! Type aliases
     using dim_type = unsigned int;
-    using KernelId = OpaqueId<struct Kernel>;
     //!@}
 
     //! Parameters needed for a CUDA lauch call
@@ -98,22 +106,27 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    inline KernelParamCalculator(F* kernel_func_ptr, const char* name);
+    inline KernelParamCalculator(const char* name, F* kernel_func_ptr);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(F*          kernel_func_ptr,
-                                 const char* name,
+    inline KernelParamCalculator(const char* name,
+                                 F*          kernel_func_ptr,
                                  dim_type    threads_per_block);
 
     // Get launch parameters
-    LaunchParams operator()(size_type min_num_threads) const;
+    inline LaunchParams operator()(size_type min_num_threads) const;
 
   private:
     //! Threads per block
     dim_type block_size_;
-    //! Unique run-dependent ID for the associated kernel
-    KernelId id_;
+    //! Optional profiling data owned by the kernel registry
+    KernelProfiling* profiling_{nullptr};
+
+    //// HELPER FUNCTIONS ////
+
+    void register_kernel(const char* name, KernelAttributes&& attributes);
+    void log_launch(size_type min_num_threads) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -137,27 +150,62 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
-                                             const char* name)
+KernelParamCalculator::KernelParamCalculator(const char* name,
+                                             F*          kernel_func_ptr)
     : KernelParamCalculator(
-        kernel_func_ptr, name, celeritas::device().default_block_size())
+        name, kernel_func_ptr, celeritas::device().default_block_size())
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct for the given global kernel F.
+ *
+ * This registers the kernel with \c celeritas::kernel_registry() and saves a
+ * pointer to the profiling data if profiling is to be used.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(F*          kernel_func_ptr,
-                                             const char* name,
+KernelParamCalculator::KernelParamCalculator(const char* name,
+                                             F*          kernel_func_ptr,
                                              dim_type    threads_per_block)
     : block_size_(threads_per_block)
 {
+    CELER_EXPECT(threads_per_block
+                 <= celeritas::device().max_threads_per_block());
     CELER_EXPECT(threads_per_block % celeritas::device().threads_per_warp()
                  == 0);
-    id_ = celeritas::kernel_diagnostics().insert<F>(
-        kernel_func_ptr, name, threads_per_block);
+
+    this->register_kernel(
+        name, make_kernel_attributes(kernel_func_ptr, threads_per_block));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate launch params given the number of threads.
+ */
+auto KernelParamCalculator::operator()(size_type min_num_threads) const
+    -> LaunchParams
+{
+    CELER_EXPECT(min_num_threads > 0);
+
+    // Update diagnostics for the kernel
+    if (profiling_)
+    {
+        this->log_launch(min_num_threads);
+    }
+
+    // Ceiling integer division
+    dim_type blocks_per_grid
+        = celeritas::ceil_div<dim_type>(min_num_threads, this->block_size_);
+    CELER_ASSERT(blocks_per_grid
+                 < dim_type(celeritas::device().max_blocks_per_grid()));
+
+    LaunchParams result;
+    result.blocks_per_grid.x   = blocks_per_grid;
+    result.threads_per_block.x = this->block_size_;
+    CELER_ENSURE(result.blocks_per_grid.x * result.threads_per_block.x
+                 >= min_num_threads);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

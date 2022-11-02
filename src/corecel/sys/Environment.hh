@@ -51,7 +51,7 @@ class Environment
     // Construct with defaults
     Environment() = default;
 
-    // Get an environment variable from current or system enviroments
+    // Get an environment variable from current or system environments
     inline const mapped_type& operator[](const key_type&);
 
     // Insert possibly new environment variables (not thread-safe)

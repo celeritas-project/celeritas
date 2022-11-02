@@ -37,12 +37,11 @@ bin_energy_kernel(const CoreStateDeviceRef states, PointersDevice pointers)
 //---------------------------------------------------------------------------//
 void bin_energy(const CoreStateDeviceRef& states, PointersDevice& pointers)
 {
-    static const KernelParamCalculator calc_launch_params(bin_energy_kernel,
-                                                          "bin_energy");
-    auto lparams = calc_launch_params(states.size());
-    bin_energy_kernel<<<lparams.blocks_per_grid, lparams.threads_per_block>>>(
-        states, pointers);
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(bin_energy,
+                        celeritas::device().default_block_size(),
+                        states.size(),
+                        states,
+                        pointers);
 }
 
 } // namespace demo_loop

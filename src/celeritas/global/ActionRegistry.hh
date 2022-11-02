@@ -33,7 +33,8 @@ namespace celeritas
  * with core data.
  *
  * New actions should be created with an action ID corresponding to \c
- * next_id . Registering an action checks its ID.
+ * next_id . Registering an action checks its ID. Actions are always added
+ * sequentially and can never be removed from the registry once added.
  */
 class ActionRegistry
 {
@@ -49,16 +50,16 @@ class ActionRegistry
 
     //// CONSTRUCTION ////
 
-    // Get the next action ID
-    inline ActionId next_id() const;
+    //! Get the next available action ID
+    ActionId next_id() const { return ActionId(actions_.size()); }
 
     // Register an action
     void insert(SPConstAction);
 
     //// ACCESSORS ////
 
-    // Get the number of defined actions
-    inline ActionId::size_type num_actions() const;
+    //! Get the number of defined actions
+    ActionId::size_type num_actions() const { return actions_.size(); }
 
     // Access an action
     inline const SPConstAction& action(ActionId id) const;
@@ -79,24 +80,6 @@ class ActionRegistry
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Get the next available action ID.
- */
-ActionId ActionRegistry::next_id() const
-{
-    return ActionId(actions_.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of defined actions.
- */
-ActionId::size_type ActionRegistry::num_actions() const
-{
-    return actions_.size();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Access an action.

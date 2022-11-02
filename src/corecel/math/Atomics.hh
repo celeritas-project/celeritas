@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/Atomics.hh
+//! \brief Atomics for use in kernel code (CUDA/HIP/OpenMP).
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,19 +25,16 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 {
 #if CELER_DEVICE_COMPILE
     return atomicAdd(address, value);
-#elif defined(_OPENMP)
+#else
     CELER_EXPECT(address);
     T initial;
-#    pragma omp atomic capture
+#    if defined(_OPENMP)
+#        pragma omp atomic capture
+#    endif
     {
         initial = *address;
         *address += value;
     }
-    return initial;
-#else
-    CELER_EXPECT(address);
-    T initial = *address;
-    *address += value;
     return initial;
 #endif
 }
@@ -79,8 +77,14 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
     return atomicMin(address, value);
 #else
     CELER_EXPECT(address);
-    T initial = *address;
-    *address  = celeritas::min(initial, value);
+    T initial;
+#    if defined(_OPENMP)
+#        pragma omp atomic capture
+#    endif
+    {
+        initial  = *address;
+        *address = celeritas::min(initial, value);
+    }
     return initial;
 #endif
 }
@@ -96,8 +100,14 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
     return atomicMax(address, value);
 #else
     CELER_EXPECT(address);
-    T initial = *address;
-    *address  = celeritas::max(initial, value);
+    T initial;
+#    if defined(_OPENMP)
+#        pragma omp atomic capture
+#    endif
+    {
+        initial  = *address;
+        *address = celeritas::max(initial, value);
+    }
     return initial;
 #endif
 }

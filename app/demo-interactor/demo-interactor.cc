@@ -18,8 +18,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
-#include "corecel/sys/KernelDiagnostics.hh"
-#include "corecel/sys/KernelDiagnosticsIO.json.hh"
+#include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -84,7 +84,7 @@ void run(std::istream& is)
             {
                 {"version", std::string(celeritas_version)},
                 {"device", celeritas::device()},
-                {"kernels", celeritas::kernel_diagnostics()},
+                {"kernels", celeritas::kernel_registry()},
             },
         },
     };

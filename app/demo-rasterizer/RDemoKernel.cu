@@ -120,13 +120,12 @@ void trace(const GeoParamsCRefDevice& geo_params,
 {
     CELER_EXPECT(image);
 
-    static const KernelParamCalculator calc_kernel_params(trace_kernel,
-                                                          "trace");
-
-    auto params = calc_kernel_params(image.dims[0]);
-    trace_kernel<<<params.blocks_per_grid, params.threads_per_block>>>(
-        geo_params, geo_state, image);
-    CELER_DEVICE_CHECK_ERROR();
+    CELER_LAUNCH_KERNEL(trace,
+                        celeritas::device().default_block_size(),
+                        image.dims[0],
+                        geo_params,
+                        geo_state,
+                        image);
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }

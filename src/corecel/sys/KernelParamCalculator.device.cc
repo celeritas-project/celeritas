@@ -7,50 +7,29 @@
 //---------------------------------------------------------------------------//
 #include "KernelParamCalculator.device.hh"
 
-#include <cassert>
-#include <limits>
-
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-
-namespace
-{
-//---------------------------------------------------------------------------//
-// Integer division, rounding up, for positive numbers
-template<class UInt>
-UInt ceil_div(UInt top, UInt bottom)
-{
-    return (top / bottom) + (top % bottom != 0);
-}
-//---------------------------------------------------------------------------//
-} // namespace
+#include "KernelRegistry.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate launch params given the number of threads.
+ * Add a new kernel to the registry.
  */
-KernelParamCalculator::LaunchParams
-KernelParamCalculator::operator()(size_type min_num_threads) const
+void KernelParamCalculator::register_kernel(const char*        name,
+                                            KernelAttributes&& attributes)
 {
-    CELER_EXPECT(min_num_threads > 0);
-    CELER_EXPECT(min_num_threads <= static_cast<size_type>(
-                     std::numeric_limits<dim_type>::max()));
+    profiling_
+        = celeritas::kernel_registry().insert(name, std::move(attributes));
+}
 
-    // Update diagnostics for the kernel
-    celeritas::kernel_diagnostics().launch(id_, min_num_threads);
-
-    // Ceiling integer division
-    dim_type blocks_per_grid
-        = ceil_div<dim_type>(min_num_threads, this->block_size_);
-
-    LaunchParams result;
-    result.blocks_per_grid.x   = blocks_per_grid;
-    result.threads_per_block.x = this->block_size_;
-    CELER_ENSURE(result.blocks_per_grid.x * result.threads_per_block.x
-                 >= min_num_threads);
-    return result;
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate counters for a kernel launch.
+ */
+void KernelParamCalculator::log_launch(size_type min_num_threads) const
+{
+    CELER_EXPECT(profiling_);
+    profiling_->log_launch(min_num_threads);
 }
 
 //---------------------------------------------------------------------------//

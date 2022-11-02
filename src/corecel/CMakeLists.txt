@@ -32,7 +32,7 @@ list(APPEND SOURCES
   math/VectorUtils.cc
   sys/Device.cc
   sys/Environment.cc
-  sys/KernelDiagnostics.cc
+  sys/KernelRegistry.cc
   sys/MpiCommunicator.cc
   sys/ScopedMpiInit.cc
   sys/ScopedSignalHandler.cc
@@ -55,7 +55,7 @@ endif()
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     sys/DeviceIO.json.cc
-    sys/KernelDiagnosticsIO.json.cc
+    sys/KernelRegistryIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
