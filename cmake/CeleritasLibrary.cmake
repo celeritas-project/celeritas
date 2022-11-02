@@ -590,7 +590,7 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 #
-#  Check which CUDA runtime is need for a give (depend) library.
+#  Check which CUDA runtime is needed for a given (dependent) library.
 function(celeritas_check_cuda_runtime OUTVAR library)
 
   get_target_property(_runtime_setting ${library} CUDA_RUNTIME_LIBRARY)
@@ -734,11 +734,8 @@ function(celeritas_target_link_libraries target)
             endif()
           else()
             if(_lib_runtime_setting AND NOT (_target_runtime_setting STREQUAL _lib_runtime_setting))
-              if (_current_runtime_setting AND NOT (_current_runtime_setting STREQUAL _lib_runtime_setting))
-                message(FATAL_ERROR "The CUDA runtime used for ${_lib} [${_lib_runtime_setting}] is different from the one used by ${target} [${_current_runtime_setting}]")
-              else()
-                message(FATAL_ERROR "The CUDA runtime used for ${_lib} [${_lib_runtime_setting}] is different from the one used by of the other dependency of ${target} [${_lib_runtime_setting}]")
-              endif()
+              # We need to match the dependent library since we can not change it.
+              set(_target_runtime_setting ${_lib_runtime_setting})
             endif()
           endif()
           if (NOT _current_runtime_setting)
