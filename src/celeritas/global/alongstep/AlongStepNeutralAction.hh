@@ -8,9 +8,10 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "celeritas_config.hh"
-#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
+
+#include "celeritas_config.hh"
 
 namespace celeritas
 {

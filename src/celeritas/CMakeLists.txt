@@ -260,6 +260,7 @@ celeritas_gen_trackinit("LocateAlive")
 celeritas_gen_trackinit("ProcessPrimaries")
 celeritas_gen_trackinit("ProcessSecondaries")
 
+celeritas_polysource(user/detail/HitAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
