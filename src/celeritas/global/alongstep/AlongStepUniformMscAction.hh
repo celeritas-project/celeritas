@@ -14,7 +14,6 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {

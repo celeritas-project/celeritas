@@ -8,9 +8,9 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
+#include "celeritas_config.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -36,7 +36,7 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
     //! ID of the model
     ActionId action_id() const final { return id_; }
 
-    //! Short name for the interaction kernel
+    //! Short name for the along-step kernel
     std::string label() const final { return "along-step-neutral"; }
 
     //! Name of the model, for user interaction
