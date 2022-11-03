@@ -312,12 +312,12 @@ function(celeritas_rdc_add_library target)
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}
     CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
-    EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
   )
   set_target_properties(${target} PROPERTIES
     ${_all_props}
     CELERITAS_CUDA_LIBRARY_TYPE Shared
     CUDA_RESOLVE_DEVICE_SYMBOLS OFF # We really don't want nvlink called.
+    EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
   )
 
   ## STATIC ##
@@ -329,6 +329,7 @@ function(celeritas_rdc_add_library target)
     set_target_properties(${target}${_staticsuf} PROPERTIES
       ${_all_props}
       CELERITAS_CUDA_LIBRARY_TYPE Static
+      EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
     )
   endif()
 
@@ -353,6 +354,7 @@ function(celeritas_rdc_add_library target)
     ${_all_props}
     CELERITAS_CUDA_LIBRARY_TYPE Final
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
+    EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
   )
   target_link_libraries(${target}_final PUBLIC ${target})
   target_link_options(${target}_final
