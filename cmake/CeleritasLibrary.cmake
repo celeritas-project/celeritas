@@ -449,7 +449,7 @@ function(celeritas_install subcommand firstarg)
         get_target_property(_target_middle ${_prop_target} CELERITAS_CUDA_MIDDLE_LIBRARY)
         get_target_property(_target_static ${_prop_target} CELERITAS_CUDA_STATIC_LIBRARY)
         set(_toinstall ${_target_final} ${_target_middle} ${_target_static})
-        if(NOT _target_middle STREQUAL _target_static)
+        if(NOT "${_target_middle}" STREQUAL "${_target_static}")
           # Avoid duplicate middle/static library for static builds
           list(APPEND _toinstall ${_target_middle})
         endif()
