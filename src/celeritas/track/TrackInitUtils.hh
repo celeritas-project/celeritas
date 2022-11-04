@@ -27,41 +27,28 @@ namespace celeritas
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Create track initializers from primary particles.
- *
- * This creates the maximum possible number of track initializers on the
- * templated memory space from host primaries (either the number of host
- * primaries that have not yet been initialized or the size of the available
- * storage in the track initializer vector, whichever is smaller).
+ * Create track initializers from a vector of host primary particles.
  */
 template<MemSpace M>
-inline void extend_from_primaries(const TrackInitParamsHostRef& params,
-                                  TrackInitStateData<Ownership::value, M>* data)
+inline void extend_from_primaries(CoreRef<M>&                 core_data,
+                                  const std::vector<Primary>& host_primaries)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(data && *data);
+    CELER_EXPECT(core_data);
+    CELER_EXPECT(!host_primaries.empty());
 
-    // Number of primaries to initialize
-    auto count = min(data->initializers.capacity() - data->initializers.size(),
-                     data->num_primaries);
-    if (count > 0)
-    {
-        data->initializers.resize(data->initializers.size() + count);
+    auto& data = core_data.states.init;
+    CELER_ASSERT(host_primaries.size() + data.initializers.size()
+                 <= data.initializers.capacity());
+    data.initializers.resize(data.initializers.size() + host_primaries.size());
 
-        // Allocate memory and copy primaries
-        Collection<Primary, Ownership::value, M> primaries;
-        resize(&primaries, count);
-        Copier<Primary, MemSpace::host> copy{
-            params.primaries[ItemRange<Primary>(
-                ItemId<Primary>(data->num_primaries - count),
-                ItemId<Primary>(data->num_primaries))]};
-        copy(M, primaries[AllItems<Primary, M>{}]);
-        data->num_primaries -= count;
+    // Allocate memory and copy primaries
+    Collection<Primary, Ownership::value, M> primaries;
+    resize(&primaries, host_primaries.size());
+    Copier<Primary, MemSpace::host> copy{make_span(host_primaries)};
+    copy(M, primaries[AllItems<Primary, M>{}]);
 
-        // Create track initializers from primaries
-        generated::process_primaries(primaries[AllItems<Primary, M>{}],
-                                     make_ref(*data));
-    }
+    // Create track initializers from primaries
+    generated::process_primaries(core_data, primaries[AllItems<Primary, M>{}]);
 }
 
 //---------------------------------------------------------------------------//
@@ -74,24 +61,24 @@ inline void extend_from_primaries(const TrackInitParamsHostRef& params,
  * any track initializers remaining from previous steps using the position.
  */
 template<MemSpace M>
-inline void initialize_tracks(const CoreRef<M>& core_data,
-                              TrackInitStateData<Ownership::value, M>* data)
+inline void initialize_tracks(CoreRef<M>& core_data)
 {
     CELER_EXPECT(core_data);
-    CELER_EXPECT(data && *data);
+
+    auto& data = core_data.states.init;
 
     // The number of new tracks to initialize is the smaller of the number of
     // empty slots in the track vector and the number of track initializers
     size_type num_tracks
-        = std::min(data->vacancies.size(), data->initializers.size());
+        = std::min(data.vacancies.size(), data.initializers.size());
     if (num_tracks > 0)
     {
         // Launch a kernel to initialize tracks on device
         auto num_vacancies
-            = min(data->vacancies.size(), data->initializers.size());
-        generated::init_tracks(core_data, make_ref(*data), num_vacancies);
-        data->initializers.resize(data->initializers.size() - num_tracks);
-        data->vacancies.resize(data->vacancies.size() - num_tracks);
+            = min(data.vacancies.size(), data.initializers.size());
+        generated::init_tracks(core_data, num_vacancies);
+        data.initializers.resize(data.initializers.size() - num_tracks);
+        data.vacancies.resize(data.vacancies.size() - num_tracks);
     }
 }
 
@@ -153,47 +140,45 @@ inline void initialize_tracks(const CoreRef<M>& core_data,
    \endverbatim
  */
 template<MemSpace M>
-inline void
-extend_from_secondaries(const CoreRef<M>&                        core_data,
-                        TrackInitStateData<Ownership::value, M>* data)
+inline void extend_from_secondaries(CoreRef<M>& core_data)
 {
     CELER_EXPECT(core_data);
-    CELER_EXPECT(data && *data);
+
+    auto& data = core_data.states.init;
 
     // Resize the vector of vacancies to be equal to the number of tracks
-    data->vacancies.resize(core_data.states.size());
+    data.vacancies.resize(core_data.states.size());
 
     // Launch a kernel to identify which track slots are still alive and count
     // the number of surviving secondaries per track
-    generated::locate_alive(core_data, make_ref(*data));
+    generated::locate_alive(core_data);
 
     // Remove all elements in the vacancy vector that were flagged as active
     // tracks, leaving the (sorted) indices of the empty slots
-    size_type num_vac = detail::remove_if_alive<M>(data->vacancies.data());
-    data->vacancies.resize(num_vac);
+    size_type num_vac = detail::remove_if_alive<M>(data.vacancies.data());
+    data.vacancies.resize(num_vac);
 
     // The exclusive prefix sum of the number of secondaries produced by each
     // track is used to get the start index in the vector of track initializers
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    data->num_secondaries = detail::exclusive_scan_counts<M>(
-        data->secondary_counts[AllItems<size_type, M>{}]);
+    data.num_secondaries = detail::exclusive_scan_counts<M>(
+        data.secondary_counts[AllItems<size_type, M>{}]);
 
     // TODO: if we don't have space for all the secondaries, we will need to
     // buffer the current track initializers to create room
-    CELER_VALIDATE(
-        data->num_secondaries + data->initializers.size()
-            <= data->initializers.capacity(),
-        << "insufficient capacity (" << data->initializers.capacity()
-        << ") for track initializers (created " << data->num_secondaries
-        << " new secondaries for a total capacity requirement of "
-        << data->num_secondaries + data->initializers.size() << ")");
+    CELER_VALIDATE(data.num_secondaries + data.initializers.size()
+                       <= data.initializers.capacity(),
+                   << "insufficient capacity (" << data.initializers.capacity()
+                   << ") for track initializers (created "
+                   << data.num_secondaries
+                   << " new secondaries for a total capacity requirement of "
+                   << data.num_secondaries + data.initializers.size() << ")");
 
     // Launch a kernel to create track initializers from secondaries
-    data->initializers.resize(data->initializers.size()
-                              + data->num_secondaries);
-    generated::process_secondaries(core_data, make_ref(*data));
+    data.initializers.resize(data.initializers.size() + data.num_secondaries);
+    generated::process_secondaries(core_data);
 }
 
 //---------------------------------------------------------------------------//

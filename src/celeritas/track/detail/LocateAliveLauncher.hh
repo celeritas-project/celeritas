@@ -7,14 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Atomics.hh"
-#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
 
 #include "../SimTrackView.hh"
-#include "../TrackInitData.hh"
 #include "Utils.hh"
 
 namespace celeritas
@@ -36,29 +32,25 @@ class LocateAliveLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsRef         = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef          = CoreStateData<Ownership::reference, M>;
-    using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
+    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION LocateAliveLauncher(const CoreRef<M>&        core_data,
-                                       const TrackInitStateRef& init_data)
-        : params_(core_data.params), states_(core_data.states), data_(init_data)
+    CELER_FUNCTION LocateAliveLauncher(const CoreRef<M>& core_data)
+        : params_(core_data.params), states_(core_data.states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);
-        CELER_EXPECT(data_);
     }
 
     // Determine which tracks are alive and count secondaries
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef&         params_;
-    const StateRef&          states_;
-    const TrackInitStateRef& data_;
+    const ParamsRef& params_;
+    const StateRef&  states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -68,19 +60,18 @@ class LocateAliveLauncher
 template<MemSpace M>
 CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 {
+    // Count the number of secondaries produced by each track
+    size_type    num_secondaries{0};
     SimTrackView sim(states_.sim, tid);
-
-    // Count how many secondaries survived cutoffs for each track
-    data_.secondary_counts[tid] = 0;
 
     if (sim.status() != TrackStatus::inactive)
     {
-        // XXX use track view instead of hacking into data
-        for (const auto& secondary : states_.physics.state[tid].secondaries)
+        PhysicsStepView phys(params_.physics, states_.physics, tid);
+        for (const auto& secondary : phys.secondaries())
         {
             if (secondary)
             {
-                ++data_.secondary_counts[tid];
+                ++num_secondaries;
             }
         }
     }
@@ -88,23 +79,24 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
     if (sim.status() == TrackStatus::alive)
     {
         // The track is alive: mark this track slot as occupied
-        data_.vacancies[tid] = flag_id();
+        states_.init.vacancies[tid] = occupied();
     }
-    else if (data_.secondary_counts[tid] > 0)
+    else if (num_secondaries > 0)
     {
         // The track was killed and produced secondaries: in this case, the
         // empty track slot will be filled with the first secondary. Mark this
         // slot as occupied even though the secondary has not been initialized
         // in it yet, and don't include the first secondary in the count
-        data_.vacancies[tid] = flag_id();
-        --data_.secondary_counts[tid];
+        states_.init.vacancies[tid] = occupied();
+        --num_secondaries;
     }
     else
     {
         // The track is inactive/killed and did not produce secondaries: store
         // the index so it can be used later to initialize a new track
-        data_.vacancies[tid] = tid.unchecked_get();
+        states_.init.vacancies[tid] = tid.unchecked_get();
     }
+    states_.init.secondary_counts[tid] = num_secondaries;
 }
 
 //---------------------------------------------------------------------------//

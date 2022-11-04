@@ -32,6 +32,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 using namespace celeritas;
 
@@ -94,6 +95,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
                        {"initializer_capacity", v.initializer_capacity},
+                       {"max_events", v.max_events},
                        {"secondary_stack_factor", v.secondary_stack_factor},
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
@@ -149,6 +151,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
         j.at("max_steps").get_to(v.max_steps);
     }
     j.at("initializer_capacity").get_to(v.initializer_capacity);
+    j.at("max_events").get_to(v.max_events);
     j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
@@ -315,6 +318,25 @@ TransporterInput load_input(const LDemoArgs& args)
         params.rng = std::make_shared<RngParams>(args.seed);
     }
 
+    // Construct track initialization params
+    {
+        CELER_VALIDATE(args.initializer_capacity > 0,
+                       << "nonpositive initializer_capacity="
+                       << args.initializer_capacity);
+        CELER_VALIDATE(args.max_events > 0,
+                       << "nonpositive max_events=" << args.max_events);
+        CELER_VALIDATE(
+            !args.primary_gen_options
+                || args.max_events >= args.primary_gen_options.num_events,
+            << "max_events=" << args.max_events
+            << " cannot be less than num_events="
+            << args.primary_gen_options.num_events);
+        TrackInitParams::Input input;
+        input.capacity   = args.initializer_capacity;
+        input.max_events = args.max_events;
+        params.init      = std::make_shared<TrackInitParams>(input);
+    }
+
     // Create params
     CELER_ASSERT(params);
     result.params = std::make_shared<CoreParams>(std::move(params));
@@ -322,13 +344,9 @@ TransporterInput load_input(const LDemoArgs& args)
     // Save constants
     CELER_VALIDATE(args.max_num_tracks > 0,
                    << "nonpositive max_num_tracks=" << args.max_num_tracks);
-    CELER_VALIDATE(args.initializer_capacity > 0,
-                   << "nonpositive initializer_capacity="
-                   << args.initializer_capacity);
     CELER_VALIDATE(args.max_steps > 0,
                    << "nonpositive max_steps=" << args.max_steps);
     result.num_track_slots    = args.max_num_tracks;
-    result.num_initializers   = args.initializer_capacity;
     result.max_steps          = args.max_steps;
     result.enable_diagnostics = args.enable_diagnostics;
     result.sync               = args.sync;

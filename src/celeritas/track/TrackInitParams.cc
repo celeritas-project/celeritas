@@ -7,26 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitParams.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with primaries and storage factor.
+ * Construct with capacity and number of events.
  */
 TrackInitParams::TrackInitParams(const Input& inp)
 {
-    CELER_EXPECT(!inp.primaries.empty());
     CELER_EXPECT(inp.capacity > 0);
+    CELER_EXPECT(inp.max_events > 0);
 
-    make_builder(&host_value_.primaries)
-        .insert_back(inp.primaries.begin(), inp.primaries.end());
-    host_value_.capacity = inp.capacity;
-    host_ref_            = host_value_;
-
-    CELER_ENSURE(host_value_);
-    CELER_ENSURE(host_ref_);
+    HostVal<TrackInitParamsData> host_data;
+    host_data.capacity   = inp.capacity;
+    host_data.max_events = inp.max_events;
+    CELER_ASSERT(host_data);
+    data_ = CollectionMirror<TrackInitParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//

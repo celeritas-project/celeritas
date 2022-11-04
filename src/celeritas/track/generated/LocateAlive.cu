@@ -28,27 +28,25 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 locate_alive_kernel(
-    const CoreDeviceRef core_data,
-    const TrackInitStateDeviceRef init_data)
+    const CoreDeviceRef core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
         return;
 
-    detail::LocateAliveLauncher<MemSpace::device> launch(core_data, init_data);
+    detail::LocateAliveLauncher<MemSpace::device> launch(core_data);
     launch(tid);
 }
 } // namespace
 
 void locate_alive(
-    const CoreDeviceRef& core_data,
-    const TrackInitStateDeviceRef& init_data)
+    const CoreDeviceRef& core_data)
 {
     CELER_LAUNCH_KERNEL(
         locate_alive,
         celeritas::device().default_block_size(),
         core_data.states.size(),
-        core_data, init_data);
+        core_data);
 }
 
 } // namespace generated

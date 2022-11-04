@@ -196,12 +196,10 @@ TEST_F(TestEm3Test, setup)
 
 TEST_F(TestEm3Test, host)
 {
-    size_type num_primaries   = 1;
-    size_type inits_per_track = 32 * 8;
-    size_type num_tracks      = num_primaries * inits_per_track;
+    size_type num_primaries = 1;
+    size_type num_tracks    = 256;
 
-    Stepper<MemSpace::host> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
@@ -243,13 +241,11 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
     }
 
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 1024;
+    size_type num_primaries = 8;
     // Num tracks is low enough to hit capacity
     size_type num_tracks = num_primaries * 800;
 
-    Stepper<MemSpace::device> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
@@ -314,12 +310,10 @@ TEST_F(TestEm3MscTest, setup)
 
 TEST_F(TestEm3MscTest, host)
 {
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 32 * 8;
-    size_type num_tracks      = num_primaries * inits_per_track;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 2048;
 
-    Stepper<MemSpace::host> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
@@ -345,12 +339,10 @@ TEST_F(TestEm3MscTest, host)
 
 TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 {
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 512;
-    size_type num_tracks      = 1024;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 1024;
 
-    Stepper<MemSpace::device> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -387,12 +379,10 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(TestEm3MscNofluctTest, host)
 {
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 32 * 8;
-    size_type num_tracks      = num_primaries * inits_per_track;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 2048;
 
-    Stepper<MemSpace::host> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(58, result.calc_avg_steps_per_primary(), 0.10);
 
@@ -430,12 +420,10 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
     }
 
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 512;
-    size_type num_tracks      = 1024;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 1024;
 
-    Stepper<MemSpace::device> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -496,12 +484,10 @@ TEST_F(TestEm15FieldTest, setup)
 
 TEST_F(TestEm15FieldTest, host)
 {
-    size_type num_primaries   = 4;
-    size_type inits_per_track = 32 * 8;
-    size_type num_tracks      = num_primaries * inits_per_track;
+    size_type num_primaries = 4;
+    size_type num_tracks    = 1024;
 
-    Stepper<MemSpace::host> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.10);
 
@@ -528,12 +514,10 @@ TEST_F(TestEm15FieldTest, host)
 
 TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
 {
-    size_type num_primaries   = 8;
-    size_type inits_per_track = 512;
-    size_type num_tracks      = 1024;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 1024;
 
-    Stepper<MemSpace::device> step(
-        this->make_stepper_input(num_tracks, inits_per_track));
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_summit_build()

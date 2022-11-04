@@ -31,7 +31,7 @@ size_type remove_if_alive<MemSpace::device>(Span<size_type> vacancies)
     thrust::device_ptr<size_type> end = thrust::remove_if(
         thrust::device_pointer_cast(vacancies.data()),
         thrust::device_pointer_cast(vacancies.data() + vacancies.size()),
-        IsEqual{flag_id()});
+        IsEqual{occupied()});
 
     CELER_DEVICE_CHECK_ERROR();
 

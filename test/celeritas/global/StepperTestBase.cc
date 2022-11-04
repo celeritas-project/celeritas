@@ -38,16 +38,13 @@ StepperTestBase::StepperTestBase()
 
 //---------------------------------------------------------------------------//
 //! Generate a stepper construction class
-StepperInput
-StepperTestBase::make_stepper_input(size_type tracks, size_type init_scaling)
+StepperInput StepperTestBase::make_stepper_input(size_type tracks)
 {
     CELER_EXPECT(tracks > 0);
-    CELER_EXPECT(init_scaling > 1);
 
     StepperInput result;
-    result.params           = this->core();
-    result.num_track_slots  = tracks;
-    result.num_initializers = init_scaling * tracks;
+    result.params          = this->core();
+    result.num_track_slots = tracks;
 
     return result;
 }
@@ -67,7 +64,7 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
     }
 
     // Create temporary host stepper to get action ordering
-    Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1, 2));
+    Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1));
     const auto&             action_seq = temp_stepper.actions();
     for (const auto& sp_action : action_seq.actions())
     {
@@ -84,7 +81,8 @@ auto StepperTestBase::run(StepperInterface& step,
     CELER_EXPECT(step);
 
     // Perform first step
-    auto counts = step(this->make_primaries(num_primaries));
+    auto primaries = this->make_primaries(num_primaries);
+    auto counts    = step(primaries);
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 

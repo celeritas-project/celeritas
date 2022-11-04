@@ -25,15 +25,11 @@ namespace celeritas
  * Construct with problem parameters and setup options.
  */
 template<MemSpace M>
-Stepper<M>::Stepper(Input input)
-    : params_(std::move(input.params))
-    , num_initializers_(input.num_initializers)
+Stepper<M>::Stepper(Input input) : params_(std::move(input.params))
 {
     CELER_EXPECT(params_);
     CELER_VALIDATE(input.num_track_slots > 0,
                    << "number of track slots has not been set");
-    CELER_VALIDATE(input.num_initializers > 0,
-                   << "number of initializers has not been set");
     states_ = CollectionStateStore<CoreStateData, M>(params_->host_ref(),
                                                      input.num_track_slots);
 
@@ -68,23 +64,20 @@ auto Stepper<M>::operator()() -> result_type
 {
     CELER_EXPECT(*this);
 
-    // TODO: refactor initialization
-    CELER_VALIDATE(inits_, << "no primaries were given");
-
     result_type result;
 
     // Create new tracks from queued primaries or secondaries
-    initialize_tracks(core_ref_, &inits_);
-    result.active = states_.size() - inits_.vacancies.size();
+    initialize_tracks(core_ref_);
+    result.active = states_.size() - core_ref_.states.init.vacancies.size();
 
     actions_->execute(core_ref_);
 
     // Create track initializers from surviving secondaries
-    extend_from_secondaries(core_ref_, &inits_);
+    extend_from_secondaries(core_ref_);
 
     // Get the number of track initializers and active tracks
-    result.alive  = states_.size() - inits_.vacancies.size();
-    result.queued = inits_.initializers.size();
+    result.alive  = states_.size() - core_ref_.states.init.vacancies.size();
+    result.queued = core_ref_.states.init.initializers.size();
 
     return result;
 }
@@ -92,37 +85,23 @@ auto Stepper<M>::operator()() -> result_type
 //---------------------------------------------------------------------------//
 /*!
  * Initialize new primaries and transport them for a single step.
- *
- * \todo Currently the track initializers and primary initialization are tied
- * together, so we can only call this once. Once we refactor TrackInitParams we
- * should be able to control the injection of new primaries into the event
- * loop.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()(VecPrimary primaries) -> result_type
+auto Stepper<M>::operator()(const VecPrimary& primaries) -> result_type
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(!primaries.empty());
 
-    CELER_VALIDATE(!inits_,
-                   << "primaries were already initialized (currently they "
-                      "must be set exactly once, at the first step)");
-
-    // Create track initializers and add primaries
-    TrackInitParams::Input inp;
-    inp.primaries = std::move(primaries);
-    inp.capacity  = num_initializers_;
-    TrackInitParams init_params{std::move(inp)};
+    CELER_VALIDATE(primaries.size() + core_ref_.states.init.initializers.size()
+                       <= core_ref_.states.init.initializers.capacity(),
+                   << "insufficient initializer capacity ("
+                   << core_ref_.states.init.initializers.capacity()
+                   << ") with size ("
+                   << core_ref_.states.init.initializers.size()
+                   << ") for primaries (" << primaries.size() << ")");
 
     // Create track initializers
-    resize(&inits_, init_params.host_ref(), states_.size());
-    CELER_VALIDATE(init_params.host_ref().primaries.size()
-                       <= inits_.initializers.capacity(),
-                   << "insufficient initializer capacity ("
-                   << inits_.initializers.capacity() << ") for primaries ("
-                   << init_params.host_ref().primaries.size() << ')');
-
-    extend_from_primaries(init_params.host_ref(), &inits_);
+    extend_from_primaries(core_ref_, primaries);
 
     return (*this)();
 }

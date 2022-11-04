@@ -15,10 +15,10 @@ namespace celeritas
 namespace generated
 {
 void process_primaries(
-    const Span<const Primary> primaries,
-    const TrackInitStateHostRef& init_data)
+    const CoreHostRef& core_data,
+    const Span<const Primary> primaries)
 {
-    detail::ProcessPrimariesLauncher<MemSpace::host> launch(primaries, init_data);
+    detail::ProcessPrimariesLauncher<MemSpace::host> launch(core_data, primaries);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < primaries.size(); ++i)
     {
