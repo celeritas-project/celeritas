@@ -21,7 +21,8 @@
 #elif defined(__CUDA_ARCH__)
 // No assert header needed for CUDA
 #else
-#    include <sstream>
+#    include <ostream> // IWYU pragma: export
+#    include <sstream> // IWYU pragma: keep
 #endif
 
 #include "celeritas_config.h"

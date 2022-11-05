@@ -20,7 +20,7 @@
 #include "celeritas/io/ImportPhysicsVector.hh"
 
 #include "PDGNumber.hh"
-#include "ParticleParams.hh"
+#include "ParticleParams.hh" // IWYU pragma: keep
 
 namespace celeritas
 {

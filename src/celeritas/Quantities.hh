@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Quantity.hh"
+#include "corecel/math/Quantity.hh" // IWYU pragma: export
 
 #include "Constants.hh"
 #include "Units.hh"

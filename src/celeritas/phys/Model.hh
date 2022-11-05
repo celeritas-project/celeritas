@@ -9,16 +9,16 @@
 
 #include <memory>
 #include <set>
-#include <string>
+#include <string> // IWYU pragma: export
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/ActionInterface.hh" // IWYU pragma: export
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
 
-#include "Applicability.hh"
+#include "Applicability.hh" // IWYU pragma: export
 
 namespace celeritas
 {

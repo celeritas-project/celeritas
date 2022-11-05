@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
+#include <unordered_map> // IWYU pragma: export
 #include <vector>
 
 #include "corecel/cont/Label.hh"

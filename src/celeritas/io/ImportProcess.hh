@@ -10,7 +10,10 @@
 #include <map>
 #include <vector>
 
-#include "ImportPhysicsTable.hh"
+// IWYU pragma: begin_exports
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
+// IWYU pragma: end_exports
 
 namespace celeritas
 {

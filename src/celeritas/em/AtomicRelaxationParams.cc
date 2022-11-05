@@ -26,10 +26,10 @@
 #include "corecel/math/Quantity.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/mat/MaterialParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
 
 #include "data/AtomicRelaxationData.hh"
 #include "detail/Utils.hh"

@@ -9,6 +9,7 @@
 
 #include "celeritas_config.h"
 
+// IWYU pragma: begin_exports
 #if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
     || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
 #    include "CuHipRngParams.hh"
@@ -17,3 +18,4 @@
 #endif
 
 #include "RngParamsFwd.hh"
+// IWYU pragma: end_exports
