@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/HitCollector.hh
+//! \file celeritas/user/StepCollector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "HitData.hh"
-#include "HitInterface.hh"
+#include "StepData.hh"
+#include "StepInterface.hh"
 
 namespace celeritas
 {
@@ -19,8 +19,9 @@ class ActionRegistry;
 
 namespace detail
 {
-class HitAction;
-class HitBuffer;
+template<StepPoint P>
+class StepGatherAction;
+struct StepStorage;
 } // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -31,40 +32,36 @@ class HitBuffer;
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
  */
-class HitCollector
+class StepCollector
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPHitInterface = std::shared_ptr<HitInterface>;
+    using SPStepInterface = std::shared_ptr<StepInterface>;
     //!@}
-
-    struct Callbacks
-    {
-        SPHitInterface pre_step;
-        SPHitInterface post_step;
-    };
 
   public:
     // Construct with options and register pre/post-step actions
-    HitCollector(const HitSelection& selection,
-                 Callbacks           cb,
-                 ActionRegistry*     action_registry);
+    StepCollector(const StepSelection& selection,
+                  SPStepInterface      callback,
+                  ActionRegistry*      action_registry);
 
-    // Default destructor
-    ~HitCollector();
+    // Default destructor and move
+    ~StepCollector();
+    StepCollector(StepCollector&&);
+    StepCollector& operator=(StepCollector&&);
 
-    //! See which data are being gathered
-    const HitSelection& selection() const { return selection_; }
+    // See which data are being gathered
+    const StepSelection& selection() const;
 
   private:
-    using SPHitAction = std::shared_ptr<detail::HitAction>;
-    using SPHitBuffer = std::shared_ptr<detail::HitBuffer>;
+    template<StepPoint P>
+    using SPStepGatherAction = std::shared_ptr<detail::StepGatherAction<P>>;
+    using SPStepStorage      = std::shared_ptr<detail::StepStorage>;
 
-    HitSelection selection_;
-    SPHitAction  pre_action_;
-    SPHitAction  post_action_;
-    SPHitBuffer  buffer_;
+    SPStepStorage                       storage_;
+    SPStepGatherAction<StepPoint::pre>  pre_action_;
+    SPStepGatherAction<StepPoint::post> post_action_;
 };
 
 //---------------------------------------------------------------------------//

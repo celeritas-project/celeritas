@@ -3,27 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/HitInterface.hh
+//! \file celeritas/user/StepInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 
-#include "HitData.hh"
+#include "StepData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Callback class to gather and process data from hits at a state point.
+ * Callback class to gather and process data from many tracks at a single step.
  */
-class HitInterface
+class StepInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using StateHostRef   = HostRef<HitStateData>;
-    using StateDeviceRef = DeviceRef<HitStateData>;
+    using StateHostRef   = HostRef<StepStateData>;
+    using StateDeviceRef = DeviceRef<StepStateData>;
     //@}
 
   public:
@@ -35,7 +35,7 @@ class HitInterface
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
-    ~HitInterface() = default;
+    ~StepInterface() = default;
 };
 
 //---------------------------------------------------------------------------//

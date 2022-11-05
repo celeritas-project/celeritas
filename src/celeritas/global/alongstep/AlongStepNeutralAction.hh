@@ -11,8 +11,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 
-#include "celeritas_config.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -52,17 +50,6 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
   private:
     ActionId id_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-#if !CELER_USE_DEVICE
-inline void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

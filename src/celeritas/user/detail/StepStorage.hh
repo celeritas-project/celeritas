@@ -3,13 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/HitBuffer.hh
+//! \file celeritas/user/detail/StepBuffer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
+#include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
+
+#include "../StepData.hh"
 
 namespace celeritas
 {
@@ -17,31 +20,35 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Hit storage shared across multiple actions.
+ * Step storage shared across multiple actions.
  */
-struct HitBuffer
+struct StepStorage
 {
     template<MemSpace M>
-    using HitStateCollection = CollectionStateStore<HitStateData, M>;
+    using StepStateCollection = CollectionStateStore<StepStateData, M>;
+    template<MemSpace M>
+    using MemSpaceTag = std::integral_constant<MemSpace, M>;
+
+    // Parameter data
+    CollectionMirror<StepParamsData> params;
 
     // State data
     struct
     {
-        HitStateCollection<MemSpace::host>   host;
-        HitStateCollection<MemSpace::device> device;
+        StepStateCollection<MemSpace::host>   host;
+        StepStateCollection<MemSpace::device> device;
     } states;
 
     //!@{
-    //! Tag-based dispatch for accessing stores
+    //! Tag-based dispatch for accessing states
     // TODO: replace with `if constexpr` for C++17
-    HitStateCollection<MemSpace::host>
-    get(std::integral_constant<MemSpace::host>)
+    StepStateCollection<MemSpace::host>& get_state(MemSpaceTag<MemSpace::host>)
     {
         return states.host;
     }
 
-    HitStateCollection<MemSpace::device>
-    get(std::integral_constant<MemSpace::device>)
+    StepStateCollection<MemSpace::device>&
+    get_state(MemSpaceTag<MemSpace::device>)
     {
         return states.device;
     }

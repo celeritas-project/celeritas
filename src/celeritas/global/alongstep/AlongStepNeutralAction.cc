@@ -45,4 +45,12 @@ void AlongStepNeutralAction::execute(CoreHostRef const& data) const
 }
 
 //---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas
