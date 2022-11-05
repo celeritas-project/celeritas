@@ -31,7 +31,8 @@ HH_TEMPLATE = CLIKE_TOP + """\
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/{dir}/data/{class}Data.hh"
+#include "corecel/Types.hh"
+#include "celeritas/{dir}/data/{class}Data.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackData.hh"
 
 namespace {namespace}
@@ -64,7 +65,8 @@ CC_TEMPLATE = CLIKE_TOP + """\
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "celeritas/{dir}/launcher/{class}Launcher.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/{dir}/launcher/{class}Launcher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
 
 using celeritas::MemSpace;

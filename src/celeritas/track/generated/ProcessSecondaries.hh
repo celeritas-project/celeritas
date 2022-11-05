@@ -2,7 +2,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/track/detail/ProcessSecondariesLauncher.hh"
+#include "celeritas/track/detail/ProcessSecondariesLauncher.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/track/TrackInitData.hh"
 

@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "../detail/PreStepActionImpl.hh"
+#include "../detail/PreStepActionImpl.hh" // IWYU pragma: associated
 
 namespace celeritas
 {

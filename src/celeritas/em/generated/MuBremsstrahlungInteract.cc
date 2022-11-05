@@ -10,7 +10,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
-#include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/em/launcher/MuBremsstrahlungLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
 
 using celeritas::MemSpace;

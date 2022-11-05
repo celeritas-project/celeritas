@@ -10,7 +10,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/em/data/KleinNishinaData.hh"
+#include "corecel/Types.hh"
+#include "celeritas/em/data/KleinNishinaData.hh" // IWYU pragma: associated
 #include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
