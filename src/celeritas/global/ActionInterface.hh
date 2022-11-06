@@ -9,14 +9,11 @@
 
 #include <string>
 
-#include "celeritas/Types.hh"
+#include "celeritas/Types.hh" // IWYU pragma: export
+#include "CoreTrackDataFwd.hh" // IWYU pragma: export
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<MemSpace M>
-struct CoreRef;
-
 //---------------------------------------------------------------------------//
 /*!
  * Pure abstract interface for an end-of-step action.

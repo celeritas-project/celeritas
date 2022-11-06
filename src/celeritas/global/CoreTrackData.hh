@@ -118,6 +118,7 @@ struct CoreStateData
     }
 };
 
+// TODO: DEPRECATED TYPE ALIASES
 using CoreParamsDeviceRef = DeviceCRef<CoreParamsData>;
 using CoreParamsHostRef   = HostCRef<CoreParamsData>;
 using CoreStateDeviceRef  = DeviceRef<CoreStateData>;
@@ -139,6 +140,7 @@ struct CoreRef
     CELER_FUNCTION operator bool() const { return params && states; }
 };
 
+// TODO: DEPRECATED TYPE ALIASES
 using CoreHostRef   = CoreRef<MemSpace::host>;
 using CoreDeviceRef = CoreRef<MemSpace::device>;
 

@@ -13,14 +13,12 @@
 #include "corecel/Types.hh"
 
 #include "../ActionInterface.hh"
+#include "../CoreTrackDataFwd.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-
-template<MemSpace M>
-struct CoreRef;
 
 namespace detail
 {
