@@ -22,7 +22,7 @@ namespace celeritas
  */
 MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
 {
-    CELER_EXPECT(comm != detail::MpiCommNull());
+    CELER_EXPECT(comm != detail::mpi_comm_null());
     CELER_VALIDATE(
         ScopedMpiInit::status() == ScopedMpiInit::Status::initialized,
         << "MPI was not initialized (needed to construct a communicator). "

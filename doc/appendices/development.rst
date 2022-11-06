@@ -232,14 +232,11 @@ Thus we have the following rules:
   including code that initializes device memory. Despite the filename, these
   files should generally also be HIP-compatible using Celeritas abstraction
   macros.
-- ``.cuda.hh`` and ``.cuda.cc`` require CUDA to be enabled and use CUDA runtime
-  libraries and headers, but they do not execute any device code and thus can
-  be built by a host compiler. If the CUDA-related code is guarded by ``#if
-  CELERITAS_USE_CUDA`` macros then the special extension is not necessary. A
-  ``.nocuda.cc`` file can specify alternative code paths to ``.cuda.cc`` files
-  (mainly for error checking code).
-- ``.mpi.cc`` and ``.nompi.cc`` code requires MPI to be enabled or disabled,
-  respectively.
+- ``.device.hh`` and ``.device.cc`` require CUDA/HIP to be enabled and use the
+  library's runtime libraries and headers, but they do not execute any device
+  code and thus can be built by a host compiler. If the CUDA-related code is
+  guarded by ``#if CELER_USE_DEVICE`` macros then the special extension is not
+  necessary.
 
 Some files have special extensions:
 

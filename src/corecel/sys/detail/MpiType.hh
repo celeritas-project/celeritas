@@ -3,41 +3,40 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/detail/MpiTypes.mpi.hh
+//! \file corecel/sys/detail/MpiType.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <mpi.h>
+#include "celeritas_config.h"
+
+#if CELERITAS_USE_MPI
+#    include <mpi.h>
+#endif
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-using MpiComm = MPI_Comm;
-
-inline MpiComm MpiCommNull()
-{
-    return MPI_COMM_NULL;
-}
-inline MpiComm MpiCommWorld()
-{
-    return MPI_COMM_WORLD;
-}
-inline MpiComm MpiCommSelf()
-{
-    return MPI_COMM_SELF;
-}
-
+//! Traits class for MPI enumerations
 template<class T>
 struct MpiType;
 
-#define CELER_DEFINE_MPITYPE(T, MPI_ENUM)              \
-    template<>                                         \
-    struct MpiType<T>                                  \
-    {                                                  \
-        static MPI_Datatype get() { return MPI_ENUM; } \
-    }
+#if CELERITAS_USE_MPI
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)              \
+        template<>                                         \
+        struct MpiType<T>                                  \
+        {                                                  \
+            static MPI_Datatype get() { return MPI_ENUM; } \
+        }
+#else
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)              \
+        template<>                                         \
+        struct MpiType<T>                                  \
+        {                                                  \
+            static const char* get() { return #MPI_ENUM; } \
+        }
+#endif
 
 CELER_DEFINE_MPITYPE(bool, MPI_CXX_BOOL);
 CELER_DEFINE_MPITYPE(char, MPI_CHAR);

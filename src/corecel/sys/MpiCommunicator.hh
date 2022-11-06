@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/MpiTypes.hh"
+#include "detail/MpiCommunicatorImpl.hh"
 
 namespace celeritas
 {
@@ -55,10 +55,10 @@ class MpiCommunicator
     int size() const { return size_; }
 
     //! True if non-null communicator
-    explicit operator bool() const { return comm_ != detail::MpiCommNull(); }
+    explicit operator bool() const { return comm_ != detail::mpi_comm_null(); }
 
   private:
-    MpiComm comm_ = detail::MpiCommNull();
+    MpiComm comm_ = detail::mpi_comm_null();
     int     rank_ = 0;
     int     size_ = 1;
 };
@@ -73,14 +73,14 @@ Device make_device(const MpiCommunicator&);
 //! Construct a communicator with MPI_COMM_SELF
 MpiCommunicator MpiCommunicator::comm_self()
 {
-    return MpiCommunicator{detail::MpiCommSelf()};
+    return MpiCommunicator{detail::mpi_comm_self()};
 }
 
 //---------------------------------------------------------------------------//
 //! Construct a communicator with MPI_COMM_WORLD
 MpiCommunicator MpiCommunicator::comm_world()
 {
-    return MpiCommunicator{detail::MpiCommWorld()};
+    return MpiCommunicator{detail::mpi_comm_world()};
 }
 
 //---------------------------------------------------------------------------//
