@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/math/Atomics.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
