@@ -214,7 +214,7 @@ void print_process(const ImportProcess&               proc,
 
             const auto& elem_phys_vectors = micro_xs.at(mat_id);
 
-            for (size_t i : celeritas::range(elem_phys_vectors.size()))
+            for (auto i : celeritas::range(elem_phys_vectors.size()))
             {
                 // Print elements and their physics vectors
                 const auto physvec = elem_phys_vectors.at(i);

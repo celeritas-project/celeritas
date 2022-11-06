@@ -84,7 +84,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
     double energy_limit    = std::min(energy_max, sb_energy_limit);
     G4VEmFluctuationModel* fluctuation_model = nullptr;
 
-    size_t model_index = 0;
+    std::size_t model_index = 0;
 
     if (model_selection_ == ModelSelection::seltzer_berger
         || model_selection_ == ModelSelection::all)
@@ -101,7 +101,7 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         em_model->SetLPMFlag(false);
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
 
-        model_index++;
+        ++model_index;
     }
 
     if (model_selection_ == ModelSelection::relativistic

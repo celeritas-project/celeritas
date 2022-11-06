@@ -651,7 +651,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
         // All physics vectors have the same energy grid for the same material
         const auto& energy_grid = elem_phys_vectors.front().x;
 
-        for (size_t elem_comp_idx : celeritas::range(material.elements.size()))
+        for (auto elem_comp_idx : celeritas::range(material.elements.size()))
         {
             const auto&      elem_comp = material.elements.at(elem_comp_idx);
             const G4Element* g4_element
