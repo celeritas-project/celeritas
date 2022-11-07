@@ -8,7 +8,7 @@
 #pragma once
 
 #include "orange/Data.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
 
 namespace celeritas

@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "Types.hh"
+#include "OrangeTypes.hh"
 
 namespace celeritas
 {

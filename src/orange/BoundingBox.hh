@@ -13,7 +13,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "orange/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {

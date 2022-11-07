@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/Types.cc
+//! \file orange/OrangeTypes.cc
 //---------------------------------------------------------------------------//
-#include "Types.hh"
+#include "OrangeTypes.hh"
 
 #include "corecel/Assert.hh"
 

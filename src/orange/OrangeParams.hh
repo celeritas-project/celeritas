@@ -18,7 +18,7 @@
 
 #include "BoundingBox.hh"
 #include "Data.hh"
-#include "Types.hh"
+#include "OrangeTypes.hh"
 #include "detail/UnitIndexer.hh"
 
 namespace celeritas

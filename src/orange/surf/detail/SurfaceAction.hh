@@ -11,7 +11,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"

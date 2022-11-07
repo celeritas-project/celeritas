@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/cont/Range.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {

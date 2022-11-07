@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "LogicStack.hh"
 
