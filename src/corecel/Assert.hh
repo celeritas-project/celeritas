@@ -21,7 +21,8 @@
 #elif defined(__CUDA_ARCH__)
 // No assert header needed for CUDA
 #else
-#    include <sstream>
+#    include <ostream> // IWYU pragma: export
+#    include <sstream> // IWYU pragma: keep
 #endif
 
 #include "celeritas_config.h"
@@ -227,8 +228,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.h or be compiled by NVCC (which implicitly
- * includes that header).
+ * corecel/device_runtime_api.h .
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_CUDA_CALL(STATEMENT)                             \
@@ -246,10 +246,11 @@
             }                                                      \
         } while (0)
 #else
-#    define CELER_CUDA_CALL(STATEMENT)    \
-        do                                \
-        {                                 \
-            CELER_NOT_CONFIGURED("CUDA"); \
+#    define CELER_CUDA_CALL(STATEMENT)                     \
+        do                                                 \
+        {                                                  \
+            CELER_NOT_CONFIGURED("CUDA");                  \
+            (void)sizeof(celeritas_device_runtime_api_h_); \
         } while (0)
 #endif
 
@@ -267,8 +268,9 @@
    CELER_HIP_CALL(hipDeviceSynchronize());
  * \endcode
  *
- * \note A file that uses this macro must include \c hip_runtime_api.h or be
- * compiled by NVCC (which implicitly includes that header).
+ * \note A file that uses this macro must include \c
+ * corecel/device_runtime_api.h . The \c celeritas_device_runtime_api_h_
+ * declaration enforces this when HIP is disabled.
  */
 #if CELERITAS_USE_HIP
 #    define CELER_HIP_CALL(STATEMENT)                              \
@@ -286,10 +288,11 @@
             }                                                      \
         } while (0)
 #else
-#    define CELER_HIP_CALL(STATEMENT)    \
-        do                               \
-        {                                \
-            CELER_NOT_CONFIGURED("HIP"); \
+#    define CELER_HIP_CALL(STATEMENT)                      \
+        do                                                 \
+        {                                                  \
+            CELER_NOT_CONFIGURED("HIP");                   \
+            (void)sizeof(celeritas_device_runtime_api_h_); \
         } while (0)
 #endif
 
@@ -306,16 +309,20 @@
    CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
  * \endcode
  *
+ * \note A file that uses this macro must include \c
+ * corecel/device_runtime_api.h . The \c celeritas_device_runtime_api_h_
+ * declaration enforces this when CUDA/HIP are disabled.
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_CUDA_CALL(cuda##STMT)
 #elif CELERITAS_USE_HIP
 #    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_HIP_CALL(hip##STMT)
 #else
-#    define CELER_DEVICE_CALL_PREFIX(STMT)       \
-        do                                       \
-        {                                        \
-            CELER_NOT_CONFIGURED("CUDA or HIP"); \
+#    define CELER_DEVICE_CALL_PREFIX(STMT)                 \
+        do                                                 \
+        {                                                  \
+            CELER_NOT_CONFIGURED("CUDA or HIP");           \
+            (void)sizeof(celeritas_device_runtime_api_h_); \
         } while (0)
 #endif
 

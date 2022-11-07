@@ -17,7 +17,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/VectorUtils.hh"
-#include "celeritas/em/AtomicRelaxationParams.hh"
+#include "celeritas/em/AtomicRelaxationParams.hh" // IWYU pragma: keep
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"

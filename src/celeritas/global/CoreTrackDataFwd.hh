@@ -3,22 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ThreadId.hh
+//! \file celeritas/global/CoreTrackDataFwd.hh
+//! \brief Forward declarations for some structs defined in CoreTrackData.
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-// Forward declare meaningless struct to avoid conflict with globally
-// namespaced PTL::Thread class when defining ThreadId type.
-struct Thread;
+template<Ownership W, MemSpace M>
+struct CoreParamsData;
 
-//---------------------------------------------------------------------------//
-//! Index of a thread inside the current kernel
-using ThreadId = OpaqueId<struct Thread>;
+template<Ownership W, MemSpace M>
+struct CoreStateData;
+
+template<MemSpace M>
+struct CoreRef;
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

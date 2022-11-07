@@ -12,6 +12,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
 
 #include "detail/VecgeomNavCollection.hh"

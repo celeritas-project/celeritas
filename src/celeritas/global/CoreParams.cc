@@ -10,17 +10,17 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoMaterialParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"         // IWYU pragma: keep
 #include "celeritas/geo/generated/BoundaryAction.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/random/RngParams.hh"
+#include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/CutoffParams.hh"   // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
+#include "celeritas/random/RngParams.hh"    // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh"
+#include "ActionRegistry.hh" // IWYU pragma: keep
 
 namespace celeritas
 {

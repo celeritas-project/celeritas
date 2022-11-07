@@ -11,6 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "orange/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleData.hh"

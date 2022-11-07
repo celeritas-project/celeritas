@@ -9,6 +9,7 @@
 
 #include <vector>
 
+// IWYU pragma: begin_exports
 #include "ImportAtomicRelaxation.hh"
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
@@ -17,6 +18,7 @@
 #include "ImportProcess.hh"
 #include "ImportSBTable.hh"
 #include "ImportVolume.hh"
+// IWYU pragma: end_exports
 
 namespace celeritas
 {

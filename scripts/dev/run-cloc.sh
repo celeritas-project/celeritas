@@ -4,8 +4,8 @@
 #   run-cloc.sh --by-file
 #   run-cloc.sh --csv
 ###############################################################################
-BUILDSCRIPT_DIR="$(cd "$(dirname $BASH_SOURCE[0])" && pwd)"
-SOURCE_DIR="$(cd "${BUILDSCRIPT_DIR}" && git rev-parse --show-toplevel)"
+SCRIPT_DIR="$(cd "$(dirname $0)" && pwd)"
+SOURCE_DIR="$(cd "${SCRIPT_DIR}" && git rev-parse --show-toplevel)"
 
 if ! hash cloc ; then
   echo "This script requires https://github.com/AlDanial/cloc"

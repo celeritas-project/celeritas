@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Secondary.hh"
 

@@ -8,17 +8,16 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <string> // IWYU pragma: export
 #include <vector>
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridData.hh"
 
-#include "Applicability.hh"
-
 namespace celeritas
 {
+struct Applicability;
 class Model;
 class ValueGridBuilder;
 
@@ -52,7 +51,6 @@ class Process
     using VecModel           = std::vector<SPConstModel>;
     using StepLimitBuilders  = ValueGridArray<UPConstGridBuilder>;
     using ActionIdIter       = RangeIter<ActionId>;
-    using Applicability      = ::celeritas::Applicability;
     //!@}
 
   public:

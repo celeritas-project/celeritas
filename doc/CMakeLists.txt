@@ -11,7 +11,6 @@
 # File setup
 set(DOXYGEN_EXCLUDE_PATTERNS
   "*.nohepmc.cc"
-  "*.nompi.cc"
   "*/generated/*"
 )
 if(NOT CELERITAS_DEBUG)

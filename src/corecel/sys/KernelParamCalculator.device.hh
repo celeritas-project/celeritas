@@ -18,7 +18,7 @@
 
 #include "Device.hh"
 #include "KernelAttributes.hh"
-#include "ThreadId.hh"
+#include "ThreadId.hh" // IWYU pragma: export
 
 /*!
  * \def CELER_LAUNCH_KERNEL

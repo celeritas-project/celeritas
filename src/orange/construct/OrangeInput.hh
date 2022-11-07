@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
+#include <unordered_map> // IWYU pragma: export
 #include <vector>
 
 #include "corecel/cont/Label.hh"
@@ -75,8 +75,6 @@ struct VolumeInput
 //---------------------------------------------------------------------------//
 /*!
  * Input definition for a unit.
- *
- * TODO: universe connectivity data
  */
 struct UnitInput
 {
@@ -85,12 +83,12 @@ struct UnitInput
         UniverseId  universe_id;
         Translation translation;
     };
-    using Daughter_Map = std::unordered_map<VolumeId, Daughter>;
+    using MapVolumeDaughter = std::unordered_map<VolumeId, Daughter>;
 
     SurfaceInput             surfaces;
     std::vector<VolumeInput> volumes;
     BoundingBox              bbox; //!< Outer bounding box
-    Daughter_Map             daughter_map;
+    MapVolumeDaughter        daughter_map;
 
     // Unit metadata
     Label label;

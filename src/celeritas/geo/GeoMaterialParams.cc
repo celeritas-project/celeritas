@@ -21,10 +21,10 @@
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/Types.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
 #include "GeoMaterialData.hh"
-#include "GeoParams.hh"
 
 namespace celeritas
 {

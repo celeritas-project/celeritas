@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
+#include "corecel/OpaqueId.hh" // IWYU pragma: export
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"

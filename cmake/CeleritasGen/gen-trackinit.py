@@ -28,7 +28,7 @@ HH_TEMPLATE = """\
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/track/detail/{clsname}Launcher.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 {extra_includes}
 #include "celeritas/track/TrackInitData.hh"
 
@@ -53,8 +53,8 @@ inline {devicefunc_decl_noargs}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas/track/detail/{clsname}Launcher.hh"
-
+#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
+#include "corecel/sys/ThreadId.hh"
 #include "corecel/Types.hh"
 
 namespace celeritas
@@ -77,10 +77,10 @@ namespace generated
 
 CU_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas/track/detail/{clsname}Launcher.hh"
-
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {{

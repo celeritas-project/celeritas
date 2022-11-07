@@ -9,6 +9,7 @@
 
 #include "celeritas_config.h"
 
+// IWYU pragma: begin_exports
 // Alias core RNG type using on compile-time RNG selection
 #if (CELERITAS_RNG == CELERITAS_RNG_CURAND) \
     || (CELERITAS_RNG == CELERITAS_RNG_HIPRAND)
@@ -24,3 +25,4 @@ namespace celeritas
 using RngEngine = XorwowRngEngine;
 }
 #endif
+// IWYU pragma: end_exports

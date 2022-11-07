@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "XorwowRngData.hh"
 #include "detail/GenerateCanonical32.hh"

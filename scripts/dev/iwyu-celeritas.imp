@@ -1,5 +1,15 @@
 [
-  { include: ["\"corecel/cont/detail/RangeImpl.hh\"", private, "\"corecel/cont/Range.hh\"", public ] },
-  { symbol: [ "std::char_traits", private, "\"corecel/Assert.hh\"", public ] },
-  { symbol: [ "std::operator<<", private, "\"corecel/Assert.hh\"", public ] },
+  { include: ["\"celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh\"", private, "\"celeritas/global/alongstep/AlongStepLauncher.hh\"", public ] },
+  { include: ["\"celeritas/phys/detail/InteractionLauncherImpl.hh\"",           private, "\"celeritas/phys/InteractionLauncher.hh\"", public ] },
+  { include: ["\"celeritas/global/detail/TrackLauncherImpl.hh\"",                private, "\"celeritas/global/TrackLauncher.hh\"", public ] },
+  { include: ["\"corecel/cont/detail/RangeImpl.hh\"",                           private, "\"corecel/cont/Range.hh\"", public ] },
+  { include: ["\"corecel/cont/detail/SpanImpl.hh\"",                            private, "\"corecel/cont/Span.hh\"", public ] },
+  { include: ["\"corecel/data/detail/CollectionImpl.hh\"",                      private, "\"corecel/data/Collection.hh\"", public ] },
+  { include: ["\"corecel/data/detail/RefImpl.hh\"",                             private, "\"corecel/data/Ref.hh\"", public ] },
+  { include: ["\"corecel/io/detail/LoggerMessage.hh\"",                         private, "\"corecel/io/Logger.hh\"", public ] },
+  { include: ["\"corecel/io/detail/ReprImpl.hh\"",                              private, "\"corecel/io/Repr.hh\"", public ] },
+  { include: ["\"corecel/math/detail/AlgorithmsImpl.hh\"",                      private, "\"corecel/math/Algorithms.hh\"", public ] },
+  { include: ["\"corecel/math/detail/ArrayUtilsImpl.hh\"",                      private, "\"corecel/math/ArrayUtils.hh\"", public ] },
+  { include: ["\"corecel/math/detail/HashUtilsImpl.hh\"",                       private, "\"corecel/math/HashUtils.hh\"", public ] },
+  { include: ["\"corecel/sys/detail/MpiCommunicatorImpl.hh\"",                  private, "\"corecel/sys/MpiCommunicator.hh\"", public ] },
 ]

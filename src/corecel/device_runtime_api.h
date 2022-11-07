@@ -49,4 +49,13 @@
 #    define CELER_EU_PER_CU 0
 #endif
 
+/*!
+ * Declare a dummy variable to be referenced in disabled \c CELER_BLAH calls.
+ *
+ * With this declaration, the build will fail if this include is missing.
+ * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
+ * won't include this file automatically.)
+ */
+extern int celeritas_device_runtime_api_h_;
+
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */

@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/interactor/AtomicRelaxationHelper.hh"
 
 #include "Interaction.hh"

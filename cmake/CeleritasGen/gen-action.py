@@ -69,7 +69,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/TrackLauncher.hh"
-#include "../detail/{clsname}Impl.hh"
+#include "../detail/{clsname}Impl.hh" // IWYU pragma: associated
 
 namespace celeritas
 {{
