@@ -50,10 +50,11 @@
 #endif
 
 /*!
- * Declare a dummy variable to be referenced in disabled "CELER_BLAH" calls.
+ * Declare a dummy variable to be referenced in disabled \c CELER_BLAH calls.
  *
- * With this declaration, the build will fail if this include isn't missing
- * (and IWYU doesn't eliminate this header if it is there).
+ * With this declaration, the build will fail if this include is missing.
+ * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
+ * won't include this file automatically.)
  */
 extern int celeritas_device_runtime_api_h_;
 

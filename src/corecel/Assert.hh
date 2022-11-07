@@ -228,8 +228,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.h or be compiled by NVCC (which implicitly
- * includes that header).
+ * corecel/device_runtime_api.h .
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_CUDA_CALL(STATEMENT)                             \
@@ -247,10 +246,11 @@
             }                                                      \
         } while (0)
 #else
-#    define CELER_CUDA_CALL(STATEMENT)    \
-        do                                \
-        {                                 \
-            CELER_NOT_CONFIGURED("CUDA"); \
+#    define CELER_CUDA_CALL(STATEMENT)                     \
+        do                                                 \
+        {                                                  \
+            CELER_NOT_CONFIGURED("CUDA");                  \
+            (void)sizeof(celeritas_device_runtime_api_h_); \
         } while (0)
 #endif
 
