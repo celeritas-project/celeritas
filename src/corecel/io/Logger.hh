@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "LoggerTypes.hh"
-#include "detail/LoggerMessage.hh"
+#include "detail/LoggerMessage.hh" // IWYU pragma: keep
 
 //---------------------------------------------------------------------------//
 // MACROS

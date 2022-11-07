@@ -8,7 +8,7 @@
 #pragma once
 
 #include <atomic>
-#include <iosfwd>
+#include <iosfwd> // IWYU pragma: keep
 #include <memory>
 #include <mutex>
 #include <string>

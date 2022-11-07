@@ -8,7 +8,7 @@
 #pragma once
 
 #include <cstddef>
-#include <iosfwd>
+#include <iosfwd> // IWYU pragma: keep
 #include <map>
 #include <string>
 

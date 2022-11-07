@@ -15,7 +15,7 @@
 #include "GeantSetup.hh"
 
 // Geant4 forward declaration
-class G4VPhysicalVolume;
+class G4VPhysicalVolume; // IWYU pragma: keep
 
 namespace celeritas
 {

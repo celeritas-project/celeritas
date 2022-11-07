@@ -8,7 +8,7 @@
 #include "Device.hh"
 
 #include <cstdlib>
-#include <iostream>
+#include <iostream> // IWYU pragma: keep
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_OPENMP

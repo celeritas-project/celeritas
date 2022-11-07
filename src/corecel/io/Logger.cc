@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <iostream>
 #include <mutex>
-#include <sstream>
+#include <sstream> // IWYU pragma: keep
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
