@@ -12,7 +12,7 @@
 #if CELERITAS_USE_VECGEOM
 #    include "celeritas/ext/VecgeomData.hh"
 #else
-#    include "orange/Data.hh"
+#    include "orange/OrangeData.hh"
 #endif
 
 namespace celeritas
