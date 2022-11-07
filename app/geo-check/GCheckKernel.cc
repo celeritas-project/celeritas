@@ -11,7 +11,7 @@
 
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 
 using namespace celeritas;
 using std::printf;

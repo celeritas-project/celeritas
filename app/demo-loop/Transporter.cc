@@ -17,7 +17,7 @@
 #include "corecel/math/VectorUtils.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/ActionRegistry.hh" // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
