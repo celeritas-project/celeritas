@@ -3,15 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/AlongStepTestBase.hh
+//! \file celeritas/MiniStepTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
-#include "../GlobalTestBase.hh"
+#include "GlobalTestBase.hh"
 
 namespace celeritas
 {
@@ -24,12 +26,13 @@ namespace test
  * This high-level test *only* executes on the host so we can extract detailed
  * information from the states.
  */
-class AlongStepTestBase : virtual public GlobalTestBase
+class MiniStepTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using MevEnergy = units::MevEnergy;
+    using MevEnergy   = units::MevEnergy;
+    using CoreRefHost = CoreRef<MemSpace::host>;
     //!@}
 
     struct Input
@@ -48,19 +51,18 @@ class AlongStepTestBase : virtual public GlobalTestBase
         }
     };
 
-    struct RunResult
+    void init(const Input& inp, size_type num_tracks);
+
+    const CoreRefHost& core_ref() const
     {
-        real_type   eloss{};        //!< Energy loss / MeV
-        real_type   displacement{}; //!< Distance from start to end points
-        real_type   angle{};        //!< Dot product of in/out direction
-        real_type   time{};         //!< Change in time
-        real_type   step{};         //!< Physical step length
-        std::string action;         //!< Most likely action to take next
+        CELER_EXPECT(states_);
+        CELER_ENSURE(core_ref_);
+        return core_ref_;
+    }
 
-        void print_expected() const;
-    };
-
-    RunResult run(const Input&, size_type num_tracks = 1);
+  private:
+    CoreRef<MemSpace::host>                             core_ref_;
+    CollectionStateStore<CoreStateData, MemSpace::host> states_;
 };
 
 //---------------------------------------------------------------------------//
