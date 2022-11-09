@@ -13,21 +13,7 @@ relocatable device code in the VecGeom library.
 .. command:: celeritas_rdc_add_library
 
   Add a library to the project using the specified source files *with* special handling
-  for the case where the library contains CUDA separatable code.
-
-  To support separatable CUDA code, the following 4 targets will be contruscted:
-
- - A object library used to compile the source code and share the result with the static and shared library
- - A static library used as input to nvcc -dlink
- - A shared “intermediary” library containing all the .o files but NO nvcc -dlink result
- - A shared “final” library containing the result of nvcc -dlink and linked against the above mentioned shared library.
-
- An executable need to load exactly one result of nvcc -dlink (Whose input needs to be
- the .o files from all the “cuda” library it uses/depends-on. So if the executable has cuda code,
- it will call nvcc -dlink itself and link against the intermediary shared libraries.
- If the executable has no cuda code, then it needs to link against the final library
- (of its most derived dependency). If the executable has no cuda code but use two
- independent cuda libraries, it will still need to run its own nvcc -dlink.
+  for the case where the library contains CUDA relocatable device code.
 
   ::
 
@@ -35,26 +21,85 @@ relocatable device code in the VecGeom library.
             [EXCLUDE_FROM_ALL]
             [<source>...])
 
-.. command: celeritas_target_link_libraries
+  To support CUDA relocatable device code, the following 4 targets will be constructed:
+
+  - A object library used to compile the source code and share the result with the static and shared library
+  - A static library used as input to ``nvcc -dlink``
+  - A shared “intermediary” library containing all the ``.o`` files but NO ``nvcc -dlink`` result
+  - A shared “final” library containing the result of ``nvcc -dlink`` and linked against the "intermediary" shared library.
+
+  An executable needs to load exactly one result of ``nvcc -dlink`` whose input needs to be
+  the ``.o`` files from all the CUDA libraries it uses/depends-on. So if the executable has CUDA code,
+  it will call ``nvcc -dlink`` itself and link against the "intermediary" shared libraries.
+  If the executable has no CUDA code, then it needs to link against the "final" library
+  (of its most derived dependency). If the executable has no CUDA code but uses more than one
+  CUDA library, it will still need to run its own ``nvcc -dlink`` step.
+
+
+.. command:: celeritas_target_link_libraries
 
   Specify libraries or flags to use when linking a given target and/or its dependents, taking
-  in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA separatable code
-  Usage requirements from linked library targets will be propagated. Usage requirements
-  of a target's dependencies affect compilation of its own sources.
-
-
-.. command:: celeritas_target_include_directories
-  Add include directories to a target.
-
-  Specifies include directories to use when compiling a given target. The named <target> must
-  have been created by a command such as add_executable() or add_library()
-  and can be used with an ALIAS target.   See target_include_directorie for additional detail.
+  in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA relocatable
+  device code.
 
     ::
 
-  target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
-    <INTERFACE|PUBLIC|PRIVATE> [items1...]
-    [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+      celeritas_target_link_libraries(<target>
+        <PRIVATE|PUBLIC|INTERFACE> <item>...
+        [<PRIVATE|PUBLIC|INTERFACE> <item>...]...))
+
+  Usage requirements from linked library targets will be propagated to all four targets. Usage requirements
+  of a target's dependencies affect compilation of its own sources. In the case that ``<target>`` does
+  not contain CUDA code, the command decays to ``target_link_libraries``.
+
+  See ``target_link_libraries`` for additional detail.
+
+
+.. command:: celeritas_target_include_directories
+
+  Add include directories to a target.
+
+    ::
+
+      celeritas_target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+        <INTERFACE|PUBLIC|PRIVATE> [items1...]
+        [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  Specifies include directories to use when compiling a given target. The named <target>
+  must have been created by a command such as celeritas_rdc_add_library(), add_executable() or add_library(),
+  and can be used with an ALIAS target. It is aware of the 4 underlying targets (objects, static,
+  middle, final) present when the input target was created celeritas_rdc_add_library() and will propagate
+  the include directories to all four. In the case that ``<target>`` does not contain CUDA code,
+  the command decays to ``target_include_directories``.
+
+  See ``target_include_directories`` for additional detail.
+
+
+.. command:: celeritas_install
+
+  Specify installation rules for a CUDA RDC target.
+
+    ::
+      celeritas_install(TARGETS targets... <ARGN>)
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``install``.
+
+  See ``install`` for additional detail.
+
+.. command:: celeritas_target_compile_options
+
+   Specify compile options for a CUDA RDC target
+
+     ::
+       celeritas_target_compile_options(<target> [BEFORE]
+         <INTERFACE|PUBLIC|PRIVATE> [items1...]
+         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``target_compile_options``.
+
+  See ``target_compile_options`` for additional detail.
 
 #]=======================================================================]
 
@@ -83,6 +128,37 @@ define_property(TARGET PROPERTY CELERITAS_CUDA_OBJECT_LIBRARY
   FULL_DOCS "Name of the object (without nvlink step) library corresponding to this cuda library"
 )
 
+##############################################################################
+# Separate the OPTIONS out from the sources
+#
+macro(CUDA_GET_SOURCES_AND_OPTIONS _sources _cmake_options _options)
+  set( ${_sources} )
+  set( ${_cmake_options} )
+  set( ${_options} )
+  set( _found_options FALSE )
+  foreach(arg ${ARGN})
+    if("x${arg}" STREQUAL "xOPTIONS")
+      set( _found_options TRUE )
+    elseif(
+        "x${arg}" STREQUAL "xWIN32" OR
+        "x${arg}" STREQUAL "xMACOSX_BUNDLE" OR
+        "x${arg}" STREQUAL "xEXCLUDE_FROM_ALL" OR
+        "x${arg}" STREQUAL "xSTATIC" OR
+        "x${arg}" STREQUAL "xSHARED" OR
+        "x${arg}" STREQUAL "xMODULE"
+        )
+      list(APPEND ${_cmake_options} ${arg})
+    else()
+      if ( _found_options )
+        list(APPEND ${_options} ${arg})
+      else()
+        # Assume this is a file
+        list(APPEND ${_sources} ${arg})
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
 #-----------------------------------------------------------------------------#
 #
 # Internal routine to figure out if a list contains
@@ -92,11 +168,11 @@ function(celeritas_sources_contains_cuda var)
   set(_result)
   foreach(_source ${ARGN})
     get_source_file_property(_iscudafile "${_source}" LANGUAGE)
-    if(_iscudafile STREQUAL "CUDA")
+    if ("x${_iscudafile}" STREQUAL "xCUDA")
       list(APPEND _result "${_source}")
     elseif(NOT _iscudafile)
       get_filename_component(_ext "${_source}" LAST_EXT)
-      if(_ext STREQUAL ".cu")
+      if("${_ext}" STREQUAL ".cu")
         list(APPEND _result "${_source}")
       endif()
     endif()
@@ -155,10 +231,15 @@ endfunction()
 # celeritas_rdc_add_library
 #
 # Add a library taking into account whether it contains
-# or depends on separatable CUDA code.
+# or depends on separatable CUDA code.  If it contains
+# cuda code, it will be marked as "separatable compilation"
+# (i.e. request "Relocatable device code")
 #
 function(celeritas_rdc_add_library target)
-  celeritas_sources_contains_cuda(_cuda_sources ${ARGN})
+
+  CUDA_GET_SOURCES_AND_OPTIONS(_sources _cmake_options _options ${ARGN})
+
+  celeritas_sources_contains_cuda(_cuda_sources ${_sources})
 
   if(CELERITAS_USE_HIP AND _cuda_sources)
     # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
@@ -174,9 +255,11 @@ function(celeritas_rdc_add_library target)
   # - whether the user request CUDA_SEPARABLE_COMPILATION
   # - whether the library depends on a library with CUDA_SEPARABLE_COMPILATION code.
   # I.e. this should really be done at generation time.
-  # So in the meantime we use CELERITAS_USE_VecGeom as a proxy.
+  # So in the meantime we use rely on the user to call this routine
+  # only in the case where they want the CUDA device code to be compiled
+  # as "relocatable device code"
 
-  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA OR NOT _cuda_sources)
+  if(NOT CMAKE_CUDA_COMPILER OR NOT _cuda_sources)
     add_library(${target} ${ARGN})
     return()
   endif()
@@ -205,7 +288,7 @@ function(celeritas_rdc_add_library target)
 
   ## OBJECTS ##
 
-  add_library(${target}_objects OBJECT ${ARGN})
+  add_library(${target}_objects OBJECT ${_ADDLIB_PARSE_UNPARSED_ARGUMENTS})
   set(_object_props
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
@@ -229,6 +312,7 @@ function(celeritas_rdc_add_library target)
     CELERITAS_CUDA_MIDDLE_LIBRARY ${target}
     CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
+    EXPORT_PROPERTIES "CELERITAS_CUDA_LIBRARY_TYPE;CELERITAS_CUDA_FINAL_LIBRARY;CELERITAS_CUDA_MIDDLE_LIBRARY;CELERITAS_CUDA_STATIC_LIBRARY"
   )
   set_target_properties(${target} PROPERTIES
     ${_all_props}
@@ -281,7 +365,7 @@ endfunction()
 # the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_include_directories target)
-  if(NOT CELERITAS_USE_CUDA)
+  if(NOT CMAKE_CUDA_COMPILER)
     target_include_directories(${ARGV})
     return()
   endif()
@@ -342,7 +426,7 @@ endfunction()
 # (static, middle, final) libraries needed for a separatable CUDA library
 #
 function(celeritas_install subcommand firstarg)
-  if(NOT ${subcommand} STREQUAL "TARGETS" OR NOT TARGET ${firstarg})
+  if(NOT "x${subcommand}" STREQUAL "xTARGETS" OR NOT TARGET ${firstarg})
     install(${ARGV})
     return()
   endif()
@@ -354,23 +438,22 @@ function(celeritas_install subcommand firstarg)
   endwhile()
   # At this point all targets are in ${_targets} and ${_next} is the first non target and ${ARGN} is the rest.
   foreach(_toinstall ${_targets})
-    get_target_property(_lib_target_type ${_toinstall} TYPE)
-    if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
-      get_target_property(_targettype ${_toinstall} CELERITAS_CUDA_LIBRARY_TYPE)
+    celeritas_strip_alias(_prop_target ${_toinstall})
+    get_target_property(_lib_target_type ${_prop_target} TYPE)
+    if(NOT "x${_lib_target_type}" STREQUAL "xINTERFACE_LIBRARY")
+      get_target_property(_targettype ${_prop_target} CELERITAS_CUDA_LIBRARY_TYPE)
       if(_targettype)
-        get_target_property(_target_final ${_toinstall} CELERITAS_CUDA_FINAL_LIBRARY)
-        get_target_property(_target_middle ${_toinstall} CELERITAS_CUDA_MIDDLE_LIBRARY)
-        get_target_property(_target_static ${_toinstall} CELERITAS_CUDA_STATIC_LIBRARY)
-        set(_toinstall ${_target_final} ${_target_static})
+        get_target_property(_target_final ${_prop_target} CELERITAS_CUDA_FINAL_LIBRARY)
+        get_target_property(_target_middle ${_prop_target} CELERITAS_CUDA_MIDDLE_LIBRARY)
+        get_target_property(_target_static ${_prop_target} CELERITAS_CUDA_STATIC_LIBRARY)
+        set(_toinstall ${_target_final} ${_target_middle} ${_target_static})
         if(NOT _target_middle STREQUAL _target_static)
           # Avoid duplicate middle/static library for static builds
           list(APPEND _toinstall ${_target_middle})
         endif()
       endif()
     endif()
-    foreach(_subtarget ${_toinstall})
-      install(TARGETS ${_subtarget} ${_next} ${ARGN})
-    endforeach()
+    install(TARGETS ${_toinstall} ${_next} ${ARGN})
   endforeach()
 endfunction()
 
@@ -381,11 +464,11 @@ function(celeritas_depends_on OUTVARNAME lib potentialdepend)
   if(TARGET ${lib} AND TARGET ${potentialdepend})
     set(lib_link_libraries "")
     get_target_property(_lib_target_type ${lib} TYPE)
-    if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
+    if(NOT "x${_lib_target_type}" STREQUAL "xINTERFACE_LIBRARY")
       get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
     endif()
     foreach(linklib ${lib_link_libraries})
-      if(${linklib} STREQUAL ${potentialdepend})
+      if("${linklib}" STREQUAL "${potentialdepend}")
         set(${OUTVARNAME} TRUE PARENT_SCOPE)
         return()
       endif()
@@ -414,7 +497,7 @@ endfunction()
 # Return the middle/shared library of the target, if any.
 macro(celeritas_get_library_middle_target outvar target)
   get_target_property(_target_type ${target} TYPE)
-  if(NOT ${_target_type} STREQUAL "INTERFACE_LIBRARY")
+  if(NOT "x${_target_type}" STREQUAL "xINTERFACE_LIBRARY")
     get_target_property(${outvar} ${target} CELERITAS_CUDA_MIDDLE_LIBRARY)
   else()
     set(${outvar} ${target})
@@ -489,7 +572,7 @@ function(celeritas_find_final_library OUTLIST flat_dependency_list)
   foreach(_lib ${_result})
     if(TARGET ${_lib})
       get_target_property(_lib_target_type ${_lib} TYPE)
-      if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
+      if(NOT "x${_lib_target_type}" STREQUAL "xINTERFACE_LIBRARY")
         get_target_property(_final_lib ${_lib} CELERITAS_CUDA_FINAL_LIBRARY)
         if(_final_lib)
           list(APPEND _final_result ${_final_lib})
@@ -502,11 +585,11 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 #
-#  Check which CUDA runtime is need for a give (depend) library.
+#  Check which CUDA runtime is needed for a given (dependent) library.
 function(celeritas_check_cuda_runtime OUTVAR library)
 
-  get_target_property(_runtime ${library} CUDA_RUNTIME_LIBRARY)
-  if(NOT _runtime)
+  get_target_property(_runtime_setting ${library} CUDA_RUNTIME_LIBRARY)
+  if(NOT _runtime_setting)
     # We could get more exact information by using:
     #  file(GET_RUNTIME_DEPENDENCIES LIBRARIES ${_lib_loc} UNRESOLVED_DEPENDENCIES_VAR _lib_dependcies)
     # but we get
@@ -520,18 +603,18 @@ function(celeritas_check_cuda_runtime OUTVAR library)
     get_target_property(_cuda_find_library ${library} CELERITAS_CUDA_FINAL_LIBRARY)
     if("${_cuda_library_type}" STREQUAL "Shared")
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime "Shared")
+      set(_runtime_setting "Shared")
     elseif(NOT _cuda_find_library)
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "None")
-      set(_runtime "None")
+      set(_runtime_setting "None")
     else()
       # If we have a final library then the library is shared.
       set_target_properties(${library} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
-      set(_runtime "Shared")
+      set(_runtime_setting "Shared")
     endif()
   endif()
 
-  set(${OUTVAR} ${_runtime} PARENT_SCOPE)
+  set(${OUTVAR} ${_runtime_setting} PARENT_SCOPE)
 endfunction()
 
 
@@ -540,7 +623,7 @@ endfunction()
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_link_libraries target)
-  if(NOT CELERITAS_USE_CUDA)
+  if(NOT CMAKE_CUDA_COMPILER)
     target_link_libraries(${ARGV})
     return()
   endif()
@@ -576,7 +659,7 @@ function(celeritas_target_link_libraries target)
   celeritas_find_final_library(_finallibs "${_alldependencies}")
 
   get_target_property(_target_type ${target} TYPE)
-  if(${_target_type} STREQUAL "EXECUTABLE")
+  if("x${_target_type}" STREQUAL "xEXECUTABLE")
     list(LENGTH _finallibs _final_count)
     if(_contains_cuda)
       if(${_final_count} GREATER 0)
@@ -603,12 +686,21 @@ function(celeritas_target_link_libraries target)
         set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY "Shared")
       endif()
 
-      if(${_final_target_type} STREQUAL "STATIC_LIBRARY")
+      if("x${_final_target_type}" STREQUAL "xSTATIC_LIBRARY")
         # for static libraries we need to list the libraries a second time (to resolve symbol from the final library)
         get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
         set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} ${_current_link_libraries} )
       else()
-        target_link_libraries(${target} ${_finallibs})
+        # We could have used:
+        #    target_link_libraries(${target} PUBLIC ${_finallibs})
+        # but target_link_libraries must used either all plain arguments or all plain
+        # keywords and at the moment I don't know how to detect which of the 2 style the
+        # user used.
+        # Maybe we could use:
+        #     if(ARGV1 MATCHES "^(PRIVATE|PUBLIC|INTERFACE)$")
+        # or simply keep the following:
+        get_target_property(_current_link_libraries ${target} LINK_LIBRARIES)
+        set_property(TARGET ${target} PROPERTY LINK_LIBRARIES ${_current_link_libraries} ${_finallibs} )
       endif()
     elseif(${_final_count} GREATER 1)
       # turn into CUDA executable.
@@ -621,18 +713,31 @@ function(celeritas_target_link_libraries target)
 
   if(_contains_cuda)
     set(_need_to_use_shared_runtime FALSE)
+    get_target_property(_current_runtime_setting ${target} CUDA_RUNTIME_LIBRARY)
+    if(_current_runtime_setting)
+       set(_target_runtime_setting ${_current_runtime_setting})
+    endif()
     celeritas_cuda_gather_dependencies(_flat_target_link_libraries ${_target_middle})
     foreach(_lib ${_flat_target_link_libraries})
-
-      celeritas_check_cuda_runtime(_runtime ${_lib})
-      # We do not yet treat the case where the dependent library is Static
-      # and the current one is Shared.
-      if(NOT ${_need_to_use_shared_runtime} AND ${_runtime} STREQUAL "Shared")
-        set(_need_to_use_shared_runtime TRUE)
-      endif()
-
       get_target_property(_lib_target_type ${_lib} TYPE)
-      if(NOT ${_lib_target_type} STREQUAL "INTERFACE_LIBRARY")
+      if(NOT "x${_lib_target_type}" STREQUAL "xINTERFACE_LIBRARY")
+        celeritas_check_cuda_runtime(_lib_runtime_setting ${_lib})
+        if (NOT ${_need_to_use_shared_runtime} AND ${_lib_runtime_setting} STREQUAL "Shared")
+          set(_need_to_use_shared_runtime TRUE)
+        endif()
+        if(NOT _target_runtime_setting)
+          if(_lib_runtime_setting)
+            set(_target_runtime_setting ${_lib_runtime_setting})
+          endif()
+        else()
+          if(_lib_runtime_setting AND NOT (_target_runtime_setting STREQUAL _lib_runtime_setting))
+            # We need to match the dependent library since we can not change it.
+            set(_target_runtime_setting ${_lib_runtime_setting})
+          endif()
+        endif()
+        if (NOT _current_runtime_setting)
+          set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_target_runtime_setting})
+        endif()
         get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
         if(TARGET ${_libstatic})
           target_link_options(${_target_final}
@@ -649,6 +754,7 @@ function(celeritas_target_link_libraries target)
         endif()
       endif()
     endforeach()
+
 
     if(_need_to_use_shared_runtime)
       get_target_property(_current_runtime ${target} CUDA_RUNTIME_LIBRARY)
@@ -701,10 +807,9 @@ function(celeritas_cuda_gather_dependencies outlist target)
   endif()
   celeritas_strip_alias(target ${target})
   get_target_property(_target_type ${target} TYPE)
-  if(NOT ${_target_type} STREQUAL "INTERFACE_LIBRARY")
+  if(NOT "x${_target_type}" STREQUAL "xINTERFACE_LIBRARY")
     get_target_property(_target_link_libraries ${target} LINK_LIBRARIES)
     if(_target_link_libraries)
-      #message(WARNING "The link list for ${target} is ${_target_link_libraries}")
       foreach(_lib ${_target_link_libraries})
         celeritas_strip_alias(_lib ${_lib})
         if(TARGET ${_lib})
