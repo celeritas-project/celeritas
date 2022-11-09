@@ -14,6 +14,7 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
+#include "detail/UnitIndexer.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
@@ -71,7 +72,7 @@ class OrangeTrackView
     inline CELER_FUNCTION OrangeTrackView& operator=(const Initializer_t& init);
     // Initialize the state from a parent state and new direction
     inline CELER_FUNCTION OrangeTrackView&
-    operator=(const DetailedInitializer& init);
+                          operator=(const DetailedInitializer& init);
 
     //// ACCESSORS ////
 
@@ -185,10 +186,10 @@ OrangeTrackView::operator=(const Initializer_t& init)
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
     // Save known data to global memory
-    states_.pos[thread_]   = init.pos;
-    states_.dir[thread_]   = init.dir;
-    states_.surf[thread_]  = {};
-    states_.sense[thread_] = {};
+    states_.pos[thread_]      = init.pos;
+    states_.dir[thread_]      = init.dir;
+    states_.surf[thread_]     = {};
+    states_.sense[thread_]    = {};
     states_.boundary[thread_] = BoundaryResult::exiting;
 
     // Clear local data
@@ -203,13 +204,31 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
-    auto tracker = this->make_tracker(UniverseId{0});
-    auto tinit   = tracker.initialize(local);
-    // TODO: error correction/graceful failure if initialiation failured
-    CELER_ASSERT(tinit.volume && !tinit.surface);
+    size_type uid = 0;
 
-    // Save local data
-    states_.vol[thread_] = tinit.volume;
+    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
+
+    while (true)
+    {
+        auto tracker = this->make_tracker(UniverseId{uid});
+        auto tinit   = tracker.initialize(local);
+        // TODO: error correction/graceful failure if initialiation failured
+        CELER_ASSERT(tinit.volume && !tinit.surface);
+
+        OpaqueId<VolumeRecord> vrid(tinit.volume.unchecked_get());
+
+        auto daughter_id = params_.volume_records[vrid].daughter;
+
+        if (daughter_id)
+        {
+            uid = daughter_id.unchecked_get();
+            continue;
+        }
+
+        states_.vol[thread_]
+            = unit_indexer.global_volume(UniverseId{uid}, tinit.volume);
+        break;
+    }
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -226,11 +245,11 @@ OrangeTrackView& OrangeTrackView::operator=(const DetailedInitializer& init)
     CELER_EXPECT(states_.vol[init.other.thread_]);
 
     // Copy init track's position but update the direction
-    states_.pos[thread_]   = states_.pos[init.other.thread_];
-    states_.dir[thread_]   = init.dir;
-    states_.vol[thread_]   = states_.vol[init.other.thread_];
-    states_.surf[thread_]  = states_.surf[init.other.thread_];
-    states_.sense[thread_] = states_.sense[init.other.thread_];
+    states_.pos[thread_]      = states_.pos[init.other.thread_];
+    states_.dir[thread_]      = init.dir;
+    states_.vol[thread_]      = states_.vol[init.other.thread_];
+    states_.surf[thread_]     = states_.surf[init.other.thread_];
+    states_.sense[thread_]    = states_.sense[init.other.thread_];
     states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
     // Clear step and surface info
@@ -364,8 +383,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     // Physically move next step
     axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
     // Move to the inside of the surface
-    states_.surf[thread_]     = next_surface_.id();
-    states_.sense[thread_]    = next_surface_.unchecked_sense();
+    states_.surf[thread_]  = next_surface_.id();
+    states_.sense[thread_] = next_surface_.unchecked_sense();
     this->clear_next_step();
 }
 
@@ -431,8 +450,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
-    auto              tracker = this->make_tracker(UniverseId{0});
-    auto              init = tracker.cross_boundary(local);
+    auto tracker = this->make_tracker(UniverseId{0});
+    auto init    = tracker.cross_boundary(local);
     CELER_ASSERT(init.volume);
     if (!CELERITAS_DEBUG && CELER_UNLIKELY(!init.volume))
     {
@@ -473,7 +492,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(const Real3& newdir)
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
         auto        tracker = this->make_tracker(UniverseId{0});
-        const Real3 normal = tracker.normal(this->pos(), this->surface_id());
+        const Real3 normal  = tracker.normal(this->pos(), this->surface_id());
 
         if ((dot_product(normal, newdir) >= 0)
             != (dot_product(normal, this->dir()) >= 0))

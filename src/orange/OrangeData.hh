@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/Data.hh
+//! \file orange/OrangeData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -147,6 +147,37 @@ struct SimpleUnitRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Surface and volume offsets to convert between local and global indices.
+ *
+ * Each collection should be of length num_universes + 1. The first entry is
+ * zero and the last item should be the total number of surfaces or volumes.
+ */
+template<Ownership W, MemSpace M>
+struct UnitIndexerData
+{
+    Collection<size_type, W, M> surfaces;
+    Collection<size_type, W, M> volumes;
+
+    template<Ownership W2, MemSpace M2>
+    UnitIndexerData& operator=(const UnitIndexerData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+
+        surfaces = other.surfaces;
+        volumes  = other.volumes;
+
+        CELER_ENSURE(*this);
+        return *this;
+    }
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !surfaces.empty() && !volumes.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Persistent data used by ORANGE implementation.
  *
  * Most data will be accessed through the invidual units, which reference data
@@ -187,6 +218,8 @@ struct OrangeParamsData
     Items<VolumeRecord> volume_records;
     Items<Translation>  translations;
 
+    UnitIndexerData<W, M> unit_indexer_data;
+
     //// METHODS ////
 
     //! True if assigned
@@ -196,7 +229,8 @@ struct OrangeParamsData
                && universe_index.size() == universe_type.size()
                && ((!volume_ids.empty() && !logic_ints.empty() && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty();
+               && !volume_records.empty() && !unit_indexer_data.volumes.empty()
+               && !unit_indexer_data.surfaces.empty();
     }
 
     //! Assign from another set of data
@@ -209,14 +243,17 @@ struct OrangeParamsData
         universe_index = other.universe_index;
         simple_unit    = other.simple_unit;
 
-        surface_ids    = other.surface_ids;
-        volume_ids     = other.volume_ids;
-        real_ids       = other.real_ids;
-        logic_ints     = other.logic_ints;
-        reals          = other.reals;
-        surface_types  = other.surface_types;
-        connectivities = other.connectivities;
-        volume_records = other.volume_records;
+        surface_ids                = other.surface_ids;
+        volume_ids                 = other.volume_ids;
+        real_ids                   = other.real_ids;
+        logic_ints                 = other.logic_ints;
+        reals                      = other.reals;
+        surface_types              = other.surface_types;
+        connectivities             = other.connectivities;
+        volume_records             = other.volume_records;
+        translations               = other.translations;
+        unit_indexer_data.surfaces = other.unit_indexer_data.surfaces;
+        unit_indexer_data.volumes  = other.unit_indexer_data.volumes;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;

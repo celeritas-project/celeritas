@@ -76,23 +76,6 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Create a UnitIndexer by concatenating unit definitions.
- */
-detail::UnitIndexer make_unit_indexer(const std::vector<UnitInput>& units)
-{
-    detail::UnitIndexer::VecSize surface_count(units.size());
-    detail::UnitIndexer::VecSize cell_count(units.size());
-    for (auto i : range(surface_count.size()))
-    {
-        const auto& unit = units[i];
-        surface_count[i] = unit.surfaces.size();
-        cell_count[i]    = unit.volumes.size();
-    }
-    return detail::UnitIndexer(std::move(surface_count), std::move(cell_count));
-}
-
-//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -114,7 +97,6 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  * Volume and surface labels must be unique for the time being.
  */
 OrangeParams::OrangeParams(OrangeInput input)
-    : unit_indexer_(make_unit_indexer(input.units))
 {
     CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
 
@@ -123,6 +105,11 @@ OrangeParams::OrangeParams(OrangeInput input)
     detail::UnitInserter      insert_unit(&host_data);
     auto universe_type  = make_builder(&host_data.universe_type);
     auto universe_index = make_builder(&host_data.universe_index);
+
+    // create an initial entries of the offsets of the first universe
+    make_builder(&host_data.unit_indexer_data.surfaces).push_back(0);
+    make_builder(&host_data.unit_indexer_data.volumes).push_back(0);
+
     for (const UnitInput& u : input.units)
     {
         CELER_VALIDATE(

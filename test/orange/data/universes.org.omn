@@ -1,3 +1,33 @@
+# Diagram (to scale) of slice at z = 1
+# The outer cell, johnny spans z = (-1, 2)
+# Cells c, a, b make up hole inner_b which spans z = (0.5, 1.5)
+# An identical hole, inner_a is placed the same way in x and y, with z = (-0.5, 0.5)
+# Cell bobby spans the full height of inner_a and inner_b, with z = (-0.5, 1.5)
+#
+#   4_ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+#     |                                                            |
+#   3_|                         johnny                             |
+#     |                                                            |
+#   2_|           ____________________________________             |
+#     |           |                                   |            |
+#   1_|           |             bobby                 |            |
+#     |           |                                   |            |
+#   0_|           |___________________________________|            |
+#     |           |                 c                 |            |
+#  -1_|           |      _______________________      |            |
+#     |           |     |           |           |     |            |
+#  -2_|           |     |    a      |     b     |     |            |
+#     |           |     |           |           |     |            |
+#  -3_            |     |___________|___________|     |            |
+#     |           |                                   |            |
+#  -4_|           |___________________________________|            |
+#     |                                                            |
+#  -5_|                                                            |
+#     |                                                            |
+#  -6_|__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ |
+#     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^
+#    -2    -1     0     1     2     3     4     5     6     7     8
+#
 [GEOMETRY]
 global "outer"
 
