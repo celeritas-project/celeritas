@@ -24,6 +24,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data for track initialization.
+ *
+ * TODO: change \c max_events to be the maximum number of events in flight at
+ * once rather than the maximum number of events that can be run over the
+ * entire simulation
  */
 template<Ownership W, MemSpace M>
 struct TrackInitParamsData

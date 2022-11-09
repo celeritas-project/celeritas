@@ -243,8 +243,10 @@ TEST_F(TrackInitTest, run)
 
 TEST_F(TrackInitTest, primaries)
 {
-    const size_type num_primaries = 1024;
-    const size_type num_tracks    = 512;
+    const size_type num_sets            = 8;
+    const size_type num_primaries       = 1024;
+    const size_type num_tracks          = 512;
+    const size_type primaries_per_track = num_primaries / num_tracks;
 
     build_states(num_tracks);
 
@@ -253,14 +255,14 @@ TEST_F(TrackInitTest, primaries)
     std::vector<char>      alive(num_tracks, 0);
     ITTestInput            input(alloc, alive);
 
-    for (int i = 0; i < 8; ++i)
+    for (size_type i = 0; i < num_sets; ++i)
     {
         // Create track initializers on device from primary particles
         auto primaries = generate_primaries(num_primaries);
         extend_from_primaries(core_data, primaries);
         EXPECT_EQ(core_data.states.init.initializers.size(), num_primaries);
 
-        for (int j = 0; j < 2; ++j)
+        for (size_type j = 0; j < primaries_per_track; ++j)
         {
             // Initialize tracks on device
             initialize_tracks(core_data);

@@ -75,34 +75,47 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Transport \c num_sets vectors of primaries.
+ */
 auto StepperTestBase::run(StepperInterface& step,
-                          size_type         num_primaries) const -> RunResult
+                          size_type         num_primaries,
+                          size_type         num_sets) const -> RunResult
 {
     CELER_EXPECT(step);
 
-    // Perform first step
-    auto primaries = this->make_primaries(num_primaries);
-    auto counts    = step(primaries);
-    EXPECT_EQ(num_primaries, counts.active);
-    EXPECT_EQ(num_primaries, counts.alive);
+    const size_type max_steps = this->max_average_steps() * num_primaries
+                                * num_sets;
+    size_type accum_steps{0};
 
     RunResult result;
-    result.active = {counts.active};
-    result.queued = {counts.queued};
+    result.num_primaries = num_primaries;
+    result.num_sets      = num_sets;
 
-    const size_type max_steps   = this->max_average_steps() * num_primaries;
-    size_type       accum_steps = counts.active;
-
-    while (counts)
+    for (size_type i = 0; i < num_sets; ++i)
     {
-        counts = step();
+        // Inject some new primaries
+        auto primaries = this->make_primaries(num_primaries);
+        auto counts    = step(primaries);
+        EXPECT_EQ(num_primaries, counts.active);
+        EXPECT_EQ(num_primaries, counts.alive);
+
         result.active.push_back(counts.active);
         result.queued.push_back(counts.queued);
         accum_steps += counts.active;
-        EXPECT_LT(accum_steps, max_steps) << "max steps exceeded";
-        if (accum_steps >= max_steps)
+
+        // Run this set of primaries to completion
+        while (counts)
         {
-            break;
+            counts = step();
+            result.active.push_back(counts.active);
+            result.queued.push_back(counts.queued);
+            accum_steps += counts.active;
+            EXPECT_LT(accum_steps, max_steps) << "max steps exceeded";
+            if (accum_steps >= max_steps)
+            {
+                break;
+            }
         }
     }
     return result;
@@ -115,11 +128,10 @@ auto StepperTestBase::run(StepperInterface& step,
 double StepperTestBase::RunResult::calc_avg_steps_per_primary() const
 {
     CELER_EXPECT(*this);
-    size_type num_primaries = this->active.front();
-    auto      accum_steps   = std::accumulate(
+    auto accum_steps = std::accumulate(
         this->active.begin(), this->active.end(), size_type{0});
     return static_cast<double>(accum_steps)
-           / static_cast<double>(num_primaries);
+           / static_cast<double>(num_primaries * num_sets);
 }
 
 //---------------------------------------------------------------------------//
