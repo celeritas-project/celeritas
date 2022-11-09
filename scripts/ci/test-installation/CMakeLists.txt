@@ -17,7 +17,9 @@ include(CeleritasLibrary)
 
 add_executable(example example.cc)
 celeritas_target_link_libraries(example
-  Celeritas::corecel
+  # Work-around, CeleritasLibrary does not properly detect, yet,
+  # that corecel is already linked in celertias
+  # Celeritas::corecel
   Celeritas::celeritas
 )
 
