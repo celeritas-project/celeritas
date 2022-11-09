@@ -386,6 +386,7 @@ function(celeritas_target_include_directories target)
     target_include_directories(${_target_object} ${ARGN})
   endif()
   if(_target_middle)
+    celeritas_strip_alias(_target_middle ${_target_middle})
     target_include_directories(${_target_middle} ${ARGN})
   else()
     target_include_directories(${ARGV})
@@ -646,6 +647,7 @@ function(celeritas_target_link_libraries target)
   endif()
 
   # Set now to let target_link_libraries do the argument parsing
+  celeritas_strip_alias(_target_middle ${_target_middle})
   target_link_libraries(${_target_middle} ${ARGN})
 
   celeritas_use_middle_lib_in_property(${_target_middle} INTERFACE_LINK_LIBRARIES)
@@ -742,6 +744,7 @@ function(celeritas_target_link_libraries target)
         endif()
         get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
         if(TARGET ${_libstatic})
+          celeritas_strip_alias(_target_final ${_target_final})
           target_link_options(${_target_final}
             PRIVATE
             $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>

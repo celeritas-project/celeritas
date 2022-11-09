@@ -171,9 +171,11 @@ function(celeritas_add_library target)
   set(_targets ${target})
   get_target_property(_tgt ${target} CELERITAS_CUDA_FINAL_LIBRARY)
   if(_tgt)
+    celeritas_strip_alias(_tgt ${_tgt})
     # Building with CUDA RDC support: add final library
     list(APPEND _targets ${_tgt})
     get_target_property(_tgt ${target} CELERITAS_CUDA_STATIC_LIBRARY)
+    celeritas_strip_alias(_tgt ${_tgt})
     if(NOT _tgt STREQUAL target)
       # Shared and static library have different names
       list(APPEND _targets ${_tgt})
