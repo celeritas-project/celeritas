@@ -308,9 +308,9 @@ function(celeritas_rdc_add_library target)
   set(_all_props
     ${_object_props}
     LINKER_LANGUAGE CUDA
-    CELERITAS_CUDA_FINAL_LIBRARY ${target}_final
-    CELERITAS_CUDA_MIDDLE_LIBRARY ${target}
-    CELERITAS_CUDA_STATIC_LIBRARY ${target}${_staticsuf}
+    CELERITAS_CUDA_FINAL_LIBRARY Celeritas::${target}_final
+    CELERITAS_CUDA_MIDDLE_LIBRARY Celeritas::${target}
+    CELERITAS_CUDA_STATIC_LIBRARY Celeritas::${target}${_staticsuf}
     CELERITAS_CUDA_OBJECT_LIBRARY ${target}_objects
   )
   set_target_properties(${target} PROPERTIES
@@ -326,6 +326,7 @@ function(celeritas_rdc_add_library target)
     add_library(${target}${_staticsuf} STATIC
       $<TARGET_OBJECTS:${target}_objects>
     )
+    add_library(Celeritas::${target}${_staticsuf} ALIAS ${target}${_staticsuf})
     set_target_properties(${target}${_staticsuf} PROPERTIES
       ${_all_props}
       CELERITAS_CUDA_LIBRARY_TYPE Static
@@ -350,6 +351,7 @@ function(celeritas_rdc_add_library target)
   # launch some kernels rather than a link error.
   celeritas_generate_empty_cu_file(_emptyfilename ${target})
   add_library(${target}_final ${_lib_requested_type} ${_emptyfilename})
+  add_library(Celeritas::${target}_final ALIAS ${target}_final)
   set_target_properties(${target}_final PROPERTIES
     ${_all_props}
     CELERITAS_CUDA_LIBRARY_TYPE Final
