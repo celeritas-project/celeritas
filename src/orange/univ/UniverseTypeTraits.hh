@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {

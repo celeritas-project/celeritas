@@ -22,8 +22,8 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 
-#include "Data.hh"
-#include "Types.hh"
+#include "OrangeData.hh"
+#include "OrangeTypes.hh"
 #include "construct/OrangeInput.hh"
 #include "detail/UnitInserter.hh"
 #include "univ/detail/LogicStack.hh"

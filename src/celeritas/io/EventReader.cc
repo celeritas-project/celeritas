@@ -14,7 +14,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
 
 namespace celeritas

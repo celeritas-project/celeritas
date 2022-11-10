@@ -16,7 +16,7 @@
 #include "corecel/cont/Range.hh"
 
 #include "JsonPimpl.hh"
-#include "Logger.hh"
+#include "Logger.hh" // IWYU pragma: keep
 
 namespace celeritas
 {

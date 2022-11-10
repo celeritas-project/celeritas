@@ -16,7 +16,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "orange/Data.hh"
+#include "orange/OrangeData.hh"
 #include "orange/OrangeParams.hh"
 #include "celeritas/Types.hh"
 

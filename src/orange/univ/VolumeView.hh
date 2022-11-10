@@ -10,8 +10,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/Data.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {

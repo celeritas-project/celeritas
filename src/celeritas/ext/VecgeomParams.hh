@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
+#include "orange/Types.hh"
 
 #include "VecgeomData.hh"
 

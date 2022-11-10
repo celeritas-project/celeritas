@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/Data.hh"
+#include "orange/OrangeData.hh"
 
 namespace celeritas
 {

@@ -9,7 +9,7 @@
 
 #include <iosfwd>
 
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "SurfaceTypeTraits.hh"
 

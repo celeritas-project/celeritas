@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KernelRegistry.hh"
 
-#include <iostream>
+#include <iostream> // IWYU pragma: keep
 
 #include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"

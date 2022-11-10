@@ -14,7 +14,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   OrangeParams.cc
-  Types.cc
+  OrangeTypes.cc
   construct/SurfaceInputBuilder.cc
   detail/UnitInserter.cc
   detail/UnitIndexer.cc

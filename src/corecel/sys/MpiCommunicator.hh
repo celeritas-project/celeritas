@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/MpiCommunicatorImpl.hh"
+#include "detail/MpiCommunicatorImpl.hh" // IWYU pragma: keep
 
 namespace celeritas
 {
