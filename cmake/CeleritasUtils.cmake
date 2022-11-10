@@ -180,6 +180,11 @@ function(celeritas_add_library target)
       # Shared and static library have different names
       list(APPEND _targets ${_tgt})
     endif()
+    get_target_property(_tgt ${target} CELERITAS_CUDA_OBJECT_LIBRARY)
+    if(_tgt)
+      celeritas_strip_alias(_tgt ${_tgt})
+      set_target_properties(${_tgt} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
   endif()
 
   # Build all targets in lib/
