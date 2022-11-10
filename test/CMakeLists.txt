@@ -235,6 +235,7 @@ add_library(testcel_celeritas
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/global/StepperTestBase.cc
+  celeritas/user/ExampleStepCollector.cc
 )
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
@@ -401,6 +402,11 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
+
+#-------------------------------------#
+# User
+set(CELERITASTEST_PREFIX celeritas/user)
+celeritas_add_test(celeritas/user/StepCollector.test.cc)
 
 #-----------------------------------------------------------------------------#
 # DATA UPDATE

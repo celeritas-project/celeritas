@@ -31,6 +31,11 @@ struct StepStorage;
  * This defines the interface to set up and manage a generic class for
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
+ *
+ * \todo It probably makes sense to integrate the "selection" into the step
+ * interface, since that's what actually processes the output data. We also
+ * should be able to add a vector callbacks per StepCollector and then make the
+ * selection the "union" of those.
  */
 class StepCollector
 {
