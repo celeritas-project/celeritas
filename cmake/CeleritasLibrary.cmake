@@ -293,7 +293,7 @@ function(celeritas_rdc_add_library target)
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RUNTIME_LIBRARY ${_cudaruntime_requested_type}
   )
-  if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
+  if("x${_lib_requested_type}" STREQUAL "xSHARED" OR CELERITAS_USE_ROOT)
     list(APPEND _object_props
       POSITION_INDEPENDENT_CODE ON
     )
