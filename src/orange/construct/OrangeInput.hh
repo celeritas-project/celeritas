@@ -12,9 +12,9 @@
 
 #include "corecel/cont/Label.hh"
 #include "orange/BoundingBox.hh"
-#include "orange/Data.hh"
+#include "orange/OrangeData.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/Translator.hh"
-#include "orange/Types.hh"
 
 namespace celeritas
 {

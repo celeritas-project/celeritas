@@ -14,7 +14,7 @@
 #include <sstream>
 
 #include "io/ColorUtils.hh"
-#include "sys/Environment.hh"
+#include "sys/Environment.hh" // IWYU pragma: keep
 
 namespace celeritas
 {

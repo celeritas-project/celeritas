@@ -7,16 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "GCheckKernel.hh"
 
+#include <cstdio>
+
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 
 using namespace celeritas;
+using std::printf;
 
 namespace geo_check
 {
-using namespace celeritas;
-
+//---------------------------------------------------------------------------//
 /*!
  *  Run tracking on the CPU
  */
@@ -90,4 +92,5 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
     return result;
 }
 
+//---------------------------------------------------------------------------//
 } // namespace geo_check

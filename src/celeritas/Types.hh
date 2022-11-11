@@ -8,11 +8,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh" // IWYU pragma: export
+// IWYU pragma: begin_exports
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "orange/Types.hh"
+// IWYU pragma: end_exports
 
 namespace celeritas
 {

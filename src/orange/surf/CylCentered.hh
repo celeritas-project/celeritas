@@ -11,7 +11,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "detail/QuadraticSolver.hh"
 

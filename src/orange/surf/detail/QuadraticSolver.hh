@@ -12,7 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
