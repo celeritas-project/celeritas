@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/geo/OnlyGeoTestBase.hh"
 
 #include "../GlobalGeoTestBase.hh"
 #include "HeuristicGeoData.hh"
@@ -29,7 +30,7 @@ namespace test
 /*!
  * Manage a "heuristic" stepper-like test that accumulates path length.
  */
-class HeuristicGeoTestBase : public GlobalGeoTestBase
+class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
 {
   public:
     //!@{
@@ -41,21 +42,6 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase
         = Collection<real_type, Ownership::reference, M, VolumeId>;
     using SpanConstReal = Span<const real_type>;
     using SpanConstStr  = Span<const std::string>;
-    //!@}
-
-  public:
-    //!@{
-    //! Most param construction will not be used.
-    SPConstParticle  build_particle() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff    build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics   build_physics() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction   build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() override
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
     //!@}
 
     //// INTERFACE ////
