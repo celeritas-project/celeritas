@@ -58,8 +58,6 @@ class StepperTestBase : virtual public GlobalTestBase
     {
         using StepCount = std::pair<size_type, size_type>;
 
-        size_type              num_primaries{};
-        size_type              num_sets{};
         std::vector<size_type> active;
         std::vector<size_type> queued;
 
@@ -78,8 +76,7 @@ class StepperTestBase : virtual public GlobalTestBase
         //! True if run was performed and data is consistent
         explicit operator bool() const
         {
-            return !active.empty() && queued.size() == active.size()
-                   && num_primaries > 0 && num_sets > 0;
+            return !active.empty() && queued.size() == active.size();
         }
     };
 
@@ -99,10 +96,8 @@ class StepperTestBase : virtual public GlobalTestBase
     // Get the physics output
     SetupCheckResult check_setup();
 
-    // Run multiple sets of primaries to completion
-    RunResult run(StepperInterface& step,
-                  size_type         num_primaries,
-                  size_type         num_sets) const;
+    // Run a bunch of primaries to completion
+    RunResult run(StepperInterface& step, size_type num_primaries) const;
 
     //! Access the dummy action
     const DummyAction& dummy_action() const { return *dummy_action_; }

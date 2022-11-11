@@ -243,44 +243,55 @@ TEST_F(TrackInitTest, run)
 
 TEST_F(TrackInitTest, primaries)
 {
-    const size_type num_sets            = 8;
-    const size_type num_primaries       = 1024;
-    const size_type num_tracks          = 512;
-    const size_type primaries_per_track = num_primaries / num_tracks;
+    const size_type num_sets      = 4;
+    const size_type num_primaries = 16;
+    const size_type num_tracks    = 16;
 
     build_states(num_tracks);
 
-    // Kill all the tracks in each interaction and don't produce secondaries
+    // Kill half the tracks in each interaction and don't produce secondaries
     std::vector<size_type> alloc(num_tracks, 0);
-    std::vector<char>      alive(num_tracks, 0);
-    ITTestInput            input(alloc, alive);
+    std::vector<char>      alive(num_tracks);
+    for (size_type i = 0; i < num_tracks; ++i)
+    {
+        alive[i] = i % 2;
+    }
+    ITTestInput input(alloc, alive);
 
     for (size_type i = 0; i < num_sets; ++i)
     {
         // Create track initializers on device from primary particles
         auto primaries = generate_primaries(num_primaries);
         extend_from_primaries(core_data, primaries);
-        EXPECT_EQ(core_data.states.init.initializers.size(), num_primaries);
 
-        for (size_type j = 0; j < primaries_per_track; ++j)
-        {
-            // Initialize tracks on device
-            initialize_tracks(core_data);
+        // Initialize tracks on device
+        initialize_tracks(core_data);
 
-            // Launch kernel that will kill all tracks
-            interact(core_data.states, input.device_ref());
+        // Launch kernel that will kill half the tracks
+        interact(core_data.states, input.device_ref());
 
-            // Find vacancies and create track initializers from secondaries
-            extend_from_secondaries(core_data);
-        }
-        EXPECT_EQ(core_data.states.init.initializers.size(), 0);
+        // Find vacancies and create track initializers from secondaries
+        extend_from_secondaries(core_data);
+        EXPECT_EQ(i * num_tracks / 2,
+                  core_data.states.init.initializers.size());
+        EXPECT_EQ(num_tracks / 2, core_data.states.init.vacancies.size());
     }
 
-    // Check the final track IDs
-    auto                   result = get_result(core_data.states);
-    std::vector<size_type> expected_track_ids(num_tracks);
-    std::iota(expected_track_ids.begin(), expected_track_ids.end(), 0);
+    // Check the results
+    static const unsigned int expected_track_ids[] = {
+        8u, 1u, 9u, 3u, 10u, 5u, 11u, 7u, 12u, 9u, 13u, 11u, 14u, 13u, 15u, 15u};
+    static const int expected_parent_ids[]
+        = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    static const unsigned int expected_vacancies[]
+        = {0u, 2u, 4u, 6u, 8u, 10u, 12u, 14u};
+    static const unsigned int expected_init_ids[]
+        = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u,
+           4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u};
+    auto result = get_result(core_data.states);
     EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+    EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+    EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+    EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
 #define TrackInitSecondaryTest TEST_IF_CELER_DEVICE(TrackInitSecondaryTest)

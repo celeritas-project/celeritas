@@ -196,12 +196,11 @@ TEST_F(TestEm3Test, setup)
 
 TEST_F(TestEm3Test, host)
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 1;
     size_type num_tracks    = 256;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries, num_sets);
+    auto                    result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -237,38 +236,34 @@ TEST_F(TestEm3Test, host)
 
 TEST_F(TestEm3Test, host_multi)
 {
-    // Run and inject multiple sets of primaries during the transport loop
+    // Run and inject multiple sets of primaries during transport
 
-    size_type num_sets      = 4;
-    size_type num_primaries = 2;
-    size_type num_tracks    = 2048;
+    size_type num_primaries = 8;
+    size_type num_tracks    = 128;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries, num_sets);
-    EXPECT_SOFT_NEAR(61883.75, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
-    {
-        EXPECT_EQ(740, result.num_step_iters());
-        EXPECT_SOFT_EQ(61883.75, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(641, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({637, 294}), result.calc_queue_hwm());
-    }
-    else
-    {
-        cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
-        result.print_expected();
+    // Initialize some primaries and take a step
+    auto primaries = this->make_primaries(num_primaries);
+    auto counts    = step(primaries);
+    EXPECT_EQ(num_primaries, counts.active);
+    EXPECT_EQ(num_primaries, counts.alive);
 
-        if (this->strict_testing())
-        {
-            FAIL() << "Updated stepper results are required for CI tests";
-        }
-    }
+    // Transport existing tracks
+    counts = step();
+    EXPECT_EQ(num_primaries, counts.active);
+    EXPECT_EQ(num_primaries, counts.alive);
 
-    // Check that callback was called
-    EXPECT_EQ(result.active.size(), this->dummy_action().num_execute_host());
-    EXPECT_EQ(0, this->dummy_action().num_execute_device());
+    // Add some more primaries
+    primaries = this->make_primaries(num_primaries);
+    counts    = step(primaries);
+    EXPECT_EQ(24, counts.active);
+    EXPECT_EQ(24, counts.alive);
+
+    // Transport existing tracks
+    counts = step();
+    EXPECT_EQ(44, counts.active);
+    EXPECT_EQ(44, counts.alive);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
@@ -278,13 +273,12 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
     }
 
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     // Num tracks is low enough to hit capacity
     size_type num_tracks = num_primaries * 800;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto result = this->run(step, num_primaries, num_sets);
+    auto                      result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -293,42 +287,6 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
         EXPECT_SOFT_EQ(62756.625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(82, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({75, 1450}), result.calc_queue_hwm());
-    }
-    else
-    {
-        cout << "No output saved for combination of "
-             << test::PrintableBuildConf{} << std::endl;
-        result.print_expected();
-
-        if (this->strict_testing())
-        {
-            FAIL() << "Updated stepper results are required for CI tests";
-        }
-    }
-
-    // Check that callback was called
-    EXPECT_EQ(result.active.size(), this->dummy_action().num_execute_device());
-    EXPECT_EQ(0, this->dummy_action().num_execute_host());
-}
-
-TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device_multi))
-{
-    // Run and inject multiple sets of primaries during the transport loop
-
-    size_type num_sets      = 4;
-    size_type num_primaries = 2;
-    size_type num_tracks    = 2048;
-
-    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto result = this->run(step, num_primaries, num_sets);
-    EXPECT_SOFT_NEAR(61883.75, result.calc_avg_steps_per_primary(), 0.10);
-
-    if (this->is_ci_build() || this->is_wildstyle_build())
-    {
-        EXPECT_EQ(740, result.num_step_iters());
-        EXPECT_SOFT_EQ(61883.75, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(641, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({637, 294}), result.calc_queue_hwm());
     }
     else
     {
@@ -384,12 +342,11 @@ TEST_F(TestEm3MscTest, setup)
 
 TEST_F(TestEm3MscTest, host)
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     size_type num_tracks    = 2048;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries, num_sets);
+    auto                    result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -414,12 +371,11 @@ TEST_F(TestEm3MscTest, host)
 
 TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     size_type num_tracks    = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto result = this->run(step, num_primaries, num_sets);
+    auto                      result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
@@ -455,12 +411,11 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(TestEm3MscNofluctTest, host)
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     size_type num_tracks    = 2048;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries, num_sets);
+    auto                    result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(58, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -497,12 +452,11 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
     }
 
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     size_type num_tracks    = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto result = this->run(step, num_primaries, num_sets);
+    auto                      result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
@@ -562,12 +516,11 @@ TEST_F(TestEm15FieldTest, setup)
 
 TEST_F(TestEm15FieldTest, host)
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 4;
     size_type num_tracks    = 1024;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries, num_sets);
+    auto                    result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_summit_build()
@@ -593,12 +546,11 @@ TEST_F(TestEm15FieldTest, host)
 
 TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
 {
-    size_type num_sets      = 1;
     size_type num_primaries = 8;
     size_type num_tracks    = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto result = this->run(step, num_primaries, num_sets);
+    auto                      result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_summit_build()
         || this->is_wildstyle_build())
