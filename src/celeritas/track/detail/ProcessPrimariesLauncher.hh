@@ -54,8 +54,11 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
 {
     const Primary& primary = primaries_[tid.get()];
 
+    CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
+    TrackInitializer& ti = data_.initializers[ThreadId(
+        data_.initializers.size() - primaries_.size() + tid.get())];
+
     // Construct a track initializer from a primary particle
-    TrackInitializer ti;
     ti.sim.track_id         = primary.track_id;
     ti.sim.parent_id        = TrackId{};
     ti.sim.event_id         = primary.event_id;
@@ -66,12 +69,6 @@ CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
     ti.geo.dir              = primary.direction;
     ti.particle.particle_id = primary.particle_id;
     ti.particle.energy      = primary.energy;
-
-    // Store the track initializer at the appropriate index
-    CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
-    data_.initializers[ThreadId(data_.initializers.size() - primaries_.size()
-                                + tid.get())]
-        = ti;
 
     // Update per-event counter of number of tracks created
     CELER_ASSERT(ti.sim.event_id < data_.track_counters.size());
