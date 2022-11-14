@@ -82,6 +82,7 @@ class VecgeomTestBase : virtual public GlobalTestBase
     SPConstParticle    build_particle() final { CELER_ASSERT_UNREACHABLE(); }
     SPConstCutoff      build_cutoff() final { CELER_ASSERT_UNREACHABLE(); }
     SPConstPhysics     build_physics() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstTrackInit   build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction      build_along_step() final { CELER_ASSERT_UNREACHABLE(); }
     SPConstMaterial    build_material() final { CELER_ASSERT_UNREACHABLE(); }
     SPConstGeoMaterial build_geomaterial() final

@@ -23,63 +23,36 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Static track initializer data.
+ * Persistent data for track initialization.
  *
- * There is no persistent data needed on device. Primaries are copied to device
- * only when they are needed to initialize new tracks and are not stored on
- * device. \c capacity is only used at construction to allocate memory
- * for track initializers and parent track IDs.
+ * TODO: change \c max_events to be the maximum number of events in flight at
+ * once rather than the maximum number of events that can be run over the
+ * entire simulation
  */
 template<Ownership W, MemSpace M>
-struct TrackInitParamsData;
-
-template<Ownership W>
-struct TrackInitParamsData<W, MemSpace::device>
+struct TrackInitParamsData
 {
-    /* no data on device */
-
-    //// METHODS ////
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>&)
-    {
-        return *this;
-    }
-};
-
-template<Ownership W>
-struct TrackInitParamsData<W, MemSpace::host>
-{
-    //// TYPES ////
-
-    template<class T>
-    using Items = Collection<T, W, MemSpace::host>;
-
-    //// DATA ////
-
-    Items<Primary> primaries;   //!< Primary particles
-    size_type      capacity{0}; //!< Initializer/parent storage per track
+    size_type capacity{0};   //!< Track initializer storage size
+    size_type max_events{0}; //!< Maximum number of events that can be run
 
     //// METHODS ////
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !primaries.empty() && capacity > 0;
+        return capacity > 0 && max_events > 0;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>& other)
     {
-        primaries = other.primaries;
-        capacity  = other.capacity;
+        CELER_EXPECT(other);
+        capacity   = other.capacity;
+        max_events = other.max_events;
         return *this;
     }
 };
-
-using TrackInitParamsHostRef = HostCRef<TrackInitParamsData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -165,7 +138,7 @@ struct ResizableData
  * Not all of this is technically "state" data, though it is all mutable and in
  * most cases accessed by \c ThreadId. Specifically, \c initializers and \c
  * vacancies are resizable, and \c track_counters has size
- * \c num_events.
+ * \c max_events.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
  * - \c parents is the \c ThreadId of the parent tracks of the initializers.
@@ -195,8 +168,7 @@ struct TrackInitStateData
     StateItems<size_type>            secondary_counts;
     EventItems<TrackId::size_type>   track_counters;
 
-    size_type num_primaries{};   //!< Number of uninitialized primaries
-    size_type num_secondaries{}; //!< Number of secondaries produced in step
+    size_type num_secondaries{}; //!< Number of secondaries produced in a step
 
     //// METHODS ////
 
@@ -217,7 +189,6 @@ struct TrackInitStateData
         vacancies        = other.vacancies;
         secondary_counts = other.secondary_counts;
         track_counters   = other.track_counters;
-        num_primaries    = other.num_primaries;
         num_secondaries  = other.num_secondaries;
         return *this;
     }
@@ -247,10 +218,10 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     // Allocate device data
-    auto capacity = params.capacity;
-    resize(&data->initializers.storage, capacity);
+    resize(&data->initializers.storage, params.capacity);
     resize(&data->parents, size);
     resize(&data->secondary_counts, size);
+    resize(&data->track_counters, params.max_events);
 
     // Start with an empty vector of track initializers
     data->initializers.resize(0);
@@ -265,23 +236,10 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     data->vacancies.storage = vacancies;
     data->vacancies.resize(size);
 
-    // Initialize the track counter for each event as the number of primary
-    // particles in that event
-    std::vector<size_type> counters;
-    for (const auto& p : params.primaries[AllItems<Primary, MemSpace::host>{}])
-    {
-        const auto event_id = p.event_id.get();
-        if (!(event_id < counters.size()))
-        {
-            counters.resize(event_id + 1);
-        }
-        ++counters[event_id];
-    }
-    Collection<TrackId::size_type, Ownership::value, MemSpace::host, EventId>
-        track_counters;
-    make_builder(&track_counters).insert_back(counters.begin(), counters.end());
-    data->track_counters = track_counters;
-    data->num_primaries  = params.primaries.size();
+    // Initialize the track counter for each event to zero
+    fill(size_type(0), &data->track_counters);
+
+    CELER_ENSURE(*data);
 }
 
 //---------------------------------------------------------------------------//

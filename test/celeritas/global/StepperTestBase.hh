@@ -85,7 +85,7 @@ class StepperTestBase : virtual public GlobalTestBase
     StepperTestBase();
 
     // Construct the setup values for Stepper
-    StepperInput make_stepper_input(size_type tracks, size_type init_scaling);
+    StepperInput make_stepper_input(size_type tracks);
 
     //! Create a vector of primaries inside the 'run' function
     virtual std::vector<Primary> make_primaries(size_type count) const = 0;

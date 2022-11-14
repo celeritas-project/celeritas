@@ -72,6 +72,7 @@ inp = {
     'max_num_tracks': num_tracks,
     'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
+    'max_events': 1000,
     'secondary_stack_factor': 3,
     'enable_diagnostics': True,
     'sync': True,

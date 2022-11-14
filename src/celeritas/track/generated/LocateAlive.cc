@@ -15,10 +15,9 @@ namespace celeritas
 namespace generated
 {
 void locate_alive(
-    const CoreHostRef& core_data,
-    const TrackInitStateHostRef& init_data)
+    const CoreHostRef& core_data)
 {
-    detail::LocateAliveLauncher<MemSpace::host> launch(core_data, init_data);
+    detail::LocateAliveLauncher<MemSpace::host> launch(core_data);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
     {

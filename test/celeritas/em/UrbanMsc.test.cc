@@ -123,6 +123,7 @@ class UrbanMscTest : public GlobalGeoTestBase
 
         return std::make_shared<PhysicsParams>(std::move(input));
     }
+    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
     SPConstGeoMaterial build_geomaterial() override

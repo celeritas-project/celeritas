@@ -35,20 +35,15 @@ class ActionSequence;
  *
  * - \c params : Problem definition
  * - \c num_track_slots : Maximum number of threads to run in parallel on GPU
- * - \c num_initializers : Maximum number of secondaries + primaries allowable
  */
 struct StepperInput
 {
     std::shared_ptr<const CoreParams> params;
     size_type                         num_track_slots{};
-    size_type                         num_initializers{};
     bool                              sync{false};
 
     //! True if defined
-    explicit operator bool() const
-    {
-        return params && num_track_slots > 0 && num_initializers > 0;
-    }
+    explicit operator bool() const { return params && num_track_slots > 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -83,7 +78,7 @@ class StepperInterface
     virtual StepperResult operator()() = 0;
 
     // Transport existing states and these new primaries
-    virtual StepperResult operator()(VecPrimary primaries) = 0;
+    virtual StepperResult operator()(const VecPrimary& primaries) = 0;
 
     //! Whether the stepper is assigned/valid
     virtual explicit operator bool() const = 0;
@@ -143,7 +138,7 @@ class Stepper final : public StepperInterface
     StepperResult operator()() final;
 
     // Transport existing states and these new primaries
-    StepperResult operator()(VecPrimary primaries) final;
+    StepperResult operator()(const VecPrimary& primaries) final;
 
     //! Whether the stepper is assigned/valid
     explicit operator bool() const final { return static_cast<bool>(states_); }
@@ -153,13 +148,11 @@ class Stepper final : public StepperInterface
 
   private:
     // Params and call sequence
-    std::shared_ptr<const CoreParams> params_;
+    std::shared_ptr<const CoreParams>       params_;
     std::shared_ptr<detail::ActionSequence> actions_;
 
     // State data
-    size_type                               num_initializers_;
-    CollectionStateStore<CoreStateData, M>  states_;
-    TrackInitStateData<Ownership::value, M> inits_;
+    CollectionStateStore<CoreStateData, M> states_;
 
     // Combined param/state for action calls
     CoreRef<M> core_ref_;

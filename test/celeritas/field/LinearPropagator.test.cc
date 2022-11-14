@@ -14,6 +14,7 @@
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/OnlyGeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
@@ -25,7 +26,8 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class LinearPropagatorTestBase : public GlobalGeoTestBase
+class LinearPropagatorTestBase : public GlobalGeoTestBase,
+                                 public OnlyGeoTestBase
 {
   public:
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
@@ -56,17 +58,6 @@ class LinearPropagatorTestBase : public GlobalGeoTestBase
             return "[OUTSIDE]";
         }
         return this->geometry()->id_to_label(geo.volume_id()).name;
-    }
-
-  protected:
-    SPConstParticle build_particle() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff   build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics  build_physics() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction   build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() override
-    {
-        CELER_ASSERT_UNREACHABLE();
     }
 
   protected:

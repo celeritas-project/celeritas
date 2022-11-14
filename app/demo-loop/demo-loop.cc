@@ -117,7 +117,7 @@ void run(std::istream* is, OutputManager* output)
             event = read_event();
         }
     }
-    result = (*transport_ptr)(std::move(primaries));
+    result = (*transport_ptr)(primaries);
 
     result.time.setup = setup_time;
 

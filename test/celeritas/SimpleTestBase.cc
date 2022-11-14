@@ -19,6 +19,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 namespace celeritas
 {
@@ -141,6 +142,15 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
     input.action_registry = this->action_reg().get();
 
     return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto SimpleTestBase::build_init() -> SPConstTrackInit
+{
+    TrackInitParams::Input input;
+    input.capacity   = 4096;
+    input.max_events = 4096;
+    return std::make_shared<TrackInitParams>(input);
 }
 
 //---------------------------------------------------------------------------//

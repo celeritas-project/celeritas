@@ -8,8 +8,8 @@
 #pragma once
 
 #include "corecel/cont/Span.hh"
-
-#include "../TrackInitData.hh"
+#include "corecel/math/Atomics.hh"
+#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -30,9 +30,9 @@ class ProcessPrimariesLauncher
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION ProcessPrimariesLauncher(Span<const Primary>      primaries,
-                                            const TrackInitStateRef& data)
-        : primaries_(primaries), data_(data)
+    CELER_FUNCTION ProcessPrimariesLauncher(const CoreRef<M>&   core_data,
+                                            Span<const Primary> primaries)
+        : data_(core_data.states.init), primaries_(primaries)
     {
         CELER_EXPECT(data_);
     }
@@ -41,8 +41,8 @@ class ProcessPrimariesLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    Span<const Primary>      primaries_;
     const TrackInitStateRef& data_;
+    Span<const Primary>      primaries_;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,21 +52,27 @@ class ProcessPrimariesLauncher
 template<MemSpace M>
 CELER_FUNCTION void ProcessPrimariesLauncher<M>::operator()(ThreadId tid) const
 {
-    TrackInitializer& init    = data_.initializers[ThreadId(
+    const Primary& primary = primaries_[tid.get()];
+
+    CELER_ASSERT(primaries_.size() <= data_.initializers.size() + tid.get());
+    TrackInitializer& ti = data_.initializers[ThreadId(
         data_.initializers.size() - primaries_.size() + tid.get())];
-    const Primary&    primary = primaries_[tid.get()];
 
     // Construct a track initializer from a primary particle
-    init.sim.track_id         = primary.track_id;
-    init.sim.parent_id        = TrackId{};
-    init.sim.event_id         = primary.event_id;
-    init.sim.num_steps        = 0;
-    init.sim.time             = primary.time;
-    init.sim.status           = TrackStatus::alive;
-    init.geo.pos              = primary.position;
-    init.geo.dir              = primary.direction;
-    init.particle.particle_id = primary.particle_id;
-    init.particle.energy      = primary.energy;
+    ti.sim.track_id         = primary.track_id;
+    ti.sim.parent_id        = TrackId{};
+    ti.sim.event_id         = primary.event_id;
+    ti.sim.num_steps        = 0;
+    ti.sim.time             = primary.time;
+    ti.sim.status           = TrackStatus::alive;
+    ti.geo.pos              = primary.position;
+    ti.geo.dir              = primary.direction;
+    ti.particle.particle_id = primary.particle_id;
+    ti.particle.energy      = primary.energy;
+
+    // Update per-event counter of number of tracks created
+    CELER_ASSERT(ti.sim.event_id < data_.track_counters.size());
+    atomic_add(&data_.track_counters[ti.sim.event_id], size_type{1});
 }
 
 //---------------------------------------------------------------------------//

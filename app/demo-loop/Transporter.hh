@@ -57,8 +57,7 @@ struct TransporterInput
 
     // Stepper input
     std::shared_ptr<const CoreParams> params;
-    size_type num_track_slots{};  //!< AKA max_num_tracks
-    size_type num_initializers{}; //!< AKA initializer_capacity
+    size_type num_track_slots{}; //!< AKA max_num_tracks
     bool      sync{false};
 
     // Loop control
@@ -71,8 +70,7 @@ struct TransporterInput
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return params && num_track_slots > 0 && num_initializers > 0
-               && max_steps > 0;
+        return params && num_track_slots > 0 && max_steps > 0;
     }
 };
 
@@ -151,7 +149,7 @@ class TransporterBase
     virtual ~TransporterBase() = 0;
 
     // Transport the input primaries and all secondaries produced
-    virtual TransporterResult operator()(VecPrimary primaries) = 0;
+    virtual TransporterResult operator()(const VecPrimary& primaries) = 0;
 
     //! Access input parameters (TODO hacky)
     const CoreParams& params() const { return *input_.params; }
@@ -173,7 +171,7 @@ class Transporter final : public TransporterBase
     explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
-    TransporterResult operator()(VecPrimary primaries) final;
+    TransporterResult operator()(const VecPrimary& primaries) final;
 
   private:
     std::shared_ptr<DiagnosticStore> diagnostics_;
