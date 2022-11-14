@@ -259,7 +259,7 @@ function(celeritas_rdc_add_library target)
   # only in the case where they want the CUDA device code to be compiled
   # as "relocatable device code"
 
-  if(NOT CMAKE_CUDA_COMPILER OR NOT _cuda_sources)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CMAKE_CUDA_COMPILER OR NOT _cuda_sources)
     add_library(${target} ${ARGN})
     return()
   endif()
