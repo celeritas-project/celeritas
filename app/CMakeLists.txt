@@ -100,7 +100,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS)
-  add_library(celeritas_demo_interactor
+  celeritas_add_library(celeritas_demo_interactor
     demo-interactor/LoadXs.cc
     demo-interactor/KNDemoIO.cc
     demo-interactor/XsGridParams.cc
