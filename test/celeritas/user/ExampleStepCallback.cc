@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ExampleStepCollector.cc
+//! \file celeritas/user/ExampleStepCallback.cc
 //---------------------------------------------------------------------------//
-#include "ExampleStepCollector.hh"
+#include "ExampleStepCallback.hh"
 
 #include <algorithm>
 #include <tuple>
@@ -28,7 +28,7 @@ void copy_array(double dst[3], const Real3& src)
 } // namespace
 
 //---------------------------------------------------------------------------//
-void ExampleStepCollector::operator()(StateHostRef const& data)
+void ExampleStepCallback::operator()(StateHostRef const& data)
 {
     for (auto tid : range(ThreadId{data.size()}))
     {
@@ -54,7 +54,7 @@ void ExampleStepCollector::operator()(StateHostRef const& data)
 }
 
 //---------------------------------------------------------------------------//
-void ExampleStepCollector::sort()
+void ExampleStepCallback::sort()
 {
     std::sort(
         steps_.begin(), steps_.end(), [](const Step& lhs, const Step& rhs) {

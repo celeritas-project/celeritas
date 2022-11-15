@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ExampleStepCollector.hh
+//! \file celeritas/user/ExampleStepCallback.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,11 +19,11 @@ namespace test
 /*!
  * Store all step data in an AOS.
  *
- * Construct a StepCollector with this interface to tally data during
- * execution. At the end of the run, for testing, you probably want to sort the
- * data.
+ * Construct a StepCollector with this callback interface to tally data during
+ * execution. At the end of the run, for testing, call \c sort to reorder the
+ * data by event/track/step, and then access the data with \c steps .
  */
-class ExampleStepCollector : public StepInterface
+class ExampleStepCallback final : public StepInterface
 {
   public:
     struct Step

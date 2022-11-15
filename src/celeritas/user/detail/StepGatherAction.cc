@@ -59,6 +59,11 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
     {
         launch(ThreadId{i});
     }
+
+    if (P == StepPoint::post)
+    {
+        (*callback_)(step_state);
+    }
 }
 
 #if !CELER_USE_DEVICE

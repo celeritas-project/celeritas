@@ -60,6 +60,11 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
                              storage_->params.device_ref(),
                              step_state);
     CELER_DEVICE_CHECK_ERROR();
+
+    if (P == StepPoint::post)
+    {
+        (*callback_)(step_state);
+    }
 }
 
 //---------------------------------------------------------------------------//
