@@ -50,11 +50,11 @@ TEST_F(KnAlongStepTest, basic)
         inp.energy  = MevEnergy{1};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0, result.eloss);
-        EXPECT_SOFT_EQ(5, result.displacement);
+        EXPECT_SOFT_EQ(1, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(1.6678204759908e-10, result.time);
-        EXPECT_SOFT_EQ(5, result.step);
-        EXPECT_EQ("geo-boundary", result.action);
+        EXPECT_SOFT_EQ(3.3356409519815202e-11, result.time);
+        EXPECT_SOFT_EQ(1, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
     }
     {
         inp.energy  = MevEnergy{10};
@@ -71,10 +71,10 @@ TEST_F(KnAlongStepTest, basic)
         inp.phys_mfp = 1e-4;
         auto result  = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0, result.eloss);
-        EXPECT_SOFT_EQ(0.1, result.displacement);
+        EXPECT_SOFT_EQ(0.0010008918838569024, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_EQ(3.3356409519815e-12, result.time);
-        EXPECT_SOFT_EQ(0.1, result.step);
+        EXPECT_SOFT_EQ(3.3386159562990149e-14, result.time);
+        EXPECT_SOFT_EQ(0.0010008918838569024, result.step);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
 }

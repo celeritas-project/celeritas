@@ -107,8 +107,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambda.y_units         = ImportUnits::cm_inv;
         lambda.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},   // energy
-             {1e-4, 1e-2}}, // lambda (detector)
+             {1e-4, 1.0}, // energy
+             {1e1, 1e0}}, // lambda (detector)
             {ImportPhysicsVectorType::log,
              {1e-4, 1.0},     // energy
              {1e-10, 1e-10}}, // lambda (world)
@@ -122,8 +122,8 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         lambdap.y_units         = ImportUnits::cm_mev_inv;
         lambdap.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},     // energy
-             {1e-2, 1e-2, 1e-2}}, // lambda * energy (detector)
+             {1.0, 1e4, 1e8},    // energy
+             {1e0, 1e-2, 1e-4}}, // lambda * energy (detector)
             {ImportPhysicsVectorType::log,
              {1.0, 1e4, 1e8},        // energy
              {1e-10, 1e-10, 1e-10}}, // lambda * energy (world)
