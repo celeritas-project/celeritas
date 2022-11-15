@@ -3,17 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/MiniStepTestBase.hh
+//! \file celeritas/global/AlongStepTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
-#include "GlobalTestBase.hh"
+#include "../GlobalTestBase.hh"
 
 namespace celeritas
 {
@@ -26,13 +24,12 @@ namespace test
  * This high-level test *only* executes on the host so we can extract detailed
  * information from the states.
  */
-class MiniStepTestBase : virtual public GlobalTestBase
+class AlongStepTestBase : virtual public GlobalTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using MevEnergy   = units::MevEnergy;
-    using CoreRefHost = CoreRef<MemSpace::host>;
+    using MevEnergy = units::MevEnergy;
     //!@}
 
     struct Input
@@ -51,18 +48,19 @@ class MiniStepTestBase : virtual public GlobalTestBase
         }
     };
 
-    void init(const Input& inp, size_type num_tracks);
-
-    const CoreRefHost& core_ref() const
+    struct RunResult
     {
-        CELER_EXPECT(states_);
-        CELER_ENSURE(core_ref_);
-        return core_ref_;
-    }
+        real_type   eloss{};        //!< Energy loss / MeV
+        real_type   displacement{}; //!< Distance from start to end points
+        real_type   angle{};        //!< Dot product of in/out direction
+        real_type   time{};         //!< Change in time
+        real_type   step{};         //!< Physical step length
+        std::string action;         //!< Most likely action to take next
 
-  private:
-    CoreRef<MemSpace::host>                             core_ref_;
-    CollectionStateStore<CoreStateData, MemSpace::host> states_;
+        void print_expected() const;
+    };
+
+    RunResult run(const Input&, size_type num_tracks = 1);
 };
 
 //---------------------------------------------------------------------------//

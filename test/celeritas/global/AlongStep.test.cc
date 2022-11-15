@@ -6,13 +6,11 @@
 //! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/TestEm3Base.hh"
-#include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "../MiniStepTestBase.hh"
 #include "../SimpleTestBase.hh"
+#include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -22,24 +20,6 @@ namespace test
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
-
-class AlongStepTestBase : public MiniStepTestBase
-{
-  public:
-    struct RunResult
-    {
-        real_type   eloss{};        //!< Energy loss / MeV
-        real_type   displacement{}; //!< Distance from start to end points
-        real_type   angle{};        //!< Dot product of in/out direction
-        real_type   time{};         //!< Change in time
-        real_type   step{};         //!< Physical step length
-        std::string action;         //!< Most likely action to take next
-
-        void print_expected() const;
-    };
-
-    RunResult run(const Input&, size_type num_tracks = 1);
-};
 
 class KnAlongStepTest : public SimpleTestBase, public AlongStepTestBase
 {
@@ -56,102 +36,6 @@ class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
     bool msc_{false};
     bool fluct_{true};
 };
-
-//---------------------------------------------------------------------------//
-auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
-{
-    this->init(inp, num_tracks);
-    const auto& core = this->core_ref();
-    CELER_EXPECT(core);
-
-    const auto& am = *this->action_reg();
-    {
-        // Call pre-step action to set range, physics step
-        auto prestep_action_id = am.find_action("pre-step");
-        CELER_ASSERT(prestep_action_id);
-        const auto& prestep_action
-            = dynamic_cast<const ExplicitActionInterface&>(
-                *am.action(prestep_action_id));
-        prestep_action.execute(core);
-
-        // Call along-step action
-        const auto& along_step = *this->along_step();
-        along_step.execute(core);
-    }
-
-    // Process output
-    RunResult               result;
-    std::map<ActionId, int> actions;
-    for (auto tid : range(ThreadId{num_tracks}))
-    {
-        CoreTrackView track{core.params, core.states, tid};
-        auto          sim      = track.make_sim_view();
-        auto          particle = track.make_particle_view();
-        auto          geo      = track.make_geo_view();
-
-        result.eloss += value_as<MevEnergy>(inp.energy)
-                        - value_as<MevEnergy>(particle.energy());
-        result.displacement += distance(geo.pos(), inp.position);
-        result.angle += dot_product(geo.dir(), inp.direction);
-        result.time += sim.time();
-        result.step += sim.step_limit().step;
-        actions[sim.step_limit().action] += 1;
-    }
-
-    real_type norm = 1 / real_type(num_tracks);
-    result.eloss *= norm;
-    result.displacement *= norm;
-    result.angle *= norm;
-    result.time *= norm;
-    result.step *= norm;
-
-    if (actions.size() == 1)
-    {
-        result.action = am.id_to_label(actions.begin()->first);
-    }
-    else
-    {
-        // Stochastic action from along-step!
-        std::ostringstream os;
-        os << '{'
-           << join_stream(actions.begin(),
-                          actions.end(),
-                          ", ",
-                          [&am, norm](std::ostream& os, const auto& kv) {
-                              os << '"' << am.id_to_label(kv.first)
-                                 << "\": " << kv.second * norm;
-                          })
-           << '}';
-    }
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-void AlongStepTestBase::RunResult::print_expected() const
-{
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
-
-    cout << "EXPECT_SOFT_EQ(" << repr(this->eloss)
-         << ", result.eloss);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->displacement)
-         << ", result.displacement);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->angle)
-         << ", result.angle);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->time)
-         << ", result.time);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->step) << ", result.step);\n";
-    if (!this->action.empty() && this->action.front() == '{')
-        cout << "// ";
-    cout << "EXPECT_EQ(" << repr(this->action)
-         << ", result.action);\n"
-            "/*** END CODE ***/\n";
-}
 
 //---------------------------------------------------------------------------//
 // TESTS
