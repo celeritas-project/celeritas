@@ -5,11 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/detail/StepGatherAction.cu
 //---------------------------------------------------------------------------//
-#include "StepGatherAction.hh"
-
 #include "corecel/Macros.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 
+#include "../StepData.hh"
 #include "StepGatherLauncher.hh"
 
 namespace celeritas
@@ -39,12 +38,12 @@ __global__ void step_gather_kernel(CoreDeviceRef const              core,
  * Launch the along-step action on device.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
+void step_gather_device(CoreRef<MemSpace::device> const&  core,
+                        DeviceCRef<StepParamsData> const& step_params,
+                        DeviceRef<StepStateData> const&   step_state)
 {
     CELER_EXPECT(core);
-
-    const auto& step_state = this->get_state(core);
-    CELER_ASSERT(step_state.size() == core.states.size());
+    CELER_EXPECT(step_state.size() == core.states.size());
 
     static const KernelParamCalculator calc_launch_params_(
         P == StepPoint::pre ? "step_gather_pre" : "step_gather_post",
@@ -57,20 +56,21 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
                              0,
                              0,
                              core,
-                             storage_->params.device_ref(),
+                             step_params,
                              step_state);
     CELER_DEVICE_CHECK_ERROR();
-
-    if (P == StepPoint::post)
-    {
-        (*callback_)(step_state);
-    }
 }
 
 //---------------------------------------------------------------------------//
 
-template class StepGatherAction<StepPoint::pre>;
-template class StepGatherAction<StepPoint::post>;
+template void
+step_gather_device<StepPoint::pre>(CoreRef<MemSpace::device> const&,
+                                   DeviceCRef<StepParamsData> const&,
+                                   DeviceRef<StepStateData> const&);
+template void
+step_gather_device<StepPoint::post>(CoreRef<MemSpace::device> const&,
+                                    DeviceCRef<StepParamsData> const&,
+                                    DeviceRef<StepStateData> const&);
 
 //---------------------------------------------------------------------------//
 } // namespace detail
