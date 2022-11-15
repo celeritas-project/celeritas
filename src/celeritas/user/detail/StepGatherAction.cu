@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/detail/StepGatherAction.cu
 //---------------------------------------------------------------------------//
-#include "StepGatherAction.cuh"
+#include "StepGatherAction.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
@@ -25,7 +25,7 @@ __global__ void step_gather_kernel(CoreDeviceRef const              core,
                                    DeviceRef<StepStateData> const   step_state)
 {
     auto tid = KernelParamCalculator::thread_id();
-    if (!(tid < data.states.size()))
+    if (!(tid < step_state.size()))
         return;
 
     StepGatherLauncher<P> launch{core, step_params, step_state};
@@ -41,7 +41,7 @@ __global__ void step_gather_kernel(CoreDeviceRef const              core,
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(core);
 
     const auto& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
