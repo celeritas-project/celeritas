@@ -32,22 +32,21 @@
  */
 #if defined(__NVCC__)
 #    define CELER_FUNCTION __host__ __device__
-#    define CELER_FORCEINLINE_FUNCTION __host__ __device__ __forceinline__
+#    define CELER_FORCEINLINE __forceinline__
 #elif defined(__HIP__)
 #    define CELER_FUNCTION __host__ __device__
-#    define CELER_FORCEINLINE_FUNCTION \
-        __host__ __device__ inline __attribute__((always_inline))
+#    define CELER_FORCEINLINE __attribute__((always_inline))
 #else
 #    define CELER_FUNCTION
 #    if defined(_MSC_VER)
-#        define CELER_FORCEINLINE_FUNCTION inline __forceinline
+#        define CELER_FORCEINLINE inline __forceinline
 #    elif defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
-#        define CELER_FORCEINLINE_FUNCTION \
-            inline __attribute__((always_inline))
+#        define CELER_FORCEINLINE inline __attribute__((always_inline))
 #    else
-#        define CELER_FORCEINLINE_FUNCTION inline
+#        define CELER_FORCEINLINE inline
 #    endif
 #endif
+#define CELER_FORCEINLINE_FUNCTION CELER_FUNCTION CELER_FORCEINLINE
 
 /*!
  * \def CELER_CONSTEXPR_FUNCTION
