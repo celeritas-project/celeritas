@@ -16,7 +16,6 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "../SimTrackView.hh"
-#include "../TrackInitData.hh"
 
 namespace celeritas
 {
@@ -32,30 +31,26 @@ class ProcessSecondariesLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsRef         = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef          = CoreStateData<Ownership::reference, M>;
-    using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
+    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
     CELER_FUNCTION
-    ProcessSecondariesLauncher(const CoreRef<M>&        core_data,
-                               const TrackInitStateRef& init_data)
-        : params_(core_data.params), states_(core_data.states), data_(init_data)
+    ProcessSecondariesLauncher(const CoreRef<M>& core_data)
+        : params_(core_data.params), states_(core_data.states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);
-        CELER_EXPECT(data_);
     }
 
     // Create track initializers from secondaries
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef&         params_;
-    const StateRef&          states_;
-    const TrackInitStateRef& data_;
+    const ParamsRef& params_;
+    const StateRef&  states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,12 +68,10 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
         return;
     }
 
-    GeoTrackView    geo(params_.geometry, states_.geometry, tid);
-    PhysicsStepView phys(params_.physics, states_.physics, tid);
-
     // Offset in the vector of track initializers
-    CELER_ASSERT(data_.secondary_counts[tid] <= data_.num_secondaries);
-    size_type offset = data_.num_secondaries - data_.secondary_counts[tid];
+    const auto& data = states_.init;
+    CELER_ASSERT(data.secondary_counts[tid] <= data.num_secondaries);
+    size_type offset = data.num_secondaries - data.secondary_counts[tid];
 
     // A new track was initialized from a secondary in the parent's track slot
     bool initialized = false;
@@ -87,33 +80,36 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
     // initialized in this slot
     const TrackId parent_id{sim.track_id()};
 
+    PhysicsStepView phys(params_.physics, states_.physics, tid);
     for (const auto& secondary : phys.secondaries())
     {
         if (secondary)
         {
             // Particles should not be making secondaries while crossing a
             // surface
+            GeoTrackView geo(params_.geometry, states_.geometry, tid);
             CELER_ASSERT(!geo.is_on_boundary());
 
-            // Calculate the track ID of the secondary
+            // Increment the total number of tracks created for this event and
+            // calculate the track ID of the secondary
             // TODO: This is nondeterministic; we need to calculate the
             // track ID in a reproducible way.
-            CELER_ASSERT(sim.event_id() < data_.track_counters.size());
+            CELER_ASSERT(sim.event_id() < data.track_counters.size());
             TrackId::size_type track_id = atomic_add(
-                &data_.track_counters[sim.event_id()], size_type{1});
+                &data.track_counters[sim.event_id()], size_type{1});
 
             // Create a track initializer from the secondary
-            TrackInitializer init;
-            init.sim.track_id         = TrackId{track_id};
-            init.sim.parent_id        = parent_id;
-            init.sim.event_id         = sim.event_id();
-            init.sim.num_steps        = 0;
-            init.sim.time             = sim.time();
-            init.sim.status           = TrackStatus::alive;
-            init.geo.pos              = geo.pos();
-            init.geo.dir              = secondary.direction;
-            init.particle.particle_id = secondary.particle_id;
-            init.particle.energy      = secondary.energy;
+            TrackInitializer ti;
+            ti.sim.track_id         = TrackId{track_id};
+            ti.sim.parent_id        = parent_id;
+            ti.sim.event_id         = sim.event_id();
+            ti.sim.num_steps        = 0;
+            ti.sim.time             = sim.time();
+            ti.sim.status           = TrackStatus::alive;
+            ti.geo.pos              = geo.pos();
+            ti.geo.dir              = secondary.direction;
+            ti.particle.particle_id = secondary.particle_id;
+            ti.particle.energy      = secondary.energy;
 
             if (!initialized && sim.status() != TrackStatus::alive)
             {
@@ -128,9 +124,9 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
                 // state so the multiple scattering range properties are
                 // cleared. The material state will be the same as the
                 // parent's.
-                sim = init.sim;
-                geo = GeoTrackView::DetailedInitializer{geo, init.geo.dir};
-                particle    = init.particle;
+                sim      = ti.sim;
+                geo      = GeoTrackView::DetailedInitializer{geo, ti.geo.dir};
+                particle = ti.particle;
                 phys        = {};
                 initialized = true;
 
@@ -140,16 +136,15 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
             else
             {
                 // Store the track initializer
-                CELER_ASSERT(offset > 0 && offset <= data_.initializers.size());
-                data_.initializers[ThreadId(data_.initializers.size() - offset)]
-                    = init;
+                CELER_ASSERT(offset > 0 && offset <= data.initializers.size());
+                data.initializers[ThreadId(data.initializers.size() - offset)]
+                    = ti;
 
                 // Store the thread ID of the secondary's parent if the
                 // secondary could be initialized in the next step
-                if (offset <= data_.parents.size())
+                if (offset <= data.parents.size())
                 {
-                    data_.parents[ThreadId(data_.parents.size() - offset)]
-                        = tid;
+                    data.parents[ThreadId(data.parents.size() - offset)] = tid;
                 }
                 --offset;
             }

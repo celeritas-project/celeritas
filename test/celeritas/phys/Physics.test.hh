@@ -56,7 +56,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
                                           PhysicsStepView&  pstep,
                                           units::MevEnergy  energy)
 {
-    // Calc total macro_xs over processsess
+    // Calc total macro_xs over processes
     real_type total_xs = 0;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {

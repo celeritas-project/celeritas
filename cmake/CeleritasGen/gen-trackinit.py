@@ -28,9 +28,9 @@ HH_TEMPLATE = """\
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 {extra_includes}
-#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {{
@@ -189,32 +189,29 @@ DEFS = {
     "InitTracks": KernelDefinition(
         Function("init_tracks", ParamList([
             Param("Core{Memspace}Ref", "core_data"),
-            Param("TrackInitState{Memspace}Ref", "init_data"),
             Param("size_type", "num_vacancies"),
         ])),
         "num_vacancies",
-        ["celeritas/global/CoreTrackData.hh"]),
+        []),
     "LocateAlive": KernelDefinition(
         Function("locate_alive", ParamList([
             Param("Core{Memspace}Ref", "core_data"),
-            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "core_data.states.size()",
-        ["celeritas/global/CoreTrackData.hh"]),
+        []),
     "ProcessPrimaries": KernelDefinition(
         Function("process_primaries", ParamList([
+            Param("Core{Memspace}Ref", "core_data"),
             Param("Span<const Primary>", "primaries"),
-            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "primaries.size()",
         ["corecel/cont/Span.hh", "celeritas/phys/Primary.hh"]),
     "ProcessSecondaries": KernelDefinition(
         Function("process_secondaries", ParamList([
             Param("Core{Memspace}Ref", "core_data"),
-            Param("TrackInitState{Memspace}Ref", "init_data"),
         ])),
         "core_data.states.size()",
-        ["celeritas/global/CoreTrackData.hh"]),
+        []),
 }
 
 def transformed_param_types(params, apply, **kwargs):

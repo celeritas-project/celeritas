@@ -48,21 +48,16 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         p.direction   = inp.direction;
         p.time        = inp.time;
 
-        TrackInitParams::Input inp;
-        inp.primaries.assign(num_tracks, p);
-        inp.capacity = num_tracks;
+        std::vector<Primary> primaries(num_tracks, p);
         for (auto i : range(num_tracks))
         {
-            inp.primaries[i].event_id = EventId{i};
-            inp.primaries[i].track_id = TrackId{i};
+            primaries[i].event_id = EventId{i};
+            primaries[i].track_id = TrackId{i};
         }
 
         // Primary -> track initializer -> track
-        TrackInitParams init_params{std::move(inp)};
-        TrackInitStateData<Ownership::value, MemSpace::host> init_states;
-        resize(&init_states, init_params.host_ref(), num_tracks);
-        extend_from_primaries(init_params.host_ref(), &init_states);
-        initialize_tracks(core_ref, &init_states);
+        extend_from_primaries(core_ref, primaries);
+        initialize_tracks(core_ref);
     }
 
     // Set remaining MFP

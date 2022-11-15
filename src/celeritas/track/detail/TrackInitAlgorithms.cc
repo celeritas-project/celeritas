@@ -25,7 +25,7 @@ size_type remove_if_alive<MemSpace::host>(Span<size_type> vacancies)
 {
     auto end = std::remove_if(vacancies.data(),
                               vacancies.data() + vacancies.size(),
-                              IsEqual{flag_id()});
+                              IsEqual{occupied()});
 
     // New size of the vacancy vector
     size_type result = end - vacancies.data();

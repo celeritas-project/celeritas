@@ -156,7 +156,7 @@ Transporter<M>::Transporter(TransporterInput inp)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-TransporterResult Transporter<M>::operator()(VecPrimary primaries)
+TransporterResult Transporter<M>::operator()(const VecPrimary& primaries)
 {
     Stopwatch get_transport_time;
 
@@ -180,17 +180,16 @@ TransporterResult Transporter<M>::operator()(VecPrimary primaries)
     CELER_LOG(status) << "Transporting";
 
     StepperInput input;
-    input.params             = input_.params;
-    input.num_track_slots    = input_.num_track_slots;
-    input.num_initializers   = input_.num_initializers;
-    input.sync               = input_.sync;
+    input.params          = input_.params;
+    input.num_track_slots = input_.num_track_slots;
+    input.sync            = input_.sync;
     Stepper<M> step(std::move(input));
 
     Stopwatch get_step_time;
     size_type remaining_steps = input_.max_steps;
 
     // Copy primaries to device and transport the first step
-    auto track_counts = step(std::move(primaries));
+    auto track_counts = step(primaries);
     append_track_counts(track_counts);
     result.time.steps.push_back(get_step_time());
 

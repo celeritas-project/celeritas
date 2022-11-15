@@ -32,6 +32,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 namespace celeritas
 {
@@ -170,6 +171,15 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
             input.particles, input.materials, process_data));
     }
     return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto GeantTestBase::build_init() -> SPConstTrackInit
+{
+    TrackInitParams::Input input;
+    input.capacity   = 4096;
+    input.max_events = 4096;
+    return std::make_shared<TrackInitParams>(input);
 }
 
 //---------------------------------------------------------------------------//

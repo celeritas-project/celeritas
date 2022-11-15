@@ -16,10 +16,9 @@ namespace generated
 {
 void init_tracks(
     const CoreHostRef& core_data,
-    const TrackInitStateHostRef& init_data,
     const size_type num_vacancies)
 {
-    detail::InitTracksLauncher<MemSpace::host> launch(core_data, init_data, num_vacancies);
+    detail::InitTracksLauncher<MemSpace::host> launch(core_data, num_vacancies);
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < num_vacancies; ++i)
     {

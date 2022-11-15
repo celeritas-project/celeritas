@@ -13,7 +13,7 @@ include(CeleritasAddTest)
 set(CELERITAS_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 configure_file(testdetail/TestConfig.cc.in TestConfig.cc @ONLY)
 
-add_library(testcel_harness
+celeritas_add_library(testcel_harness
   Test.cc
   testdetail/TestMacrosImpl.cc
   testdetail/NonMasterResultPrinter.cc
@@ -21,12 +21,11 @@ add_library(testcel_harness
   testdetail/TestMainImpl.cc
   "${CMAKE_CURRENT_BINARY_DIR}/TestConfig.cc"
 )
-add_library(Celeritas::testcel_harness ALIAS testcel_harness)
 target_compile_features(testcel_harness PUBLIC cxx_std_14)
-target_link_libraries(testcel_harness
+celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
 )
-target_include_directories(testcel_harness
+celeritas_target_include_directories(testcel_harness
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -175,7 +174,7 @@ set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 # ORANGE TESTS
 #-----------------------------------------------------------------------------#
 
-add_library(testcel_orange
+celeritas_add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
@@ -221,7 +220,7 @@ celeritas_add_device_test(orange/univ/SimpleUnitTracker)
 # CELERITAS TESTS
 #-----------------------------------------------------------------------------#
 
-add_library(testcel_celeritas
+celeritas_add_library(testcel_celeritas
   celeritas/grid/CalculatorTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc

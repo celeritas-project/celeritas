@@ -17,6 +17,12 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
 if(VecGeom_FOUND)
+  get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
+  if ("x${_vecgeom_lib_type}" STREQUAL "xSTATIC_LIBRARY")
+     set(_vecgeom_cuda_runtime "Static")
+  else()
+     set(_vecgeom_cuda_runtime "Shared")
+  endif()
   set_target_properties(VecGeom::vecgeom PROPERTIES
     CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
     CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
@@ -25,6 +31,7 @@ if(VecGeom_FOUND)
   if(CELERITAS_USE_CUDA)
     set_target_properties(VecGeom::vecgeomcuda PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Shared
+      #CUDA_RUNTIME_LIBRARY ${_vecgeom_cuda_runtime}
     )
     set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
       CELERITAS_CUDA_LIBRARY_TYPE Static

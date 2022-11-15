@@ -15,6 +15,7 @@
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {
@@ -48,6 +49,7 @@ struct CoreParamsData
     CutoffParamsData<W, M>      cutoffs;
     PhysicsParamsData<W, M>     physics;
     RngParamsData<W, M>         rng;
+    TrackInitParamsData<W, M>   init;
 
     CoreScalars scalars;
 
@@ -55,7 +57,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && scalars;
+               && physics && init && scalars;
     }
 
     //! Assign from another set of data
@@ -70,6 +72,7 @@ struct CoreParamsData
         cutoffs   = other.cutoffs;
         physics   = other.physics;
         rng       = other.rng;
+        init      = other.init;
         scalars   = other.scalars;
         return *this;
     }
@@ -87,12 +90,13 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    GeoStateData<W, M>      geometry;
-    MaterialStateData<W, M> materials;
-    ParticleStateData<W, M> particles;
-    PhysicsStateData<W, M>  physics;
-    RngStateData<W, M>      rng;
-    SimStateData<W, M>      sim;
+    GeoStateData<W, M>       geometry;
+    MaterialStateData<W, M>  materials;
+    ParticleStateData<W, M>  particles;
+    PhysicsStateData<W, M>   physics;
+    RngStateData<W, M>       rng;
+    SimStateData<W, M>       sim;
+    TrackInitStateData<W, M> init;
 
     //! Number of state elements
     CELER_FUNCTION size_type size() const { return particles.size(); }
@@ -100,7 +104,8 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && particles && physics && rng && sim;
+        return geometry && materials && particles && physics && rng && sim
+               && init;
     }
 
     //! Assign from another set of data
@@ -114,6 +119,7 @@ struct CoreStateData
         physics   = other.physics;
         rng       = other.rng;
         sim       = other.sim;
+        init      = other.init;
         return *this;
     }
 };
@@ -162,6 +168,7 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->physics, params.physics, size);
     resize(&state->rng, params.rng, size);
     resize(&state->sim, size);
+    resize(&state->init, params.init, size);
 }
 
 //---------------------------------------------------------------------------//

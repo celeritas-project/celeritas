@@ -27,7 +27,7 @@ struct IsEqual
 
 //---------------------------------------------------------------------------//
 //! Invalid index flag
-CELER_CONSTEXPR_FUNCTION size_type flag_id()
+CELER_CONSTEXPR_FUNCTION size_type occupied()
 {
     return numeric_limits<size_type>::max();
 }

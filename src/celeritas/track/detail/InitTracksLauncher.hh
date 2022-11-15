@@ -16,7 +16,6 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "../SimTrackView.hh"
-#include "../TrackInitData.hh"
 #include "Utils.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -41,30 +40,26 @@ class InitTracksLauncher
   public:
     //!@{
     //! Type aliases
-    using ParamsRef         = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef          = CoreStateData<Ownership::reference, M>;
-    using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
+    using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
+    using StateRef  = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION InitTracksLauncher(const CoreRef<M>&        core_data,
-                                      const TrackInitStateRef& init_data,
+    CELER_FUNCTION InitTracksLauncher(const CoreRef<M>& core_data,
                                       size_type /* num_vacancies */)
-        : params_(core_data.params), states_(core_data.states), data_(init_data)
+        : params_(core_data.params), states_(core_data.states)
     {
         CELER_EXPECT(params_);
         CELER_EXPECT(states_);
-        CELER_EXPECT(data_);
     }
 
     // Initialize track states
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef&         params_;
-    const StateRef&          states_;
-    const TrackInitStateRef& data_;
+    const ParamsRef& params_;
+    const StateRef&  states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -78,34 +73,35 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
+    const auto&             data = states_.init;
     const TrackInitializer& init
-        = data_.initializers[from_back(data_.initializers.size(), tid)];
+        = data.initializers[from_back(data.initializers.size(), tid)];
 
     // Thread ID of vacant track where the new track will be initialized
-    ThreadId vac_id(data_.vacancies[from_back(data_.vacancies.size(), tid)]);
+    ThreadId vacancy(data.vacancies[from_back(data.vacancies.size(), tid)]);
 
     // Initialize the simulation state
     {
-        SimTrackView sim(states_.sim, vac_id);
+        SimTrackView sim(states_.sim, vacancy);
         sim = init.sim;
     }
 
     // Initialize the particle physics data
     {
         ParticleTrackView particle(
-            params_.particles, states_.particles, vac_id);
+            params_.particles, states_.particles, vacancy);
         particle = init.particle;
     }
 
     // Initialize the geometry
     {
-        GeoTrackView geo(params_.geometry, states_.geometry, vac_id);
-        if (tid < data_.num_secondaries)
+        GeoTrackView geo(params_.geometry, states_.geometry, vacancy);
+        if (tid < data.num_secondaries)
         {
             // Copy the geometry state from the parent for improved
             // performance
             ThreadId parent_id
-                = data_.parents[from_back(data_.parents.size(), tid)];
+                = data.parents[from_back(data.parents.size(), tid)];
             GeoTrackView parent(params_.geometry, states_.geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent, init.geo.dir};
         }
@@ -123,13 +119,14 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
 
         // Initialize the material
         GeoMaterialView   geo_mat(params_.geo_mats);
-        MaterialTrackView mat(params_.materials, states_.materials, vac_id);
+        MaterialTrackView mat(params_.materials, states_.materials, vacancy);
         mat = {geo_mat.material_id(geo.volume_id())};
     }
 
     // Initialize the physics state
     {
-        PhysicsTrackView phys(params_.physics, states_.physics, {}, {}, vac_id);
+        PhysicsTrackView phys(
+            params_.physics, states_.physics, {}, {}, vacancy);
         phys = {};
     }
 }
