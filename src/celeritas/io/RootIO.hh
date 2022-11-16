@@ -67,6 +67,9 @@ class RootIO
     // Store step data in the TTree
     void operator()(HostCRef<StepStateData> steps);
 
+    // Get tfile_ to allow storing extra data (such as input information)
+    TFile* tfile_get();
+
     // Write current tree data to disk
     void write();
 
@@ -100,6 +103,11 @@ inline RootIO::operator()()
 }
 
 inline RootIO::write()
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline RootIO::tfile_get()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

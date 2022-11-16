@@ -82,10 +82,22 @@ void RootIO::operator()(HostCRef<StepStateData> steps)
 
 //---------------------------------------------------------------------------//
 /*!
+ * View TFile pointer. Allows some extra flexibility, such as writing an input
+ * ttree to it without expanding this class.
+ */
+TFile* RootIO::tfile_get()
+{
+    CELER_EXPECT(tfile_->IsOpen());
+    return tfile_.get();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Write current TTree content to disk. Can be called multiple times.
  */
 void RootIO::write()
 {
+    CELER_EXPECT(tfile_->IsOpen());
     CELER_ENSURE(step_tree_->Write());
 }
 
@@ -95,6 +107,7 @@ void RootIO::write()
  */
 void RootIO::close()
 {
+    CELER_EXPECT(tfile_->IsOpen());
     CELER_ENSURE(tfile_->Write());
     tfile_->Close();
 }
