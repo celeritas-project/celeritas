@@ -35,7 +35,7 @@ __global__ void step_gather_kernel(CoreDeviceRef const              core,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the along-step action on device.
+ * Launch the action on device.
  */
 template<StepPoint P>
 void step_gather_device(CoreRef<MemSpace::device> const&  core,

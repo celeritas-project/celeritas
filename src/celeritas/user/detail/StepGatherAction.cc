@@ -23,7 +23,7 @@ void step_gather_device(CoreRef<MemSpace::device> const&  core,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with next action ID.
+ * Capture construction arguments.
  */
 template<StepPoint P>
 StepGatherAction<P>::StepGatherAction(ActionId        id,
@@ -38,19 +38,19 @@ StepGatherAction<P>::StepGatherAction(ActionId        id,
 
 //---------------------------------------------------------------------------//
 /*!
- * Descriptive name of the action for user output.
+ * Descriptive name of the action.
  */
 template<StepPoint P>
 std::string StepGatherAction<P>::description() const
 {
-    return P == StepPoint::pre    ? "pre-step state collection"
-           : P == StepPoint::post ? "post-step state collection"
+    return P == StepPoint::pre    ? "pre-step state gather"
+           : P == StepPoint::post ? "post-step state gather"
                                   : "";
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the along-step action on host.
+ * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreHostRef const& core) const
@@ -74,7 +74,7 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the along-step action on device.
+ * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
