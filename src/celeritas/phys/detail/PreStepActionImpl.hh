@@ -24,7 +24,6 @@ namespace detail
  *
  * - Reset track properties (todo: move to track initialization?)
  * - Sample the mean free path and calculate the physics step limits.
- * - TODO: add user fixed step limit
  */
 inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
 {

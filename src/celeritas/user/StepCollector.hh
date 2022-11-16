@@ -1,0 +1,73 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file celeritas/user/StepCollector.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <memory>
+
+#include "StepData.hh"
+#include "StepInterface.hh"
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+class ActionRegistry;
+
+namespace detail
+{
+template<StepPoint P>
+class StepGatherAction;
+struct StepStorage;
+} // namespace detail
+
+//---------------------------------------------------------------------------//
+/*!
+ * Gather and transfer track states at each step.
+ *
+ * This defines the interface to set up and manage a generic class for
+ * interfacing with the GPU track states at the beginning and/or end of every
+ * step.
+ *
+ * \todo It probably makes sense to integrate the "selection" into the step
+ * interface, since that's what actually processes the output data. We also
+ * should be able to add a vector callbacks per StepCollector and then make the
+ * selection the "union" of those.
+ */
+class StepCollector
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPStepInterface = std::shared_ptr<StepInterface>;
+    //!@}
+
+  public:
+    // Construct with options and register pre/post-step actions
+    StepCollector(const StepSelection& selection,
+                  SPStepInterface      callback,
+                  ActionRegistry*      action_registry);
+
+    // Default destructor and move
+    ~StepCollector();
+    StepCollector(StepCollector&&);
+    StepCollector& operator=(StepCollector&&);
+
+    // See which data are being gathered
+    const StepSelection& selection() const;
+
+  private:
+    template<StepPoint P>
+    using SPStepGatherAction = std::shared_ptr<detail::StepGatherAction<P>>;
+    using SPStepStorage      = std::shared_ptr<detail::StepStorage>;
+
+    SPStepStorage                       storage_;
+    SPStepGatherAction<StepPoint::pre>  pre_action_;
+    SPStepGatherAction<StepPoint::post> post_action_;
+};
+
+//---------------------------------------------------------------------------//
+} // namespace celeritas

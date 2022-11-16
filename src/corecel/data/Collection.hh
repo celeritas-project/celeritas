@@ -222,7 +222,7 @@ class Collection
     //!@{
     //! Default assignment
     Collection& operator=(const Collection& other) = default;
-    Collection& operator=(Collection&& other)      = default;
+    Collection& operator=(Collection&& other) = default;
     //!@}
 
     // Assign from another collection
@@ -280,10 +280,7 @@ class Collection
     {
         return storage_.data;
     }
-    CELER_FORCEINLINE_FUNCTION StorageT& storage()
-    {
-        return storage_.data;
-    }
+    CELER_FORCEINLINE_FUNCTION StorageT& storage() { return storage_.data; }
     //@}
 };
 
@@ -302,6 +299,9 @@ using StateCollection = Collection<T, W, M, ThreadId>;
  * space) but can also be used to copy from device to host. The \c
  * detail::CollectionAssigner class statically checks for allowable
  * transformations and memory moves.
+ *
+ * TODO: add optimization to do an in-place copy (rather than a new allocation)
+ * if the host and destination are the same size.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>

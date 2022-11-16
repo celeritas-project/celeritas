@@ -15,7 +15,6 @@
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -68,7 +67,7 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     //! ID of the model
     ActionId action_id() const final { return id_; }
 
-    //! Short name for the interaction kernel
+    //! Short name for the along-step kernel
     std::string label() const final { return "along-step-general-linear"; }
 
     //! Name of the model, for user interaction

@@ -88,7 +88,8 @@ enum class TrackStatus : std::int_least8_t
 {
     killed   = -1, //!< Killed inside the step, awaiting replacement
     inactive = 0,  //!< No tracking in this thread slot
-    alive    = 1   //!< Track is active and alive
+    // TODO: add 'initial' enum here, change "alive" to helper function
+    alive = 1 //!< Track is active and alive
 };
 
 //---------------------------------------------------------------------------//

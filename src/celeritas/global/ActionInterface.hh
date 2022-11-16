@@ -68,11 +68,11 @@ class ExplicitActionInterface : public virtual ActionInterface
 {
   public:
     //@{
-    //! Type aliases
+    //! \name Type aliases
     using CoreHostRef   = CoreRef<MemSpace::host>;
     using CoreDeviceRef = CoreRef<MemSpace::device>;
     //@}
-    //
+
   public:
     //! Execute the action with host data
     virtual void execute(CoreHostRef const&) const = 0;

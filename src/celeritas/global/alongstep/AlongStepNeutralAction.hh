@@ -8,9 +8,8 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
 
 namespace celeritas
 {
@@ -36,7 +35,7 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
     //! ID of the model
     ActionId action_id() const final { return id_; }
 
-    //! Short name for the interaction kernel
+    //! Short name for the along-step kernel
     std::string label() const final { return "along-step-neutral"; }
 
     //! Name of the model, for user interaction
@@ -51,17 +50,6 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
   private:
     ActionId id_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-#if !CELER_USE_DEVICE
-inline void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
