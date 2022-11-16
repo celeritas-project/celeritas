@@ -29,20 +29,6 @@ RootIO::RootIO(const char* filename, SPParticleParams particles)
 
 //---------------------------------------------------------------------------//
 /*!
- * Destruct by closing ROOT file.
- */
-RootIO::~RootIO()
-{
-    if (tfile_->IsOpen())
-    {
-        // this->close() not invoked by user
-        tfile_->Write();
-        tfile_->Close();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Store step data in the TTree. This function only fills the tree, and thus
  * the user *must* invoke \c write() when appropriate to flush in-memory data
  * to disk.

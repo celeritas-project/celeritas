@@ -21,6 +21,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
@@ -156,7 +157,8 @@ Transporter<M>::Transporter(TransporterInput inp)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-TransporterResult Transporter<M>::operator()(const VecPrimary& primaries)
+TransporterResult
+Transporter<M>::operator()(const VecPrimary& primaries, SPRootIO root_io)
 {
     Stopwatch get_transport_time;
 
@@ -190,6 +192,7 @@ TransporterResult Transporter<M>::operator()(const VecPrimary& primaries)
 
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
+
     append_track_counts(track_counts);
     result.time.steps.push_back(get_step_time());
 
@@ -240,6 +243,7 @@ TransporterResult Transporter<M>::operator()(const VecPrimary& primaries)
         }
     }
     result.time.total = get_transport_time();
+
     return result;
 }
 

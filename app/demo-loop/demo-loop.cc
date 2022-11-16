@@ -33,6 +33,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootIO.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
@@ -117,7 +118,14 @@ void run(std::istream* is, OutputManager* output)
             event = read_event();
         }
     }
-    result = (*transport_ptr)(primaries);
+
+    auto sp_rootio = std::make_shared<RootIO>(
+        "demoloop-steps.root", transport_ptr->params().particle());
+
+    result = (*transport_ptr)(primaries, sp_rootio);
+
+    // Store input on root file
+    to_root(sp_rootio, run_args);
 
     result.time.setup = setup_time;
 

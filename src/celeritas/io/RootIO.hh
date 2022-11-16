@@ -30,7 +30,7 @@ class RootIO
   public:
     //!@{
     //! \name type aliases
-    using SPParticleParams = std::shared_ptr<ParticleParams>;
+    using SPParticleParams = std::shared_ptr<const ParticleParams>;
     //!@}
 
     //// ROOT DATA ////
@@ -61,9 +61,6 @@ class RootIO
     // Construct with ROOT output filename
     explicit RootIO(const char* filename, SPParticleParams particles);
 
-    // Close TFile at destruction
-    ~RootIO();
-
     // Store step data in the TTree
     void store(HostCRef<StepStateData> steps);
 
@@ -87,22 +84,17 @@ class RootIO
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootIO::RootIO(const char* filename)
+inline RootIO::RootIO(const char* filename, SPParticleParams particles)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline RootIO::~RootIO()
+inline RootIO::store(HostCRef<StepStateData> steps)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline RootIO::operator()()
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-inline RootIO::write()
+inline void RootIO::set_auto_flush(long num_entries)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

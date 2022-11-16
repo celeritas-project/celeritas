@@ -18,6 +18,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/io/RootIO.hh"
 
 namespace celeritas
 {
@@ -82,9 +83,9 @@ struct TransporterTiming
     using VecReal    = std::vector<real_type>;
     using MapStrReal = std::unordered_map<std::string, real_type>;
 
-    VecReal   steps;   //!< Real time per step
-    real_type total{}; //!< Total simulation time
-    real_type setup{}; //!< One-time initialization cost
+    VecReal    steps;     //!< Real time per step
+    real_type  total{};   //!< Total simulation time
+    real_type  setup{};   //!< One-time initialization cost
     MapStrReal actions{}; //!< Accumulated action timing
 };
 
@@ -143,13 +144,16 @@ class TransporterBase
     using VecPrimary = std::vector<celeritas::Primary>;
     using CoreParams = celeritas::CoreParams;
     using ActionId   = celeritas::ActionId;
+    using SPRootIO   = std::shared_ptr<celeritas::RootIO>;
     //!@}
 
   public:
     virtual ~TransporterBase() = 0;
 
     // Transport the input primaries and all secondaries produced
-    virtual TransporterResult operator()(const VecPrimary& primaries) = 0;
+    virtual TransporterResult
+    operator()(const VecPrimary& primaries, SPRootIO root_io)
+        = 0;
 
     //! Access input parameters (TODO hacky)
     const CoreParams& params() const { return *input_.params; }
@@ -171,7 +175,8 @@ class Transporter final : public TransporterBase
     explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
-    TransporterResult operator()(const VecPrimary& primaries) final;
+    TransporterResult
+    operator()(const VecPrimary& primaries, SPRootIO root_io) final;
 
   private:
     std::shared_ptr<DiagnosticStore> diagnostics_;

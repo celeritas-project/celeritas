@@ -10,6 +10,10 @@
 #include <algorithm>
 #include <set>
 #include <string>
+// ROOT
+#include <TBranch.h>
+#include <TFile.h>
+#include <TTree.h>
 
 #include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
@@ -181,6 +185,39 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
         j.at("geant_options").get_to(v.geant_options);
     }
 }
+
+void to_root(std::shared_ptr<celeritas::RootIO> sp_root_io, LDemoArgs& args)
+{
+    CELER_ASSERT(args);
+
+    auto tfile = sp_root_io->tfile_get();
+
+    std::unique_ptr<TTree> tree_input
+        = std::make_unique<TTree>("input", "input");
+
+    // Problem definition
+    tree_input->Branch("geometry_filename", &args.geometry_filename);
+    tree_input->Branch("physics_filename", &args.physics_filename);
+    tree_input->Branch("hepmc3_filename", &args.hepmc3_filename);
+
+    // Control
+    tree_input->Branch("seed", &args.seed);
+    tree_input->Branch("max_num_tracks", &args.max_num_tracks);
+    tree_input->Branch("max_steps", &args.max_steps);
+    tree_input->Branch("initializer_capacity", &args.initializer_capacity);
+    tree_input->Branch("secondary_stack_factor", &args.secondary_stack_factor);
+    tree_input->Branch("enable_diagnostics", &args.enable_diagnostics);
+    tree_input->Branch("use_device", &args.use_device);
+    tree_input->Branch("sync", &args.sync);
+
+    // Options for physics processes and models
+    tree_input->Branch("combined_brem", &args.brem_combined);
+
+    tfile->cd();
+    tree_input->Fill();
+    tree_input->Write();
+}
+
 //!@}
 
 //---------------------------------------------------------------------------//
