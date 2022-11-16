@@ -16,12 +16,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<StepPoint P>
-void step_gather_device(CoreRef<MemSpace::device> const&  core,
-                        DeviceCRef<StepParamsData> const& step_params,
-                        DeviceRef<StepStateData> const&   step_state);
-
-//---------------------------------------------------------------------------//
 /*!
  * Capture construction arguments.
  */
@@ -72,25 +66,17 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
     }
 }
 
+#if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
+void StepGatherAction<P>::execute(CoreDeviceRef const&) const
 {
-#if CELER_USE_DEVICE
-    auto& step_state = this->get_state(core);
-    step_gather_device<P>(core, storage_->params.device_ref(), step_state);
-    if (P == StepPoint::post)
-    {
-        (*callback_)(step_state);
-    }
-#else
-    (void)sizeof(core);
     CELER_NOT_CONFIGURED("CUDA OR HIP");
-#endif
 }
+#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
