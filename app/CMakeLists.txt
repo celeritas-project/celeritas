@@ -256,6 +256,7 @@ if(CELERITAS_BUILD_DEMOS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
     set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
+    set(_hepmc3_inp_celerino "${CMAKE_CURRENT_SOURCE_DIR}/data/celerino.hepmc3")
     set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
     if(CELERITAS_USE_ROOT)
       set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
@@ -264,6 +265,10 @@ if(CELERITAS_BUILD_DEMOS)
       COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
+    add_test(NAME "app/demo-loop-celerino"
+      COMMAND "${_python_exe}"
+      "${_driver}" "${_gdml_inp}" "${_hepmc3_inp_celerino}"
+    )     
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
@@ -272,10 +277,10 @@ if(CELERITAS_BUILD_DEMOS)
     if(NOT CELERITAS_USE_VecGeom)
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
     endif()
-    set_tests_properties("app/demo-loop" PROPERTIES
+    set_tests_properties("app/demo-loop" "app/demo-loop-celerino" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
       RESOURCE_LOCK gpu
-      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp};${_hepmc3_inp_celerino}"
       LABELS "app;nomemcheck;gpu"
     )
 
@@ -287,7 +292,7 @@ if(CELERITAS_BUILD_DEMOS)
        OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python
        )
-      set_tests_properties("app/demo-loop" PROPERTIES
+      set_tests_properties("app/demo-loop" "app/demo-loop-celerino" PROPERTIES
         DISABLED true
       )
     endif()
@@ -296,6 +301,10 @@ if(CELERITAS_BUILD_DEMOS)
       COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}"
     )
+    add_test(NAME "app/demo-loop-cpu-celerino"
+      COMMAND "${_python_exe}"
+      "${_driver}" "${_gdml_inp}" "${_hepmc3_inp_celerino}"
+    )     
     set(_env
       "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-loop>"
       "${_geant_exporter_env}"
@@ -307,15 +316,15 @@ if(CELERITAS_BUILD_DEMOS)
     if(NOT CELERITAS_USE_VecGeom)
       list(APPEND _env "CELER_DISABLE_VECGEOM=1")
     endif()
-    set_tests_properties("app/demo-loop-cpu" PROPERTIES
+    set_tests_properties("app/demo-loop-cpu" "app/demo-loop-cpu-celerino" PROPERTIES
       ENVIRONMENT "${_env};${_geant_test_env}"
-      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+      REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp};${_hepmc3_inp_celerino}"
       LABELS "app;nomemcheck"
       ${_processors}
     )
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python)
-      set_tests_properties("app/demo-loop-cpu" PROPERTIES
+      set_tests_properties("app/demo-loop-cpu" "app/demo-loop-cpu-celerino" PROPERTIES
         DISABLED true
       )
     endif()
