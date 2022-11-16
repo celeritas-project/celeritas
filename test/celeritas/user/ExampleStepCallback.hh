@@ -37,11 +37,14 @@ class ExampleStepCallback final : public StepInterface
     };
 
   public:
+    // Return flags corresponding to the "Step" above
+    StepSelection selection() const final;
+
     // Tally host data for a step iteration
-    void operator()(StateHostRef const&) final;
+    void execute(StateHostRef const&) final;
 
     // Tally device data for a step iteration
-    void operator()(StateDeviceRef const&) final
+    void execute(StateDeviceRef const&) final
     {
         CELER_NOT_IMPLEMENTED("device example");
     }

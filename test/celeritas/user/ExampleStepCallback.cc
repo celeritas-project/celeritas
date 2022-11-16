@@ -28,7 +28,22 @@ void copy_array(double dst[3], const Real3& src)
 } // namespace
 
 //---------------------------------------------------------------------------//
-void ExampleStepCallback::operator()(StateHostRef const& data)
+StepSelection ExampleStepCallback::selection() const
+{
+    StepSelection result;
+    result.event            = true;
+    result.track_step_count = true;
+
+    auto& pre  = result.points[StepPoint::pre];
+    pre.volume = true;
+    pre.pos    = true;
+    pre.dir    = true;
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+void ExampleStepCallback::execute(StateHostRef const& data)
 {
     for (auto tid : range(ThreadId{data.size()}))
     {

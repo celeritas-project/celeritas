@@ -37,15 +37,14 @@ class StepGatherAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPStepInterface = std::shared_ptr<StepInterface>;
     using SPStepStorage   = std::shared_ptr<StepStorage>;
+    using SPStepInterface = std::shared_ptr<StepInterface>;
+    using VecInterface    = std::vector<SPStepInterface>;
     //!@}
 
   public:
     // Construct with action ID and storage
-    StepGatherAction(ActionId        id,
-                     SPStepStorage   storage,
-                     SPStepInterface callback);
+    StepGatherAction(ActionId id, SPStepStorage storage, VecInterface callbacks);
 
     // Launch kernel with host data
     void execute(CoreHostRef const&) const final;
@@ -78,9 +77,9 @@ class StepGatherAction final : public ExplicitActionInterface
   private:
     //// DATA ////
 
-    ActionId        id_;
-    SPStepInterface callback_;
-    SPStepStorage   storage_;
+    ActionId      id_;
+    SPStepStorage storage_;
+    VecInterface  callbacks_;
 
     //// HELPER FUNCTIONS ////
 

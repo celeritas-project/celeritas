@@ -27,11 +27,16 @@ class StepInterface
     //@}
 
   public:
+    //! Selection of data required for this interface
+    virtual StepSelection selection() const = 0;
+
     //! Process CPU-generated hit data
-    virtual void operator()(StateHostRef const&) = 0;
+    virtual void execute(StateHostRef const&) = 0;
 
     //! Process device-generated hit data
-    virtual void operator()(StateDeviceRef const&) = 0;
+    virtual void execute(StateDeviceRef const&) = 0;
+
+    // TODO: hook for end-of-event and/or end-of-run
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
