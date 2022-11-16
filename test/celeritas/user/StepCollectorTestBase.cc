@@ -31,8 +31,10 @@ void StepCollectorTestBase::SetUp()
 {
     example_steps_ = std::make_shared<ExampleStepCallback>();
 
-    collector_ = std::make_shared<StepCollector>(
-        StepSelection{}, example_steps_, this->action_reg().get());
+    StepCollector::VecInterface interfaces = {example_steps_};
+
+    collector_ = std::make_shared<StepCollector>(std::move(interfaces),
+                                                 this->action_reg().get());
 }
 
 //---------------------------------------------------------------------------//

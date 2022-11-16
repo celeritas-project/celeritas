@@ -55,7 +55,14 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     const celeritas::CoreTrackView track(
         this->core_data.params, this->core_data.states, thread);
 
-    const NativeRef<StepPointStateData>& step_point = step_state.points[P];
+#define SGL_SET_IF_SELECTED(ATTR, VALUE)           \
+    do                                             \
+    {                                              \
+        if (this->step_params.selection.ATTR)      \
+        {                                          \
+            this->step_state.ATTR[thread] = VALUE; \
+        }                                          \
+    } while (0)
 
     {
         auto sim      = track.make_sim_view();
@@ -64,7 +71,8 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            step_state.track[thread] = inactive ? TrackId{} : sim.track_id();
+            this->step_state.track[thread] = inactive ? TrackId{}
+                                                      : sim.track_id();
         }
 
         if (inactive)
@@ -73,42 +81,39 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
             return;
         }
 
-        if (step_params.selection.sim)
+        SGL_SET_IF_SELECTED(points[P].time, sim.time());
+        if (P == StepPoint::post)
         {
-            if (P == StepPoint::post)
-            {
-                const auto& limit                   = sim.step_limit();
-                step_state.event[thread]            = sim.event_id();
-                step_state.track_step_count[thread] = sim.num_steps();
-                step_state.action[thread]           = limit.action;
-                step_state.step_length[thread]      = limit.step;
-            }
-            step_point.time[thread] = sim.time();
+            SGL_SET_IF_SELECTED(event, sim.event_id());
+            SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
+
+            const auto& limit = sim.step_limit();
+            SGL_SET_IF_SELECTED(action, limit.action);
+            SGL_SET_IF_SELECTED(step_length, limit.step);
         }
     }
 
-    if (step_params.selection.geo)
     {
         auto geo = track.make_geo_view();
 
-        step_point.pos[thread]    = geo.pos();
-        step_point.dir[thread]    = geo.dir();
-        step_point.volume[thread] = geo.is_outside() ? VolumeId{}
-                                                     : geo.volume_id();
+        SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
+        SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
+        SGL_SET_IF_SELECTED(points[P].volume,
+                            geo.is_outside() ? VolumeId{} : geo.volume_id());
     }
 
-    if (step_params.selection.phys)
     {
         auto par = track.make_particle_view();
 
         if (P == StepPoint::post)
         {
-            auto pstep                  = track.make_physics_step_view();
-            step_state.particle[thread] = par.particle_id();
-            step_state.energy_deposition[thread] = pstep.energy_deposition();
+            auto pstep = track.make_physics_step_view();
+            SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());
+            SGL_SET_IF_SELECTED(particle, par.particle_id());
         }
-        step_point.energy[thread] = par.energy();
+        SGL_SET_IF_SELECTED(points[P].energy, par.energy());
     }
+#undef SGL_SET_IF_SELECTED
 }
 
 //---------------------------------------------------------------------------//
