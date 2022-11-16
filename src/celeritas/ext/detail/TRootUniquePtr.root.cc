@@ -3,38 +3,31 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TFileUniquePtr.hh
+//! \file celeritas/ext/detail/TRootUniquePtr.root.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "TRootUniquePtr.hh"
 
-#include <memory>
-
-#include "celeritas_config.h"
-#include "corecel/Assert.hh"
-
-// Forward-declare ROOT
-class TFile;
+#include <TBranch.h>
+#include <TFile.h>
+#include <TTree.h>
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Helper to prevent ROOT from propagating to downstream code.
-struct TFileDeleter
+template<class T>
+void TRootDeleter<T>::operator()(T* ptr) const
 {
-    void operator()(TFile*) const;
-};
-
-using TFileUniquePtr = std::unique_ptr<TFile, TFileDeleter>;
+    delete ptr;
+}
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_ROOT
-inline void TFileDeleter::operator()(TFile*) const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-#endif
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+template struct TRootDeleter<TFile>;
+template struct TRootDeleter<TTree>;
+template struct TRootDeleter<TBranch>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

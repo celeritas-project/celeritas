@@ -81,6 +81,12 @@ list(APPEND SOURCES
   user/StepCollector.cc
 )
 
+if(CELERITAS_USE_ROOT)
+  list(APPEND SOURCES 
+    io/RootIO.cc
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
@@ -169,7 +175,7 @@ if(CELERITAS_USE_ROOT)
     celeritas_add_object_library(${objlib}
       ext/RootExporter.cc
       ext/RootImporter.cc
-      ext/detail/TFileUniquePtr.root.cc
+      ext/detail/TRootUniquePtr.root.cc
       "${CMAKE_CURRENT_BINARY_DIR}/${root_tgt}.cxx"
     )
     target_link_libraries(${objlib}
