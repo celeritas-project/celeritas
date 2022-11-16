@@ -47,7 +47,7 @@ RootIO::~RootIO()
  * the user *must* invoke \c write() when appropriate to flush in-memory data
  * to disk.
  */
-void RootIO::operator()(HostCRef<StepStateData> steps)
+void RootIO::store(HostCRef<StepStateData> steps)
 {
     CELER_EXPECT(steps);
     tstep_ = TStepData();
@@ -63,7 +63,7 @@ void RootIO::operator()(HostCRef<StepStateData> steps)
         tstep_.length            = steps.step_length[tid];
         tstep_.track_step_count  = steps.track_step_count[tid];
 
-        // Loop for pre- and post-step
+        // Loop for storing pre- and post-step
         for (auto i : range(StepPoint::size_))
         {
             tstep_.points[(int)i].volume_id = steps.points[i].volume[tid].get();
@@ -82,6 +82,20 @@ void RootIO::operator()(HostCRef<StepStateData> steps)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the number of entries (i.e. number of steps) stored in memory before
+ * ROOT flushes the data to disk. Default is ~32MB of compressed data.
+ *
+ * See ROOT TTree Class reference for further details.
+ */
+void RootIO::set_auto_flush(long num_entries)
+{
+    CELER_EXPECT(tfile_->IsOpen());
+    CELER_EXPECT(step_tree_);
+    step_tree_->SetAutoFlush(num_entries);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * View TFile pointer. Allows some extra flexibility, such as writing an input
  * ttree to it without expanding this class.
  */
@@ -89,16 +103,6 @@ TFile* RootIO::tfile_get()
 {
     CELER_EXPECT(tfile_->IsOpen());
     return tfile_.get();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write current TTree content to disk. Can be called multiple times.
- */
-void RootIO::write()
-{
-    CELER_EXPECT(tfile_->IsOpen());
-    CELER_ENSURE(step_tree_->Write());
 }
 
 //---------------------------------------------------------------------------//

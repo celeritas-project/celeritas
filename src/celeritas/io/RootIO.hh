@@ -65,13 +65,13 @@ class RootIO
     ~RootIO();
 
     // Store step data in the TTree
-    void operator()(HostCRef<StepStateData> steps);
+    void store(HostCRef<StepStateData> steps);
+
+    // Set number of entries stored in memory before being flushed to disk
+    void set_auto_flush(long num_entries);
 
     // Get tfile_ to allow storing extra data (such as input information)
     TFile* tfile_get();
-
-    // Write current tree data to disk
-    void write();
 
     // Close root file (can automatically be done at destruction)
     void close();
