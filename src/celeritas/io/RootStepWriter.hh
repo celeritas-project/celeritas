@@ -24,24 +24,24 @@ class RootStepWriter : public StepInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPRootIOManager  = std::shared_ptr<RootFileManager>;
-    using SPParticleParams = std::shared_ptr<const ParticleParams>;
+    using SPRootFileManager = std::shared_ptr<RootFileManager>;
+    using SPParticleParams  = std::shared_ptr<const ParticleParams>;
     template<class T>
     using TRootUP = detail::TRootUniquePtr<T>;
     //!@}
 
-    // Construct with RootFileManager
-    explicit RootStepWriter(SPRootIOManager  root_manager,
-                            SPParticleParams particle_params);
+    // Construct with RootFileManager and ParticleParams
+    explicit RootStepWriter(SPRootFileManager root_manager,
+                            SPParticleParams  particle_params);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
 
     // Process step data and fill step tree
-    void operator()(StateHostRef const& steps) final;
+    void execute(StateHostRef const& steps) final;
 
   private:
-    SPRootIOManager    root_manager_;
+    SPRootFileManager  root_manager_;
     SPParticleParams   particles_;
     TRootUP<TTree>     tstep_tree_;
     TRootUP<TBranch>   tstep_branch_;

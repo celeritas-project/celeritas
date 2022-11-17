@@ -14,10 +14,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*
- * TBD
+ * Construct writer with RootFileManager and ParticleParams. The latter needed
+ * to convert particle id to pdg while writing step data.
  */
-RootStepWriter::RootStepWriter(SPRootIOManager  io_manager,
-                               SPParticleParams particle_params)
+RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
+                               SPParticleParams  particle_params)
     : root_manager_(io_manager), particles_(particle_params)
 {
     CELER_EXPECT(root_manager_);
@@ -43,7 +44,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
 /*
  * Collect step data from each track on each thread id.
  */
-void RootStepWriter::operator()(StateHostRef const& steps)
+void RootStepWriter::execute(StateHostRef const& steps)
 {
     CELER_EXPECT(steps);
     tstep_ = mctruth::TStepData();

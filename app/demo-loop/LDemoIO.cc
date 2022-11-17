@@ -90,7 +90,7 @@ auto get_all_process_classes(const std::vector<ImportProcess>& processes)
 
 //---------------------------------------------------------------------------//
 //!@{
-//! I/O routines for JSON
+//! I/O routines for JSON and ROOT
 void to_json(nlohmann::json& j, const LDemoArgs& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
@@ -130,6 +130,10 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["hepmc3_filename"] = v.hepmc3_filename;
     }
+    if (!v.mctruth_filename.empty())
+    {
+        j["mctruth_filename"] = v.mctruth_filename;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
@@ -139,6 +143,10 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     if (j.contains("hepmc3_filename"))
     {
         j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    }
+    if (j.contains("mctruth_filename"))
+    {
+        j.at("mctruth_filename").get_to(v.mctruth_filename);
     }
     if (j.contains("primary_gen_options"))
     {
@@ -195,7 +203,7 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
     // So far RootFileManager has only a single TFile instance and as such ROOT
     // knows that this new TTree has to be attached to this single TFile. If we
     // expand it to a RootFileManager::tfile_[tid] we'd need to specify the
-    // correct TFile* by invoking ("name", "title", TFile*).
+    // correct TFile* by invoking TTree("name", "title", TFile*).
     std::unique_ptr<TTree> tree_input
         = std::make_unique<TTree>("input", "input");
 

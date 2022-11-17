@@ -120,7 +120,7 @@ void run(std::istream* is, OutputManager* output)
     }
 
     auto root_manager
-        = std::make_shared<RootFileManager>("demoloop-steps.root");
+        = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
 
     result = (*transport_ptr)(primaries);
 

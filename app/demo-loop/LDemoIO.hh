@@ -38,6 +38,7 @@ struct LDemoArgs
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;   //!< Path to HepMC3 event data
+    std::string mctruth_filename;  //!< Path to ROOT MCTruth event data
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;

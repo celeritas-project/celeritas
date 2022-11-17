@@ -14,8 +14,8 @@ namespace mctruth
 {
 //---------------------------------------------------------------------------//
 /*!
- * MCtruth data structures. Initial implementation is to keep them as simple as
- * possible and do not rely on anything other than structs made of primitive
+ * MC truth data structures. Initial implementation keeps them as simple as
+ * possible and does not rely on anything other than structs made of primitive
  * types (plus std::vector), since these can be read directly by ROOT without
  * the need of dictionaries.
  */
