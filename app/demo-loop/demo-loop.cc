@@ -119,15 +119,20 @@ void run(std::istream* is, OutputManager* output)
         }
     }
 
-    auto root_manager
-        = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
+    std::shared_ptr<RootFileManager> root_manager;
+    if (!run_args.mctruth_filename.empty())
+    {
+        root_manager = std::make_shared<RootFileManager>(
+            run_args.mctruth_filename.c_str());
+        to_root(root_manager, run_args);
+    }
 
     result = (*transport_ptr)(primaries);
 
-    // Store input on root file
-    to_root(root_manager, run_args);
-
-    root_manager->close();
+    if (root_manager)
+    {
+        root_manager->close();
+    }
 
     result.time.setup = setup_time;
 
