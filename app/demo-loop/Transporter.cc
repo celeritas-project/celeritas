@@ -157,8 +157,7 @@ Transporter<M>::Transporter(TransporterInput inp)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-TransporterResult
-Transporter<M>::operator()(const VecPrimary& primaries, SPRootIO root_io)
+TransporterResult Transporter<M>::operator()(const VecPrimary& primaries)
 {
     Stopwatch get_transport_time;
 

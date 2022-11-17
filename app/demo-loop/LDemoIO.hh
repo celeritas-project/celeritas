@@ -15,7 +15,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/io/RootIO.hh"
+#include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "Transporter.hh"
@@ -91,7 +91,8 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
 
-void to_root(std::shared_ptr<celeritas::RootIO> sp_root_io, LDemoArgs& args);
+void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
+             LDemoArgs&                                  args);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TRootUniquePtr.hh
+//! \file celeritas/io/RootFileManager.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,36 +11,54 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-
-// Forward-declare ROOT; Expand as needed
-class TFile;
-class TTree;
-class TBranch;
+#include "celeritas/ext/detail/TRootUniquePtr.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Helper to prevent ROOT from propagating to downstream code.
-template<class T>
-struct TRootDeleter
+/*!
+ * ROOT TFile manager.
+ */
+class RootFileManager
 {
-    void operator()(T*) const;
-};
+  public:
+    //!@{
+    //! \name Type aliases
+    using UPTFile = detail::TRootUniquePtr<TFile>;
+    //!@}
 
-template<class T>
-using TRootUniquePtr = std::unique_ptr<T, TRootDeleter<T>>;
+    // Construct with filename
+    explicit RootFileManager(const char* filename);
+
+    // Write and close TFile (if still open) at destruction time
+    ~RootFileManager();
+
+    // Write and close TFile before destruction
+    void close();
+
+    // Verify if tfile is open
+    explicit operator bool() const;
+
+  private:
+    UPTFile tfile_;
+};
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-template<class T>
-inline void TRootDeleter<T>::operator()(T*) const
+RootFileManager::RootFileManager(const char* filename)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+RootFileManager::~RootFileManager()
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+RootFileManager::operator bool() const
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif
-
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

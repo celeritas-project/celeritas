@@ -186,12 +186,16 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     }
 }
 
-void to_root(std::shared_ptr<celeritas::RootIO> sp_root_io, LDemoArgs& args)
+void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
+             LDemoArgs&                                  args)
 {
     CELER_ASSERT(args);
+    CELER_ASSERT(root_manager);
 
-    auto tfile = sp_root_io->tfile_get();
-
+    // So far RootFileManager has only a single TFile instance and as such ROOT
+    // knows that this new TTree has to be attached to this single TFile. If we
+    // expand it to a RootFileManager::tfile_[tid] we'd need to specify the
+    // correct TFile* by invoking ("name", "title", TFile*).
     std::unique_ptr<TTree> tree_input
         = std::make_unique<TTree>("input", "input");
 
@@ -213,7 +217,6 @@ void to_root(std::shared_ptr<celeritas::RootIO> sp_root_io, LDemoArgs& args)
     // Options for physics processes and models
     tree_input->Branch("combined_brem", &args.brem_combined);
 
-    tfile->cd();
     tree_input->Fill();
     tree_input->Write();
 }
