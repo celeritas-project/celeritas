@@ -11,6 +11,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -92,8 +94,10 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
 
+#if CELERITAS_USE_ROOT
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args);
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

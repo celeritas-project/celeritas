@@ -119,6 +119,7 @@ void run(std::istream* is, OutputManager* output)
         }
     }
 
+#if CELERITAS_USE_ROOT
     std::shared_ptr<RootFileManager> root_manager;
     if (!run_args.mctruth_filename.empty())
     {
@@ -126,13 +127,17 @@ void run(std::istream* is, OutputManager* output)
             run_args.mctruth_filename.c_str());
         to_root(root_manager, run_args);
     }
+#endif
 
     result = (*transport_ptr)(primaries);
+
+#if CELERITAS_USE_ROOT
 
     if (root_manager)
     {
         root_manager->close();
     }
+#endif
 
     result.time.setup = setup_time;
 

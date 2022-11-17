@@ -232,8 +232,6 @@ if(CELERITAS_BUILD_DEMOS)
     Celeritas::celeritas
     nlohmann_json::nlohmann_json
     Celeritas::DeviceToolkit
-    ROOT::Core
-    ROOT::Tree
   )
   if(CELERITAS_USE_CUDA AND CELERITAS_USE_VecGeom)
     list(APPEND _demo_loop_libs VecGeom::vecgeom)
@@ -241,6 +239,10 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_USE_OpenMP)
     list(APPEND _demo_loop_libs OpenMP::OpenMP_CXX)
   endif()
+  if(CELERITAS_USE_ROOT)
+    list(APPEND _demo_loop_libs ROOT::Core ROOT::Tree)
+  endif()
+
 
   # Add the executable
   add_executable(demo-loop ${_demo_loop_src})

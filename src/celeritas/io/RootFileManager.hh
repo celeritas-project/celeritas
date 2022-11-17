@@ -44,21 +44,4 @@ class RootFileManager
 };
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_ROOT
-RootFileManager::RootFileManager(const char* filename)
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-RootFileManager::~RootFileManager()
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-
-RootFileManager::operator bool() const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
-#endif
-//---------------------------------------------------------------------------//
 } // namespace celeritas

@@ -11,9 +11,6 @@
 #include <set>
 #include <string>
 
-#include "celeritas_config.h"
-#include "corecel/Assert.hh"
-
 #if CELERITAS_USE_ROOT
 #    include <TBranch.h>
 #    include <TFile.h>
@@ -199,12 +196,10 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     }
 }
 
+#if CELERITAS_USE_ROOT
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args)
 {
-#if !CELERITAS_USE_ROOT
-    CELER_NOT_CONFIGURED("ROOT");
-#else
     CELER_ASSERT(args);
     CELER_ASSERT(root_manager);
 
@@ -235,8 +230,8 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
 
     tree_input->Fill();
     tree_input->Write();
-#endif
 }
+#endif
 
 //!@}
 
