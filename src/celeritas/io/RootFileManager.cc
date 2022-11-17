@@ -41,7 +41,7 @@ void RootFileManager::close()
 {
     CELER_EXPECT(tfile_->IsOpen());
     const auto write_status = tfile_->Write();
-    CELER_ENSURE(write_status);
+    CELER_ENSURE(!write_status);
     tfile_->Close();
 }
 

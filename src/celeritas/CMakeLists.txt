@@ -83,7 +83,8 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_ROOT)
   list(APPEND SOURCES 
-    io/RootIO.cc
+    io/RootFileManager.cc
+    io/RootStepWriter.cc
   )
 endif()
 
