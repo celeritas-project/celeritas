@@ -170,6 +170,7 @@ if(CELERITAS_USE_ROOT)
       ext/RootExporter.cc
       ext/RootImporter.cc
       ext/detail/TFileUniquePtr.root.cc
+      ext/detail/ScopedRootErrorHandler.cc
       "${CMAKE_CURRENT_BINARY_DIR}/${root_tgt}.cxx"
     )
     target_link_libraries(${objlib}

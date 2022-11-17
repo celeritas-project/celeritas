@@ -35,8 +35,10 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
     {
         // Output problem line/file for debugging or high level
-        std::cerr << color_code('x') << prov.file << ':' << prov.line
-                  << color_code(' ') << ": ";
+        std::cerr << color_code('x') << prov.file;
+        if (prov.line)
+            std::cerr << ':' << prov.line;
+        std::cerr << color_code(' ') << ": ";
     }
 
     // clang-format off

@@ -387,7 +387,8 @@ enum class RuntimeErrorType
     validate, //!< Celeritas runtime error
     device,   //!< CUDA or HIP
     mpi,      //!< Coarse-grain parallelism
-    geant     //!< Error from Geant4
+    geant,    //!< Error from Geant4
+    root      //!< Error from ROOT
 };
 
 //! Detailed properties of a debug assertion failure
@@ -469,6 +470,10 @@ class RuntimeError : public std::runtime_error
     static RuntimeError from_geant_exception(const char* origin,
                                              const char* code,
                                              const char* desc);
+
+    // Construct from call to ROOT
+    static RuntimeError from_root_error(const char* origin,
+                                        const char* msg);
 
     // Construct from details
     explicit RuntimeError(RuntimeErrorDetails);
