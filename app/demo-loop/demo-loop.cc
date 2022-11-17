@@ -31,6 +31,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
@@ -134,6 +135,7 @@ void run(std::istream* is, OutputManager* output)
  */
 int main(int argc, char* argv[])
 {
+    detail::ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm
