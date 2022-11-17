@@ -283,6 +283,9 @@ if(CELERITAS_BUILD_DEMOS)
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp};${_hepmc3_inp_celerino}"
       LABELS "app;nomemcheck;gpu"
     )
+    set_property(TEST "app/demo-loop-celerino" APPEND PROPERTY
+      ENVIRONMENT "CELER_USE_CELERINO=1"
+    )
 
     # Disable test when prereqs are not available
     # Note that this test has been known to fail for CUDA architecture 3.5
@@ -321,6 +324,9 @@ if(CELERITAS_BUILD_DEMOS)
       REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp};${_hepmc3_inp_celerino}"
       LABELS "app;nomemcheck"
       ${_processors}
+    )
+    set_property(TEST "app/demo-loop-cpu-celerino" APPEND PROPERTY
+      ENVIRONMENT "CELER_USE_CELERINO=1"
     )
     if(NOT CELERITAS_USE_Geant4 OR NOT CELERITAS_USE_HepMC3
        OR NOT CELERITAS_USE_Python)

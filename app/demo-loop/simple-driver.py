@@ -22,6 +22,7 @@ except ValueError:
 # from being initialized at runtime.
 use_device = not strtobool(environ.get('CELER_DISABLE_DEVICE', 'false'))
 use_vecgeom = not strtobool(environ.get('CELER_DISABLE_VECGEOM', 'false'))
+use_celerino = strtobool(environ.get("CELER_USE_CELERINO", 'false'))
 geant_exp_exe = environ.get('CELER_EXPORT_GEANT_EXE', './celer-export-geant')
 
 run_name = (path.splitext(path.basename(geometry_filename))[0]
@@ -35,7 +36,10 @@ geant_options = {
     'msc': "urban" if use_vecgeom else "none",
 }
 
-if geant_exp_exe:
+if use_celerino:
+    # Override physics_filename to use dummy physics
+    physics_filename = "celerino"
+elif geant_exp_exe:
     physics_filename = run_name + ".root"
     print("Running", geant_exp_exe, file=stderr)
     result_ge = subprocess.run(

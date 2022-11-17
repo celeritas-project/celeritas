@@ -202,22 +202,24 @@ TransporterInput load_input(const LDemoArgs& args)
         imported_data = GeantImporter(
             GeantSetup(args.physics_filename, args.geant_options))();
     }
+    else if (args.physics_filename == "celerino")
+    {
+        // Define pseudoparticle and physics for benchmarking/regression tests
+        ImportParticle particle;
+        particle.name      = "celerino";
+        particle.pdg       = 81;
+        particle.mass      = 0.0;
+        particle.charge    = 0.0;
+        particle.lifetime  = -1.0;
+        particle.is_stable = true;
+        imported_data.particles.push_back(particle);
+    }
     else
     {
         CELER_VALIDATE(false,
                        << "invalid physics filename '" << args.physics_filename
                        << "' (expected gdml or root)");
     }
-
-    // Unconditionally add celerino pseudoparticle to imported data
-    ImportParticle particle;
-    particle.name      = "celerino";
-    particle.pdg       = 81;
-    particle.mass      = 0.0;
-    particle.charge    = 0.0;
-    particle.lifetime  = -1.0;
-    particle.is_stable = true;
-    imported_data.particles.push_back(particle);
 
     // Create action manager
     {
