@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
@@ -27,14 +28,78 @@ enum class StepPoint
 
 //---------------------------------------------------------------------------//
 /*!
+ * Which track properties to gather at the beginning and end of a step.
+ *
+ * These should all default to *false* so that this list can be extended
+ * without adversely affecting existing interfaces.
+ */
+struct StepPointSelection
+{
+    bool time{false};
+    bool pos{false};
+    bool dir{false};
+    bool volume{false};
+    bool energy{false};
+
+    //! Whether any selection is requested
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return time || pos || dir || volume || energy;
+    }
+
+    //! Combine the selection with another
+    StepPointSelection& operator|=(const StepPointSelection& other)
+    {
+        this->time |= other.time;
+        this->pos |= other.pos;
+        this->dir |= other.dir;
+        this->volume |= other.volume;
+        this->energy |= other.energy;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Which track properties to gather at every step.
+ *
+ * These should correspond to the data items in StepStateData.
  */
 struct StepSelection
 {
-    bool pre_step{true};
-    bool sim{true};
-    bool geo{true};
-    bool phys{true};
+    EnumArray<StepPoint, StepPointSelection> points;
+
+    bool event{false};
+    bool track_step_count{false};
+    bool action{false};
+    bool step_length{false};
+    bool particle{false};
+    bool energy_deposition{false};
+
+    //! Whether any selection is requested
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return points[StepPoint::pre] || points[StepPoint::post] || event
+               || track_step_count || action || step_length || particle
+               || energy_deposition;
+    }
+
+    //! Combine the selection with another
+    StepSelection& operator|=(const StepSelection& other)
+    {
+        for (auto sp : range(StepPoint::size_))
+        {
+            points[sp] |= other.points[sp];
+        }
+
+        this->event |= other.event;
+        this->track_step_count |= other.track_step_count;
+        this->action |= other.action;
+        this->step_length |= other.step_length;
+        this->particle |= other.particle;
+        this->energy_deposition |= other.energy_deposition;
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -69,8 +134,9 @@ struct StepParamsData
 /*!
  * Gathered state data for beginning/end of step data for tracks in parallel.
  *
- * - Depending on the collection options, some of these state data may be
- * empty.
+ * - Each data member corresponds exactly to a flag in \c StepPointSelection
+ * - If the flag is disabled (no step interfaces require the data), then the
+ *   corresponding member data will be empty.
  * - If a track is outside the volume (which can only happen at the end-of-step
  *   evaluation) the VolumeId will be "false".
  */
@@ -96,7 +162,7 @@ struct StepPointStateData
 
     //// METHODS ////
 
-    //! Always true since we all of the data could be empty
+    //! Always true since all step-point data could be disabled
     explicit CELER_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of states
@@ -117,9 +183,10 @@ struct StepPointStateData
 /*!
  * Gathered data for a single step for many tracks in parallel.
  *
+ * - Each data member corresponds exactly to a flag in \c StepSelection .
+ * - If the flag is disabled (no step interfaces require the data), then the
+ *   corresponding member data will be empty.
  * - The track ID will be set to "false" if the track is inactive.
- * - Depending on the collection options, some of these state data may be
- * empty.
  */
 template<Ownership W, MemSpace M>
 struct StepStateData
@@ -172,9 +239,13 @@ struct StepStateData
     StepStateData& operator=(StepStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
+
+        for (auto sp : range(StepPoint::size_))
+        {
+            points[sp] = other.points[sp];
+        }
+
         track                   = other.track;
-        points[StepPoint::pre]  = other.points[StepPoint::pre];
-        points[StepPoint::post] = other.points[StepPoint::post];
         event                   = other.event;
         track_step_count        = other.track_step_count;
         action                  = other.action;
@@ -186,29 +257,33 @@ struct StepStateData
 };
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Resize a state point.
  */
 template<MemSpace M>
 inline void resize(StepPointStateData<Ownership::value, M>* state,
-                   const HostCRef<StepParamsData>&          params,
+                   StepPointSelection                       selection,
                    size_type                                size)
 {
     CELER_EXPECT(size > 0);
-    if (params.selection.sim)
-    {
-        resize(&state->time, size);
-    }
-    if (params.selection.geo)
-    {
-        resize(&state->pos, size);
-        resize(&state->dir, size);
-        resize(&state->volume, size);
-    }
-    if (params.selection.phys)
-    {
-        resize(&state->energy, size);
-    }
+#define SD_RESIZE_IF_SELECTED(ATTR)     \
+    do                                  \
+    {                                   \
+        if (selection.ATTR)             \
+        {                               \
+            resize(&state->ATTR, size); \
+        }                               \
+    } while (0)
+
+    SD_RESIZE_IF_SELECTED(time);
+    SD_RESIZE_IF_SELECTED(pos);
+    SD_RESIZE_IF_SELECTED(dir);
+    SD_RESIZE_IF_SELECTED(volume);
+    SD_RESIZE_IF_SELECTED(energy);
+
+#undef SD_RESIZE_IF_SELECTED
 }
 
 //---------------------------------------------------------------------------//
@@ -223,25 +298,28 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
 
-    if (params.selection.pre_step)
+    for (auto sp : range(StepPoint::size_))
     {
-        resize(&state->points[StepPoint::pre], params, size);
+        resize(&state->points[sp], params.selection.points[sp], size);
     }
-    resize(&state->points[StepPoint::post], params, size);
+
+#define SD_RESIZE_IF_SELECTED(ATTR)     \
+    do                                  \
+    {                                   \
+        if (params.selection.ATTR)      \
+        {                               \
+            resize(&state->ATTR, size); \
+        }                               \
+    } while (0)
 
     resize(&state->track, size);
-    if (params.selection.sim)
-    {
-        resize(&state->event, size);
-        resize(&state->track_step_count, size);
-        resize(&state->step_length, size);
-        resize(&state->action, size);
-    }
-    if (params.selection.phys)
-    {
-        resize(&state->particle, size);
-        resize(&state->energy_deposition, size);
-    }
+
+    SD_RESIZE_IF_SELECTED(event);
+    SD_RESIZE_IF_SELECTED(track_step_count);
+    SD_RESIZE_IF_SELECTED(step_length);
+    SD_RESIZE_IF_SELECTED(action);
+    SD_RESIZE_IF_SELECTED(particle);
+    SD_RESIZE_IF_SELECTED(energy_deposition);
 }
 
 //---------------------------------------------------------------------------//

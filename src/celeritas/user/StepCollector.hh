@@ -31,11 +31,6 @@ struct StepStorage;
  * This defines the interface to set up and manage a generic class for
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
- *
- * \todo It probably makes sense to integrate the "selection" into the step
- * interface, since that's what actually processes the output data. We also
- * should be able to add a vector callbacks per StepCollector and then make the
- * selection the "union" of those.
  */
 class StepCollector
 {
@@ -43,13 +38,12 @@ class StepCollector
     //!@{
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
+    using VecInterface    = std::vector<SPStepInterface>;
     //!@}
 
   public:
     // Construct with options and register pre/post-step actions
-    StepCollector(const StepSelection& selection,
-                  SPStepInterface      callback,
-                  ActionRegistry*      action_registry);
+    StepCollector(VecInterface callbacks, ActionRegistry* action_registry);
 
     // Default destructor and move
     ~StepCollector();
