@@ -7,8 +7,14 @@
 module unload gpu cudatoolkit
 module load PrgEnv-gnu/8.3.3
 
-# Spack module on Perlmutter currently fails to create the spack env from spack.yaml, so we use our own install
+# Spack module on Perlmutter currently fails to create the spack env from spack.yaml, we need Spack v0.18.0; use our own install instead.
+# Expects the spack git repo to have been cloned at _SPACK_INSTALL and the environment celeritas to exist
 _SPACK_INSTALL=${SCRATCH}/spack
+_SPACK_SOURCE_FILE=${_SPACK_INSTALL}/share/spack/setup-env.sh
+if [ ! -f "${_SPACK_SOURCE_FILE}" ]; then
+    echo "Expected to find a spack install at ${_SPACK_INSTALL}" >&2
+    exit 2
+fi
 
-. ${_SPACK_INSTALL}/share/spack/setup-env.sh
+. ${_SPACK_SOURCE_FILE}
 spack env activate celeritas
