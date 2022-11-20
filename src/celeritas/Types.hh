@@ -110,6 +110,15 @@ enum class ActionOrder
 };
 
 //---------------------------------------------------------------------------//
+//! Differentiate between result data at the beginning and end of a step.
+enum class StepPoint
+{
+    pre,
+    post,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take

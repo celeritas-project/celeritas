@@ -11,7 +11,6 @@
 
 #include "celeritas/geo/GeoParamsFwd.hh"
 
-#include "StepData.hh"
 #include "StepInterface.hh"
 
 namespace celeritas

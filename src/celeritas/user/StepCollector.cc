@@ -12,6 +12,7 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 
+#include "StepData.hh"
 #include "detail/StepGatherAction.hh"
 
 namespace celeritas
