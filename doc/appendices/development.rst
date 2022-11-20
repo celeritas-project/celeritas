@@ -184,7 +184,8 @@ Certain decorations (separators, Doxygen comment structure,
 etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
 (in the :file:`scripts/dev` directory) to generate skeletons for new files, and
 use existing source code as a guide to how to structure the decorations.
-
+Doxygen comments should be provided next to the *definition* of functions (both
+member and free) and classes.
 
 Symbol names
 ------------
