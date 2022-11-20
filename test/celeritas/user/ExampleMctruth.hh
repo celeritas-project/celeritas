@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ExampleStepCallback.hh
+//! \file celeritas/user/ExampleMctruth.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,7 +23,7 @@ namespace test
  * execution. At the end of the run, for testing, call \c sort to reorder the
  * data by event/track/step, and then access the data with \c steps .
  */
-class ExampleStepCallback final : public StepInterface
+class ExampleMctruth final : public StepInterface
 {
   public:
     struct Step
@@ -37,6 +37,9 @@ class ExampleStepCallback final : public StepInterface
     };
 
   public:
+    //! Selection of data required for this interface
+    Mappings mappings() const final { return {}; }
+
     // Return flags corresponding to the "Step" above
     StepSelection selection() const final;
 
@@ -49,7 +52,7 @@ class ExampleStepCallback final : public StepInterface
         CELER_NOT_IMPLEMENTED("device example");
     }
 
-    //! Sort tallied tracks by {event, track, step}
+    // Sort tallied tracks by {event, track, step}
     void sort();
 
     //! Access all steps

@@ -234,7 +234,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
-  celeritas/user/ExampleStepCallback.cc
+  celeritas/user/ExampleMctruth.cc
   celeritas/user/StepCollectorTestBase.cc
 )
 celeritas_target_link_libraries(testcel_celeritas

@@ -12,7 +12,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
-#include "ExampleStepCallback.hh"
+#include "ExampleMctruth.hh"
 
 using std::cout;
 
@@ -29,9 +29,9 @@ StepCollectorTestBase::~StepCollectorTestBase() = default;
  */
 void StepCollectorTestBase::SetUp()
 {
-    example_steps_ = std::make_shared<ExampleStepCallback>();
+    example_mctruth_ = std::make_shared<ExampleMctruth>();
 
-    StepCollector::VecInterface interfaces = {example_steps_};
+    StepCollector::VecInterface interfaces = {example_mctruth_};
 
     collector_ = std::make_shared<StepCollector>(std::move(interfaces),
                                                  this->action_reg().get());
@@ -90,10 +90,10 @@ auto StepCollectorTestBase::run(size_type num_tracks, size_type num_steps)
         count = step();
     }
 
-    example_steps_->sort();
+    example_mctruth_->sort();
 
     RunResult result;
-    for (const ExampleStepCallback::Step& s : example_steps_->steps())
+    for (const ExampleMctruth::Step& s : example_mctruth_->steps())
     {
         result.event.push_back(s.event);
         result.track.push_back(s.track);

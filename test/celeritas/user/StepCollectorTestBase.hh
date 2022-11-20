@@ -23,7 +23,7 @@ class StepCollector;
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ExampleStepCallback;
+class ExampleMctruth;
 
 class StepCollectorTestBase : virtual public GlobalTestBase
 {
@@ -53,8 +53,8 @@ class StepCollectorTestBase : virtual public GlobalTestBase
     RunResult run(size_type num_tracks, size_type num_steps);
 
   protected:
-    std::shared_ptr<ExampleStepCallback> example_steps_;
-    std::shared_ptr<StepCollector>       collector_;
+    std::shared_ptr<ExampleMctruth> example_mctruth_;
+    std::shared_ptr<StepCollector>  collector_;
 };
 
 //---------------------------------------------------------------------------//
