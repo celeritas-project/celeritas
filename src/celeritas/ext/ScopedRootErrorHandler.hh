@@ -34,8 +34,8 @@ private:
 #if !CELERITAS_USE_ROOT
 //!@{
 //! Do nothing if ROOT is disabled (source file will not be compiled)
-inline ScopedRootErrorHandler::ScopedRootErrorHandler() {};
-inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {};
+inline ScopedRootErrorHandler::ScopedRootErrorHandler() {}
+inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
 //!@}
 #endif
 
