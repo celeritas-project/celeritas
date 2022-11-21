@@ -34,9 +34,11 @@
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootFileManager.hh"
+#include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -119,25 +121,41 @@ void run(std::istream* is, OutputManager* output)
         }
     }
 
-#if CELERITAS_USE_ROOT
     std::shared_ptr<RootFileManager> root_manager;
+    std::shared_ptr<RootStepWriter>  step_writer;
+    std::shared_ptr<StepCollector>   step_colector;
+
     if (!run_args.mctruth_filename.empty())
     {
+        // ROOT MC truth filename provided
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
+
+        StepSelection selection;
+        selection.event             = true;
+        selection.track_step_count  = true;
+        selection.action            = true;
+        selection.step_length       = true;
+        selection.particle          = true;
+        selection.energy_deposition = true;
+
+        step_writer = std::make_shared<RootStepWriter>(
+            root_manager, transport_ptr->params().particle(), selection);
+
+        step_colector = std::make_shared<StepCollector>(
+            StepCollector::VecInterface{step_writer},
+            transport_ptr->params().action_reg().get());
+
+        // Store input data
         to_root(root_manager, run_args);
     }
-#endif
 
     result = (*transport_ptr)(primaries);
-
-#if CELERITAS_USE_ROOT
 
     if (root_manager)
     {
         root_manager->close();
     }
-#endif
 
     result.time.setup = setup_time;
 

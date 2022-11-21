@@ -7,19 +7,25 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
+#include <algorithm>
+#include <tuple>
 #include <TBranch.h>
 #include <TTree.h>
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*
- * Construct writer with RootFileManager and ParticleParams. The latter needed
- * to convert particle id to pdg while writing step data.
+/*!
+ * Construct writer with RootFileManager, ParticleParams (to convert particle
+ * id to pdg), and the selection of data to be tallied.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
-                               SPParticleParams  particle_params)
-    : root_manager_(io_manager), particles_(particle_params)
+                               SPParticleParams  particle_params,
+                               StepSelection     selection)
+    : StepInterface()
+    , root_manager_(io_manager)
+    , particles_(particle_params)
+    , selection_(selection)
 {
     CELER_EXPECT(root_manager_);
     tstep_tree_.reset(new TTree("steps", "steps"));
@@ -31,7 +37,8 @@ RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
  * Set the number of entries (i.e. number of steps) stored in memory before
  * ROOT flushes the data to disk. Default is ~32MB of compressed data.
  *
- * See ROOT TTree Class reference for further details.
+ * See ROOT TTree Class reference for details:
+ * https://root.cern.ch/doc/master/classTTree.html
  */
 void RootStepWriter::set_auto_flush(long num_entries)
 {
@@ -41,8 +48,12 @@ void RootStepWriter::set_auto_flush(long num_entries)
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * Collect step data from each track on each thread id.
+ *
+ * TODO std::sort data by event and track ids would be ideal, but that would
+ * entail a much larger cost: copy to a host array, sort it, then loop over it
+ * in order to call \c tree->Fill() .
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
@@ -50,7 +61,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
     tstep_ = mctruth::TStepData();
 
     // Loop over thread ids and fill TTree
-    for (auto tid : range(ThreadId{steps.size()}))
+    for (const auto tid : range(ThreadId{steps.size()}))
     {
         if (!steps.track[tid])
         {
@@ -59,7 +70,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }
 
         tstep_.event_id  = steps.event[tid].get();
-        tstep_.track_id  = steps.track[tid].get();
+        tstep_.track_id  = steps.track[tid].unchecked_get();
         tstep_.action_id = steps.action[tid].get();
         tstep_.pdg       = particles_->id_to_pdg(steps.particle[tid]).get();
         tstep_.energy_deposition = steps.energy_deposition[tid].value();
@@ -81,6 +92,11 @@ void RootStepWriter::execute(StateHostRef const& steps)
 
         tstep_tree_->Fill();
     }
+}
+
+void RootStepWriter::execute(StateDeviceRef const& steps)
+{
+    CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
 }
 
 //---------------------------------------------------------------------------//

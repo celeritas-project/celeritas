@@ -94,9 +94,18 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
 
+// I do not like this
 #if CELERITAS_USE_ROOT
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args);
+#else
+void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
+             LDemoArgs&                                  args)
+{
+    CELER_ASSERT(args);
+    CELER_ASSERT(root_manager == nullptr);
+    CELER_NOT_CONFIGURED("ROOT");
+}
 #endif
 
 //---------------------------------------------------------------------------//

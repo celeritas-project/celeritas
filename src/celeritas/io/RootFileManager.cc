@@ -12,8 +12,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*
- * TBD
+/*!
+ * Construct with ROOT filename.
  */
 RootFileManager::RootFileManager(const char* filename)
 {
@@ -22,7 +22,7 @@ RootFileManager::RootFileManager(const char* filename)
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * Destruct by invoking TFile Write() and Close() if not done so previously.
  */
 RootFileManager::~RootFileManager()
@@ -34,7 +34,7 @@ RootFileManager::~RootFileManager()
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * Write and close the TFile before destruction.
  */
 void RootFileManager::close()
@@ -46,7 +46,7 @@ void RootFileManager::close()
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * Verify if TFile is open.
  */
 RootFileManager::operator bool() const

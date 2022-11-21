@@ -240,6 +240,7 @@ if(CELERITAS_BUILD_DEMOS)
     list(APPEND _demo_loop_libs OpenMP::OpenMP_CXX)
   endif()
   if(CELERITAS_USE_ROOT)
+    list(APPEND _demo_loop_src demo-loop/LDemoIO.root.cc)
     list(APPEND _demo_loop_libs ROOT::Core ROOT::Tree)
   endif()
 
@@ -249,8 +250,7 @@ if(CELERITAS_BUILD_DEMOS)
 
   if(CELERITAS_USE_ROOT)
   target_include_directories(demo-loop PRIVATE
-   $<BUILD_INTERFACE:
-     ${ROOT_INCLUDE_DIR}>)
+   $<BUILD_INTERFACE:${ROOT_INCLUDE_DIR}>)
   endif()
 
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})

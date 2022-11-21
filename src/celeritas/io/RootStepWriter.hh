@@ -19,7 +19,7 @@ namespace celeritas
  * Brief class description.
  *
  */
-class RootStepWriter : public StepInterface
+class RootStepWriter final : public StepInterface
 {
   public:
     //!@{
@@ -32,17 +32,23 @@ class RootStepWriter : public StepInterface
 
     // Construct with RootFileManager and ParticleParams
     explicit RootStepWriter(SPRootFileManager root_manager,
-                            SPParticleParams  particle_params);
+                            SPParticleParams  particle_params,
+                            StepSelection     selection);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
 
     // Process step data and fill step tree
     void execute(StateHostRef const& steps) final;
+    void execute(StateDeviceRef const& steps) final;
+
+    // Selection of data to be stored
+    StepSelection selection() const final { return selection_; }
 
   private:
     SPRootFileManager  root_manager_;
     SPParticleParams   particles_;
+    StepSelection      selection_;
     TRootUP<TTree>     tstep_tree_;
     TRootUP<TBranch>   tstep_branch_;
     mctruth::TStepData tstep_;
