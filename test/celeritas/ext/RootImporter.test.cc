@@ -12,7 +12,6 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
