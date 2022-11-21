@@ -130,14 +130,14 @@ const char* to_cstring(RuntimeErrorType which)
             return "runtime";
         case RuntimeErrorType::device:
 #if CELERITAS_USE_CUDA
-            return "cuda";
+            return "CUDA";
 #else
             return "device";
 #endif
         case RuntimeErrorType::mpi:
-            return "mpi";
+            return "MPI";
         case RuntimeErrorType::geant:
-            return "geant4";
+            return "Geant4";
         case RuntimeErrorType::root:
             return "ROOT";
     }
