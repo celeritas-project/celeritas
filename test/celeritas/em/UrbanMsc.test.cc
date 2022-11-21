@@ -77,6 +77,8 @@ class UrbanMscTest : public GlobalGeoTestBase
 
     void SetUp() override
     {
+        ScopedRootErrorHandler scoped_root_error_;
+
         RootImporter import_from_root(
             this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
         import_data_    = import_from_root();
@@ -204,8 +206,6 @@ class UrbanMscTest : public GlobalGeoTestBase
     RandomEngine                       rng_;
 
     std::shared_ptr<UrbanMscModel> model_;
-
-    ScopedRootErrorHandler scoped_root_error_;
 };
 
 //---------------------------------------------------------------------------//
