@@ -11,16 +11,6 @@ namespace celeritas
 {
 namespace detail
 {
-
-//---------------------------------------------------------------------------//
-/*!
- *  ROOT Error Handler for Celeritas.
- *
- */
-
-void RootErrorHandler(int rootlevel, bool abort_bool, const char *location,
-                          const char *msg);
-
 //---------------------------------------------------------------------------//
 /*!
  * Install a ROOT Error Handler to redirect the message toward the
@@ -30,14 +20,16 @@ void RootErrorHandler(int rootlevel, bool abort_bool, const char *location,
 
 class ScopedRootErrorHandler
 {
-   decltype(&RootErrorHandler) previous_;
-
 public:
     // Install the error handler
     ScopedRootErrorHandler();
 
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
+
+private:
+   using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
+   ErrorHandlerFuncPtr previous_;
 };
 
 //---------------------------------------------------------------------------//
