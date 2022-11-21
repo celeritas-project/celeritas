@@ -15,7 +15,6 @@ namespace detail
 /*!
  * Install a ROOT Error Handler to redirect the message toward the
  * Celeritas Logger.
- *
  */
 
 class ScopedRootErrorHandler
