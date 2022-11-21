@@ -129,6 +129,9 @@ std::ostream& operator<<(std::ostream&, const Device&);
 // Increase CUDA stack size
 void set_cuda_stack_size(int limit);
 
+// Increase CUDA HEAP size
+void set_cuda_heap_size(int limit);
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
