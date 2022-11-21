@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -28,6 +30,14 @@ private:
    using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
    ErrorHandlerFuncPtr previous_;
 };
+
+#if !CELERITAS_USE_ROOT
+//!@{
+//! Do nothing if ROOT is disabled (source file will not be compiled)
+inline ScopedRootErrorHandler::ScopedRootErrorHandler() {};
+inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {};
+//!@}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
