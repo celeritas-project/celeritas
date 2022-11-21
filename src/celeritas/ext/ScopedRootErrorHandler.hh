@@ -9,8 +9,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Install a ROOT Error Handler to redirect the message toward the
@@ -32,5 +30,4 @@ private:
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

@@ -12,7 +12,8 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
+#include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -55,7 +56,7 @@ class RootImporterTest : public Test
     std::string root_filename_;
     ImportData  data_;
 
-    detail::ScopedRootErrorHandler scoped_root_error_;
+    ScopedRootErrorHandler scoped_root_error_;
 };
 
 //---------------------------------------------------------------------------//

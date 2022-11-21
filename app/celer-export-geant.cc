@@ -15,8 +15,8 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 
 #if CELERITAS_USE_JSON
 #    include <fstream>
@@ -48,7 +48,7 @@ void print_usage(const char* exec_name)
  */
 int main(int argc, char* argv[])
 {
-    detail::ScopedRootErrorHandler scoped_root_error;
+    ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)

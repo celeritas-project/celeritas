@@ -14,8 +14,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -469,7 +469,7 @@ void print_atomic_relaxation_data(
  */
 int main(int argc, char* argv[])
 {
-    detail::ScopedRootErrorHandler scoped_root_error;
+    ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)

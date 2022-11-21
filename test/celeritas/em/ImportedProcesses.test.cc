@@ -13,8 +13,8 @@
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
@@ -62,7 +62,7 @@ class ImportedProcessesTest : public Test
     SPConstMaterials materials_;
     SPConstImported  processes_;
 
-    detail::ScopedRootErrorHandler scoped_root_error_;
+    ScopedRootErrorHandler scoped_root_error_;
 
 };
 

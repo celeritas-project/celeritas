@@ -10,8 +10,8 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
@@ -154,7 +154,7 @@ class CutoffParamsImportTest : public Test
     std::string root_filename_;
     ImportData  data_;
 
-    detail::ScopedRootErrorHandler scoped_root_error_;
+    ScopedRootErrorHandler scoped_root_error_;
 };
 
 TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))

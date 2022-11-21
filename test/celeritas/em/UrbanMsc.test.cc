@@ -16,8 +16,8 @@
 #include "celeritas/em/model/UrbanMscModel.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/ext/detail/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -205,7 +205,7 @@ class UrbanMscTest : public GlobalGeoTestBase
 
     std::shared_ptr<UrbanMscModel> model_;
 
-    detail::ScopedRootErrorHandler scoped_root_error_;
+    ScopedRootErrorHandler scoped_root_error_;
 };
 
 //---------------------------------------------------------------------------//

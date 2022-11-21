@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootErrorHandler.cc
+//! \file celeritas/ext/RootErrorHandler.cc
 //---------------------------------------------------------------------------//
 #include "ScopedRootErrorHandler.hh"
 
@@ -13,8 +13,6 @@
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -71,5 +69,4 @@ ScopedRootErrorHandler::~ScopedRootErrorHandler()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas
