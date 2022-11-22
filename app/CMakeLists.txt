@@ -247,13 +247,12 @@ if(CELERITAS_BUILD_DEMOS)
 
   # Add the executable
   add_executable(demo-loop ${_demo_loop_src})
+  celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
 
   if(CELERITAS_USE_ROOT)
   target_include_directories(demo-loop PRIVATE
    $<BUILD_INTERFACE:${ROOT_INCLUDE_DIR}>)
   endif()
-
-  celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
 
   if(NOT CELERITAS_USE_OpenMP AND
       (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"

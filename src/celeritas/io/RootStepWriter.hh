@@ -38,14 +38,22 @@ class RootStepWriter final : public StepInterface
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
 
-    // Process step data and fill step tree
+    // Process step data on the host and fill step tree
     void execute(StateHostRef const& steps) final;
-    void execute(StateDeviceRef const& steps) final;
+
+    // Not implemented
+    void execute(StateDeviceRef const&) final
+    {
+        CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
+    }
 
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
 
   private:
+    // Copy pre- and post-step position and direction arrays
+    void copy_real3(const Real3& real3, double output[3]);
+
     SPRootFileManager  root_manager_;
     SPParticleParams   particles_;
     StepSelection      selection_;

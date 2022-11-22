@@ -32,10 +32,10 @@ class RootFileManager
     explicit RootFileManager(const char* filename);
 
     // Write and close TFile (if still open) at destruction time
-    ~RootFileManager();
+    // ~RootFileManager();
 
-    // Write and close TFile
-    void close();
+    // Write TFile
+    void write();
 
     // Verify if tfile is open
     explicit operator bool() const;

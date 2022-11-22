@@ -25,6 +25,7 @@ RootFileManager::RootFileManager(const char* filename)
 /*!
  * Destruct by invoking TFile Write() and Close() if not done so previously.
  */
+/*
 RootFileManager::~RootFileManager()
 {
     if (tfile_->IsOpen())
@@ -32,17 +33,17 @@ RootFileManager::~RootFileManager()
         this->close();
     }
 }
+*/
 
 //---------------------------------------------------------------------------//
 /*!
- * Write and close the TFile before destruction.
+ * Write the TFile before destruction.
  */
-void RootFileManager::close()
+void RootFileManager::write()
 {
     CELER_EXPECT(tfile_->IsOpen());
     const auto write_status = tfile_->Write();
-    CELER_ENSURE(!write_status);
-    tfile_->Close();
+    CELER_ENSURE(write_status);
 }
 
 //---------------------------------------------------------------------------//

@@ -10,7 +10,10 @@
 #include <algorithm>
 #include <tuple>
 #include <TBranch.h>
+#include <TFile.h>
 #include <TTree.h>
+
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -29,7 +32,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
 {
     CELER_EXPECT(root_manager_);
     tstep_tree_.reset(new TTree("steps", "steps"));
-    tstep_tree_->SetBranchAddress("steps,", &tstep_);
+    tstep_tree_->Branch("step", &tstep_);
 }
 
 //---------------------------------------------------------------------------//
@@ -57,6 +60,8 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
+    // TODO: add selection_ options for storing data
+
     CELER_EXPECT(steps);
     tstep_ = mctruth::TStepData();
 
@@ -81,22 +86,26 @@ void RootStepWriter::execute(StateHostRef const& steps)
         for (auto i : range(StepPoint::size_))
         {
             tstep_.points[(int)i].volume_id = steps.points[i].volume[tid].get();
+            tstep_.points[(int)i].energy = steps.points[i].energy[tid].value();
+            tstep_.points[(int)i].time   = steps.points[i].time[tid];
 
-            // Loop over x, y, z values
-            for (auto j : range(3))
-            {
-                tstep_.points[(int)i].dir[j] = steps.points[i].dir[tid][j];
-                tstep_.points[(int)i].pos[j] = steps.points[i].pos[tid][j];
-            }
+            this->copy_real3(steps.points[i].dir[tid],
+                             tstep_.points[(int)i].dir);
+            this->copy_real3(steps.points[i].pos[tid],
+                             tstep_.points[(int)i].pos);
         }
 
         tstep_tree_->Fill();
     }
 }
 
-void RootStepWriter::execute(StateDeviceRef const& steps)
+//---------------------------------------------------------------------------//
+/*!
+ * Copy pre- and post-step position and direction arrays.
+ */
+void RootStepWriter::copy_real3(const Real3& input, double output[3])
 {
-    CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
+    std::copy(input.begin(), input.end(), output);
 }
 
 //---------------------------------------------------------------------------//

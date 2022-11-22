@@ -159,7 +159,7 @@ if(CELERITAS_USE_ROOT)
     # libs
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
 
-    # Generate the
+    # Generate the ROOT dictionary
     root_generate_dictionary(${root_tgt}
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
@@ -169,6 +169,7 @@ if(CELERITAS_USE_ROOT)
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/io/MCTruthData.hh"
       NOINSTALL
       MODULE celeritas
       LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"

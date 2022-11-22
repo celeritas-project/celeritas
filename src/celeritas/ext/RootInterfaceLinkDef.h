@@ -9,6 +9,7 @@
 #ifdef __CINT__
 
 // clang-format off
+// Import
 #pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
@@ -29,6 +30,9 @@
 #pragma link C++ class celeritas::ImportData::ImportLivermorePEMap+;
 #pragma link C++ class celeritas::ImportData::ImportAtomicRelaxationMap+;
 #pragma link C++ class celeritas::ImportData+;
+// MC truth
+#pragma link C++ class celeritas::mctruth::TStepPoint+;
+#pragma link C++ class celeritas::mctruth::TStepData+;
 // clang-format on
 
 #endif
