@@ -65,7 +65,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     } while (0)
 
     {
-        auto sim      = track.make_sim_view();
+        const auto sim      = track.make_sim_view();
         bool inactive = (sim.status() == TrackStatus::inactive);
 
         if (P == StepPoint::post)
@@ -77,9 +77,53 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 
         if (inactive)
         {
+            if (P == StepPoint::pre && !this->step_params.detector.empty())
+            {
+                // Clear detector ID for inactive threads
+                this->step_state.detector[thread] = {};
+            }
+
             // No more data to be written
             return;
         }
+    }
+
+    if (!this->step_params.detector.empty())
+    {
+        // Apply detector filter at beginning of step (volume in which we're
+        // stepping)
+        if (P == StepPoint::pre)
+        {
+            const auto geo = track.make_geo_view();
+            CELER_ASSERT(!geo.is_outside());
+            VolumeId vol = geo.volume_id();
+            CELER_ASSERT(vol);
+
+            // Map volume ID to detector ID
+            this->step_state.detector[thread] = this->step_params.detector[vol];
+        }
+
+        if (!this->step_state.detector[thread])
+        {
+            // We're not in a sensitive detector: don't save any further data
+            return;
+        }
+
+        if (P == StepPoint::post && this->step_params.nonzero_energy_deposition)
+        {
+            // Filter out tracks that didn't deposit energy over the step
+            const auto pstep = track.make_physics_step_view();
+            if (pstep.energy_deposition() == zero_quantity())
+            {
+                // Clear detector ID and stop recording
+                this->step_state.detector[thread] = {};
+                return;
+            }
+        }
+    }
+
+    {
+        const auto sim = track.make_sim_view();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
         if (P == StepPoint::post)
@@ -94,7 +138,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     }
 
     {
-        auto geo = track.make_geo_view();
+        const auto geo = track.make_geo_view();
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
@@ -103,11 +147,11 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     }
 
     {
-        auto par = track.make_particle_view();
+        const auto par = track.make_particle_view();
 
         if (P == StepPoint::post)
         {
-            auto pstep = track.make_physics_step_view();
+            const auto pstep = track.make_physics_step_view();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());
             SGL_SET_IF_SELECTED(particle, par.particle_id());
         }

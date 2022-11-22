@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 
 #include "detail/StepGatherAction.hh"
@@ -20,6 +21,7 @@ namespace celeritas
  * Construct with options and register pre and/or post-step actions.
  */
 StepCollector::StepCollector(VecInterface    callbacks,
+                             SPConstGeo      geo,
                              ActionRegistry* action_registry)
     : storage_(std::make_shared<detail::StepStorage>())
 {
@@ -31,7 +33,10 @@ StepCollector::StepCollector(VecInterface    callbacks,
         }));
 
     // Loop over callbacks to take union of step selections
-    StepSelection selection;
+    StepSelection                    selection;
+    StepInterface::MapVolumeDetector detector_map;
+    bool nonzero_energy_deposition{true};
+
     {
         CELER_ASSERT(!selection);
         for (const SPStepInterface& sp_interface : callbacks)
@@ -40,6 +45,24 @@ StepCollector::StepCollector(VecInterface    callbacks,
             CELER_VALIDATE(this_selection,
                            << "step interface doesn't collect any data");
             selection |= this_selection;
+
+            const auto&& filters = sp_interface->filters();
+            for (const auto& kv : filters.detectors)
+            {
+                // Map detector volumes, asserting uniqueness
+                CELER_ASSERT(kv.first);
+                auto iter_inserted = detector_map.insert(kv);
+                CELER_VALIDATE(iter_inserted.second,
+                               << "multiple step interfaces map single volume "
+                                  "to a detector ('"
+                               << geo->id_to_label(iter_inserted.first->first)
+                               << "' -> " << iter_inserted.first->second.get()
+                               << " and '" << geo->id_to_label(kv.first)
+                               << "' -> " << kv.second.get() << ')');
+            }
+
+            // Filter out zero-energy steps/tracks only if all detectors agree
+            nonzero_energy_deposition = nonzero_energy_deposition && filters.nonzero_energy_deposition;
         }
         CELER_ASSERT(selection);
     }
@@ -49,11 +72,29 @@ StepCollector::StepCollector(VecInterface    callbacks,
         celeritas::HostVal<StepParamsData> host_data;
 
         host_data.selection = selection;
+
+        if (!detector_map.empty())
+        {
+            // Assign detector IDs for each ("logical" in Geant4) volume
+            CELER_EXPECT(geo);
+            std::vector<DetectorId> temp_det(geo->num_volumes(), DetectorId{});
+            for (const auto& kv : detector_map)
+            {
+                CELER_ASSERT(kv.first < temp_det.size());
+                temp_det[kv.first.unchecked_get()] = kv.second;
+            }
+
+            make_builder(&host_data.detector)
+                .insert_back(temp_det.begin(), temp_det.end());
+
+            host_data.nonzero_energy_deposition = nonzero_energy_deposition;
+        }
+
         storage_->params
             = CollectionMirror<StepParamsData>(std::move(host_data));
     }
 
-    if (selection.points[StepPoint::pre])
+    if (selection.points[StepPoint::pre] || !detector_map.empty())
     {
         // Some pre-step data is being gathered
         pre_action_

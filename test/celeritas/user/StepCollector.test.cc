@@ -16,7 +16,8 @@
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
-#include "StepCollectorTestBase.hh"
+#include "CaloTestBase.hh"
+#include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
 
 using celeritas::units::MevEnergy;
@@ -29,7 +30,8 @@ namespace test
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class KnStepCollectorTest : public SimpleTestBase, public StepCollectorTestBase
+class KnStepCollectorTest : public SimpleTestBase,
+                            virtual public StepCollectorTestBase
 {
     VecPrimary make_primaries(size_type count) override
     {
@@ -51,10 +53,20 @@ class KnStepCollectorTest : public SimpleTestBase, public StepCollectorTestBase
     }
 };
 
+class KnMctruthTest : public KnStepCollectorTest, public MctruthTestBase
+{
+};
+
+class KnCaloTest : public KnStepCollectorTest, public CaloTestBase
+{
+    VecString get_detector_names() const final { return {"inner"}; }
+};
+
 //---------------------------------------------------------------------------//
 
 #define TestEm3CollectorTest TEST_IF_CELERITAS_GEANT(TestEm3CollectorTest)
-class TestEm3CollectorTest : public TestEm3Base, public StepCollectorTestBase
+class TestEm3CollectorTest : public TestEm3Base,
+                             virtual public StepCollectorTestBase
 {
     //! Use MSC
     bool enable_msc() const override { return true; }
@@ -88,11 +100,23 @@ class TestEm3CollectorTest : public TestEm3Base, public StepCollectorTestBase
 
         for (auto i : range(count))
         {
-            result[i].event_id    = EventId{i / 2};
-            result[i].track_id    = TrackId{i % 2};
+            result[i].event_id    = EventId{0};
+            result[i].track_id    = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
+    }
+};
+
+class TestEm3MctruthTest : public TestEm3CollectorTest, public MctruthTestBase
+{
+};
+
+class TestEm3CaloTest : public TestEm3CollectorTest, public CaloTestBase
+{
+    VecString get_detector_names() const final
+    {
+        return {"gap_lv_0", "gap_lv_1", "gap_lv_2"};
     }
 };
 
@@ -100,7 +124,7 @@ class TestEm3CollectorTest : public TestEm3Base, public StepCollectorTestBase
 // KLEIN-NISHINA
 //---------------------------------------------------------------------------//
 
-TEST_F(KnStepCollectorTest, single_step)
+TEST_F(KnMctruthTest, single_step)
 {
     auto result = this->run(8, 1);
 
@@ -123,7 +147,7 @@ TEST_F(KnStepCollectorTest, single_step)
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
 }
 
-TEST_F(KnStepCollectorTest, two_step)
+TEST_F(KnMctruthTest, two_step)
 {
     auto result = this->run(4, 2);
 
@@ -146,22 +170,29 @@ TEST_F(KnStepCollectorTest, two_step)
     // clang-format on
 }
 
+TEST_F(KnCaloTest, single_event)
+{
+    auto result = this->run(1, 64);
+
+    static const double expected_edep[] = {0.00043564799352598};
+    EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+}
+
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3CollectorTest, four_step)
+TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
-    result.print_expected();
 
     if (this->is_ci_build() || this->is_summit_build()
         || this->is_wildstyle_build())
     {
         // clang-format off
-        static const int expected_event[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1};
+        static const int expected_event[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         EXPECT_VEC_EQ(expected_event, result.event);
-        static const int expected_track[] = {0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1};
+        static const int expected_track[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
         EXPECT_VEC_EQ(expected_track, result.track);
         static const int expected_step[] = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         EXPECT_VEC_EQ(expected_step, result.step);
@@ -182,6 +213,16 @@ TEST_F(TestEm3CollectorTest, four_step)
              << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
     }
+}
+
+TEST_F(TestEm3CaloTest, four_step)
+{
+    auto result = this->run(256, 32);
+    result.print_expected();
+
+    static const double expected_edep[]
+        = {1556.8107126148, 107.49535416277, 28.96731890737};
+    EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
 }
 
 //---------------------------------------------------------------------------//
