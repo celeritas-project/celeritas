@@ -31,8 +31,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
     , selection_(selection)
 {
     CELER_EXPECT(root_manager_);
-    tstep_tree_.reset(new TTree("steps", "steps"));
-    tstep_tree_->Branch("step", &tstep_);
+    this->make_tree();
 }
 
 //---------------------------------------------------------------------------//
@@ -61,7 +60,6 @@ void RootStepWriter::set_auto_flush(long num_entries)
 void RootStepWriter::execute(StateHostRef const& steps)
 {
     // TODO: add selection_ options for storing data
-
     CELER_EXPECT(steps);
     tstep_ = mctruth::TStepData();
 
@@ -74,12 +72,12 @@ void RootStepWriter::execute(StateHostRef const& steps)
             continue;
         }
 
-        tstep_.event_id  = steps.event[tid].get();
-        tstep_.track_id  = steps.track[tid].unchecked_get();
-        tstep_.action_id = steps.action[tid].get();
-        tstep_.pdg       = particles_->id_to_pdg(steps.particle[tid]).get();
+        tstep_.event    = steps.event[tid].get();
+        tstep_.track    = steps.track[tid].unchecked_get();
+        tstep_.action   = steps.action[tid].get();
+        tstep_.particle = particles_->id_to_pdg(steps.particle[tid]).get();
         tstep_.energy_deposition = steps.energy_deposition[tid].value();
-        tstep_.length            = steps.step_length[tid];
+        tstep_.step_length       = steps.step_length[tid];
         tstep_.track_step_count  = steps.track_step_count[tid];
 
         // Loop for storing pre- and post-step
@@ -97,6 +95,39 @@ void RootStepWriter::execute(StateHostRef const& steps)
 
         tstep_tree_->Fill();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * TBD
+ */
+void RootStepWriter::make_tree()
+{
+    tstep_tree_.reset(new TTree("steps", "steps"));
+
+    // There must be a better way...
+#define CREATE_BRANCH_IF_SELECTED(SELECTION, NAME, REF) \
+    if (this->SELECTION)                                \
+    {                                                   \
+        this->tstep_tree_->Branch(NAME, REF);           \
+    }
+
+    // Create branches based on the selection_ booleans
+    CREATE_BRANCH_IF_SELECTED(selection_.event, "event", &tstep_.event);
+    CREATE_BRANCH_IF_SELECTED(selection_.track_step_count,
+                              "track_step_count",
+                              &tstep_.track_step_count);
+    CREATE_BRANCH_IF_SELECTED(selection_.action, "action", &tstep_.action);
+
+    CREATE_BRANCH_IF_SELECTED(
+        selection_.step_length, "step_length", &tstep_.step_length);
+    CREATE_BRANCH_IF_SELECTED(
+        selection_.particle, "particle", &tstep_.particle);
+    CREATE_BRANCH_IF_SELECTED(selection_.energy_deposition,
+                              "energy_deposition",
+                              &tstep_.energy_deposition);
+
+#undef CREATE_BRANCH_IF_SELECTED
 }
 
 //---------------------------------------------------------------------------//

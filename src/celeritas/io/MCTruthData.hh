@@ -35,14 +35,14 @@ struct TStepPoint
 //! Full step data.
 struct TStepData
 {
-    int        event_id;
-    int        track_id;
-    int        action_id;
-    int        pdg;
+    int        event;
+    int        track;
+    int        action;
     int        track_step_count;
-    TStepPoint points[2];         // Pre- and post-step specific data
+    int        particle;          //!< PDG numbering scheme
+    TStepPoint points[2];         //!< Pre- and post-step specific data
     double     energy_deposition; //!< [MeV]
-    double     length;            //!< [cm]
+    double     step_length;       //!< [cm]
 };
 //---------------------------------------------------------------------------//
 } // namespace mctruth

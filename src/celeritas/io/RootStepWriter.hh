@@ -51,6 +51,7 @@ class RootStepWriter final : public StepInterface
     StepSelection selection() const final { return selection_; }
 
   private:
+    void make_tree();
     // Copy pre- and post-step position and direction arrays
     void copy_real3(const Real3& real3, double output[3]);
 
