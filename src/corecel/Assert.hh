@@ -472,8 +472,7 @@ class RuntimeError : public std::runtime_error
                                              const char* desc);
 
     // Construct from call to ROOT
-    static RuntimeError from_root_error(const char* origin,
-                                        const char* msg);
+    static RuntimeError from_root_error(const char* origin, const char* msg);
 
     // Construct from details
     explicit RuntimeError(RuntimeErrorDetails);

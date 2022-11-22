@@ -63,7 +63,6 @@ class ImportedProcessesTest : public Test
     SPConstImported  processes_;
 
     ScopedRootErrorHandler scoped_root_error_;
-
 };
 
 //---------------------------------------------------------------------------//

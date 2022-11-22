@@ -223,8 +223,7 @@ RuntimeError RuntimeError::from_geant_exception(const char* origin,
  * \param code A computery error code
  * \param desc Description of the failure
  */
-RuntimeError RuntimeError::from_root_error(const char* origin,
-                                           const char* msg)
+RuntimeError RuntimeError::from_root_error(const char* origin, const char* msg)
 {
     return RuntimeError{{RuntimeErrorType::root, msg, nullptr, origin, 0}};
 }

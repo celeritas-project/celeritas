@@ -19,16 +19,16 @@ namespace celeritas
 
 class ScopedRootErrorHandler
 {
-public:
+  public:
     // Install the error handler
     ScopedRootErrorHandler();
 
     // Return to the previous error handler.
     ~ScopedRootErrorHandler();
 
-private:
-   using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
-   ErrorHandlerFuncPtr previous_;
+  private:
+    using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
+    ErrorHandlerFuncPtr previous_;
 };
 
 #if !CELERITAS_USE_ROOT
