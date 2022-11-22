@@ -52,10 +52,6 @@ void RootStepWriter::set_auto_flush(long num_entries)
 //---------------------------------------------------------------------------//
 /*!
  * Collect step data from each track on each thread id.
- *
- * TODO std::sort data by event and track ids would be ideal, but that would
- * entail a much larger cost: copy to a host array, sort it, then loop over it
- * in order to call \c tree->Fill() .
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
@@ -79,6 +75,13 @@ void RootStepWriter::execute(StateHostRef const& steps)
         tstep_.energy_deposition = steps.energy_deposition[tid].value();
         tstep_.step_length       = steps.step_length[tid];
         tstep_.track_step_count  = steps.track_step_count[tid];
+
+        if (!selection_.points[StepPoint::pre]
+            && !selection_.points[StepPoint::post])
+        {
+            // Do not store step point data
+            continue;
+        }
 
         // Loop for storing pre- and post-step
         for (auto i : range(StepPoint::size_))
@@ -112,6 +115,22 @@ void RootStepWriter::make_tree()
         this->tstep_tree_->Branch(NAME, REF);           \
     }
 
+#define CREATE_LEAVES_LIST(SELECTION, NAME, SIZE, LIST)  \
+    auto pre  = this->SELECTION.points[StepPoint::pre];  \
+    auto post = this->SELECTION.points[StepPoint::post]; \
+    if (this->SELECTION.points[StepPoint::pre]           \
+        || this->SELECTION.points[StepPoint::post])      \
+    {                                                    \
+        LIST += NAME + SIZE + "/D:";                     \
+    }
+
+#define CREATE_POINTS_BRANCH_IF_SELECTED(SELECTION, NAME, REF, LIST) \
+    if (this->SELECTION.points[StepPoint::pre]                       \
+        || this->SELECTION.points[StepPoint::post])                  \
+    {                                                                \
+        this->tstep_tree_->Branch(NAME, REF, LIST.c_str());          \
+    }
+
     // Create branches based on the selection_ booleans
     CREATE_BRANCH_IF_SELECTED(selection_.event, "event", &tstep_.event);
     CREATE_BRANCH_IF_SELECTED(selection_.track_step_count,
@@ -127,7 +146,49 @@ void RootStepWriter::make_tree()
                               "energy_deposition",
                               &tstep_.energy_deposition);
 
+    const auto pre_step  = selection_.points[StepPoint::pre];
+    const auto post_step = selection_.points[StepPoint::post];
+
+    std::string points_leaves;
+    std::string points_leaves_size = "";
+    if (pre_step && post_step)
+    {
+        points_leaves_size = "[2]";
+    }
+    else if (pre_step || post_step)
+    {
+        points_leaves_size = "[1]";
+    }
+
+    if (pre_step.time || post_step.time)
+    {
+        points_leaves += "time" + points_leaves_size + "/D:";
+    }
+
+    if (pre_step.pos || post_step.pos)
+    {
+        points_leaves += "pos" + points_leaves_size + "[3]/D:";
+    }
+    if (pre_step.dir || post_step.dir)
+    {
+        points_leaves += "dir" + points_leaves_size + "[3]/D:";
+    }
+
+    if (pre_step.volume || post_step.volume)
+    {
+        points_leaves += "volume" + points_leaves_size + "/D:";
+    }
+
+    if (pre_step.energy || post_step.energy)
+    {
+        points_leaves += "energy" + points_leaves_size + "/D";
+    }
+
+    CREATE_POINTS_BRANCH_IF_SELECTED(
+        selection_, "points", &tstep_.points, points_leaves);
+
 #undef CREATE_BRANCH_IF_SELECTED
+#undef CREATE_POINTS_BRANCH_IF_SELECTED
 }
 
 //---------------------------------------------------------------------------//
