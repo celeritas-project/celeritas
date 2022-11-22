@@ -59,6 +59,11 @@ void run(std::istream* is, OutputManager* output)
     // Read input options
     auto inp = nlohmann::json::parse(*is);
 
+    if (inp.contains("cuda_heap_size"))
+    {
+        int heapSize = inp.at("cuda_heap_size").get<int>();
+        set_cuda_heap_size(heapSize);
+    }
     if (inp.contains("cuda_stack_size"))
     {
         celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
