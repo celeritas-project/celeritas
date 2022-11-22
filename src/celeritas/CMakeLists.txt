@@ -169,6 +169,7 @@ if(CELERITAS_USE_ROOT)
     celeritas_add_object_library(${objlib}
       ext/RootExporter.cc
       ext/RootImporter.cc
+      ext/ScopedRootErrorHandler.cc
       ext/detail/TFileUniquePtr.root.cc
       "${CMAKE_CURRENT_BINARY_DIR}/${root_tgt}.cxx"
     )

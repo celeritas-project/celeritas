@@ -12,6 +12,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -92,6 +93,8 @@ class ParticleImportTest : public Test
     }
     std::string root_filename_;
     ImportData  data_;
+
+    ScopedRootErrorHandler scoped_root_error_;
 };
 
 TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
