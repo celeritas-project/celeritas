@@ -140,7 +140,6 @@ if(CELERITAS_USE_ROOT)
   # Call the ROOT library generation inside a function to prevent ROOT-defined
   # directory properties from escaping
   function(celeritas_root_library objlib root_tgt)
-    include(${ROOT_USE_FILE})
     # Use directory includes because ROOT has trouble with build/install
     # interface dependencies propagated through corecel
     include_directories(
