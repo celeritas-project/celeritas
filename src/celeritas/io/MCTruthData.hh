@@ -18,6 +18,10 @@ namespace mctruth
  * possible and should not rely on anything other than structs made of
  * primitive types (plus std::vectors), since these can be read directly by
  * ROOT without the need of dictionaries.
+ *
+ * Step and StepPoint naming convention for truth data has the exact same
+ * naming as defined in `celeritas/user/StepData.hh` so that the creation of
+ * branches can be done using macros (see \c RootStepWriter::make_tree() ).
  */
 
 //---------------------------------------------------------------------------//

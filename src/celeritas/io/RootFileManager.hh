@@ -50,10 +50,12 @@ RootFileManager::RootFileManager(const char* filename)
     CELER_EXPECT(strlen(filename));
     CELER_NOT_CONFIGURED("ROOT");
 }
+
 void RootFileManager::close()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
+
 RootFileManager::operator bool() const
 {
     CELER_NOT_CONFIGURED("ROOT");

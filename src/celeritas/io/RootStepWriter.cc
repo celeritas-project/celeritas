@@ -112,13 +112,13 @@ void RootStepWriter::execute(StateHostRef const& steps)
  */
 void RootStepWriter::make_tree()
 {
-#define CREATE_BRANCH_IF_SELECTED(ATTR, REF)        \
-    do                                              \
-    {                                               \
-        if (this->selection_.ATTR)                  \
-        {                                           \
-            this->tstep_tree_->Branch(#ATTR, &REF); \
-        }                                           \
+#define CREATE_BRANCH_IF_SELECTED(ATTR)                     \
+    do                                                      \
+    {                                                       \
+        if (this->selection_.ATTR)                          \
+        {                                                   \
+            this->tstep_tree_->Branch(#ATTR, &tstep_.ATTR); \
+        }                                                   \
     } while (0)
 
 #define CREATE_POINT_BRANCH_IF_SELECTED(ATTR, NAME, REF)                 \
@@ -143,12 +143,12 @@ void RootStepWriter::make_tree()
 
     // Step selection data
     {
-        CREATE_BRANCH_IF_SELECTED(event, tstep_.event);
-        CREATE_BRANCH_IF_SELECTED(track_step_count, tstep_.track_step_count);
-        CREATE_BRANCH_IF_SELECTED(action, tstep_.action);
-        CREATE_BRANCH_IF_SELECTED(step_length, tstep_.step_length);
-        CREATE_BRANCH_IF_SELECTED(particle, tstep_.particle);
-        CREATE_BRANCH_IF_SELECTED(energy_deposition, tstep_.energy_deposition);
+        CREATE_BRANCH_IF_SELECTED(event);
+        CREATE_BRANCH_IF_SELECTED(track_step_count);
+        CREATE_BRANCH_IF_SELECTED(action);
+        CREATE_BRANCH_IF_SELECTED(step_length);
+        CREATE_BRANCH_IF_SELECTED(particle);
+        CREATE_BRANCH_IF_SELECTED(energy_deposition);
     }
 
     // Step point selection data
