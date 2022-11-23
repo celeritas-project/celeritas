@@ -31,9 +31,6 @@ class RootFileManager
     // Construct with filename
     explicit RootFileManager(const char* filename);
 
-    // Write and close TFile (if still open) at destruction time
-    // ~RootFileManager();
-
     // Write TFile
     void write();
 

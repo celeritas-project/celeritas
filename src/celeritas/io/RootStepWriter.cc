@@ -112,8 +112,6 @@ void RootStepWriter::execute(StateHostRef const& steps)
  */
 void RootStepWriter::make_tree()
 {
-    tstep_tree_.reset(new TTree("steps", "steps"));
-
 #define CREATE_BRANCH_IF_SELECTED(ATTR, REF)        \
     do                                              \
     {                                               \
@@ -123,7 +121,26 @@ void RootStepWriter::make_tree()
         }                                           \
     } while (0)
 
-    // Create branches based on the selection_ booleans
+#define CREATE_POINT_BRANCH_IF_SELECTED(ATTR, NAME, REF)               \
+    do                                                                 \
+    {                                                                  \
+        if (this->selection_.ATTR)                                     \
+        {                                                              \
+            std::string leaf(NAME);                                    \
+            if (!std::strcmp(#ATTR, "points[StepPoint::pre].pos")      \
+                || !std::strcmp(#ATTR, "points[StepPoint::post].pos")  \
+                || !std::strcmp(#ATTR, "points[StepPoint::pre].dir")   \
+                || !std::strcmp(#ATTR, "points[StepPoint::post].dir")) \
+            {                                                          \
+                leaf += "[3]";                                         \
+            }                                                          \
+            leaf += "/D";                                              \
+            this->tstep_tree_->Branch(NAME, &REF, leaf.c_str());       \
+        }                                                              \
+    } while (0)
+
+    // Create tree branches based on the selection_ booleans
+    tstep_tree_.reset(new TTree("steps", "steps"));
     CREATE_BRANCH_IF_SELECTED(event, tstep_.event);
     CREATE_BRANCH_IF_SELECTED(track_step_count, tstep_.track_step_count);
     CREATE_BRANCH_IF_SELECTED(action, tstep_.action);
@@ -131,19 +148,37 @@ void RootStepWriter::make_tree()
     CREATE_BRANCH_IF_SELECTED(particle, tstep_.particle);
     CREATE_BRANCH_IF_SELECTED(energy_deposition, tstep_.energy_deposition);
 
-    const auto pre_step  = selection_.points[StepPoint::pre];
-    const auto post_step = selection_.points[StepPoint::post];
+    // Pre-step
+    CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].volume,
+                                    "points.pre.volume",
+                                    tstep_.points[0].volume);
+    CREATE_POINT_BRANCH_IF_SELECTED(
+        points[StepPoint::pre].dir, "points.pre.dir", tstep_.points[0].dir);
+    CREATE_POINT_BRANCH_IF_SELECTED(
+        points[StepPoint::pre].pos, "points.pre.pos", tstep_.points[0].pos);
+    CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].energy,
+                                    "points.pre.energy",
+                                    tstep_.points[0].energy);
+    CREATE_POINT_BRANCH_IF_SELECTED(
+        points[StepPoint::pre].time, "points.pre.time", tstep_.points[0].time);
 
-    if (pre_step || post_step)
-    {
-        CELER_LOG(status) << "am i here?";
-        const char* str_leaves_list
-            = "time[2]/D:pos[2][3]/D:dir[2][3]/D:volume[2]/D:energy[2]/D";
-
-        tstep_tree_->Branch("points", &tstep_.points, str_leaves_list);
-    }
+    // Post-step
+    CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].volume,
+                                    "points.post.volume",
+                                    tstep_.points[0].volume);
+    CREATE_POINT_BRANCH_IF_SELECTED(
+        points[StepPoint::post].dir, "points.post.dir", tstep_.points[0].dir);
+    CREATE_POINT_BRANCH_IF_SELECTED(
+        points[StepPoint::post].pos, "points.post.pos", tstep_.points[0].pos);
+    CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].energy,
+                                    "points.post.energy",
+                                    tstep_.points[0].energy);
+    CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].time,
+                                    "points.post.time",
+                                    tstep_.points[0].time);
 
 #undef CREATE_BRANCH_IF_SELECTED
+#undef CREATE_POINT_BRANCH_IF_SELECTED
 } // namespace celeritas
 
 //---------------------------------------------------------------------------//

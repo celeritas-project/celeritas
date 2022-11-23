@@ -23,20 +23,6 @@ RootFileManager::RootFileManager(const char* filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * Destruct by invoking TFile Write() and Close() if not done so previously.
- */
-/*
-RootFileManager::~RootFileManager()
-{
-    if (tfile_->IsOpen())
-    {
-        this->close();
-    }
-}
-*/
-
-//---------------------------------------------------------------------------//
-/*!
  * Write the TFile before destruction.
  */
 void RootFileManager::write()
