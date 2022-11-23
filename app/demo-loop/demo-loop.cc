@@ -134,7 +134,7 @@ void run(std::istream* is, OutputManager* output)
         StepPointSelection point_selection;
         point_selection.dir    = true;
         point_selection.energy = true;
-        point_selection.pos    = true;
+        point_selection.pos    = false;
         point_selection.time   = true;
         point_selection.volume = true;
 

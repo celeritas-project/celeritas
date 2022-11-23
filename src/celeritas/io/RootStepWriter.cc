@@ -86,14 +86,20 @@ void RootStepWriter::execute(StateHostRef const& steps)
         // Loop for storing pre- and post-step
         for (auto i : range(StepPoint::size_))
         {
-            tstep_.points[(int)i].volume_id = steps.points[i].volume[tid].get();
+            tstep_.points[(int)i].volume = steps.points[i].volume[tid].get();
             tstep_.points[(int)i].energy = steps.points[i].energy[tid].value();
             tstep_.points[(int)i].time   = steps.points[i].time[tid];
 
-            this->copy_real3(steps.points[i].dir[tid],
-                             tstep_.points[(int)i].dir);
-            this->copy_real3(steps.points[i].pos[tid],
-                             tstep_.points[(int)i].pos);
+            if (selection_.points[i].dir)
+            {
+                this->copy_real3(steps.points[i].dir[tid],
+                                 tstep_.points[(int)i].dir);
+            }
+            if (selection_.points[i].pos)
+            {
+                this->copy_real3(steps.points[i].pos[tid],
+                                 tstep_.points[(int)i].pos);
+            }
         }
 
         tstep_tree_->Fill();
@@ -108,88 +114,37 @@ void RootStepWriter::make_tree()
 {
     tstep_tree_.reset(new TTree("steps", "steps"));
 
-    // There must be a better way...
-#define CREATE_BRANCH_IF_SELECTED(SELECTION, NAME, REF) \
-    if (this->SELECTION)                                \
-    {                                                   \
-        this->tstep_tree_->Branch(NAME, REF);           \
-    }
-
-#define CREATE_LEAVES_LIST(SELECTION, NAME, SIZE, LIST)  \
-    auto pre  = this->SELECTION.points[StepPoint::pre];  \
-    auto post = this->SELECTION.points[StepPoint::post]; \
-    if (this->SELECTION.points[StepPoint::pre]           \
-        || this->SELECTION.points[StepPoint::post])      \
-    {                                                    \
-        LIST += NAME + SIZE + "/D:";                     \
-    }
-
-#define CREATE_POINTS_BRANCH_IF_SELECTED(SELECTION, NAME, REF, LIST) \
-    if (this->SELECTION.points[StepPoint::pre]                       \
-        || this->SELECTION.points[StepPoint::post])                  \
-    {                                                                \
-        this->tstep_tree_->Branch(NAME, REF, LIST.c_str());          \
-    }
+#define CREATE_BRANCH_IF_SELECTED(ATTR, REF)        \
+    do                                              \
+    {                                               \
+        if (this->selection_.ATTR)                  \
+        {                                           \
+            this->tstep_tree_->Branch(#ATTR, &REF); \
+        }                                           \
+    } while (0)
 
     // Create branches based on the selection_ booleans
-    CREATE_BRANCH_IF_SELECTED(selection_.event, "event", &tstep_.event);
-    CREATE_BRANCH_IF_SELECTED(selection_.track_step_count,
-                              "track_step_count",
-                              &tstep_.track_step_count);
-    CREATE_BRANCH_IF_SELECTED(selection_.action, "action", &tstep_.action);
-
-    CREATE_BRANCH_IF_SELECTED(
-        selection_.step_length, "step_length", &tstep_.step_length);
-    CREATE_BRANCH_IF_SELECTED(
-        selection_.particle, "particle", &tstep_.particle);
-    CREATE_BRANCH_IF_SELECTED(selection_.energy_deposition,
-                              "energy_deposition",
-                              &tstep_.energy_deposition);
+    CREATE_BRANCH_IF_SELECTED(event, tstep_.event);
+    CREATE_BRANCH_IF_SELECTED(track_step_count, tstep_.track_step_count);
+    CREATE_BRANCH_IF_SELECTED(action, tstep_.action);
+    CREATE_BRANCH_IF_SELECTED(step_length, tstep_.step_length);
+    CREATE_BRANCH_IF_SELECTED(particle, tstep_.particle);
+    CREATE_BRANCH_IF_SELECTED(energy_deposition, tstep_.energy_deposition);
 
     const auto pre_step  = selection_.points[StepPoint::pre];
     const auto post_step = selection_.points[StepPoint::post];
 
-    std::string points_leaves;
-    std::string points_leaves_size = "";
-    if (pre_step && post_step)
+    if (pre_step || post_step)
     {
-        points_leaves_size = "[2]";
-    }
-    else if (pre_step || post_step)
-    {
-        points_leaves_size = "[1]";
-    }
+        CELER_LOG(status) << "am i here?";
+        const char* str_leaves_list
+            = "time[2]/D:pos[2][3]/D:dir[2][3]/D:volume[2]/D:energy[2]/D";
 
-    if (pre_step.time || post_step.time)
-    {
-        points_leaves += "time" + points_leaves_size + "/D:";
+        tstep_tree_->Branch("points", &tstep_.points, str_leaves_list);
     }
-
-    if (pre_step.pos || post_step.pos)
-    {
-        points_leaves += "pos" + points_leaves_size + "[3]/D:";
-    }
-    if (pre_step.dir || post_step.dir)
-    {
-        points_leaves += "dir" + points_leaves_size + "[3]/D:";
-    }
-
-    if (pre_step.volume || post_step.volume)
-    {
-        points_leaves += "volume" + points_leaves_size + "/D:";
-    }
-
-    if (pre_step.energy || post_step.energy)
-    {
-        points_leaves += "energy" + points_leaves_size + "/D";
-    }
-
-    CREATE_POINTS_BRANCH_IF_SELECTED(
-        selection_, "points", &tstep_.points, points_leaves);
 
 #undef CREATE_BRANCH_IF_SELECTED
-#undef CREATE_POINTS_BRANCH_IF_SELECTED
-}
+} // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!

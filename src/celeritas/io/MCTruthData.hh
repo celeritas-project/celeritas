@@ -24,7 +24,7 @@ namespace mctruth
 //! Pre- and post-step point information.
 struct TStepPoint
 {
-    int    volume_id;
+    int    volume;
     double dir[3];
     double pos[3]; //!< [cm]
     double energy; //!< [MeV]
