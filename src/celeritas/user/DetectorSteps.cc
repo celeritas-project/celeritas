@@ -79,13 +79,12 @@ void copy<MemSpace::host>(
     // Get the number of threads that are active and in a detector
     size_type size = count_num_valid(state.detector);
 
-    // Resize output
-    output->detector.resize(size);
-    output->track.resize(size);
-
-    // Resize conditionally if the fields are available
+    // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
     assign_field(&(output->FIELD), state.FIELD, state.detector, size)
+
+    DS_ASSIGN(detector);
+    DS_ASSIGN(track);
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -101,6 +100,9 @@ void copy<MemSpace::host>(
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 #undef DS_ASSIGN
+
+    CELER_ENSURE(output->detector.size() == size);
+    CELER_ENSURE(output->track.size() == size);
 }
 
 //---------------------------------------------------------------------------//

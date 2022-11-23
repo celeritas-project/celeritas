@@ -70,8 +70,8 @@ class CollectionStateStore
     //! Default copy/move construction/assignment
     CollectionStateStore(const CollectionStateStore&)            = default;
     CollectionStateStore& operator=(const CollectionStateStore&) = default;
-    CollectionStateStore(CollectionStateStore&&)            = default;
-    CollectionStateStore& operator=(CollectionStateStore&&) = default;
+    CollectionStateStore(CollectionStateStore&&)                 = default;
+    CollectionStateStore& operator=(CollectionStateStore&&)      = default;
     //!@}
 
     //! Whether any data is being stored
