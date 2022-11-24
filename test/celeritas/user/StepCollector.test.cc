@@ -218,11 +218,11 @@ TEST_F(TestEm3MctruthTest, four_step)
 TEST_F(TestEm3CaloTest, four_step)
 {
     auto result = this->run(256, 32);
-    result.print_expected();
+    // result.print_expected();
 
     static const double expected_edep[]
-        = {1556.8107126148, 107.49535416277, 28.96731890737};
-    EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+        = {1535.4185205798, 109.69434829612, 20.443067191226};
+    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 
 //---------------------------------------------------------------------------//

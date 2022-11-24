@@ -41,7 +41,7 @@ auto ExampleCalorimeters::filters() const -> Filters
 {
     Filters result;
 
-    for (auto didx : range(detectors_.size()))
+    for (auto didx : range<DetectorId::size_type>(detectors_.size()))
     {
         result.detectors[detectors_[didx]] = DetectorId{didx};
     }
