@@ -108,10 +108,12 @@ class TestEm3CollectorTest : public TestEm3Base,
     }
 };
 
+#define TestEm3MctruthTest TEST_IF_CELERITAS_GEANT(TestEm3MctruthTest)
 class TestEm3MctruthTest : public TestEm3CollectorTest, public MctruthTestBase
 {
 };
 
+#define TestEm3CaloTest TEST_IF_CELERITAS_GEANT(TestEm3CaloTest)
 class TestEm3CaloTest : public TestEm3CollectorTest, public CaloTestBase
 {
     VecString get_detector_names() const final
