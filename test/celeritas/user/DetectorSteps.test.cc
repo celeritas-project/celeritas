@@ -195,9 +195,15 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     DetectorStepOutput output;
     copy(&output, device_states.ref());
 
-    PRINT_EXPECTED(extract_ids(output.detector));
+    // Check a subset of the detector IDs
+    auto det_ids = extract_ids(output.detector);
+    det_ids.erase(det_ids.begin() + std::min<std::size_t>(det_ids.size(), 18),
+                  det_ids.end());
+    static const int expected_detector[]
+        = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
+    EXPECT_VEC_EQ(expected_detector, det_ids);
 
-    std::size_t num_tracks = 18;
+    std::size_t num_tracks = 180;
     EXPECT_EQ(num_tracks, output.track.size());
     EXPECT_EQ(num_tracks, output.event.size());
     EXPECT_EQ(num_tracks, output.track_step_count.size());
@@ -264,7 +270,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     DetectorStepOutput output;
     copy(&output, device_states.ref());
 
-    std::size_t num_tracks = 1234;
+    std::size_t num_tracks = 614;
     EXPECT_EQ(num_tracks, output.track.size());
     EXPECT_EQ(0, output.event.size());
     EXPECT_EQ(0, output.track_step_count.size());

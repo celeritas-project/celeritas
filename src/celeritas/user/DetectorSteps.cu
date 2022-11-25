@@ -18,7 +18,7 @@
 
 #include "StepData.hh"
 
-using thrust::device_ptr;
+using thrust::device_pointer_cast;
 
 namespace celeritas
 {
@@ -48,6 +48,24 @@ size_type count_num_valid(const DVecDetector& orig_ids)
 }
 
 //---------------------------------------------------------------------------//
+// Simplify opaque ID pointers to reduce code bloat from identical
+// instantiations
+template<class T>
+struct PointerTransformer
+{
+    constexpr T* operator()(T* v) const { return v; }
+};
+
+template<class V, class S>
+struct PointerTransformer<OpaqueId<V, S>>
+{
+    constexpr S* operator()(OpaqueId<V, S>* v) const
+    {
+        return reinterpret_cast<S*>(v);
+    }
+};
+
+//---------------------------------------------------------------------------//
 template<class T>
 void assign_field(std::vector<T>*     dst,
                   const StateRef<T>&  src,
@@ -61,19 +79,21 @@ void assign_field(std::vector<T>*     dst,
         return;
     }
 
+    PointerTransformer<T> transform_ptr;
+
     // Partition based on detector validity
     auto temp_span = src[AllItems<T>{}];
     thrust::partition(thrust::device,
-                      temp_span.begin(),
-                      temp_span.end(),
+                      transform_ptr(temp_span.begin()),
+                      transform_ptr(temp_span.end()),
                       orig_ids.begin(),
                       HasDetector{});
 
     // Copy all items from valid threads
     dst->resize(size);
-    thrust::copy(device_ptr<T>(temp_span.begin()),
-                 device_ptr<T>(temp_span.begin() + size),
-                 dst->data());
+    thrust::copy(device_pointer_cast(transform_ptr(temp_span.begin())),
+                 device_pointer_cast(transform_ptr(temp_span.begin()) + size),
+                 transform_ptr(dst->data()));
 }
 
 //---------------------------------------------------------------------------//
@@ -98,8 +118,8 @@ void copy<MemSpace::device>(
     thrust::device_vector<DetectorId> orig_ids;
     {
         auto detector_span = state.detector[AllItems<DetectorId>{}];
-        orig_ids.assign(device_ptr<DetectorId>(detector_span.begin()),
-                        device_ptr<DetectorId>(detector_span.end()));
+        orig_ids.assign(device_pointer_cast(detector_span.begin()),
+                        device_pointer_cast(detector_span.end()));
     }
 
     // Get the number of threads that are active and in a detector
