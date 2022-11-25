@@ -81,6 +81,7 @@ template<>
 void copy<MemSpace::host>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::host> const&);
+// XXX copy on device is a *destructive* operation
 template<>
 void copy<MemSpace::device>(
     DetectorStepOutput*,

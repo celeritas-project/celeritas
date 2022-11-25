@@ -195,6 +195,8 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     DetectorStepOutput output;
     copy(&output, device_states.ref());
 
+    PRINT_EXPECTED(extract_ids(output.detector));
+
     std::size_t num_tracks = 18;
     EXPECT_EQ(num_tracks, output.track.size());
     EXPECT_EQ(num_tracks, output.event.size());
@@ -229,7 +231,41 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector));
 
     std::size_t num_tracks = 18;
-    EXPECT_EQ(18, output.track.size());
+    EXPECT_EQ(num_tracks, output.track.size());
+    EXPECT_EQ(0, output.event.size());
+    EXPECT_EQ(0, output.track_step_count.size());
+    EXPECT_EQ(0, output.step_length.size());
+    EXPECT_EQ(0, output.particle.size());
+    EXPECT_EQ(num_tracks, output.energy_deposition.size());
+
+    const auto& pre = output.points[StepPoint::pre];
+    EXPECT_EQ(0, pre.time.size());
+    EXPECT_EQ(num_tracks, pre.pos.size());
+    EXPECT_EQ(0, pre.dir.size());
+    EXPECT_EQ(0, pre.energy.size());
+
+    const auto& post = output.points[StepPoint::post];
+    EXPECT_EQ(0, post.time.size());
+    EXPECT_EQ(num_tracks, post.pos.size());
+    EXPECT_EQ(0, post.dir.size());
+    EXPECT_EQ(0, post.energy.size());
+}
+
+TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
+{
+    CollectionStateStore<StepStateData, MemSpace::device> device_states;
+    {
+        // Create states on host and copy to device
+        auto host_states = this->build_states(1024);
+        device_states    = host_states;
+    }
+
+    // Perform reduction on device and copy back to host
+    DetectorStepOutput output;
+    copy(&output, device_states.ref());
+
+    std::size_t num_tracks = 1234;
+    EXPECT_EQ(num_tracks, output.track.size());
     EXPECT_EQ(0, output.event.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());

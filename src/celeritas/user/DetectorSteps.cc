@@ -17,6 +17,11 @@ namespace
 {
 using DetectorRef
     = celeritas::StateCollection<DetectorId, Ownership::reference, MemSpace::host>;
+
+template<class T>
+using StateRef
+    = celeritas::StateCollection<T, Ownership::reference, MemSpace::host>;
+
 //---------------------------------------------------------------------------//
 size_type count_num_valid(const DetectorRef& detector)
 {
@@ -33,11 +38,10 @@ size_type count_num_valid(const DetectorRef& detector)
 
 //---------------------------------------------------------------------------//
 template<class T>
-void assign_field(
-    std::vector<T>* dst,
-    const celeritas::StateCollection<T, Ownership::reference, MemSpace::host>& src,
-    const DetectorRef& detector,
-    size_type          size)
+void assign_field(std::vector<T>*    dst,
+                  const StateRef<T>& src,
+                  const DetectorRef& detector,
+                  size_type          size)
 
 {
     if (src.empty())
@@ -66,7 +70,7 @@ void assign_field(
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy valid track entries from device to host.
+ * Consolidate results from tracks that interacted with a detector.
  */
 template<>
 void copy<MemSpace::host>(
