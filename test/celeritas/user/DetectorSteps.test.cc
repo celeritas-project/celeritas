@@ -183,45 +183,39 @@ TEST_F(DetectorStepsTest, host)
 
 TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 {
-    CollectionStateStore<StepStateData, MemSpace::device> device_states;
-    {
-        // Create states on host and copy to device
-        auto host_states = this->build_states(300);
-        device_states    = host_states;
-    }
+    auto host_states = this->build_states(300);
+    CollectionStateStore<StepStateData, MemSpace::device> device_states{
+        host_states};
     ASSERT_EQ(300, device_states.size());
+
+    // Construct reference values
+    DetectorStepOutput host_output;
+    copy(&host_output, make_ref(host_states));
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
     copy(&output, device_states.ref());
 
-    // Check a subset of the detector IDs
-    auto det_ids = extract_ids(output.detector);
-    det_ids.erase(det_ids.begin() + std::min<std::size_t>(det_ids.size(), 18),
-                  det_ids.end());
-    static const int expected_detector[]
-        = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
-    EXPECT_VEC_EQ(expected_detector, det_ids);
+    EXPECT_VEC_EQ(host_output.track, output.track);
+    EXPECT_VEC_EQ(host_output.event, output.event);
+    EXPECT_VEC_EQ(host_output.track_step_count, output.track_step_count);
+    EXPECT_VEC_EQ(host_output.step_length, output.step_length);
+    EXPECT_VEC_EQ(host_output.particle, output.particle);
+    EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
 
-    std::size_t num_tracks = 180;
-    EXPECT_EQ(num_tracks, output.track.size());
-    EXPECT_EQ(num_tracks, output.event.size());
-    EXPECT_EQ(num_tracks, output.track_step_count.size());
-    EXPECT_EQ(num_tracks, output.step_length.size());
-    EXPECT_EQ(num_tracks, output.particle.size());
-    EXPECT_EQ(num_tracks, output.energy_deposition.size());
-
+    const auto& host_pre = host_output.points[StepPoint::pre];
     const auto& pre = output.points[StepPoint::pre];
-    EXPECT_EQ(num_tracks, pre.time.size());
-    EXPECT_EQ(num_tracks, pre.pos.size());
-    EXPECT_EQ(num_tracks, pre.dir.size());
-    EXPECT_EQ(num_tracks, pre.energy.size());
+    EXPECT_VEC_EQ(host_pre.time, pre.time);
+    EXPECT_VEC_EQ(host_pre.pos, pre.pos);
+    EXPECT_VEC_EQ(host_pre.dir, pre.dir);
+    EXPECT_VEC_EQ(host_pre.energy, pre.energy);
 
+    const auto& host_post = host_output.points[StepPoint::post];
     const auto& post = output.points[StepPoint::post];
-    EXPECT_EQ(num_tracks, post.time.size());
-    EXPECT_EQ(num_tracks, post.pos.size());
-    EXPECT_EQ(num_tracks, post.dir.size());
-    EXPECT_EQ(num_tracks, post.energy.size());
+    EXPECT_VEC_EQ(host_post.time, post.time);
+    EXPECT_VEC_EQ(host_post.pos, post.pos);
+    EXPECT_VEC_EQ(host_post.dir, post.dir);
+    EXPECT_VEC_EQ(host_post.energy, post.energy);
 }
 
 TEST_F(SmallDetectorStepsTest, host)
