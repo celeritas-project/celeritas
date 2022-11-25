@@ -35,7 +35,7 @@
 #    define CELER_FORCEINLINE __forceinline__
 #elif defined(__HIP__)
 #    define CELER_FUNCTION __host__ __device__
-#    define CELER_FORCEINLINE __attribute__((always_inline))
+#    define CELER_FORCEINLINE inline __attribute__((always_inline))
 #else
 #    define CELER_FUNCTION
 #    if defined(_MSC_VER)
