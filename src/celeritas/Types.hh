@@ -62,6 +62,9 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell>;
 
+//! Opaque index for mapping volume-specific "sensitive detector" objects
+using DetectorId = OpaqueId<struct Detector>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//

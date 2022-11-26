@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/ExampleStepCallback.cc
+//! \file celeritas/user/ExampleMctruth.cc
 //---------------------------------------------------------------------------//
-#include "ExampleStepCallback.hh"
+#include "ExampleMctruth.hh"
 
 #include <algorithm>
 #include <tuple>
@@ -28,7 +28,7 @@ void copy_array(double dst[3], const Real3& src)
 } // namespace
 
 //---------------------------------------------------------------------------//
-StepSelection ExampleStepCallback::selection() const
+StepSelection ExampleMctruth::selection() const
 {
     StepSelection result;
     result.event            = true;
@@ -43,7 +43,7 @@ StepSelection ExampleStepCallback::selection() const
 }
 
 //---------------------------------------------------------------------------//
-void ExampleStepCallback::execute(StateHostRef const& data)
+void ExampleMctruth::execute(StateHostRef const& data)
 {
     for (auto tid : range(ThreadId{data.size()}))
     {
@@ -69,7 +69,7 @@ void ExampleStepCallback::execute(StateHostRef const& data)
 }
 
 //---------------------------------------------------------------------------//
-void ExampleStepCallback::sort()
+void ExampleMctruth::sort()
 {
     std::sort(
         steps_.begin(), steps_.end(), [](const Step& lhs, const Step& rhs) {

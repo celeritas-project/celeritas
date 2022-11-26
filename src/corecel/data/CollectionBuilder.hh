@@ -38,9 +38,8 @@ namespace celeritas
  * The CollectionBuilder can also be used to resize device-value collections
  * without having to allocate a host version and copy to device. (This is
  * useful for state allocations.) When resizing values with debugging
- assertions
- * enabled on host memory, it will assign garbage values to aid in reproducible
- * debugging.)
+ * assertions enabled on host memory, it will assign garbage values to aid in
+ * reproducible debugging.)
  */
 template<class T, MemSpace M, class I>
 class CollectionBuilder
