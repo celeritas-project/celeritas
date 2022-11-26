@@ -8,6 +8,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -17,6 +18,8 @@
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
 #include "CaloTestBase.hh"
+#include "ExampleCalorimeters.hh"
+#include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -30,9 +33,10 @@ namespace test
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class KnStepCollectorTest : public SimpleTestBase,
-                            virtual public StepCollectorTestBase
+class KnStepCollectorTestBase : public SimpleTestBase,
+                                virtual public StepCollectorTestBase
 {
+  protected:
     VecPrimary make_primaries(size_type count) override
     {
         Primary p;
@@ -53,20 +57,19 @@ class KnStepCollectorTest : public SimpleTestBase,
     }
 };
 
-class KnMctruthTest : public KnStepCollectorTest, public MctruthTestBase
+class KnMctruthTest : public KnStepCollectorTestBase, public MctruthTestBase
 {
 };
 
-class KnCaloTest : public KnStepCollectorTest, public CaloTestBase
+class KnCaloTest : public KnStepCollectorTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final { return {"inner"}; }
 };
 
 //---------------------------------------------------------------------------//
 
-#define TestEm3CollectorTest TEST_IF_CELERITAS_GEANT(TestEm3CollectorTest)
-class TestEm3CollectorTest : public TestEm3Base,
-                             virtual public StepCollectorTestBase
+class TestEm3CollectorTestBase : public TestEm3Base,
+                                 virtual public StepCollectorTestBase
 {
     //! Use MSC
     bool enable_msc() const override { return true; }
@@ -109,18 +112,58 @@ class TestEm3CollectorTest : public TestEm3Base,
 };
 
 #define TestEm3MctruthTest TEST_IF_CELERITAS_GEANT(TestEm3MctruthTest)
-class TestEm3MctruthTest : public TestEm3CollectorTest, public MctruthTestBase
+class TestEm3MctruthTest : public TestEm3CollectorTestBase,
+                           public MctruthTestBase
 {
 };
 
 #define TestEm3CaloTest TEST_IF_CELERITAS_GEANT(TestEm3CaloTest)
-class TestEm3CaloTest : public TestEm3CollectorTest, public CaloTestBase
+class TestEm3CaloTest : public TestEm3CollectorTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final
     {
         return {"gap_lv_0", "gap_lv_1", "gap_lv_2"};
     }
 };
+
+//---------------------------------------------------------------------------//
+// ERROR CHECKING
+//---------------------------------------------------------------------------//
+
+TEST_F(KnStepCollectorTestBase, mixing_types)
+{
+    auto calos = std::make_shared<ExampleCalorimeters>(
+        *this->geometry(), std::vector<std::string>{"inner"});
+    auto mctruth = std::make_shared<ExampleMctruth>();
+
+    StepCollector::VecInterface interfaces = {calos, mctruth};
+
+    EXPECT_THROW((StepCollector{std::move(interfaces),
+                                this->geometry(),
+                                this->action_reg().get()}),
+                 celeritas::RuntimeError);
+}
+
+TEST_F(KnStepCollectorTestBase, multiple_interfaces)
+{
+    // Add mctruth twice so each step is doubly written
+    auto                        mctruth = std::make_shared<ExampleMctruth>();
+    StepCollector::VecInterface interfaces = {mctruth, mctruth};
+    auto                        collector  = std::make_shared<StepCollector>(
+        std::move(interfaces), this->geometry(), this->action_reg().get());
+
+    // Do one step with two tracks
+    {
+        StepperInput step_inp;
+        step_inp.params          = this->core();
+        step_inp.num_track_slots = 2;
+
+        Stepper<MemSpace::host> step(step_inp);
+        step(this->make_primaries(2));
+    }
+
+    EXPECT_EQ(4, mctruth->steps().size());
+}
 
 //---------------------------------------------------------------------------//
 // KLEIN-NISHINA
@@ -217,10 +260,9 @@ TEST_F(TestEm3MctruthTest, four_step)
     }
 }
 
-TEST_F(TestEm3CaloTest, four_step)
+TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
     auto result = this->run(256, 32);
-    // result.print_expected();
 
     static const double expected_edep[]
         = {1535.4185205798, 109.69434829612, 20.443067191226};

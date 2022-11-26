@@ -16,6 +16,16 @@
 
 namespace celeritas
 {
+namespace
+{
+enum class HasDetectors
+{
+    unknown = -1,
+    none,
+    all
+};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with options and register pre and/or post-step actions.
@@ -25,20 +35,23 @@ StepCollector::StepCollector(VecInterface    callbacks,
                              ActionRegistry* action_registry)
     : storage_(std::make_shared<detail::StepStorage>())
 {
-    CELER_EXPECT(action_registry);
     CELER_EXPECT(!callbacks.empty());
     CELER_EXPECT(std::all_of(
         callbacks.begin(), callbacks.end(), [](const SPStepInterface& i) {
             return static_cast<bool>(i);
         }));
+    CELER_EXPECT(geo);
+    CELER_EXPECT(action_registry);
 
     // Loop over callbacks to take union of step selections
     StepSelection                    selection;
     StepInterface::MapVolumeDetector detector_map;
-    bool nonzero_energy_deposition{true};
-
+    bool                             nonzero_energy_deposition{true};
     {
         CELER_ASSERT(!selection);
+
+        HasDetectors has_detectors = HasDetectors::unknown;
+
         for (const SPStepInterface& sp_interface : callbacks)
         {
             auto this_selection = sp_interface->selection();
@@ -62,7 +75,20 @@ StepCollector::StepCollector(VecInterface    callbacks,
             }
 
             // Filter out zero-energy steps/tracks only if all detectors agree
-            nonzero_energy_deposition = nonzero_energy_deposition && filters.nonzero_energy_deposition;
+            nonzero_energy_deposition = nonzero_energy_deposition
+                                        && filters.nonzero_energy_deposition;
+
+            auto this_has_detectors = filters.detectors.empty()
+                                          ? HasDetectors::none
+                                          : HasDetectors::all;
+            if (has_detectors == HasDetectors::unknown)
+            {
+                has_detectors = this_has_detectors;
+            }
+            CELER_VALIDATE(this_has_detectors == has_detectors,
+                           << "inconsistent step callbacks: mixing those with "
+                              "detectors and those without is currently "
+                              "unsupported");
         }
         CELER_ASSERT(selection);
     }
