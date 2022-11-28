@@ -8,6 +8,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -71,6 +72,8 @@ class GeoMaterialTest : public GlobalGeoTestBase
 
   private:
     ImportData data_;
+
+    ScopedRootErrorHandler scoped_root_error;
 };
 
 //---------------------------------------------------------------------------//

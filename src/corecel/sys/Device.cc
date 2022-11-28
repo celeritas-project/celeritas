@@ -287,4 +287,19 @@ void set_cuda_stack_size(int limit)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Increase CUDA heap size to enable complex geometries with VecGeom.
+ *
+ * For the cms-hllhc.gdml detector geometry, the 8MB default heap size is too
+ * small, and a new size as high as 33554432 (=32MB) has run successfully.
+ * This should be increased as necessary, but avoid setting it too high.
+ */
+void set_cuda_heap_size(int limit)
+{
+    CELER_EXPECT(limit > 0);
+    CELER_EXPECT(celeritas::device());
+    CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

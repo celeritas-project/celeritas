@@ -43,16 +43,21 @@ void run(std::istream& is)
     auto inp    = nlohmann::json::parse(is);
     auto timers = nlohmann::json::object();
 
+    if (inp.contains("cuda_heap_size"))
+    {
+        int heapSize = inp.at("cuda_heap_size").get<int>();
+        set_cuda_heap_size(heapSize);
+    }
+    if (inp.contains("cuda_stack_size"))
+    {
+        set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
+    }
+
     // Load geometry
     Stopwatch get_time;
     auto      geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
-
-    if (inp.contains("cuda_stack_size"))
-    {
-        set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
-    }
 
     // Construct image
     ImageStore image(inp.at("image").get<ImageRunArgs>());

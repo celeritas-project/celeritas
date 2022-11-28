@@ -31,6 +31,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
@@ -58,6 +59,11 @@ void run(std::istream* is, OutputManager* output)
     // Read input options
     auto inp = nlohmann::json::parse(*is);
 
+    if (inp.contains("cuda_heap_size"))
+    {
+        int heapSize = inp.at("cuda_heap_size").get<int>();
+        set_cuda_heap_size(heapSize);
+    }
     if (inp.contains("cuda_stack_size"))
     {
         celeritas::set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
@@ -134,6 +140,7 @@ void run(std::istream* is, OutputManager* output)
  */
 int main(int argc, char* argv[])
 {
+    ScopedRootErrorHandler scoped_root_error;
     ScopedMpiInit scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm

@@ -17,6 +17,7 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -76,6 +77,8 @@ class UrbanMscTest : public GlobalGeoTestBase
 
     void SetUp() override
     {
+        ScopedRootErrorHandler scoped_root_error_;
+
         RootImporter import_from_root(
             this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
         import_data_    = import_from_root();

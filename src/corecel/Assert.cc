@@ -130,14 +130,16 @@ const char* to_cstring(RuntimeErrorType which)
             return "runtime";
         case RuntimeErrorType::device:
 #if CELERITAS_USE_CUDA
-            return "cuda";
+            return "CUDA";
 #else
             return "device";
 #endif
         case RuntimeErrorType::mpi:
-            return "mpi";
+            return "MPI";
         case RuntimeErrorType::geant:
-            return "geant4";
+            return "Geant4";
+        case RuntimeErrorType::root:
+            return "ROOT";
     }
     return "";
 }
@@ -211,6 +213,19 @@ RuntimeError RuntimeError::from_geant_exception(const char* origin,
                                                 const char* desc)
 {
     return RuntimeError{{RuntimeErrorType::geant, desc, code, origin, 0}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an error message from a Geant4 exception.
+ *
+ * \param origin Usually the function that throws
+ * \param code A computery error code
+ * \param desc Description of the failure
+ */
+RuntimeError RuntimeError::from_root_error(const char* origin, const char* msg)
+{
+    return RuntimeError{{RuntimeErrorType::root, msg, nullptr, origin, 0}};
 }
 
 //---------------------------------------------------------------------------//

@@ -26,13 +26,13 @@ void step_gather_device(CoreRef<MemSpace::device> const&  core,
  * Capture construction arguments.
  */
 template<StepPoint P>
-StepGatherAction<P>::StepGatherAction(ActionId        id,
-                                      SPStepStorage   storage,
-                                      SPStepInterface callback)
-    : id_(id), callback_(std::move(callback)), storage_(std::move(storage))
+StepGatherAction<P>::StepGatherAction(ActionId      id,
+                                      SPStepStorage storage,
+                                      VecInterface  callbacks)
+    : id_(id), storage_(std::move(storage)), callbacks_(std::move(callbacks))
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(callback_ || P == StepPoint::pre);
+    CELER_EXPECT(!callbacks_.empty() || P == StepPoint::pre);
     CELER_EXPECT(storage_);
 }
 
@@ -68,7 +68,10 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 
     if (P == StepPoint::post)
     {
-        (*callback_)(step_state);
+        for (const auto& sp_callback : callbacks_)
+        {
+            sp_callback->execute(step_state);
+        }
     }
 }
 
@@ -82,9 +85,13 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 #if CELER_USE_DEVICE
     auto& step_state = this->get_state(core);
     step_gather_device<P>(core, storage_->params.device_ref(), step_state);
+
     if (P == StepPoint::post)
     {
-        (*callback_)(step_state);
+        for (const auto& sp_callback : callbacks_)
+        {
+            sp_callback->execute(step_state);
+        }
     }
 #else
     (void)sizeof(core);
