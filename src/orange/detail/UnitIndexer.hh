@@ -146,7 +146,7 @@ CELER_FUNCTION UnitIndexer::LocalSurface
 
     UniverseId uni(iter - data_.surfaces[AllVals{}].begin());
     SurfaceId  surface(id - *iter);
-    CELER_ENSURE(uni.get() < this->num_universes());
+    CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }
 

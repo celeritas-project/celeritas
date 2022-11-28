@@ -194,8 +194,7 @@ void from_json(const nlohmann::json& j, UnitInput& value)
         auto parent_cells = j.at("parent_cells").get<std::vector<size_type>>();
         auto daughters    = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_cells.size() == daughters.size(),
-                       << "Fields 'parent_cells' and 'daughters' must have "
-                          "the same length");
+                       << "fields 'parent_cells' and 'daughters' have different lengths");
 
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
