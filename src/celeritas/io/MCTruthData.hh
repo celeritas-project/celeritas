@@ -41,7 +41,7 @@ struct TStepData
 {
     int        event_id;
     int        track_id;
-    int        action;
+    int        action_id;
     int        track_step_count;
     int        particle;          //!< PDG numbering scheme
     TStepPoint points[2];         //!< Pre- and post-step specific data

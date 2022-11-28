@@ -88,7 +88,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             const auto& limit = sim.step_limit();
-            SGL_SET_IF_SELECTED(action, limit.action);
+            SGL_SET_IF_SELECTED(action_id, limit.action);
             SGL_SET_IF_SELECTED(step_length, limit.step);
         }
     }

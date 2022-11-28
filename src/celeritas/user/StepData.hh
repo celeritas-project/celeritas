@@ -71,7 +71,7 @@ struct StepSelection
 
     bool event_id{false};
     bool track_step_count{false};
-    bool action{false};
+    bool action_id{false};
     bool step_length{false};
     bool particle{false};
     bool energy_deposition{false};
@@ -80,7 +80,7 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || track_step_count || action || step_length || particle
+               || track_step_count || action_id || step_length || particle
                || energy_deposition;
     }
 
@@ -94,7 +94,7 @@ struct StepSelection
 
         this->event_id |= other.event_id;
         this->track_step_count |= other.track_step_count;
-        this->action |= other.action;
+        this->action_id |= other.action_id;
         this->step_length |= other.step_length;
         this->particle |= other.particle;
         this->energy_deposition |= other.energy_deposition;
@@ -209,7 +209,7 @@ struct StepStateData
     // Sim
     StateItems<EventId>   event_id;
     StateItems<size_type> track_step_count;
-    StateItems<ActionId>  action;
+    StateItems<ActionId>  action_id;
     StateItems<real_type> step_length;
 
     // Physics
@@ -226,7 +226,7 @@ struct StepStateData
         };
 
         return !track_id.empty() && right_sized(event_id)
-               && right_sized(track_step_count) && right_sized(action)
+               && right_sized(track_step_count) && right_sized(action_id)
                && right_sized(step_length) && right_sized(particle)
                && right_sized(energy_deposition);
     }
@@ -248,7 +248,7 @@ struct StepStateData
         track_id          = other.track_id;
         event_id          = other.event_id;
         track_step_count  = other.track_step_count;
-        action            = other.action;
+        action_id         = other.action_id;
         step_length       = other.step_length;
         particle          = other.particle;
         energy_deposition = other.energy_deposition;
@@ -317,7 +317,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
-    SD_RESIZE_IF_SELECTED(action);
+    SD_RESIZE_IF_SELECTED(action_id);
     SD_RESIZE_IF_SELECTED(particle);
     SD_RESIZE_IF_SELECTED(energy_deposition);
 }

@@ -118,7 +118,7 @@ void run(std::istream* is, OutputManager* output)
         StepSelection selection;
         selection.event_id                = true;
         selection.track_step_count        = true;
-        selection.action                  = true;
+        selection.action_id               = true;
         selection.step_length             = true;
         selection.particle                = true;
         selection.energy_deposition       = true;

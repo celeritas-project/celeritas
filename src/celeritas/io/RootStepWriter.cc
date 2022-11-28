@@ -97,7 +97,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         tstep_.track_id = steps.track_id[tid].unchecked_get();
 
         IF_SELECTED(event_id, steps.event_id[tid].get());
-        IF_SELECTED(action, steps.action[tid].get());
+        IF_SELECTED(action_id, steps.action_id[tid].get());
         IF_SELECTED(particle, particles_->id_to_pdg(steps.particle[tid]).get());
         IF_SELECTED(energy_deposition, steps.energy_deposition[tid].value());
         IF_SELECTED(step_length, steps.step_length[tid]);
@@ -175,7 +175,7 @@ void RootStepWriter::make_tree()
     // Step selection data
     CREATE_BRANCH_IF_SELECTED(event_id);
     CREATE_BRANCH_IF_SELECTED(track_step_count);
-    CREATE_BRANCH_IF_SELECTED(action);
+    CREATE_BRANCH_IF_SELECTED(action_id);
     CREATE_BRANCH_IF_SELECTED(step_length);
     CREATE_BRANCH_IF_SELECTED(particle);
     CREATE_BRANCH_IF_SELECTED(energy_deposition);
