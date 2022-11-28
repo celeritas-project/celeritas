@@ -229,8 +229,7 @@ struct OrangeParamsData
                && universe_index.size() == universe_type.size()
                && ((!volume_ids.empty() && !logic_ints.empty() && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty() && !unit_indexer_data.volumes.empty()
-               && !unit_indexer_data.surfaces.empty();
+               && !volume_records.empty() && unit_indexer_data;
     }
 
     //! Assign from another set of data
@@ -252,8 +251,7 @@ struct OrangeParamsData
         connectivities             = other.connectivities;
         volume_records             = other.volume_records;
         translations               = other.translations;
-        unit_indexer_data.surfaces = other.unit_indexer_data.surfaces;
-        unit_indexer_data.volumes  = other.unit_indexer_data.volumes;
+        unit_indexer_data = other.unit_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;
