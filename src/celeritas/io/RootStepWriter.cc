@@ -7,13 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
-#include <algorithm>
-#include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
-
-#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -106,9 +102,9 @@ void RootStepWriter::execute(StateHostRef const& steps)
         // Store pre- and post-step
         for (auto i : range(StepPoint::size_))
         {
-            const auto selection_point = selection_.points[i];
-            auto&      tpoint          = tstep_.points[(int)i];
-            auto&      point           = steps.points[i];
+            const auto  selection_point = selection_.points[i];
+            const auto& point           = steps.points[i];
+            auto&       tpoint          = tstep_.points[(int)i];
 
             IS_POINT_SELECTED(volume, point.volume[tid].get());
             IS_POINT_SELECTED(energy, point.energy[tid].value());

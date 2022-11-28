@@ -42,19 +42,20 @@ class RootStepWriter final : public StepInterface
     void execute(StateHostRef const& steps) final;
 
     // Not implemented
-    void execute(StateDeviceRef const&) final
+    inline void execute(StateDeviceRef const&) final
     {
         CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
     }
 
     // Selection of data to be stored
-    StepSelection selection() const final { return selection_; }
+    inline StepSelection selection() const final { return selection_; }
 
   private:
     void make_tree();
     // Copy pre- and post-step position and direction arrays
     void copy_real3(const Real3& real3, double output[3]);
 
+  private:
     SPRootFileManager  root_manager_;
     SPParticleParams   particles_;
     StepSelection      selection_;
