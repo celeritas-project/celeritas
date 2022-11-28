@@ -53,36 +53,47 @@ void to_json(nlohmann::json& j, const RuntimeErrorDetails& d)
     details_to_json(j, d);
 }
 
+void json_from_eptr(nlohmann::json& j, const std::exception_ptr& eptr)
+{
+    try
+    {
+        std::rethrow_exception(eptr);
+    }
+    catch (const RuntimeError& e)
+    {
+        j         = e.details();
+        j["type"] = "RuntimeError";
+    }
+    catch (const DebugError& e)
+    {
+        j         = e.details();
+        j["type"] = "DebugError";
+    }
+    catch (const std::exception& e)
+    {
+        // Save unknown exception info
+        TypeDemangler<std::exception> demangle;
+        j = {{"type", demangle(e)}, {"what", e.what()}};
+    }
+    catch (...)
+    {
+        j = {{"type", "unknown"}};
+    }
+}
+
+//---------------------------------------------------------------------------//
 #endif
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an exception object.
- *
- * This saves the type information and message for later output.
+ * Construct with an exception pointer.
  */
-ExceptionOutput::ExceptionOutput(const std::exception& e)
+ExceptionOutput::ExceptionOutput(std::exception_ptr eptr)
 {
+    CELER_EXPECT(eptr);
 #if CELERITAS_USE_JSON
     output_ = std::make_unique<JsonPimpl>();
-    if (auto* d = dynamic_cast<const DebugError*>(&e))
-    {
-        output_->obj         = d->details();
-        output_->obj["type"] = "DebugError";
-    }
-    else if (auto* d = dynamic_cast<const RuntimeError*>(&e))
-    {
-        output_->obj         = d->details();
-        output_->obj["type"] = "RuntimeError";
-    }
-    else
-    {
-        // Save unknown exception info
-        TypeDemangler<std::exception> demangle;
-        output_->obj = {{"type", demangle(e)}, {"what", e.what()}};
-    }
-#else
-    (void)sizeof(e);
+    json_from_eptr(output_->obj, eptr);
 #endif
 }
 

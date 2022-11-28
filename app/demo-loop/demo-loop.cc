@@ -207,7 +207,8 @@ int main(int argc, char* argv[])
         CELER_LOG(critical)
             << "While running input at  " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
-        output.insert(std::make_shared<ExceptionOutput>(e));
+        output.insert(
+            std::make_shared<ExceptionOutput>(std::current_exception()));
     }
 
     // Write system properties and (if available) results
