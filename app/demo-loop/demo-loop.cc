@@ -140,6 +140,7 @@ void run(std::istream* is, OutputManager* output)
 
         StepSelection selection;
         selection.event                   = true;
+        selection.track                   = true;
         selection.track_step_count        = true;
         selection.action                  = true;
         selection.step_length             = true;

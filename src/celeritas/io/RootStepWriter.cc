@@ -55,6 +55,33 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
+#define IS_SELECTED(ATTR, VAL) \
+    do                         \
+    {                          \
+        if (selection_.ATTR)   \
+        {                      \
+            tstep_.ATTR = VAL; \
+        }                      \
+    } while (0)
+
+#define IS_POINT_SELECTED(ATTR, VAL) \
+    do                               \
+    {                                \
+        if (selection_point.ATTR)    \
+        {                            \
+            tpoint.ATTR = VAL;       \
+        }                            \
+    } while (0)
+
+#define IS_POINT_REAL3_SELECTED(ATTR, TPOINT)          \
+    do                                                 \
+    {                                                  \
+        if (selection_point.ATTR)                      \
+        {                                              \
+            this->copy_real3(point.ATTR[tid], TPOINT); \
+        }                                              \
+    } while (0)
+
     // TODO: add selection_ options for storing data
     CELER_EXPECT(steps);
     tstep_ = mctruth::TStepData();
@@ -68,47 +95,50 @@ void RootStepWriter::execute(StateHostRef const& steps)
             continue;
         }
 
-        tstep_.event    = steps.event[tid].get();
-        tstep_.track    = steps.track[tid].unchecked_get();
-        tstep_.action   = steps.action[tid].get();
-        tstep_.particle = particles_->id_to_pdg(steps.particle[tid]).get();
-        tstep_.energy_deposition = steps.energy_deposition[tid].value();
-        tstep_.step_length       = steps.step_length[tid];
-        tstep_.track_step_count  = steps.track_step_count[tid];
-
-        if (!selection_.points[StepPoint::pre]
-            && !selection_.points[StepPoint::post])
-        {
-            // Do not store step point data
-            continue;
-        }
+        IS_SELECTED(event, steps.event[tid].get());
+        IS_SELECTED(track, steps.track[tid].unchecked_get());
+        IS_SELECTED(action, steps.action[tid].get());
+        IS_SELECTED(particle, particles_->id_to_pdg(steps.particle[tid]).get());
+        IS_SELECTED(energy_deposition, steps.energy_deposition[tid].value());
+        IS_SELECTED(step_length, steps.step_length[tid]);
+        IS_SELECTED(track_step_count, steps.track_step_count[tid]);
 
         // Store pre- and post-step
         for (auto i : range(StepPoint::size_))
         {
-            tstep_.points[(int)i].volume = steps.points[i].volume[tid].get();
-            tstep_.points[(int)i].energy = steps.points[i].energy[tid].value();
-            tstep_.points[(int)i].time   = steps.points[i].time[tid];
+            const auto selection_point = selection_.points[i];
+            auto&      tpoint          = tstep_.points[(int)i];
+            auto&      point           = steps.points[i];
 
-            if (selection_.points[i].dir)
-            {
-                this->copy_real3(steps.points[i].dir[tid],
-                                 tstep_.points[(int)i].dir);
-            }
-            if (selection_.points[i].pos)
-            {
-                this->copy_real3(steps.points[i].pos[tid],
-                                 tstep_.points[(int)i].pos);
-            }
+            IS_POINT_SELECTED(volume, point.volume[tid].get());
+            IS_POINT_SELECTED(energy, point.energy[tid].value());
+            IS_POINT_SELECTED(time, point.time[tid]);
+            IS_POINT_REAL3_SELECTED(pos, tpoint.pos);
+            IS_POINT_REAL3_SELECTED(dir, tpoint.dir);
         }
 
         tstep_tree_->Fill();
     }
-}
+
+#undef IS_SELECTED
+#undef IS_POINT_SELECTED
+#undef IS_POINT_REAL3_SELECTED
+} // namespace celeritas
 
 //---------------------------------------------------------------------------//
 /*!
- * TBD
+ * Set up steps tree. In order to have the option to individually select any
+ * member of `StepStateData` (defined in StepData.hh) to be stored into the
+ * ROOT file, we cannot store an MC truth step object. This is accomplished by
+ * "flattening" the data so that each member of `TStepData` (MCTruthData.hh) is
+ * an individual branch that can be created based on the `StepSelection`
+ * booleans.
+ *
+ * To simplify the process of moving from Collection to a ROOT branch
+ * `TStepData` members *must* have the *exact* same name as the Collection
+ * members of `StepStateData`. This allows the use of C++ macros to
+ * automatically create ROOT branches with the same names as the struct
+ * elements.
  */
 void RootStepWriter::make_tree()
 {
@@ -144,6 +174,7 @@ void RootStepWriter::make_tree()
     // Step selection data
     {
         CREATE_BRANCH_IF_SELECTED(event);
+        CREATE_BRANCH_IF_SELECTED(track);
         CREATE_BRANCH_IF_SELECTED(track_step_count);
         CREATE_BRANCH_IF_SELECTED(action);
         CREATE_BRANCH_IF_SELECTED(step_length);

@@ -70,6 +70,7 @@ struct StepSelection
     EnumArray<StepPoint, StepPointSelection> points;
 
     bool event{false};
+    bool track{false};
     bool track_step_count{false};
     bool action{false};
     bool step_length{false};
@@ -80,8 +81,8 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event
-               || track_step_count || action || step_length || particle
-               || energy_deposition;
+               || track || track_step_count || action || step_length
+               || particle || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -93,6 +94,7 @@ struct StepSelection
         }
 
         this->event |= other.event;
+        this->track |= other.track;
         this->track_step_count |= other.track_step_count;
         this->action |= other.action;
         this->step_length |= other.step_length;
@@ -245,13 +247,13 @@ struct StepStateData
             points[sp] = other.points[sp];
         }
 
-        track                   = other.track;
-        event                   = other.event;
-        track_step_count        = other.track_step_count;
-        action                  = other.action;
-        step_length             = other.step_length;
-        particle                = other.particle;
-        energy_deposition       = other.energy_deposition;
+        track             = other.track;
+        event             = other.event;
+        track_step_count  = other.track_step_count;
+        action            = other.action;
+        step_length       = other.step_length;
+        particle          = other.particle;
+        energy_deposition = other.energy_deposition;
         return *this;
     }
 };
