@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "celeritas/io/MCTruthData.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -42,13 +44,13 @@ class RootStepWriter final : public StepInterface
     void execute(StateHostRef const& steps) final;
 
     // Not implemented
-    inline void execute(StateDeviceRef const&) final
+    void execute(StateDeviceRef const&) final
     {
         CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
     }
 
     // Selection of data to be stored
-    inline StepSelection selection() const final { return selection_; }
+    StepSelection selection() const final { return selection_; }
 
   private:
     void make_tree();
@@ -63,6 +65,21 @@ class RootStepWriter final : public StepInterface
     TRootUP<TBranch>   tstep_branch_;
     mctruth::TStepData tstep_;
 };
+
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_ROOT
+RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
+                               SPParticleParams  particle_params,
+                               StepSelection     selection)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+void RootStepWriter::execute(StateHostRef const& steps)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

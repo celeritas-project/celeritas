@@ -9,7 +9,8 @@ set(PRIVATE_DEPS Celeritas::DeviceToolkit)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 
-# Add an object library to limit the propagation of includes to the rest of the library.
+# Add an object library to limit the propagation of includes to the rest of the
+# library.
 macro(celeritas_add_object_library target)
   add_library(${target} OBJECT ${ARGN})
   install(TARGETS ${target}
@@ -169,7 +170,6 @@ if(CELERITAS_USE_ROOT)
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
       "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/MCTruthData.hh"
       NOINSTALL
       MODULE celeritas
       LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"

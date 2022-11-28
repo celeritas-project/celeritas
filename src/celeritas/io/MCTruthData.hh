@@ -39,8 +39,8 @@ struct TStepPoint
 //! Full step data.
 struct TStepData
 {
-    int        event;
-    int        track;
+    int        event_id;
+    int        track_id;
     int        action;
     int        track_step_count;
     int        particle;          //!< PDG numbering scheme

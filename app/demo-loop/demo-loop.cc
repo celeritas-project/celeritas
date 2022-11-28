@@ -94,6 +94,48 @@ void run(std::istream* is, OutputManager* output)
             std::make_shared<ActionRegistryOutput>(params.action_reg()));
     }
 
+    // Save results to ROOT MC truth output file
+    std::shared_ptr<RootFileManager> root_manager;
+    std::shared_ptr<StepCollector>   step_colector;
+    std::shared_ptr<RootStepWriter>  step_writer;
+
+    if (!run_args.mctruth_filename.empty())
+    {
+        CELER_LOG(info) << "Writing ROOT MC truth output at "
+                        << run_args.mctruth_filename.c_str();
+
+        // ROOT MC truth filename provided
+        root_manager = std::make_shared<RootFileManager>(
+            run_args.mctruth_filename.c_str());
+
+        StepPointSelection point_selection;
+        point_selection.dir    = true;
+        point_selection.energy = true;
+        point_selection.pos    = true;
+        point_selection.time   = true;
+        point_selection.volume = true;
+
+        StepSelection selection;
+        selection.event_id                = true;
+        selection.track_step_count        = true;
+        selection.action                  = true;
+        selection.step_length             = true;
+        selection.particle                = true;
+        selection.energy_deposition       = true;
+        selection.points[StepPoint::pre]  = point_selection;
+        selection.points[StepPoint::post] = point_selection;
+
+        step_writer = std::make_shared<RootStepWriter>(
+            root_manager, transport_ptr->params().particle(), selection);
+
+        step_colector = std::make_shared<StepCollector>(
+            StepCollector::VecInterface{step_writer},
+            transport_ptr->params().action_reg().get());
+
+        // Store input data
+        to_root(root_manager, run_args);
+    }
+
     // Run all the primaries
     TransporterResult    result;
     std::vector<Primary> primaries;
@@ -121,58 +163,20 @@ void run(std::istream* is, OutputManager* output)
         }
     }
 
-    std::shared_ptr<RootFileManager> root_manager;
-    std::shared_ptr<RootStepWriter>  step_writer;
-    std::shared_ptr<StepCollector>   step_colector;
-
-    if (!run_args.mctruth_filename.empty())
-    {
-        // ROOT MC truth filename provided
-        root_manager = std::make_shared<RootFileManager>(
-            run_args.mctruth_filename.c_str());
-
-        StepPointSelection point_selection;
-        point_selection.dir    = true;
-        point_selection.energy = true;
-        point_selection.pos    = true;
-        point_selection.time   = true;
-        point_selection.volume = true;
-
-        StepSelection selection;
-        selection.event                   = true;
-        selection.track                   = true;
-        selection.track_step_count        = true;
-        selection.action                  = true;
-        selection.step_length             = true;
-        selection.particle                = true;
-        selection.energy_deposition       = true;
-        selection.points[StepPoint::pre]  = point_selection;
-        selection.points[StepPoint::post] = point_selection;
-
-        step_writer = std::make_shared<RootStepWriter>(
-            root_manager, transport_ptr->params().particle(), selection);
-
-        step_colector = std::make_shared<StepCollector>(
-            StepCollector::VecInterface{step_writer},
-            transport_ptr->params().action_reg().get());
-
-        // Store input data
-        to_root(root_manager, run_args);
-    }
-
-    result = (*transport_ptr)(primaries);
-
-    if (root_manager)
-    {
-        root_manager->write();
-    }
-
+    // Transport
+    result            = (*transport_ptr)(primaries);
     result.time.setup = setup_time;
 
     // TODO: convert individual results into OutputInterface so we don't have
     // to use this ugly "global" hack
     output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(
         OutputInterface::Category::result, "*", std::move(result)));
+
+    if (root_manager)
+    {
+        // Write ROOT file to disk
+        root_manager->write();
+    }
 }
 } // namespace
 

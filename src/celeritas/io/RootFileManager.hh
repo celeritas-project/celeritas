@@ -51,7 +51,7 @@ RootFileManager::RootFileManager(const char* filename)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void RootFileManager::close()
+void RootFileManager::write()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

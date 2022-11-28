@@ -71,8 +71,8 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->step_state.track[thread] = inactive ? TrackId{}
-                                                      : sim.track_id();
+            this->step_state.track_id[thread] = inactive ? TrackId{}
+                                                         : sim.track_id();
         }
 
         if (inactive)
@@ -84,7 +84,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
         if (P == StepPoint::post)
         {
-            SGL_SET_IF_SELECTED(event, sim.event_id());
+            SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             const auto& limit = sim.step_limit();

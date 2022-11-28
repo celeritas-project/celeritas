@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
+#include <algorithm>
+#include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -35,7 +37,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
  * Set the number of entries (i.e. number of steps) stored in memory before
  * ROOT flushes the data to disk. Default is ~32MB of compressed data.
  *
- * See ROOT TTree Class reference for details:
+ * See `SetAutoFlush` in ROOT TTree Class reference for details:
  * https://root.cern.ch/doc/master/classTTree.html
  */
 void RootStepWriter::set_auto_flush(long num_entries)
@@ -51,7 +53,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
-#define IS_SELECTED(ATTR, VAL) \
+#define IF_SELECTED(ATTR, VAL) \
     do                         \
     {                          \
         if (selection_.ATTR)   \
@@ -60,7 +62,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }                      \
     } while (0)
 
-#define IS_POINT_SELECTED(ATTR, VAL) \
+#define IF_POINT_SELECTED(ATTR, VAL) \
     do                               \
     {                                \
         if (selection_point.ATTR)    \
@@ -69,7 +71,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }                            \
     } while (0)
 
-#define IS_POINT_REAL3_SELECTED(ATTR, TPOINT)          \
+#define IF_POINT_REAL3_SELECTED(ATTR, TPOINT)          \
     do                                                 \
     {                                                  \
         if (selection_point.ATTR)                      \
@@ -85,19 +87,21 @@ void RootStepWriter::execute(StateHostRef const& steps)
     // Loop over thread ids and fill TTree
     for (const auto tid : range(ThreadId{steps.size()}))
     {
-        if (!steps.track[tid])
+        if (!steps.track_id[tid])
         {
             // Track id not found; skip inactive track slot
             continue;
         }
 
-        IS_SELECTED(event, steps.event[tid].get());
-        IS_SELECTED(track, steps.track[tid].unchecked_get());
-        IS_SELECTED(action, steps.action[tid].get());
-        IS_SELECTED(particle, particles_->id_to_pdg(steps.particle[tid]).get());
-        IS_SELECTED(energy_deposition, steps.energy_deposition[tid].value());
-        IS_SELECTED(step_length, steps.step_length[tid]);
-        IS_SELECTED(track_step_count, steps.track_step_count[tid]);
+        // Track id is always set
+        tstep_.track_id = steps.track_id[tid].unchecked_get();
+
+        IF_SELECTED(event_id, steps.event_id[tid].get());
+        IF_SELECTED(action, steps.action[tid].get());
+        IF_SELECTED(particle, particles_->id_to_pdg(steps.particle[tid]).get());
+        IF_SELECTED(energy_deposition, steps.energy_deposition[tid].value());
+        IF_SELECTED(step_length, steps.step_length[tid]);
+        IF_SELECTED(track_step_count, steps.track_step_count[tid]);
 
         // Store pre- and post-step
         for (auto i : range(StepPoint::size_))
@@ -106,19 +110,19 @@ void RootStepWriter::execute(StateHostRef const& steps)
             const auto& point           = steps.points[i];
             auto&       tpoint          = tstep_.points[(int)i];
 
-            IS_POINT_SELECTED(volume, point.volume[tid].get());
-            IS_POINT_SELECTED(energy, point.energy[tid].value());
-            IS_POINT_SELECTED(time, point.time[tid]);
-            IS_POINT_REAL3_SELECTED(pos, tpoint.pos);
-            IS_POINT_REAL3_SELECTED(dir, tpoint.dir);
+            IF_POINT_SELECTED(volume, point.volume[tid].get());
+            IF_POINT_SELECTED(energy, point.energy[tid].value());
+            IF_POINT_SELECTED(time, point.time[tid]);
+            IF_POINT_REAL3_SELECTED(pos, tpoint.pos);
+            IF_POINT_REAL3_SELECTED(dir, tpoint.dir);
         }
 
         tstep_tree_->Fill();
     }
 
-#undef IS_SELECTED
-#undef IS_POINT_SELECTED
-#undef IS_POINT_REAL3_SELECTED
+#undef IF_SELECTED
+#undef IF_POINT_SELECTED
+#undef IF_POINT_REAL3_SELECTED
 } // namespace celeritas
 
 //---------------------------------------------------------------------------//
@@ -166,21 +170,19 @@ void RootStepWriter::make_tree()
     } while (0)
 
     tstep_tree_.reset(new TTree("steps", "steps"));
+    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
 
     // Step selection data
-    {
-        CREATE_BRANCH_IF_SELECTED(event);
-        CREATE_BRANCH_IF_SELECTED(track);
-        CREATE_BRANCH_IF_SELECTED(track_step_count);
-        CREATE_BRANCH_IF_SELECTED(action);
-        CREATE_BRANCH_IF_SELECTED(step_length);
-        CREATE_BRANCH_IF_SELECTED(particle);
-        CREATE_BRANCH_IF_SELECTED(energy_deposition);
-    }
+    CREATE_BRANCH_IF_SELECTED(event_id);
+    CREATE_BRANCH_IF_SELECTED(track_step_count);
+    CREATE_BRANCH_IF_SELECTED(action);
+    CREATE_BRANCH_IF_SELECTED(step_length);
+    CREATE_BRANCH_IF_SELECTED(particle);
+    CREATE_BRANCH_IF_SELECTED(energy_deposition);
 
-    // Step point selection data
+    // Step point selection data //
+    // Pre-step
     {
-        // Pre-step
         CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].volume,
                                         "points.pre.volume",
                                         tstep_.points[0].volume);
@@ -194,7 +196,10 @@ void RootStepWriter::make_tree()
         CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].time,
                                         "points.pre.time",
                                         tstep_.points[0].time);
-        // Post-step
+    }
+
+    // Post-step
+    {
         CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].volume,
                                         "points.post.volume",
                                         tstep_.points[1].volume);

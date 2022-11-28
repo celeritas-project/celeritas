@@ -69,8 +69,7 @@ struct StepSelection
 {
     EnumArray<StepPoint, StepPointSelection> points;
 
-    bool event{false};
-    bool track{false};
+    bool event_id{false};
     bool track_step_count{false};
     bool action{false};
     bool step_length{false};
@@ -80,9 +79,9 @@ struct StepSelection
     //! Whether any selection is requested
     explicit CELER_FUNCTION operator bool() const
     {
-        return points[StepPoint::pre] || points[StepPoint::post] || event
-               || track || track_step_count || action || step_length
-               || particle || energy_deposition;
+        return points[StepPoint::pre] || points[StepPoint::post] || event_id
+               || track_step_count || action || step_length || particle
+               || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -93,8 +92,7 @@ struct StepSelection
             points[sp] |= other.points[sp];
         }
 
-        this->event |= other.event;
-        this->track |= other.track;
+        this->event_id |= other.event_id;
         this->track_step_count |= other.track_step_count;
         this->action |= other.action;
         this->step_length |= other.step_length;
@@ -206,10 +204,10 @@ struct StepStateData
     EnumArray<StepPoint, StepPointData> points;
 
     // Track ID is always set
-    StateItems<TrackId> track;
+    StateItems<TrackId> track_id;
 
     // Sim
-    StateItems<EventId>   event;
+    StateItems<EventId>   event_id;
     StateItems<size_type> track_step_count;
     StateItems<ActionId>  action;
     StateItems<real_type> step_length;
@@ -227,14 +225,14 @@ struct StepStateData
             return (t.size() == this->size()) || t.empty();
         };
 
-        return !track.empty() && right_sized(event)
+        return !track_id.empty() && right_sized(event_id)
                && right_sized(track_step_count) && right_sized(action)
                && right_sized(step_length) && right_sized(particle)
                && right_sized(energy_deposition);
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return track.size(); }
+    CELER_FUNCTION ThreadId::size_type size() const { return track_id.size(); }
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
@@ -247,8 +245,8 @@ struct StepStateData
             points[sp] = other.points[sp];
         }
 
-        track             = other.track;
-        event             = other.event;
+        track_id          = other.track_id;
+        event_id          = other.event_id;
         track_step_count  = other.track_step_count;
         action            = other.action;
         step_length       = other.step_length;
@@ -314,9 +312,9 @@ inline void resize(StepStateData<Ownership::value, M>* state,
         }                               \
     } while (0)
 
-    resize(&state->track, size);
+    resize(&state->track_id, size);
 
-    SD_RESIZE_IF_SELECTED(event);
+    SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
     SD_RESIZE_IF_SELECTED(action);
