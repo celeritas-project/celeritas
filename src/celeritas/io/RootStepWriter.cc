@@ -22,11 +22,13 @@ namespace celeritas
  */
 RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
                                SPParticleParams  particle_params,
-                               StepSelection     selection)
+                               StepSelection     selection,
+                               Filters           filters)
     : StepInterface()
     , root_manager_(io_manager)
     , particles_(particle_params)
     , selection_(selection)
+    , filters_(filters)
 {
     CELER_EXPECT(root_manager_);
     this->make_tree();

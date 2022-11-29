@@ -138,65 +138,64 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_ROOT)
+  include(${ROOT_USE_FILE})
   list(APPEND SOURCES
     io/RootFileManager.cc
     io/RootStepWriter.cc
   )
 
-  # Call the ROOT library generation inside a function to prevent ROOT-defined
-  # directory properties from escaping
-  function(celeritas_root_library objlib root_tgt)
-    include(${ROOT_USE_FILE})
-    # Use directory includes because ROOT has trouble with build/install
-    # interface dependencies propagated through corecel
-    include_directories(
-      "${PROJECT_SOURCE_DIR}/src"
-      "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
-    )
+  # Use directory includes because ROOT has trouble with build/install
+  # interface dependencies propagated through corecel.
+  # This is safe here as it is only adding project-local paths that are
+  # identical to those set in corecel's usage requirments.
+  include_directories(
+    "${PROJECT_SOURCE_DIR}/src"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
+  )
 
-    # Set the CMAKE output directory locally to inform ROOT where we put our
-    # libs
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
+  # Set the CMAKE output directory locally to inform ROOT where we put our
+  # libs. Safe against overriding project settings as the celeritas_add_...
+  # functions set this to the same value for our targets.
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
 
-    # Generate the ROOT dictionary
-    root_generate_dictionary(${root_tgt}
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportMaterial.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportParticle.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsTable.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
-      "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
-      NOINSTALL
-      MODULE celeritas
-      LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
-    )
-    celeritas_add_object_library(${objlib}
-      ext/RootExporter.cc
-      ext/RootImporter.cc
-      ext/detail/TRootUniquePtr.root.cc
-      io/
-      "${CMAKE_CURRENT_BINARY_DIR}/${root_tgt}.cxx"
-    )
-    target_link_libraries(${objlib}
-      PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
-    )
+  # Generate the dictionary source file
+  root_generate_dictionary(CeleritasRootInterface
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportMaterial.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportParticle.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsTable.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
+    NOINSTALL
+    MODULE celeritas
+    LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
+  )
+  celeritas_add_object_library(celeritas_root
+    ext/RootExporter.cc
+    ext/RootImporter.cc
+    ext/ScopedRootErrorHandler.cc
+    ext/detail/TRootUniquePtr.root.cc
+    "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
+  )
 
-    # Install the rootmap/pcm files needed for users or downstream apps to use
-    # Celeritas ROOT interfaces
-    set(_lib_prefix
-      "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas"
-    )
-    install(FILES
-      "${_lib_prefix}.rootmap"
-      "${_lib_prefix}_rdict.pcm"
-      COMPONENT runtime
-      DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    )
-  endfunction()
+  target_link_libraries(celeritas_root
+    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
+  )
 
-  celeritas_root_library(celeritas_root CeleritasRootInterface)
+  # Install the rootmap/pcm files needed for users or downstream apps to use
+  # Celeritas ROOT interfaces
+  set(_lib_prefix
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas"
+  )
+  install(FILES
+    "${_lib_prefix}.rootmap"
+    "${_lib_prefix}_rdict.pcm"
+    COMPONENT runtime
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  )
+
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_root>)
   list(APPEND PRIVATE_DEPS celeritas_root)
 endif()
