@@ -47,10 +47,7 @@ class RootStepWriter final : public StepInterface
     void execute(StateHostRef const& steps) final;
 
     // Not implemented
-    inline void execute(StateDeviceRef const&) final
-    {
-        CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
-    }
+    void execute(StateDeviceRef const&) final {}
 
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
