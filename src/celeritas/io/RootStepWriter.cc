@@ -129,12 +129,11 @@ void RootStepWriter::execute(StateHostRef const& steps)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up steps tree. In order to have the option to individually select any
- * member of `StepStateData` (defined in StepData.hh) to be stored into the
- * ROOT file, we cannot store an MC truth step object. This is accomplished by
- * "flattening" the data so that each member of `TStepData` (MCTruthData.hh) is
- * an individual branch that can be created based on the `StepSelection`
- * booleans.
+ * Create steps tree. In order to have the option to individually select any
+ * member of `StepStateData` (StepData.hh) to be stored into the ROOT file, we
+ * cannot store an MC truth step object. This is accomplished by "flattening"
+ * the data so that each member of `TStepData` (MCTruthData.hh) is an
+ * individual branch that can be created based on the `StepSelection` booleans.
  *
  * To simplify the process of moving from Collection to a ROOT branch
  * `TStepData` members *must* have the *exact* same name as the Collection

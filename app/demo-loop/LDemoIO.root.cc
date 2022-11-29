@@ -17,8 +17,8 @@ namespace demo_loop
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args)
 {
-    CELER_ASSERT(args);
-    CELER_ASSERT(root_manager);
+    CELER_EXPECT(root_manager);
+    CELER_EXPECT(args);
 
     // So far RootFileManager has only a single TFile instance and ROOT knows
     // that this new TTree has to be attached to this single TFile. If we
@@ -59,6 +59,7 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
 
     // TODO Add magnetic field information?
 
+    // Fill tree and write it to file
     tree_input->Fill();
     tree_input->Write();
 }

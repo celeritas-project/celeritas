@@ -23,7 +23,7 @@ RootFileManager::RootFileManager(const char* filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write the TFile before destruction.
+ * Write TFile to disk.
  */
 void RootFileManager::write()
 {

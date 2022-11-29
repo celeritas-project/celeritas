@@ -109,7 +109,6 @@ void run(std::istream* is, OutputManager* output)
         CELER_LOG(info) << "Writing ROOT MC truth output at "
                         << run_args.mctruth_filename.c_str();
 
-        // ROOT MC truth filename provided
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
 

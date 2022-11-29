@@ -37,7 +37,6 @@ class RootFileManager
 
   private:
     using UPTFile = detail::TRootUniquePtr<TFile>;
-
     UPTFile tfile_;
 };
 

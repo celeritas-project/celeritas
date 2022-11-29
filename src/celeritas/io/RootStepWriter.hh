@@ -59,7 +59,9 @@ class RootStepWriter final : public StepInterface
     Filters filters() const final { return filters_; }
 
   private:
+    // Create steps tree based on selection_ booleans
     void make_tree();
+
     // Copy pre- and post-step position and direction arrays
     void copy_real3(const Real3& real3, double output[3]);
 
