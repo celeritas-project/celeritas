@@ -82,13 +82,6 @@ list(APPEND SOURCES
   user/StepCollector.cc
 )
 
-if(CELERITAS_USE_ROOT)
-  list(APPEND SOURCES 
-    io/RootFileManager.cc
-    io/RootStepWriter.cc
-  )
-endif()
-
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
@@ -145,6 +138,11 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_ROOT)
+  list(APPEND SOURCES
+    io/RootFileManager.cc
+    io/RootStepWriter.cc
+  )
+
   # Call the ROOT library generation inside a function to prevent ROOT-defined
   # directory properties from escaping
   function(celeritas_root_library objlib root_tgt)
@@ -178,6 +176,7 @@ if(CELERITAS_USE_ROOT)
       ext/RootExporter.cc
       ext/RootImporter.cc
       ext/detail/TRootUniquePtr.root.cc
+      io/
       "${CMAKE_CURRENT_BINARY_DIR}/${root_tgt}.cxx"
     )
     target_link_libraries(${objlib}

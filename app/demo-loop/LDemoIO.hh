@@ -40,7 +40,7 @@ struct LDemoArgs
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;   //!< Path to HepMC3 event data
-    std::string mctruth_filename;  //!< Path to ROOT MCTruth event data
+    std::string mctruth_filename;  //!< Path to ROOT MC truth event data
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;
@@ -94,16 +94,17 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
 
-// I do not like this
+// Store LDemoArgs to ROOT file when ROOT is available
 #if CELERITAS_USE_ROOT
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args);
+
 #else
 void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args)
 {
+    CELER_EXPECT(root_manager == nullptr);
     CELER_ASSERT(args);
-    CELER_ASSERT(root_manager == nullptr);
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif

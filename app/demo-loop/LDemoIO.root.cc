@@ -20,11 +20,10 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
     CELER_ASSERT(args);
     CELER_ASSERT(root_manager);
 
-    // So far RootFileManager has only a single TFile instance and ROOT
-    // knows that this new TTree has to be attached to this single TFile.
-    // If we expand it to a RootFileManager::tfile_[tid] we'd need to
-    // specify the correct TFile* by invoking TTree("name", "title",
-    // TFile*).
+    // So far RootFileManager has only a single TFile instance and ROOT knows
+    // that this new TTree has to be attached to this single TFile. If we
+    // expand it to a RootFileManager::tfile_[tid] we'd need to specify the
+    // correct TFile* by invoking TTree("name", "title", TFile*).
     std::unique_ptr<TTree> tree_input
         = std::make_unique<TTree>("input", "input");
 
@@ -36,9 +35,8 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
     // Control
     tree_input->Branch("seed", &args.seed);
     // {
-    // Celeritas' type aliases have to be manually casted to be stored
-    // properly See leaflist types:
-    // https://root.cern.ch/doc/master/classTBranch.html
+    // Celeritas' type aliases have to be manually casted to be stored properly
+    // See leaflist types: https://root.cern.ch/doc/master/classTBranch.html
     tree_input->Branch(
         "max_num_tracks", &args.max_num_tracks, "max_num_tracks/l");
     tree_input->Branch("max_steps", &args.max_steps, "max_num_steps/l");
@@ -59,7 +57,7 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
     // Options for physics processes and models
     tree_input->Branch("combined_brem", &args.brem_combined);
 
-    // TODO Magnetic field information?
+    // TODO Add magnetic field information?
 
     tree_input->Fill();
     tree_input->Write();

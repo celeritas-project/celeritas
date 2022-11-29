@@ -71,12 +71,16 @@ class RootStepWriter final : public StepInterface
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams  particle_params,
                                StepSelection     selection)
+    : root_manager_(root_manager)
+    , particles_(particle_params)
+    , selection_(selection)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
 void RootStepWriter::execute(StateHostRef const& steps)
 {
+    CELER_EXPECT(steps);
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif

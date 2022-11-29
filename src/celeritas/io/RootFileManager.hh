@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "celeritas/ext/detail/TRootUniquePtr.hh"
@@ -34,7 +32,7 @@ class RootFileManager
     // Write TFile
     void write();
 
-    // Verify if tfile is open
+    // Verify if TFile is open
     explicit operator bool() const;
 
   private:
