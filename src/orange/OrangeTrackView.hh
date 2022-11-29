@@ -204,7 +204,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
-    UniverseId          uid{0};
+    UniverseId          uid = base_universe_id();
     VolumeId            global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 

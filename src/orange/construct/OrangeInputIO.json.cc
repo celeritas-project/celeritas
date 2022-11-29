@@ -195,7 +195,8 @@ void from_json(const nlohmann::json& j, UnitInput& value)
             = j.at("parent_cells").get<std::vector<size_type>>();
         const auto& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_cells.size() == daughters.size(),
-                       << "fields 'parent_cells' and 'daughters' have different lengths");
+                       << "fields 'parent_cells' and 'daughters' have "
+                          "different lengths");
 
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
@@ -204,7 +205,7 @@ void from_json(const nlohmann::json& j, UnitInput& value)
                 = {UniverseId{daughters[i]}, {0, 0, 0}};
         }
 
-        value.daughter_map = daughter_map;
+        value.daughter_map = std::move(daughter_map);
     }
 }
 
