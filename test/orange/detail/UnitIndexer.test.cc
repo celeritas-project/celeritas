@@ -8,7 +8,7 @@
 #include "orange/detail/UnitIndexer.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/Ref.hh"
+#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Types.hh"
 
 #include "celeritas_test.hh"
@@ -19,22 +19,38 @@ namespace celeritas
 {
 namespace test
 {
+class UnitIndexerTest : public Test
+{
+  public:
+    using CollectionHostRef
+        = UnitIndexerData<Ownership::const_reference, MemSpace::host>;
+    using VecSize = std::vector<size_type>;
+
+    const CollectionHostRef& host_ref() const { return data_.host(); }
+
+    void set_data(VecSize surfaces, VecSize volumes)
+    {
+        UnitIndexerData<Ownership::value, MemSpace::host> data;
+
+        auto cb_s = make_builder(&data.surfaces);
+        cb_s.insert_back(surfaces.begin(), surfaces.end());
+
+        auto cb_v = make_builder(&data.volumes);
+        cb_v.insert_back(volumes.begin(), volumes.end());
+
+        data_ = CollectionMirror<UnitIndexerData>{std::move(data)};
+    }
+
+  protected:
+    CollectionMirror<UnitIndexerData> data_;
+};
+
 //---------------------------------------------------------------------------//
 
-TEST(UnitIndexerTest, single)
+TEST_F(UnitIndexerTest, single)
 {
-    UnitIndexerData<Ownership::value, MemSpace::native> data;
-
-    std::vector<size_type> volumes  = {0, 10};
-    std::vector<size_type> surfaces = {0, 4};
-
-    auto cb_s = make_builder(&data.surfaces);
-    cb_s.insert_back(surfaces.begin(), surfaces.end());
-
-    auto cb_v = make_builder(&data.volumes);
-    cb_v.insert_back(volumes.begin(), volumes.end());
-
-    UnitIndexer indexer(make_const_ref(data));
+    set_data({0, 4}, {0, 10});
+    UnitIndexer indexer(host_ref());
 
     EXPECT_EQ(1, indexer.num_universes());
     EXPECT_EQ(4, indexer.num_surfaces());
@@ -63,20 +79,10 @@ TEST(UnitIndexerTest, single)
     EXPECT_EQ(VolumeId(3), local_v.volume);
 }
 
-TEST(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
+TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
-    UnitIndexerData<Ownership::value, MemSpace::native> data;
-
-    std::vector<size_type> volumes  = {0, 10};
-    std::vector<size_type> surfaces = {0, 4};
-
-    auto cb_s = make_builder(&data.surfaces);
-    cb_s.insert_back(surfaces.begin(), surfaces.end());
-
-    auto cb_v = make_builder(&data.volumes);
-    cb_v.insert_back(volumes.begin(), volumes.end());
-
-    UnitIndexer indexer(make_const_ref(data));
+    set_data({0, 4}, {0, 10});
+    UnitIndexer indexer(host_ref());
 
     EXPECT_THROW(indexer.global_surface(UniverseId{0}, SurfaceId{4}),
                  DebugError);
@@ -90,7 +96,7 @@ TEST(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
     EXPECT_THROW(indexer.local_volume(VolumeId(10)), DebugError);
 }
 
-TEST(UniverseIndexerTest, multi)
+TEST_F(UnitIndexerTest, multi)
 {
     // One universe has zero surfaces
     const std::vector<size_type> surfaces_per_uni{4, 1, 0, 1};
@@ -99,15 +105,8 @@ TEST(UniverseIndexerTest, multi)
     std::vector<size_type> surfaces = {0, 4, 5, 5, 6};
     std::vector<size_type> volumes  = {0, 1, 2, 3, 5};
 
-    UnitIndexerData<Ownership::value, MemSpace::native> data;
-
-    auto cb_s = make_builder(&data.surfaces);
-    cb_s.insert_back(surfaces.begin(), surfaces.end());
-
-    auto cb_v = make_builder(&data.volumes);
-    cb_v.insert_back(volumes.begin(), volumes.end());
-
-    UnitIndexer indexer(make_const_ref(data));
+    set_data(surfaces, volumes);
+    UnitIndexer indexer(host_ref());
 
     EXPECT_EQ(6, indexer.num_surfaces());
     EXPECT_EQ(5, indexer.num_volumes());
