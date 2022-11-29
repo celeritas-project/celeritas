@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
     catch (const std::exception& e)
     {
         CELER_LOG(critical)
-            << "While running input at  " << filename << ": " << e.what();
+            << "While running input at " << filename << ": " << e.what();
         return_code = EXIT_FAILURE;
         output.insert(
             std::make_shared<ExceptionOutput>(std::current_exception()));
