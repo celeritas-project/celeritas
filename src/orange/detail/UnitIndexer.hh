@@ -54,14 +54,14 @@ class UnitIndexer
     explicit inline CELER_FUNCTION UnitIndexer(const UnitIndexerDataRef& data);
 
     // Local-to-global
-    CELER_FUNCTION inline SurfaceId
-    global_surface(UniverseId uni, SurfaceId surface) const;
-    CELER_FUNCTION inline VolumeId
-    global_volume(UniverseId uni, VolumeId volume) const;
+    inline CELER_FUNCTION SurfaceId global_surface(UniverseId uni,
+                                                   SurfaceId  surface) const;
+    inline CELER_FUNCTION VolumeId  global_volume(UniverseId uni,
+                                                  VolumeId   volume) const;
 
     // Global-to-local
-    CELER_FUNCTION inline LocalSurface local_surface(SurfaceId id) const;
-    CELER_FUNCTION inline LocalVolume  local_volume(VolumeId id) const;
+    inline CELER_FUNCTION LocalSurface local_surface(SurfaceId id) const;
+    inline CELER_FUNCTION LocalVolume  local_volume(VolumeId id) const;
 
     //! Total number of universes
     CELER_FUNCTION size_type num_universes() const
@@ -97,7 +97,7 @@ class UnitIndexer
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from UnitIndexerData
+ * Construct from UnitIndexerData.
  */
 CELER_FUNCTION UnitIndexer::UnitIndexer(const UnitIndexerDataRef& data)
     : data_(data)
