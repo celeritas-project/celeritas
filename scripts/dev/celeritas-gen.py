@@ -22,7 +22,7 @@ CLIKE_TOP = '''\
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \\file {relpath}{filename}
+//! \\file {dirname}/{basename}
 //---------------------------------------------------------------------------//
 '''
 
@@ -77,7 +77,7 @@ CODE_FILE = '''\
 '''
 
 TEST_HARNESS_FILE = '''\
-#include "{relpath}{name}.{hext}"
+#include "{dirname}/{name}.{hext}"
 
 #include "celeritas_test.hh"
 // #include "{name}.test.hh"
@@ -501,13 +501,19 @@ HEXT = {
 }
 
 
-def generate(root, filename, namespace):
+def removed_toplevel(filestr):
+    """Strip the leading directory from filestr.
+    """
+    return filestr.partition(os.path.sep)[-1]
+
+def generate(repodir, filename, namespace):
     if os.path.exists(filename):
         print("Skipping existing file " + filename)
         return
 
-    relpath = os.path.relpath(filename, start=root)
-    dirname = os.path.dirname(relpath)
+    dirname = os.path.relpath(filename, start=repodir)
+    dirname = removed_toplevel(dirname)
+    dirname = os.path.dirname(dirname)
     basename = os.path.basename(filename)
     (name, _, longext) = basename.partition('.')
 
@@ -533,10 +539,6 @@ def generate(root, filename, namespace):
         nsbeg.append(f'namespace {subns}\n{{')
         nsend.append(f'}} // namespace {subns}')
 
-    relpath = re.sub(r'^[./]+', '', relpath)
-    relpath = re.sub(r'^(src|app|test)/', '', os.path.dirname(relpath))
-    if relpath:
-        relpath = relpath + '/'
     capabbr = re.sub(r'[^A-Z]+', '', name)
     variables = {
         'longext': longext,
@@ -547,9 +549,8 @@ def generate(root, filename, namespace):
         'namespace': namespace,
         'namespace_begin': "\n".join(nsbeg),
         'namespace_end': "\n".join(reversed(nsend)),
-        'filename': filename,
         'basename': basename,
-        'relpath': relpath,
+        'dirname': dirname,
         'capabbr': capabbr,
         'lowabbr': capabbr.lower(),
         'year': YEAR,
@@ -572,19 +573,19 @@ def main():
         'filename', nargs='+',
         help='file names to generate')
     parser.add_argument(
-        '--basedir',
+        '--repodir',
         help='root source directory for file naming')
     parser.add_argument(
         '--namespace', '-n',
         default='celeritas',
-        help='root source directory for file naming')
+        help='C++ namespace to generate')
     args = parser.parse_args()
-    basedir = args.basedir or os.path.join(
+    repodir = args.repodir or (
         subprocess.check_output(['git', 'rev-parse', '--show-toplevel'])
-        .decode().strip(),
-        'src')
+        .decode().strip()
+    )
     for fn in args.filename:
-        generate(basedir, fn, args.namespace)
+        generate(repodir, fn, args.namespace)
 
 
 if __name__ == '__main__':
