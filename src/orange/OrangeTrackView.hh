@@ -208,6 +208,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
     VolumeId            global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 
+    // Recurse into daughter universes starting with the outermost universe
     do
     {
         auto tracker = this->make_tracker(uid);
