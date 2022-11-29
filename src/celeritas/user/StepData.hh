@@ -21,15 +21,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
-//! Differentiate between data at the beginning and end of a step.
-enum class StepPoint
-{
-    pre,
-    post,
-    size_
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Which track properties to gather at the beginning and end of a step.
  *

@@ -9,14 +9,14 @@
 #pragma once
 
 #include <iostream>
-#include <string>
-#include <vector>
 
 #include "celeritas_config.h"
 
+// IWYU pragma: begin_exports
 #include "Test.hh"
 #include "TestMacros.hh"
 #include "TestMain.hh"
+// IWYU pragma: end_exports
 
 using std::cout;
 using std::endl;

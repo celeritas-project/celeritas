@@ -24,10 +24,14 @@ namespace detail
  */
 struct StepStorage
 {
+    //// TYPES ////
+
     template<MemSpace M>
     using StepStateCollection = CollectionStateStore<StepStateData, M>;
     template<MemSpace M>
     using MemSpaceTag = std::integral_constant<MemSpace, M>;
+
+    //// DATA ////
 
     // Parameter data
     CollectionMirror<StepParamsData> params;
@@ -38,6 +42,8 @@ struct StepStorage
         StepStateCollection<MemSpace::host>   host;
         StepStateCollection<MemSpace::device> device;
     } states;
+
+    //// METHODS ////
 
     //!@{
     //! Tag-based dispatch for accessing states

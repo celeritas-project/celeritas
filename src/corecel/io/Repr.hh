@@ -13,9 +13,11 @@
 #include <utility>
 #include <vector>
 
+#include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Quantity.hh"
 
 #include "Join.hh"
 #include "detail/ReprImpl.hh"
@@ -298,6 +300,59 @@ struct ReprTraits<std::pair<T1, T2>>
         RT1::print_value(os, value.first);
         os << ',';
         RT2::print_value(os, value.second);
+        os << '}';
+    }
+};
+
+//! Specialization for OpaqueId
+template<class V, class S>
+struct ReprTraits<OpaqueId<V, S>>
+{
+    using RT = ReprTraits<S>;
+
+    static void print_type(std::ostream& os, const char* name = nullptr)
+    {
+        os << "OpaqueID<?>";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+
+    static void init(std::ostream& os) { RT::init(os); }
+
+    static void print_value(std::ostream& os, const OpaqueId<V, S>& value)
+    {
+        os << '{';
+        if (value)
+        {
+            RT::print_value(os, value.unchecked_get());
+        }
+        os << '}';
+    }
+};
+
+//! Specialization for Quantity
+template<class U, class V>
+struct ReprTraits<Quantity<U, V>>
+{
+    using RT = ReprTraits<V>;
+
+    static void print_type(std::ostream& os, const char* name = nullptr)
+    {
+        os << "Quantity<?,?>";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+
+    static void init(std::ostream& os) { RT::init(os); }
+
+    static void print_value(std::ostream& os, const Quantity<U, V>& q)
+    {
+        os << '{';
+        RT::print_value(os, q.value());
         os << '}';
     }
 };
