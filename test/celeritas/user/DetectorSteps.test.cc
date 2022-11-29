@@ -63,15 +63,15 @@ class DetectorStepsTest : public ::celeritas::test::Test
         StepSelection result;
         for (auto& sp : result.points)
         {
-            sp.time   = true;
-            sp.pos    = true;
-            sp.dir    = true;
-            sp.volume = true;
-            sp.energy = true;
+            sp.time      = true;
+            sp.pos       = true;
+            sp.dir       = true;
+            sp.volume_id = true;
+            sp.energy    = true;
         }
-        result.event             = true;
+        result.event_id          = true;
         result.track_step_count  = true;
-        result.action            = true;
+        result.action_id         = true;
         result.step_length       = true;
         result.particle          = true;
         result.energy_deposition = true;
@@ -97,26 +97,27 @@ class DetectorStepsTest : public ::celeritas::test::Test
                     state_point.pos[tid] = Real3{real_type(i++), 1, 2};
                 if (!state_point.dir.empty())
                     state_point.dir[tid] = Real3{real_type(i++), 10, 20};
-                if (!state_point.volume.empty())
-                    state_point.volume[tid] = VolumeId(i++ % 4);
+                if (!state_point.volume_id.empty())
+                    state_point.volume_id[tid] = VolumeId(i++ % 4);
                 if (!state_point.energy.empty())
                     state_point.energy[tid] = units::MevEnergy(i++);
             }
             // Leave occasional gaps in the track IDs
-            result.track[tid] = tid.get() % 5 == 0 ? TrackId{} : TrackId(i++);
+            result.track_id[tid] = tid.get() % 5 == 0 ? TrackId{}
+                                                      : TrackId(i++);
 
             // Cycle through detector ids
             DetectorId det{tid.get() % 4};
-            if (!result.track[tid] || det == DetectorId{3})
+            if (!result.track_id[tid] || det == DetectorId{3})
                 det = {};
             result.detector[tid] = det;
 
-            if (!result.event.empty())
-                result.event[tid] = EventId(i++);
+            if (!result.event_id.empty())
+                result.event_id[tid] = EventId(i++);
             if (!result.track_step_count.empty())
                 result.track_step_count[tid] = i++;
-            if (!result.action.empty())
-                result.action[tid] = ActionId(i++);
+            if (!result.action_id.empty())
+                result.action_id[tid] = ActionId(i++);
             if (!result.step_length.empty())
                 result.step_length[tid] = i++;
 
@@ -161,8 +162,8 @@ TEST_F(DetectorStepsTest, host)
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector));
 
     std::size_t num_tracks = 18;
-    EXPECT_EQ(num_tracks, output.track.size());
-    EXPECT_EQ(num_tracks, output.event.size());
+    EXPECT_EQ(num_tracks, output.track_id.size());
+    EXPECT_EQ(num_tracks, output.event_id.size());
     EXPECT_EQ(num_tracks, output.track_step_count.size());
     EXPECT_EQ(num_tracks, output.step_length.size());
     EXPECT_EQ(num_tracks, output.particle.size());
@@ -196,22 +197,22 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     DetectorStepOutput output;
     copy(&output, device_states.ref());
 
-    EXPECT_VEC_EQ(host_output.track, output.track);
-    EXPECT_VEC_EQ(host_output.event, output.event);
+    EXPECT_VEC_EQ(host_output.track_id, output.track_id);
+    EXPECT_VEC_EQ(host_output.event_id, output.event_id);
     EXPECT_VEC_EQ(host_output.track_step_count, output.track_step_count);
     EXPECT_VEC_EQ(host_output.step_length, output.step_length);
     EXPECT_VEC_EQ(host_output.particle, output.particle);
     EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
 
     const auto& host_pre = host_output.points[StepPoint::pre];
-    const auto& pre = output.points[StepPoint::pre];
+    const auto& pre      = output.points[StepPoint::pre];
     EXPECT_VEC_EQ(host_pre.time, pre.time);
     EXPECT_VEC_EQ(host_pre.pos, pre.pos);
     EXPECT_VEC_EQ(host_pre.dir, pre.dir);
     EXPECT_VEC_EQ(host_pre.energy, pre.energy);
 
     const auto& host_post = host_output.points[StepPoint::post];
-    const auto& post = output.points[StepPoint::post];
+    const auto& post      = output.points[StepPoint::post];
     EXPECT_VEC_EQ(host_post.time, post.time);
     EXPECT_VEC_EQ(host_post.pos, post.pos);
     EXPECT_VEC_EQ(host_post.dir, post.dir);
@@ -231,8 +232,8 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector));
 
     std::size_t num_tracks = 18;
-    EXPECT_EQ(num_tracks, output.track.size());
-    EXPECT_EQ(0, output.event.size());
+    EXPECT_EQ(num_tracks, output.track_id.size());
+    EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
     EXPECT_EQ(0, output.particle.size());
@@ -265,8 +266,8 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     copy(&output, device_states.ref());
 
     std::size_t num_tracks = 614;
-    EXPECT_EQ(num_tracks, output.track.size());
-    EXPECT_EQ(0, output.event.size());
+    EXPECT_EQ(num_tracks, output.track_id.size());
+    EXPECT_EQ(0, output.event_id.size());
     EXPECT_EQ(0, output.track_step_count.size());
     EXPECT_EQ(0, output.step_length.size());
     EXPECT_EQ(0, output.particle.size());
