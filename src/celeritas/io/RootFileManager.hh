@@ -15,13 +15,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * ROOT TFile manager. Currently this class is *not* thread-safe and only works
- * in serial. Since there is only one TFile*, any writer class can just create
- * their own TTrees and ROOT will know how to handle them.
+ * ROOT TFile manager. Currently this class is *not* thread-safe. Since there
+ * is only one TFile*, any writer class (such as `RootStepWriter.hh`) can just
+ * create their own TTrees and ROOT will know how to handle them.
  *
- * If this is expanded to store one TFile per thread, we will need to expand
- * the class to either have a `void make_tree("name, "title", tid)` or provide
- * a `TFile* get(tid)` for direct access (less ideal).
+ * If this is expanded to store one TFile per thread, we will need to either
+ * implement a `void make_tree("name, "title", tid)` or provide a `TFile*
+ * get(tid)` for direct access (less ideal).
  */
 class RootFileManager
 {
@@ -43,17 +43,17 @@ class RootFileManager
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-RootFileManager::RootFileManager(const char*)
+inline RootFileManager::RootFileManager(const char*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void RootFileManager::write()
+inline void RootFileManager::write()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-RootFileManager::operator bool() const
+inline RootFileManager::operator bool() const
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

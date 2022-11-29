@@ -34,10 +34,10 @@ StepSelection ExampleStepCallback::selection() const
     result.event_id         = true;
     result.track_step_count = true;
 
-    auto& pre  = result.points[StepPoint::pre];
-    pre.volume = true;
-    pre.pos    = true;
-    pre.dir    = true;
+    auto& pre     = result.points[StepPoint::pre];
+    pre.volume_id = true;
+    pre.pos       = true;
+    pre.dir       = true;
 
     return result;
 }
@@ -60,7 +60,7 @@ void ExampleStepCallback::execute(StateHostRef const& data)
         new_step.step  = data.track_step_count[tid];
 
         const auto& pre_step = data.points[StepPoint::pre];
-        new_step.volume      = pre_step.volume[tid].get();
+        new_step.volume      = pre_step.volume_id[tid].get();
         copy_array(new_step.pos, pre_step.pos[tid]);
         copy_array(new_step.dir, pre_step.dir[tid]);
 

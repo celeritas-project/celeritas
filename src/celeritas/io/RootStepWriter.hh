@@ -18,8 +18,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
+ * Write step data to ROOT. `TTree::Fill()` is called for each step and thread
+ * id, making each ROOT entry a step. Since the ROOT data is stored in branches
+ * with primitive types instead of a full struct, no dictionaries are needed
+ * for reading the output file.
  */
 class RootStepWriter final : public StepInterface
 {
@@ -44,7 +46,7 @@ class RootStepWriter final : public StepInterface
     void execute(StateHostRef const& steps) final;
 
     // Not implemented
-    void execute(StateDeviceRef const&) final
+    inline void execute(StateDeviceRef const&) final
     {
         CELER_NOT_IMPLEMENTED("RootStepWriter is host-only");
     }
@@ -62,20 +64,19 @@ class RootStepWriter final : public StepInterface
     SPParticleParams   particles_;
     StepSelection      selection_;
     TRootUP<TTree>     tstep_tree_;
-    TRootUP<TBranch>   tstep_branch_;
     mctruth::TStepData tstep_;
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-RootStepWriter::RootStepWriter(SPRootFileManager,
-                               SPParticleParams,
-                               StepSelection)
+inline RootStepWriter::RootStepWriter(SPRootFileManager,
+                                      SPParticleParams,
+                                      StepSelection)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void RootStepWriter::execute(StateHostRef const&)
+inline void RootStepWriter::execute(StateHostRef const&)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

@@ -244,7 +244,6 @@ if(CELERITAS_BUILD_DEMOS)
     list(APPEND _demo_loop_libs ROOT::Core ROOT::Tree)
   endif()
 
-
   # Add the executable
   add_executable(demo-loop ${_demo_loop_src})
   celeritas_target_link_libraries(demo-loop ${_demo_loop_libs})
@@ -271,7 +270,7 @@ if(CELERITAS_BUILD_DEMOS)
       set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
       set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     else()
-      set(_mctruth_out "''")
+      set(_mctruth_out "")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "${_python_exe}"

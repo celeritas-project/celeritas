@@ -98,7 +98,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
-        SGL_SET_IF_SELECTED(points[P].volume,
+        SGL_SET_IF_SELECTED(points[P].volume_id,
                             geo.is_outside() ? VolumeId{} : geo.volume_id());
     }
 

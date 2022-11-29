@@ -33,7 +33,6 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
-#include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
@@ -96,7 +95,7 @@ void run(std::istream* is, OutputManager* output)
 
     // Save results to ROOT MC truth output file
     std::shared_ptr<RootFileManager> root_manager;
-    std::shared_ptr<StepCollector>   step_colector;
+    std::shared_ptr<StepCollector>   step_collector;
     std::shared_ptr<RootStepWriter>  step_writer;
 
     if (!run_args.mctruth_filename.empty())
@@ -109,11 +108,11 @@ void run(std::istream* is, OutputManager* output)
             run_args.mctruth_filename.c_str());
 
         StepPointSelection point_selection;
-        point_selection.dir    = true;
-        point_selection.energy = true;
-        point_selection.pos    = true;
-        point_selection.time   = true;
-        point_selection.volume = true;
+        point_selection.dir       = true;
+        point_selection.energy    = true;
+        point_selection.pos       = true;
+        point_selection.time      = true;
+        point_selection.volume_id = true;
 
         StepSelection selection;
         selection.event_id                = true;
@@ -128,7 +127,7 @@ void run(std::istream* is, OutputManager* output)
         step_writer = std::make_shared<RootStepWriter>(
             root_manager, transport_ptr->params().particle(), selection);
 
-        step_colector = std::make_shared<StepCollector>(
+        step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},
             transport_ptr->params().action_reg().get());
 
@@ -164,7 +163,8 @@ void run(std::istream* is, OutputManager* output)
     }
 
     // Transport
-    result            = (*transport_ptr)(primaries);
+    result = (*transport_ptr)(primaries);
+
     result.time.setup = setup_time;
 
     // TODO: convert individual results into OutputInterface so we don't have

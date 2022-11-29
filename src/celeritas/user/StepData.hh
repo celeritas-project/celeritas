@@ -38,13 +38,13 @@ struct StepPointSelection
     bool time{false};
     bool pos{false};
     bool dir{false};
-    bool volume{false};
+    bool volume_id{false};
     bool energy{false};
 
     //! Whether any selection is requested
     explicit CELER_FUNCTION operator bool() const
     {
-        return time || pos || dir || volume || energy;
+        return time || pos || dir || volume_id || energy;
     }
 
     //! Combine the selection with another
@@ -53,7 +53,7 @@ struct StepPointSelection
         this->time |= other.time;
         this->pos |= other.pos;
         this->dir |= other.dir;
-        this->volume |= other.volume;
+        this->volume_id |= other.volume_id;
         this->energy |= other.energy;
         return *this;
     }
@@ -155,7 +155,7 @@ struct StepPointStateData
     // Geo
     StateItems<Real3>    pos;
     StateItems<Real3>    dir;
-    StateItems<VolumeId> volume;
+    StateItems<VolumeId> volume_id;
 
     // Physics
     StateItems<Energy> energy;
@@ -170,11 +170,11 @@ struct StepPointStateData
     StepPointStateData& operator=(StepPointStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        time   = other.time;
-        pos    = other.pos;
-        dir    = other.dir;
-        volume = other.volume;
-        energy = other.energy;
+        time      = other.time;
+        pos       = other.pos;
+        dir       = other.dir;
+        volume_id = other.volume_id;
+        energy    = other.energy;
         return *this;
     }
 };
@@ -280,7 +280,7 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(time);
     SD_RESIZE_IF_SELECTED(pos);
     SD_RESIZE_IF_SELECTED(dir);
-    SD_RESIZE_IF_SELECTED(volume);
+    SD_RESIZE_IF_SELECTED(volume_id);
     SD_RESIZE_IF_SELECTED(energy);
 
 #undef SD_RESIZE_IF_SELECTED

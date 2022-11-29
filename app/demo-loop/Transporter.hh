@@ -18,7 +18,6 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/io/RootFileManager.hh"
 
 namespace celeritas
 {
