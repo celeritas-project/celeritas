@@ -148,9 +148,9 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                    ? MpiCommunicator::comm_world()
-                    : MpiCommunicator{};
+    auto comm    = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+                       ? MpiCommunicator::comm_world()
+                       : MpiCommunicator{};
     auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
                        ? LocalHandler{comm}
                        : LogHandler{&default_global_handler};
