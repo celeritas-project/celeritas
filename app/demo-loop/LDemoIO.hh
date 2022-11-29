@@ -100,11 +100,8 @@ void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
              LDemoArgs&                                  args);
 
 #else
-void to_root(std::shared_ptr<celeritas::RootFileManager> root_manager,
-             LDemoArgs&                                  args)
+void to_root(std::shared_ptr<celeritas::RootFileManager>&, LDemoArgs&)
 {
-    CELER_EXPECT(root_manager == nullptr);
-    CELER_ASSERT(args);
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif

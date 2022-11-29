@@ -68,19 +68,15 @@ class RootStepWriter final : public StepInterface
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
-                               SPParticleParams  particle_params,
-                               StepSelection     selection)
-    : root_manager_(root_manager)
-    , particles_(particle_params)
-    , selection_(selection)
+RootStepWriter::RootStepWriter(SPRootFileManager,
+                               SPParticleParams,
+                               StepSelection)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void RootStepWriter::execute(StateHostRef const& steps)
+void RootStepWriter::execute(StateHostRef const&)
 {
-    CELER_EXPECT(steps);
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif

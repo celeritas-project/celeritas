@@ -43,9 +43,8 @@ class RootFileManager
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-RootFileManager::RootFileManager(const char* filename)
+RootFileManager::RootFileManager(const char*)
 {
-    CELER_EXPECT(strlen(filename));
     CELER_NOT_CONFIGURED("ROOT");
 }
 
