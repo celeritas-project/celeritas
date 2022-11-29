@@ -138,12 +138,6 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_ROOT)
-  include(${ROOT_USE_FILE})
-  list(APPEND SOURCES
-    io/RootFileManager.cc
-    io/RootStepWriter.cc
-  )
-
   # Use directory includes because ROOT has trouble with build/install
   # interface dependencies propagated through corecel.
   # This is safe here as it is only adding project-local paths that are
@@ -177,6 +171,8 @@ if(CELERITAS_USE_ROOT)
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
     ext/detail/TRootUniquePtr.root.cc
+    io/RootFileManager.cc
+    io/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
