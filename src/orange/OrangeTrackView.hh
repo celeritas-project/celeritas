@@ -217,8 +217,7 @@ OrangeTrackView::operator=(const Initializer_t& init)
         CELER_ASSERT(tinit.volume && !tinit.surface);
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
-        OpaqueId<VolumeRecord> vrid(global_vol_id.unchecked_get());
-        uid = params_.volume_records[vrid].daughter;
+        uid = params_.volume_records[global_vol_id].daughter;
     } while (uid);
 
     states_.vol[thread_] = global_vol_id;
