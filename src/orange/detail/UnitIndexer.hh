@@ -30,11 +30,6 @@ class UnitIndexer
     //! \name Type aliases
     using UnitIndexerDataRef
         = UnitIndexerData<Ownership::const_reference, MemSpace::native>;
-    using DataRef
-        = Collection<size_type, Ownership::const_reference, MemSpace::native>;
-    using AllVals  = AllItems<size_type, MemSpace::native>;
-    using SizeId   = OpaqueId<size_type>;
-    using SpanIter = Span<const size_type>::const_iterator;
 
     struct LocalSurface
     {
@@ -82,6 +77,12 @@ class UnitIndexer
     }
 
   private:
+    using DataRef
+        = Collection<size_type, Ownership::const_reference, MemSpace::native>;
+    using AllVals  = AllItems<size_type, MemSpace::native>;
+    using SizeId   = OpaqueId<size_type>;
+    using SpanIter = Span<const size_type>::const_iterator;
+
     //// DATA ////
     UnitIndexerDataRef data_;
 
