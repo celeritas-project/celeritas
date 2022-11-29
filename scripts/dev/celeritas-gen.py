@@ -517,6 +517,10 @@ def generate(repodir, filename, namespace):
     basename = os.path.basename(filename)
     (name, _, longext) = basename.partition('.')
 
+    if namespace is None:
+        namespace = 'celeritas' + ('::detail' if dirname.endswith('/detail')
+                                   else '')
+
     lang = None
     template = None
     ext = longext.split('.')[-1]
@@ -577,7 +581,7 @@ def main():
         help='root source directory for file naming')
     parser.add_argument(
         '--namespace', '-n',
-        default='celeritas',
+        default=None,
         help='C++ namespace to generate')
     args = parser.parse_args()
     repodir = args.repodir or (
