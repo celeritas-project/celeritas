@@ -51,7 +51,7 @@ class UnitIndexer
 
   public:
     // Construct from UnitIndexerData
-    explicit inline CELER_FUNCTION UnitIndexer(UnitIndexerDataRef data);
+    explicit inline CELER_FUNCTION UnitIndexer(const UnitIndexerDataRef& data);
 
     // Local-to-global
     CELER_FUNCTION inline SurfaceId
@@ -99,7 +99,8 @@ class UnitIndexer
 /*!
  * Construct from UnitIndexerData
  */
-CELER_FUNCTION UnitIndexer::UnitIndexer(UnitIndexerDataRef data) : data_(data)
+CELER_FUNCTION UnitIndexer::UnitIndexer(const UnitIndexerDataRef& data)
+    : data_(data)
 {
     CELER_EXPECT(data_.surfaces.size() == data_.volumes.size());
     CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0);

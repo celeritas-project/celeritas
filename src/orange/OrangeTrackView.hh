@@ -204,31 +204,23 @@ OrangeTrackView::operator=(const Initializer_t& init)
     local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
-    size_type uid = 0;
-
+    UniverseId          uid{0};
+    VolumeId            global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 
-    while (true)
+    do
     {
-        auto tracker = this->make_tracker(UniverseId{uid});
+        auto tracker = this->make_tracker(uid);
         auto tinit   = tracker.initialize(local);
-        // TODO: error correction/graceful failure if initialiation failured
+        // TODO: error correction/graceful failure if initialiation failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
+        global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
-        OpaqueId<VolumeRecord> vrid(tinit.volume.unchecked_get());
+        OpaqueId<VolumeRecord> vrid(global_vol_id.unchecked_get());
+        uid = params_.volume_records[vrid].daughter;
+    } while (uid);
 
-        auto daughter_id = params_.volume_records[vrid].daughter;
-
-        if (daughter_id)
-        {
-            uid = daughter_id.unchecked_get();
-            continue;
-        }
-
-        states_.vol[thread_]
-            = unit_indexer.global_volume(UniverseId{uid}, tinit.volume);
-        break;
-    }
+    states_.vol[thread_] = global_vol_id;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;

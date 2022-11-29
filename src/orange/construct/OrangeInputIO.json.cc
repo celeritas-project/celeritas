@@ -191,8 +191,9 @@ void from_json(const nlohmann::json& j, UnitInput& value)
 
     if (j.contains("parent_cells"))
     {
-        auto parent_cells = j.at("parent_cells").get<std::vector<size_type>>();
-        auto daughters    = j.at("daughters").get<std::vector<size_type>>();
+        const auto& parent_cells
+            = j.at("parent_cells").get<std::vector<size_type>>();
+        const auto& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_cells.size() == daughters.size(),
                        << "fields 'parent_cells' and 'daughters' have different lengths");
 
