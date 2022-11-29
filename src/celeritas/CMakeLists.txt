@@ -79,13 +79,13 @@ list(APPEND SOURCES
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   track/TrackInitParams.cc
+  user/DetectorSteps.cc
   user/StepCollector.cc
 )
 
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
-
 
 if(CELERITAS_RNG STREQUAL "CURAND")
   list(APPEND PUBLIC_DEPS Celeritas::DeviceToolkit)
@@ -210,6 +210,25 @@ else()
   list(APPEND PUBLIC_DEPS Celeritas::orange)
 endif()
 
+macro(celeritas_polysource filename_we)
+  list(APPEND SOURCES "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND SOURCES "${filename_we}.cu")
+  endif()
+endmacro()
+
+#-----------------------------------------------------------------------------#
+# Optional CUDA code
+#-----------------------------------------------------------------------------#
+
+celeritas_polysource(user/DetectorSteps)
+celeritas_polysource(user/detail/StepGatherAction)
+celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
+celeritas_polysource(global/alongstep/AlongStepNeutralAction)
+celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
+celeritas_polysource(random/detail/CuHipRngStateInit)
+celeritas_polysource(track/detail/TrackInitAlgorithms)
+
 #-----------------------------------------------------------------------------#
 # Auto-generated code
 #-----------------------------------------------------------------------------#
@@ -236,13 +255,6 @@ macro(celeritas_gen_trackinit class)
   )
 endmacro()
 
-macro(celeritas_polysource filename_we)
-  list(APPEND SOURCES "${filename_we}.cc")
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    list(APPEND SOURCES "${filename_we}.cu")
-  endif()
-endmacro()
-
 celeritas_gen_interactor("BetheHeitler" "bethe_heitler")
 celeritas_gen_interactor("CombinedBrem" "combined_brem")
 celeritas_gen_interactor("EPlusGG" "eplusgg")
@@ -262,13 +274,6 @@ celeritas_gen_trackinit("InitTracks")
 celeritas_gen_trackinit("LocateAlive")
 celeritas_gen_trackinit("ProcessPrimaries")
 celeritas_gen_trackinit("ProcessSecondaries")
-
-celeritas_polysource(user/detail/StepGatherAction)
-celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
-celeritas_polysource(global/alongstep/AlongStepNeutralAction)
-celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
-celeritas_polysource(random/detail/CuHipRngStateInit)
-celeritas_polysource(track/detail/TrackInitAlgorithms)
 
 #-----------------------------------------------------------------------------#
 # Create library

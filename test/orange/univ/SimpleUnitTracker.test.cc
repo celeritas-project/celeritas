@@ -249,7 +249,7 @@ auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) cons
     const double kernel_time = get_time();
 
     // Copy result back to host
-    HostStateStore state_host(std::move(states));
+    HostStateStore state_host(states.ref());
     return this->reduce_heuristic_init(state_host.ref(), kernel_time);
 }
 

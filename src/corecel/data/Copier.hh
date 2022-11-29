@@ -18,6 +18,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Copy spans of data.
+ *
+ * Example of copying data from host to device:
+ * \code
+    Copier<int, MemSpace::host> copy_from_host_to{host_ints};
+    copy_from_host_to(MemSpace::device, device_ints);
+ * \endcode
  */
 template<class T, MemSpace M>
 struct Copier
