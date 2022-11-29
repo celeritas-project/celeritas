@@ -274,9 +274,9 @@ CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the UniverseId of the highest-level (i.e. base) universe.
+ * Return the UniverseId of the highest-level (i.e., root) universe.
  */
-CELER_CONSTEXPR_FUNCTION UniverseId base_universe_id()
+CELER_CONSTEXPR_FUNCTION UniverseId top_universe_id()
 {
     return UniverseId{0};
 }
