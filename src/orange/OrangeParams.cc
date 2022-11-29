@@ -100,15 +100,30 @@ OrangeParams::OrangeParams(OrangeInput input)
 {
     CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
 
-    // Insert all units
     HostVal<OrangeParamsData> host_data;
-    detail::UnitInserter      insert_unit(&host_data);
-    auto universe_type  = make_builder(&host_data.universe_type);
-    auto universe_index = make_builder(&host_data.universe_index);
 
-    // create an initial entries of the offsets of the first universe
+    // Calculate offsets for UnitIndexerData
     make_builder(&host_data.unit_indexer_data.surfaces).push_back(0);
     make_builder(&host_data.unit_indexer_data.volumes).push_back(0);
+    for (const UnitInput& u : input.units)
+    {
+        using AllVals = AllItems<size_type, MemSpace::native>;
+
+        auto surface_offset
+            = host_data.unit_indexer_data.surfaces[AllVals{}].back();
+        auto volume_offset
+            = host_data.unit_indexer_data.volumes[AllVals{}].back();
+
+        make_builder(&host_data.unit_indexer_data.surfaces)
+            .push_back(surface_offset + u.surfaces.size());
+        make_builder(&host_data.unit_indexer_data.volumes)
+            .push_back(volume_offset + u.volumes.size());
+    }
+
+    // Insert all units
+    detail::UnitInserter insert_unit(&host_data);
+    auto universe_type  = make_builder(&host_data.universe_type);
+    auto universe_index = make_builder(&host_data.universe_index);
 
     for (const UnitInput& u : input.units)
     {

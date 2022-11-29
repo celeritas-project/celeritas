@@ -189,21 +189,6 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
         = make_builder(&orange_data_->translations)
               .insert_back(translations.begin(), translations.end());
 
-    // Calculate unit indexer data
-    {
-        using AllVals = AllItems<size_type, MemSpace::native>;
-
-        auto surface_offset
-            = orange_data_->unit_indexer_data.surfaces[AllVals{}].back();
-        auto volume_offset
-            = orange_data_->unit_indexer_data.volumes[AllVals{}].back();
-
-        make_builder(&orange_data_->unit_indexer_data.surfaces)
-            .push_back(surface_offset + inp.surfaces.size());
-        make_builder(&orange_data_->unit_indexer_data.volumes)
-            .push_back(volume_offset + inp.volumes.size());
-    }
-
     // Save connectivity
     {
         std::vector<Connectivity> conn(connectivity.size());
