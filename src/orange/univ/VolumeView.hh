@@ -223,10 +223,13 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
 inline CELER_FUNCTION const VolumeRecord&
                             VolumeView::volume_record(const ParamsRef&        params,
                           const SimpleUnitRecord& unit,
-                          VolumeId                vid)
+                          VolumeId                local_vol_id)
 {
-    CELER_EXPECT(vid < unit.volumes.size());
-    return params.volume_records[vid];
+    CELER_EXPECT(local_vol_id < unit.volumes.size());
+
+    VolumeId global_vol_id = unit.volumes[local_vol_id.unchecked_get()];
+
+    return params.volume_records[global_vol_id];
 }
 
 //---------------------------------------------------------------------------//
