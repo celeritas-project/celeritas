@@ -103,21 +103,19 @@ OrangeParams::OrangeParams(OrangeInput input)
     HostVal<OrangeParamsData> host_data;
 
     // Calculate offsets for UnitIndexerData
-    make_builder(&host_data.unit_indexer_data.surfaces).push_back(0);
-    make_builder(&host_data.unit_indexer_data.volumes).push_back(0);
+    auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
+    auto ui_vol  = make_builder(&host_data.unit_indexer_data.volumes);
+    ui_surf.push_back(0);
+    ui_vol.push_back(0);
     for (const UnitInput& u : input.units)
     {
         using AllVals = AllItems<size_type, MemSpace::native>;
-
         auto surface_offset
             = host_data.unit_indexer_data.surfaces[AllVals{}].back();
         auto volume_offset
             = host_data.unit_indexer_data.volumes[AllVals{}].back();
-
-        make_builder(&host_data.unit_indexer_data.surfaces)
-            .push_back(surface_offset + u.surfaces.size());
-        make_builder(&host_data.unit_indexer_data.volumes)
-            .push_back(volume_offset + u.volumes.size());
+        ui_surf.push_back(surface_offset + u.surfaces.size());
+        ui_vol.push_back(volume_offset + u.volumes.size());
     }
 
     // Insert all units
