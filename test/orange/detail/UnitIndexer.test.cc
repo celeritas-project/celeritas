@@ -50,7 +50,7 @@ class UnitIndexerTest : public Test
 TEST_F(UnitIndexerTest, single)
 {
     this->set_data({0, 4}, {0, 10});
-    UnitIndexer indexer(host_ref());
+    UnitIndexer indexer(this->host_ref());
 
     EXPECT_EQ(1, indexer.num_universes());
     EXPECT_EQ(4, indexer.num_surfaces());
@@ -82,7 +82,7 @@ TEST_F(UnitIndexerTest, single)
 TEST_F(UnitIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     this->set_data({0, 4}, {0, 10});
-    UnitIndexer indexer(host_ref());
+    UnitIndexer indexer(this->host_ref());
 
     EXPECT_THROW(indexer.global_surface(UniverseId{0}, SurfaceId{4}),
                  DebugError);
@@ -106,7 +106,7 @@ TEST_F(UnitIndexerTest, multi)
     std::vector<size_type> volumes  = {0, 1, 2, 3, 5};
 
     this->set_data(surfaces, volumes);
-    UnitIndexer indexer(host_ref());
+    UnitIndexer indexer(this->host_ref());
 
     EXPECT_EQ(6, indexer.num_surfaces());
     EXPECT_EQ(5, indexer.num_volumes());
