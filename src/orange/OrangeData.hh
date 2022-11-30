@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/Data.hh
+//! \file orange/OrangeData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -122,12 +122,14 @@ struct Connectivity
  */
 struct SimpleUnitRecord
 {
+    using VolumeRecordRange = Range<VolumeId>;
+
     // Surface data
     SurfacesRecord          surfaces;
     ItemRange<Connectivity> connectivity; // Index by SurfaceId
 
     // Volume data [index by VolumeId]
-    ItemRange<VolumeRecord> volumes;
+    VolumeRecordRange volumes;
 
     // Translation data [index by TranslationId]
     ItemRange<Translation> translations;
@@ -142,6 +144,37 @@ struct SimpleUnitRecord
     {
         return surfaces && connectivity.size() == surfaces.types.size()
                && !volumes.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Surface and volume offsets to convert between local and global indices.
+ *
+ * Each collection should be of length num_universes + 1. The first entry is
+ * zero and the last item should be the total number of surfaces or volumes.
+ */
+template<Ownership W, MemSpace M>
+struct UnitIndexerData
+{
+    Collection<size_type, W, M> surfaces;
+    Collection<size_type, W, M> volumes;
+
+    template<Ownership W2, MemSpace M2>
+    UnitIndexerData& operator=(const UnitIndexerData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+
+        surfaces = other.surfaces;
+        volumes  = other.volumes;
+
+        CELER_ENSURE(*this);
+        return *this;
+    }
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !surfaces.empty() && !volumes.empty();
     }
 };
 
@@ -164,7 +197,9 @@ struct OrangeParamsData
     using Items = Collection<T, W, M>;
     template<class T>
     using UnivItems = Collection<T, W, M, UniverseId>;
-    using RealId    = OpaqueId<real_type>;
+    template<class T>
+    using VolumeItems = Collection<T, W, M, VolumeId>;
+    using RealId      = OpaqueId<real_type>;
 
     //// DATA ////
 
@@ -177,15 +212,17 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_unit;
 
     // Low-level storage
-    Items<SurfaceId>    surface_ids;
-    Items<VolumeId>     volume_ids;
-    Items<RealId>       real_ids;
-    Items<logic_int>    logic_ints;
-    Items<real_type>    reals;
-    Items<SurfaceType>  surface_types;
-    Items<Connectivity> connectivities;
-    Items<VolumeRecord> volume_records;
-    Items<Translation>  translations;
+    Items<SurfaceId>          surface_ids;
+    Items<VolumeId>           volume_ids;
+    Items<RealId>             real_ids;
+    Items<logic_int>          logic_ints;
+    Items<real_type>          reals;
+    Items<SurfaceType>        surface_types;
+    Items<Connectivity>       connectivities;
+    VolumeItems<VolumeRecord> volume_records;
+    Items<Translation>        translations;
+
+    UnitIndexerData<W, M> unit_indexer_data;
 
     //// METHODS ////
 
@@ -196,7 +233,7 @@ struct OrangeParamsData
                && universe_index.size() == universe_type.size()
                && ((!volume_ids.empty() && !logic_ints.empty() && !reals.empty())
                    || surface_types.empty())
-               && !volume_records.empty();
+               && !volume_records.empty() && unit_indexer_data;
     }
 
     //! Assign from another set of data
@@ -209,14 +246,16 @@ struct OrangeParamsData
         universe_index = other.universe_index;
         simple_unit    = other.simple_unit;
 
-        surface_ids    = other.surface_ids;
-        volume_ids     = other.volume_ids;
-        real_ids       = other.real_ids;
-        logic_ints     = other.logic_ints;
-        reals          = other.reals;
-        surface_types  = other.surface_types;
-        connectivities = other.connectivities;
-        volume_records = other.volume_records;
+        surface_ids       = other.surface_ids;
+        volume_ids        = other.volume_ids;
+        real_ids          = other.real_ids;
+        logic_ints        = other.logic_ints;
+        reals             = other.reals;
+        surface_types     = other.surface_types;
+        connectivities    = other.connectivities;
+        volume_records    = other.volume_records;
+        translations      = other.translations;
+        unit_indexer_data = other.unit_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
         return *this;

@@ -33,13 +33,13 @@ class BoundingBox
 {
   public:
     // Construct from infinite extents
-    static CELER_FUNCTION inline BoundingBox from_infinite();
+    static inline CELER_FUNCTION BoundingBox from_infinite();
 
     // Construct in unassigned state
-    CELER_FUNCTION inline BoundingBox();
+    inline CELER_FUNCTION BoundingBox();
 
     // Construct from upper and lower points
-    CELER_FUNCTION inline BoundingBox(const Real3& lower, const Real3& upper);
+    inline CELER_FUNCTION BoundingBox(const Real3& lower, const Real3& upper);
 
     //// ACCESSORS ////
 
