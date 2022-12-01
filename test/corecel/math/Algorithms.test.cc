@@ -124,7 +124,7 @@ TEST(AlgorithmsTest, upper_bound)
     std::vector<int> v;
     EXPECT_EQ(0, celeritas::upper_bound(v.begin(), v.end(), 10) - v.begin());
 
-    // Test a selection of sorted values, and values surroundig them
+    // Test a selection of sorted values, and values surrounding them
     v = {-3, 1, 4, 9, 10, 11, 15, 15};
 
     for (int val : v)
@@ -135,7 +135,7 @@ TEST(AlgorithmsTest, upper_bound)
             auto actual
                 = celeritas::upper_bound(v.begin(), v.end(), val + delta);
             EXPECT_EQ(expected - v.begin(), actual - v.begin())
-                << "Lower bound failed for value " << val + delta;
+                << "Upper bound failed for value " << val + delta;
         }
     }
 }
