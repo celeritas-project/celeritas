@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -91,9 +92,6 @@ class UnitIndexer
                                                       size_type id);
     static inline CELER_FUNCTION size_type local_size(DataRef    offsets,
                                                       UniverseId uni);
-    static inline CELER_FUNCTION SpanIter  upper_bound(SpanIter  begin,
-                                                       SpanIter  end,
-                                                       size_type id);
 };
 
 //---------------------------------------------------------------------------//
@@ -203,26 +201,6 @@ CELER_FUNCTION size_type UnitIndexer::local_size(DataRef    offsets,
            - offsets[SizeId{uni.unchecked_get()}];
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Host/device implementaiton of std::upper_bound
- */
-CELER_FUNCTION UnitIndexer::SpanIter
-               UnitIndexer::upper_bound(UnitIndexer::SpanIter begin,
-                         UnitIndexer::SpanIter end,
-                         size_type             id)
-{
-    CELER_EXPECT(begin <= end);
-
-    SpanIter iter = begin;
-
-    while (id >= *iter)
-    {
-        iter++;
-    }
-
-    return iter;
-}
 //---------------------------------------------------------------------------//
 } // namespace detail
 } // namespace celeritas
