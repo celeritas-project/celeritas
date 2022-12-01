@@ -8,7 +8,7 @@ if [ -z "$1" ]; then
   exit 2
 fi
 
-SPACK_VERSION=v0.17.0
+SPACK_VERSION=v0.19.0
 CONFIG=$1
 
 case $CONFIG in 
@@ -16,19 +16,19 @@ case $CONFIG in
     CONFIG=bionic-minimal
     ;;
   cuda)
-    CONFIG=focal-cuda11
+    CONFIG=jammy-cuda11
     ;;
 esac
  
 case $CONFIG in 
   bionic-minimal)
-    BASE_TAG=ubuntu:bionic-20210930
+    BASE_TAG=ubuntu:bionic-20221019
     VECGEOM=
     ;;
   focal-cuda11)
-    # ***IMPORTANT***: update cuda external version in dev/focal-cuda11!
-    BASE_TAG=nvidia/cuda:11.4.2-devel-ubuntu20.04
-    VECGEOM=v1.1.18
+    # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
+    BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
+    VECGEOM=v1.2.1
     ;;
   *)
     echo "Invalid configure type: $1"

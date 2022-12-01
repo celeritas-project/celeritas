@@ -18,14 +18,14 @@ spack:
     cuda:
       buildable: false
       externals:
-      - spec: cuda@11.4.2
+      - spec: cuda@11.8.0
         prefix: /usr/local/cuda
     root:
-      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=14
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
     all:
       target:
       - x86_64
-      variants: +cuda cuda_arch=70 cxxstd=14
+      variants: +cuda cuda_arch=70 cxxstd=17
       providers:
         blas:
         - openblas
