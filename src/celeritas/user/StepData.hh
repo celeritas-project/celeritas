@@ -35,6 +35,12 @@ struct StepPointSelection
     bool volume_id{false};
     bool energy{false};
 
+    //! Create StepPointSelection with all options set to true
+    static constexpr StepPointSelection all()
+    {
+        return StepPointSelection{true, true, true, true, true};
+    }
+
     //! Whether any selection is requested
     explicit CELER_FUNCTION operator bool() const
     {
@@ -69,6 +75,19 @@ struct StepSelection
     bool step_length{false};
     bool particle{false};
     bool energy_deposition{false};
+
+    //! Create StepSelection with all options set to true
+    static constexpr StepSelection all()
+    {
+        return StepSelection{
+            {StepPointSelection::all(), StepPointSelection::all()},
+            true,
+            true,
+            true,
+            true,
+            true,
+            true};
+    }
 
     //! Whether any selection is requested
     explicit CELER_FUNCTION operator bool() const

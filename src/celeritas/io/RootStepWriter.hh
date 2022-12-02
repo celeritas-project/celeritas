@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <array>
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "celeritas/io/MCTruthData.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -18,10 +19,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Write step data to ROOT. `TTree::Fill()` is called for each step and thread
- * id, making each ROOT entry a step. Since the ROOT data is stored in branches
- * with primitive types instead of a full struct, no dictionaries are needed
- * for reading the output file.
+ * Write "MC truth" data to ROOT at every step.
+ *
+ * `TTree::Fill()` is called for each step and thread id, making each ROOT
+ * entry a step. Since the ROOT data is stored in branches with primitive types
+ * instead of a full struct, no dictionaries are needed for reading the output
+ * file.
  */
 class RootStepWriter final : public StepInterface
 {
@@ -30,8 +33,6 @@ class RootStepWriter final : public StepInterface
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using SPParticleParams  = std::shared_ptr<const ParticleParams>;
-    template<class T>
-    using TRootUP = detail::TRootUniquePtr<T>;
     //!@}
 
     // Construct with RootFileManager and ParticleParams
@@ -59,16 +60,41 @@ class RootStepWriter final : public StepInterface
     // Create steps tree based on selection_ booleans
     void make_tree();
 
-    // Copy pre- and post-step position and direction arrays
-    void copy_real3(const Real3& real3, double output[3]);
-
   private:
-    SPRootFileManager  root_manager_;
-    SPParticleParams   particles_;
-    StepSelection      selection_;
-    Filters            filters_;
-    TRootUP<TTree>     tstep_tree_;
-    mctruth::TStepData tstep_;
+    template<class T>
+    using TRootUP = detail::TRootUniquePtr<T>;
+
+    //// INPUT ////
+    SPRootFileManager root_manager_;
+    SPParticleParams  particles_;
+    StepSelection     selection_;
+    Filters           filters_; // TODO: add
+
+    //// DATA ////
+    TRootUP<TTree> tstep_tree_;
+
+    struct TStepData
+    {
+        int    event_id;
+        int    track_id;
+        int    action_id;
+        int    track_step_count;
+        int    particle;          //!< PDG numbering scheme
+        double energy_deposition; //!< [MeV]
+        double step_length;       //!< [cm]
+
+        // Pre- and post-step specific data
+        int                   point_pre_volume_id;
+        int                   point_post_volume_id;
+        std::array<double, 3> point_pre_dir;
+        std::array<double, 3> point_post_dir;
+        std::array<double, 3> point_pre_pos;     //!< [cm]
+        std::array<double, 3> point_post_pos;    //!< [cm]
+        double                point_pre_energy;  //!< [MeV]
+        double                point_post_energy; //!< [MeV]
+        double                point_pre_time;    //!< [s]
+        double                point_post_time;   //!< [s]
+    } tstep_;
 };
 
 //---------------------------------------------------------------------------//

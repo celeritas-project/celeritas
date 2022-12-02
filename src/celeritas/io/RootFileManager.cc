@@ -17,8 +17,11 @@ namespace celeritas
  */
 RootFileManager::RootFileManager(const char* filename)
 {
-    CELER_EXPECT(strlen(filename));
+    CELER_EXPECT(filename);
     tfile_.reset(TFile::Open(filename, "recreate"));
+    CELER_VALIDATE(tfile_->IsOpen(),
+                   << "ROOT file at " << filename
+                   << " did not open correctly.");
 }
 
 //---------------------------------------------------------------------------//
@@ -30,15 +33,6 @@ void RootFileManager::write()
     CELER_EXPECT(tfile_->IsOpen());
     const auto write_status = tfile_->Write();
     CELER_ENSURE(write_status);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Verify if TFile is open.
- */
-RootFileManager::operator bool() const
-{
-    return tfile_->IsOpen();
 }
 
 //---------------------------------------------------------------------------//

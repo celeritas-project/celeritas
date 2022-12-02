@@ -21,7 +21,6 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
-#include "celeritas/user/StepCollector.hh"
 
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"

@@ -112,30 +112,11 @@ void run(std::istream* is, OutputManager* output)
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
 
-        StepPointSelection point_selection;
-        point_selection.dir       = true;
-        point_selection.energy    = true;
-        point_selection.pos       = true;
-        point_selection.time      = true;
-        point_selection.volume_id = true;
-
-        StepSelection selection;
-        selection.event_id                = true;
-        selection.track_step_count        = true;
-        selection.action_id               = true;
-        selection.step_length             = true;
-        selection.particle                = true;
-        selection.energy_deposition       = true;
-        selection.points[StepPoint::pre]  = point_selection;
-        selection.points[StepPoint::post] = point_selection;
-
-        RootStepWriter::Filters filters{};
-
         step_writer = std::make_shared<RootStepWriter>(
             root_manager,
             transport_ptr->params().particle(),
-            selection,
-            filters);
+            StepSelection::all(),
+            RootStepWriter::Filters{});
 
         step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},

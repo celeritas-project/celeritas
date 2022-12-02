@@ -32,10 +32,7 @@ class RootFileManager
     // Write TFile
     void write();
 
-    // Verify if TFile is open
-    explicit operator bool() const;
-
-  private:
+  public:
     using UPTFile = detail::TRootUniquePtr<TFile>;
     UPTFile tfile_;
 };

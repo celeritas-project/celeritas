@@ -13,6 +13,23 @@
 #include <TFile.h>
 #include <TTree.h>
 
+//---------------------------------------------------------------------------//
+// Free helper functions
+//---------------------------------------------------------------------------//
+
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Copy pre- and post-step position and direction arrays.
+ */
+void copy_real3(const celeritas::Real3& input, std::array<double, 3>& output)
+{
+    std::memcpy(&output, &input, sizeof(input));
+}
+//---------------------------------------------------------------------------//
+} // namespace
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -20,12 +37,12 @@ namespace celeritas
  * Construct writer with RootFileManager, ParticleParams (to convert particle
  * id to pdg), and the selection of data to be tallied.
  */
-RootStepWriter::RootStepWriter(SPRootFileManager io_manager,
+RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams  particle_params,
                                StepSelection     selection,
                                Filters           filters)
     : StepInterface()
-    , root_manager_(io_manager)
+    , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
     , filters_(filters)
@@ -55,36 +72,26 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
-#define IF_SELECTED(ATTR, VAL) \
-    do                         \
-    {                          \
-        if (selection_.ATTR)   \
-        {                      \
-            tstep_.ATTR = VAL; \
-        }                      \
+#define IF_SELECTED(ATTR, REF, VAL) \
+    do                              \
+    {                               \
+        if (selection_.ATTR)        \
+        {                           \
+            tstep_.REF = VAL;       \
+        }                           \
     } while (0)
 
-#define IF_POINT_SELECTED(ATTR, VAL) \
-    do                               \
-    {                                \
-        if (selection_point.ATTR)    \
-        {                            \
-            tpoint.ATTR = VAL;       \
-        }                            \
+#define IF_SELECTED_REAL3(ATTR, REF)                 \
+    do                                               \
+    {                                                \
+        if (selection_.ATTR)                         \
+        {                                            \
+            copy_real3(steps.ATTR[tid], tstep_.REF); \
+        }                                            \
     } while (0)
 
-#define IF_POINT_REAL3_SELECTED(ATTR, TPOINT_ATTR)          \
-    do                                                      \
-    {                                                       \
-        if (selection_point.ATTR)                           \
-        {                                                   \
-            this->copy_real3(point.ATTR[tid], TPOINT_ATTR); \
-        }                                                   \
-    } while (0)
-
-    // TODO: add selection_ options for storing data
     CELER_EXPECT(steps);
-    tstep_ = mctruth::TStepData();
+    tstep_ = TStepData();
 
     // Loop over thread ids and fill TTree
     for (const auto tid : range(ThreadId{steps.size()}))
@@ -98,149 +105,99 @@ void RootStepWriter::execute(StateHostRef const& steps)
         // Track id is always set
         tstep_.track_id = steps.track_id[tid].unchecked_get();
 
-        IF_SELECTED(event_id, steps.event_id[tid].get());
-        IF_SELECTED(action_id, steps.action_id[tid].get());
-        IF_SELECTED(particle, particles_->id_to_pdg(steps.particle[tid]).get());
-        IF_SELECTED(energy_deposition, steps.energy_deposition[tid].value());
-        IF_SELECTED(step_length, steps.step_length[tid]);
-        IF_SELECTED(track_step_count, steps.track_step_count[tid]);
+        IF_SELECTED(event_id, event_id, steps.event_id[tid].get());
+        IF_SELECTED(action_id, action_id, steps.action_id[tid].get());
+        IF_SELECTED(particle,
+                    particle,
+                    particles_->id_to_pdg(steps.particle[tid]).get());
+        IF_SELECTED(energy_deposition,
+                    energy_deposition,
+                    steps.energy_deposition[tid].value());
+        IF_SELECTED(step_length, step_length, steps.step_length[tid]);
+        IF_SELECTED(
+            track_step_count, track_step_count, steps.track_step_count[tid]);
 
-        // Store pre- and post-step
-        for (auto i : range(StepPoint::size_))
-        {
-            const auto& selection_point = selection_.points[i];
-            const auto& point           = steps.points[i];
-            auto&       tpoint          = tstep_.points[(int)i];
+        // Store pre-step
+        const auto& pre = steps.points[StepPoint::pre];
+        IF_SELECTED(points[StepPoint::pre].volume_id,
+                    point_pre_volume_id,
+                    pre.volume_id[tid].get());
+        IF_SELECTED(points[StepPoint::pre].energy,
+                    point_pre_energy,
+                    pre.energy[tid].value());
+        IF_SELECTED(points[StepPoint::pre].time, point_pre_time, pre.time[tid]);
+        IF_SELECTED_REAL3(points[StepPoint::pre].dir, point_pre_dir);
+        IF_SELECTED_REAL3(points[StepPoint::pre].pos, point_pre_pos);
 
-            IF_POINT_SELECTED(volume_id, point.volume_id[tid].get());
-            IF_POINT_SELECTED(energy, point.energy[tid].value());
-            IF_POINT_SELECTED(time, point.time[tid]);
-            IF_POINT_REAL3_SELECTED(pos, tpoint.pos);
-            IF_POINT_REAL3_SELECTED(dir, tpoint.dir);
-        }
+        // Store post-step
+        const auto& post = steps.points[StepPoint::post];
+        IF_SELECTED(points[StepPoint::post].volume_id,
+                    point_post_volume_id,
+                    post.volume_id[tid].get());
+        IF_SELECTED(points[StepPoint::post].energy,
+                    point_post_energy,
+                    post.energy[tid].value());
+        IF_SELECTED(
+            points[StepPoint::post].time, point_post_time, post.time[tid]);
+        IF_SELECTED_REAL3(points[StepPoint::post].dir, point_post_dir);
+        IF_SELECTED_REAL3(points[StepPoint::post].pos, point_post_pos);
 
         tstep_tree_->Fill();
     }
 
 #undef IF_SELECTED
-#undef IF_POINT_SELECTED
-#undef IF_POINT_REAL3_SELECTED
+#undef IF_SELECTED_REAL3
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create steps tree. In order to have the option to individually select any
- * member of `StepStateData` (StepData.hh) to be stored into the ROOT file, we
- * cannot store an MC truth step object. This is accomplished by "flattening"
- * the data so that each member of `TStepData` (MCTruthData.hh) is an
- * individual branch that can be created based on the `StepSelection` booleans.
+ * member of `StepStateData` (StepData.hh) to be stored into the ROOT file
+ * *and* not need any dictionary for ROOT I/O, we cannot store an MC truth step
+ * object. This is accomplished by "flattening" the data so that each member of
+ * `TStepData`is an individual branch, constructed with primitive types, that
+ * can be created based on the `StepSelection` booleans.
  *
  * To simplify the process of moving from Collection to a ROOT branch
- * `TStepData` members *must* have the *exact* same name as the Collection
- * members of `StepStateData`. This allows the use of C++ macros to
- * automatically create ROOT branches with the same names as the struct
- * elements.
+ * `TStepData`, a C++ macro is used.
  */
 void RootStepWriter::make_tree()
 {
-#define CREATE_BRANCH_IF_SELECTED(ATTR)                     \
-    do                                                      \
-    {                                                       \
-        if (this->selection_.ATTR)                          \
-        {                                                   \
-            this->tstep_tree_->Branch(#ATTR, &tstep_.ATTR); \
-        }                                                   \
-    } while (0)
-
-#define CREATE_POINT_BRANCH_IF_SELECTED(ATTR, NAME, REF, TYPE)           \
-    do                                                                   \
-    {                                                                    \
-        if (this->selection_.ATTR)                                       \
-        {                                                                \
-            std::string leaf_def(NAME);                                  \
-            std::string str_attr(#ATTR);                                 \
-            const auto  last_p = str_attr.find_last_of(".");             \
-            if (str_attr.find("pos", last_p, 3) != std::string::npos     \
-                || str_attr.find("dir", last_p, 3) != std::string::npos) \
-            {                                                            \
-                leaf_def += "[3]";                                       \
-            }                                                            \
-            leaf_def += "/" + std::string(TYPE);                         \
-            this->tstep_tree_->Branch(NAME, &REF, leaf_def.c_str());     \
-        }                                                                \
+#define CREATE_BRANCH_IF_SELECTED(ATTR, REF)              \
+    do                                                    \
+    {                                                     \
+        if (this->selection_.ATTR)                        \
+        {                                                 \
+            this->tstep_tree_->Branch(#REF, &tstep_.REF); \
+        }                                                 \
     } while (0)
 
     tstep_tree_.reset(new TTree("steps", "steps"));
     tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
 
     // Step selection data
-    CREATE_BRANCH_IF_SELECTED(event_id);
-    CREATE_BRANCH_IF_SELECTED(track_step_count);
-    CREATE_BRANCH_IF_SELECTED(action_id);
-    CREATE_BRANCH_IF_SELECTED(step_length);
-    CREATE_BRANCH_IF_SELECTED(particle);
-    CREATE_BRANCH_IF_SELECTED(energy_deposition);
-
-    // Step point selection data //
+    CREATE_BRANCH_IF_SELECTED(event_id, event_id);
+    CREATE_BRANCH_IF_SELECTED(track_step_count, track_step_count);
+    CREATE_BRANCH_IF_SELECTED(action_id, action_id);
+    CREATE_BRANCH_IF_SELECTED(step_length, step_length);
+    CREATE_BRANCH_IF_SELECTED(particle, particle);
     // Pre-step
-    {
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].volume_id,
-                                        "points.pre.volume_id",
-                                        tstep_.points[0].volume_id,
-                                        "I");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].dir,
-                                        "points.pre.dir",
-                                        tstep_.points[0].dir,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].pos,
-                                        "points.pre.pos",
-                                        tstep_.points[0].pos,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].energy,
-                                        "points.pre.energy",
-                                        tstep_.points[0].energy,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::pre].time,
-                                        "points.pre.time",
-                                        tstep_.points[0].time,
-                                        "D");
-    }
-
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::pre].volume_id,
+                              point_pre_volume_id);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::pre].dir, point_pre_dir);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::pre].pos, point_pre_pos);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::pre].energy, point_pre_energy);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::pre].time, point_pre_time);
     // Post-step
-    {
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].volume_id,
-                                        "points.post.volume_id",
-                                        tstep_.points[1].volume_id,
-                                        "I");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].dir,
-                                        "points.post.dir",
-                                        tstep_.points[1].dir,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].pos,
-                                        "points.post.pos",
-                                        tstep_.points[1].pos,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].energy,
-                                        "points.post.energy",
-                                        tstep_.points[1].energy,
-                                        "D");
-        CREATE_POINT_BRANCH_IF_SELECTED(points[StepPoint::post].time,
-                                        "points.post.time",
-                                        tstep_.points[1].time,
-                                        "D");
-    }
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::post].volume_id,
+                              point_post_volume_id);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::post].dir, point_post_dir);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::post].pos, point_post_pos);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::post].energy,
+                              point_post_energy);
+    CREATE_BRANCH_IF_SELECTED(points[StepPoint::post].time, point_post_time);
 
 #undef CREATE_BRANCH_IF_SELECTED
-#undef CREATE_POINT_BRANCH_IF_SELECTED
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Copy pre- and post-step position and direction arrays.
- */
-void RootStepWriter::copy_real3(const Real3& input, double output[3])
-{
-    std::copy(input.begin(), input.end(), output);
 }
 
 //---------------------------------------------------------------------------//
