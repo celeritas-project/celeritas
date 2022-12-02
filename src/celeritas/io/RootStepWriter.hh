@@ -68,7 +68,7 @@ class RootStepWriter final : public StepInterface
     SPRootFileManager root_manager_;
     SPParticleParams  particles_;
     StepSelection     selection_;
-    Filters           filters_; // TODO: add
+    Filters           filters_;
 
     //// DATA ////
     TRootUP<TTree> tstep_tree_;
@@ -82,18 +82,19 @@ class RootStepWriter final : public StepInterface
         int    particle;          //!< PDG numbering scheme
         double energy_deposition; //!< [MeV]
         double step_length;       //!< [cm]
-
-        // Pre- and post-step specific data
+        // Pre-step point
         int                   point_pre_volume_id;
-        int                   point_post_volume_id;
+        double                point_pre_energy; //!< [MeV]
+        double                point_pre_time;   //!< [s]
+        std::array<double, 3> point_pre_pos;    //!< [cm]
         std::array<double, 3> point_pre_dir;
-        std::array<double, 3> point_post_dir;
-        std::array<double, 3> point_pre_pos;     //!< [cm]
-        std::array<double, 3> point_post_pos;    //!< [cm]
-        double                point_pre_energy;  //!< [MeV]
+        // Post-step point
+        int                   point_post_volume_id;
         double                point_post_energy; //!< [MeV]
-        double                point_pre_time;    //!< [s]
         double                point_post_time;   //!< [s]
+        std::array<double, 3> point_post_pos;    //!< [cm]
+        std::array<double, 3> point_post_dir;
+
     } tstep_;
 };
 
