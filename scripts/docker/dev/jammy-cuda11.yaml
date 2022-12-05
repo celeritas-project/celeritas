@@ -3,7 +3,7 @@ spack:
   - cmake
   - cuda
   - doxygen
-  - geant4
+  - geant4@11 cxxstd=17
   - git
   - googletest
   - hepmc3
@@ -13,7 +13,8 @@ spack:
   - python
   - root
   - swig
-  concretization: together
+  concretizer:
+    unify: true
   packages:
     cuda:
       buildable: false
