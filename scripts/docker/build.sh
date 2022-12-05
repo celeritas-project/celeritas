@@ -10,6 +10,19 @@ fi
 
 SPACK_VERSION=v0.19.0
 CONFIG=$1
+DOCKER=docker
+BUILDARGS=
+SUDO=
+if ! hash $DOCKER 2>/dev/null; then
+  # see https://blog.christophersmart.com/2021/01/26/user-ids-and-rootless-containers-with-podman/
+  DOCKER=podman
+  BUILDARGS="--format docker"
+  if ! hash $DOCKER 2>/dev/null; then
+    echo "Docker (or podman) is not available"
+    exit 1
+  fi
+  export TMPDIR=$(mktemp -d)
+fi
 
 case $CONFIG in 
   minimal)
@@ -25,7 +38,7 @@ case $CONFIG in
     BASE_TAG=ubuntu:bionic-20221019
     VECGEOM=
     ;;
-  focal-cuda11)
+  jammy-cuda11)
     # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
     VECGEOM=v1.2.1
@@ -36,20 +49,22 @@ case $CONFIG in
     ;;
 esac
 
-docker pull ${BASE_TAG}
-docker tag ${BASE_TAG} base-${CONFIG}
+$DOCKER pull ${BASE_TAG}
+$DOCKER tag ${BASE_TAG} base-${CONFIG}
 
-docker build -t dev-${CONFIG} \
+$DOCKER build -t dev-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg SPACK_VERSION=${SPACK_VERSION} \
+  $BUILDARGS \
   dev
 
-docker build -t ci-${CONFIG} \
+$DOCKER build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg VECGEOM=${VECGEOM} \
+  $BUILDARGS \
   ci
 
 DATE=$(date '+%Y-%m-%d')
-docker tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-docker tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-docker push celeritas/ci-${CONFIG}:${DATE}
+$DOCKER tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
+$DOCKER tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
+$DOCKER push celeritas/ci-${CONFIG}:${DATE}
