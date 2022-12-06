@@ -20,9 +20,10 @@
 
 #include "ColorUtils.hh"
 
+namespace celeritas
+{
 namespace
 {
-using namespace celeritas;
 //---------------------------------------------------------------------------//
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
@@ -85,8 +86,6 @@ class LocalHandler
 //---------------------------------------------------------------------------//
 } // namespace
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with communicator (only rank zero is active) and handler.
