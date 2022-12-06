@@ -16,7 +16,7 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-#include "detail/GeantVersion.hh"
+#include "GeantVersion.hh"
 #if CELERITAS_G4_V10
 #    include <G4RunManager.hh>
 #else
