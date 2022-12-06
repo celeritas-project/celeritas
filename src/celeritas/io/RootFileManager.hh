@@ -48,11 +48,6 @@ inline void RootFileManager::write()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
-
-inline RootFileManager::operator bool() const
-{
-    CELER_NOT_CONFIGURED("ROOT");
-}
 #endif
 
 //---------------------------------------------------------------------------//

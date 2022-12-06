@@ -47,8 +47,11 @@ class RootStepWriter final : public StepInterface
     // Process step data on the host and fill step tree
     void execute(StateHostRef const& steps) final;
 
-    // Not implemented
-    void execute(StateDeviceRef const&) final {}
+    // Device execution cannot be implemented
+    void execute(StateDeviceRef const&) final
+    {
+        CELER_NOT_IMPLEMENTED("RootStepWriter is host-only.");
+    }
 
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
@@ -73,28 +76,26 @@ class RootStepWriter final : public StepInterface
     //// DATA ////
     TRootUP<TTree> tstep_tree_;
 
+    // MC truth step
+    struct TStepPoint
+    {
+        int                   volume_id;
+        double                energy; //!< [MeV]
+        double                time;   //!< [s]
+        std::array<double, 3> pos;    //!< [cm]
+        std::array<double, 3> dir;
+    };
+
     struct TStepData
     {
-        int    event_id;
-        int    track_id;
-        int    action_id;
-        int    track_step_count;
-        int    particle;          //!< PDG numbering scheme
-        double energy_deposition; //!< [MeV]
-        double step_length;       //!< [cm]
-        // Pre-step point
-        int                   point_pre_volume_id;
-        double                point_pre_energy; //!< [MeV]
-        double                point_pre_time;   //!< [s]
-        std::array<double, 3> point_pre_pos;    //!< [cm]
-        std::array<double, 3> point_pre_dir;
-        // Post-step point
-        int                   point_post_volume_id;
-        double                point_post_energy; //!< [MeV]
-        double                point_post_time;   //!< [s]
-        std::array<double, 3> point_post_pos;    //!< [cm]
-        std::array<double, 3> point_post_dir;
-
+        int                              event_id;
+        int                              track_id;
+        int                              action_id;
+        int                              track_step_count;
+        int                              particle;          //!< PDG number
+        double                           energy_deposition; //!< [MeV]
+        double                           step_length;       //!< [cm]
+        EnumArray<StepPoint, TStepPoint> points;
     } tstep_;
 };
 

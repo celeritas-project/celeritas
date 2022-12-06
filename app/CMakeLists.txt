@@ -261,11 +261,10 @@ if(CELERITAS_BUILD_DEMOS)
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
     set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
     set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
+    set(_mctruth_out "")
     if(CELERITAS_USE_ROOT)
-      set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
-      set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
-    else()
-      set(_mctruth_out "")
+      set(_geant_exporter_env
+        "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
     endif()
     add_test(NAME "app/demo-loop"
       COMMAND "${_python_exe}"
@@ -299,6 +298,10 @@ if(CELERITAS_BUILD_DEMOS)
       )
     endif()
 
+    # Enable ROOT output for the demo-loop-cpu test when ROOT is available
+    if(CELERITAS_USE_ROOT)
+      set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
+    endif()
     add_test(NAME "app/demo-loop-cpu"
       COMMAND "${_python_exe}"
       "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
