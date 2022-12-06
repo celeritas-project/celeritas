@@ -64,9 +64,6 @@ class RootStepWriter final : public StepInterface
     void make_tree();
 
   private:
-    template<class T>
-    using TRootUP = detail::TRootUniquePtr<T>;
-
     //// INPUT ////
     SPRootFileManager root_manager_;
     SPParticleParams  particles_;
@@ -74,9 +71,9 @@ class RootStepWriter final : public StepInterface
     Filters           filters_;
 
     //// DATA ////
-    TRootUP<TTree> tstep_tree_;
+    detail::TRootUniquePtr<TTree> tstep_tree_;
 
-    // MC truth step
+    // Truth step point data; Naming convention *must* match StepPointStateData
     struct TStepPoint
     {
         int                   volume_id;
@@ -86,6 +83,7 @@ class RootStepWriter final : public StepInterface
         std::array<double, 3> dir;
     };
 
+    // Full truth step data; Naming convention *must* match StepStateData
     struct TStepData
     {
         int                              event_id;
@@ -96,7 +94,10 @@ class RootStepWriter final : public StepInterface
         double                           energy_deposition; //!< [MeV]
         double                           step_length;       //!< [cm]
         EnumArray<StepPoint, TStepPoint> points;
-    } tstep_;
+    };
+
+    // Members of tstep_ are used as references for the step TTree branches
+    TStepData tstep_;
 };
 
 //---------------------------------------------------------------------------//

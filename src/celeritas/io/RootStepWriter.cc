@@ -17,7 +17,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Copy StepData collection values to TStepData.
+ * Copy StepStateData collection values to TStepData.
  */
 template<class T1, class T2>
 void copy_if_selected(const T1& src, T2& dst)
@@ -27,12 +27,11 @@ void copy_if_selected(const T1& src, T2& dst)
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy pre- and post-step position and direction arrays.
+ * Copy StepPointStateData Real3 position and direction to TStepPoint arrays.
  */
-void copy_if_selected(const celeritas::Real3& input,
-                      std::array<double, 3>&  output)
+void copy_if_selected(const celeritas::Real3& src, std::array<double, 3>& dst)
 {
-    std::memcpy(&output, &input, sizeof(input));
+    std::memcpy(&dst, &src, sizeof(src));
 }
 //---------------------------------------------------------------------------//
 } // namespace
@@ -146,8 +145,8 @@ void RootStepWriter::execute(StateHostRef const& steps)
  * is an individual branch that stores primitive types and is created based on
  * the `StepSelection` booleans.
  *
- * To simplify the process of moving from Collection to a ROOT branch, a C++
- * macro is used.
+ * A macro is usedT to simplify the process of moving from Collection to a ROOT
+ * branch.
  */
 void RootStepWriter::make_tree()
 {
@@ -161,9 +160,8 @@ void RootStepWriter::make_tree()
     } while (0)
 
     tstep_tree_.reset(new TTree("steps", "steps"));
-    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
 
-    // Step data
+    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
     RSW_CREATE_BRANCH(action_id, "action_id");

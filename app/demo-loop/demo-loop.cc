@@ -99,7 +99,7 @@ void run(std::istream* is, OutputManager* output)
             std::make_shared<ActionRegistryOutput>(params.action_reg()));
     }
 
-    // Save results to ROOT MC truth output file
+    // Save results to ROOT MC truth output file when possible
     std::shared_ptr<RootFileManager> root_manager;
     std::shared_ptr<StepCollector>   step_collector;
     std::shared_ptr<RootStepWriter>  step_writer;
