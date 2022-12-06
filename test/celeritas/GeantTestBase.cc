@@ -71,8 +71,8 @@ bool cstring_equal(const char* lhs, const char* rhs)
 bool GeantTestBase::is_ci_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.4.0")
-           && cstring_equal(celeritas_geant4_version, "10.7.2");
+           && cstring_equal(celeritas_clhep_version, "2.4.6.0")
+           && cstring_equal(celeritas_geant4_version, "11.0.3");
 }
 
 //---------------------------------------------------------------------------//
