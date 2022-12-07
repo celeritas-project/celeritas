@@ -11,6 +11,7 @@
 // #include <FTFP_BERT.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4TransportationManager.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <Randomize.hh>
 
@@ -21,6 +22,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/LoadGdml.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ActionInitialization.hh"
@@ -102,7 +104,18 @@ int main(int argc, char* argv[])
         opts, std::make_unique<celeritas::DemoActionInitialization>()));
 
     CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
+    // run_manager->SetVerboseLevel(1);
     run_manager->Initialize();
+
+    celeritas::GeantImporter load_geant_data(
+        G4TransportationManager::GetTransportationManager()
+            ->GetNavigatorForTracking()
+            ->GetWorldVolume());
+
+    auto imported = load_geant_data();
+    CELER_LOG_LOCAL(info) << "loaded data";
+
+    CELER_LOG_LOCAL(status) << "beam on";
     run_manager->BeamOn(1);
 
     return EXIT_SUCCESS;
