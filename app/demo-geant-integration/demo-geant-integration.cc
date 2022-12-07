@@ -11,7 +11,6 @@
 // #include <FTFP_BERT.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
-#include <G4UImanager.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <Randomize.hh>
 
@@ -98,10 +97,6 @@ int main(int argc, char* argv[])
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
     run_manager->SetUserInitialization(
         new celeritas::ActionInitialization(opts));
-
-    // Launch
-    // G4UImanager* UI = G4UImanager::GetUIpointer();
-    // UI->ApplyCommand("/control/execute");
 
     CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
     run_manager->Initialize();
