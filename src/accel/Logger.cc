@@ -43,6 +43,7 @@ MtLogger::MtLogger(int num_threads) : num_threads_(num_threads)
 //---------------------------------------------------------------------------//
 void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 {
+    auto& cerr = G4cerr;
     {
         auto last_slash = std::find(prov.file.rbegin(), prov.file.rend(), '/');
         if (!prov.file.empty() && last_slash == prov.file.rend())
@@ -51,14 +52,18 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
         }
 
         // Output problem line/file for debugging or high level
-        G4cerr << color_code('x')
+        cerr << color_code('x')
                << std::string(last_slash.base(), prov.file.end());
         if (prov.line)
-            G4cerr << ':' << prov.line;
-        G4cerr << color_code(' ') << ": ";
+            cerr << ':' << prov.line;
+        cerr << color_code(' ') << ": ";
     }
+
+    int local_thread = G4Threading::G4GetThreadId();
+    if (local_thread >= 0)
     {
-        G4cerr << color_code('W') << '[' << G4Threading::G4GetThreadId() << '/'
+        // Threading is initialized
+        cerr << color_code('W') << '[' << G4Threading::G4GetThreadId() << '/'
                << num_threads_ << "] " << color_code('x');
     }
 
@@ -76,7 +81,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
         case LogLevel::size_: CELER_ASSERT_UNREACHABLE();
     };
     // clang-format on
-    G4cerr << color_code(c) << to_cstring(lev) << ": " << color_code(' ')
+    cerr << color_code(c) << to_cstring(lev) << ": " << color_code(' ')
            << msg << std::endl;
 }
 //---------------------------------------------------------------------------//
