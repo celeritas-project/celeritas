@@ -339,8 +339,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       COMMAND "$<TARGET_FILE:demo-geant-integration>"
       "${_geant_test_inp}"
     )
+    set(_env
+      "CELER_LOG_LOCAL=debug"
+      "CELER_DISABLE_PARALLEL=1"
+      ${_geant_test_env}
+    )
     set_tests_properties("app/demo-geant-integration" PROPERTIES
-      ENVIRONMENT "CELER_LOG_LOCAL=debug;${_geant_test_env}"
+      ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_geant_test_inp}"
       LABELS "app"
     )
