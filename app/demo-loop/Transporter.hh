@@ -82,9 +82,9 @@ struct TransporterTiming
     using VecReal    = std::vector<real_type>;
     using MapStrReal = std::unordered_map<std::string, real_type>;
 
-    VecReal    steps;     //!< Real time per step
-    real_type  total{};   //!< Total simulation time
-    real_type  setup{};   //!< One-time initialization cost
+    VecReal   steps;   //!< Real time per step
+    real_type total{}; //!< Total simulation time
+    real_type setup{}; //!< One-time initialization cost
     MapStrReal actions{}; //!< Accumulated action timing
 };
 
