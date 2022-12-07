@@ -33,6 +33,7 @@ void copy_if_selected(const celeritas::Real3& src, std::array<double, 3>& dst)
 {
     std::memcpy(&dst, &src, sizeof(src));
 }
+
 //---------------------------------------------------------------------------//
 } // namespace
 
@@ -45,13 +46,11 @@ namespace celeritas
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams  particle_params,
-                               StepSelection     selection,
-                               Filters           filters)
+                               StepSelection     selection)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
-    , filters_(filters)
 {
     CELER_EXPECT(root_manager_);
     this->make_tree();
@@ -88,16 +87,6 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }                                                          \
     } while (0)
 
-#define RSW_STORE_PARTICLE(ATTR)                                           \
-    do                                                                     \
-    {                                                                      \
-        if (selection_.ATTR)                                               \
-        {                                                                  \
-            copy_if_selected(particles_->id_to_pdg(steps.ATTR[tid]).get(), \
-                             tstep_.ATTR);                                 \
-        }                                                                  \
-    } while (0)
-
     CELER_EXPECT(steps);
     tstep_ = TStepData();
 
@@ -118,22 +107,25 @@ void RootStepWriter::execute(StateHostRef const& steps)
         RSW_STORE(energy_deposition, .value());
         RSW_STORE(step_length, /* no getter */);
         RSW_STORE(track_step_count, /* no getter */);
-        RSW_STORE_PARTICLE(particle);
-
-        for (const auto i : range(StepPoint::size_))
+        if (selection_.particle)
         {
-            RSW_STORE(points[i].volume_id, .get());
-            RSW_STORE(points[i].energy, .value());
-            RSW_STORE(points[i].time, /* no getter */);
-            RSW_STORE(points[i].dir, /* no getter */);
-            RSW_STORE(points[i].pos, /* no getter */);
+            copy_if_selected(particles_->id_to_pdg(steps.particle[tid]).get(),
+                             tstep_.particle);
+        }
+
+        for (const auto sp : range(StepPoint::size_))
+        {
+            RSW_STORE(points[sp].volume_id, .get());
+            RSW_STORE(points[sp].energy, .value());
+            RSW_STORE(points[sp].time, /* no getter */);
+            RSW_STORE(points[sp].dir, /* no getter */);
+            RSW_STORE(points[sp].pos, /* no getter */);
         }
 
         tstep_tree_->Fill();
     }
 
 #undef RSW_STORE
-#undef RSW_STORE_PARTICLE
 }
 
 //---------------------------------------------------------------------------//
@@ -158,6 +150,7 @@ void RootStepWriter::make_tree()
             this->tstep_tree_->Branch(BRANCH_NAME, &tstep_.ATTR); \
         }                                                         \
     } while (0)
+#define RSW_CONCAT(ONE, TWO) ONE TWO
 
     tstep_tree_.reset(new TTree("steps", "steps"));
 
@@ -167,19 +160,16 @@ void RootStepWriter::make_tree()
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
     RSW_CREATE_BRANCH(particle, "particle");
-    // Pre-step
-    RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "point_pre_volume_id");
-    RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "point_pre_dir");
-    RSW_CREATE_BRANCH(points[StepPoint::pre].pos, "point_pre_pos");
-    RSW_CREATE_BRANCH(points[StepPoint::pre].energy, "point_pre_energy");
-    RSW_CREATE_BRANCH(points[StepPoint::pre].time, "point_pre_time");
-    // Post-step
-    RSW_CREATE_BRANCH(points[StepPoint::post].volume_id,
-                      "point_post_volume_id");
-    RSW_CREATE_BRANCH(points[StepPoint::post].dir, "point_post_dir");
-    RSW_CREATE_BRANCH(points[StepPoint::post].pos, "point_post_pos");
-    RSW_CREATE_BRANCH(points[StepPoint::post].energy, "point_post_energy");
-    RSW_CREATE_BRANCH(points[StepPoint::post].time, "point_post_time");
+
+    const EnumArray<StepPoint, std::string> pref{{"pre_", "post_"}};
+    for (const auto sp : range(StepPoint::size_))
+    {
+        RSW_CREATE_BRANCH(points[sp].volume_id, pref[sp] + "volume_id");
+        RSW_CREATE_BRANCH(points[sp].dir, pref[sp] + "dir");
+        RSW_CREATE_BRANCH(points[sp].pos, pref[sp] + "pos");
+        RSW_CREATE_BRANCH(points[sp].energy, pref[sp] + "energy");
+        RSW_CREATE_BRANCH(points[sp].time, pref[sp] + "time");
+    }
 
 #undef RSW_CREATE_BRANCH
 }

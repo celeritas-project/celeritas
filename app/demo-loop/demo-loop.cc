@@ -107,7 +107,7 @@ void run(std::istream* is, OutputManager* output)
     if (!run_args.mctruth_filename.empty())
     {
         CELER_LOG(info) << "Writing ROOT MC truth output at "
-                        << run_args.mctruth_filename.c_str();
+                        << run_args.mctruth_filename;
 
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
@@ -115,8 +115,7 @@ void run(std::istream* is, OutputManager* output)
         step_writer = std::make_shared<RootStepWriter>(
             root_manager,
             transport_ptr->params().particle(),
-            StepSelection::all(),
-            RootStepWriter::Filters{});
+            StepSelection::all());
 
         step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},

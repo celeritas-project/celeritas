@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/TRootUniquePtr.root.cc
+//! \file celeritas/ext/detail/RootUniquePtr.root.cc
 //---------------------------------------------------------------------------//
-#include "TRootUniquePtr.hh"
+#include "RootUniquePtr.hh"
 
 #include <TBranch.h>
 #include <TFile.h>
@@ -17,7 +17,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<class T>
-void TRootDeleter<T>::operator()(T* ptr) const
+void RootDeleter<T>::operator()(T* ptr) const
 {
     delete ptr;
 }
@@ -25,9 +25,9 @@ void TRootDeleter<T>::operator()(T* ptr) const
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
-template struct TRootDeleter<TFile>;
-template struct TRootDeleter<TTree>;
-template struct TRootDeleter<TBranch>;
+template struct RootDeleter<TFile>;
+template struct RootDeleter<TTree>;
+template struct RootDeleter<TBranch>;
 
 //---------------------------------------------------------------------------//
 } // namespace detail

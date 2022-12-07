@@ -9,7 +9,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "celeritas/ext/detail/TRootUniquePtr.hh"
+#include "celeritas/ext/detail/RootUniquePtr.hh"
 
 namespace celeritas
 {
@@ -33,7 +33,7 @@ class RootFileManager
     void write();
 
   public:
-    using UPTFile = detail::TRootUniquePtr<TFile>;
+    using UPTFile = detail::RootUniquePtr<TFile>;
     UPTFile tfile_;
 };
 
