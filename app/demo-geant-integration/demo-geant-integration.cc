@@ -98,11 +98,8 @@ int main(int argc, char* argv[])
     // run_manager->SetUserInitialization(new FTFP_BERT);
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
-    run_manager->SetUserInitialization(
-        new celeritas::ActionInitialization(opts));
-
-    run_manager->SetUserInitialization(
-        new celeritas::DemoActionInitialization());
+    run_manager->SetUserInitialization(new celeritas::ActionInitialization(
+        opts, std::make_unique<celeritas::DemoActionInitialization>()));
 
     CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
     run_manager->Initialize();

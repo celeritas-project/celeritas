@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include <G4VUserActionInitialization.hh>
 
 #include "SetupOptions.hh"
@@ -24,16 +25,22 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@{
     //! \name Type aliases
     using SPCOptions = std::shared_ptr<const SetupOptions>;
+    using UPUserAction = std::unique_ptr<G4VUserActionInitialization>;
     //!@}
 
   public:
-    explicit ActionInitialization(SPCOptions options);
+    ActionInitialization(SPCOptions options, UPUserAction action);
+    explicit ActionInitialization(SPCOptions options)
+        : ActionInitialization(std::move(options), nullptr)
+    {
+    }
 
     void BuildForMaster() const final;
     void Build() const final;
 
   private:
     SPCOptions options_;
+    UPUserAction action_;
 };
 
 //---------------------------------------------------------------------------//

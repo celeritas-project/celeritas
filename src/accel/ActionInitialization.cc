@@ -21,8 +21,9 @@ namespace celeritas
 /*!
  * Construct with Celeritas setup options.
  */
-ActionInitialization::ActionInitialization(SPCOptions options)
-    : options_(std::move(options))
+ActionInitialization::ActionInitialization(SPCOptions   options,
+                                           UPUserAction action)
+    : options_(std::move(options)), action_(std::move(action))
 {
     CELER_EXPECT(options_);
 }
@@ -38,6 +39,11 @@ void ActionInitialization::BuildForMaster() const
     CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
 
     this->SetUserAction(new RunAction(options_));
+
+    if (action_)
+    {
+        action_->BuildForMaster();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -65,6 +71,11 @@ void ActionInitialization::Build() const
     this->SetUserAction(new EventAction{});
     // Tracking action offloads tracks to device and kills them
     this->SetUserAction(new TrackingAction{});
+
+    if (action_)
+    {
+        action_->Build();
+    }
 }
 
 //---------------------------------------------------------------------------//
