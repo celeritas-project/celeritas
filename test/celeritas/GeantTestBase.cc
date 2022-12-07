@@ -80,8 +80,8 @@ bool GeantTestBase::is_ci_build()
 bool GeantTestBase::is_wildstyle_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
-           && cstring_equal(celeritas_geant4_version, "10.7.3");
+           && cstring_equal(celeritas_clhep_version, "2.4.6.0")
+           && cstring_equal(celeritas_geant4_version, "11.0.3");
 }
 
 //---------------------------------------------------------------------------//
