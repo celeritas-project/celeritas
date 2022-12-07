@@ -16,6 +16,7 @@ list(APPEND SOURCES
   ActionInitialization.cc
   EventAction.cc
   Logger.cc
+  PrimaryGeneratorAction.cc
   RunAction.cc
   TrackingAction.cc
 )

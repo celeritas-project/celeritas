@@ -25,6 +25,9 @@
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ActionInitialization.hh"
 #include "accel/Logger.hh"
+#include "accel/PrimaryGeneratorAction.hh"
+
+#include "DemoActionInitialization.hh"
 
 namespace
 {
@@ -98,8 +101,12 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(
         new celeritas::ActionInitialization(opts));
 
+    run_manager->SetUserInitialization(
+        new celeritas::DemoActionInitialization());
+
     CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
     run_manager->Initialize();
+    run_manager->BeamOn(1);
 
     return EXIT_SUCCESS;
 }
