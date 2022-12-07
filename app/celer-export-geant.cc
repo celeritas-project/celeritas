@@ -31,8 +31,9 @@ namespace
 {
 void print_usage(const char* exec_name)
 {
-    cerr << "Usage: " << exec_name
-         << " {input}.gdml [{options}.json, -, ''] {output}.root" << std::endl;
+    std::cerr << "Usage: " << exec_name
+              << " {input}.gdml [{options}.json, -, ''] {output}.root"
+              << std::endl;
 }
 } // namespace
 
