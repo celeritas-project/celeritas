@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     std::vector<std::string> args(argv, argv + argc);
     if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
     {
-        cerr << "usage: " << args[0] << " {input}.json" << endl;
+        std::cerr << "usage: " << args[0] << " {input}.json" << std::endl;
         return EXIT_FAILURE;
     }
 
