@@ -9,15 +9,14 @@
 #include <cstddef>
 #include <iostream>
 #include <FTFP_BERT.hh>
+#include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <Randomize.hh>
 
 #include "celeritas/ext/GeantVersion.hh"
-#if CELERITAS_G4_V10
-#    include <G4RunManager.hh>
-#else
+#if !CELERITAS_G4_V10
 #    include <G4RunManagerFactory.hh>
 #endif
 
@@ -25,6 +24,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/LoadGdml.hh"
 #include "accel/ActionInitialization.hh"
+#include "accel/Logger.hh"
 
 namespace
 {
@@ -84,6 +84,8 @@ int main(int argc, char* argv[])
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT));
 #endif
     CELER_ASSERT(run_manager);
+
+    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
 
     auto opts = std::make_shared<celeritas::SetupOptions>();
 

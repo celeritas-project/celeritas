@@ -18,7 +18,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Assign exception handler on construction.
+ * Redirect geant4's stdout/cerr on construction.
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
     : saved_cout_(G4coutbuf.GetDestination())
@@ -30,7 +30,7 @@ GeantLoggerAdapter::GeantLoggerAdapter()
 
 //---------------------------------------------------------------------------//
 /*!
- * Restore exception handler on destruction.
+ * Restore iostream buffers on destruction.
  */
 GeantLoggerAdapter::~GeantLoggerAdapter()
 {
