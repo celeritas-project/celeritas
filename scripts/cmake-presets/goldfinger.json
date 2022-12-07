@@ -14,7 +14,7 @@
         "CELERITAS_USE_Geant4":   {"type": "BOOL",   "value": "ON"},
         "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
-        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "12"},
+        "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "13"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},

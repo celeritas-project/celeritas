@@ -34,11 +34,8 @@ function(celeritas_swig_python_module target module_source)
   set_property(SOURCE "${module_source}"
     PROPERTY USE_TARGET_INCLUDE_DIRECTORIES ON)
 
-  if(PYTHON_VERSION_STRING VERSION_GREATER_EQUAL 3)
-    # Build with Python 3
-    set_property(SOURCE "${module_source}" APPEND_STRING
-      PROPERTY COMPILE_OPTIONS "-py3")
-  endif()
+  set_property(SOURCE "${module_source}" APPEND_STRING
+    PROPERTY COMPILE_OPTIONS "-builtin")
 
   # Create the library
   swig_add_library(${target}
