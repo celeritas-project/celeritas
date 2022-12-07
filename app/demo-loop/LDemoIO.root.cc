@@ -20,10 +20,6 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);
 
-    // So far RootFileManager has only a single TFile instance and ROOT knows
-    // that this new TTree has to be attached to this single TFile. If we
-    // expand it to a RootFileManager::tfile_[tid] we'd need to specify the
-    // correct TFile* by invoking TTree("name", "title", TFile*).
     auto tree_input = root_manager->make_tree("input", "input");
 
     // Problem definition

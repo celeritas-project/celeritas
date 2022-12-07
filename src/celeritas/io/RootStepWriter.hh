@@ -64,6 +64,7 @@ class RootStepWriter final : public StepInterface
 
   private:
     //// TYPES ////
+
     // Truth step point data; Naming convention *must* match StepPointStateData
     struct TStepPoint
     {
@@ -88,6 +89,7 @@ class RootStepWriter final : public StepInterface
     };
 
     //// DATA ////
+
     SPRootFileManager            root_manager_;
     SPParticleParams             particles_;
     StepSelection                selection_;

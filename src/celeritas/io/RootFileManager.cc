@@ -40,8 +40,10 @@ detail::RootUniquePtr<TTree>
 RootFileManager::make_tree(const char* name, const char* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
+
+    const int                    split_level = 99;
     detail::RootUniquePtr<TTree> uptree;
-    uptree.reset(new TTree(name, title, tfile_->cd()));
+    uptree.reset(new TTree(name, title, split_level, tfile_.get()));
     return uptree;
 }
 
