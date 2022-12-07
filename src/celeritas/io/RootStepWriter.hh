@@ -35,7 +35,7 @@ class RootStepWriter final : public StepInterface
     using SPParticleParams  = std::shared_ptr<const ParticleParams>;
     //!@}
 
-    // Construct with RootFileManager and ParticleParams
+    // Construct with RootFileManager, ParticleParams, and data selection
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams  particle_params,
                    StepSelection     selection);
@@ -100,8 +100,7 @@ class RootStepWriter final : public StepInterface
 #if !CELERITAS_USE_ROOT
 inline RootStepWriter::RootStepWriter(SPRootFileManager,
                                       SPParticleParams,
-                                      StepSelection,
-                                      Filters)
+                                      StepSelection)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

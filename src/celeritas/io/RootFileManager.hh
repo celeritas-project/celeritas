@@ -19,8 +19,8 @@ namespace celeritas
  * is only one TFile*, any writer class (such as `RootStepWriter.hh`) can just
  * create their own TTrees and ROOT will know how to handle them.
  *
- * If this is expanded to store one TFile per thread, we will need to either
- * implement a `void make_tree("name, "title", tid)`.
+ * If this is expanded to store one TFile per thread, we will need to expand
+ * `make_tree("name, "title")` to include a thread id as input parameter.
  */
 class RootFileManager
 {
@@ -28,11 +28,11 @@ class RootFileManager
     // Construct with filename
     explicit RootFileManager(const char* filename);
 
-    // Write TFile
-    void write();
-
     // Create tree by passing a name and title
     detail::RootUniquePtr<TTree> make_tree(const char* name, const char* title);
+
+    // Write TFile
+    void write();
 
   public:
     detail::RootUniquePtr<TFile> tfile_;
@@ -41,6 +41,12 @@ class RootFileManager
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 inline RootFileManager::RootFileManager(const char*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline detail::RootUniquePtr<TTree>
+RootFileManager::make_tree(const char*, const char*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

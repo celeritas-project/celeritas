@@ -27,17 +27,6 @@ RootFileManager::RootFileManager(const char* filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write TFile to disk.
- */
-void RootFileManager::write()
-{
-    CELER_EXPECT(tfile_->IsOpen());
-    const auto write_status = tfile_->Write();
-    CELER_ENSURE(write_status);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create tree by providing its name and title.
  *
  * It is still possible to simply create a `TTree("name", "title")` in any
@@ -54,6 +43,17 @@ RootFileManager::make_tree(const char* name, const char* title)
     detail::RootUniquePtr<TTree> uptree;
     uptree.reset(new TTree(name, title, tfile_->cd()));
     return uptree;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write TFile to disk.
+ */
+void RootFileManager::write()
+{
+    CELER_EXPECT(tfile_->IsOpen());
+    const auto write_status = tfile_->Write();
+    CELER_ENSURE(write_status);
 }
 
 //---------------------------------------------------------------------------//
