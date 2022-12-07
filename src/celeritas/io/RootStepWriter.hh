@@ -63,14 +63,7 @@ class RootStepWriter final : public StepInterface
     void make_tree();
 
   private:
-    //// INPUT ////
-    SPRootFileManager root_manager_;
-    SPParticleParams  particles_;
-    StepSelection     selection_;
-
-    //// DATA ////
-    detail::RootUniquePtr<TTree> tstep_tree_;
-
+    //// TYPES ////
     // Truth step point data; Naming convention *must* match StepPointStateData
     struct TStepPoint
     {
@@ -94,6 +87,11 @@ class RootStepWriter final : public StepInterface
         EnumArray<StepPoint, TStepPoint> points;
     };
 
+    //// DATA ////
+    SPRootFileManager            root_manager_;
+    SPParticleParams             particles_;
+    StepSelection                selection_;
+    detail::RootUniquePtr<TTree> tstep_tree_;
     // Members of tstep_ are used as references for the step TTree branches
     TStepData tstep_;
 };

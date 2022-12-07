@@ -8,6 +8,7 @@
 #include "RootStepWriter.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
@@ -137,7 +138,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
  * is an individual branch that stores primitive types and is created based on
  * the `StepSelection` booleans.
  *
- * A macro is usedT to simplify the process of moving from Collection to a ROOT
+ * A macro is used to simplify the process of moving from Collection to a ROOT
  * branch.
  */
 void RootStepWriter::make_tree()
@@ -150,9 +151,8 @@ void RootStepWriter::make_tree()
             this->tstep_tree_->Branch(BRANCH_NAME, &tstep_.ATTR); \
         }                                                         \
     } while (0)
-#define RSW_CONCAT(ONE, TWO) ONE TWO
 
-    tstep_tree_.reset(new TTree("steps", "steps"));
+    tstep_tree_ = root_manager_->make_tree("steps", "steps");
 
     tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
@@ -160,16 +160,18 @@ void RootStepWriter::make_tree()
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
     RSW_CREATE_BRANCH(particle, "particle");
-
-    const EnumArray<StepPoint, std::string> pref{{"pre_", "post_"}};
-    for (const auto sp : range(StepPoint::size_))
-    {
-        RSW_CREATE_BRANCH(points[sp].volume_id, pref[sp] + "volume_id");
-        RSW_CREATE_BRANCH(points[sp].dir, pref[sp] + "dir");
-        RSW_CREATE_BRANCH(points[sp].pos, pref[sp] + "pos");
-        RSW_CREATE_BRANCH(points[sp].energy, pref[sp] + "energy");
-        RSW_CREATE_BRANCH(points[sp].time, pref[sp] + "time");
-    }
+    // Pre-step
+    RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
+    RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");
+    RSW_CREATE_BRANCH(points[StepPoint::pre].pos, "pre_pos");
+    RSW_CREATE_BRANCH(points[StepPoint::pre].energy, "pre_energy");
+    RSW_CREATE_BRANCH(points[StepPoint::pre].time, "pre_time");
+    // Post-step
+    RSW_CREATE_BRANCH(points[StepPoint::post].volume_id, "post_volume_id");
+    RSW_CREATE_BRANCH(points[StepPoint::post].dir, "post_dir");
+    RSW_CREATE_BRANCH(points[StepPoint::post].pos, "post_pos");
+    RSW_CREATE_BRANCH(points[StepPoint::post].energy, "post_energy");
+    RSW_CREATE_BRANCH(points[StepPoint::post].time, "post_time");
 
 #undef RSW_CREATE_BRANCH
 }

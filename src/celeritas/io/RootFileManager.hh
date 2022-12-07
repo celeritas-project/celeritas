@@ -20,8 +20,7 @@ namespace celeritas
  * create their own TTrees and ROOT will know how to handle them.
  *
  * If this is expanded to store one TFile per thread, we will need to either
- * implement a `void make_tree("name, "title", tid)` or provide a `TFile*
- * get(tid)` for direct access (less ideal).
+ * implement a `void make_tree("name, "title", tid)`.
  */
 class RootFileManager
 {
@@ -32,9 +31,11 @@ class RootFileManager
     // Write TFile
     void write();
 
+    // Create tree by passing a name and title
+    detail::RootUniquePtr<TTree> make_tree(const char* name, const char* title);
+
   public:
-    using UPTFile = detail::RootUniquePtr<TFile>;
-    UPTFile tfile_;
+    detail::RootUniquePtr<TFile> tfile_;
 };
 
 //---------------------------------------------------------------------------//

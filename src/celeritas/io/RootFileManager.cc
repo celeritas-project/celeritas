@@ -8,6 +8,7 @@
 #include "RootFileManager.hh"
 
 #include <TFile.h>
+#include <TTree.h>
 
 namespace celeritas
 {
@@ -33,6 +34,26 @@ void RootFileManager::write()
     CELER_EXPECT(tfile_->IsOpen());
     const auto write_status = tfile_->Write();
     CELER_ENSURE(write_status);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create tree by providing its name and title.
+ *
+ * It is still possible to simply create a `TTree("name", "title")` in any
+ * scope that a RootFileManager exists, but this function explicitly shows the
+ * relationship between the newly created tree and `this->tfile_`.
+ *
+ * To expand this class to write multiple root files (one per thread), we just
+ * need to add a `tid` input parameter and call `tfile_[tid]->cd()`.
+ */
+detail::RootUniquePtr<TTree>
+RootFileManager::make_tree(const char* name, const char* title)
+{
+    CELER_EXPECT(tfile_->IsOpen());
+    detail::RootUniquePtr<TTree> uptree;
+    uptree.reset(new TTree(name, title, tfile_->cd()));
+    return uptree;
 }
 
 //---------------------------------------------------------------------------//
