@@ -26,15 +26,14 @@
 #endif
 
 using namespace celeritas;
-using std::cout;
-using std::endl;
 
 namespace
 {
 void print_usage(const char* exec_name)
 {
-    cout << "Usage: " << exec_name
-         << " input.gdml [options.json, -, ''] output.root" << endl;
+    std::cerr << "Usage: " << exec_name
+              << " {input}.gdml [{options}.json, -, ''] {output}.root"
+              << std::endl;
 }
 } // namespace
 
@@ -68,7 +67,7 @@ int main(int argc, char* argv[])
 #if CELERITAS_USE_JSON
         GeantPhysicsOptions options;
         constexpr int       indent = 1;
-        std::cout << nlohmann::json{options}.dump(indent) << endl;
+        std::cout << nlohmann::json{options}.dump(indent) << std::endl;
 #else
         CELER_LOG(error) << "JSON is unavailable: can't output geant options";
 #endif

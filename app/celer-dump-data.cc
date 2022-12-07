@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
     if (argc != 2)
     {
         // If number of arguments is incorrect, print help
-        cout << "Usage: " << argv[0] << " output.root" << endl;
+        std::cerr << "Usage: " << argv[0] << " {output}.root" << std::endl;
         return 2;
     }
 
