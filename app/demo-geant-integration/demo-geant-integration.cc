@@ -8,7 +8,7 @@
 
 #include <cstddef>
 #include <iostream>
-#include <FTFP_BERT.hh>
+// #include <FTFP_BERT.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
@@ -23,6 +23,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/LoadGdml.hh"
+#include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ActionInitialization.hh"
 #include "accel/Logger.hh"
 
@@ -87,11 +88,14 @@ int main(int argc, char* argv[])
 
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
 
+    celeritas::GeantPhysicsOptions geant_phys_opts{};
     auto opts = std::make_shared<celeritas::SetupOptions>();
 
     // Construct physics, geometry, and celeritas setup
     run_manager->SetUserInitialization(new DetectorConstruction{args[1]});
-    run_manager->SetUserInitialization(new FTFP_BERT);
+    // run_manager->SetUserInitialization(new FTFP_BERT);
+    run_manager->SetUserInitialization(
+        new celeritas::detail::GeantPhysicsList{geant_phys_opts});
     run_manager->SetUserInitialization(
         new celeritas::ActionInitialization(opts));
 
