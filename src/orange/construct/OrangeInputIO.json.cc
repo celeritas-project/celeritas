@@ -188,6 +188,25 @@ void from_json(const nlohmann::json& j, UnitInput& value)
         const auto& bbox = j.at("bbox");
         value.bbox       = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
     }
+
+    if (j.contains("parent_cells"))
+    {
+        const auto& parent_cells
+            = j.at("parent_cells").get<std::vector<size_type>>();
+        const auto& daughters = j.at("daughters").get<std::vector<size_type>>();
+        CELER_VALIDATE(parent_cells.size() == daughters.size(),
+                       << "fields 'parent_cells' and 'daughters' have "
+                          "different lengths");
+
+        UnitInput::MapVolumeDaughter daughter_map;
+        for (auto i : range(parent_cells.size()))
+        {
+            daughter_map[VolumeId{parent_cells[i]}]
+                = {UniverseId{daughters[i]}, {0, 0, 0}};
+        }
+
+        value.daughter_map = std::move(daughter_map);
+    }
 }
 
 //---------------------------------------------------------------------------//

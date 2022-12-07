@@ -82,9 +82,9 @@ class VolumeView
     const VolumeRecord& def_;
 
     static inline CELER_FUNCTION const VolumeRecord&
-    volume_record(const ParamsRef&,
-                  const SimpleUnitRecord& unit_record,
-                  VolumeId                id);
+                                       volume_record(const ParamsRef&,
+                                                     const SimpleUnitRecord& unit_record,
+                                                     VolumeId                id);
 };
 
 //---------------------------------------------------------------------------//
@@ -221,13 +221,15 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
  * This is called during construction.
  */
 inline CELER_FUNCTION const VolumeRecord&
-VolumeView::volume_record(const ParamsRef&        params,
+                            VolumeView::volume_record(const ParamsRef&        params,
                           const SimpleUnitRecord& unit,
-                          VolumeId                vid)
+                          VolumeId                local_vol_id)
 {
-    CELER_EXPECT(vid < unit.volumes.size());
-    OpaqueId<VolumeRecord> vrid = unit.volumes[vid.unchecked_get()];
-    return params.volume_records[vrid];
+    CELER_EXPECT(local_vol_id < unit.volumes.size());
+
+    VolumeId global_vol_id = unit.volumes[local_vol_id.unchecked_get()];
+
+    return params.volume_records[global_vol_id];
 }
 
 //---------------------------------------------------------------------------//

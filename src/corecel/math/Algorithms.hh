@@ -160,6 +160,31 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the first element which is greater than <value>
+ */
+template<class ForwardIt, class T, class Compare>
+CELER_FORCEINLINE_FUNCTION ForwardIt
+upper_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
+{
+    using CompareRef = std::add_lvalue_reference_t<Compare>;
+    return ::celeritas::detail::upper_bound_impl<CompareRef>(
+        first, last, value, comp);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the first element which is greater than <value>
+ */
+template<class ForwardIt, class T>
+CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
+                                                 ForwardIt last,
+                                                 const T&  value)
+{
+    return ::celeritas::upper_bound(first, last, value, Less<>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Partition elements in the given range, "true" before "false".
  *
  * This is done by swapping elements until the range is partitioned.

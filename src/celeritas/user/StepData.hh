@@ -19,13 +19,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-enum class StepPoint
-{
-    pre,
-    post,
-    size_
-};
-
+// TYPES
 //---------------------------------------------------------------------------//
 /*!
  * Which track properties to gather at the beginning and end of a step.
@@ -113,12 +107,22 @@ struct StepParamsData
 {
     //// DATA ////
 
+    //! Options for gathering data at each step
     StepSelection selection;
+
+    //! Optional mapping for volume -> sensitive detector
+    Collection<DetectorId, W, M, VolumeId> detector;
+
+    //! Filter out steps that have not deposited energy (for sensitive det)
+    bool nonzero_energy_deposition{false};
 
     //// METHODS ////
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return true; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return static_cast<bool>(selection);
+    }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -126,6 +130,8 @@ struct StepParamsData
     {
         CELER_EXPECT(other);
         selection = other.selection;
+        detector  = other.detector;
+        nonzero_energy_deposition = other.nonzero_energy_deposition;
         return *this;
     }
 };
@@ -187,6 +193,10 @@ struct StepPointStateData
  * - If the flag is disabled (no step interfaces require the data), then the
  *   corresponding member data will be empty.
  * - The track ID will be set to "false" if the track is inactive.
+ * - If sensitive detector are specified, the \c detector field is set based
+ *   on the pre-step geometric volume. Data members will have \b unspecified
+ *   values if the detector ID is "false" (i.e. no information is being
+ *   collected). The detector ID for inactive threads is always "false".
  */
 template<Ownership W, MemSpace M>
 struct StepStateData
@@ -203,8 +213,11 @@ struct StepStateData
     // Pre- and post-step data
     EnumArray<StepPoint, StepPointData> points;
 
-    // Track ID is always set
+    //! Track ID is always assigned (but will be false for inactive tracks)
     StateItems<TrackId> track;
+
+    //! Detector ID is non-empty if params.detector is nonempty
+    StateItems<DetectorId> detector;
 
     // Sim
     StateItems<EventId>   event;
@@ -225,7 +238,7 @@ struct StepStateData
             return (t.size() == this->size()) || t.empty();
         };
 
-        return !track.empty() && right_sized(event)
+        return !track.empty() && right_sized(detector) && right_sized(event)
                && right_sized(track_step_count) && right_sized(action)
                && right_sized(step_length) && right_sized(particle)
                && right_sized(energy_deposition);
@@ -246,6 +259,7 @@ struct StepStateData
         }
 
         track                   = other.track;
+        detector                = other.detector;
         event                   = other.event;
         track_step_count        = other.track_step_count;
         action                  = other.action;
@@ -313,6 +327,10 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     } while (0)
 
     resize(&state->track, size);
+    if (!params.detector.empty())
+    {
+        resize(&state->detector, size);
+    }
 
     SD_RESIZE_IF_SELECTED(event);
     SD_RESIZE_IF_SELECTED(track_step_count);

@@ -273,6 +273,15 @@ CELER_CONSTEXPR_FUNCTION real_type no_intersection()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return the UniverseId of the highest-level (i.e., root) universe.
+ */
+CELER_CONSTEXPR_FUNCTION UniverseId top_universe_id()
+{
+    return UniverseId{0};
+}
+
+//---------------------------------------------------------------------------//
 namespace logic
 {
 //! Whether an integer is a special logic token.

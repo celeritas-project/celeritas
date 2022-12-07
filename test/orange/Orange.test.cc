@@ -536,6 +536,27 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
+TEST_F(UniversesTest, initialize_with_multiple_universes)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize in outermost universe
+    geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Initialize in daughter universe
+    geo = Initializer_t{{0.5, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+}
+
 TEST_F(Geant4Testem15Test, params)
 {
     const OrangeParams& geo = this->params();
