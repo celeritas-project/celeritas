@@ -323,6 +323,31 @@ if(CELERITAS_BUILD_DEMOS)
 endif()
 
 #-----------------------------------------------------------------------------#
+# DEMO: Geant4 integration
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
+  add_executable(demo-geant-integration
+    demo-geant-integration/demo-geant-integration.cc
+  )
+  celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
+
+  if(CELERITAS_BUILD_TESTS)
+    set(_geant_test_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
+
+    add_test(NAME "app/demo-geant-integration"
+      COMMAND "$<TARGET_FILE:demo-geant-integration>"
+      "${_geant_test_inp}"
+    )
+    set_tests_properties("app/demo-geant-integration" PROPERTIES
+      ENVIRONMENT "CELER_LOG_LOCAL=debug;${_geant_test_env}"
+      REQUIRED_FILES "${_geant_test_inp}"
+      LABELS "app"
+    )
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
 # Utility: single-track geometry debugging
 #-----------------------------------------------------------------------------#
 

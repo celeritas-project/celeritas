@@ -215,6 +215,10 @@ a tag struct can be be defined inline::
 
    using BarId = OpaqueId<struct Bar>;
 
+.. note:: Public functions in user-facing Geant4 classes (those in ``accel``)
+   should try to conform to Geant4-style naming conventions, especially because
+   many will derive from Geant4 class interfaces.
+
 
 File names
 ----------
