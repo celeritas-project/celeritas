@@ -3,6 +3,7 @@
 module load DefApps/default PrgEnv-gnu craype-accel-amd-gfx90a rocm
 module load nlohmann-json cmake ninja googletest
 module try_load root clhep xerces-c expat geant4 hepmc3
+module load cray-python/3.9.13.1
 module unload cray-libsci
 
 # NOTE: these might only be necessary when we add MPI support

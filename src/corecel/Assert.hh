@@ -180,7 +180,7 @@
     } while (0)
 //! \endcond
 
-#if CELERITAS_DEBUG && CELER_DEVICE_COMPILE
+#if CELERITAS_DEBUG && (CELER_DEVICE_COMPILE || defined(__HIP__))
 #    define CELER_EXPECT(COND) CELER_DEVICE_ASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_DEVICE_ASSERT_(COND)
 #    define CELER_ENSURE(COND) CELER_DEVICE_ASSERT_(COND)
@@ -488,7 +488,7 @@ class RuntimeError : public std::runtime_error
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#if CELER_DEVICE_COMPILE
+#if CELER_DEVICE_COMPILE || defined(__HIP__)
 __attribute__((noinline)) __host__ __device__ inline void
 device_debug_error(const char* condition, const char* file, unsigned int line)
 {
