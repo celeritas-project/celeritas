@@ -7,39 +7,45 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/Stepper.hh"
+
+#include "../SetupOptions.hh"
+#include "G4Track.hh"
+
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    LocalTransporter ...;
-   \endcode
+ * Transport a set of primaries to completion.
  */
 class LocalTransporter
 {
   public:
     //!@{
     //! \name Type aliases
+    using SPCOptions = std::shared_ptr<const SetupOptions>;
+    using SPCParams  = std::shared_ptr<const CoreParams>;
     //!@}
 
   public:
     // Construct with shared (MT) params
-    LocalTransporter(SharedParams, SPCOptions, ...);
+    LocalTransporter(SPCParams, SPCOptions);
 
-    // Convert a Geant4 track to a Celeritas and add to buffer
+    // Convert a Geant4 track to a Celeritas primary and add to buffer
     void add(const G4Track&);
 
     // Transport all buffered tracks to completion
     void flush();
 
   private:
-    std::vector<Primary> buffer_;
-    std::shared_ptr<StepperInterface> stepper_;
+    SPCParams                         params_;
+    SPCOptions                        opts_;
+    std::shared_ptr<StepperInterface> step_;
+    std::vector<Primary>              buffer_;
 };
 
 //---------------------------------------------------------------------------//

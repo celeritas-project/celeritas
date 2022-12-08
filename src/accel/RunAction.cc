@@ -22,6 +22,7 @@ namespace celeritas
 RunAction::RunAction(SPCOptions options) : options_(std::move(options))
 {
     CELER_EXPECT(options_);
+    CELER_LOG_LOCAL(debug) << "RunAction::RunAction";
 }
 
 //---------------------------------------------------------------------------//

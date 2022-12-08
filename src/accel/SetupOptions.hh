@@ -26,10 +26,11 @@ struct SetupOptions
     // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
-    size_type    max_num_tracks{};
-    size_type    max_steps = no_max_steps();
-    size_type    initializer_capacity{};
-    real_type    secondary_stack_factor{};
+    size_type max_num_tracks{};
+    size_type max_steps = no_max_steps();
+    size_type initializer_capacity{};
+    real_type secondary_stack_factor{};
+    bool      sync{};
 };
 
 //---------------------------------------------------------------------------//
