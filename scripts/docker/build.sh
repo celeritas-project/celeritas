@@ -12,15 +12,15 @@ SPACK_VERSION=v0.19.0
 CONFIG=$1
 DOCKER=docker
 BUILDARGS=
-SUDO=
-if ! hash $DOCKER 2>/dev/null; then
+if ! hash ${DOCKER} 2>/dev/null; then
   # see https://blog.christophersmart.com/2021/01/26/user-ids-and-rootless-containers-with-podman/
   DOCKER=podman
   BUILDARGS="--format docker"
-  if ! hash $DOCKER 2>/dev/null; then
+  if ! hash ${DOCKER} 2>/dev/null; then
     echo "Docker (or podman) is not available"
     exit 1
   fi
+  # Make podman build containers inside /tmp rather than /var/lib
   export TMPDIR=$(mktemp -d)
 fi
 
@@ -29,6 +29,7 @@ case $CONFIG in
     CONFIG=bionic-minimal
     ;;
   cuda)
+    # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
     CONFIG=jammy-cuda11
     ;;
 esac
@@ -49,22 +50,22 @@ case $CONFIG in
     ;;
 esac
 
-$DOCKER pull ${BASE_TAG}
-$DOCKER tag ${BASE_TAG} base-${CONFIG}
+${DOCKER} pull ${BASE_TAG}
+${DOCKER} tag ${BASE_TAG} base-${CONFIG}
 
-$DOCKER build -t dev-${CONFIG} \
+${DOCKER} build -t dev-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg SPACK_VERSION=${SPACK_VERSION} \
-  $BUILDARGS \
+  ${BUILDARGS} \
   dev
 
-$DOCKER build -t ci-${CONFIG} \
+${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg VECGEOM=${VECGEOM} \
-  $BUILDARGS \
+  ${BUILDARGS} \
   ci
 
 DATE=$(date '+%Y-%m-%d')
-$DOCKER tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-$DOCKER tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-$DOCKER push celeritas/ci-${CONFIG}:${DATE}
+${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
+${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
+${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
