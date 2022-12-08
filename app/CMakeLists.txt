@@ -345,8 +345,12 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     set(_env
       "CELER_LOG_LOCAL=debug"
       "CELER_DISABLE_PARALLEL=1"
+      "NUM_THREADS=2"
       ${_geant_test_env}
     )
+    if(CELERITAS_USE_OpenMP)
+      list(APPEND _env "OMP_NUM_THREADS=1")
+    endif()
     set_tests_properties("app/demo-geant-integration" PROPERTIES
       ENVIRONMENT "${_env}"
       REQUIRED_FILES "${_geant_test_inp}"

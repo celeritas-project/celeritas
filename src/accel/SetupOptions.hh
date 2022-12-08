@@ -23,9 +23,6 @@ struct SetupOptions
     {
         return static_cast<size_type>(-1);
     }
-    //! Sentinel value for using CPU
-    static constexpr int no_device() { return -1; }
-
     // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
@@ -34,7 +31,6 @@ struct SetupOptions
     size_type    max_steps = no_max_steps();
     size_type    initializer_capacity{};
     real_type    secondary_stack_factor{};
-    int          device_id = no_device();
     bool         sync{};
 };
 

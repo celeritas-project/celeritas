@@ -54,10 +54,11 @@ void ActionInitialization::Build() const
 {
     CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
 
-    if (options_->device_id != SetupOptions::no_device())
+    if (Device::num_devices() > 0)
     {
-        // Initialize CUDA
-        celeritas::activate_device(Device{options_->device_id});
+        // Initialize CUDA (you'll need to use CUDA environment variables to
+        // control the preferred device)
+        celeritas::activate_device(Device{0});
         // TODO: these should be user configurable because they're geometry
         // dependent
         celeritas::set_cuda_stack_size(32768);

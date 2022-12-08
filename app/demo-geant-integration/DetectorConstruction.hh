@@ -8,6 +8,7 @@
 #pragma once
 
 #include <G4VUserDetectorConstruction.hh>
+
 #include "celeritas/ext/LoadGdml.hh"
 
 namespace demo_geant
