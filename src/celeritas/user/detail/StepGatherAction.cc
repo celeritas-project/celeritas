@@ -8,6 +8,8 @@
 #include "StepGatherAction.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "StepGatherLauncher.hh"
 
@@ -59,12 +61,15 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 
     const auto& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
+
+    MultiExceptionHandler capture_exception;
     StepGatherLauncher<P> launch{core, storage_->params.host_ref(), step_state};
 #pragma omp parallel for
     for (size_type i = 0; i < core.states.size(); ++i)
     {
-        launch(ThreadId{i});
+        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
     }
+    log_and_rethrow(std::move(capture_exception));
 
     if (P == StepPoint::post)
     {

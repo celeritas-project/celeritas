@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
@@ -35,13 +36,15 @@ void AlongStepNeutralAction::execute(CoreHostRef const& data) const
 {
     CELER_EXPECT(data);
 
+    MultiExceptionHandler capture_exception;
     auto launch = make_along_step_launcher(
         data, NoData{}, NoData{}, NoData{}, detail::along_step_neutral);
 #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        launch(ThreadId{i});
+        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
     }
+    log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//

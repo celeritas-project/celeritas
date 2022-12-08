@@ -28,7 +28,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if defined(_OPENMP)
+#    ifdef _OPENMP
 #        pragma omp atomic capture
 #    endif
     {
@@ -78,7 +78,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if defined(_OPENMP)
+#    ifdef _OPENMP
 #        pragma omp atomic capture
 #    endif
     {
@@ -101,7 +101,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if defined(_OPENMP)
+#    ifdef _OPENMP
 #        pragma omp atomic capture
 #    endif
     {

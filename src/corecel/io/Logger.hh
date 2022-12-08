@@ -102,6 +102,10 @@ detail::LoggerMessage Logger::operator()(Provenance prov, LogLevel lev)
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+// Create loggers with reasonable default behaviors.
+Logger make_default_world_logger();
+Logger make_default_self_logger();
+
 // Parallel logger (print only on "main" process)
 Logger& world_logger();
 
