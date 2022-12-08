@@ -10,6 +10,7 @@
 #include <iostream>
 // #include <FTFP_BERT.hh>
 #include <CLHEP/Random/Random.h>
+#include <G4MTRunManager.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4TransportationManager.hh>
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
 
     std::unique_ptr<G4RunManager> run_manager;
 #if CELERITAS_G4_V10
-    run_manager = std::make_unique<G4RunManager>();
+    run_manager = std::make_unique<G4MTRunManager>();
 #else
     run_manager.reset(
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT));
