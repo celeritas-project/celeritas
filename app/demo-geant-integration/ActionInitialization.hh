@@ -3,21 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/DemoActionInitialization.hh
+//! \file demo-geant-integration/ActionInitialization.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4VUserActionInitialization.hh>
 
-#include "accel/PrimaryGeneratorAction.hh"
+#include "PrimaryGeneratorAction.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Set up demo-geant-integration specific action initializations.
  */
-class DemoActionInitialization final : public G4VUserActionInitialization
+class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
     //!@{
@@ -27,10 +27,10 @@ class DemoActionInitialization final : public G4VUserActionInitialization
 
   public:
     // Construct with default particle gun
-    DemoActionInitialization();
+    ActionInitialization();
 
     // Construct with user-defined particle gun
-    DemoActionInitialization(PGAParticleGun particle_gun);
+    ActionInitialization(PGAParticleGun particle_gun);
 
     void BuildForMaster() const final;
     void Build() const final;
@@ -40,4 +40,4 @@ class DemoActionInitialization final : public G4VUserActionInitialization
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

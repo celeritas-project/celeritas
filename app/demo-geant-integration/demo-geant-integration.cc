@@ -12,7 +12,6 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4TransportationManager.hh>
-#include <G4VUserDetectorConstruction.hh>
 #include <Randomize.hh>
 
 #include "celeritas/ext/GeantVersion.hh"
@@ -27,44 +26,10 @@
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ActionInitialization.hh"
 #include "accel/Logger.hh"
-#include "accel/PrimaryGeneratorAction.hh"
 
-#include "DemoActionInitialization.hh"
-
-namespace
-{
-//---------------------------------------------------------------------------//
-
-class DetectorConstruction final : public G4VUserDetectorConstruction
-{
-  public:
-    explicit DetectorConstruction(const std::string& filename)
-    {
-        world_ = celeritas::load_gdml(filename);
-    }
-
-    G4VPhysicalVolume* Construct() final;
-    void               ConstructSDandField() final;
-
-  private:
-    celeritas::UPG4PhysicalVolume world_;
-};
-
-//---------------------------------------------------------------------------//
-G4VPhysicalVolume* DetectorConstruction::Construct()
-{
-    CELER_LOG_LOCAL(debug) << "DetectorConstruction::Construct";
-    return world_.release();
-}
-
-//---------------------------------------------------------------------------//
-void DetectorConstruction::ConstructSDandField()
-{
-    CELER_LOG_LOCAL(debug) << "DetectorConstruction::ConstructSDandField";
-}
-
-//---------------------------------------------------------------------------//
-} // namespace
+#include "ActionInitialization.hh"
+#include "DetectorConstruction.hh"
+#include "PrimaryGeneratorAction.hh"
 
 //---------------------------------------------------------------------------//
 /*!
@@ -95,13 +60,13 @@ int main(int argc, char* argv[])
     celeritas::GeantPhysicsOptions geant_phys_opts{};
     auto opts = std::make_shared<celeritas::SetupOptions>();
 
-    // Construct physics, geometry, and celeritas setup
-    run_manager->SetUserInitialization(new DetectorConstruction{args[1]});
+    // Construct physics, geometry, celeritas setup, and user setup
+    run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{args[1]});
     // run_manager->SetUserInitialization(new FTFP_BERT);
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
     run_manager->SetUserInitialization(new celeritas::ActionInitialization(
-        opts, std::make_unique<celeritas::DemoActionInitialization>()));
+        opts, std::make_unique<demo_geant::ActionInitialization>()));
 
     CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
     // run_manager->SetVerboseLevel(1);

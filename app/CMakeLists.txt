@@ -329,7 +329,9 @@ endif()
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   add_executable(demo-geant-integration
     demo-geant-integration/demo-geant-integration.cc
-    demo-geant-integration/DemoActionInitialization.cc
+    demo-geant-integration/ActionInitialization.cc
+    demo-geant-integration/DetectorConstruction.cc
+    demo-geant-integration/PrimaryGeneratorAction.cc
   )
   celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
 

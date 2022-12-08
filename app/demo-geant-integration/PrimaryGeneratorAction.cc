@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/PrimaryGeneratorAction.cc
+//! \file demo-geant-integration/PrimaryGeneratorAction.cc
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
@@ -12,7 +12,7 @@
 
 #include "corecel/io/Logger.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -43,5 +43,6 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     g4particle_gun.SetParticleMomentumDirection(particle_gun_.dir.unit());
     g4particle_gun.GeneratePrimaryVertex(event);
 }
+
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

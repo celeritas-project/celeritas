@@ -3,26 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/DemoActionInitialization.cc
+//! \file demo-geant-integration/ActionInitialization.cc
 //---------------------------------------------------------------------------//
-#include "DemoActionInitialization.hh"
+#include "ActionInitialization.hh"
 
 #include "corecel/io/Logger.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct empty loads a default particle gun:
  * Default: electron with 500 MeV at the origin with direction (0, 0, 1).
  */
-DemoActionInitialization::DemoActionInitialization()
+ActionInitialization::ActionInitialization()
     : G4VUserActionInitialization()
     , particle_gun_(
           {11, 500 * MeV, G4ThreeVector{0, 0, 1}, G4ThreeVector{0, 0, 0}})
 {
-    CELER_LOG_LOCAL(debug) << "DemoActionInitialization::"
-                              "DemoActionInitialization with default particle "
+    CELER_LOG_LOCAL(debug) << "ActionInitialization::"
+                              "ActionInitialization with default particle "
                               "gun";
 }
 
@@ -30,11 +30,11 @@ DemoActionInitialization::DemoActionInitialization()
 /*!
  * Construct with user-defined particle gun information.
  */
-DemoActionInitialization::DemoActionInitialization(PGAParticleGun particle_gun)
+ActionInitialization::ActionInitialization(PGAParticleGun particle_gun)
     : G4VUserActionInitialization(), particle_gun_(particle_gun)
 {
-    CELER_LOG_LOCAL(debug) << "DemoActionInitialization::"
-                              "DemoActionInitialization with user-defined "
+    CELER_LOG_LOCAL(debug) << "ActionInitialization::"
+                              "ActionInitialization with user-defined "
                               "particle gun";
 }
 
@@ -44,24 +44,22 @@ DemoActionInitialization::DemoActionInitialization(PGAParticleGun particle_gun)
  *
  * This is *only* called if using multithreaded Geant4.
  */
-void DemoActionInitialization::BuildForMaster() const
+void ActionInitialization::BuildForMaster() const
 {
-    CELER_LOG_LOCAL(debug) << "DemoActionInitialization::BuildForMaster";
-
-    // Which user actions must be on manager thread?
+    CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct actions on each worker thread.
  */
-void DemoActionInitialization::Build() const
+void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(debug) << "DemoActionInitialization::Build";
+    CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
 
     // Initialize primary generator
     this->SetUserAction(new PrimaryGeneratorAction(particle_gun_));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

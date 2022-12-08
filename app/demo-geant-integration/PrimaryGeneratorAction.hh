@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/PrimaryGeneratorAction.hh
+//! \file demo-geant-integration/PrimaryGeneratorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,11 +11,12 @@
 #include <G4ThreeVector.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Minimal implementation of a primary generator action class.
+ *
  * Construct by providing basic particle gun information.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
@@ -40,4 +41,4 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant
