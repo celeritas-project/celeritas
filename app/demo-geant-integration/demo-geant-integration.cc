@@ -32,6 +32,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
+#include "GlobalSetup.hh"
 
 //---------------------------------------------------------------------------//
 /*!
@@ -89,7 +90,6 @@ int main(int argc, char* argv[])
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
 
     celeritas::GeantPhysicsOptions geant_phys_opts{};
-    auto opts = std::make_shared<celeritas::SetupOptions>();
 
     // Construct physics, geometry, celeritas setup, and user setup
     run_manager->SetUserInitialization(
@@ -98,7 +98,8 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
     run_manager->SetUserInitialization(new celeritas::ActionInitialization(
-        opts, std::make_unique<demo_geant::ActionInitialization>()));
+        demo_geant::GlobalSetup::Instance()->GetSetupOptions(),
+        std::make_unique<demo_geant::ActionInitialization>()));
 
     // TODO: move this to the core params construction
 #if 0
@@ -113,8 +114,12 @@ int main(int argc, char* argv[])
 
     if (args.size() >= 3)
     {
+        const std::string& macro_file = args[2];
+        CELER_LOG_LOCAL(status) << "Executing macro commands from '"
+            <<macro_file << "'";
         G4UImanager* ui = G4UImanager::GetUIpointer();
-        ui->ApplyCommand("/control/execute " + args[2]);
+        CELER_ASSERT(ui);
+        ui->ApplyCommand("/control/execute " + macro_file);
         run_manager->Initialize();
     }
     else

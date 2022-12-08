@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include <CLHEP/Random/Random.h>
 
 namespace celeritas
 {
@@ -34,6 +35,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
                            << run->GetRunID()
                            << (this->IsMaster() ? " (master)" : "");
 
+    // TODO: set RNG seed via CLHEP::HepRandom::getTheSeed();
     // TODO: set up physics and geometry if master?
     // or if first thread to hit (via mutex?)
 }
