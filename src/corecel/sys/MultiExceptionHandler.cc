@@ -80,7 +80,7 @@ MultiExceptionHandler::~MultiExceptionHandler()
 void MultiExceptionHandler::operator()(std::exception_ptr p)
 {
 #ifdef _OPENMP
-#    pragma omp critical
+#    pragma omp critical (MultiExceptionHandler)
 #endif
     {
         exceptions_.push_back(std::move(p));
