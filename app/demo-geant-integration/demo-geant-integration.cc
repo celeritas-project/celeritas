@@ -9,11 +9,11 @@
 #include <cstddef>
 #include <iostream>
 // #include <FTFP_BERT.hh>
+#include <CLHEP/Random/Random.h>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4TransportationManager.hh>
 #include <G4UImanager.hh>
-#include <Randomize.hh>
 
 #include "celeritas/ext/GeantVersion.hh"
 #if !CELERITAS_G4_V10
