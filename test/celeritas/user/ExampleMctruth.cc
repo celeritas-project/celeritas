@@ -31,13 +31,13 @@ void copy_array(double dst[3], const Real3& src)
 StepSelection ExampleMctruth::selection() const
 {
     StepSelection result;
-    result.event            = true;
+    result.event_id         = true;
     result.track_step_count = true;
 
-    auto& pre  = result.points[StepPoint::pre];
-    pre.volume = true;
-    pre.pos    = true;
-    pre.dir    = true;
+    auto& pre     = result.points[StepPoint::pre];
+    pre.volume_id = true;
+    pre.pos       = true;
+    pre.dir       = true;
 
     return result;
 }
@@ -47,7 +47,7 @@ void ExampleMctruth::execute(StateHostRef const& data)
 {
     for (auto tid : range(ThreadId{data.size()}))
     {
-        TrackId track = data.track[tid];
+        TrackId track = data.track_id[tid];
         if (!track)
         {
             // Skip inactive slot
@@ -55,12 +55,12 @@ void ExampleMctruth::execute(StateHostRef const& data)
         }
 
         Step new_step;
-        new_step.event = data.event[tid].get();
+        new_step.event = data.event_id[tid].get();
         new_step.track = track.unchecked_get();
         new_step.step  = data.track_step_count[tid];
 
         const auto& pre_step = data.points[StepPoint::pre];
-        new_step.volume      = pre_step.volume[tid].get();
+        new_step.volume      = pre_step.volume_id[tid].get();
         copy_array(new_step.pos, pre_step.pos[tid]);
         copy_array(new_step.dir, pre_step.dir[tid]);
 

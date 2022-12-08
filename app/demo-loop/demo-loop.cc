@@ -34,9 +34,11 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -97,6 +99,33 @@ void run(std::istream* is, OutputManager* output)
             std::make_shared<ActionRegistryOutput>(params.action_reg()));
     }
 
+    // Save results to ROOT MC truth output file when possible
+    std::shared_ptr<RootFileManager> root_manager;
+    std::shared_ptr<StepCollector>   step_collector;
+    std::shared_ptr<RootStepWriter>  step_writer;
+
+    if (!run_args.mctruth_filename.empty())
+    {
+        CELER_LOG(info) << "Writing ROOT MC truth output at "
+                        << run_args.mctruth_filename;
+
+        root_manager = std::make_shared<RootFileManager>(
+            run_args.mctruth_filename.c_str());
+
+        step_writer = std::make_shared<RootStepWriter>(
+            root_manager,
+            transport_ptr->params().particle(),
+            StepSelection::all());
+
+        step_collector = std::make_shared<StepCollector>(
+            StepCollector::VecInterface{step_writer},
+            transport_ptr->params().geometry(),
+            transport_ptr->params().action_reg().get());
+
+        // Store input data
+        to_root(root_manager, run_args);
+    }
+
     // Run all the primaries
     TransporterResult    result;
     std::vector<Primary> primaries;
@@ -123,6 +152,8 @@ void run(std::istream* is, OutputManager* output)
             event = read_event();
         }
     }
+
+    // Transport
     result = (*transport_ptr)(primaries);
 
     result.time.setup = setup_time;
@@ -131,6 +162,12 @@ void run(std::istream* is, OutputManager* output)
     // to use this ugly "global" hack
     output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(
         OutputInterface::Category::result, "*", std::move(result)));
+
+    if (root_manager)
+    {
+        // Write ROOT file to disk
+        root_manager->write();
+    }
 }
 } // namespace
 
@@ -141,7 +178,7 @@ void run(std::istream* is, OutputManager* output)
 int main(int argc, char* argv[])
 {
     ScopedRootErrorHandler scoped_root_error;
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    ScopedMpiInit          scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
