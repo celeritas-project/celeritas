@@ -10,7 +10,6 @@
 #include <iostream>
 // #include <FTFP_BERT.hh>
 #include <CLHEP/Random/Random.h>
-#include <G4MTRunManager.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4TransportationManager.hh>
@@ -19,6 +18,8 @@
 #include "celeritas/ext/GeantVersion.hh"
 #if !CELERITAS_G4_V10
 #    include <G4RunManagerFactory.hh>
+#else
+#    include <G4MTRunManager.hh>
 #endif
 
 #include "corecel/Assert.hh"
@@ -34,6 +35,31 @@
 #include "DetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "GlobalSetup.hh"
+
+namespace
+{
+//---------------------------------------------------------------------------//
+int GetNumThreads()
+{
+    const std::string& nt_str = celeritas::getenv("NUM_THREADS");
+    if (!nt_str.empty())
+    {
+        try
+        {
+            return std::stoi(nt_str);
+        }
+        catch (const std::logic_error& e)
+        {
+            std::cerr << "error: failed to parse NUM_THREADS='" << nt_str
+                      << "' as an integer" << std::endl;
+            return -1;
+        }
+    }
+    return G4Threading::G4GetNumberOfCores();
+}
+
+//---------------------------------------------------------------------------//
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -56,34 +82,27 @@ int main(int argc, char* argv[])
     }
 
     // Set up the number of threads
-    int                num_threads;
-    const std::string& nt_str = celeritas::getenv("NUM_THREADS");
-    if (!nt_str.empty())
-    {
-        try
-        {
-            num_threads = std::stoi(nt_str);
-        }
-        catch (const std::logic_error& e)
-        {
-            std::cerr << "error: failed to parse NUM_THREADS='" << nt_str
-                      << "' as an integer" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
-    else
-    {
-        num_threads = G4Threading::G4GetNumberOfCores();
-    }
-
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
+
+    int num_threads = GetNumThreads();
+    if (num_threads <= 0)
+    {
+        return EXIT_FAILURE;
+    }
 
     std::unique_ptr<G4RunManager> run_manager;
 #if CELERITAS_G4_V10
-    run_manager = std::make_unique<G4MTRunManager>();
+    if (num_threads > 1)
+    {
+        run_manager = std::make_unique<G4MTRunManager>();
+    }
+    else
+    {
+        run_manager = std::make_unique<G4RunManager>();
+    }
 #else
-    run_manager.reset(
-        G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT));
+    run_manager.reset(G4RunManagerFactory::CreateRunManager(
+        num_threads > 1 ? G4RunManagerType::MT : G4RunManagerType::Serial));
 #endif
     CELER_ASSERT(run_manager);
 
@@ -128,7 +147,7 @@ int main(int argc, char* argv[])
         CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
         run_manager->Initialize();
 
-        CELER_LOG_LOCAL(status) << "beam on";
+        CELER_LOG_LOCAL(status) << "Transporting ";
         run_manager->BeamOn(1);
     }
 
