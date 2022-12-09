@@ -46,6 +46,15 @@ class GeantSetup
     // Default constructor
     GeantSetup() = default;
 
+    // Terminate run on destruction
+    ~GeantSetup();
+
+    //!@{
+    //! Default move assignment/construction
+    GeantSetup(GeantSetup&&) = default;
+    GeantSetup& operator=(GeantSetup&&) = default;
+    //!@}
+
     // Get the world detector volume
     inline const G4VPhysicalVolume* world() const;
 

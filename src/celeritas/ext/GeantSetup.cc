@@ -131,6 +131,18 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Terminate the run manager on destruction.
+ */
+GeantSetup::~GeantSetup()
+{
+    if (run_manager_)
+    {
+        run_manager_->RunTermination();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Delete a geant4 run manager.
  */
 void GeantSetup::RMDeleter::operator()(G4RunManager* rm) const
