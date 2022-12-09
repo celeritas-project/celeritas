@@ -24,7 +24,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     //!@{
     //! \name Type aliases
-    using SPCOptions = std::shared_ptr<const SetupOptions>;
+    using SPCOptions   = std::shared_ptr<const SetupOptions>;
     using UPUserAction = std::unique_ptr<G4VUserActionInitialization>;
     //!@}
 
@@ -39,7 +39,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     void Build() const final;
 
   private:
-    SPCOptions options_;
+    SPCOptions   options_;
     UPUserAction action_;
 };
 

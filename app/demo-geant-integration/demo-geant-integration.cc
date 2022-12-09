@@ -33,8 +33,8 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
-#include "PrimaryGeneratorAction.hh"
 #include "GlobalSetup.hh"
+#include "PrimaryGeneratorAction.hh"
 
 namespace
 {
@@ -59,7 +59,7 @@ int GetNumThreads()
 }
 
 //---------------------------------------------------------------------------//
-}
+} // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -135,8 +135,8 @@ int main(int argc, char* argv[])
     if (args.size() >= 3)
     {
         const std::string& macro_file = args[2];
-        CELER_LOG_LOCAL(status) << "Executing macro commands from '"
-            <<macro_file << "'";
+        CELER_LOG_LOCAL(status)
+            << "Executing macro commands from '" << macro_file << "'";
         G4UImanager* ui = G4UImanager::GetUIpointer();
         CELER_ASSERT(ui);
         ui->ApplyCommand("/control/execute " + macro_file);

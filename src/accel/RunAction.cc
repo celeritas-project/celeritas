@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
+#include <CLHEP/Random/Random.h>
 #include <G4Run.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include <CLHEP/Random/Random.h>
 
 namespace celeritas
 {

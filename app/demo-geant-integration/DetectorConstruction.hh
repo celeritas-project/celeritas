@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VUserDetectorConstruction.hh>
 #include <memory>
 #include <utility>
 #include <vector>
+#include <G4VUserDetectorConstruction.hh>
 
 class G4LogicalVolume;
 
@@ -29,7 +29,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     void               ConstructSDandField() final;
 
   private:
-    std::unique_ptr<G4VPhysicalVolume> world_;
+    std::unique_ptr<G4VPhysicalVolume>                    world_;
     std::vector<std::pair<G4LogicalVolume*, std::string>> detectors_;
 };
 

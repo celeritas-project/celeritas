@@ -7,14 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
-#include "corecel/io/Logger.hh"
 #include <G4SystemOfUnits.hh>
+
+#include "corecel/io/Logger.hh"
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
-SensitiveDetector::SensitiveDetector(std::string name) : G4VSensitiveDetector(std::move(name)) {}
+SensitiveDetector::SensitiveDetector(std::string name)
+    : G4VSensitiveDetector(std::move(name))
+{
+}
 
-void SensitiveDetector::Initialize(G4HCofThisEvent*) {
+void SensitiveDetector::Initialize(G4HCofThisEvent*)
+{
     CELER_LOG_LOCAL(debug) << "SensitiveDetector::Initialize";
 }
 
@@ -28,7 +33,8 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     }
 
     auto time = step->GetPreStepPoint()->GetGlobalTime();
-    CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into " << this->GetName() << " at " << time;
+    CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into "
+                           << this->GetName() << " at " << time;
 
     return true;
 }

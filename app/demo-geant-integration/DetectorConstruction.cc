@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
-#include "corecel/io/Logger.hh"
 #include <G4GDMLParser.hh>
-#include <G4VPhysicalVolume.hh>
 #include <G4LogicalVolume.hh>
 #include <G4SDManager.hh>
+#include <G4VPhysicalVolume.hh>
+
+#include "corecel/io/Logger.hh"
+
 #include "SensitiveDetector.hh"
 
 namespace demo_geant
