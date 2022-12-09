@@ -268,11 +268,6 @@ TEST_F(TestEm3Test, host_multi)
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    if (CELERITAS_USE_VECGEOM && this->is_ci_build())
-    {
-        GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
-    }
-
     size_type num_primaries = 8;
     // Num tracks is low enough to hit capacity
     size_type num_tracks = num_primaries * 800;
@@ -413,14 +408,7 @@ TEST_F(TestEm3MscNofluctTest, host)
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
         EXPECT_EQ(72, result.num_step_iters());
-        if (CELERITAS_USE_VECGEOM)
-        {
-            EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
-        }
-        else
-        {
-            EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
-        }
+        EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
@@ -439,11 +427,6 @@ TEST_F(TestEm3MscNofluctTest, host)
 
 TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 {
-    if (CELERITAS_USE_VECGEOM && this->is_ci_build())
-    {
-        GTEST_SKIP() << "TODO: TestEm3 + vecgeom crashes on CI";
-    }
-
     size_type num_primaries = 8;
     size_type num_tracks    = 1024;
 
