@@ -8,9 +8,47 @@
 #include "DetectorConstruction.hh"
 
 #include "corecel/io/Logger.hh"
+#include <G4GDMLParser.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4LogicalVolume.hh>
+#include <G4SDManager.hh>
+#include "SensitiveDetector.hh"
 
 namespace demo_geant
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Load geometry and sensitive detector volumes.
+ */
+DetectorConstruction::DetectorConstruction(const std::string& filename)
+{
+    // Create parser; do *not* strip `0x` extensions since those are needed to
+    // deduplicate complex geometries (e.g. CMS) and are handled by the Label
+    // and LabelIdMultiMap. Note that material and element names (at least as
+    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
+    // their extension.
+    G4GDMLParser gdml_parser;
+    gdml_parser.SetStripFlag(false);
+
+    constexpr bool validate_gdml_schema = false;
+    gdml_parser.Read(filename, validate_gdml_schema);
+
+    // Claim ownership of world volume
+    world_.reset(gdml_parser.GetWorldVolume());
+
+    // Find sensitive detectors
+    for (const auto& lv_vecaux : *gdml_parser.GetAuxMap())
+    {
+        for (const G4GDMLAuxStructType& aux : lv_vecaux.second)
+        {
+            if (aux.type == "SensDet")
+            {
+                detectors_.emplace_back(lv_vecaux.first, aux.value);
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
@@ -22,6 +60,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 void DetectorConstruction::ConstructSDandField()
 {
     CELER_LOG_LOCAL(debug) << "DetectorConstruction::ConstructSDandField";
+
+    G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
+
+    for (auto& lv_name : detectors_)
+    {
+        auto detector = std::make_unique<SensitiveDetector>(lv_name.second);
+        lv_name.first->SetSensitiveDetector(detector.get());
+        sd_manager->AddNewDetector(detector.release());
+    }
 }
 
 //---------------------------------------------------------------------------//

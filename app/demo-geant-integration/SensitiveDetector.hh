@@ -3,34 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/DetectorConstruction.hh
+//! \file demo-geant-integration/SensitiveDetector.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VUserDetectorConstruction.hh>
-#include <memory>
-#include <utility>
-#include <vector>
-
-class G4LogicalVolume;
+#include <G4VSensitiveDetector.hh>
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a detector from a GDML filename.
+ * Example sensitive detector.
  */
-class DetectorConstruction final : public G4VUserDetectorConstruction
+class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
-    explicit DetectorConstruction(const std::string& filename);
-
-    G4VPhysicalVolume* Construct() final;
-    void               ConstructSDandField() final;
-
-  private:
-    std::unique_ptr<G4VPhysicalVolume> world_;
-    std::vector<std::pair<G4LogicalVolume*, std::string>> detectors_;
+    explicit SensitiveDetector(std::string name);
+    void   Initialize(G4HCofThisEvent*) final;
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 };
 
 //---------------------------------------------------------------------------//
