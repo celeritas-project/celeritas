@@ -8,10 +8,30 @@
 #include "RunAction.hh"
 
 #include <CLHEP/Random/Random.h>
+#include <G4AutoLock.hh>
 #include <G4Run.hh>
+#include <G4TransportationManager.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
+
+namespace
+{
+G4Mutex mutex = G4MUTEX_INITIALIZER;
+}
 
 namespace celeritas
 {
@@ -19,9 +39,11 @@ namespace celeritas
 /*!
  * Construct with Celeritas setup options.
  */
-RunAction::RunAction(SPCOptions options) : options_(std::move(options))
+RunAction::RunAction(SPCOptions options, SPParams params)
+    : options_(options), params_(params)
 {
     CELER_EXPECT(options_);
+    CELER_EXPECT(params_);
     CELER_LOG_LOCAL(debug) << "RunAction::RunAction";
 }
 
@@ -36,9 +58,129 @@ void RunAction::BeginOfRunAction(const G4Run* run)
                            << run->GetRunID()
                            << (this->IsMaster() ? " (master)" : "");
 
-    // TODO: set RNG seed via CLHEP::HepRandom::getTheSeed();
-    // TODO: set up physics and geometry if master?
-    // or if first thread to hit (via mutex?)
+    // Set up shared Celeritas data if first thread to hit
+    {
+        G4AutoLock lock(&mutex);
+
+        if (!params_->params)
+        {
+            celeritas::GeantImporter load_geant_data(
+                G4TransportationManager::GetTransportationManager()
+                    ->GetNavigatorForTracking()
+                    ->GetWorldVolume());
+
+            auto imported = load_geant_data();
+            CELER_LOG_LOCAL(info)
+                << "loaded data: " << (imported ? "success" : "failure");
+
+            CoreParams::Input params;
+
+            // Create action manager
+            {
+                params.action_reg = std::make_shared<ActionRegistry>();
+            }
+
+            // Load geometry
+            {
+                params.geometry
+                    = std::make_shared<GeoParams>(options_->geometry_file);
+                if (!params.geometry->supports_safety())
+                {
+                    CELER_LOG(warning)
+                        << "Geometry contains surfaces that are "
+                           "incompatible with the current ORANGE simple "
+                           "safety algorithm: multiple scattering may "
+                           "result in arbitrarily small steps";
+                }
+            }
+
+            // Load materials
+            {
+                params.material = MaterialParams::from_import(imported);
+            }
+
+            // Create geometry/material coupling
+            {
+                params.geomaterial = GeoMaterialParams::from_import(
+                    imported, params.geometry, params.material);
+            }
+
+            // Construct particle params
+            {
+                params.particle = ParticleParams::from_import(imported);
+            }
+
+            // Construct cutoffs
+            {
+                params.cutoff = CutoffParams::from_import(
+                    imported, params.particle, params.material);
+            }
+
+            // Load physics: create individual processes with make_shared
+            {
+                PhysicsParams::Input input;
+                input.particles       = params.particle;
+                input.materials       = params.material;
+                input.action_registry = params.action_reg.get();
+
+                input.options.linear_loss_limit
+                    = imported.em_params.linear_loss_limit;
+                input.options.secondary_stack_factor
+                    = options_->secondary_stack_factor;
+
+                {
+                    ProcessBuilder::Options opts;
+                    ProcessBuilder          build_process(
+                        imported, opts, params.particle, params.material);
+
+                    std::set<ImportProcessClass> all_process_classes;
+                    for (const auto& p : imported.processes)
+                    {
+                        all_process_classes.insert(p.process_class);
+                    }
+                    for (auto p : all_process_classes)
+                    {
+                        input.processes.push_back(build_process(p));
+                    }
+                }
+
+                params.physics
+                    = std::make_shared<PhysicsParams>(std::move(input));
+            }
+
+            // TODO: different along-step kernels
+            {
+                // Create along-step action
+                auto along_step = AlongStepGeneralLinearAction::from_params(
+                    params.action_reg->next_id(),
+                    *params.material,
+                    *params.particle,
+                    *params.physics,
+                    imported.em_params.energy_loss_fluct);
+                params.action_reg->insert(along_step);
+            }
+
+            // Construct RNG params
+            {
+                params.rng = std::make_shared<RngParams>(
+                    CLHEP::HepRandom::getTheSeed());
+            }
+
+            // Construct track initialization params
+            {
+                TrackInitParams::Input input;
+                input.capacity   = options_->initializer_capacity;
+                input.max_events = 1;
+                params.init      = std::make_shared<TrackInitParams>(input);
+            }
+
+            // Create params
+            CELER_ASSERT(params);
+            params_->params = std::make_shared<CoreParams>(std::move(params));
+        }
+    }
+
+    CELER_ENSURE(params_->params);
 }
 
 //---------------------------------------------------------------------------//

@@ -12,7 +12,6 @@
 #include <CLHEP/Random/Random.h>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
-#include <G4TransportationManager.hh>
 #include <G4UImanager.hh>
 
 #include "celeritas/ext/GeantVersion.hh"
@@ -121,29 +120,24 @@ int main(int argc, char* argv[])
         demo_geant::GlobalSetup::Instance()->GetSetupOptions(),
         std::make_unique<demo_geant::ActionInitialization>()));
 
-    // TODO: move this to the core params construction
-#if 0
-    celeritas::GeantImporter load_geant_data(
-        G4TransportationManager::GetTransportationManager()
-            ->GetNavigatorForTracking()
-            ->GetWorldVolume());
-
-    auto imported = load_geant_data();
-    CELER_LOG_LOCAL(info) << "loaded data: " << (imported ? "success" : "failure");
-#endif
-
+    G4UImanager* ui = G4UImanager::GetUIpointer();
+    CELER_ASSERT(ui);
     if (args.size() >= 3)
     {
         const std::string& macro_file = args[2];
         CELER_LOG_LOCAL(status)
             << "Executing macro commands from '" << macro_file << "'";
-        G4UImanager* ui = G4UImanager::GetUIpointer();
-        CELER_ASSERT(ui);
         ui->ApplyCommand("/control/execute " + macro_file);
         run_manager->Initialize();
     }
     else
     {
+        ui->ApplyCommand("/setup/setGeometryFile " + args[1]);
+
+        // TODO: don't hardcode setup options
+        ui->ApplyCommand("/setup/secondaryStackFactor 3");
+        ui->ApplyCommand("/setup/initializerCapacity 1048576");
+
         CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
         run_manager->Initialize();
 

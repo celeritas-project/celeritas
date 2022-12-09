@@ -39,11 +39,29 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("setGeometryFile",
+                                                options_->geometry_file);
+        cmd.SetGuidance("Set the geometry file name");
+        cmd.SetDefaultValue("");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");
         cmd.SetDefaultValue(celeritas::Device::num_devices() > 0 ? "524288"
                                                                  : "64");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty(
+            "secondaryStackFactor", options_->secondary_stack_factor);
+        cmd.SetGuidance("Set the number of secondary slots per track slot");
+        cmd.SetDefaultValue("3");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty(
+            "initializerCapacity", options_->initializer_capacity);
+        cmd.SetGuidance("Set the maximum number of queued tracks");
+        cmd.SetDefaultValue("1048576");
     }
     {
         // TODO: expose other options here
