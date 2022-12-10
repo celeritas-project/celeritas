@@ -16,13 +16,17 @@ namespace demo_geant
 SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(std::move(name))
 {
+    CELER_LOG_LOCAL(debug) << "Constructing SensitiveDetector '"
+                           << this->GetName() << "'";
 }
 
+//---------------------------------------------------------------------------//
 void SensitiveDetector::Initialize(G4HCofThisEvent*)
 {
     CELER_LOG_LOCAL(debug) << "SensitiveDetector::Initialize";
 }
 
+//---------------------------------------------------------------------------//
 G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
     auto edep = step->GetTotalEnergyDeposit();

@@ -19,6 +19,8 @@ class SensitiveDetector final : public G4VSensitiveDetector
 {
   public:
     explicit SensitiveDetector(std::string name);
+
+  protected:
     void   Initialize(G4HCofThisEvent*) final;
     G4bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 };
