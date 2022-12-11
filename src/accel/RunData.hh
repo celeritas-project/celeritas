@@ -3,35 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingAction.hh
+//! \file accel/RunData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4UserTrackingAction.hh>
+#include <memory>
+#include <G4Types.hh>
 
-#include "RunData.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "accel/detail/LocalTransporter.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- *  EM tracks to the device.
+ * Shared Celeritas params data and thread-local transporter.
  */
-class TrackingAction final : public G4UserTrackingAction
+struct RunData
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPData = std::shared_ptr<RunData>;
-    //!@}
+    using Transporter   = detail::LocalTransporter;
+    using SPTransporter = std::shared_ptr<Transporter>;
 
-  public:
-    explicit TrackingAction(SPData data);
-
-    void PreUserTrackingAction(const G4Track* track) final;
-
-  private:
-    SPData data_;
+    static G4ThreadLocal SPTransporter transport;
+    std::shared_ptr<CoreParams>        params;
 };
 
 //---------------------------------------------------------------------------//

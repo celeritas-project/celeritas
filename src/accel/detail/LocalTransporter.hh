@@ -33,7 +33,7 @@ class LocalTransporter
 
   public:
     // Construct with shared (MT) params
-    LocalTransporter(SPCParams, SPCOptions);
+    LocalTransporter(SPCOptions, SPCParams);
 
     // Convert a Geant4 track to a Celeritas primary and add to buffer
     void add(const G4Track&);
@@ -41,11 +41,18 @@ class LocalTransporter
     // Transport all buffered tracks to completion
     void flush();
 
+    // Set the event ID
+    void set_event(EventId);
+
+    // Number of buffered tracks
+    size_type buffer_size() const { return buffer_.size(); }
+
   private:
-    SPCParams                         params_;
     SPCOptions                        opts_;
+    SPCParams                         params_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary>              buffer_;
+    EventId                           event_;
 };
 
 //---------------------------------------------------------------------------//

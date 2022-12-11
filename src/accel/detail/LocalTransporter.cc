@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -20,11 +21,13 @@ namespace detail
 /*!
  * Construct with shared (MT) params.
  */
-LocalTransporter::LocalTransporter(SPCParams params, SPCOptions opts)
-    : params_(params), opts_(opts)
+LocalTransporter::LocalTransporter(SPCOptions opts, SPCParams params)
+    : opts_(opts), params_(params)
 {
-    CELER_EXPECT(params_);
+    CELER_LOG_LOCAL(debug) << "LocalTransporter::LocalTransporter";
+
     CELER_EXPECT(opts_);
+    CELER_EXPECT(params_);
 
     StepperInput inp{params_, opts_->max_num_tracks, opts_->sync};
     if (celeritas::device())
@@ -43,6 +46,8 @@ LocalTransporter::LocalTransporter(SPCParams params, SPCOptions opts)
  */
 void LocalTransporter::add(const G4Track& g4track)
 {
+    CELER_EXPECT(event_);
+
     Primary track;
 
     track.particle_id = params_->particle()->find(
@@ -57,8 +62,7 @@ void LocalTransporter::add(const G4Track& g4track)
 
     track.time     = g4track.GetGlobalTime() / s;
     track.track_id = TrackId{TrackId::size_type(g4track.GetTrackID())};
-
-    // TODO: event ID
+    track.event_id = event_;
 
     buffer_.push_back(track);
 }
@@ -69,6 +73,11 @@ void LocalTransporter::add(const G4Track& g4track)
  */
 void LocalTransporter::flush()
 {
+    if (buffer_.empty())
+    {
+        return;
+    }
+
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(buffer_);
 
@@ -86,6 +95,17 @@ void LocalTransporter::flush()
     }
 
     buffer_.clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the event ID at the beginning of an event.
+ */
+void LocalTransporter::set_event(EventId event)
+{
+    CELER_EXPECT(event);
+    CELER_EXPECT(buffer_.empty());
+    event_ = event;
 }
 
 //---------------------------------------------------------------------------//

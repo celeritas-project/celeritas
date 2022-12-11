@@ -52,6 +52,12 @@ GlobalSetup::GlobalSetup()
                                                                  : "64");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("maxNumEvents",
+                                                options_->max_num_events);
+        cmd.SetGuidance("Set the maximum number of events in the run");
+        cmd.SetDefaultValue("1024");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty(
             "secondaryStackFactor", options_->secondary_stack_factor);
         cmd.SetGuidance("Set the number of secondary slots per track slot");

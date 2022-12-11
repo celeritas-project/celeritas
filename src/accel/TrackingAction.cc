@@ -10,9 +10,20 @@
 #include <G4Track.hh>
 
 #include "corecel/io/Logger.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with Celeritas shared data.
+ */
+TrackingAction::TrackingAction(SPData data) : data_(data)
+{
+    CELER_EXPECT(data_);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
@@ -22,9 +33,11 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track)
     CELER_LOG_LOCAL(debug) << "TrackingAction::PreUserTrackingAction";
 
     // Check against list of supported celeritas particles
-    if (false)
+    PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
+    if (data_->params->particle()->find(pdg))
     {
-        // TODO: send to transporter
+        // Send track to transporter and kill
+        data_->transport->add(*track);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }

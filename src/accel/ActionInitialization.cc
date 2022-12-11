@@ -26,7 +26,7 @@ ActionInitialization::ActionInitialization(SPCOptions   options,
     : options_(std::move(options)), action_(std::move(action))
 {
     CELER_EXPECT(options_);
-    params_ = std::make_shared<SharedParams>();
+    data_ = std::make_shared<RunData>();
 }
 
 //---------------------------------------------------------------------------//
@@ -39,7 +39,7 @@ void ActionInitialization::BuildForMaster() const
 {
     CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
 
-    this->SetUserAction(new RunAction(options_, params_));
+    this->SetUserAction(new RunAction(options_, data_));
 
     if (action_)
     {
@@ -67,12 +67,12 @@ void ActionInitialization::Build() const
     }
 
     // Run action sets up Celeritas
-    this->SetUserAction(new RunAction{options_, params_});
+    this->SetUserAction(new RunAction{options_, data_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{});
+    this->SetUserAction(new EventAction{data_});
     // Tracking action offloads tracks to device and kills them
-    this->SetUserAction(new TrackingAction{});
+    this->SetUserAction(new TrackingAction{data_});
 
     if (action_)
     {

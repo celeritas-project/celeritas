@@ -35,16 +35,17 @@ G4Mutex mutex = G4MUTEX_INITIALIZER;
 
 namespace celeritas
 {
+G4ThreadLocal RunData::SPTransporter RunData::transport = nullptr;
+
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas setup options.
+ * Construct with Celeritas setup options and shared data.
  */
-RunAction::RunAction(SPCOptions options, SPParams params)
-    : options_(options), params_(params)
+RunAction::RunAction(SPCOptions options, SPData data)
+    : options_(options), data_(data)
 {
     CELER_EXPECT(options_);
-    CELER_EXPECT(params_);
-    CELER_LOG_LOCAL(debug) << "RunAction::RunAction";
+    CELER_EXPECT(data_);
 }
 
 //---------------------------------------------------------------------------//
@@ -62,7 +63,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
     {
         G4AutoLock lock(&mutex);
 
-        if (!params_->params)
+        if (!data_->params)
         {
             celeritas::GeantImporter load_geant_data(
                 G4TransportationManager::GetTransportationManager()
@@ -170,17 +171,20 @@ void RunAction::BeginOfRunAction(const G4Run* run)
             {
                 TrackInitParams::Input input;
                 input.capacity   = options_->initializer_capacity;
-                input.max_events = 1;
+                input.max_events = options_->max_num_events;
                 params.init      = std::make_shared<TrackInitParams>(input);
             }
 
             // Create params
             CELER_ASSERT(params);
-            params_->params = std::make_shared<CoreParams>(std::move(params));
+            data_->params = std::make_shared<CoreParams>(std::move(params));
         }
     }
+    CELER_ASSERT(data_->params);
 
-    CELER_ENSURE(params_->params);
+    // Construct thread-local transporter
+    data_->transport
+        = std::make_shared<RunData::Transporter>(options_, data_->params);
 }
 
 //---------------------------------------------------------------------------//
