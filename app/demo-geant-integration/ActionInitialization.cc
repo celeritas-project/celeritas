@@ -7,12 +7,28 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include "corecel/io/Logger.hh"
+#include <G4RunManager.hh>
 
+#include "corecel/io/Logger.hh"
+#include "accel/InitializeActions.hh"
+
+#include "GlobalSetup.hh"
 #include "PrimaryGeneratorAction.hh"
 
 namespace demo_geant
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct global data to be shared across Celeritas workers.
+ */
+ActionInitialization::ActionInitialization()
+{
+    // Create params to be shared across worker threads
+    params_ = std::make_shared<celeritas::SharedParams>();
+    // Make global setup commands available to UI
+    GlobalSetup::Instance();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct actions on each worker thread.
@@ -23,6 +39,11 @@ void ActionInitialization::Build() const
 
     // Initialize primary generator
     this->SetUserAction(new PrimaryGeneratorAction());
+
+    // Initialize celeritas and add user actions
+    celeritas::InitializeActions(GlobalSetup::Instance()->GetSetupOptions(),
+                                 params_,
+                                 G4RunManager::GetRunManager());
 }
 
 //---------------------------------------------------------------------------//

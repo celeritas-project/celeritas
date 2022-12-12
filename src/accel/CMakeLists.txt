@@ -13,8 +13,8 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  ActionInitialization.cc
   EventAction.cc
+  InitializeActions.cc
   Logger.cc
   RunAction.cc
   TrackingAction.cc

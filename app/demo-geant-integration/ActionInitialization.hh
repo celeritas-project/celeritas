@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <G4VUserActionInitialization.hh>
+
+#include "accel/SharedParams.hh"
 
 namespace demo_geant
 {
@@ -20,11 +23,16 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     //!@{
     //! \name Type aliases
+    using SPParams = std::shared_ptr<celeritas::SharedParams>;
     //!@}
 
   public:
+    ActionInitialization();
     void BuildForMaster() const final {}
     void Build() const final;
+
+  private:
+    SPParams params_;
 };
 
 //---------------------------------------------------------------------------//

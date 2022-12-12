@@ -25,7 +25,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
-#include "accel/ActionInitialization.hh"
 #include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
@@ -117,9 +116,7 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
 #endif
-    run_manager->SetUserInitialization(new celeritas::ActionInitialization(
-        demo_geant::GlobalSetup::Instance()->GetSetupOptions(),
-        std::make_unique<demo_geant::ActionInitialization>()));
+    run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);

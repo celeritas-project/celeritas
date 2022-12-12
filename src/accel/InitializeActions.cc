@@ -3,51 +3,34 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/ActionInitialization.cc
+//! \file accel/InitializeActions.cc
 //---------------------------------------------------------------------------//
-#include "ActionInitialization.hh"
+#include "InitializeActions.hh"
+
+#include <G4RunManager.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 
 #include "EventAction.hh"
 #include "RunAction.hh"
+#include "SetupOptions.hh"
+#include "SharedParams.hh"
 #include "TrackingAction.hh"
 #include "detail/LocalTransporter.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with Celeritas setup options.
- */
-ActionInitialization::ActionInitialization(SPCOptions   options,
-                                           UPUserAction action)
-    : options_(std::move(options)), action_(std::move(action))
+namespace
 {
-    CELER_EXPECT(options_);
-    params_ = std::make_shared<SharedParams>();
-}
-
 //---------------------------------------------------------------------------//
 /*!
- * Construct actions on manager thread.
- *
- * This is *only* called if using multithreaded Geant4.
+ * Construct actions on each worker thread for Celeritas offloading.
  */
-void ActionInitialization::BuildForMaster() const
-{
-    if (action_)
-    {
-        action_->BuildForMaster();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct actions on each worker thread.
- */
-void ActionInitialization::Build() const
+template<class Manager>
+void initialize_actions_impl(const std::shared_ptr<const SetupOptions>& options,
+                             const std::shared_ptr<SharedParams>& params,
+                             Manager*                             manager)
 {
     if (Device::num_devices() > 0)
     {
@@ -63,17 +46,29 @@ void ActionInitialization::Build() const
     auto transport = std::make_shared<detail::LocalTransporter>();
 
     // Run action sets up Celeritas
-    this->SetUserAction(new RunAction{options_, params_, transport});
+    manager->SetUserAction(new RunAction{options, params, transport});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{params_, transport});
+    manager->SetUserAction(new EventAction{params, transport});
     // Tracking action offloads tracks to device and kills them
-    this->SetUserAction(new TrackingAction{params_, transport});
+    manager->SetUserAction(new TrackingAction{params, transport});
+}
+//---------------------------------------------------------------------------//
+} // namespace
 
-    if (action_)
-    {
-        action_->Build();
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize actions as part of a G4VUserActionInitialization.
+ *
+ * The G4VUserActionInitialization::SetUserAction dispatches to
+ * G4RunManager::GetRunManager(), so you should probably use that as the
+ * manager argument.
+ */
+void InitializeActions(const std::shared_ptr<const SetupOptions>& options,
+                       const std::shared_ptr<SharedParams>&       params,
+                       G4RunManager*                              manager)
+{
+    return initialize_actions_impl(options, params, manager);
 }
 
 //---------------------------------------------------------------------------//
