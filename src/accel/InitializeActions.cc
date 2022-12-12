@@ -17,7 +17,6 @@
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 #include "TrackingAction.hh"
-#include "detail/LocalTransporter.hh"
 
 namespace celeritas
 {
@@ -29,8 +28,8 @@ namespace
  */
 template<class Manager>
 void initialize_actions_impl(const std::shared_ptr<const SetupOptions>& options,
-                             const std::shared_ptr<SharedParams>& params,
-                             Manager*                             manager)
+                             const std::shared_ptr<SharedParams>&,
+                             Manager* manager)
 {
     if (Device::num_devices() > 0)
     {
@@ -43,15 +42,13 @@ void initialize_actions_impl(const std::shared_ptr<const SetupOptions>& options,
         celeritas::set_cuda_heap_size(12582912);
     }
 
-    auto transport = std::make_shared<detail::LocalTransporter>();
-
     // Run action sets up Celeritas
-    manager->SetUserAction(new RunAction{options, params, transport});
+    manager->SetUserAction(new RunAction{options});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    manager->SetUserAction(new EventAction{params, transport});
+    manager->SetUserAction(new EventAction{});
     // Tracking action offloads tracks to device and kills them
-    manager->SetUserAction(new TrackingAction{params, transport});
+    manager->SetUserAction(new TrackingAction{});
 }
 //---------------------------------------------------------------------------//
 } // namespace

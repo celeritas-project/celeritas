@@ -12,7 +12,6 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
-#include "detail/LocalTransporter.hh"
 
 namespace celeritas
 {
@@ -25,21 +24,17 @@ class RunAction final : public G4UserRunAction
   public:
     //!@{
     //! \name Type aliases
-    using SPCOptions    = std::shared_ptr<const SetupOptions>;
-    using SPParams      = std::shared_ptr<SharedParams>;
-    using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
+    using SPCOptions = std::shared_ptr<const SetupOptions>;
     //!@}
 
   public:
-    RunAction(SPCOptions options, SPParams params, SPTransporter transport);
+    RunAction(SPCOptions options);
 
     void BeginOfRunAction(const G4Run* run) final;
     void EndOfRunAction(const G4Run* run) final;
 
   private:
-    SPCOptions    options_;
-    SPParams      params_;
-    SPTransporter transport_;
+    SPCOptions options_;
 
     void build_core_params();
 };

@@ -17,12 +17,7 @@ namespace celeritas
 /*!
  * Construct with Celeritas shared data.
  */
-EventAction::EventAction(SPParams params, SPTransporter transport)
-    : params_(params), transport_(transport)
-{
-    CELER_EXPECT(params_);
-    CELER_EXPECT(transport_);
-}
+EventAction::EventAction() {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,8 +27,7 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 {
     CELER_EXPECT(event);
 
-    // Set event ID in local transporter
-    transport_->set_event(EventId{EventId::size_type(event->GetEventID())});
+    // TODO: Set event ID in local transporter
 }
 
 //---------------------------------------------------------------------------//
@@ -42,8 +36,7 @@ void EventAction::BeginOfEventAction(const G4Event* event)
  */
 void EventAction::EndOfEventAction(const G4Event*)
 {
-    // Transport any tracks left in the buffer
-    transport_->flush();
+    // TODO: Transport any tracks left in the buffer
 }
 
 //---------------------------------------------------------------------------//

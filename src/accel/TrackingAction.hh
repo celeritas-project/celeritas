@@ -9,9 +9,6 @@
 
 #include <G4UserTrackingAction.hh>
 
-#include "SharedParams.hh"
-#include "detail/LocalTransporter.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -21,20 +18,9 @@ namespace celeritas
 class TrackingAction final : public G4UserTrackingAction
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPParams      = std::shared_ptr<SharedParams>;
-    using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
-    //!@}
-
-  public:
-    TrackingAction(SPParams params, SPTransporter transport);
+    TrackingAction();
 
     void PreUserTrackingAction(const G4Track* track) final;
-
-  private:
-    SPParams      params_;
-    SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
