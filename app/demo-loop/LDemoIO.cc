@@ -190,6 +190,21 @@ TransporterInput load_input(const LDemoArgs& args)
     TransporterInput  result;
     CoreParams::Input params;
 
+    // Load geometry
+    {
+        params.geometry
+            = std::make_shared<GeoParams>(args.geometry_filename.c_str());
+        if (!params.geometry->supports_safety())
+        {
+            CELER_LOG(warning)
+                << "Geometry contains surfaces that are "
+                   "incompatible with the current ORANGE simple "
+                   "safety algorithm: multiple scattering may "
+                   "result in arbitrarily small steps";
+        }
+    }
+
+    // Load or create physics data
     ImportData imported_data;
     if (ends_with(args.physics_filename, ".root"))
     {
@@ -213,6 +228,25 @@ TransporterInput load_input(const LDemoArgs& args)
         particle.lifetime  = -1.0;
         particle.is_stable = true;
         imported_data.particles.push_back(particle);
+
+        // Create dummy element/material data
+        ImportElement elem;
+        elem.atomic_number = 1;
+        imported_data.elements.push_back(elem);
+
+        ImportMaterial mat;
+        mat.state          = ImportMaterialState::not_defined;
+        mat.number_density = 0.0;
+        imported_data.materials.push_back(mat);
+
+        // Link dummy material to every volume imported from the geometry
+        for (auto id : Range(params.geometry->num_volumes()))
+        {
+            ImportVolume vol;
+            vol.material_id = 0;
+            vol.name = (params.geometry->id_to_label(VolumeId{id})).name;
+            imported_data.volumes.push_back(vol);
+        }
     }
     else
     {
@@ -224,20 +258,6 @@ TransporterInput load_input(const LDemoArgs& args)
     // Create action manager
     {
         params.action_reg = std::make_shared<ActionRegistry>();
-    }
-
-    // Load geometry
-    {
-        params.geometry
-            = std::make_shared<GeoParams>(args.geometry_filename.c_str());
-        if (!params.geometry->supports_safety())
-        {
-            CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps";
-        }
     }
 
     // Load materials
