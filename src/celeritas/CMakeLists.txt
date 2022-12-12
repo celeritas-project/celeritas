@@ -79,7 +79,6 @@ list(APPEND SOURCES
   random/XorwowRngParams.cc
   track/TrackInitParams.cc
   user/DetectorSteps.cc
-  user/SimpleTransporter.cc
   user/StepCollector.cc
 )
 
