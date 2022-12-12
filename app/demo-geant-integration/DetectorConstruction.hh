@@ -23,7 +23,7 @@ namespace demo_geant
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction();
+    DetectorConstruction() = default;
 
     G4VPhysicalVolume* Construct() final;
     void               ConstructSDandField() final;

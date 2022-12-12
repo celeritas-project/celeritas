@@ -37,11 +37,6 @@ GlobalSetup::GlobalSetup()
         this, "/setup/", "Demo geant integration setup");
 
     {
-        auto& cmd = messenger_->DeclareProperty("setHepMC3File", hepmc_file_);
-        cmd.SetGuidance("Set the HepMC3 file name");
-        cmd.SetDefaultValue("");
-    }
-    {
         auto& cmd = messenger_->DeclareProperty("setGeometryFile",
                                                 options_->geometry_file);
         cmd.SetGuidance("Set the geometry file name");

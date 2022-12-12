@@ -23,9 +23,6 @@ namespace demo_geant
 /*!
  * Load geometry and sensitive detector volumes.
  */
-DetectorConstruction::DetectorConstruction() {}
-
-//---------------------------------------------------------------------------//
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     CELER_LOG_LOCAL(debug) << "DetectorConstruction::Construct";
