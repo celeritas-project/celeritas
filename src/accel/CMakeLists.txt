@@ -16,6 +16,7 @@ list(APPEND SOURCES
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
+  detail/HitProcessor.cc
 )
 
 #-----------------------------------------------------------------------------#
