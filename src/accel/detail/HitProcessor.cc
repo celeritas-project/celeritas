@@ -8,11 +8,12 @@
 #include "HitProcessor.hh"
 
 #include <algorithm>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4TransportationManager.hh>
 #include <G4VSensitiveDetector.hh>
-#include <CLHEP/Units/SystemOfUnits.h>
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/ext/GeantVersion.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -53,12 +54,18 @@ HitProcessor::HitProcessor(const VecLV&     detector_volumes,
     // Create temporary objects
     step_ = std::make_unique<G4Step>();
 
+#if CELERITAS_G4_V10
+#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11 */
+#else
+#    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
+#endif
+
 #define HP_SETUP_POINT(LOWER, TITLE)                                          \
     do                                                                        \
     {                                                                         \
         if (!selection.points[StepPoint::LOWER])                              \
         {                                                                     \
-            step_->Reset##TITLE##StepPoint(nullptr);                          \
+            HP_CLEAR_STEP_POINT(Reset##TITLE##StepPoint);                     \
         }                                                                     \
         else                                                                  \
         {                                                                     \
