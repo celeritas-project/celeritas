@@ -166,8 +166,8 @@ PDGNumber to_pdg(const G4ProductionCutsIndex& index)
 void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
                   const G4LogicalVolume&                logical_volume)
 {
-    auto iter_inserted
-        = volids_volumes.emplace(logical_volume.GetInstanceID(), ImportVolume{});
+    auto iter_inserted = volids_volumes.emplace(logical_volume.GetInstanceID(),
+                                                ImportVolume{});
     if (!iter_inserted.second)
     {
         // Logical volume is already in the map
