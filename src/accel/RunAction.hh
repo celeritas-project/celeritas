@@ -37,6 +37,8 @@ class RunAction final : public G4UserRunAction
   private:
     SPCOptions options_;
     SPData     data_;
+
+    void build_core_params();
 };
 
 //---------------------------------------------------------------------------//
