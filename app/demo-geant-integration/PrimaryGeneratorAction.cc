@@ -9,22 +9,13 @@
 
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
+#include <G4SystemOfUnits.hh>
+#include <G4ThreeVector.hh>
 
 #include "corecel/io/Logger.hh"
 
 namespace demo_geant
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct a user-defined particle gun.
- */
-PrimaryGeneratorAction::PrimaryGeneratorAction(ParticleGun particle_gun)
-    : particle_gun_(particle_gun)
-{
-    CELER_LOG_LOCAL(debug) << "PrimaryGeneratorAction::PrimaryGeneratorAction "
-                              "with user-defined particle gun";
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Generate primaries based on the particle gun data.
@@ -33,14 +24,13 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     CELER_LOG_LOCAL(debug) << "PrimaryGeneratorAction::GeneratePrimaries";
 
-    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(
-        particle_gun_.pdg_id);
+    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
 
     G4ParticleGun g4particle_gun;
     g4particle_gun.SetParticleDefinition(g4particle_def);
-    g4particle_gun.SetParticleEnergy(particle_gun_.energy);
-    g4particle_gun.SetParticlePosition(particle_gun_.pos);
-    g4particle_gun.SetParticleMomentumDirection(particle_gun_.dir.unit());
+    g4particle_gun.SetParticleEnergy(500 * MeV);
+    g4particle_gun.SetParticlePosition(G4ThreeVector{0, 0, 0}); // origin
+    g4particle_gun.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0}); // +x
     g4particle_gun.GeneratePrimaryVertex(event);
 }
 
