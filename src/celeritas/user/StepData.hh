@@ -240,6 +240,7 @@ struct StepStateData
 
     // Sim
     StateItems<EventId>   event_id;
+    StateItems<TrackId>   parent_id;
     StateItems<size_type> track_step_count;
     StateItems<ActionId>  action_id;
     StateItems<real_type> step_length;
@@ -257,10 +258,11 @@ struct StepStateData
             return (t.size() == this->size()) || t.empty();
         };
 
-        return !track_id.empty() && right_sized(detector)
-               && right_sized(event_id) && right_sized(track_step_count)
-               && right_sized(action_id) && right_sized(step_length)
-               && right_sized(particle) && right_sized(energy_deposition);
+        return !track_id.empty() && !parent_id.empty() && right_sized(detector)
+               && right_sized(event_id) && right_sized(parent_id)
+               && right_sized(track_step_count) && right_sized(action_id)
+               && right_sized(step_length) && right_sized(particle)
+               && right_sized(energy_deposition);
     }
 
     //! State size
@@ -278,6 +280,7 @@ struct StepStateData
         }
 
         track_id          = other.track_id;
+        parent_id         = other.parent_id;
         detector          = other.detector;
         event_id          = other.event_id;
         track_step_count  = other.track_step_count;
@@ -346,6 +349,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     } while (0)
 
     resize(&state->track_id, size);
+    resize(&state->parent_id, size);
     if (!params.detector.empty())
     {
         resize(&state->detector, size);

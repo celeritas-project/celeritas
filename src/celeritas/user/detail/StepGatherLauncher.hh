@@ -9,8 +9,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {
@@ -66,13 +68,15 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 
     {
         const auto sim      = track.make_sim_view();
-        bool inactive = (sim.status() == TrackStatus::inactive);
+        bool       inactive = (sim.status() == TrackStatus::inactive);
 
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->step_state.track_id[thread] = inactive ? TrackId{}
-                                                         : sim.track_id();
+            this->step_state.track_id[thread]  = inactive ? TrackId{}
+                                                          : sim.track_id();
+            this->step_state.parent_id[thread] = inactive ? TrackId{}
+                                                          : sim.parent_id();
         }
 
         if (inactive)

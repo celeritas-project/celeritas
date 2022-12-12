@@ -80,6 +80,7 @@ class RootStepWriter final : public StepInterface
     {
         int                              event_id;
         int                              track_id;
+        int                              parent_id;
         int                              action_id;
         int                              track_step_count;
         int                              particle;          //!< PDG number
