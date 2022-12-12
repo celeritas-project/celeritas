@@ -32,6 +32,9 @@ class LocalTransporter
     //!@}
 
   public:
+    // Construct in an invalid state
+    LocalTransporter() = default;
+
     // Construct with shared (MT) params
     LocalTransporter(SPCOptions, SPCParams);
 
@@ -46,6 +49,9 @@ class LocalTransporter
 
     // Number of buffered tracks
     size_type buffer_size() const { return buffer_.size(); }
+
+    // Whether the transporter is valid
+    explicit operator bool() const { return opts_ && params_ && step_; }
 
   private:
     SPCOptions                        opts_;

@@ -14,6 +14,7 @@
 #include "EventAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
+#include "detail/LocalTransporter.hh"
 
 namespace celeritas
 {
@@ -26,7 +27,7 @@ ActionInitialization::ActionInitialization(SPCOptions   options,
     : options_(std::move(options)), action_(std::move(action))
 {
     CELER_EXPECT(options_);
-    data_ = std::make_shared<RunData>();
+    params_ = std::make_shared<SharedParams>();
 }
 
 //---------------------------------------------------------------------------//
@@ -38,8 +39,6 @@ ActionInitialization::ActionInitialization(SPCOptions   options,
 void ActionInitialization::BuildForMaster() const
 {
     CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-
-    this->SetUserAction(new RunAction(options_, data_));
 
     if (action_)
     {
@@ -66,13 +65,15 @@ void ActionInitialization::Build() const
         celeritas::set_cuda_heap_size(12582912);
     }
 
+    auto transport = std::make_shared<detail::LocalTransporter>();
+
     // Run action sets up Celeritas
-    this->SetUserAction(new RunAction{options_, data_});
+    this->SetUserAction(new RunAction{options_, params_, transport});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    this->SetUserAction(new EventAction{data_});
+    this->SetUserAction(new EventAction{params_, transport});
     // Tracking action offloads tracks to device and kills them
-    this->SetUserAction(new TrackingAction{data_});
+    this->SetUserAction(new TrackingAction{params_, transport});
 
     if (action_)
     {

@@ -11,8 +11,8 @@
 #include <utility>
 #include <G4VUserActionInitialization.hh>
 
-#include "RunData.hh"
 #include "SetupOptions.hh"
+#include "SharedParams.hh"
 
 namespace celeritas
 {
@@ -26,7 +26,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@{
     //! \name Type aliases
     using SPCOptions   = std::shared_ptr<const SetupOptions>;
-    using SPData       = std::shared_ptr<RunData>;
+    using SPParams     = std::shared_ptr<SharedParams>;
     using UPUserAction = std::unique_ptr<G4VUserActionInitialization>;
     //!@}
 
@@ -42,7 +42,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 
   private:
     SPCOptions   options_;
-    SPData       data_;
+    SPParams     params_;
     UPUserAction action_;
 };
 

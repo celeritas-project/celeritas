@@ -35,17 +35,18 @@ G4Mutex mutex = G4MUTEX_INITIALIZER;
 
 namespace celeritas
 {
-G4ThreadLocal RunData::SPTransporter RunData::transport = nullptr;
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with Celeritas setup options and shared data.
  */
-RunAction::RunAction(SPCOptions options, SPData data)
-    : options_(options), data_(data)
+RunAction::RunAction(SPCOptions    options,
+                     SPParams      params,
+                     SPTransporter transport)
+    : options_(options), params_(params), transport_(transport)
 {
     CELER_EXPECT(options_);
-    CELER_EXPECT(data_);
+    CELER_EXPECT(params_);
+    CELER_EXPECT(transport_);
 }
 
 //---------------------------------------------------------------------------//
@@ -59,16 +60,16 @@ void RunAction::BeginOfRunAction(const G4Run* run)
                            << run->GetRunID()
                            << (this->IsMaster() ? " (master)" : "");
 
-    if (!data_->params)
+    if (!params_->params)
     {
         // Maybe the first thread to run: build and store core params
         this->build_core_params();
     }
-    CELER_ASSERT(data_->params);
+    CELER_ASSERT(params_->params);
 
     // Construct thread-local transporter
-    data_->transport
-        = std::make_shared<RunData::Transporter>(options_, data_->params);
+    *transport_ = detail::LocalTransporter(options_, params_->params);
+    CELER_ENSURE(*transport_);
 }
 
 //---------------------------------------------------------------------------//
@@ -87,7 +88,7 @@ void RunAction::EndOfRunAction(const G4Run*)
 void RunAction::build_core_params()
 {
     G4AutoLock lock(&mutex);
-    if (data_->params)
+    if (params_->params)
     {
         // Some other thread constructed params between the thread-unsafe check
         // and this thread-safe check
@@ -202,7 +203,7 @@ void RunAction::build_core_params()
 
     // Create params
     CELER_ASSERT(params);
-    data_->params = std::make_shared<CoreParams>(std::move(params));
+    params_->params = std::make_shared<CoreParams>(std::move(params));
 }
 
 //---------------------------------------------------------------------------//
