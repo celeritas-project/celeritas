@@ -28,6 +28,7 @@ class GlobalSetup
 
     //!@{
     //! Demo setup options
+    const std::string& GetGdmlFile() const { return options_->geometry_file; }
     const std::string& GetHepMC3File() const { return hepmc_file_; }
     //!@}
 

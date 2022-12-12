@@ -1,0 +1,14 @@
+/control/verbose 0
+/tracking/verbose 0
+/run/verbose 0
+/event/verbose 0
+
+# TODO: hepmc input
+/setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
+/setup/maxNumTracks 1024
+/setup/maxNumEvents 1024
+/setup/secondaryStackFactor 3
+/setup/initializerCapacity 1048576
+
+/run/initialize
+/run/beamOn 2

@@ -24,8 +24,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/LoadGdml.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/ActionInitialization.hh"
 #include "accel/Logger.hh"
@@ -67,10 +65,9 @@ int GetNumThreads()
 int main(int argc, char* argv[])
 {
     std::vector<std::string> args(argv, argv + argc);
-    if (args.size() < 2 || args.size() > 3 || args[1] == "--help"
-        || args[1] == "-h")
+    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
     {
-        std::cerr << "usage: " << args[0] << " {input}.gdml [{commands}.mac]\n"
+        std::cerr << "usage: " << args[0] << " {commands}.mac\n"
                   << "Environment variables:\n"
                   << "  NUM_THREADS: number of CPU threads\n"
                   << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
@@ -111,40 +108,24 @@ int main(int argc, char* argv[])
     celeritas::GeantPhysicsOptions geant_phys_opts{};
 
     // Construct physics, geometry, celeritas setup, and user setup
-    run_manager->SetUserInitialization(
-        new demo_geant::DetectorConstruction{args[1]});
-    // run_manager->SetUserInitialization(new FTFP_BERT);
+    run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
+#if 0
+    // TODO: use full physics
+    run_manager->SetUserInitialization(new FTFP_BERT);
+#else
+    // For now (reduced output) use just EM
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
+#endif
     run_manager->SetUserInitialization(new celeritas::ActionInitialization(
         demo_geant::GlobalSetup::Instance()->GetSetupOptions(),
         std::make_unique<demo_geant::ActionInitialization>()));
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
-    if (args.size() >= 3)
-    {
-        const std::string& macro_file = args[2];
-        CELER_LOG_LOCAL(status)
-            << "Executing macro commands from '" << macro_file << "'";
-        ui->ApplyCommand("/control/execute " + macro_file);
-    }
-    else
-    {
-        ui->ApplyCommand("/setup/setGeometryFile " + args[1]);
-
-        // TODO: don't hardcode setup options
-        ui->ApplyCommand("/setup/secondaryStackFactor 3");
-        ui->ApplyCommand("/setup/maxNumEvents 1024");
-        ui->ApplyCommand("/setup/maxNumTracks 1024");
-        ui->ApplyCommand("/setup/initializerCapacity 1048576");
-
-        CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
-        run_manager->Initialize();
-
-        CELER_LOG_LOCAL(status) << "Transporting ";
-        run_manager->BeamOn(1);
-    }
+    CELER_LOG_LOCAL(status)
+        << "Executing macro commands from '" << args[1] << "'";
+    ui->ApplyCommand("/control/execute " + args[1]);
 
     return EXIT_SUCCESS;
 }

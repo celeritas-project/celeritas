@@ -338,11 +338,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
 
   if(CELERITAS_BUILD_TESTS)
-    set(_geant_test_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
-
+    configure_file(
+      "demo-geant-integration/simple-cms-test.mac.in"
+      "simple-cms-test.mac" @ONLY
+    )
     add_test(NAME "app/demo-geant-integration"
       COMMAND "$<TARGET_FILE:demo-geant-integration>"
-      "${_geant_test_inp}"
+      "simple-cms-test.mac"
     )
     set(_env
       "CELER_LOG_LOCAL=debug"
@@ -355,7 +357,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     endif()
     set_tests_properties("app/demo-geant-integration" PROPERTIES
       ENVIRONMENT "${_env}"
-      REQUIRED_FILES "${_geant_test_inp}"
       LABELS "app"
     )
   endif()

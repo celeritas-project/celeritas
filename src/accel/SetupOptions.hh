@@ -28,7 +28,10 @@ struct SetupOptions
     // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
+    // TODO: geometry should be exported directly from Geant4 (or written to
+    // temporary GDML and re-read)
     std::string geometry_file;
+
     size_type   max_num_tracks{};
     size_type   max_num_events{};
     size_type   max_steps = no_max_steps();

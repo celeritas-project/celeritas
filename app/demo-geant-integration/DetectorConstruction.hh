@@ -18,12 +18,12 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a detector from a GDML filename.
+ * Construct a detector from a GDML filename set in GlobalSetup.
  */
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
   public:
-    explicit DetectorConstruction(const std::string& filename);
+    explicit DetectorConstruction();
 
     G4VPhysicalVolume* Construct() final;
     void               ConstructSDandField() final;

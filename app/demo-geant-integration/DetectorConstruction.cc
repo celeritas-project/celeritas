@@ -14,6 +14,7 @@
 
 #include "corecel/io/Logger.hh"
 
+#include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
 
 namespace demo_geant
@@ -22,8 +23,13 @@ namespace demo_geant
 /*!
  * Load geometry and sensitive detector volumes.
  */
-DetectorConstruction::DetectorConstruction(const std::string& filename)
+DetectorConstruction::DetectorConstruction() {}
+
+//---------------------------------------------------------------------------//
+G4VPhysicalVolume* DetectorConstruction::Construct()
 {
+    CELER_LOG_LOCAL(debug) << "DetectorConstruction::Construct";
+
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label
     // and LabelIdMultiMap. Note that material and element names (at least as
@@ -33,10 +39,15 @@ DetectorConstruction::DetectorConstruction(const std::string& filename)
     gdml_parser.SetStripFlag(false);
 
     constexpr bool validate_gdml_schema = false;
+    const std::string& filename = GlobalSetup::Instance()->GetGdmlFile();
+    if (filename.empty())
+    {
+        G4Exception("DetectorConstruction::Construct()",
+                    "",
+                    FatalException,
+                    "No GDML file was specified with setGeometryFile");
+    }
     gdml_parser.Read(filename, validate_gdml_schema);
-
-    // Claim ownership of world volume
-    world_.reset(gdml_parser.GetWorldVolume());
 
     // Find sensitive detectors
     for (const auto& lv_vecaux : *gdml_parser.GetAuxMap())
@@ -49,13 +60,9 @@ DetectorConstruction::DetectorConstruction(const std::string& filename)
             }
         }
     }
-}
 
-//---------------------------------------------------------------------------//
-G4VPhysicalVolume* DetectorConstruction::Construct()
-{
-    CELER_LOG_LOCAL(debug) << "DetectorConstruction::Construct";
-    return world_.release();
+    // Claim ownership of world volume and pass it to the caller
+    return gdml_parser.GetWorldVolume();
 }
 
 //---------------------------------------------------------------------------//

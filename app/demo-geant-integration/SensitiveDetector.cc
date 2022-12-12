@@ -23,7 +23,8 @@ SensitiveDetector::SensitiveDetector(std::string name)
 //---------------------------------------------------------------------------//
 void SensitiveDetector::Initialize(G4HCofThisEvent*)
 {
-    CELER_LOG_LOCAL(debug) << "SensitiveDetector::Initialize";
+    CELER_LOG_LOCAL(debug) << "SensitiveDetector::Initialize ("
+                           << this->GetName() << ")";
 }
 
 //---------------------------------------------------------------------------//
