@@ -10,7 +10,6 @@
 #include <G4Event.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -32,8 +31,6 @@ EventAction::EventAction(SPParams params, SPTransporter transport)
 void EventAction::BeginOfEventAction(const G4Event* event)
 {
     CELER_EXPECT(event);
-    CELER_LOG_LOCAL(debug) << "EventAction::BeginOfEventAction for event "
-                           << event->GetEventID();
 
     // Set event ID in local transporter
     transport_->set_event(EventId{EventId::size_type(event->GetEventID())});
@@ -45,8 +42,6 @@ void EventAction::BeginOfEventAction(const G4Event* event)
  */
 void EventAction::EndOfEventAction(const G4Event*)
 {
-    CELER_LOG_LOCAL(debug) << "EventAction::EndOfEventAction";
-
     // Transport any tracks left in the buffer
     transport_->flush();
 }

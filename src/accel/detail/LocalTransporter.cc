@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
-#include "corecel/io/Logger.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -24,8 +23,6 @@ namespace detail
 LocalTransporter::LocalTransporter(SPCOptions opts, SPCParams params)
     : opts_(opts), params_(params)
 {
-    CELER_LOG_LOCAL(debug) << "LocalTransporter::LocalTransporter";
-
     CELER_EXPECT(opts_);
     CELER_EXPECT(params_);
 

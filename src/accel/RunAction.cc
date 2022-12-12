@@ -56,9 +56,6 @@ RunAction::RunAction(SPCOptions    options,
 void RunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
-    CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction for run "
-                           << run->GetRunID()
-                           << (this->IsMaster() ? " (master)" : "");
 
     if (!params_->params)
     {
@@ -76,10 +73,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 /*!
  * Finalize Celeritas.
  */
-void RunAction::EndOfRunAction(const G4Run*)
-{
-    CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
-}
+void RunAction::EndOfRunAction(const G4Run*) {}
 
 //---------------------------------------------------------------------------//
 /*!

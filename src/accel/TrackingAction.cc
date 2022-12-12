@@ -9,7 +9,6 @@
 
 #include <G4Track.hh>
 
-#include "corecel/io/Logger.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -32,8 +31,6 @@ TrackingAction::TrackingAction(SPParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-    CELER_LOG_LOCAL(debug) << "TrackingAction::PreUserTrackingAction";
-
     // Check against list of supported celeritas particles
     PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
     if (params_->params->particle()->find(pdg))

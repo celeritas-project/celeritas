@@ -8,7 +8,6 @@
 #include "ActionInitialization.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 
 #include "EventAction.hh"
@@ -38,8 +37,6 @@ ActionInitialization::ActionInitialization(SPCOptions   options,
  */
 void ActionInitialization::BuildForMaster() const
 {
-    CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-
     if (action_)
     {
         action_->BuildForMaster();
@@ -52,8 +49,6 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
-
     if (Device::num_devices() > 0)
     {
         // Initialize CUDA (you'll need to use CUDA environment variables to
