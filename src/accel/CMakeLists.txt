@@ -18,7 +18,6 @@ list(APPEND SOURCES
   Logger.cc
   RunAction.cc
   TrackingAction.cc
-  detail/HitProcessor.cc
   detail/LocalTransporter.cc
 )
 
