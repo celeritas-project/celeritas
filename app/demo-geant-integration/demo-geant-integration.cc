@@ -128,7 +128,6 @@ int main(int argc, char* argv[])
         CELER_LOG_LOCAL(status)
             << "Executing macro commands from '" << macro_file << "'";
         ui->ApplyCommand("/control/execute " + macro_file);
-        run_manager->Initialize();
     }
     else
     {
@@ -137,6 +136,7 @@ int main(int argc, char* argv[])
         // TODO: don't hardcode setup options
         ui->ApplyCommand("/setup/secondaryStackFactor 3");
         ui->ApplyCommand("/setup/maxNumEvents 1024");
+        ui->ApplyCommand("/setup/maxNumTracks 1024");
         ui->ApplyCommand("/setup/initializerCapacity 1048576");
 
         CELER_LOG_LOCAL(debug) << "G4RunManager::Initialize";
