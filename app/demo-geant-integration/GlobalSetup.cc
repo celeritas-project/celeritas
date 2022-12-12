@@ -9,7 +9,6 @@
 
 #include <G4GenericMessenger.hh>
 
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 
 namespace demo_geant
@@ -30,8 +29,6 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
-    CELER_LOG_LOCAL(debug) << "Initializing global setup";
-
     options_   = std::make_shared<celeritas::SetupOptions>();
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");

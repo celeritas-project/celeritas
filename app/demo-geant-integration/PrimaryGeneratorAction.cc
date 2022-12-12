@@ -12,8 +12,6 @@
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
 
-#include "corecel/io/Logger.hh"
-
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -22,8 +20,6 @@ namespace demo_geant
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    CELER_LOG_LOCAL(debug) << "PrimaryGeneratorAction::GeneratePrimaries";
-
     auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
 
     G4ParticleGun g4particle_gun;

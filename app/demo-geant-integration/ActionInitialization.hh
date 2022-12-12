@@ -23,7 +23,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     //!@}
 
   public:
-    void BuildForMaster() const final;
+    void BuildForMaster() const final {}
     void Build() const final;
 };
 

@@ -25,7 +25,7 @@ namespace demo_geant
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-    CELER_LOG_LOCAL(debug) << "DetectorConstruction::Construct";
+    CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
     // Create parser; do *not* strip `0x` extensions since those are needed to
     // deduplicate complex geometries (e.g. CMS) and are handled by the Label
@@ -65,7 +65,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 //---------------------------------------------------------------------------//
 void DetectorConstruction::ConstructSDandField()
 {
-    CELER_LOG_LOCAL(debug) << "DetectorConstruction::ConstructSDandField";
+    CELER_LOG_LOCAL(debug) << "Loading sensitive detectors";
 
     G4SDManager* sd_manager = G4SDManager::GetSDMpointer();
 

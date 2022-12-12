@@ -15,22 +15,11 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct actions on manager thread.
- *
- * This is *only* called if using multithreaded Geant4.
- */
-void ActionInitialization::BuildForMaster() const
-{
-    CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct actions on each worker thread.
  */
 void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
+    CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
     // Initialize primary generator
     this->SetUserAction(new PrimaryGeneratorAction());
