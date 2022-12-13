@@ -67,16 +67,14 @@ GlobalSetup::GlobalSetup()
     {
         auto& cmd
             = messenger_->DeclareProperty("cudaStackSize", cuda_stack_size_);
-        cmd.SetGuidance("Set the per-thread dynamic CUDA stack size");
+        cmd.SetGuidance("Set the per-thread dynamic CUDA stack size (bytes)");
         cmd.SetDefaultValue("0");
-        cmd.SetUnit("B");
     }
     {
         auto& cmd
             = messenger_->DeclareProperty("cudaHeapSize", cuda_heap_size_);
-        cmd.SetGuidance("Set the shared dynamic CUDA heap size");
+        cmd.SetGuidance("Set the shared dynamic CUDA heap size (bytes)");
         cmd.SetDefaultValue("0");
-        cmd.SetUnit("B");
     }
     {
         // TODO: expose other options here
