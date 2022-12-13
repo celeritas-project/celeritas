@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <exception>
 #include <memory>
 #include <string>
 
@@ -25,17 +26,18 @@ namespace celeritas
     {
         ...
     }
-    catch (const std::exception& e)
+    catch (...)
     {
-        output_mgr.insert(std::make_shared<ExceptionOutput>(e));
+        output_mgr.insert(std::make_shared<ExceptionOutput>(
+            std::current_exception()));
     }
    \endcode
  */
 class ExceptionOutput final : public OutputInterface
 {
   public:
-    // Construct with an exception object
-    explicit ExceptionOutput(const std::exception& e);
+    // Construct with an exception pointer
+    explicit ExceptionOutput(std::exception_ptr e);
 
     // Protected destructor
     ~ExceptionOutput();

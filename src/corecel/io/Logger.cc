@@ -129,6 +129,35 @@ Logger::Logger(const MpiCommunicator& comm,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Create a default logger using the world communicator.
+ *
+ * This function can be useful when resetting a test harness.
+ */
+Logger make_default_world_logger()
+{
+    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+                    ? MpiCommunicator::comm_world()
+                    : MpiCommunicator{};
+    return {comm, &default_global_handler, "CELER_LOG"};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a default logger using the local communicator.
+ */
+Logger make_default_self_logger()
+{
+    auto comm    = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+                       ? MpiCommunicator::comm_world()
+                       : MpiCommunicator{};
+    auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+                       ? LocalHandler{comm}
+                       : LogHandler{&default_global_handler};
+    return {comm, std::move(handler), "CELER_LOG_LOCAL"};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Parallel-enabled logger: print only on "main" process.
  *
  * Setting the "CELER_LOG" environment variable to "debug", "info", "error",
@@ -137,12 +166,7 @@ Logger::Logger(const MpiCommunicator& comm,
 Logger& world_logger()
 {
     // Use the null communicator if MPI isn't enabled, otherwise comm_world
-    static Logger logger(
-        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? MpiCommunicator::comm_world()
-            : MpiCommunicator{},
-        &default_global_handler,
-        "CELER_LOG");
+    static Logger logger = make_default_world_logger();
     return logger;
 }
 
@@ -157,14 +181,7 @@ Logger& self_logger()
 {
     // Use the null communicator if MPI isn't enabled, otherwise comm_local.
     // If only
-    static Logger logger(
-        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? MpiCommunicator::comm_world()
-            : MpiCommunicator{},
-        ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-            ? LocalHandler{MpiCommunicator::comm_world()}
-            : LogHandler{&default_global_handler},
-        "CELER_LOG_LOCAL");
+    static Logger logger = make_default_self_logger();
     return logger;
 }
 

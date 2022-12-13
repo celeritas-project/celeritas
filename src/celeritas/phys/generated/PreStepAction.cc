@@ -10,6 +10,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/PreStepActionImpl.hh" // IWYU pragma: associated
 
@@ -21,12 +23,14 @@ void PreStepAction::execute(CoreHostRef const& data) const
 {
     CELER_EXPECT(data);
 
+    MultiExceptionHandler capture_exception;
     auto launch = make_track_launcher(data, detail::pre_step_track);
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        launch(ThreadId{i});
+        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
     }
+    log_and_rethrow(std::move(capture_exception));
 }
 
 } // namespace generated

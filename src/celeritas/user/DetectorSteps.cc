@@ -88,7 +88,7 @@ void copy<MemSpace::host>(
     assign_field(&(output->FIELD), state.FIELD, state.detector, size)
 
     DS_ASSIGN(detector);
-    DS_ASSIGN(track);
+    DS_ASSIGN(track_id);
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -98,7 +98,7 @@ void copy<MemSpace::host>(
         DS_ASSIGN(points[sp].energy);
     }
 
-    DS_ASSIGN(event);
+    DS_ASSIGN(event_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
     DS_ASSIGN(particle);
@@ -106,7 +106,7 @@ void copy<MemSpace::host>(
 #undef DS_ASSIGN
 
     CELER_ENSURE(output->detector.size() == size);
-    CELER_ENSURE(output->track.size() == size);
+    CELER_ENSURE(output->track_id.size() == size);
 }
 
 //---------------------------------------------------------------------------//
