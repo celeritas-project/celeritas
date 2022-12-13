@@ -26,14 +26,20 @@ to apply formatting.\e[0m
 fi
 
 printf "\e[2;37;40mRunning git-clang-format...\e[0m" >&2
-CLANG_FORMAT_RESULT="$(git-clang-format HEAD^)"
+GCF_OUT="$(git-clang-format HEAD^ || GCF_CODE=$?)"
 
-if git diff-files --quiet ; then
+if [ ! ${GCF_CODE} ]; then
+  # Return code was zero: for newer clang-format this means no changes, but
+  # we still need to check the index if it's an older version
+  git diff-files --quiet || GCF_CODE=$?
+fi
+
+if [ ! ${GCF_CODE} ]; then
   printf "\r\e[2;32mAll code changes were properly formatted\e[0m\n" >&2
 else
   BAD_COMMIT=$(git rev-parse --short HEAD)
   printf "\r\e[0;33mCode formatting changes were required:\e[0m\n" >&2
-  printf "${CLANG_FORMAT_RESULT}\n" >&2
+  printf "${GCF_OUT}\n" >&2
   git add -u :/
   SKIP_GCF=1 git commit --amend -C HEAD >/dev/null
   GOOD_COMMIT=$(git rev-parse --short HEAD)
