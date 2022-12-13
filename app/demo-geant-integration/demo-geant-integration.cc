@@ -6,14 +6,19 @@
 //! \file demo-geant-integration/demo-geant-integration.cc
 //---------------------------------------------------------------------------//
 
-#include <cstddef>
-#include <iostream>
 // #include <FTFP_BERT.hh>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
 #include <CLHEP/Random/Random.h>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
 
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantVersion.hh"
 #if !CELERITAS_G4_V10
 #    include <G4RunManagerFactory.hh>
@@ -29,8 +34,6 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
-#include "GlobalSetup.hh"
-#include "PrimaryGeneratorAction.hh"
 
 namespace
 {

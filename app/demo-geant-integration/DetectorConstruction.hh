@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 #include <G4VUserDetectorConstruction.hh>

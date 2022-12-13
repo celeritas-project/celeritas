@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
 #include <G4VSensitiveDetector.hh>
 
 namespace demo_geant

@@ -7,9 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
+#include <utility>
+#include <G4StepPoint.hh>
+#include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 
 #include "corecel/io/Logger.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//

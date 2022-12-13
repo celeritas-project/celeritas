@@ -9,7 +9,6 @@
 
 #include <G4RunManager.hh>
 
-#include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 
 #include "EventAction.hh"

@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
+#include <map>
+#include <G4Exception.hh>
+#include <G4GDMLAuxStructType.hh>
 #include <G4GDMLParser.hh>
 #include <G4LogicalVolume.hh>
 #include <G4SDManager.hh>

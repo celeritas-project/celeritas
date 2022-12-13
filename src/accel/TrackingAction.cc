@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
+#include <G4ParticleDefinition.hh>
 #include <G4Track.hh>
+#include <G4TrackStatus.hh>
 
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

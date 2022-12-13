@@ -7,16 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "Logger.hh"
 
-#include <mutex>
+#include <algorithm>
+#include <functional>
+#include <string>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4ios.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 
 namespace celeritas
