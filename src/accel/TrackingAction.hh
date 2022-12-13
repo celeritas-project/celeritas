@@ -13,7 +13,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- *  EM tracks to the device.
+ * Offload EM tracks to Celeritas.
  */
 class TrackingAction final : public G4UserTrackingAction
 {

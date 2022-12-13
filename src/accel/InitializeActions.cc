@@ -35,10 +35,6 @@ void initialize_actions_impl(const std::shared_ptr<const SetupOptions>& options,
         // Initialize CUDA (you'll need to use CUDA environment variables to
         // control the preferred device)
         celeritas::activate_device(Device{0});
-        // TODO: these should be user configurable because they're geometry
-        // dependent
-        celeritas::set_cuda_stack_size(32768);
-        celeritas::set_cuda_heap_size(12582912);
     }
 
     // Run action sets up Celeritas

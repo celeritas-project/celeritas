@@ -23,7 +23,7 @@ TrackingAction::TrackingAction() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize Celeritas.
+ * At the start of a track, determine whether to use Celeritas to transport it.
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {

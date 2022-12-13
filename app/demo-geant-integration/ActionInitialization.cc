@@ -10,6 +10,7 @@
 #include <G4RunManager.hh>
 
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "accel/InitializeActions.hh"
 
 #include "GlobalSetup.hh"
@@ -44,6 +45,15 @@ void ActionInitialization::Build() const
     celeritas::InitializeActions(GlobalSetup::Instance()->GetSetupOptions(),
                                  params_,
                                  G4RunManager::GetRunManager());
+
+    if (unsigned int sz = GlobalSetup::Instance()->GetCudaStackSize())
+    {
+        celeritas::set_cuda_stack_size(sz);
+    }
+    if (unsigned int sz = GlobalSetup::Instance()->GetCudaHeapSize())
+    {
+        celeritas::set_cuda_heap_size(sz);
+    }
 }
 
 //---------------------------------------------------------------------------//

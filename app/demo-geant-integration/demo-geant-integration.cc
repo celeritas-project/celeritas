@@ -6,7 +6,6 @@
 //! \file demo-geant-integration/demo-geant-integration.cc
 //---------------------------------------------------------------------------//
 
-// #include <FTFP_BERT.hh>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -18,7 +17,6 @@
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
 
-#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantVersion.hh"
 #if !CELERITAS_G4_V10
 #    include <G4RunManagerFactory.hh>
@@ -26,10 +24,16 @@
 #    include <G4MTRunManager.hh>
 #endif
 
+#if 0
+#    include <FTFP_BERT.hh>
+#else
+#    include "celeritas/ext/GeantPhysicsOptions.hh"
+#    include "celeritas/ext/detail/GeantPhysicsList.hh"
+#endif
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
@@ -107,8 +111,6 @@ int main(int argc, char* argv[])
     run_manager->SetNumberOfThreads(num_threads);
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
 
-    celeritas::GeantPhysicsOptions geant_phys_opts{};
-
     // Construct physics, geometry, celeritas setup, and user setup
     run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
 #if 0
@@ -116,6 +118,7 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(new FTFP_BERT);
 #else
     // For now (reduced output) use just EM
+    celeritas::GeantPhysicsOptions geant_phys_opts{};
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
 #endif

@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
-#include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
@@ -16,18 +15,23 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Set up particle gun
+ */
+PrimaryGeneratorAction::PrimaryGeneratorAction()
+{
+    gun_.SetParticleDefinition(g4particle_def);
+    gun_.SetParticleEnergy(500 * MeV);
+    gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});          // origin
+    gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0}); // +x
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Generate primaries based on the particle gun data.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
-
-    G4ParticleGun g4particle_gun;
-    g4particle_gun.SetParticleDefinition(g4particle_def);
-    g4particle_gun.SetParticleEnergy(500 * MeV);
-    g4particle_gun.SetParticlePosition(G4ThreeVector{0, 0, 0}); // origin
-    g4particle_gun.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0}); // +x
-    g4particle_gun.GeneratePrimaryVertex(event);
+    gun_.GeneratePrimaryVertex(event);
 }
 
 //---------------------------------------------------------------------------//
