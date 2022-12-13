@@ -19,6 +19,7 @@ namespace demo_geant
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction()
 {
+    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
     gun_.SetParticleDefinition(g4particle_def);
     gun_.SetParticleEnergy(500 * MeV);
     gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});          // origin
