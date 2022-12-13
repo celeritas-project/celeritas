@@ -30,7 +30,7 @@ case $CONFIG in
     ;;
   cuda)
     # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
-    CONFIG=jammy-cuda11
+    CONFIG=focal-cuda11
     ;;
 esac
  
@@ -39,8 +39,12 @@ case $CONFIG in
     BASE_TAG=ubuntu:bionic-20221019
     VECGEOM=
     ;;
+  focal-cuda11)
+    BASE_TAG=nvidia/cuda:11.6.2-devel-ubuntu20.04
+    VECGEOM=v1.2.1
+    ;;
   jammy-cuda11)
-    # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
+    # ***IMPORTANT***: update cuda external version in dev/focal-cuda11!
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
     VECGEOM=v1.2.1
     ;;

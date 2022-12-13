@@ -1,0 +1,39 @@
+spack:
+  specs:
+  - cmake
+  - cuda
+  - doxygen
+  - geant4@11 cxxstd=17
+  - git
+  - googletest
+  - hepmc3
+  - ninja
+  - nlohmann-json
+  - openmpi
+  - python
+  - root
+  - swig
+  concretizer:
+    unify: true
+  packages:
+    cuda:
+      buildable: false
+      externals:
+      - spec: cuda@11.6.2
+        prefix: /usr/local/cuda
+    root:
+      variants: ~davix ~examples ~x ~opengl ~tbb ~rootfit ~python ~math ~gsl cxxstd=17
+    all:
+      target:
+      - x86_64
+      variants: +cuda cuda_arch=70 cxxstd=17
+      providers:
+        blas:
+        - openblas
+        lapack:
+        - openblas
+        mpi:
+        - openmpi
+  config:
+    install_tree: /opt/software
+  view: /opt/view
