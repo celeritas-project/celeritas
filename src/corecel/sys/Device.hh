@@ -52,7 +52,7 @@ class Device
     //!@}
 
   public:
-    // Number of devices available on the local compute node
+    // Number of devices available on the local compute node (0 if disabled)
     static int num_devices();
 
     // Whether verbose messages and error checking are enabled
