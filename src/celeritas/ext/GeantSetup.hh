@@ -90,6 +90,8 @@ inline GeantSetup::GeantSetup(const std::string&, Options)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
+inline GeantSetup::~GeantSetup() = default;
+
 inline void GeantSetup::RMDeleter::operator()(G4RunManager*) const
 {
     CELER_ASSERT_UNREACHABLE();
