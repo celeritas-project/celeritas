@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
-#include <algorithm>
-#include <iostream>
-#include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -74,8 +71,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect step data from each track on each thread id and fill the ROOT step
- * tree.
+ * Collect step data and fill the ROOT TTree for all active threads.
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
@@ -101,10 +97,10 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }
 
         // Track id is always set
-        tstep_.track_id  = steps.track_id[tid].unchecked_get();
-        tstep_.parent_id = steps.parent_id[tid].unchecked_get();
+        tstep_.track_id = steps.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
+        RSW_STORE(parent_id, .unchecked_get());
         RSW_STORE(action_id, .get());
         RSW_STORE(energy_deposition, .value());
         RSW_STORE(step_length, /* no getter */);
@@ -138,9 +134,6 @@ void RootStepWriter::execute(StateHostRef const& steps)
  * object. Therefore, the data is flattened so that each member of `TStepData`
  * is an individual branch that stores primitive types and is created based on
  * the `StepSelection` booleans.
- *
- * A macro is used to simplify the process of moving from Collection to a ROOT
- * branch.
  */
 void RootStepWriter::make_tree()
 {
@@ -155,9 +148,9 @@ void RootStepWriter::make_tree()
 
     tstep_tree_ = root_manager_->make_tree("steps", "steps");
 
-    tstep_tree_->Branch("track_id", &tstep_.track_id);   // Always on
-    tstep_tree_->Branch("parent_id", &tstep_.parent_id); // Always on
+    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
+    RSW_CREATE_BRANCH(parent_id, "parent_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");

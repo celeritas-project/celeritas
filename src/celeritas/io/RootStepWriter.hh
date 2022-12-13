@@ -95,8 +95,7 @@ class RootStepWriter final : public StepInterface
     SPParticleParams             particles_;
     StepSelection                selection_;
     detail::RootUniquePtr<TTree> tstep_tree_;
-    // Members of tstep_ are used as references for the step TTree branches
-    TStepData tstep_;
+    TStepData tstep_; // Members are used as refs of the TTree branches
 };
 
 //---------------------------------------------------------------------------//

@@ -9,10 +9,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/io/Logger.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {
@@ -73,10 +71,8 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->step_state.track_id[thread]  = inactive ? TrackId{}
-                                                          : sim.track_id();
-            this->step_state.parent_id[thread] = inactive ? TrackId{}
-                                                          : sim.parent_id();
+            this->step_state.track_id[thread] = inactive ? TrackId{}
+                                                         : sim.track_id();
         }
 
         if (inactive)
@@ -133,6 +129,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
+            SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             const auto& limit = sim.step_limit();
