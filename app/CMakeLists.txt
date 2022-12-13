@@ -356,12 +356,14 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       COMMAND "$<TARGET_FILE:demo-geant-integration>"
       "simple-cms-test.mac"
     )
-    set(_env
+    list(APPEND _env
       "CELER_LOG_LOCAL=debug"
       "CELER_DISABLE_PARALLEL=1"
-      "NUM_THREADS=2"
-      ${_geant_test_env}
     )
+    if(Geant4_multithreaded_FOUND)
+      list(APPEND _env
+        "NUM_THREADS=2"
+      )
     if(CELERITAS_USE_OpenMP)
       list(APPEND _env "OMP_NUM_THREADS=1")
     endif()
