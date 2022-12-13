@@ -24,7 +24,8 @@ iwyu_tool.py -p $1 -- \
   -Xiwyu --keep="*.json.hh*" \
   -Xiwyu --transitive_includes_only \
   -Xiwyu --mapping_file="${SCRIPT_DIR}/iwyu-apple-clang.imp" \
-  > $OUTFILE
+  > $OUTFILE \
+|| echo "error: iwyu failed"
 
 
 SKIP_FORMAT=
@@ -34,9 +35,6 @@ if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
 else
   fix_includes.py --nocomments -p $1 < $OUTFILE
 fi
-
-# Next, apply to free headers
-# SOURCE_DIR="$(cd "${SCRIPT_DIR}" && git rev-parse --show-toplevel)"
 
 if [ -z "${SKIP_FORMAT}" ]; then
   # Fix include ordering
