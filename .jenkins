@@ -22,6 +22,22 @@ pipeline {
              }
            }
          }
+         stage('hip-ndebug') {
+           agent {
+             docker {
+               image 'celeritas/ci-centos7-rocm5:2022-12-14'
+               label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
+             }
+           }
+           steps {
+             sh 'entrypoint-shell ./scripts/ci/run-ci.sh hip-ndebug'
+           }
+           post {
+             always {
+               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+             }
+           }
+         }
          stage('full-novg') {
            agent {
              docker {

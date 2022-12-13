@@ -48,8 +48,8 @@ RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
     gcc \
     ssh \
     vim \
-  && rm -rf /var/lib/apt/lists/* \
-elif [ $DOCKERFILE_DISTRO == "centos" ] ; then \
+  && rm -rf /var/lib/apt/lists/* ; \
+elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
   yum update -y \
   && yum install -y epel-release \
   && yum update -y \
@@ -76,11 +76,13 @@ RUN if [ -n "${VECGEOM}" ] ; then \
   && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
   && ninja install \
   && rm -rf /opt/vecgeom-src \
-  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh )
+  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh ; \
+fi
 
 # Set up entrypoint and group
-RUN groupadd -g 999 celeritas \
- && useradd -r -u 999 -g celeritas -d /home/celeritas -m celeritas \
+RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then CELER_ID=999 ; else CELER_ID=990 ; fi ; \
+ groupadd -g $CELER_ID celeritas \
+ && useradd -r -u $CELER_ID -g celeritas -d /home/celeritas -m celeritas \
  && ln -s /opt/docker/entrypoint.bash /usr/local/bin/entrypoint-shell \
  && ln -s /opt/docker/entrypoint.bash /usr/local/bin/entrypoint-cmd
 COPY entrypoint.bash /opt/docker/entrypoint.bash
