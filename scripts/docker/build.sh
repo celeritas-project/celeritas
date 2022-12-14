@@ -80,5 +80,5 @@ ${DOCKER} build -t ci-${CONFIG} \
 
 DATE=$(date '+%Y-%m-%d')
 ${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
+${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}.1
+${DOCKER} push celeritas/ci-${CONFIG}:${DATE}.1
