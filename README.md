@@ -2,56 +2,79 @@
 
 The Celeritas project implements HEP detector physics on GPU accelerator
 hardware with the ultimate goal of supporting the massive computational
-requirements of LHC-HL upgrade.
+requirements of the [HL-LHC upgrade][HLLHC].
 
-# Installation
+[HLLHC]: https://home.cern/science/accelerators/high-luminosity-lhc
 
-This project requires external dependencies such as CUDA to build with full
-functionality.  However, any combination of these requirements can be omitted
-to enable limited development on personal machines with fewer available
-components. See [the infrastructure documentation](doc/infrastructure.rst) for
-details on installing.
+# Installation for developers
 
-## Installing with Spack
+Since Celeritas is still under heavy development and is not yet full-featured
+for downstream integration, you are likely installing it for development
+purposes. The [infrastructure documentation][infra] has a
+complete description of the code's dependencies and installation process for
+development.
 
-[Spack](https://github.com/spack/spack) is an HPC-oriented package manager that
-includes numerous scientific packages, including those used in HEP. An included
-Spack "environment" (at `scripts/dev/env/celeritas-{platform}.yaml`) defines
-the required prerequisites for this project.
-
-- Clone Spack following its [getting started instructions][1]
-- To install with CUDA, run `spack external find cuda` and
-  `spack install celeritas +cuda cuda_arch=<ARCH>`, where `<ARCH>` is the
-  numeric portion of the [CUDA architecture flags][2]
-
-[1](https://spack.readthedocs.io/en/latest/getting_started.html)
-[2](https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/)
-
-## Configuring and building Celeritas manually
-
-The spack environment at [dev/scripts.yaml](dev/scripts.yaml) lists the full
-dependencies used by the CI for building, testing, and documenting. Install
-those dependencies via spack or independently, then configure Celeritas.
-
-To configure Celeritas, assuming the dependencies you want are located in the
-`CMAKE_PREFIX_PATH` search path, and other environment variables such as `CXX`
-are set, you should be able to just run CMake and build:
+As an example, if you have the [Spack][spack] package manager
+installed and want to do development on a CUDA system with Volta-class graphics
+cards, execute the following steps:
 ```console
-$ mkdir build
-$ cd build && cmake ..
-$ make
+# Set up CUDA (optional)
+$ spack external find cuda
+$ spack config add packages:all:variants:"+cuda cuda_arch=70"
+# Install celeritas dependencies
+$ spack env create celeritas scripts/spack.yaml
+$ spack env activate celeritas
+$ spack install
+# Configure, build, and test
+$ ./build.sh base
 ```
+
+If you don't use Spack but have all the dependencies you want (Geant4,
+googletest, VecGeom, etc.) in your `CMAKE_PREFIX_PATH`, you can configure and
+build Celeritas as you would any other project:
+```console
+$ mkdir build && cd build
+$ cmake ..
+$ make && ctest
+```
+
+[spack]: https://github.com/spack/spack
+[infra]: doc/infrastructure.rst
+
+# Installation for applications
+
+The easiest way to install Celeritas as a library/app is with Spack:
+- Follow the first two steps above to install [Spack][spack-start] and set up its CUDA usage.
+- Install Celeritas with `spack install celeritas`
+- Use `spack load celeritas` to add the installation to your `PATH`.
+
+Then see the "Downstream usage as a library" section of the [infrastructure
+documentation][infra] for how to use Celeritas in your application or framework.
+
+[spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
+[infra]: doc/infrastructure.rst
 
 # Development
 
 See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
-and [the development guidelines](doc/appendices/development.rst) for further
-details on coding in Celeritas.
+[the development guidelines](doc/appendices/development.rst) for further
+details on coding in Celeritas, and [the administration guidelines](doc/appendices/administration.rst) for community standards and roles.
 
 # Documentation
 
 The full code documentation (including API descriptions) is available by
 setting the `CELERITAS_BUILD_DOCS=ON` configuration option. A mostly complete
-version of the [Celeritas
-documentation](https://celeritas.readthedocs.io/en/latest/) is hosted on
-`readthedocs.io`.
+version of the [Celeritas documentation][docs] is hosted on `readthedocs.io`.
+
+[docs]: https://celeritas.readthedocs.io/en/latest/
+
+# Citing Celeritas
+
+If using Celeritas in your work, we ask that you cite the code using its
+[DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
+
+> Johnson, Seth R., Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Paul Romano, Philippe Canal, Ben Morgan, and Tom Evans. “Celeritas,” July 2022. https://doi.org/10.11578/dc.20221011.1.
+
+Additional references for code implementation details, benchmark problem
+results, etc., can be found in our continually evolving [citation
+file](doc/_static/celeritas.bib).
