@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
@@ -35,6 +36,7 @@ class ActionSequence;
  *
  * - \c params : Problem definition
  * - \c num_track_slots : Maximum number of threads to run in parallel on GPU
+ * - \c sync : Whether to synchronize device between actions
  */
 struct StepperInput
 {
@@ -67,10 +69,10 @@ class StepperInterface
   public:
     //!@{
     //! \name Type aliases
-    using Input          = StepperInput;
-    using ActionSequence = detail::ActionSequence;
-    using VecPrimary     = std::vector<Primary>;
-    using result_type    = StepperResult;
+    using Input            = StepperInput;
+    using ActionSequence   = detail::ActionSequence;
+    using SpanConstPrimary = Span<const Primary>;
+    using result_type      = StepperResult;
     //!@}
 
   public:
@@ -78,7 +80,7 @@ class StepperInterface
     virtual StepperResult operator()() = 0;
 
     // Transport existing states and these new primaries
-    virtual StepperResult operator()(const VecPrimary& primaries) = 0;
+    virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
     //! Whether the stepper is assigned/valid
     virtual explicit operator bool() const = 0;
@@ -111,14 +113,6 @@ template<MemSpace M>
 class Stepper final : public StepperInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using Input       = StepperInput;
-    using VecPrimary  = std::vector<Primary>;
-    using result_type = StepperResult;
-    //!@}
-
-  public:
     // Construct with problem parameters and setup options
     explicit Stepper(Input input);
 
@@ -138,7 +132,7 @@ class Stepper final : public StepperInterface
     StepperResult operator()() final;
 
     // Transport existing states and these new primaries
-    StepperResult operator()(const VecPrimary& primaries) final;
+    StepperResult operator()(SpanConstPrimary primaries) final;
 
     //! Whether the stepper is assigned/valid
     explicit operator bool() const final { return static_cast<bool>(states_); }

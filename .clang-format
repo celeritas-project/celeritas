@@ -89,19 +89,23 @@ IncludeCategories:
     Priority:        2
     SortPriority:    7
     CaseSensitive:   true
+  - Regex:           '^"accel/'
+    Priority:        2
+    SortPriority:    8
+    CaseSensitive:   true
   - Regex:           '^"[^/]+"'
     Priority:        5
-    SortPriority:    8
+    SortPriority:    9
   - Regex:           '^"detail/"'
     Priority:        5
-    SortPriority:    9
+    SortPriority:    10
   - Regex:           '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
     Priority:        7
     CaseSensitive:   true
-    SortPriority:    10
+    SortPriority:    11
   - Regex:           '.*'
     Priority:        5
-    SortPriority:    8
+    SortPriority:    9
 IncludeIsMainRegex: '(\.[^.]+)?$'
 IncludeIsMainSourceRegex: '\.cu$' # Allow CU files as main
 IndentCaseLabels: true

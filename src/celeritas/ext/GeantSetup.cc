@@ -16,7 +16,7 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-#include "detail/GeantVersion.hh"
+#include "GeantVersion.hh"
 #if CELERITAS_G4_V10
 #    include <G4RunManager.hh>
 #else
@@ -127,6 +127,18 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
 
     CELER_ENSURE(world_);
     CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Terminate the run manager on destruction.
+ */
+GeantSetup::~GeantSetup()
+{
+    if (run_manager_)
+    {
+        run_manager_->RunTermination();
+    }
 }
 
 //---------------------------------------------------------------------------//

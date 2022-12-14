@@ -48,7 +48,7 @@ void print_usage(const char* exec_name)
 int main(int argc, char* argv[])
 {
     ScopedRootErrorHandler scoped_root_error;
-    ScopedMpiInit scoped_mpi(&argc, &argv);
+    ScopedMpiInit          scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
     {

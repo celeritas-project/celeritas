@@ -29,7 +29,8 @@ case $CONFIG in
     CONFIG=bionic-minimal
     ;;
   cuda )
-    CONFIG=focal-cuda11
+    # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
+    CONFIG=jammy-cuda11
     ;;
   hip )
     CONFIG=centos7-rocm5
@@ -42,14 +43,14 @@ esac
 case $CONFIG in 
   bionic-minimal)
     DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=ubuntu:bionic-20210930
+    BASE_TAG=ubuntu:bionic-20221019
     VECGEOM=
     ;;
-  focal-cuda11)
-    # ***IMPORTANT***: update cuda external version in dev/focal-cuda11!
+  jammy-cuda11)
+    # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
     DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=nvidia/cuda:11.4.2-devel-ubuntu20.04
-    VECGEOM=v1.1.18
+    BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
+    VECGEOM=v1.2.1
     ;;
   centos7-rocm5)
     # ***IMPORTANT***: update hip external version in dev/centos7-rocm5!

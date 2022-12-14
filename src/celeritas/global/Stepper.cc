@@ -87,7 +87,7 @@ auto Stepper<M>::operator()() -> result_type
  * Initialize new primaries and transport them for a single step.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()(const VecPrimary& primaries) -> result_type
+auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(!primaries.empty());

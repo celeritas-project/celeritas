@@ -12,6 +12,7 @@
   { include: ["@<__random/.*>", private, "<random>", public ] },
   { include: ["@<__type_traits/.*>", private, "<type_traits>", public ] },
   { include: ["@<__utility/.*>", private, "<utility>", public ] },
+  { include: ["@<__type_traits/.*>", private, "<type_traits>", public ] },
   { symbol: [ "std::abs", private, "<cstdlib>", public ] },
   { symbol: [ "std::char_traits", private, "<istream>", public ] },
   { symbol: [ "std::char_traits", private, "<ostream>", public ] },

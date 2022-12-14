@@ -12,6 +12,7 @@
 #include <numeric>
 #include <gtest/gtest.h>
 
+#include "corecel/cont/Span.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
@@ -82,7 +83,7 @@ auto StepperTestBase::run(StepperInterface& step,
 
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
-    auto counts    = step(primaries);
+    auto counts    = step(make_span(primaries));
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
