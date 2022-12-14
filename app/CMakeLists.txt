@@ -364,6 +364,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       list(APPEND _env
         "NUM_THREADS=2"
       )
+    endif()
     if(CELERITAS_USE_OpenMP)
       list(APPEND _env "OMP_NUM_THREADS=1")
     endif()
