@@ -25,7 +25,7 @@ pipeline {
          stage('full-novg') {
            agent {
              docker {
-               image 'celeritas/ci-focal-cuda11:2022-12-13'
+               image 'celeritas/ci-jammy-cuda11:2022-12-06'
                label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
              }
            }
@@ -41,7 +41,7 @@ pipeline {
          stage('full-novg-ndebug') {
            agent {
              docker {
-               image 'celeritas/ci-focal-cuda11:2022-12-13'
+               image 'celeritas/ci-jammy-cuda11:2022-12-06'
                label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
              }
            }
@@ -57,7 +57,7 @@ pipeline {
          stage('vecgeom-demos') {
            agent {
              docker {
-               image 'celeritas/ci-focal-cuda11:2022-12-13'
+               image 'celeritas/ci-jammy-cuda11:2022-12-06'
                label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
              }
            }
@@ -73,7 +73,7 @@ pipeline {
          stage('vecgeom-tests') {
            agent {
              docker {
-               image 'celeritas/ci-focal-cuda11:2022-12-13'
+               image 'celeritas/ci-jammy-cuda11:2022-12-06'
                label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
              }
            }

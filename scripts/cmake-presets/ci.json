@@ -50,7 +50,6 @@
       "cacheVariables": {
         "CMAKE_EXE_LINKER_FLAGS": "-Wl,--no-as-needed",
         "CMAKE_SHARED_LINKER_FLAGS": "-Wl,--no-as-needed",
-        "CMAKE_CUDA_FLAGS": "-D_X86INTRIN_H_INCLUDED",
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },

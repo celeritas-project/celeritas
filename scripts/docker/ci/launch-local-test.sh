@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ -z "${CONFIG}" ]; then
-  CONFIG=focal-cuda11
+  CONFIG=jammy-cuda11
   echo "Set default CONFIG=${CONFIG}"
 fi
 if [ -z "${BUILD}" ]; then
