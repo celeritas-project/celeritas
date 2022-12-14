@@ -39,7 +39,6 @@ case $CONFIG in
     ;;
 esac
  
-DOCKERFILE_DISTRO=ubuntu
 case $CONFIG in 
   bionic-minimal)
     DOCKERFILE_DISTRO=ubuntu
@@ -54,9 +53,9 @@ case $CONFIG in
     ;;
   centos7-rocm5)
     # ***IMPORTANT***: update hip external version in dev/centos7-rocm5!
+    DOCKERFILE_DISTRO=centos
     BASE_TAG=rocm/dev-centos-7:5.4
     VECGEOM=
-    DOCKERFILE_DISTRO=centos
     ;;
   *)
     echo "Invalid configure type: $1"
