@@ -23,14 +23,14 @@
     },
     {
       "name": "iwyu",
-      "displayName": "Include what you use",
+      "displayName": "Include-what-you-use (see scripts/dev/run-iwyu.sh)",
       "inherits": [".base", "minimal"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
-        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "/opt/homebrew/bin/include-what-you-use;-Xiwyu;--no_fwd_decls;-Xiwyu;--no_comments;-Xiwyu;--transitive_includes_only;-Xiwyu;--mapping_file=${sourceDir}/scripts/dev/iwyu-apple-clang.imp"
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"}
       }
     },
     {

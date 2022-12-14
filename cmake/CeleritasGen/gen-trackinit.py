@@ -54,6 +54,7 @@ inline {devicefunc_decl_noargs}
 
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "corecel/Types.hh"
 
@@ -63,12 +64,14 @@ namespace generated
 {{
 {hostfunc_decl}
 {{
+    MultiExceptionHandler capture_exception;
     detail::{clsname}Launcher<MemSpace::host> launch({kernel_arglist});
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < {num_threads}; ++i)
     {{
-        launch(ThreadId{{i}});
+        CELER_TRY_ELSE(launch(ThreadId{{i}}), capture_exception);
     }}
+    log_and_rethrow(std::move(capture_exception));
 }}
 
 }} // namespace generated

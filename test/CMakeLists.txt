@@ -164,6 +164,7 @@ celeritas_add_test(corecel/sys/Environment.test.cc
 )
 celeritas_add_test(corecel/sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
+celeritas_add_test(corecel/sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(corecel/sys/TypeDemangler.test.cc)
 celeritas_add_test(corecel/sys/ScopedSignalHandler.test.cc)
 celeritas_add_test(corecel/sys/ScopedStreamRedirect.test.cc)

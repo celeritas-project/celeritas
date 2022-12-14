@@ -128,9 +128,10 @@ TEST_F(OutputManagerTest, exception_output)
     {
         CELER_VALIDATE(false, << "things went wrong");
     }
-    catch (const std::exception& e)
+    catch (...)
     {
-        om.insert(std::make_shared<celeritas::ExceptionOutput>(e));
+        om.insert(std::make_shared<celeritas::ExceptionOutput>(
+            std::current_exception()));
     }
 
     std::string result = this->to_string(om);

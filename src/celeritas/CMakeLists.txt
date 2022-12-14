@@ -9,7 +9,8 @@ set(PRIVATE_DEPS Celeritas::DeviceToolkit)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 
-# Add an object library to limit the propagation of includes to the rest of the library.
+# Add an object library to limit the propagation of includes to the rest of the
+# library.
 macro(celeritas_add_object_library target)
   add_library(${target} OBJECT ${ARGN})
   install(TARGETS ${target}
@@ -169,9 +170,12 @@ if(CELERITAS_USE_ROOT)
     ext/RootExporter.cc
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
-    ext/detail/TFileUniquePtr.root.cc
+    ext/detail/RootUniquePtr.root.cc
+    io/RootFileManager.cc
+    io/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
+
   target_link_libraries(celeritas_root
     PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
   )

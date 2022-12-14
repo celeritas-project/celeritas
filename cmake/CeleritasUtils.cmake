@@ -189,6 +189,7 @@ function(celeritas_add_library target)
 
   # Build all targets in lib/
   set_target_properties(${_targets} PROPERTIES ${_props}
+    ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
 

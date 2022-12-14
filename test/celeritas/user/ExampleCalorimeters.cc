@@ -58,7 +58,7 @@ auto ExampleCalorimeters::filters() const -> Filters
 StepSelection ExampleCalorimeters::selection() const
 {
     StepSelection result;
-    result.event             = true;
+    result.event_id          = true;
     result.energy_deposition = true;
 
     return result;
@@ -81,10 +81,10 @@ void ExampleCalorimeters::execute(StateHostRef const& data)
 
         if (!event_)
         {
-            event_ = data.event[tid];
+            event_ = data.event_id[tid];
         }
         // Only tally results from one event at a time
-        CELER_ASSERT(event_ == data.event[tid]);
+        CELER_ASSERT(event_ == data.event_id[tid]);
 
         CELER_ASSERT(det < deposition_.size());
         real_type edep

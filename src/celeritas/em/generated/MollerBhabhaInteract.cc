@@ -10,6 +10,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/launcher/MollerBhabhaLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
@@ -27,6 +28,7 @@ void moller_bhabha_interact(
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
 
+    celeritas::MultiExceptionHandler capture_exception;
     auto launch = celeritas::make_interaction_launcher(
         core_data,
         model_data,
@@ -34,9 +36,9 @@ void moller_bhabha_interact(
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
-        celeritas::ThreadId tid{i};
-        launch(tid);
+        CELER_TRY_ELSE(launch(celeritas::ThreadId{i}), capture_exception);
     }
+    log_and_rethrow(std::move(capture_exception));
 }
 
 } // namespace generated

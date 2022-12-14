@@ -34,7 +34,10 @@ class ScopedRootErrorHandler
 #if !CELERITAS_USE_ROOT
 //!@{
 //! Do nothing if ROOT is disabled (source file will not be compiled)
-inline ScopedRootErrorHandler::ScopedRootErrorHandler() {}
+inline ScopedRootErrorHandler::ScopedRootErrorHandler()
+{
+    (void)sizeof(previous_);
+}
 inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
 //!@}
 #endif

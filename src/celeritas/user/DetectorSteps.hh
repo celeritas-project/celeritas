@@ -58,10 +58,10 @@ struct DetectorStepOutput
 
     // Detector ID and track ID are always set
     std::vector<DetectorId> detector;
-    std::vector<TrackId>    track;
+    std::vector<TrackId>    track_id;
 
     // Additional optional data
-    std::vector<EventId>    event;
+    std::vector<EventId>    event_id;
     std::vector<size_type>  track_step_count;
     std::vector<real_type>  step_length;
     std::vector<ParticleId> particle;
