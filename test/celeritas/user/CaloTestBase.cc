@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "corecel/cont/Span.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
@@ -63,7 +64,8 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     Stepper<MemSpace::host> step(step_inp);
 
     // Initial step
-    auto count = step(this->make_primaries(num_tracks));
+    auto primaries = this->make_primaries(num_tracks);
+    auto count     = step(make_span(primaries));
 
     while (count && --num_steps > 0)
     {
