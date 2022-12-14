@@ -25,7 +25,7 @@ pipeline {
          stage('hip-ndebug') {
            agent {
              docker {
-               image 'celeritas/ci-centos7-rocm5:2022-12-14.1'
+               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
                label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
              }
            }

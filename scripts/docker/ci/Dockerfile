@@ -66,7 +66,7 @@ fi
 ARG CONFIG
 RUN case "${CONFIG}" in \
   *rocm* ) \
-    yum install -y rocthrust-devel \
+    yum install -y rocthrust-devel rocrand-devel \
       && rm -rf /var/cache/yum \
       && yum clean all \
     ;; \
