@@ -39,8 +39,8 @@
       "displayName": "Everything in release mode",
       "inherits": [".ndebug", ".base"],
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-next/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-next/.spack-env/view"
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
       },
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS":{"type": "BOOL",   "value": "OFF"},

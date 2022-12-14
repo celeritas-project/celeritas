@@ -14,7 +14,8 @@ spack:
 
 
   - valgrind
-  concretization: together
+  concretizer:
+    unify: true
   packages:
     valgrind:
       variants: ~boost ~mpi
