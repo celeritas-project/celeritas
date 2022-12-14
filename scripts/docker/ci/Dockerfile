@@ -62,8 +62,14 @@ elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
   && yum clean all ; \
 fi
 
+# Install rocm-thrust if using rocm
+RUN case "$CONFIG" in \
+  *rocm*) \
+    yum install rocthrust-devel \
+  ;; \
+esac
 
-# Install vecgeom if requestedd
+# Install vecgeom if requested
 ARG VECGEOM
 RUN if [ -n "${VECGEOM}" ] ; then \
   . /etc/profile.d/celeritas_spack_env.sh \
