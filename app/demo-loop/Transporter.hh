@@ -58,7 +58,7 @@ struct TransporterInput
     // Stepper input
     std::shared_ptr<const CoreParams> params;
     size_type num_track_slots{}; //!< AKA max_num_tracks
-    bool      sync{false};
+    bool sync{false}; //!< Whether to synchronize device between actions
 
     // Loop control
     size_type max_steps{};
@@ -82,9 +82,9 @@ struct TransporterTiming
     using VecReal    = std::vector<real_type>;
     using MapStrReal = std::unordered_map<std::string, real_type>;
 
-    VecReal   steps;   //!< Real time per step
-    real_type total{}; //!< Total simulation time
-    real_type setup{}; //!< One-time initialization cost
+    VecReal    steps;     //!< Real time per step
+    real_type  total{};   //!< Total simulation time
+    real_type  setup{};   //!< One-time initialization cost
     MapStrReal actions{}; //!< Accumulated action timing
 };
 

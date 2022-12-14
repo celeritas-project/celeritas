@@ -30,8 +30,8 @@ namespace celeritas
  * Create track initializers from a vector of host primary particles.
  */
 template<MemSpace M>
-inline void extend_from_primaries(CoreRef<M>&                 core_data,
-                                  const std::vector<Primary>& host_primaries)
+inline void extend_from_primaries(CoreRef<M>&          core_data,
+                                  Span<const Primary>& host_primaries)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(!host_primaries.empty());
@@ -44,7 +44,7 @@ inline void extend_from_primaries(CoreRef<M>&                 core_data,
     // Allocate memory and copy primaries
     Collection<Primary, Ownership::value, M> primaries;
     resize(&primaries, host_primaries.size());
-    Copier<Primary, MemSpace::host> copy{make_span(host_primaries)};
+    Copier<Primary, MemSpace::host> copy{host_primaries};
     copy(M, primaries[AllItems<Primary, M>{}]);
 
     // Create track initializers from primaries
