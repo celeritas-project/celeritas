@@ -14,17 +14,27 @@ if [ -z "${BUILD}" ]; then
   echo "Set default BUILD=${BUILD}"
 fi
 
-CONTAINER=$(docker run -t -d ci-${CONFIG})
+DOCKER=docker
+if ! hash ${DOCKER} 2>/dev/null; then
+  DOCKER=podman
+  if ! hash ${DOCKER} 2>/dev/null; then
+    echo "Docker (or podman) is not available"
+    exit 1
+  fi
+fi
+
+
+CONTAINER=$(${DOCKER} run -t -d ci-${CONFIG})
 echo "Launched container: ${CONTAINER}"
-docker exec -i $CONTAINER bash -l <<EOF || echo "*BUILD FAILED*"
+${DOCKER} exec -i ${CONTAINER} bash -l <<EOF || echo "*BUILD FAILED*"
 set -e
-git clone https://github.com/celeritas-project/celeritas src
+git clone https://github.com/celeritas-project/celeritas.git src
 cd src
 git fetch origin pull/$1/head:mr/$1
 git checkout mr/$1
 entrypoint-shell ./scripts/ci/run-ci.sh ${BUILD}
 EOF
-docker stop --time=0 $CONTAINER
-echo "To resume: docker start $CONTAINER \\"
-echo "           && docker exec -it -e 'TERM=xterm-256color' $CONTAINER bash -l"
-echo "To delete: docker rm -f $CONTAINER"
+${DOCKER} stop --time=0 ${CONTAINER}
+echo "To resume: ${DOCKER} start ${CONTAINER} \\"
+echo "           && ${DOCKER} exec -it -e 'TERM=xterm-256color' ${CONTAINER} bash -l"
+echo "To delete: ${DOCKER} rm -f $CONTAINER"
