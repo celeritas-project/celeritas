@@ -35,9 +35,6 @@ else
   fix_includes.py --nocomments -p $1 < $OUTFILE
 fi
 
-# Next, apply to free headers
-# SOURCE_DIR="$(cd "${SCRIPT_DIR}" && git rev-parse --show-toplevel)"
-
 if [ -z "${SKIP_FORMAT}" ]; then
   # Fix include ordering
   git add -u :/

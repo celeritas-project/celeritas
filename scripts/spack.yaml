@@ -1,9 +1,4 @@
 spack:
-  definitions:
-    - platspecs: []
-    - when: 'platform == "linux"'
-      platspecs:
-      - valgrind
   specs: 
     - cmake
     - doxygen
@@ -23,7 +18,6 @@ spack:
     - root cxxstd=17
     - swig
     - vecgeom +gdml cxxstd=17
-    - $platspecs
   view: true
   concretizer:
     unify: true
@@ -37,3 +31,4 @@ spack:
         mpi: [openmpi]
       variants: cxxstd=17
       # NOTE: add `+cuda cuda_arch=70` (or similar) to your site packages.py
+      # spack config add --scope=site packages:all:variants:"+cuda cuda_arch=70"

@@ -57,7 +57,7 @@ enum class Ownership
     const_reference, //!< Immutable reference to the data
 };
 
-#if !defined(SWIG) || SWIG_VERSION > 0x040002
+#if !defined(SWIG) || SWIG_VERSION > 0x050000
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
