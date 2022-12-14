@@ -80,7 +80,7 @@
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
         "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx908"},
-        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror -mllvm -amdgpu-early-inline-all=true -mllvm -amdgpu-function-calls=false"
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror"
       }
     },
     {
