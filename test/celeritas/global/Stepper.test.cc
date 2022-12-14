@@ -408,7 +408,14 @@ TEST_F(TestEm3MscNofluctTest, host)
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
         EXPECT_EQ(72, result.num_step_iters());
-        EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
+        if (CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_SOFT_EQ(58.875, result.calc_avg_steps_per_primary());
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(58.625, result.calc_avg_steps_per_primary());
+        }
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 5}), result.calc_queue_hwm());
     }
@@ -435,8 +442,17 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
-        EXPECT_EQ(94, result.num_step_iters());
-        EXPECT_SOFT_EQ(62.375, result.calc_avg_steps_per_primary());
+        if (CELERITAS_USE_VECGEOM)
+        {
+            EXPECT_EQ(97, result.num_step_iters());
+            EXPECT_SOFT_EQ(62.75, result.calc_avg_steps_per_primary());
+        }
+        else
+        {
+            EXPECT_EQ(94, result.num_step_iters());
+            EXPECT_SOFT_EQ(62.375, result.calc_avg_steps_per_primary());
+        }
+
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({5, 8}), result.calc_queue_hwm());
     }
