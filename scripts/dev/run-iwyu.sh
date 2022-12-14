@@ -24,7 +24,8 @@ iwyu_tool.py -p $1 -- \
   -Xiwyu --keep="*.json.hh*" \
   -Xiwyu --transitive_includes_only \
   -Xiwyu --mapping_file="${SCRIPT_DIR}/iwyu-apple-clang.imp" \
-  > $OUTFILE
+  > $OUTFILE \
+|| echo "error: iwyu failed"
 
 
 SKIP_FORMAT=

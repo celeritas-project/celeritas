@@ -166,13 +166,19 @@ PDGNumber to_pdg(const G4ProductionCutsIndex& index)
 void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
                   const G4LogicalVolume&                logical_volume)
 {
-    // Add volume to the map
-    ImportVolume volume;
+    auto iter_inserted = volids_volumes.emplace(logical_volume.GetInstanceID(),
+                                                ImportVolume{});
+    if (!iter_inserted.second)
+    {
+        // Logical volume is already in the map
+        return;
+    }
+
+    // Fill volume properties
+    ImportVolume& volume = iter_inserted.first->second;
     volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
     volume.name        = logical_volume.GetName();
     volume.solid_name  = logical_volume.GetSolid()->GetName();
-
-    volids_volumes.insert({logical_volume.GetInstanceID(), volume});
 
     // Recursive: repeat for every daughter volume, if there are any
     for (const auto i : range(logical_volume.GetNoDaughters()))
@@ -452,6 +458,7 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
     loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
 
     // Populate vector<ImportVolume>
+    volumes.reserve(volids_volumes.size());
     for (const auto& key : volids_volumes)
     {
         CELER_ASSERT(key.first == volumes.size());

@@ -46,6 +46,15 @@ class GeantSetup
     // Default constructor
     GeantSetup() = default;
 
+    // Terminate run on destruction
+    ~GeantSetup();
+
+    //!@{
+    //! Default move assignment/construction
+    GeantSetup(GeantSetup&&) = default;
+    GeantSetup& operator=(GeantSetup&&) = default;
+    //!@}
+
     // Get the world detector volume
     inline const G4VPhysicalVolume* world() const;
 
@@ -80,6 +89,8 @@ inline GeantSetup::GeantSetup(const std::string&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
+
+inline GeantSetup::~GeantSetup() = default;
 
 inline void GeantSetup::RMDeleter::operator()(G4RunManager*) const
 {
