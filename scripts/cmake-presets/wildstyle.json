@@ -26,12 +26,21 @@
       }
     },
     {
+      "name": ".reldeb",
+      "hidden": true,
+      "description": "Enable debug with basic optimizations",
+      "cacheVariables": {
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "ON"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"}
+      }
+    },
+    {
       "name": "acceleritas",
       "displayName": "Everything in release mode",
       "inherits": [".ndebug", ".base"],
       "environment": {
-        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-next/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-next/.spack-env/view"
+        "PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view/bin:/usr/local/cuda-11.5/bin:$penv{PATH}",
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
       },
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS":{"type": "BOOL",   "value": "OFF"},
@@ -70,41 +79,41 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "reldeb",
       "displayName": "Everything but vecgeom in release mode",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".reldeb", ".base"]
     },
     {
-      "name": "ndebug-vecgeom",
+      "name": "reldeb-vecgeom",
       "displayName": "Everything in release mode",
-      "inherits": [".ndebug", "vecgeom"],
+      "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_LAUNCH_BOUNDS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_RNG": "XORWOW"
       }
     },
     {
-      "name": "ndebug-serial",
+      "name": "reldeb-serial",
       "displayName": "Release, OpenMP is disabled",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".reldeb", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "ndebug-nocuda",
+      "name": "reldeb-nocuda",
       "displayName": "Forcibly disable CUDA mode",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".reldeb", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_CUDA": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "ndebug-vecgeom-serial",
+      "name": "reldeb-vecgeom-serial",
       "displayName": "Everything but openmp in release mode",
-      "inherits": [".ndebug", "vecgeom"],
+      "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
@@ -120,8 +129,8 @@
     },
     {"name": "serial", "configurePreset": "serial", "inherits": "base"},
     {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
-    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+    {"name": "reldeb-vecgeom", "configurePreset": "reldeb-vecgeom", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"}
   ],
   "testPresets": [
     {
@@ -131,8 +140,8 @@
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 32}
     },
     {"name": "serial", "configurePreset": "serial", "inherits": "base"},
-    {"name": "ndebug-vecgeom", "configurePreset": "ndebug-vecgeom", "inherits": "base"},
+    {"name": "reldeb-vecgeom", "configurePreset": "reldeb-vecgeom", "inherits": "base"},
     {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"}
   ]
 }

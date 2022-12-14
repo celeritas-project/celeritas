@@ -38,35 +38,64 @@ COPY --from=builder /opt/view /opt/view
 COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celeritas_spack_env.sh
 
 # Add core files
-RUN apt-get -yqq update \
- && apt-get -yqq install --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        libc6-dbg \
-        g++ \
-        gcc \
-        ssh \
-        vim \
- && rm -rf /var/lib/apt/lists/*
+# TODO: gcc isn't used for centos build
+RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
+  apt-get -yqq update \
+  && apt-get -yqq install --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    libc6-dbg \
+    g++ \
+    gcc \
+    ssh \
+    vim \
+  && rm -rf /var/lib/apt/lists/* ; \
+elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+  yum update -y \
+  && yum install -y epel-release \
+  && yum update -y \
+  && yum --enablerepo epel groupinstall -y "Development Tools" \
+  && yum --enablerepo epel install -y \
+       gcc-c++ \
+       gcc \
+       vim \
+  && rm -rf /var/cache/yum \
+  && yum clean all ; \
+fi
 
-# Install vecgeom if requestedd
+# Install rocm-thrust if using rocm
+ARG CONFIG
+RUN case "${CONFIG}" in \
+  *rocm* ) \
+    yum install -y rocthrust-devel rocrand-devel \
+      && rm -rf /var/cache/yum \
+      && yum clean all \
+    ;; \
+  * ) \
+    echo "No other packages needed" \
+    ;; \
+esac
+
+# Install vecgeom if requested
 ARG VECGEOM
-RUN test -z "${VECGEOM}" \
-  || ( . /etc/profile.d/celeritas_spack_env.sh \
+RUN if [ -n "${VECGEOM}" ] ; then \
+  . /etc/profile.d/celeritas_spack_env.sh \
   && cd /opt \
   && git clone https://gitlab.cern.ch/VecGeom/VecGeom.git vecgeom-src \
   && cd vecgeom-src \
   && git checkout ${VECGEOM} \
   && mkdir build \
   && cd build \
-  && cmake -DBACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILTIN_VECCORE:BOOL=OFF -DNO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=14 -DCUDA:BOOL=ON -DGDML:BOOL=ON -DGEANT4:BOOL=OFF -DROOT:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCTEST:BOOL=OFF -DGDMLTESTING:BOOL=OFF -DCUDA_ARCH:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
+  && cmake -DVECGEOM_BACKEND:STRING=Scalar -DCMAKE_BUILD_TYPE=RelWithDebInfo -DVECGEOM_BUILTIN_VECCORE:BOOL=ON -DVECGEOM_NO_SPECIALIZATION:BOOL=ON -DVECGEOM_VECTOR:STRING=empty -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_CXX_STANDARD:STRING=17 -DVECGEOM_ENABLE_CUDA:BOOL=ON -DVECGEOM_GDML:BOOL=ON -DVECGEOM_GEANT4:BOOL=OFF -DVECGEOM_ROOT:BOOL=ON -DBUILD_TESTING:BOOL=OFF -DCMAKE_CUDA_ARCHITECTURES:STRING=70 -DCMAKE_INSTALL_PREFIX:STRING=/opt/vecgeom -G Ninja .. \
   && ninja install \
   && rm -rf /opt/vecgeom-src \
-  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh )
+  && echo "export CMAKE_PREFIX_PATH=/opt/vecgeom:${CMAKE_PREFIX_PATH}" >> /etc/profile.d/celeritas_spack_env.sh ; \
+fi
 
 # Set up entrypoint and group
-RUN groupadd -g 999 celeritas \
- && useradd -r -u 999 -g celeritas -d /home/celeritas -m celeritas \
+RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then CELER_ID=999 ; else CELER_ID=990 ; fi ; \
+ groupadd -g $CELER_ID celeritas \
+ && useradd -r -u $CELER_ID -g celeritas -d /home/celeritas -m celeritas \
  && ln -s /opt/docker/entrypoint.bash /usr/local/bin/entrypoint-shell \
  && ln -s /opt/docker/entrypoint.bash /usr/local/bin/entrypoint-cmd
 COPY entrypoint.bash /opt/docker/entrypoint.bash
