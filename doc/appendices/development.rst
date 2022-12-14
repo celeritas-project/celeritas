@@ -178,7 +178,9 @@ directory. One key restriction is the 80-column limit, which enables multiple
 code windows to be open side-by-side. Generally, statements longer than 80
 columns should be broken into sub-expressions for improved readability anyway
 -- the ``auto`` keyword can help a lot with this. The post-commit formatting
-hook in :file:`scripts/dev` can take care of this automatically.
+hook in :file:`scripts/dev` (execute
+:file:`scripts/dev/install-commit-hooks.sh` to set up this script) can take
+care of clang formatting automatically.
 
 Certain decorations (separators, Doxygen comment structure,
 etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
