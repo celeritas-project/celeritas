@@ -10,6 +10,19 @@ fi
 
 SPACK_VERSION=v0.19.0
 CONFIG=$1
+DOCKER=docker
+BUILDARGS=
+if ! hash ${DOCKER} 2>/dev/null; then
+  # see https://blog.christophersmart.com/2021/01/26/user-ids-and-rootless-containers-with-podman/
+  DOCKER=podman
+  BUILDARGS="--format docker"
+  if ! hash ${DOCKER} 2>/dev/null; then
+    echo "Docker (or podman) is not available"
+    exit 1
+  fi
+  # Make podman build containers inside /tmp rather than /var/lib
+  export TMPDIR=$(mktemp -d)
+fi
 
 case $CONFIG in 
   minimal)
@@ -48,21 +61,24 @@ case $CONFIG in
     ;;
 esac
 
-docker pull ${BASE_TAG}
-docker tag ${BASE_TAG} base-${CONFIG}
+${DOCKER} pull ${BASE_TAG}
+${DOCKER} tag ${BASE_TAG} base-${CONFIG}
 
-docker build -t dev-${CONFIG} \
+${DOCKER} build -t dev-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg SPACK_VERSION=${SPACK_VERSION} \
   --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
+  ${BUILDARGS} \
   dev
 
-docker build -t ci-${CONFIG} \
+${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg VECGEOM=${VECGEOM} \
+  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
+  ${BUILDARGS} \
   ci
 
 DATE=$(date '+%Y-%m-%d')
-docker tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-docker tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-docker push celeritas/ci-${CONFIG}:${DATE}
+${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
+${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
+${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
