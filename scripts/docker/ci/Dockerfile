@@ -63,10 +63,16 @@ elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
 fi
 
 # Install rocm-thrust if using rocm
-RUN case "$CONFIG" in \
-  *rocm*) \
-    yum install rocthrust-devel \
-  ;; \
+ARG CONFIG
+RUN case "${CONFIG}" in \
+  *rocm* ) \
+    yum install -y rocthrust-devel \
+      && rm -rf /var/cache/yum \
+      && yum clean all \
+    ;; \
+  * ) \
+    echo "No other packages needed" \
+    ;; \
 esac
 
 # Install vecgeom if requested

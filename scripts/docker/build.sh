@@ -25,13 +25,16 @@ if ! hash ${DOCKER} 2>/dev/null; then
 fi
 
 case $CONFIG in 
-  minimal)
+  minimal )
     CONFIG=bionic-minimal
     ;;
-  cuda)
+  cuda )
     CONFIG=focal-cuda11
     ;;
-  hip)
+  hip )
+    CONFIG=centos7-rocm5
+    ;;
+  rocm )
     CONFIG=centos7-rocm5
     ;;
 esac
