@@ -7,11 +7,27 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
+#include <CLHEP/Random/Random.h>
 #include <G4AutoLock.hh>
 #include <G4Run.hh>
 #include <G4Threading.hh>
+#include <G4TransportationManager.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/CutoffParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 namespace
 {

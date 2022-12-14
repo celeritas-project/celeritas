@@ -12,6 +12,7 @@
 #include <G4TrackStatus.hh>
 
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

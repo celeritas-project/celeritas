@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <G4SystemOfUnits.hh>
+
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
-
-#include "G4SystemOfUnits.hh"
 
 namespace celeritas
 {

@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4Track.hh>
+
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 
 #include "../SetupOptions.hh"
-#include "G4Track.hh"
 
 namespace celeritas
 {
