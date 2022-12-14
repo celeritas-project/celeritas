@@ -10,6 +10,7 @@
   { include: ["@<__memory/.*>", private, "<memory>", public ] },
   { include: ["@<__mutex_base>", private, "<mutex>", public ] },
   { include: ["@<__random/.*>", private, "<random>", public ] },
+  { include: ["@<__type_traits/.*>", private, "<type_traits>", public ] },
   { include: ["@<__utility/.*>", private, "<utility>", public ] },
   { include: ["@<__type_traits/.*>", private, "<type_traits>", public ] },
   { symbol: [ "std::abs", private, "<cstdlib>", public ] },
