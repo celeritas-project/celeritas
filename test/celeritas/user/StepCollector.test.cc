@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/StepCollector.hh"
 
+#include "corecel/cont/Span.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -159,7 +160,9 @@ TEST_F(KnStepCollectorTestBase, multiple_interfaces)
         step_inp.num_track_slots = 2;
 
         Stepper<MemSpace::host> step(step_inp);
-        step(this->make_primaries(2));
+
+        auto primaries = this->make_primaries(2);
+        step(make_span(primaries));
     }
 
     EXPECT_EQ(4, mctruth->steps().size());

@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -245,7 +246,7 @@ TEST_F(TestEm3Test, host_multi)
 
     // Initialize some primaries and take a step
     auto primaries = this->make_primaries(num_primaries);
-    auto counts    = step(primaries);
+    auto counts    = step(make_span(primaries));
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
@@ -256,7 +257,7 @@ TEST_F(TestEm3Test, host_multi)
 
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
-    counts    = step(primaries);
+    counts    = step(make_span(primaries));
     EXPECT_EQ(24, counts.active);
     EXPECT_EQ(24, counts.alive);
 

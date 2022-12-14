@@ -30,8 +30,8 @@ namespace celeritas
  * Create track initializers from a vector of host primary particles.
  */
 template<MemSpace M>
-inline void extend_from_primaries(CoreRef<M>&          core_data,
-                                  Span<const Primary>& host_primaries)
+inline void
+extend_from_primaries(CoreRef<M>& core_data, Span<const Primary> host_primaries)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(!host_primaries.empty());

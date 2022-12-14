@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -140,16 +141,16 @@ class TransporterBase
   public:
     //!@{
     //! Type aliases
-    using VecPrimary = std::vector<celeritas::Primary>;
-    using CoreParams = celeritas::CoreParams;
-    using ActionId   = celeritas::ActionId;
+    using SpanConstPrimary = celeritas::Span<const celeritas::Primary>;
+    using CoreParams       = celeritas::CoreParams;
+    using ActionId         = celeritas::ActionId;
     //!@}
 
   public:
     virtual ~TransporterBase() = 0;
 
     // Transport the input primaries and all secondaries produced
-    virtual TransporterResult operator()(const VecPrimary& primaries) = 0;
+    virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
 
     //! Access input parameters (TODO hacky)
     const CoreParams& params() const { return *input_.params; }
@@ -171,7 +172,7 @@ class Transporter final : public TransporterBase
     explicit Transporter(TransporterInput inp);
 
     // Transport the input primaries and all secondaries produced
-    TransporterResult operator()(const VecPrimary& primaries) final;
+    TransporterResult operator()(SpanConstPrimary primaries) final;
 
   private:
     std::shared_ptr<DiagnosticStore> diagnostics_;
