@@ -203,8 +203,9 @@ T GenerateCanonical<celeritas_test::SequenceEngine, T>::operator()(
     celeritas_test::SequenceEngine& rng)
 {
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
-    const real_type range = celeritas_test::SequenceEngine::max()
-                            + real_type(1);
+    const real_type range
+        = static_cast<real_type>(celeritas_test::SequenceEngine::max())
+          + real_type(1);
     real_type result = rng();
     result += rng() * range;
     result *= 1 / celeritas::ipow<2>(range);

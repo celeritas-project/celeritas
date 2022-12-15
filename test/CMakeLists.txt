@@ -226,7 +226,11 @@ celeritas_setup_tests(SERIAL PREFIX celeritas LINK_LIBRARIES CeleritasTest)
 
 #-------------------------------------#
 # (Root level tests)
-celeritas_add_test(celeritas/Constants.test.cc ${_optional_geant4_link})
+celeritas_add_test(celeritas/Constants.test.cc ${_optional_geant4_link}
+   ADDED_TESTS _constants)
+if(CELERITAS_USE_Geant4)
+  set_tests_properties(${_constants} PROPERTIES LABELS "noasan")
+endif()
 
 #-------------------------------------#
 # EM

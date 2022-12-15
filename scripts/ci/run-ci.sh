@@ -37,6 +37,9 @@ case ${CMAKE_PRESET} in
   vecgeom-demos )
     CTEST_ARGS="-L app"
     ;;
+  asan )
+    CTEST_ARGS="-LE noasan"
+    ;;
   valgrind )
     CTEST_TOOL="MemCheck"
     CTEST_ARGS="-LE nomemcheck"

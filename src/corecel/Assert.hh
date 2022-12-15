@@ -237,7 +237,7 @@
             cudaError_t cuda_result_ = (STATEMENT);                \
             if (CELER_UNLIKELY(cuda_result_ != cudaSuccess))       \
             {                                                      \
-                cudaGetLastError();                                \
+                cuda_result_ = cudaGetLastError();                 \
                 throw ::celeritas::RuntimeError::from_device_call( \
                     cudaGetErrorString(cuda_result_),              \
                     #STATEMENT,                                    \
@@ -277,7 +277,7 @@
             hipError_t hip_result_ = (STATEMENT);                  \
             if (CELER_UNLIKELY(hip_result_ != hipSuccess))         \
             {                                                      \
-                hipGetLastError();                                 \
+                hip_result_ = hipGetLastError();                   \
                 throw ::celeritas::RuntimeError::from_device_call( \
                     hipGetErrorString(hip_result_),                \
                     #STATEMENT,                                    \

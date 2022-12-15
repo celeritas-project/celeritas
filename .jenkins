@@ -22,6 +22,40 @@ pipeline {
             }
           }
         }
+        stage('hip-asan') {
+          agent {
+            docker {
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
+              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm asan'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('hip-ndebug') {
+          agent {
+            docker {
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
+              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
         stage('full-novg') {
           agent {
             docker {
