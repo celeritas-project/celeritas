@@ -10,7 +10,6 @@
 #include <G4GenericMessenger.hh>
 
 #include "corecel/sys/Device.hh"
-#include "accel/Logger.hh"
 
 namespace demo_geant
 {
@@ -71,34 +70,12 @@ GlobalSetup::GlobalSetup()
     }
     {
         // TODO: expose other options here
-        CELER_LOG_LOCAL(debug)
-            << "GlobalSetup: defaults:"
-            << "\n\t geometry_file =" << this->options_->geometry_file
-            << "\n\t max_num_events=" << this->options_->max_num_events
-            << "\n\t max_num_tracks=" << this->options_->max_num_tracks
-            << "\n\t max_steps     =" << this->options_->max_steps
-            << "\n\t init_capacity =" << this->options_->initializer_capacity
-            << "\n\t secStackFactor=" << this->options_->secondary_stack_factor
-            << "\n\t cudaStackSize =" << this->cuda_stack_size_
-            << "\n\t cudaHeapSize  =" << this->cuda_heap_size_;
     }
 }
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-GlobalSetup::~GlobalSetup()
-{
-    CELER_LOG_LOCAL(debug)
-        << "~GlobalSetup(): EOJ values:"
-        << "\n\t geometry_file =" << this->options_->geometry_file
-        << "\n\t max_num_events=" << this->options_->max_num_events
-        << "\n\t max_num_tracks=" << this->options_->max_num_tracks
-        << "\n\t max_steps     =" << this->options_->max_steps
-        << "\n\t init_capacity =" << this->options_->initializer_capacity
-        << "\n\t secStackFactor=" << this->options_->secondary_stack_factor
-        << "\n\t cudaStackSize =" << this->cuda_stack_size_
-        << "\n\t cudaHeapSize  =" << this->cuda_heap_size_;
-}
+GlobalSetup::~GlobalSetup() = default;
 
 //---------------------------------------------------------------------------//
 } // namespace demo_geant
