@@ -1,0 +1,74 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "CentOS7/rocm-docker default options",
+      "inherits": [".hip-mi100", "default"],
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+      }
+    },
+    {
+      "name": "debug",
+      "description": "Build with HIP/ROCM for AMD",
+      "inherits": "base"
+    }
+    {
+      "name": "ndebug",
+      "description": "Build with HIP/ROCM for AMD",
+      "inherits": [".ndebug", "base"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"}
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "nativeToolOptions": ["-k0"],
+      "verbose": true,
+      "jobs": 16
+    },
+    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"}
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 16,
+        "timeout": 180
+      },
+      "output": {
+        "maxFailedTestOutputSize": 1048576,
+        "maxPassedTestOutputSize": 65536,
+        "outputOnFailure": true
+      }
+    },
+    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"}
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
+  ]
+}

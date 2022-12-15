@@ -15,7 +15,7 @@
         "CELERITAS_USE_SWIG":   {"type": "BOOL",   "value": "OFF"},
         "BUILD_SHARED_LIBS":    {"type": "BOOL",   "value": "ON"},
         "CMAKE_BUILD_TYPE":     {"type": "STRING", "value": "Debug"},
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
     },
     {
@@ -56,6 +56,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
     },
     {
@@ -66,6 +67,18 @@
         "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "ON"},
         "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "70"},
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings"
+      }
+    },
+    {
+      "name": ".hip-mi100",
+      "hidden": true,
+      "description": "Options to enable HIP on AMD MI100",
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_HIP":        {"type": "BOOL",   "value": "ON"},
+        "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx908"},
+        "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror",
+        "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O"
       }
     },
     {
