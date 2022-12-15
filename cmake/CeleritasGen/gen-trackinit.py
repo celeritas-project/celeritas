@@ -29,7 +29,6 @@ HH_TEMPLATE = """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 {extra_includes}
 
 namespace celeritas
@@ -53,10 +52,12 @@ inline {devicefunc_decl_noargs}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
+#include <utility>
+
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "corecel/Types.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 
 namespace celeritas
 {{

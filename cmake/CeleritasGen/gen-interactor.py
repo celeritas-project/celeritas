@@ -63,6 +63,8 @@ inline void {func}_interact(
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "{class}Interact.hh"
 
+#include <utility>
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
