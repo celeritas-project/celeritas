@@ -132,6 +132,7 @@ PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 25
 PenaltyReturnTypeOnItsOwnLine: 10
 PointerAlignment: Left
+QualifierAlignment: Right
 ReflowComments:  true
 SortIncludes:    true
 SortUsingDeclarations: true
