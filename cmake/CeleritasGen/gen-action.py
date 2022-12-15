@@ -59,8 +59,8 @@ inline void {clsname}::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
@@ -93,8 +93,8 @@ void {clsname}::execute(CoreHostRef const& data) const
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -124,7 +124,7 @@ __global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
     auto launch = make_track_launcher(data, detail::{func}_track);
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
 void {clsname}::execute(const CoreDeviceRef& data) const
 {{
@@ -135,8 +135,8 @@ void {clsname}::execute(const CoreDeviceRef& data) const
                         data);
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 TEMPLATES = {

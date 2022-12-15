@@ -56,8 +56,8 @@ inline void {func}_interact(
 }}
 #endif
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
@@ -98,8 +98,8 @@ void {func}_interact(
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -135,7 +135,7 @@ __global__ void{launch_bounds}{func}_interact_kernel(
         {namespace}::{func}_interact_track);
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
 void {func}_interact(
     const {namespace}::{class}DeviceRef& model_data,
@@ -150,8 +150,8 @@ void {func}_interact(
                         model_data, core_data);
 }}
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 TEMPLATES = {

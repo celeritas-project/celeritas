@@ -23,8 +23,8 @@ namespace test
 """
 NS_SEP = "//---------------------------------------------------------------------------//\n"
 NS_CLOSE = """\
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas
 """
 
 def update(filename):
@@ -64,7 +64,7 @@ def update(filename):
                 needs_closing = True
                 line = NS_OPEN
                 next(old) # Skip following brace
-            elif line == "} // namespace celeritas_test\n":
+            elif line == "}  // namespace celeritas_test\n":
                 needs_closing = True
                 continue
 
