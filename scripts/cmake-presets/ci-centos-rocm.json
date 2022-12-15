@@ -31,7 +31,7 @@
       "name": "debug",
       "description": "Build with HIP/ROCM for AMD",
       "inherits": "base"
-    }
+    },
     {
       "name": "ndebug",
       "description": "Build with HIP/ROCM for AMD",
