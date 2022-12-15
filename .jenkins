@@ -43,7 +43,7 @@ pipeline {
            agent {
              docker {
                image 'celeritas/ci-jammy-cuda11:2022-12-06'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
              }
            }
            steps {
@@ -59,7 +59,7 @@ pipeline {
            agent {
              docker {
                image 'celeritas/ci-jammy-cuda11:2022-12-06'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
              }
            }
            steps {
@@ -75,7 +75,7 @@ pipeline {
            agent {
              docker {
                image 'celeritas/ci-jammy-cuda11:2022-12-06'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
              }
            }
            steps {
@@ -91,7 +91,7 @@ pipeline {
            agent {
              docker {
                image 'celeritas/ci-jammy-cuda11:2022-12-06'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
+               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
              }
            }
            steps {
