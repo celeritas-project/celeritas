@@ -10,6 +10,7 @@
 #include <G4GenericMessenger.hh>
 
 #include "corecel/sys/Device.hh"
+#include "accel/Logger.hh"
 
 namespace demo_geant
 {
@@ -37,53 +38,67 @@ GlobalSetup::GlobalSetup()
         auto& cmd = messenger_->DeclareProperty("setGeometryFile",
                                                 options_->geometry_file);
         cmd.SetGuidance("Set the geometry file name");
-        cmd.SetDefaultValue("");
     }
     {
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");
-        cmd.SetDefaultValue(celeritas::Device::num_devices() > 0 ? "524288"
-                                                                 : "64");
     }
     {
         auto& cmd = messenger_->DeclareProperty("maxNumEvents",
                                                 options_->max_num_events);
         cmd.SetGuidance("Set the maximum number of events in the run");
-        cmd.SetDefaultValue("1024");
     }
     {
         auto& cmd = messenger_->DeclareProperty(
             "secondaryStackFactor", options_->secondary_stack_factor);
         cmd.SetGuidance("Set the number of secondary slots per track slot");
-        cmd.SetDefaultValue("3");
     }
     {
         auto& cmd = messenger_->DeclareProperty(
             "initializerCapacity", options_->initializer_capacity);
         cmd.SetGuidance("Set the maximum number of queued tracks");
-        cmd.SetDefaultValue("1048576");
     }
     {
         auto& cmd
             = messenger_->DeclareProperty("cudaStackSize", cuda_stack_size_);
         cmd.SetGuidance("Set the per-thread dynamic CUDA stack size (bytes)");
-        cmd.SetDefaultValue("0");
     }
     {
         auto& cmd
             = messenger_->DeclareProperty("cudaHeapSize", cuda_heap_size_);
         cmd.SetGuidance("Set the shared dynamic CUDA heap size (bytes)");
-        cmd.SetDefaultValue("0");
     }
     {
         // TODO: expose other options here
+        CELER_LOG_LOCAL(debug)
+            << "GlobalSetup: defaults:"
+            << "\n\t geometry_file =" << this->options_->geometry_file
+            << "\n\t max_num_events=" << this->options_->max_num_events
+            << "\n\t max_num_tracks=" << this->options_->max_num_tracks
+            << "\n\t max_steps     =" << this->options_->max_steps
+            << "\n\t init_capacity =" << this->options_->initializer_capacity
+            << "\n\t secStackFactor=" << this->options_->secondary_stack_factor
+            << "\n\t cudaStackSize =" << this->cuda_stack_size_
+            << "\n\t cudaHeapSize  =" << this->cuda_heap_size_;
     }
 }
 
 //---------------------------------------------------------------------------//
 //! Default destructor
-GlobalSetup::~GlobalSetup() = default;
+GlobalSetup::~GlobalSetup()
+{
+    CELER_LOG_LOCAL(debug)
+        << "~GlobalSetup(): EOJ values:"
+        << "\n\t geometry_file =" << this->options_->geometry_file
+        << "\n\t max_num_events=" << this->options_->max_num_events
+        << "\n\t max_num_tracks=" << this->options_->max_num_tracks
+        << "\n\t max_steps     =" << this->options_->max_steps
+        << "\n\t init_capacity =" << this->options_->initializer_capacity
+        << "\n\t secStackFactor=" << this->options_->secondary_stack_factor
+        << "\n\t cudaStackSize =" << this->cuda_stack_size_
+        << "\n\t cudaHeapSize  =" << this->cuda_heap_size_;
+}
 
 //---------------------------------------------------------------------------//
 } // namespace demo_geant

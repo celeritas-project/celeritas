@@ -15,6 +15,7 @@
 #include <CLHEP/Random/Random.h>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4UIExecutive.hh>
 #include <G4UImanager.hh>
 
 #include "celeritas/ext/GeantVersion.hh"
@@ -71,7 +72,7 @@ int GetNumThreads()
 int main(int argc, char* argv[])
 {
     std::vector<std::string> args(argv, argv + argc);
-    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
+    if (argc > 1 && (args[1] == "--help" || args[1] == "-h"))
     {
         std::cerr << "usage: " << args[0] << " {commands}.mac\n"
                   << "Environment variables:\n"
@@ -124,11 +125,25 @@ int main(int argc, char* argv[])
 #endif
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
-    G4UImanager* ui = G4UImanager::GetUIpointer();
-    CELER_ASSERT(ui);
-    CELER_LOG_LOCAL(status)
-        << "Executing macro commands from '" << args[1] << "'";
-    ui->ApplyCommand("/control/execute " + args[1]);
+    // Process macro or start UI session
+    if (argc == 1)
+    {
+        // interactive mode
+        G4UIExecutive* ue = new G4UIExecutive(argc, argv);
+        CELER_ASSERT(ue);
+        CELER_LOG_LOCAL(status) << "Geant4 entering executive mode...\n";
+        ue->SessionStart();
+        delete ue;
+    }
+    else
+    {
+        // batch mode
+        G4UImanager* ui = G4UImanager::GetUIpointer();
+        CELER_ASSERT(ui);
+        CELER_LOG_LOCAL(status)
+            << "Executing macro commands from '" << args[1] << "'";
+        ui->ApplyCommand("/control/execute " + args[1]);
+    }
 
     return EXIT_SUCCESS;
 }
