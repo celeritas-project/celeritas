@@ -49,7 +49,7 @@
       "verbose": true,
       "jobs": 16
     },
-    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"}
+    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ],
   "testPresets": [
@@ -68,7 +68,7 @@
         "outputOnFailure": true
       }
     },
-    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"}
+    {"name": "debug" , "configurePreset": "debug" , "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
 }
