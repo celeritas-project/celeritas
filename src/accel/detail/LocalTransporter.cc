@@ -76,7 +76,7 @@ void LocalTransporter::flush()
     }
 
     // Copy buffered tracks to device and transport the first step
-    auto track_counts = (*step_)(buffer_);
+    auto track_counts = (*step_)(make_span(buffer_));
 
     size_type step_iters = 1;
 
