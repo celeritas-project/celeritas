@@ -126,7 +126,7 @@ __global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
 }}
 }}  // namespace
 
-void {clsname}::execute(const CoreDeviceRef& data) const
+void {clsname}::execute(CoreDeviceRef const& data) const
 {{
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL({func},

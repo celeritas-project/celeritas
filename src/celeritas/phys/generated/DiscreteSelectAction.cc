@@ -35,5 +35,5 @@ void DiscreteSelectAction::execute(CoreHostRef const& data) const
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

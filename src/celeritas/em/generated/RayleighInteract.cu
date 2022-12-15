@@ -34,8 +34,8 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 rayleigh_interact_kernel(
-    const celeritas::RayleighDeviceRef model_data,
-    const celeritas::CoreRef<MemSpace::device> core_data)
+    celeritas::RayleighDeviceRef const model_data,
+    celeritas::CoreRef<MemSpace::device> const core_data)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
@@ -47,11 +47,11 @@ rayleigh_interact_kernel(
         celeritas::rayleigh_interact_track);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 void rayleigh_interact(
-    const celeritas::RayleighDeviceRef& model_data,
-    const celeritas::CoreRef<MemSpace::device>& core_data)
+    celeritas::RayleighDeviceRef const& model_data,
+    celeritas::CoreRef<MemSpace::device> const& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -62,5 +62,5 @@ void rayleigh_interact(
                         model_data, core_data);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

@@ -24,8 +24,8 @@ namespace celeritas
 namespace generated
 {
 void seltzer_berger_interact(
-    const celeritas::SeltzerBergerHostRef& model_data,
-    const celeritas::CoreRef<MemSpace::host>& core_data)
+    celeritas::SeltzerBergerHostRef const& model_data,
+    celeritas::CoreRef<MemSpace::host> const& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -43,5 +43,5 @@ void seltzer_berger_interact(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

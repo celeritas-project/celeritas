@@ -24,8 +24,8 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const celeritas::KleinNishinaHostRef& model_data,
-    const celeritas::CoreRef<MemSpace::host>& core_data)
+    celeritas::KleinNishinaHostRef const& model_data,
+    celeritas::CoreRef<MemSpace::host> const& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -43,5 +43,5 @@ void klein_nishina_interact(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas
