@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Construct with Celeritas shared data.
  */
-TrackingAction::TrackingAction(SPParams params, SPTransporter transport)
+TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
     : params_(params), transport_(transport)
 {
     CELER_EXPECT(params_);
@@ -33,6 +33,9 @@ TrackingAction::TrackingAction(SPParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
+    CELER_EXPECT(params_->params);
+    CELER_EXPECT(*transport_);
+
     // Check against list of supported celeritas particles
     PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
     if (params_->params->particle()->find(pdg))

@@ -28,8 +28,8 @@ class LocalTransporter
   public:
     //!@{
     //! \name Type aliases
-    using SPCOptions = std::shared_ptr<const SetupOptions>;
-    using SPCParams  = std::shared_ptr<const CoreParams>;
+    using SPConstOptions = std::shared_ptr<const SetupOptions>;
+    using SPConstParams  = std::shared_ptr<const CoreParams>;
     //!@}
 
   public:
@@ -37,7 +37,7 @@ class LocalTransporter
     LocalTransporter() = default;
 
     // Construct with shared (MT) params
-    LocalTransporter(SPCOptions, SPCParams);
+    LocalTransporter(SPConstOptions, SPConstParams);
 
     // Convert a Geant4 track to a Celeritas primary and add to buffer
     void add(const G4Track&);
@@ -55,8 +55,8 @@ class LocalTransporter
     explicit operator bool() const { return opts_ && params_ && step_; }
 
   private:
-    SPCOptions                        opts_;
-    SPCParams                         params_;
+    SPConstOptions                    opts_;
+    SPConstParams                     params_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary>              buffer_;
     EventId                           event_;

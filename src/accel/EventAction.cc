@@ -17,10 +17,8 @@ namespace celeritas
 /*!
  * Construct with Celeritas shared data.
  */
-EventAction::EventAction(SPParams params, SPTransporter transport)
-    : params_(params), transport_(transport)
+EventAction::EventAction(SPTransporter transport) : transport_(transport)
 {
-    CELER_EXPECT(params_);
     CELER_EXPECT(transport_);
 }
 

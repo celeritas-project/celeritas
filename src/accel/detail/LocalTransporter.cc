@@ -20,7 +20,7 @@ namespace detail
 /*!
  * Construct with shared (MT) params.
  */
-LocalTransporter::LocalTransporter(SPCOptions opts, SPCParams params)
+LocalTransporter::LocalTransporter(SPConstOptions opts, SPConstParams params)
     : opts_(opts), params_(params)
 {
     CELER_EXPECT(opts_);
@@ -88,7 +88,7 @@ void LocalTransporter::flush()
                        << opts_->max_steps << ")");
 
         track_counts = (*step_)();
-        step_iters += 1;
+        ++step_iters;
     }
 
     buffer_.clear();

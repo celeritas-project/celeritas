@@ -44,7 +44,7 @@ void initialize_actions_impl(const std::shared_ptr<const SetupOptions>& options,
     manager->SetUserAction(new RunAction{options, params, transport});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
-    manager->SetUserAction(new EventAction{params, transport});
+    manager->SetUserAction(new EventAction{transport});
     // Tracking action offloads tracks to device and kills them
     manager->SetUserAction(new TrackingAction{params, transport});
 }

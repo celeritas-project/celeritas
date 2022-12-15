@@ -25,21 +25,21 @@ class RunAction final : public G4UserRunAction
   public:
     //!@{
     //! \name Type aliases
-    using SPCOptions    = std::shared_ptr<const SetupOptions>;
-    using SPParams      = std::shared_ptr<SharedParams>;
-    using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
+    using SPConstOptions = std::shared_ptr<const SetupOptions>;
+    using SPParams       = std::shared_ptr<SharedParams>;
+    using SPTransporter  = std::shared_ptr<detail::LocalTransporter>;
     //!@}
 
   public:
-    RunAction(SPCOptions options, SPParams params, SPTransporter transport);
+    RunAction(SPConstOptions options, SPParams params, SPTransporter transport);
 
     void BeginOfRunAction(const G4Run* run) final;
     void EndOfRunAction(const G4Run* run) final;
 
   private:
-    SPCOptions    options_;
-    SPParams      params_;
-    SPTransporter transport_;
+    SPConstOptions options_;
+    SPParams       params_;
+    SPTransporter  transport_;
 
     void build_core_params();
 };

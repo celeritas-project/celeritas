@@ -29,20 +29,15 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-namespace
-{
-G4Mutex mutex = G4MUTEX_INITIALIZER;
-}
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with Celeritas setup options and shared data.
  */
-RunAction::RunAction(SPCOptions    options,
-                     SPParams      params,
-                     SPTransporter transport)
+RunAction::RunAction(SPConstOptions options,
+                     SPParams       params,
+                     SPTransporter  transport)
     : options_(options), params_(params), transport_(transport)
 {
     CELER_EXPECT(options_);
@@ -82,7 +77,9 @@ void RunAction::EndOfRunAction(const G4Run*) {}
  */
 void RunAction::build_core_params()
 {
-    G4AutoLock lock(&mutex);
+    static G4Mutex mutex = G4MUTEX_INITIALIZER;
+    G4AutoLock     lock(&mutex);
+
     if (params_->params)
     {
         // Some other thread constructed params between the thread-unsafe check
@@ -96,8 +93,7 @@ void RunAction::build_core_params()
             ->GetWorldVolume());
 
     auto imported = load_geant_data();
-    CELER_LOG_LOCAL(info) << "loaded data: "
-                          << (imported ? "success" : "failure");
+    CELER_ASSERT(imported);
 
     CoreParams::Input params;
 
@@ -109,14 +105,6 @@ void RunAction::build_core_params()
     // Load geometry
     {
         params.geometry = std::make_shared<GeoParams>(options_->geometry_file);
-        if (!params.geometry->supports_safety())
-        {
-            CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps";
-        }
     }
 
     // Load materials

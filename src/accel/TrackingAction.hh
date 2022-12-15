@@ -23,17 +23,17 @@ class TrackingAction final : public G4UserTrackingAction
   public:
     //!@{
     //! \name Type aliases
-    using SPParams      = std::shared_ptr<SharedParams>;
+    using SPConstParams = std::shared_ptr<const SharedParams>;
     using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
     //!@}
 
   public:
-    TrackingAction(SPParams params, SPTransporter transport);
+    TrackingAction(SPConstParams params, SPTransporter transport);
 
     void PreUserTrackingAction(const G4Track* track) final;
 
   private:
-    SPParams      params_;
+    SPConstParams params_;
     SPTransporter transport_;
 };
 
