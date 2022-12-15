@@ -38,6 +38,7 @@ COPY --from=builder /opt/view /opt/view
 COPY --from=builder /etc/profile.d/celeritas_spack_env.sh /etc/profile.d/celeritas_spack_env.sh
 
 # Add core files
+# TODO: gcc isn't used for centos build
 RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
   apt-get -yqq update \
   && apt-get -yqq install --no-install-recommends \
