@@ -10,6 +10,8 @@
 #include <G4ParticleGun.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
+#include "HepMC3Reader.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -21,14 +23,18 @@ namespace demo_geant
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
-    // Set up particle gun.
+    // Construct with default particle gun
     PrimaryGeneratorAction();
+
+    // Construct with HepMC3 input file
+    PrimaryGeneratorAction(std::shared_ptr<G4VPrimaryGenerator> hepmc3_reader);
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
 
   private:
-    G4ParticleGun gun_;
+    std::unique_ptr<G4ParticleGun>       gun_{nullptr};
+    std::shared_ptr<G4VPrimaryGenerator> hepmc3_reader_;
 };
 
 //---------------------------------------------------------------------------//

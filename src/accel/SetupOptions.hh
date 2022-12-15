@@ -31,13 +31,14 @@ struct SetupOptions
     // TODO: geometry should be exported directly from Geant4 (or written to
     // temporary GDML and re-read)
     std::string geometry_file;
+    std::string hepmc3_file;
 
-    size_type   max_num_tracks{};
-    size_type   max_num_events{};
-    size_type   max_steps = no_max_steps();
-    size_type   initializer_capacity{};
-    real_type   secondary_stack_factor{};
-    bool        sync{};
+    size_type max_num_tracks{};
+    size_type max_num_events{};
+    size_type max_steps = no_max_steps();
+    size_type initializer_capacity{};
+    real_type secondary_stack_factor{};
+    bool      sync{};
 };
 
 //---------------------------------------------------------------------------//

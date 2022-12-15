@@ -40,6 +40,12 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue("");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("setHepmc3File",
+                                                options_->hepmc3_file);
+        cmd.SetGuidance("Set the HepMC3 file name");
+        cmd.SetDefaultValue("");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");

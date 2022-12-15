@@ -29,6 +29,7 @@ class GlobalSetup
     //!@{
     //! Demo setup options
     const std::string& GetGdmlFile() const { return options_->geometry_file; }
+    const std::string& GetHepmc3File() const { return options_->hepmc3_file; }
     unsigned int       GetCudaStackSize() const { return cuda_stack_size_; }
     unsigned int       GetCudaHeapSize() const { return cuda_heap_size_; }
     //!@}

@@ -12,6 +12,8 @@
 
 #include "accel/SharedParams.hh"
 
+#include "HepMC3Reader.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -23,7 +25,8 @@ class ActionInitialization final : public G4VUserActionInitialization
   public:
     //!@{
     //! \name Type aliases
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
+    using SPParams       = std::shared_ptr<celeritas::SharedParams>;
+    using SPHepMC3Reader = std::shared_ptr<HepMC3Reader>;
     //!@}
 
   public:
@@ -32,7 +35,8 @@ class ActionInitialization final : public G4VUserActionInitialization
     void Build() const final;
 
   private:
-    SPParams params_;
+    SPParams       params_;
+    SPHepMC3Reader hepmc3_reader_{nullptr}; // Shared among worker threads
 };
 
 //---------------------------------------------------------------------------//
