@@ -28,7 +28,7 @@ class EventAction final : public G4UserEventAction
     //!@}
 
   public:
-    EventAction(SPTransporter transport);
+    explicit EventAction(SPTransporter transport);
 
     void BeginOfEventAction(const G4Event* event) final;
     void EndOfEventAction(const G4Event* event) final;
