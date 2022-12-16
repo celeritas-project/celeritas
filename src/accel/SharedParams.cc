@@ -3,22 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RunAction.cc
+//! \file accel/SharedParams.cc
 //---------------------------------------------------------------------------//
-#include "RunAction.hh"
+#include "SharedParams.hh"
 
 #include <CLHEP/Random/Random.h>
 #include <G4AutoLock.hh>
-#include <G4Run.hh>
-#include <G4Threading.hh>
 #include <G4TransportationManager.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -29,63 +29,75 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "SetupOptions.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas setup options and shared data.
+ * Construct a shared pointer to this class for sharing across threads.
  */
-RunAction::RunAction(SPConstOptions options,
-                     SPParams       params,
-                     SPTransporter  transport)
-    : options_(options), params_(params), transport_(transport)
+std::shared_ptr<SharedParams> SharedParams::MakeShared()
 {
-    CELER_EXPECT(options_);
-    CELER_EXPECT(params_);
-    CELER_EXPECT(transport_);
+    return std::make_shared<SharedParams>();
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Initialize Celeritas.
- */
-void RunAction::BeginOfRunAction(const G4Run* run)
-{
-    CELER_EXPECT(run);
+//! Default destructor
+SharedParams::~SharedParams() = default;
 
-    if (!params_->params)
+//---------------------------------------------------------------------------//
+/*!
+ * Thread-safe setup of Celeritas using Geant4 data.
+ *
+ * This is a separate step from construction because it has to happen at the
+ * beginning of the run, not when user classes are created.
+ */
+void SharedParams::Initialize(const SetupOptions& options)
+{
+    if (Device::num_devices() > 0)
+    {
+        // Initialize CUDA (you'll need to use CUDA environment variables to
+        // control the preferred device)
+        celeritas::activate_device(Device{0});
+
+        // Heap size must be set before creating VecGeom device instance; and
+        // let's just set the stack size as well
+        if (options.cuda_stack_size > 0)
+        {
+            celeritas::set_cuda_stack_size(options.cuda_stack_size);
+        }
+        if (options.cuda_heap_size > 0)
+        {
+            celeritas::set_cuda_heap_size(options.cuda_heap_size);
+        }
+    }
+
+    if (!*this)
     {
         // Maybe the first thread to run: build and store core params
-        this->build_core_params();
+        this->locked_initialize(options);
     }
-    CELER_ASSERT(params_->params);
-
-    // Construct thread-local transporter
-    *transport_ = detail::LocalTransporter(options_, params_->params);
-    CELER_ENSURE(*transport_);
+    CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Finalize Celeritas.
+ * Construct from setup options in a thread-safe manner.
  */
-void RunAction::EndOfRunAction(const G4Run*) {}
-
-//---------------------------------------------------------------------------//
-/*!
- * Finalize Celeritas.
- */
-void RunAction::build_core_params()
+void SharedParams::locked_initialize(const SetupOptions& options)
 {
     static G4Mutex mutex = G4MUTEX_INITIALIZER;
     G4AutoLock     lock(&mutex);
 
-    if (params_->params)
+    if (*this)
     {
         // Some other thread constructed params between the thread-unsafe check
         // and this thread-safe check
         return;
     }
+
+    CELER_LOG_LOCAL(status) << "Initializing Celeritas";
 
     celeritas::GeantImporter load_geant_data(
         G4TransportationManager::GetTransportationManager()
@@ -104,7 +116,8 @@ void RunAction::build_core_params()
 
     // Load geometry
     {
-        params.geometry = std::make_shared<GeoParams>(options_->geometry_file);
+        // TODO: export GDML through Geant4 to temporary file
+        params.geometry = std::make_shared<GeoParams>(options.geometry_file);
     }
 
     // Load materials
@@ -137,7 +150,7 @@ void RunAction::build_core_params()
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
-        input.options.secondary_stack_factor = options_->secondary_stack_factor;
+        input.options.secondary_stack_factor = options.secondary_stack_factor;
 
         {
             ProcessBuilder::Options opts;
@@ -179,14 +192,14 @@ void RunAction::build_core_params()
     // Construct track initialization params
     {
         TrackInitParams::Input input;
-        input.capacity   = options_->initializer_capacity;
-        input.max_events = options_->max_num_events;
+        input.capacity   = options.initializer_capacity;
+        input.max_events = options.max_num_events;
         params.init      = std::make_shared<TrackInitParams>(input);
     }
 
     // Create params
     CELER_ASSERT(params);
-    params_->params = std::make_shared<CoreParams>(std::move(params));
+    params_ = std::make_shared<CoreParams>(std::move(params));
 }
 
 //---------------------------------------------------------------------------//

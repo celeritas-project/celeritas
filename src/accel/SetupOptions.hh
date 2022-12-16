@@ -38,6 +38,10 @@ struct SetupOptions
     size_type   initializer_capacity{};
     real_type   secondary_stack_factor{};
     bool        sync{};
+
+    // CUDA options
+    size_type cuda_stack_size{};
+    size_type cuda_heap_size{};
 };
 
 //---------------------------------------------------------------------------//

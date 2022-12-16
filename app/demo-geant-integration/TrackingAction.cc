@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingAction.cc
+//! \file demo-geant-integration/TrackingAction.cc
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
@@ -11,10 +11,9 @@
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "corecel/Assert.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,18 +32,15 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-    CELER_EXPECT(params_->params);
+    CELER_EXPECT(*params_);
     CELER_EXPECT(*transport_);
 
-    // Check against list of supported celeritas particles
-    PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
-    if (params_->params->particle()->find(pdg))
+    if (transport_->TryOffload(*track))
     {
-        // Send track to transporter and kill
-        transport_->add(*track);
+        // Celeritas is transporting this track
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

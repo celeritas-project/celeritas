@@ -12,21 +12,23 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "SetupOptions.hh"
+#include "SharedParams.hh"
+
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
  */
-LocalTransporter::LocalTransporter(SPConstOptions opts, SPConstParams params)
-    : opts_(opts), params_(params)
+LocalTransporter::LocalTransporter(const SetupOptions& options,
+                                   const SharedParams& params)
+    : max_steps_(options.max_steps)
 {
-    CELER_EXPECT(opts_);
-    CELER_EXPECT(params_);
+    CELER_EXPECT(params);
+    particles_ = params.Params()->particle();
 
-    StepperInput inp{params_, opts_->max_num_tracks, opts_->sync};
+    StepperInput inp{params.Params(), options.max_num_tracks, options.sync};
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(inp);
@@ -39,15 +41,32 @@ LocalTransporter::LocalTransporter(SPConstOptions opts, SPConstParams params)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the event ID at the start of an event.
+ */
+void LocalTransporter::SetEventId(int id)
+{
+    CELER_EXPECT(id >= 0);
+    event_id_ = EventId(id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-void LocalTransporter::add(const G4Track& g4track)
+bool LocalTransporter::TryOffload(const G4Track& g4track)
 {
-    CELER_EXPECT(event_);
+    CELER_EXPECT(event_id_);
+
+    PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
+    if (!particles_->find(pdg))
+    {
+        // Celeritas doesn't know about this particle type: exit early
+        return false;
+    }
 
     Primary track;
 
-    track.particle_id = params_->particle()->find(
+    track.particle_id = particles_->find(
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
     track.energy = units::MevEnergy{g4track.GetKineticEnergy() / MeV};
 
@@ -59,21 +78,25 @@ void LocalTransporter::add(const G4Track& g4track)
 
     track.time     = g4track.GetGlobalTime() / s;
     track.track_id = TrackId{TrackId::size_type(g4track.GetTrackID())};
-    track.event_id = event_;
+    track.event_id = event_id_;
 
     buffer_.push_back(track);
+    return true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport the buffered tracks and all secondaries produced.
  */
-void LocalTransporter::flush()
+void LocalTransporter::Flush()
 {
     if (buffer_.empty())
     {
         return;
     }
+
+    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
+                          << " tracks with Celeritas";
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
@@ -82,10 +105,10 @@ void LocalTransporter::flush()
 
     while (track_counts)
     {
-        CELER_VALIDATE(step_iters < opts_->max_steps,
+        CELER_VALIDATE(step_iters < max_steps_,
                        << "number of step iterations exceeded the allowed "
                           "maximum ("
-                       << opts_->max_steps << ")");
+                       << max_steps_ << ")");
 
         track_counts = (*step_)();
         ++step_iters;
@@ -95,16 +118,4 @@ void LocalTransporter::flush()
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Set the event ID at the beginning of an event.
- */
-void LocalTransporter::set_event(EventId event)
-{
-    CELER_EXPECT(event);
-    CELER_EXPECT(buffer_.empty());
-    event_ = event;
-}
-
-//---------------------------------------------------------------------------//
-} // namespace detail
 } // namespace celeritas

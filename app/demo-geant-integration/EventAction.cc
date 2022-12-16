@@ -3,24 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/EventAction.cc
+//! \file demo-geant-integration/EventAction.cc
 //---------------------------------------------------------------------------//
 #include "EventAction.hh"
 
 #include <G4Event.hh>
 
-#include "corecel/Assert.hh"
-
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with Celeritas shared data.
  */
-EventAction::EventAction(SPTransporter transport) : transport_(transport)
-{
-    CELER_EXPECT(transport_);
-}
+EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,10 +23,8 @@ EventAction::EventAction(SPTransporter transport) : transport_(transport)
  */
 void EventAction::BeginOfEventAction(const G4Event* event)
 {
-    CELER_EXPECT(event);
-
     // Set event ID in local transporter
-    transport_->set_event(EventId{EventId::size_type(event->GetEventID())});
+    transport_->SetEventId(event->GetEventID());
 }
 
 //---------------------------------------------------------------------------//
@@ -41,8 +34,8 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 void EventAction::EndOfEventAction(const G4Event*)
 {
     // Transport any tracks left in the buffer
-    transport_->flush();
+    transport_->Flush();
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant
