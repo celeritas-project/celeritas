@@ -12,6 +12,7 @@
 #include <G4TrackStatus.hh>
 
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {
@@ -19,7 +20,12 @@ namespace celeritas
 /*!
  * Construct with Celeritas shared data.
  */
-TrackingAction::TrackingAction() {}
+TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
+    : params_(params), transport_(transport)
+{
+    CELER_EXPECT(params_);
+    CELER_EXPECT(transport_);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -27,11 +33,15 @@ TrackingAction::TrackingAction() {}
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
+    CELER_EXPECT(params_->params);
+    CELER_EXPECT(*transport_);
+
     // Check against list of supported celeritas particles
     PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
-    if (true)
+    if (params_->params->particle()->find(pdg))
     {
-        // TODO Send track to transporter and kill
+        // Send track to transporter and kill
+        transport_->add(*track);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }

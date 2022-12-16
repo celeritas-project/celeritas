@@ -9,7 +9,7 @@
 
 #include <G4UserEventAction.hh>
 
-#include "SharedParams.hh"
+#include "detail/LocalTransporter.hh"
 
 namespace celeritas
 {
@@ -24,13 +24,17 @@ class EventAction final : public G4UserEventAction
   public:
     //!@{
     //! \name Type aliases
+    using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
     //!@}
 
   public:
-    EventAction();
+    explicit EventAction(SPTransporter transport);
 
     void BeginOfEventAction(const G4Event* event) final;
     void EndOfEventAction(const G4Event* event) final;
+
+  private:
+    SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
