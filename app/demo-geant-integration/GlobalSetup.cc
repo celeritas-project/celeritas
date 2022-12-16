@@ -43,7 +43,7 @@ GlobalSetup::GlobalSetup()
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");
-        if (celeritas::Deviced::num_devices() > 0)
+        if (celeritas::Device::num_devices() > 0)
         {
             cmd.SetDefaultValue("524288");
             options_->max_num_events = 524288;
