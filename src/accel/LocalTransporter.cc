@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
-#include <G4SystemOfUnits.hh>
+#include <CLHEP/Units/SystemOfUnits.h>
 
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -17,13 +17,31 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+template<class T>
+inline T convert_from_geant(const T& val, T units)
+{
+    return val / units;
+}
+
+//---------------------------------------------------------------------------//
+inline Real3 convert_from_geant(const G4ThreeVector& vec, double units)
+{
+    return {vec[0] / units, vec[1] / units, vec[2] / units};
+}
+
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
  */
 LocalTransporter::LocalTransporter(const SetupOptions& options,
                                    const SharedParams& params)
-    : max_steps_(options.max_steps)
+    : auto_flush_(options.max_num_tracks), max_steps_(options.max_steps)
 {
     CELER_EXPECT(params);
     particles_ = params.Params()->particle();
@@ -69,15 +87,13 @@ bool LocalTransporter::TryOffload(const G4Track& g4track)
 
     track.particle_id = particles_->find(
         PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
-    track.energy = units::MevEnergy{g4track.GetKineticEnergy() / MeV};
+    track.energy = units::MevEnergy{
+        convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
 
-    G4ThreeVector pos = g4track.GetPosition();
-    track.position    = Real3{pos.x() / cm, pos.y() / cm, pos.z() / cm};
+    track.position  = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
+    track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
+    track.time      = convert_from_geant(g4track.GetGlobalTime(), CLHEP::s);
 
-    G4ThreeVector dir = g4track.GetMomentumDirection();
-    track.direction   = Real3{dir.x(), dir.y(), dir.z()};
-
-    track.time     = g4track.GetGlobalTime() / s;
     // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
     // they must be sequential from zero for a given event. We may need to save
     // (and share with sensitive detectors!) a map of track IDs for calling
