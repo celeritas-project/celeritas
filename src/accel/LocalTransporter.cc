@@ -47,6 +47,7 @@ void LocalTransporter::SetEventId(int id)
 {
     CELER_EXPECT(id >= 0);
     event_id_ = EventId(id);
+    track_counter_ = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -77,7 +78,11 @@ bool LocalTransporter::TryOffload(const G4Track& g4track)
     track.direction   = Real3{dir.x(), dir.y(), dir.z()};
 
     track.time     = g4track.GetGlobalTime() / s;
-    track.track_id = TrackId{TrackId::size_type(g4track.GetTrackID())};
+    // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
+    // they must be sequential from zero for a given event. We may need to save
+    // (and share with sensitive detectors!) a map of track IDs for calling
+    // back to Geant4.
+    track.track_id = TrackId{track_counter_++};
     track.event_id = event_id_;
 
     buffer_.push_back(track);
