@@ -41,8 +41,11 @@ class LocalTransporter
     // Set the event ID
     void SetEventId(int);
 
-    // Offload this track, returning "true" if Celeritas takes ownership of it
-    bool TryOffload(const G4Track&);
+    // Whether Celeritas supports offloading of this track
+    bool IsApplicable(const G4Track&) const;
+
+    // Offload this track
+    void Push(const G4Track&);
 
     // Transport all buffered tracks to completion
     void Flush();
@@ -57,9 +60,12 @@ class LocalTransporter
     std::shared_ptr<const ParticleParams> particles_;
     std::shared_ptr<StepperInterface>     step_;
     std::vector<Primary>                  buffer_;
+
     EventId                               event_id_;
-    TrackId::size_type                    track_counter_;
-    size_type                             max_steps_;
+    TrackId::size_type                    track_counter_{};
+
+    size_type auto_flush_{};
+    size_type max_steps_{};
 };
 
 //---------------------------------------------------------------------------//

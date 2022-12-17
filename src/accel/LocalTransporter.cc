@@ -72,16 +72,20 @@ void LocalTransporter::SetEventId(int id)
 /*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-bool LocalTransporter::TryOffload(const G4Track& g4track)
+bool LocalTransporter::IsApplicable(const G4Track& g4track) const
+{
+    PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
+    return static_cast<bool>(particles_->find(pdg));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a Geant4 track to a Celeritas primary and add to buffer.
+ */
+void LocalTransporter::Push(const G4Track& g4track)
 {
     CELER_EXPECT(event_id_);
-
-    PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
-    if (!particles_->find(pdg))
-    {
-        // Celeritas doesn't know about this particle type: exit early
-        return false;
-    }
+    CELER_EXPECT(this->IsApplicable(g4track));
 
     Primary track;
 
@@ -102,7 +106,12 @@ bool LocalTransporter::TryOffload(const G4Track& g4track)
     track.event_id = event_id_;
 
     buffer_.push_back(track);
-    return true;
+    if (buffer_.size() >= auto_flush_)
+    {
+        // TODO: maybe only run one iteration? But then make sure that Flush
+        // still transports active tracks to completion.
+        this->Flush();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -121,6 +130,7 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
+    buffer_.clear();
 
     size_type step_iters = 1;
 
@@ -134,8 +144,6 @@ void LocalTransporter::Flush()
         track_counts = (*step_)();
         ++step_iters;
     }
-
-    buffer_.clear();
 }
 
 //---------------------------------------------------------------------------//

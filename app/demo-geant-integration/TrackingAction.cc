@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
+#include <G4Positron.hh>
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 
@@ -32,12 +35,23 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
+    CELER_EXPECT(track);
     CELER_EXPECT(*params_);
     CELER_EXPECT(*transport_);
 
-    if (transport_->TryOffload(*track))
+    static G4ParticleDefinition const* const allowed_particles[] = {
+        G4Gamma::Gamma(),
+        G4Electron::Electron(),
+        G4Positron::Positron(),
+    };
+
+    if (std::find(std::begin(allowed_particles),
+                  std::end(allowed_particles),
+                  track->GetDefinition())
+        != std::end(allowed_particles))
     {
         // Celeritas is transporting this track
+        transport_->Push(*track);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
