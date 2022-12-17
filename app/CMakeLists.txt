@@ -359,7 +359,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       COMMAND "$<TARGET_FILE:demo-geant-integration>"
       "simple-cms-test.mac"
     )
-    list(APPEND _env
+    set(_env
+      ${_geant_test_env}
       "CELER_LOG_LOCAL=debug"
       "CELER_DISABLE_PARALLEL=1"
     )
