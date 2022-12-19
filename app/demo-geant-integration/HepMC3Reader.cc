@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "HepMC3Reader.hh"
 
-#include <G4AutoLock.hh>
+#include <mutex>
 #include <G4SystemOfUnits.hh>
-#include <G4Threading.hh>
 #include <HepMC3/ReaderFactory.h>
 
 #include "corecel/Assert.hh"
@@ -19,8 +18,9 @@
 
 namespace
 {
-G4Mutex mutex = G4MUTEX_INITIALIZER;
-}
+// Mutex visible to all threads
+static std::mutex mutex;
+} // namespace
 
 namespace demo_geant
 {
@@ -36,16 +36,16 @@ static HepMC3Reader* hepmc3_reader_singleton = nullptr;
  */
 HepMC3Reader* HepMC3Reader::instance()
 {
-    mutex.lock();
-    if (!hepmc3_reader_singleton)
     {
-        hepmc3_reader_singleton = new HepMC3Reader();
+        mutex.lock();
+        if (!hepmc3_reader_singleton)
+        {
+            hepmc3_reader_singleton = new HepMC3Reader();
+        }
+        mutex.unlock();
     }
-    mutex.unlock();
 
-    CELER_LOG_LOCAL(status)
-        << "Instancing HepMC3 singleton " << hepmc3_reader_singleton;
-
+    CELER_LOG_LOCAL(status) << "Instancing HepMC3 singleton";
     return hepmc3_reader_singleton;
 }
 
@@ -57,6 +57,7 @@ HepMC3Reader* HepMC3Reader::instance()
 void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 {
     mutex.lock();
+
     // Populate event_primaries
     auto result = this->store_primaries();
     CELER_ASSERT(result);
@@ -78,6 +79,9 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 
         g4_event->AddPrimaryVertex(g4_vtx.release());
     }
+    const int num_vertices = g4_event->GetNumberOfPrimaryVertex();
+    CELER_ENSURE(num_vertices);
+
     mutex.unlock();
 }
 
@@ -89,12 +93,11 @@ HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
 {
     std::string filename = GlobalSetup::Instance()->GetHepmc3File();
     CELER_LOG_LOCAL(status) << "Constructing HepMC3 reader with " << filename;
-
     input_file_ = HepMC3::deduce_reader(filename);
-    num_events_ = -1;
 
     // Fetch total number of events
     const auto temp_file = HepMC3::deduce_reader(filename);
+    num_events_          = -1;
     while (!temp_file->failed())
     {
         // Count event and try to read the next
@@ -125,9 +128,10 @@ bool HepMC3Reader::store_primaries()
         return false;
     }
 
-    CELER_LOG_LOCAL(status) << "Read HepMC3 event " << gen_event.event_number();
-    // CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
-    //  && gen_event.length_unit() == HepMC3::Units::CM);
+    CELER_LOG_LOCAL(status)
+        << "Reading HepMC3 event " << gen_event.event_number();
+    CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
+                 && gen_event.length_unit() == HepMC3::Units::CM);
 
     // Clear vector for new event
     event_primaries_.clear();
