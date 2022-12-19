@@ -28,9 +28,8 @@ namespace demo_geant
  * HepMC3 reader class.
  *
  * Singleton constructed the first time `instance()` is invoked by any given
- * thread. As is it a concrete implementation of `G4VPrimaryGenerator`, the
- * reader should be used by a concrete implementation of
- * `G4VUserPrimaryGeneratorAction`:
+ * thread. As is it an implementation of `G4VPrimaryGenerator`, the HepMC3
+ * reader should be used by a concrete `G4VUserPrimaryGeneratorAction` class:
  * \code
    void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
    {
@@ -51,15 +50,9 @@ class HepMC3Reader final : public G4VPrimaryGenerator
     std::size_t num_events() { return num_events_; }
 
   private:
-    // Construct singleton with HepMC3 filename; called by instance()
-    HepMC3Reader();
-    // Default destructor in .cc
-    ~HepMC3Reader();
+    std::shared_ptr<HepMC3::Reader> input_file_; // HepMC3 input file
+    std::size_t                     num_events_; // Total number of events
 
-    // Read event and load list of primaries into event_primaries_
-    bool store_primaries();
-
-  private:
     struct Primary
     {
         int           pdg;
@@ -68,9 +61,14 @@ class HepMC3Reader final : public G4VPrimaryGenerator
         G4ThreeVector momentum;
     };
 
-    std::shared_ptr<HepMC3::Reader> input_file_; // HepMC3 input file
-    std::size_t                     num_events_; // Total number of events
-    std::vector<Primary> event_primaries_;       // Primaries of current event
+  private:
+    // Construct singleton with HepMC3 filename; called by instance()
+    HepMC3Reader();
+    // Default destructor in .cc
+    ~HepMC3Reader();
+
+    // Read event and return a vector of primaries
+    std::vector<Primary> load_primaries();
 };
 
 //---------------------------------------------------------------------------//

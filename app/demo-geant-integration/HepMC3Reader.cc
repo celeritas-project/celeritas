@@ -16,37 +16,16 @@
 
 #include "GlobalSetup.hh"
 
-namespace
-{
-// Mutex visible to all threads
-static std::mutex mutex;
-} // namespace
-
 namespace demo_geant
 {
-//---------------------------------------------------------------------------//
-/*!
- * Singleton declaration.
- */
-static HepMC3Reader* hepmc3_reader_singleton = nullptr;
-
 //---------------------------------------------------------------------------//
 /*!
  * Return non-owning pointer to a singleton.
  */
 HepMC3Reader* HepMC3Reader::instance()
 {
-    {
-        mutex.lock();
-        if (!hepmc3_reader_singleton)
-        {
-            hepmc3_reader_singleton = new HepMC3Reader();
-        }
-        mutex.unlock();
-    }
-
-    CELER_LOG_LOCAL(status) << "Instancing HepMC3 singleton";
-    return hepmc3_reader_singleton;
+    static HepMC3Reader hepmc3_reader_singleton;
+    return &hepmc3_reader_singleton;
 }
 
 //---------------------------------------------------------------------------//
@@ -56,14 +35,14 @@ HepMC3Reader* HepMC3Reader::instance()
  */
 void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 {
-    mutex.lock();
+    static std::mutex           hepmc3_mutex;
+    std::lock_guard<std::mutex> scoped_lock{hepmc3_mutex};
 
-    // Populate event_primaries
-    auto result = this->store_primaries();
-    CELER_ASSERT(result);
+    auto primaries = this->load_primaries();
+    CELER_ASSERT(!primaries.empty());
 
     // Add primaries to event
-    for (const auto& primary : event_primaries_)
+    for (const auto& primary : primaries)
     {
         // TODO: Do we need to check if vertex is inside world volume?
 
@@ -79,10 +58,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 
         g4_event->AddPrimaryVertex(g4_vtx.release());
     }
-    const int num_vertices = g4_event->GetNumberOfPrimaryVertex();
-    CELER_ENSURE(num_vertices);
-
-    mutex.unlock();
+    CELER_ENSURE(g4_event->GetNumberOfPrimaryVertex() > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -92,7 +68,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
 {
     std::string filename = GlobalSetup::Instance()->GetHepmc3File();
-    CELER_LOG_LOCAL(status) << "Constructing HepMC3 reader with " << filename;
+    CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
     input_file_ = HepMC3::deduce_reader(filename);
 
     // Fetch total number of events
@@ -115,26 +91,25 @@ HepMC3Reader::~HepMC3Reader() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Read event and populate the vector of primaries.
+ * Read event and return vector of primaries.
  */
-bool HepMC3Reader::store_primaries()
+std::vector<HepMC3Reader::Primary> HepMC3Reader::load_primaries()
 {
     HepMC3::GenEvent gen_event;
     input_file_->read_event(gen_event);
 
+    std::vector<Primary> primaries;
+
     if (input_file_->failed())
     {
-        // End of file
-        return false;
+        // End of file; return empty vector
+        return primaries;
     }
 
     CELER_LOG_LOCAL(status)
         << "Reading HepMC3 event " << gen_event.event_number();
     CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
                  && gen_event.length_unit() == HepMC3::Units::CM);
-
-    // Clear vector for new event
-    event_primaries_.clear();
 
     const auto& pos       = gen_event.event_pos();
     const auto& particles = gen_event.particles();
@@ -152,10 +127,10 @@ bool HepMC3Reader::store_primaries()
         // Geant4 base unit is mm and thus needs to be converted
         primary.vertex.set(pos.x() * cm, pos.y() * cm, pos.z() * cm);
 
-        event_primaries_.push_back(std::move(primary));
+        primaries.push_back(std::move(primary));
     }
 
-    return true;
+    return primaries;
 }
 
 //---------------------------------------------------------------------------//

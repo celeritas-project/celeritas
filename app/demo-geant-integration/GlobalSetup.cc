@@ -39,8 +39,7 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the geometry file name");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("setHepmc3File",
-                                                options_->hepmc3_file);
+        auto& cmd = messenger_->DeclareProperty("setHepmc3File", hepmc3_file_);
         cmd.SetGuidance("Set the HepMC3 file name");
         cmd.SetDefaultValue("");
     }
