@@ -73,7 +73,7 @@ void assign_field(std::vector<T>*    dst,
  * Consolidate results from tracks that interacted with a detector.
  */
 template<>
-void copy<MemSpace::host>(
+void copy_steps<MemSpace::host>(
     DetectorStepOutput*                                        output,
     StepStateData<Ownership::reference, MemSpace::host> const& state)
 {

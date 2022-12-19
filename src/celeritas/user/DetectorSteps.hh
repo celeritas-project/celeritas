@@ -74,23 +74,23 @@ struct DetectorStepOutput
 //---------------------------------------------------------------------------//
 // Copy state data for all steps inside detectors to the output.
 template<MemSpace M>
-void copy(DetectorStepOutput*                           output,
-          StepStateData<Ownership::reference, M> const& state);
+void copy_steps(DetectorStepOutput*                           output,
+                StepStateData<Ownership::reference, M> const& state);
 
 template<>
-void copy<MemSpace::host>(
+void copy_steps<MemSpace::host>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::host> const&);
 // XXX copy on device is a *destructive* operation
 template<>
-void copy<MemSpace::device>(
+void copy_steps<MemSpace::device>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&);
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-inline void copy<MemSpace::device>(
+inline void copy_steps<MemSpace::device>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&)
 {
