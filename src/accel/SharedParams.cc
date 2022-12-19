@@ -30,18 +30,10 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "SetupOptions.hh"
+#include "detail/HitProcessor.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shared pointer to this class for sharing across threads.
- */
-std::shared_ptr<SharedParams> SharedParams::MakeShared()
-{
-    return std::make_shared<SharedParams>();
-}
-
 //---------------------------------------------------------------------------//
 //! Default destructor
 SharedParams::~SharedParams() = default;
@@ -195,6 +187,11 @@ void SharedParams::locked_initialize(const SetupOptions& options)
         input.capacity   = options.initializer_capacity;
         input.max_events = options.max_num_events;
         params.init      = std::make_shared<TrackInitParams>(input);
+    }
+
+    // Construct sensitive detector callback
+    {
+        // TODO: interface for accepting other user hit callbacks
     }
 
     // Create params
