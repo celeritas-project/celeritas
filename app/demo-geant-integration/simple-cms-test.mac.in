@@ -9,6 +9,3 @@
 /setup/maxNumEvents 1024
 /setup/secondaryStackFactor 3
 /setup/initializerCapacity 1048576
-
-/run/initialize
-/run/beamOn 3

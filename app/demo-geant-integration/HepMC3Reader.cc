@@ -38,7 +38,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     static std::mutex           hepmc3_mutex;
     std::lock_guard<std::mutex> scoped_lock{hepmc3_mutex};
 
-    auto primaries = this->load_primaries();
+    const auto primaries = this->load_primaries();
     CELER_ASSERT(!primaries.empty());
 
     // Add primaries to event
@@ -81,6 +81,7 @@ HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
         temp_file->read_event(gen_event);
         num_events_++;
     }
+    CELER_ENSURE(num_events_ > 0);
 }
 
 //---------------------------------------------------------------------------//

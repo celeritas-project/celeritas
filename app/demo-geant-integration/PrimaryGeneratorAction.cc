@@ -25,7 +25,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primaries from HepMC3.
+ * Generate primaries from HepMC3 input file.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {

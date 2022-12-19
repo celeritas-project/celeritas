@@ -38,6 +38,7 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "HepMC3Reader.hh"
 
 namespace
 {
@@ -124,11 +125,16 @@ int main(int argc, char* argv[])
 #endif
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
+    // Load input parameters from macro
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
     CELER_LOG_LOCAL(status)
         << "Executing macro commands from '" << args[1] << "'";
     ui->ApplyCommand("/control/execute " + args[1]);
+
+    // Initialize run and process events
+    run_manager->Initialize();
+    run_manager->BeamOn(demo_geant::HepMC3Reader::instance()->num_events());
 
     return EXIT_SUCCESS;
 }
