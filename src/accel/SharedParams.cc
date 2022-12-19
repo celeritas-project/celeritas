@@ -192,7 +192,6 @@ void SharedParams::locked_initialize(const SetupOptions& options)
     // Construct sensitive detector callback
     {
         // TODO: interface for accepting other user hit callbacks
-
     }
 
     // Create params

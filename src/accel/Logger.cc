@@ -65,7 +65,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
     {
         // Threading is initialized
         cerr << color_code('W') << '[' << G4Threading::G4GetThreadId() << '/'
-             << num_threads_ << "] " << color_code('x');
+             << num_threads_ << "] " << color_code(' ');
     }
 
     // clang-format off
