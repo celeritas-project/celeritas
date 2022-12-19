@@ -26,7 +26,7 @@ namespace demo_geant
 ActionInitialization::ActionInitialization()
 {
     // Create params to be shared across worker threads
-    params_ = celeritas::SharedParams::MakeShared();
+    params_ = std::make_shared<celeritas::SharedParams>();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
 }

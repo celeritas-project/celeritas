@@ -36,10 +36,6 @@ class SharedParams
     //!@}
 
   public:
-    // Construct a shared pointer to this class for sharing with
-    // LocalTransporter
-    static std::shared_ptr<SharedParams> MakeShared();
-
     SharedParams() = default;
     ~SharedParams();
 
