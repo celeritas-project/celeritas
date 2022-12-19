@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/LocalTransporter.cc
+//! \file accel/LocalTransporter.cc
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
@@ -70,7 +70,7 @@ void LocalTransporter::SetEventId(int id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 track to a Celeritas primary and add to buffer.
+ * Whether Celeritas supports offloading of this track.
  */
 bool LocalTransporter::IsApplicable(const G4Track& g4track) const
 {
