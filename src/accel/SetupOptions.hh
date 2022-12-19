@@ -25,6 +25,7 @@ struct SetupOptions
     {
         return static_cast<size_type>(-1);
     }
+
     // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
@@ -33,12 +34,27 @@ struct SetupOptions
     std::string geometry_file;
     std::string hepmc3_file;
 
-    size_type max_num_tracks{};
-    size_type max_num_events{};
-    size_type max_steps = no_max_steps();
-    size_type initializer_capacity{};
-    real_type secondary_stack_factor{};
-    bool      sync{};
+    //!@{
+    //! \name Celeritas stepper options
+    //! Number of track "slots" to be transported simultaneously
+    size_type   max_num_tracks{};
+    //! Maximum number of events in use
+    size_type   max_num_events{};
+    //! Limit on number of step iterations before aborting
+    size_type   max_steps = no_max_steps();
+    //! Maximum number of track initializers (primaries+secondaries)
+    size_type   initializer_capacity{};
+    //! At least the average number of secondaries per track slot
+    real_type   secondary_stack_factor{};
+    //! Sync the GPU at every kernel for error checking
+    bool sync{false};
+    //!@}
+
+    //!@{
+    //! \name CUDA options
+    size_type cuda_stack_size{};
+    size_type cuda_heap_size{};
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

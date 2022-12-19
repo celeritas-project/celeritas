@@ -10,11 +10,12 @@
 #include <G4RunManager.hh>
 
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Device.hh"
-#include "accel/InitializeActions.hh"
 
+#include "EventAction.hh"
 #include "GlobalSetup.hh"
 #include "PrimaryGeneratorAction.hh"
+#include "RunAction.hh"
+#include "TrackingAction.hh"
 
 namespace demo_geant
 {
@@ -25,7 +26,7 @@ namespace demo_geant
 ActionInitialization::ActionInitialization()
 {
     // Create params to be shared across worker threads
-    params_ = std::make_shared<celeritas::SharedParams>();
+    params_ = celeritas::SharedParams::MakeShared();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
 }
@@ -38,22 +39,20 @@ void ActionInitialization::Build() const
 {
     CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
-    // Initialize primary generator
+    // Primary generator emits source particles
     this->SetUserAction(new PrimaryGeneratorAction());
 
-    // Initialize celeritas and add user actions
-    celeritas::InitializeActions(GlobalSetup::Instance()->GetSetupOptions(),
-                                 params_,
-                                 G4RunManager::GetRunManager());
+    // Create thread-local transporter to share between actions
+    auto transport = std::make_shared<celeritas::LocalTransporter>();
 
-    if (unsigned int sz = GlobalSetup::Instance()->GetCudaStackSize())
-    {
-        celeritas::set_cuda_stack_size(sz);
-    }
-    if (unsigned int sz = GlobalSetup::Instance()->GetCudaHeapSize())
-    {
-        celeritas::set_cuda_heap_size(sz);
-    }
+    // Run action sets up Celeritas
+    this->SetUserAction(new RunAction{
+        GlobalSetup::Instance()->GetSetupOptions(), params_, transport});
+    // Event action saves event ID for offloading and runs queued particles at
+    // end of event
+    this->SetUserAction(new EventAction{transport});
+    // Tracking action offloads tracks to device and kills them
+    this->SetUserAction(new TrackingAction{params_, transport});
 }
 
 //---------------------------------------------------------------------------//

@@ -51,9 +51,9 @@ void Filler<T, MemSpace::device>::operator()(Span<T>) const
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #else
-extern template class Filler<real_type, MemSpace::device>;
-extern template class Filler<size_type, MemSpace::device>;
-extern template class Filler<int, MemSpace::device>;
+extern template struct Filler<real_type, MemSpace::device>;
+extern template struct Filler<size_type, MemSpace::device>;
+extern template struct Filler<int, MemSpace::device>;
 #endif
 
 //---------------------------------------------------------------------------//

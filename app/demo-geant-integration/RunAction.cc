@@ -3,30 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RunAction.cc
+//! \file demo-geant-integration/RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
-#include <G4AutoLock.hh>
-#include <G4Run.hh>
-#include <G4Threading.hh>
-
-#include "corecel/Assert.hh"
-
-namespace
-{
-G4Mutex mutex = G4MUTEX_INITIALIZER;
-}
-
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with Celeritas setup options and shared data.
  */
-RunAction::RunAction(SPCOptions options) : options_(options)
+RunAction::RunAction(SPConstOptions options,
+                     SPParams       params,
+                     SPTransporter  transport)
+    : options_(options), params_(params), transport_(transport)
 {
     CELER_EXPECT(options_);
+    CELER_EXPECT(params_);
+    CELER_EXPECT(transport_);
 }
 
 //---------------------------------------------------------------------------//
@@ -37,35 +31,24 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
 
-    if (false)
-    {
-        // Maybe the first thread to run: build and store core params
-        this->build_core_params();
-    }
+    // Initialize shared data
+    params_->Initialize(*options_);
+    CELER_ASSERT(*params_);
 
-    // TODO: Construct thread-local transporter
+    // Construct thread-local transporter
+    *transport_ = celeritas::LocalTransporter(*options_, *params_);
+    CELER_ENSURE(*transport_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Finalize Celeritas.
  */
-void RunAction::EndOfRunAction(const G4Run*) {}
-
-//---------------------------------------------------------------------------//
-/*!
- * Finalize Celeritas.
- */
-void RunAction::build_core_params()
+void RunAction::EndOfRunAction(const G4Run*)
 {
-    G4AutoLock lock(&mutex);
-    if (false)
-    {
-        // Some other thread constructed params between the thread-unsafe check
-        // and this thread-safe check
-        return;
-    }
+    // Deallocate Celeritas state data (optional)
+    transport_.reset();
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant
