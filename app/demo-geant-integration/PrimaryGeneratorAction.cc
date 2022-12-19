@@ -29,9 +29,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction() {}
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    CELER_LOG_LOCAL(status) << "Generate primaries from HepMC3 input file";
-    auto hepmc3 = HepMC3Reader::instance();
-    hepmc3->GeneratePrimaryVertex(event);
+    HepMC3Reader::instance()->GeneratePrimaryVertex(event);
 }
 
 //---------------------------------------------------------------------------//
