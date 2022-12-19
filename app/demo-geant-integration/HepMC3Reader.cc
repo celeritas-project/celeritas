@@ -7,32 +7,46 @@
 //---------------------------------------------------------------------------//
 #include "HepMC3Reader.hh"
 
+#include <G4AutoLock.hh>
 #include <G4SystemOfUnits.hh>
+#include <G4Threading.hh>
 #include <HepMC3/ReaderFactory.h>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+
+#include "GlobalSetup.hh"
+
+namespace
+{
+G4Mutex mutex = G4MUTEX_INITIALIZER;
+}
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with HepMC3 input filename and store total number of events.
+ * Singleton declaration.
  */
-HepMC3Reader::HepMC3Reader(std::string hepmc3_filename)
-    : G4VPrimaryGenerator()
-    , input_file_(HepMC3::deduce_reader(hepmc3_filename))
-    , num_events_(-1)
-{
-    const auto temp_file = HepMC3::deduce_reader(hepmc3_filename);
+static HepMC3Reader* hepmc3_reader_singleton = nullptr;
 
-    // Fetch total number of events
-    while (!temp_file->failed())
+//---------------------------------------------------------------------------//
+/*!
+ * Return non-owning pointer to a singleton.
+ */
+HepMC3Reader* HepMC3Reader::instance()
+{
+    mutex.lock();
+    if (!hepmc3_reader_singleton)
     {
-        // Count event and try to read the next
-        HepMC3::GenEvent gen_event;
-        temp_file->read_event(gen_event);
-        num_events_++;
+        hepmc3_reader_singleton = new HepMC3Reader();
     }
+    mutex.unlock();
+
+    CELER_LOG_LOCAL(status)
+        << "Instancing HepMC3 singleton " << hepmc3_reader_singleton;
+
+    return hepmc3_reader_singleton;
 }
 
 //---------------------------------------------------------------------------//
@@ -42,15 +56,17 @@ HepMC3Reader::HepMC3Reader(std::string hepmc3_filename)
  */
 void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 {
-    // Load event
-    CELER_ASSERT(this->read_event());
+    mutex.lock();
+    // Populate event_primaries
+    auto result = this->store_primaries();
+    CELER_ASSERT(result);
 
     // Add primaries to event
     for (const auto& primary : event_primaries_)
     {
         // TODO: Do we need to check if vertex is inside world volume?
 
-        // All primaries start with t = 0
+        // All primaries start at t = 0
         auto g4_vtx = std::make_unique<G4PrimaryVertex>(
             primary.vertex[0], primary.vertex[1], primary.vertex[2], 0);
 
@@ -62,24 +78,56 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 
         g4_event->AddPrimaryVertex(g4_vtx.release());
     }
+    mutex.unlock();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with HepMC3 input filename and store total number of events.
+ */
+HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
+{
+    std::string filename = GlobalSetup::Instance()->GetHepmc3File();
+    CELER_LOG_LOCAL(status) << "Constructing HepMC3 reader with " << filename;
+
+    input_file_ = HepMC3::deduce_reader(filename);
+    num_events_ = -1;
+
+    // Fetch total number of events
+    const auto temp_file = HepMC3::deduce_reader(filename);
+    while (!temp_file->failed())
+    {
+        // Count event and try to read the next
+        HepMC3::GenEvent gen_event;
+        temp_file->read_event(gen_event);
+        num_events_++;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Default destructor.
+ */
+HepMC3Reader::~HepMC3Reader() = default;
 
 //---------------------------------------------------------------------------//
 /*!
  * Read event and populate the vector of primaries.
  */
-bool HepMC3Reader::read_event()
+bool HepMC3Reader::store_primaries()
 {
     HepMC3::GenEvent gen_event;
+    input_file_->read_event(gen_event);
 
-    if (!input_file_->read_event(gen_event))
+    if (input_file_->failed())
     {
         // End of file
         return false;
     }
 
-    CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
-                 && gen_event.length_unit() == HepMC3::Units::CM);
+    CELER_LOG_LOCAL(status) << "Read HepMC3 event " << gen_event.event_number();
+    // CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
+    //  && gen_event.length_unit() == HepMC3::Units::CM);
 
     // Clear vector for new event
     event_primaries_.clear();

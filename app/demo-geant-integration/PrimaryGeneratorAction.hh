@@ -17,24 +17,15 @@ namespace demo_geant
 //---------------------------------------------------------------------------//
 /*!
  * Minimal implementation of a primary generator action class.
- *
- * TODO: replace with HepMC3 input.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
-    // Construct with default particle gun
+    // Construct primary action
     PrimaryGeneratorAction();
-
-    // Construct with HepMC3 input file
-    PrimaryGeneratorAction(std::shared_ptr<G4VPrimaryGenerator> hepmc3_reader);
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
-
-  private:
-    std::unique_ptr<G4ParticleGun>       gun_{nullptr};
-    std::shared_ptr<G4VPrimaryGenerator> hepmc3_reader_;
 };
 
 //---------------------------------------------------------------------------//

@@ -28,13 +28,6 @@ ActionInitialization::ActionInitialization()
     params_ = std::make_shared<celeritas::SharedParams>();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
-
-    const auto hepmc3_input = GlobalSetup::Instance()->GetHepmc3File();
-    if (!hepmc3_input.empty())
-    {
-        // Initialize HepMC3 reader
-        hepmc3_reader_ = std::make_shared<HepMC3Reader>(hepmc3_input);
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -46,15 +39,7 @@ void ActionInitialization::Build() const
     CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
 
     // Initialize primary generator
-    if (hepmc3_reader_)
-    {
-        this->SetUserAction(new PrimaryGeneratorAction(hepmc3_reader_));
-    }
-    else
-    {
-        // Use default particle gun
-        this->SetUserAction(new PrimaryGeneratorAction());
-    }
+    this->SetUserAction(new PrimaryGeneratorAction());
 
     // Initialize celeritas and add user actions
     celeritas::InitializeActions(GlobalSetup::Instance()->GetSetupOptions(),

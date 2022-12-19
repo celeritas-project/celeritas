@@ -11,47 +11,27 @@
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
 
+#include "corecel/io/Logger.hh"
+
+#include "HepMC3Reader.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct by setting up a default particle gun.
+ * Construct empty.
  */
-PrimaryGeneratorAction::PrimaryGeneratorAction()
-{
-    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
-    gun_.reset(new G4ParticleGun());
-    gun_->SetParticleDefinition(g4particle_def);
-    gun_->SetParticleEnergy(500 * MeV);
-    gun_->SetParticlePosition(G4ThreeVector{0, 0, 0});          // origin
-    gun_->SetParticleMomentumDirection(G4ThreeVector{1, 0, 0}); // +x
-}
+PrimaryGeneratorAction::PrimaryGeneratorAction() {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct by initializing the HepMC3 reader.
- */
-PrimaryGeneratorAction::PrimaryGeneratorAction(
-    std::shared_ptr<G4VPrimaryGenerator> hepmc3_reader)
-    : hepmc3_reader_(hepmc3_reader)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate primaries from HepMC3 or particle gun.
+ * Generate primaries from HepMC3.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    if (gun_)
-    {
-        gun_->GeneratePrimaryVertex(event);
-    }
-
-    else
-    {
-        hepmc3_reader_->GeneratePrimaryVertex(event);
-    }
+    CELER_LOG_LOCAL(status) << "Generate primaries from HepMC3 input file";
+    auto hepmc3 = HepMC3Reader::instance();
+    hepmc3->GeneratePrimaryVertex(event);
 }
 
 //---------------------------------------------------------------------------//
