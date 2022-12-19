@@ -3,18 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingAction.cc
+//! \file demo-geant-integration/TrackingAction.cc
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
+#include <G4Positron.hh>
 #include <G4Track.hh>
 #include <G4TrackStatus.hh>
 
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "corecel/Assert.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -33,18 +35,26 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-    CELER_EXPECT(params_->params);
+    CELER_EXPECT(track);
+    CELER_EXPECT(*params_);
     CELER_EXPECT(*transport_);
 
-    // Check against list of supported celeritas particles
-    PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
-    if (params_->params->particle()->find(pdg))
+    static G4ParticleDefinition const* const allowed_particles[] = {
+        G4Gamma::Gamma(),
+        G4Electron::Electron(),
+        G4Positron::Positron(),
+    };
+
+    if (std::find(std::begin(allowed_particles),
+                  std::end(allowed_particles),
+                  track->GetDefinition())
+        != std::end(allowed_particles))
     {
-        // Send track to transporter and kill
-        transport_->add(*track);
+        // Celeritas is transporting this track
+        transport_->Push(*track);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

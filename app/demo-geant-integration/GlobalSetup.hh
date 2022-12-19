@@ -29,8 +29,6 @@ class GlobalSetup
     //!@{
     //! Demo setup options
     const std::string& GetGdmlFile() const { return options_->geometry_file; }
-    unsigned int       GetCudaStackSize() const { return cuda_stack_size_; }
-    unsigned int       GetCudaHeapSize() const { return cuda_heap_size_; }
     //!@}
 
     //! Get an immutable reference to the setup options
@@ -47,8 +45,6 @@ class GlobalSetup
     // Data
     std::shared_ptr<celeritas::SetupOptions> options_;
     std::unique_ptr<G4GenericMessenger>      messenger_;
-    unsigned int                             cuda_stack_size_{0};
-    unsigned int                             cuda_heap_size_{0};
 };
 
 //---------------------------------------------------------------------------//

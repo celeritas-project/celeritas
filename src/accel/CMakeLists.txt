@@ -13,12 +13,9 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  EventAction.cc
-  InitializeActions.cc
   Logger.cc
-  RunAction.cc
-  TrackingAction.cc
-  detail/LocalTransporter.cc
+  LocalTransporter.cc
+  SharedParams.cc
 )
 
 #-----------------------------------------------------------------------------#

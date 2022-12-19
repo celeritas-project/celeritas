@@ -3,39 +3,39 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingAction.hh
+//! \file demo-geant-integration/EventAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4UserTrackingAction.hh>
+#include <G4UserEventAction.hh>
 
-#include "SharedParams.hh"
-#include "detail/LocalTransporter.hh"
+#include "accel/LocalTransporter.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Offload EM tracks to Celeritas.
+ * Manage begin- and end-of-event setup.
+ *
+ * This class should be local to a thread/task/stream.
  */
-class TrackingAction final : public G4UserTrackingAction
+class EventAction final : public G4UserEventAction
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParams = std::shared_ptr<const SharedParams>;
-    using SPTransporter = std::shared_ptr<detail::LocalTransporter>;
+    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
     //!@}
 
   public:
-    TrackingAction(SPConstParams params, SPTransporter transport);
+    explicit EventAction(SPTransporter transport);
 
-    void PreUserTrackingAction(const G4Track* track) final;
+    void BeginOfEventAction(const G4Event* event) final;
+    void EndOfEventAction(const G4Event* event) final;
 
   private:
-    SPConstParams params_;
     SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant
