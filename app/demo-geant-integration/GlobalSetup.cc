@@ -68,14 +68,14 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue(std::to_string(options_->initializer_capacity));
     }
     {
-        auto& cmd
-            = messenger_->DeclareProperty("cudaStackSize", cuda_stack_size_);
+        auto& cmd = messenger_->DeclareProperty("cudaStackSize",
+                                                options_->cuda_stack_size);
         cmd.SetGuidance("Set the per-thread dynamic CUDA stack size (bytes)");
         this->cuda_stack_size_ = 0;
     }
     {
-        auto& cmd
-            = messenger_->DeclareProperty("cudaHeapSize", cuda_heap_size_);
+        auto& cmd = messenger_->DeclareProperty("cudaHeapSize",
+                                                options_->cuda_heap_size);
         cmd.SetGuidance("Set the shared dynamic CUDA heap size (bytes)");
         this->cuda_heap_size_ = 0;
     }

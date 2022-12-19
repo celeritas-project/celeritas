@@ -3,38 +3,39 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/TrackingAction.cc
+//! \file demo-geant-integration/EventAction.cc
 //---------------------------------------------------------------------------//
-#include "TrackingAction.hh"
+#include "EventAction.hh"
 
-#include <G4ParticleDefinition.hh>
-#include <G4Track.hh>
-#include <G4TrackStatus.hh>
+#include <G4Event.hh>
 
-#include "celeritas/phys/PDGNumber.hh"
-
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with Celeritas shared data.
  */
-TrackingAction::TrackingAction() {}
+EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * At the start of a track, determine whether to use Celeritas to transport it.
+ * Initialize Celeritas.
  */
-void TrackingAction::PreUserTrackingAction(const G4Track* track)
+void EventAction::BeginOfEventAction(const G4Event* event)
 {
-    // Check against list of supported celeritas particles
-    PDGNumber pdg{track->GetDefinition()->GetPDGEncoding()};
-    if (true)
-    {
-        // TODO Send track to transporter and kill
-        const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
-    }
+    // Set event ID in local transporter
+    transport_->SetEventId(event->GetEventID());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+/*!
+ * Finalize Celeritas.
+ */
+void EventAction::EndOfEventAction(const G4Event*)
+{
+    // Transport any tracks left in the buffer
+    transport_->Flush();
+}
+
+//---------------------------------------------------------------------------//
+} // namespace demo_geant

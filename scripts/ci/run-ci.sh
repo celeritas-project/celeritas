@@ -1,12 +1,14 @@
 #!/bin/sh -e
 
-CMAKE_PRESET=$1
-shift
+OS=$1
+CMAKE_PRESET=$2
 
 set -x
+test -n "${OS}"
+test -n "${CMAKE_PRESET}"
 
 cd "$(dirname $0)"/../..
-ln -fs scripts/cmake-presets/ci.json CMakeUserPresets.json
+ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 
 # Fetch tags for version provenance
 git fetch --tags

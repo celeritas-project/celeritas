@@ -3,41 +3,39 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/RunAction.hh
+//! \file demo-geant-integration/TrackingAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4UserRunAction.hh>
+#include <G4UserTrackingAction.hh>
 
-#include "SetupOptions.hh"
-#include "SharedParams.hh"
+#include "accel/LocalTransporter.hh"
+#include "accel/SharedParams.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and tear down Celeritas.
+ * Offload EM tracks to Celeritas.
  */
-class RunAction final : public G4UserRunAction
+class TrackingAction final : public G4UserTrackingAction
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPCOptions = std::shared_ptr<const SetupOptions>;
+    using SPConstParams = std::shared_ptr<const celeritas::SharedParams>;
+    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
     //!@}
 
   public:
-    RunAction(SPCOptions options);
+    TrackingAction(SPConstParams params, SPTransporter transport);
 
-    void BeginOfRunAction(const G4Run* run) final;
-    void EndOfRunAction(const G4Run* run) final;
+    void PreUserTrackingAction(const G4Track* track) final;
 
   private:
-    SPCOptions options_;
-
-    void build_core_params();
+    SPConstParams params_;
+    SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/EventAction.hh
+//! \file demo-geant-integration/EventAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <G4UserEventAction.hh>
 
-#include "SharedParams.hh"
+#include "accel/LocalTransporter.hh"
 
-namespace celeritas
+namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -24,14 +24,18 @@ class EventAction final : public G4UserEventAction
   public:
     //!@{
     //! \name Type aliases
+    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
     //!@}
 
   public:
-    EventAction();
+    explicit EventAction(SPTransporter transport);
 
     void BeginOfEventAction(const G4Event* event) final;
     void EndOfEventAction(const G4Event* event) final;
+
+  private:
+    SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+} // namespace demo_geant

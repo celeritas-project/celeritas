@@ -170,8 +170,8 @@ KernelParamCalculator::KernelParamCalculator(const char* name,
                                              dim_type    threads_per_block)
     : block_size_(threads_per_block)
 {
-    CELER_EXPECT(threads_per_block
-                 <= celeritas::device().max_threads_per_block());
+    CELER_EXPECT(threads_per_block <= static_cast<dim_type>(
+                     celeritas::device().max_threads_per_block()));
     CELER_EXPECT(threads_per_block % celeritas::device().threads_per_warp()
                  == 0);
 

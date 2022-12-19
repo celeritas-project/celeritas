@@ -25,24 +25,38 @@ if ! hash ${DOCKER} 2>/dev/null; then
 fi
 
 case $CONFIG in 
-  minimal)
+  minimal )
     CONFIG=bionic-minimal
     ;;
-  cuda)
+  cuda )
     # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
     CONFIG=jammy-cuda11
+    ;;
+  hip )
+    CONFIG=centos7-rocm5
+    ;;
+  rocm )
+    CONFIG=centos7-rocm5
     ;;
 esac
  
 case $CONFIG in 
   bionic-minimal)
+    DOCKERFILE_DISTRO=ubuntu
     BASE_TAG=ubuntu:bionic-20221019
     VECGEOM=
     ;;
   jammy-cuda11)
     # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
+    DOCKERFILE_DISTRO=ubuntu
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
     VECGEOM=v1.2.1
+    ;;
+  centos7-rocm5)
+    # ***IMPORTANT***: update hip external version in dev/centos7-rocm5!
+    DOCKERFILE_DISTRO=centos
+    BASE_TAG=rocm/dev-centos-7:5.4
+    VECGEOM=
     ;;
   *)
     echo "Invalid configure type: $1"
@@ -56,12 +70,14 @@ ${DOCKER} tag ${BASE_TAG} base-${CONFIG}
 ${DOCKER} build -t dev-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg SPACK_VERSION=${SPACK_VERSION} \
+  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
   ${BUILDARGS} \
   dev
 
 ${DOCKER} build -t ci-${CONFIG} \
   --build-arg CONFIG=${CONFIG} \
   --build-arg VECGEOM=${VECGEOM} \
+  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
   ${BUILDARGS} \
   ci
 
