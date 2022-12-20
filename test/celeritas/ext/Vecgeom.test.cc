@@ -468,14 +468,12 @@ class SolidsGeantTest : public GeantBuilderTestBase
 TEST_F(SolidsGeantTest, accessors)
 {
     const auto& geom = *this->geometry();
-    EXPECT_EQ(4, geom.num_volumes());
-    EXPECT_EQ(4, geom.max_depth());
+    EXPECT_EQ(31, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
 
-    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{3}).name);
-    EXPECT_EQ(Label("World", "0xdeadbeef"), geom.id_to_label(VolumeId{3}));
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{2}).name);
 }
 
 //---------------------------------------------------------------------------//

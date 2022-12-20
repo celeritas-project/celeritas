@@ -52,7 +52,11 @@ ImportData load_import_data(std::string filename)
 {
     GeantPhysicsOptions options;
     options.em_bins_per_decade = 14;
-    GeantImporter import(GeantSetup(filename, options));
+    // XXX static for now so that Vecgeom or other clients can access geant4
+    // before the test explodes. Instead let's make this a class static
+    // variable that can be reset maybe? Probably doesn't matter in practice
+    // because geant still can't handle multiple runs per exe.
+    static GeantImporter import(GeantSetup{filename, options});
     return import();
 }
 
