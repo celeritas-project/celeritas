@@ -38,26 +38,35 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     static std::mutex           hepmc3_mutex;
     std::lock_guard<std::mutex> scoped_lock{hepmc3_mutex};
 
-    const auto primaries = this->load_primaries();
-    CELER_ASSERT(!primaries.empty());
+    HepMC3::GenEvent gen_event;
+    input_file_->read_event(gen_event);
+    CELER_ASSERT(!input_file_->failed());
+
+    CELER_LOG_LOCAL(status)
+        << "Reading HepMC3 event " << gen_event.event_number();
+
+    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM); // Geant4 units
+    const auto& pos       = gen_event.event_pos();
+    const auto& primaries = gen_event.particles();
 
     // Add primaries to event
     for (const auto& primary : primaries)
     {
-        // TODO: Do we need to check if vertex is inside world volume?
+        const auto& data = primary->data();
+        const auto& p    = data.momentum;
 
         // All primaries start at t = 0
-        auto g4_vtx = std::make_unique<G4PrimaryVertex>(
-            primary.vertex[0], primary.vertex[1], primary.vertex[2], 0);
+        auto g4_vtx
+            = std::make_unique<G4PrimaryVertex>(pos.x(), pos.y(), pos.z(), 0);
 
-        g4_vtx->SetPrimary(new G4PrimaryParticle(primary.pdg,
-                                                 primary.momentum[0],
-                                                 primary.momentum[1],
-                                                 primary.momentum[2],
-                                                 primary.energy));
+        // TODO: Do we need to check if vertex is inside world volume?
+
+        g4_vtx->SetPrimary(new G4PrimaryParticle(
+            data.pid, p.x(), p.y(), p.z(), data.momentum.e()));
 
         g4_event->AddPrimaryVertex(g4_vtx.release());
     }
+
     CELER_ENSURE(g4_event->GetNumberOfPrimaryVertex() > 0);
 }
 
@@ -89,48 +98,6 @@ HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
  * Default destructor.
  */
 HepMC3Reader::~HepMC3Reader() = default;
-
-//---------------------------------------------------------------------------//
-/*!
- * Read event and return vector of primaries.
- */
-std::vector<HepMC3Reader::Primary> HepMC3Reader::load_primaries()
-{
-    HepMC3::GenEvent gen_event;
-    input_file_->read_event(gen_event);
-
-    std::vector<Primary> primaries;
-
-    if (input_file_->failed())
-    {
-        // End of file; return empty vector
-        return primaries;
-    }
-
-    CELER_LOG_LOCAL(status)
-        << "Reading HepMC3 event " << gen_event.event_number();
-
-    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);
-    const auto& pos       = gen_event.event_pos();
-    const auto& particles = gen_event.particles();
-
-    // Populate vector of primaries
-    for (const auto& particle : particles)
-    {
-        const auto& data = particle->data();
-        const auto& p    = data.momentum;
-
-        Primary primary;
-        primary.pdg    = data.pid;
-        primary.energy = data.momentum.e();            // Must be in MeV
-        primary.momentum.set(p.x(), p.y(), p.z());     // Must be in MeV
-        primary.vertex.set(pos.x(), pos.y(), pos.z()); // Must be in mm
-
-        primaries.push_back(std::move(primary));
-    }
-
-    return primaries;
-}
 
 //---------------------------------------------------------------------------//
 } // namespace demo_geant

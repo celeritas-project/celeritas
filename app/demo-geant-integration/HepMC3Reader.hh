@@ -66,9 +66,6 @@ class HepMC3Reader final : public G4VPrimaryGenerator
     HepMC3Reader();
     // Default destructor in .cc
     ~HepMC3Reader();
-
-    // Read event and return a vector of primaries
-    std::vector<Primary> load_primaries();
 };
 
 //---------------------------------------------------------------------------//
