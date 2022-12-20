@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
@@ -83,6 +84,7 @@ void AlongStepGeneralLinearAction::execute(CoreHostRef const& data) const
 {
     CELER_EXPECT(data);
 
+    MultiExceptionHandler capture_exception;
     auto launch = make_along_step_launcher(data,
                                            host_data_.msc,
                                            NoData{},
@@ -92,8 +94,9 @@ void AlongStepGeneralLinearAction::execute(CoreHostRef const& data) const
 #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        launch(ThreadId{i});
+        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
     }
+    log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//

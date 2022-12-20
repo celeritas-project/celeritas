@@ -9,7 +9,8 @@
 
 #include <memory>
 
-#include "StepData.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
+
 #include "StepInterface.hh"
 
 namespace celeritas
@@ -31,6 +32,11 @@ struct StepStorage;
  * This defines the interface to set up and manage a generic class for
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
+ *
+ * \todo The step collector serves two purposes: supporting "sensitive
+ * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
+ * volumes) and supporting unfiltered output for "MC truth" . Right now only
+ * one or the other can be used, not both.
  */
 class StepCollector
 {
@@ -38,12 +44,15 @@ class StepCollector
     //!@{
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
+    using SPConstGeo      = std::shared_ptr<const GeoParams>;
     using VecInterface    = std::vector<SPStepInterface>;
     //!@}
 
   public:
     // Construct with options and register pre/post-step actions
-    StepCollector(VecInterface callbacks, ActionRegistry* action_registry);
+    StepCollector(VecInterface    callbacks,
+                  SPConstGeo      geo,
+                  ActionRegistry* action_registry);
 
     // Default destructor and move
     ~StepCollector();

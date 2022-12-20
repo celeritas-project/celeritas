@@ -76,23 +76,6 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Create a UnitIndexer by concatenating unit definitions.
- */
-detail::UnitIndexer make_unit_indexer(const std::vector<UnitInput>& units)
-{
-    detail::UnitIndexer::VecSize surface_count(units.size());
-    detail::UnitIndexer::VecSize cell_count(units.size());
-    for (auto i : range(surface_count.size()))
-    {
-        const auto& unit = units[i];
-        surface_count[i] = unit.surfaces.size();
-        cell_count[i]    = unit.volumes.size();
-    }
-    return detail::UnitIndexer(std::move(surface_count), std::move(cell_count));
-}
-
-//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -114,15 +97,32 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  * Volume and surface labels must be unique for the time being.
  */
 OrangeParams::OrangeParams(OrangeInput input)
-    : unit_indexer_(make_unit_indexer(input.units))
 {
     CELER_VALIDATE(!input.units.empty(), << "input geometry has no universes");
 
-    // Insert all units
     HostVal<OrangeParamsData> host_data;
-    detail::UnitInserter      insert_unit(&host_data);
+
+    // Calculate offsets for UnitIndexerData
+    auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
+    auto ui_vol  = make_builder(&host_data.unit_indexer_data.volumes);
+    ui_surf.push_back(0);
+    ui_vol.push_back(0);
+    for (const UnitInput& u : input.units)
+    {
+        using AllVals = AllItems<size_type, MemSpace::native>;
+        auto surface_offset
+            = host_data.unit_indexer_data.surfaces[AllVals{}].back();
+        auto volume_offset
+            = host_data.unit_indexer_data.volumes[AllVals{}].back();
+        ui_surf.push_back(surface_offset + u.surfaces.size());
+        ui_vol.push_back(volume_offset + u.volumes.size());
+    }
+
+    // Insert all units
+    detail::UnitInserter insert_unit(&host_data);
     auto universe_type  = make_builder(&host_data.universe_type);
     auto universe_index = make_builder(&host_data.universe_index);
+
     for (const UnitInput& u : input.units)
     {
         CELER_VALIDATE(

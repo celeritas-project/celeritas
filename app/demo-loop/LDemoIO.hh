@@ -11,10 +11,13 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "Transporter.hh"
@@ -37,6 +40,7 @@ struct LDemoArgs
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;   //!< Path to HepMC3 event data
+    std::string mctruth_filename;  //!< Path to ROOT MC truth event data
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;
@@ -89,6 +93,17 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
 
 void to_json(nlohmann::json& j, const LDemoArgs& value);
 void from_json(const nlohmann::json& j, LDemoArgs& value);
+
+// Store LDemoArgs to ROOT file when ROOT is available
+void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
+             LDemoArgs&                                   args);
+
+#if !CELERITAS_USE_ROOT
+inline void to_root(std::shared_ptr<celeritas::RootFileManager>&, LDemoArgs&)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop

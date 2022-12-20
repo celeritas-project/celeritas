@@ -118,6 +118,28 @@ TEST(AlgorithmsTest, lower_bound)
     }
 }
 
+TEST(AlgorithmsTest, upper_bound)
+{
+    // Test empty vector
+    std::vector<int> v;
+    EXPECT_EQ(0, celeritas::upper_bound(v.begin(), v.end(), 10) - v.begin());
+
+    // Test a selection of sorted values, and values surrounding them
+    v = {-3, 1, 4, 9, 10, 11, 15, 15};
+
+    for (int val : v)
+    {
+        for (int delta : {-1, 0, 1})
+        {
+            auto expected = std::upper_bound(v.begin(), v.end(), val + delta);
+            auto actual
+                = celeritas::upper_bound(v.begin(), v.end(), val + delta);
+            EXPECT_EQ(expected - v.begin(), actual - v.begin())
+                << "Upper bound failed for value " << val + delta;
+        }
+    }
+}
+
 TEST(AlgorithmsTest, partition)
 {
     std::vector<int> values{-1, 2, 3, 4, 2, 6, 9, 4};

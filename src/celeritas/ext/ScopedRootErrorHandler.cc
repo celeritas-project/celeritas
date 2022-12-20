@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ColorUtils.hh"
 
 namespace celeritas
 {
@@ -41,14 +42,19 @@ void RootErrorHandler(Int_t       rootlevel,
     if (rootlevel >= kFatal)
         level = LogLevel::critical;
 
-    ::celeritas::world_logger()({"ROOT", 0}, level)
-        << "<" << (location ? location : "unspecified location")
-        << ">:  " << msg;
-
     if (abort_bool)
     {
-        auto err = RuntimeError::from_root_error(location, msg);
-        throw err;
+        throw RuntimeError::from_root_error(location, msg);
+    }
+    else
+    {
+        // Print log statement
+        auto log_msg = ::celeritas::world_logger()({"ROOT", 0}, level);
+        if (location)
+        {
+            log_msg << color_code('x') << location << color_code(' ') << ": ";
+        }
+        log_msg << msg;
     }
 }
 

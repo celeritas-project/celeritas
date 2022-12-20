@@ -22,6 +22,23 @@
  * NVCC. The name of this function and its siblings is based on the Kokkos
  * naming scheme.
  */
+#if defined(__NVCC__) || defined(__HIP__)
+#    define CELER_FUNCTION __host__ __device__
+#else
+#    define CELER_FUNCTION
+#endif
+
+#if defined(__NVCC__)
+#    define CELER_FORCEINLINE __forceinline__
+#elif defined(_MSC_VER)
+#    define CELER_FORCEINLINE inline __forceinline
+#elif defined(__clang__) || defined(__GNUC__) || defined(__HIP__) \
+    || defined(__INTEL_COMPILER)
+#    define CELER_FORCEINLINE inline __attribute__((always_inline))
+#else
+#    define CELER_FORCEINLINE inline
+#endif
+
 /*!
  * \def CELER_FORCEINLINE_FUNCTION
  *
@@ -30,22 +47,6 @@
  * smaller sampling profiles) when inlining optimizations are not enabled. It
  * should be used sparingly.
  */
-#if defined(__NVCC__)
-#    define CELER_FUNCTION __host__ __device__
-#    define CELER_FORCEINLINE __forceinline__
-#elif defined(__HIP__)
-#    define CELER_FUNCTION __host__ __device__
-#    define CELER_FORCEINLINE __attribute__((always_inline))
-#else
-#    define CELER_FUNCTION
-#    if defined(_MSC_VER)
-#        define CELER_FORCEINLINE inline __forceinline
-#    elif defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
-#        define CELER_FORCEINLINE inline __attribute__((always_inline))
-#    else
-#        define CELER_FORCEINLINE inline
-#    endif
-#endif
 #define CELER_FORCEINLINE_FUNCTION CELER_FUNCTION CELER_FORCEINLINE
 
 /*!

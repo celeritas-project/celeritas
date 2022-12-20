@@ -34,6 +34,7 @@ list(APPEND SOURCES
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/MpiCommunicator.cc
+  sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
   sys/ScopedSignalHandler.cc
   sys/TypeDemangler.cc

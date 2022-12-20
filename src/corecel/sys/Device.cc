@@ -9,6 +9,8 @@
 
 #include <cstdlib>
 #include <iostream> // IWYU pragma: keep
+#include <mutex>
+#include <thread>
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_OPENMP
@@ -29,6 +31,12 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
+static std::mutex& device_setter_mutex()
+{
+    static std::mutex m;
+    return m;
+}
+
 int determine_num_devices()
 {
     if (!CELER_USE_DEVICE)
@@ -80,6 +88,10 @@ bool determine_debug()
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r577997723
  * and
  * https://github.com/celeritas-project/celeritas/pull/149#discussion_r578000062
+ *
+ * We might need to add a "thread_local" annotation corresponding to a
+ * multithreaded celeritas option. This class will always be thread safe to
+ * read (if the instance isn't being modified by other threads).
  */
 Device& global_device()
 {
@@ -94,6 +106,7 @@ Device& global_device()
             CELER_LOG(warning)
                 << "CUDA active device ID unexpectedly changed from "
                 << device.device_id() << " to " << cur_id;
+            std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
             device = Device(cur_id);
         }
     }
@@ -236,6 +249,10 @@ const Device& device()
  * The given device must be set (true result) unless no device has yet been
  * enabled -- this allows Device::from_round_robin to create "null" devices
  * when CUDA is disabled.
+ *
+ * \note This function is thread safe, and even though the global device is
+ * shared across threads, it should be called from each thread to correctly
+ * initialize CUDA.
  */
 void activate_device(Device&& device)
 {
@@ -248,8 +265,14 @@ void activate_device(Device&& device)
                            << device.device_id() << " of "
                            << Device::num_devices();
     ScopedTimeLog scoped_time;
-    CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
-    global_device() = std::move(device);
+    Device&       d = global_device();
+    {
+        // Lock *after* getting the pointer to the global_device, because
+        // the global_device function (in debug mode) also uses this lock.
+        std::lock_guard<std::mutex> scoped_lock{device_setter_mutex()};
+        CELER_DEVICE_CALL_PREFIX(SetDevice(device.device_id()));
+        d = std::move(device);
+    }
 
     // Call cudaFree to wake up the device, making other timers more accurate
     CELER_DEVICE_CALL_PREFIX(Free(nullptr));
@@ -284,6 +307,10 @@ void set_cuda_stack_size(int limit)
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
+    if (CELERITAS_USE_CUDA)
+    {
+        CELER_LOG(debug) << "Set CUDA stack size to " << limit << "B";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -299,6 +326,10 @@ void set_cuda_heap_size(int limit)
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
+    if (CELERITAS_USE_CUDA)
+    {
+        CELER_LOG(debug) << "Set CUDA heap size to " << limit << "B";
+    }
 }
 
 //---------------------------------------------------------------------------//

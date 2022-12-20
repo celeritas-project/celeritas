@@ -29,7 +29,7 @@ using difference_type_t =
     typename std::iterator_traits<RandomAccessIt>::difference_type;
 
 //---------------------------------------------------------------------------//
-// LOWER_BOUND
+// LOWER and UPPER BOUNDS
 //---------------------------------------------------------------------------//
 //!@{
 /*!
@@ -79,6 +79,36 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
         }
         else
             len = half_len;
+    }
+    return first;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Implementation of upper-bound assuming iterator arithmetic.
+ */
+template<class Compare, class ForwardIterator, class T>
+CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
+                                                ForwardIterator last,
+                                                const T&        value_,
+                                                Compare         comp)
+{
+    using difference_type = difference_type_t<ForwardIterator>;
+
+    difference_type len = last - first;
+    while (len != 0)
+    {
+        difference_type half_len = ::celeritas::detail::half_positive(len);
+        ForwardIterator m        = first + half_len;
+        if (comp(value_, *m))
+        {
+            len = half_len;
+        }
+        else
+        {
+            first = ++m;
+            len -= half_len + 1;
+        }
     }
     return first;
 }

@@ -62,6 +62,9 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell>;
 
+//! Opaque index for mapping volume-specific "sensitive detector" objects
+using DetectorId = OpaqueId<struct Detector>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
@@ -103,6 +106,15 @@ enum class ActionOrder
     post,      //!< After step
     post_post, //!< User actions after boundary crossing, collision
     end,       //!< Processing secondaries, including replacing primaries
+    size_
+};
+
+//---------------------------------------------------------------------------//
+//! Differentiate between result data at the beginning and end of a step.
+enum class StepPoint
+{
+    pre,
+    post,
     size_
 };
 

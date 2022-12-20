@@ -195,7 +195,8 @@ T GenerateCanonical<test::SequenceEngine, T>::operator()(
     test::SequenceEngine& rng)
 {
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
-    const real_type range  = test::SequenceEngine::max() + real_type(1);
+    const real_type range = static_cast<real_type>(test::SequenceEngine::max())
+                            + real_type(1);
     real_type result = rng();
     result += rng() * range;
     result *= 1 / ipow<2>(range);

@@ -17,7 +17,6 @@ list(APPEND SOURCES
   OrangeTypes.cc
   construct/SurfaceInputBuilder.cc
   detail/UnitInserter.cc
-  detail/UnitIndexer.cc
   surf/SurfaceIO.cc
 )
 

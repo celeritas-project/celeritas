@@ -11,6 +11,7 @@
 #include <numeric>
 #include <vector>
 
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -154,7 +155,7 @@ TEST_F(TrackInitTest, run)
 
     // Create track initializers on device from primary particles
     auto primaries = generate_primaries(num_primaries);
-    extend_from_primaries(core_data, primaries);
+    extend_from_primaries(core_data, make_span(primaries));
 
     // Check the track IDs of the track initializers created from primaries
     {
@@ -262,7 +263,7 @@ TEST_F(TrackInitTest, primaries)
     {
         // Create track initializers on device from primary particles
         auto primaries = generate_primaries(num_primaries);
-        extend_from_primaries(core_data, primaries);
+        extend_from_primaries(core_data, make_span(primaries));
 
         // Initialize tracks on device
         initialize_tracks(core_data);
@@ -323,7 +324,7 @@ TEST_F(TrackInitSecondaryTest, secondaries)
 
     // Create track initializers on device from primary particles
     auto primaries = generate_primaries(num_primaries);
-    extend_from_primaries(core_data, primaries);
+    extend_from_primaries(core_data, make_span(primaries));
     EXPECT_EQ(num_primaries, core_data.states.init.initializers.size());
 
     const size_type num_iter = 16;

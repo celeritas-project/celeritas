@@ -7,6 +7,7 @@ LABEL maintainer="Seth Johnson <johnsonsr@ornl.gov>" \
 # From spack dockerfile:
 # https://hub.docker.com/r/spack/ubuntu-bionic/dockerfile
 # BUT replacing "COPY" commands with curl (and hard-wiring version)
+# https://hub.docker.com/r/spack/centos7/dockerfile
 ###############################################################################
 
 # General environment for docker
@@ -16,37 +17,75 @@ ENV DEBIAN_FRONTEND=noninteractive    \
     CURRENTLY_BUILDING_DOCKER_IMAGE=1 \
     container=docker
 
-RUN apt-get -yqq update \
- && apt-get -yqq install --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        curl \
-        file \
-        g++ \
-        gcc \
-        gfortran \
-        git \
-        gnupg2 \
-        iproute2 \
-        lmod \
-        locales \
-        lua-posix \
-        make \
-        python3 \
-        python3-pip \
-        python3-setuptools \
-        tcl \
-        unzip \
-        vim \
- && locale-gen en_US.UTF-8 \
- && pip3 install boto3 \
- && rm -rf /var/lib/apt/lists/*
+# Combined ubuntu/centos run command
+ARG DOCKERFILE_DISTRO
+RUN if [ "$DOCKERFILE_DISTRO" == "ubuntu" ] ; then \
+  apt-get -yqq update \
+  && apt-get -yqq install --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    file \
+    g++ \
+    gcc \
+    gfortran \
+    git \
+    gnupg2 \
+    iproute2 \
+    lmod \
+    locales \
+    lua-posix \
+    make \
+    python3 \
+    python3-pip \
+    python3-setuptools \
+    tcl \
+    unzip \
+    vim \
+  && locale-gen en_US.UTF-8 \
+  && pip3 install boto3 \
+  && rm -rf /var/lib/apt/lists/* ; \
+elif [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+  yum update -y \
+  && yum install -y epel-release \
+  && yum update -y \
+  && yum --enablerepo epel groupinstall -y "Development Tools" \
+  && yum --enablerepo epel install -y \
+    curl \
+    findutils \
+    gcc-c++ \
+    gcc \
+    gcc-gfortran \
+    git \
+    gnupg2 \
+    hostname \
+    iproute \
+    make \
+    patch \
+    patchelf \
+    python3 \
+    python3-pip \
+    python3-setuptools \
+    tcl \
+    unzip \
+    which \
+  && pip3 install boto3 \
+  && rm -rf /var/cache/yum \
+  && yum clean all ; \
+fi
 
 # XXX replaced COPY commands with this
 ARG SPACK_VERSION
 RUN mkdir -p $SPACK_ROOT \
- && curl -s -L https://api.github.com/repos/spack/spack/tarball/${SPACK_VERSION} \
- | tar xzC $SPACK_ROOT --strip 1
+  && curl -s -L https://api.github.com/repos/spack/spack/tarball/${SPACK_VERSION} \
+  | tar xzC $SPACK_ROOT --strip 1
+
+# TODO: delete when next spack version comes out
+# see https://github.com/spack/spack/pull/33128
+RUN if [ "$DOCKERFILE_DISTRO" == "centos" ] ; then \
+  curl -s -L https://patch-diff.githubusercontent.com/raw/spack/spack/pull/33128.patch?full_index=1 \
+  | patch -p1 -d $SPACK_ROOT ; \
+  fi
 
 RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
           /usr/local/bin/docker-shell \

@@ -15,6 +15,7 @@
 
 #include "../Copier.hh"
 #include "../DeviceVector.hh"
+#include "DisabledStorage.hh"
 
 namespace celeritas
 {
@@ -85,8 +86,13 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
 template<class T>
 struct CollectionStorage<T, Ownership::value, MemSpace::device>
 {
+#ifndef CELER_DEVICE_COMPILE
     using type = DeviceVector<T>;
     type data;
+#else
+    using type = DisabledStorage<T>;
+    type data;
+#endif
 };
 
 //---------------------------------------------------------------------------//

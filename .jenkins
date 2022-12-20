@@ -6,86 +6,103 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-         stage('valgrind') {
-           agent {
-             docker {
-               image 'celeritas/ci-bionic-minimal:2021-12-17'
-               // Note: this image does not require CUDA
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/ci/run-ci.sh valgrind'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
-         stage('full-novg') {
-           agent {
-             docker {
-               image 'celeritas/ci-focal-cuda11:2021-12-18'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/ci/run-ci.sh full-novg'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
-         stage('full-novg-ndebug') {
-           agent {
-             docker {
-               image 'celeritas/ci-focal-cuda11:2021-12-18'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/ci/run-ci.sh full-novg-ndebug'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
-         stage('vecgeom-demos') {
-           agent {
-             docker {
-               image 'celeritas/ci-focal-cuda11:2021-12-18'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/ci/run-ci.sh vecgeom-demos'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
-         stage('vecgeom-tests') {
-           agent {
-             docker {
-               image 'celeritas/ci-focal-cuda11:2021-12-18'
-               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker'
-             }
-           }
-           steps {
-             sh 'entrypoint-shell ./scripts/ci/run-ci.sh vecgeom-tests'
-           }
-           post {
-             always {
-               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-             }
-           }
-         }
+        stage('valgrind') {
+          agent {
+            docker {
+              image 'celeritas/ci-bionic-minimal:2021-12-17'
+              // Note: this image does not require CUDA
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh bionic-minimal valgrind'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('hip-ndebug') {
+          agent {
+            docker {
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
+              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('full-novg') {
+          agent {
+            docker {
+              image 'celeritas/ci-jammy-cuda11:2022-12-06'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('full-novg-ndebug') {
+          agent {
+            docker {
+              image 'celeritas/ci-jammy-cuda11:2022-12-06'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg-ndebug'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('vecgeom-demos') {
+          agent {
+            docker {
+              image 'celeritas/ci-jammy-cuda11:2022-12-06'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-demos'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('vecgeom-tests') {
+          agent {
+            docker {
+              image 'celeritas/ci-jammy-cuda11:2022-12-06'
+              label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-tests'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
       }
     }
   }

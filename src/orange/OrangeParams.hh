@@ -89,7 +89,6 @@ class OrangeParams
 
   private:
     // Host metadata/access
-    detail::UnitIndexer        unit_indexer_;
     LabelIdMultiMap<SurfaceId> surf_labels_;
     LabelIdMultiMap<VolumeId>  vol_labels_;
     BoundingBox                bbox_;

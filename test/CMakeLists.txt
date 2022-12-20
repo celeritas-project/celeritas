@@ -164,6 +164,7 @@ celeritas_add_test(corecel/sys/Environment.test.cc
 )
 celeritas_add_test(corecel/sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})
+celeritas_add_test(corecel/sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(corecel/sys/TypeDemangler.test.cc)
 celeritas_add_test(corecel/sys/ScopedSignalHandler.test.cc)
 celeritas_add_test(corecel/sys/ScopedStreamRedirect.test.cc)
@@ -234,8 +235,10 @@ celeritas_add_library(testcel_celeritas
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
-  celeritas/user/ExampleStepCallback.cc
-  celeritas/user/StepCollectorTestBase.cc
+  celeritas/user/ExampleCalorimeters.cc
+  celeritas/user/ExampleMctruth.cc
+  celeritas/user/CaloTestBase.cc
+  celeritas/user/MctruthTestBase.cc
 )
 celeritas_target_link_libraries(testcel_celeritas
   PRIVATE Celeritas::celeritas Celeritas::testcel_harness ${_optional_json_link}
@@ -410,6 +413,7 @@ celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 #-------------------------------------#
 # User
 set(CELERITASTEST_PREFIX celeritas/user)
+celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
