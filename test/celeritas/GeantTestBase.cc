@@ -94,6 +94,22 @@ bool GeantTestBase::is_summit_build()
 }
 
 //---------------------------------------------------------------------------//
+//! Get the Geant4 top-level geometry element (immutable)
+const G4VPhysicalVolume* GeantTestBase::get_world_volume() const
+{
+    return GeantImporter::get_world_volume();
+}
+
+//---------------------------------------------------------------------------//
+//! Get the Geant4 top-level geometry element
+const G4VPhysicalVolume* GeantTestBase::get_world_volume()
+{
+    // Load geometry
+    this->imported_data();
+    return const_cast<const GeantTestBase*>(this)->get_world_volume();
+}
+
+//---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_material() -> SPConstMaterial

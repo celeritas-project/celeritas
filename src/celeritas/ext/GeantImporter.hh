@@ -59,6 +59,9 @@ class GeantImporter
     };
 
   public:
+    // Get an externally loaded Geant4 top-level geometry element
+    static const G4VPhysicalVolume* get_world_volume();
+
     // Construct from an existing Geant4 geometry, assuming physics is loaded
     explicit GeantImporter(const G4VPhysicalVolume* world);
 
@@ -82,6 +85,11 @@ class GeantImporter
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
+inline const G4VPhysicalVolume* GeantImporter::get_world_volume()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
 inline GeantImporter::GeantImporter(const G4VPhysicalVolume*)
 {
     (void)sizeof(world_);

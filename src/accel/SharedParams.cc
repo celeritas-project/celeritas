@@ -162,11 +162,7 @@ void SharedParams::locked_initialize(const SetupOptions& options)
     CELER_LOG_LOCAL(status) << "Initializing Celeritas";
     ScopedTimeLog scoped_time;
 
-    celeritas::GeantImporter load_geant_data(
-        G4TransportationManager::GetTransportationManager()
-            ->GetNavigatorForTracking()
-            ->GetWorldVolume());
-
+    celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
     auto imported = load_geant_data();
     CELER_ASSERT(imported);
 

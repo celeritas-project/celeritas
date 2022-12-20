@@ -27,6 +27,7 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 #include <G4SystemOfUnits.hh>
+#include <G4TransportationManager.hh>
 #include <G4VProcess.hh>
 #include <G4VSolid.hh>
 
@@ -491,6 +492,24 @@ ImportEmParameters store_em_parameters()
 
 //---------------------------------------------------------------------------//
 } // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an externally loaded Geant4 top-level geometry element.
+ *
+ * This is only defined if Geant4 has already been set up. It's meant to be
+ * used in concert with GeantImporter or other Geant-importing classes.
+ */
+const G4VPhysicalVolume* GeantImporter::get_world_volume()
+{
+    auto* man = G4TransportationManager::GetTransportationManager();
+    CELER_ASSERT(man);
+    auto* nav = man->GetNavigatorForTracking();
+    CELER_ASSERT(nav);
+    auto* world = nav->GetWorldVolume();
+    CELER_ENSURE(world);
+    return world;
+}
 
 //---------------------------------------------------------------------------//
 /*!
