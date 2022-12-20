@@ -53,14 +53,6 @@ class HepMC3Reader final : public G4VPrimaryGenerator
     std::shared_ptr<HepMC3::Reader> input_file_; // HepMC3 input file
     std::size_t                     num_events_; // Total number of events
 
-    struct Primary
-    {
-        int           pdg;
-        double        energy;
-        G4ThreeVector vertex;
-        G4ThreeVector momentum;
-    };
-
   private:
     // Construct singleton with HepMC3 filename; called by instance()
     HepMC3Reader();
