@@ -20,6 +20,9 @@
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
 #endif
+#if CELERITAS_USE_GEANT4
+#    include <Geant4/G4VPhysicalVolume.hh>
+#endif
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
@@ -27,9 +30,12 @@
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/ext/detail/G4VecgeomConverter.hh"
 
 #include "VecgeomData.hh"
+
+#if CELERITAS_USE_GEANT4
+#    include "detail/G4VecgeomConverter.hh"
+#endif
 
 namespace celeritas
 {
@@ -86,22 +92,22 @@ VecgeomParams::VecgeomParams(const std::string& filename)
     Initialize();
 }
 
-#ifdef CELERITAS_USE_GEANT4
 //---------------------------------------------------------------------------//
 /*!
  *  Create a VecGeom model from an pre-existing Geant4 geometry
  */
-VecgeomParams::VecgeomParams(const G4VPhysicalVolume* p_G4world)
+VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
 {
-    CELER_LOG(info) << "Creating VecGeom model from pre-existing G4 geometry";
-    CELER_ASSERT(p_G4world);
+#if CELERITAS_USE_GEANT4
+    CELER_LOG(info) << "Importing VecGeom model from Geant4";
+    CELER_ASSERT(world);
 
     // Convert the geometry to VecGeom
     G4VecGeomConverter::Instance().SetVerbose(1);
-    G4VecGeomConverter::Instance().ConvertG4Geometry(p_G4world);
+    G4VecGeomConverter::Instance().ConvertG4Geometry(world);
     CELER_LOG(info) << "Converted: max_depth = "
                     << vecgeom::GeoManager::Instance().getMaxDepth()
-                    << "\nTop G4 volume: " << p_G4world->GetName();
+                    << "\nTop G4 volume: " << world->GetName();
 
     //.. dump VecGeom geometry details for comparison
     vecgeom::VPlacedVolume const* vgWorld
@@ -111,8 +117,11 @@ VecgeomParams::VecgeomParams(const G4VPhysicalVolume* p_G4world)
                     << " - Label: " << vgWorld->GetLabel();
 
     Initialize();
-}
+#else
+    (void)sizeof(world);
+    CELER_NOT_CONFIGURED("Geant4");
 #endif
+}
 
 void VecgeomParams::Initialize()
 {

@@ -15,9 +15,8 @@
 #include "orange/Types.hh"
 
 #include "VecgeomData.hh"
-#ifdef CELERITAS_USE_GEANT4
-#    include "Geant4/G4VPhysicalVolume.hh"
-#endif
+
+class G4VPhysicalVolume;
 
 namespace celeritas
 {
@@ -41,10 +40,8 @@ class VecgeomParams
     // Construct from a GDML filename
     explicit VecgeomParams(const std::string& gdml_filename);
 
-#ifdef CELERITAS_USE_GEANT4
     // Create a VecGeom model from a pre-existing Geant4 geometry
-    VecgeomParams(const G4VPhysicalVolume* p_G4world);
-#endif
+    explicit VecgeomParams(const G4VPhysicalVolume* world);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams();
