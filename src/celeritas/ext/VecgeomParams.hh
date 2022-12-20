@@ -100,7 +100,7 @@ class VecgeomParams
     void build_md();
 
     // Consolidate VecGeom infrastructure
-    void Initialize();
+    void initialize();
 };
 
 //---------------------------------------------------------------------------//

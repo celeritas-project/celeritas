@@ -105,6 +105,9 @@ if(CELERITAS_USE_Geant4)
   target_link_libraries(celeritas_geant4
     PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}
   )
+  if(CELERITAS_USE_VecGeom)
+    list(APPEND SOURCES ext/detail/G4VecgeomConverter.cc)
+  endif()
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
 endif()
@@ -200,7 +203,6 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     ext/VecgeomParams.cc
     ext/detail/VecgeomNavCollection.cc
-    ext/detail/G4VecgeomConverter.cc
   )
   list(APPEND PRIVATE_DEPS VecGeom::vgdml)
   # This needs to be public because its might be needed

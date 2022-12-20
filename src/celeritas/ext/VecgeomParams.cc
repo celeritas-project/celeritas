@@ -89,7 +89,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
         vgdml::Frontend::Load(filename, validate_xml_schema);
     }
 
-    Initialize();
+    this->initialize();
 }
 
 //---------------------------------------------------------------------------//
@@ -103,29 +103,32 @@ VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
     CELER_ASSERT(world);
 
     // Convert the geometry to VecGeom
-    G4VecGeomConverter::Instance().SetVerbose(1);
-    G4VecGeomConverter::Instance().ConvertG4Geometry(world);
+    G4VecGeomConverter converter;
+    converter.SetVerbose(1);
+    converter.ConvertG4Geometry(world);
     CELER_LOG(info) << "Converted: max_depth = "
                     << vecgeom::GeoManager::Instance().getMaxDepth()
-                    << "\nTop G4 volume: " << world->GetName();
+                    << " -- Top G4 volume: " << world->GetName();
 
     //.. dump VecGeom geometry details for comparison
     vecgeom::VPlacedVolume const* vgWorld
         = vecgeom::GeoManager::Instance().GetWorld();
     CELER_ENSURE(vgWorld);
-    CELER_LOG(info) << "Top VecGeom volume: " << vgWorld->GetName()
-                    << " - Label: " << vgWorld->GetLabel();
+    CELER_LOG(debug) << "Top VecGeom volume: " << vgWorld->GetName()
+                     << " - Label: " << vgWorld->GetLabel();
 
-    Initialize();
+    this->initialize();
 #else
     (void)sizeof(world);
     CELER_NOT_CONFIGURED("Geant4");
 #endif
 }
 
-void VecgeomParams::Initialize()
+void VecgeomParams::initialize()
 {
-    CELER_LOG(status) << "Checking VecGeom volume labels";
+    CELER_EXPECT(vecgeom::GeoManager::Instance().GetWorld());
+
+    CELER_LOG(debug) << "Checking VecGeom volume labels";
     vol_labels_ = LabelIdMultiMap<VolumeId>(get_volume_labels());
     // Check for duplicates
     {
@@ -164,7 +167,7 @@ void VecgeomParams::Initialize()
     {
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
 
-        CELER_LOG(info) << "Converting to CUDA geometry";
+        CELER_LOG(debug) << "Converting to CUDA geometry";
         {
             ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             // cuda_manager.set_verbose(1);
@@ -172,7 +175,7 @@ void VecgeomParams::Initialize()
             CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
         }
 
-        CELER_LOG(info) << "Transferring geometry to GPU";
+        CELER_LOG(debug) << "Transferring geometry to GPU";
         {
             ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
             auto world_top_devptr = cuda_manager.Synchronize();
@@ -184,7 +187,7 @@ void VecgeomParams::Initialize()
         }
         CELER_ENSURE(device_ref_);
 
-        CELER_LOG(info) << "Initializing BVH on GPU";
+        CELER_LOG(debug) << "Initializing BVH on GPU";
         {
             vecgeom::cxx::BVHManager::DeviceInit();
             CELER_DEVICE_CHECK_ERROR();

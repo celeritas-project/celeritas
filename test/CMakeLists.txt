@@ -282,10 +282,8 @@ if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
     ${_optional_geant4_env})
-  celeritas_add_device_test(celeritas/ext/G4VecgeomConversion ${_needs_geant4}
-    LINK_LIBRARIES ${Geant4_LIBRARIES})
-  #celeritas_add_test(celeritas/ext/G4VecgeomConversion.test.cc ${_needs_geant4}
-  #  LINK_LIBRARIES ${Geant4_LIBRARIES} ${_vgcudatest} VecGeom::vecgeom)
+  #celeritas_add_device_test(celeritas/ext/G4VecgeomConversion ${_needs_geant4}
+  #  LINK_LIBRARIES ${Geant4_LIBRARIES})
 endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})

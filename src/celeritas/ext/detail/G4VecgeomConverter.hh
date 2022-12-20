@@ -48,11 +48,6 @@ class G4VecGeomConverter
     /** Remember pointer to generated world from imported G4 geometry. */
     vecgeom::VPlacedVolume const* fWorld;
 
-    // vecgeom::BidirectionalTypeMap<unsigned int, G4VPhysicalVolume const*>
-    // fPlacedVolumeMap; using G4PVReplicaPair = std::pair<G4VPhysicalVolume
-    // const*, int>; vecgeom::BidirectionalTypeMap<unsigned int,
-    // G4PVReplicaPair> fPlacedVolumeMap;
-
     // one G4 physical volume can correspond to multiple vecgeom placed volumes
     // (in case of replicas)
     vecgeom::BidirectionalTypeMap<std::vector<vecgeom::VPlacedVolume const*> const*,
@@ -72,13 +67,6 @@ class G4VecGeomConverter
     int fVerbose;
 
   public:
-    /// Access singleton instance.
-    static G4VecGeomConverter& Instance()
-    {
-        static G4VecGeomConverter instance;
-        return instance;
-    }
-
     vecgeom::VPlacedVolume const* world() const { return fWorld; }
     int                           GetVerboseLevel() const { return fVerbose; }
 
@@ -132,7 +120,7 @@ class G4VecGeomConverter
     vecgeom::Transformation3D*
     Convert(G4ThreeVector const&, G4RotationMatrix const*);
 
-  private:
+    // constructor
     G4VecGeomConverter()
         : fWorld(nullptr)
         , fPlacedVolumeMap()
@@ -142,6 +130,15 @@ class G4VecGeomConverter
         /*fTransformationMap(),*/ fVerbose(0)
     {
     }
+
+    // destructor
+    ~G4VecGeomConverter()
+    {
+        // this->Clear();
+        //  the VecGeom geometry created during conversion is not owned here!
+    }
+
+  private:
     G4VecGeomConverter(G4VecGeomConverter const&)            = delete;
     G4VecGeomConverter& operator=(G4VecGeomConverter const&) = delete;
 };

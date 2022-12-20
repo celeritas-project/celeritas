@@ -87,7 +87,7 @@ if(CELERITAS_USE_Geant4)
   add_subdirectory(accel)
 endif()
 
-if(CELERITAS_USE_VECGEOM)
+if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
   celeritas_target_include_directories(celeritas
     PUBLIC
     $<BUILD_INTERFACE:${Geant4_INCLUDE_DIRS}>
