@@ -42,9 +42,6 @@ namespace test
 #    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
 #endif
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 class NoPhysicsTestBase : virtual public GlobalTestBase
 {
   protected:
@@ -59,6 +56,10 @@ class NoPhysicsTestBase : virtual public GlobalTestBase
         CELER_ASSERT_UNREACHABLE();
     }
 };
+
+//---------------------------------------------------------------------------//
+// TESTS
+//---------------------------------------------------------------------------//
 
 class VecgeomTestBase : virtual public GlobalTestBase
 {
