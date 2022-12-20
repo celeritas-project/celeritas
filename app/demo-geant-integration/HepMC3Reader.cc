@@ -73,14 +73,14 @@ HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
 
     // Fetch total number of events
     const auto temp_file = HepMC3::deduce_reader(filename);
-    num_events_          = -1;
+    num_events_          = 0;
     while (!temp_file->failed())
     {
-        // Count event and try to read the next
-        HepMC3::GenEvent gen_event;
-        temp_file->read_event(gen_event);
+        temp_file->skip(1);
         num_events_++;
     }
+
+    CELER_LOG(status) << "counted events is " << num_events_;
     CELER_ENSURE(num_events_ > 0);
 }
 
@@ -109,9 +109,8 @@ std::vector<HepMC3Reader::Primary> HepMC3Reader::load_primaries()
 
     CELER_LOG_LOCAL(status)
         << "Reading HepMC3 event " << gen_event.event_number();
-    CELER_EXPECT(gen_event.momentum_unit() == HepMC3::Units::MEV
-                 && gen_event.length_unit() == HepMC3::Units::CM);
 
+    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);
     const auto& pos       = gen_event.event_pos();
     const auto& particles = gen_event.particles();
 
@@ -123,10 +122,9 @@ std::vector<HepMC3Reader::Primary> HepMC3Reader::load_primaries()
 
         Primary primary;
         primary.pdg    = data.pid;
-        primary.energy = data.momentum.e(); // Must be in MeV
-        primary.momentum.set(p.x(), p.y(), p.z());
-        // Geant4 base unit is mm and thus needs to be converted
-        primary.vertex.set(pos.x() * cm, pos.y() * cm, pos.z() * cm);
+        primary.energy = data.momentum.e();            // Must be in MeV
+        primary.momentum.set(p.x(), p.y(), p.z());     // Must be in MeV
+        primary.vertex.set(pos.x(), pos.y(), pos.z()); // Must be in mm
 
         primaries.push_back(std::move(primary));
     }
