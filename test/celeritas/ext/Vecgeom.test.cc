@@ -433,6 +433,34 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 // CONSTRUCT FROM GEANT4
 //---------------------------------------------------------------------------//
 
+// TODO: solids are not all implemented in VGDML
+#define SolidsTest DISABLED_SolidsTest
+
+class SolidsTest : public VecgeomTestBase,
+                   public NoPhysicsTestBase,
+                   public GlobalGeoTestBase
+{
+  public:
+    const char* geometry_basename() const final { return "solids"; }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, accessors)
+{
+    const auto& geom = *this->geometry();
+    EXPECT_EQ(31, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{2}).name);
+}
+
+//---------------------------------------------------------------------------//
+// CONSTRUCT FROM GEANT4
+//---------------------------------------------------------------------------//
+
 class GeantBuilderTestBase : public VecgeomTestBase,
                              virtual public GeantTestBase
 {
