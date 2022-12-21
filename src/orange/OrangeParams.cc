@@ -197,9 +197,10 @@ const Label& OrangeParams::id_to_label(VolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Locate the volume ID corresponding to a label.
+ * Locate the volume ID corresponding to a unique name.
  *
- * If the label isn't in the geometry, a null ID will be returned.
+ * If the name isn't in the geometry, a null ID will be returned. If the name
+ * is not unique, a RuntimeError will be raised.
  */
 VolumeId OrangeParams::find_volume(const std::string& name) const
 {
@@ -209,6 +210,17 @@ VolumeId OrangeParams::find_volume(const std::string& name) const
     CELER_VALIDATE(result.size() == 1,
                    << "volume '" << name << "' is not unique");
     return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the volume ID corresponding to a label.
+ *
+ * If the label isn't in the geometry, a null ID will be returned.
+ */
+VolumeId OrangeParams::find_volume(const Label& label) const
+{
+    return vol_labels_.find(label);
 }
 
 //---------------------------------------------------------------------------//

@@ -194,6 +194,17 @@ auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
 
 //---------------------------------------------------------------------------//
 /*!
+ * Locate the volume ID corresponding to a label.
+ *
+ * If the label isn't in the geometry, a null ID will be returned.
+ */
+VolumeId VecgeomParams::find_volume(const Label& label) const
+{
+    return vol_labels_.find(label);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get zero or more volume IDs corresponding to a name.
  *
  * This is useful for volumes that are repeated in the geometry with different
