@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
 
@@ -14,6 +15,7 @@ namespace celeritas
 {
 namespace detail
 {
+class HitProcessor;
 //---------------------------------------------------------------------------//
 /*!
  * Manage the conversion of hits from Celeritas to Geant4.
@@ -34,19 +36,28 @@ namespace detail
 class HitManager final : public StepInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    //!@}
+    struct Options
+    {
+        //! Only tally steps that deposited energy
+        bool nonzero_energy_deposition{true};
+        //! Locate physical volume in Geant4 hierarchy during callback
+        bool locate_touchable{true};
+    };
 
   public:
-    // Construct with sensitive detector requirements
-    HitManager();
+    // Construct with VecGeom for mapping volume IDs
+    HitManager(const GeoParams&     geo,
+               const StepSelection& selection,
+               const Options&       options);
+
+    // Default destructor
+    ~HitManager();
 
     // Selection of data required for this interface
     Filters filters() const final;
 
     // Selection of data required for this interface
-    StepSelection selection() const final;
+    StepSelection selection() const final { return selection_; }
 
     // Process CPU-generated hits
     void execute(StateHostRef const&) final;
@@ -55,7 +66,13 @@ class HitManager final : public StepInterface
     void execute(StateDeviceRef const&) final;
 
   private:
+    StepSelection                 selection_;
+    Options                       options_;
     DetectorStepOutput steps_;
+    std::vector<VolumeId>         vecgeom_vols_;
+    std::unique_ptr<HitProcessor> process_hits_;
+
+    void call_local_processor() const;
 };
 
 //---------------------------------------------------------------------------//

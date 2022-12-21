@@ -163,10 +163,12 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
             // inside?
         }
 
-        // Hit sensitive detector
-        CELER_ASSERT(out.detector[i] < detectors_.size());
-        G4VSensitiveDetector* sd = detectors_[out.detector[i].unchecked_get()]
-                                       ->GetSensitiveDetector();
+        // Hit sensitive detector (NOTE: GetSensitiveDetector returns a
+        // thread-local object from a global object.)
+        CELER_ASSERT(out.detector[i] < detector_volumes_.size());
+        G4VSensitiveDetector* sd
+            = detector_volumes_[out.detector[i].unchecked_get()]
+                  ->GetSensitiveDetector();
         CELER_ASSERT(sd);
         sd->Hit(step_.get());
     }

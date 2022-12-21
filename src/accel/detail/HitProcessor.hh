@@ -72,7 +72,7 @@ class HitProcessor
 
   private:
     //! Map detector IDs to logical volumes
-    VecLV detectors_volumes_;
+    VecLV detector_volumes_;
     //! Temporary step
     std::unique_ptr<G4Step> step_;
     //! Navigator for finding points
