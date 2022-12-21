@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
-#include <utility>
-#include <G4StepPoint.hh>
+#include <G4HCofThisEvent.hh>
+#include <G4SDManager.hh>
+#include <G4Step.hh>
 #include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 
@@ -17,16 +18,28 @@
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
-SensitiveDetector::SensitiveDetector(std::string name)
-    : G4VSensitiveDetector(std::move(name))
+SensitiveDetector::SensitiveDetector(G4String name)
+    : G4VSensitiveDetector(std::move(name)), hcid_(-1)
 {
+    G4String nameHC = name + "_HC";
+    collectionName.insert(nameHC);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set up hit collections for a new event.
  */
-void SensitiveDetector::Initialize(G4HCofThisEvent*) {}
+void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
+{
+    collection_ = std::make_unique<SensitiveHitsCollection>(
+        SensitiveDetectorName, collectionName[0]);
+    if (hcid_ < 0)
+    {
+        hcid_
+            = G4SDManager::GetSDMpointer()->GetCollectionID(collection_.get());
+    }
+    hce->AddHitsCollection(hcid_, collection_.release());
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -41,9 +54,29 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         return false;
     }
 
-    auto time = step->GetPreStepPoint()->GetGlobalTime();
+    // Fill the hit data for this step
+    auto         touchable = step->GetPreStepPoint()->GetTouchable();
+    unsigned int id        = touchable->GetVolume()->GetCopyNo();
+    HitData      data{id,
+                 edep,
+                 step->GetPreStepPoint()->GetGlobalTime(),
+                 touchable->GetTranslation()};
+
+    // Add energy deposition for this cell if it was hit before
+    for (auto hit : *(collection_->GetVector()))
+    {
+        if (id == hit->data().id)
+        {
+            hit->add_edep(edep);
+            return true;
+        }
+    }
+
+    // Otherwise, create a new hit
+    collection_->insert(new SensitiveHit(data));
+
     CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into "
-                           << this->GetName() << " at " << time;
+                           << this->GetName() << " at " << data.time;
 
     return true;
 }
