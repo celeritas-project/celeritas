@@ -52,11 +52,12 @@ inline double convert_to_geant(const units::MevEnergy& energy, double units)
 /*!
  * Construct local navigator and step data.
  */
-HitProcessor::HitProcessor(const VecLV&         detector_volumes,
+HitProcessor::HitProcessor(VecLV                detector_volumes,
                            const StepSelection& selection,
                            bool                 locate_touchable)
+    : detector_volumes_(std::move(detector_volumes))
 {
-    CELER_EXPECT(!detector_volumes.empty());
+    CELER_EXPECT(!detector_volumes_.empty());
     CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
                    << "cannot set 'locate_touchable' because the pre-step "
                       "position is not being collected");
@@ -102,19 +103,6 @@ HitProcessor::HitProcessor(const VecLV&         detector_volumes,
         touch_handle_ = G4TouchableHandle{new G4TouchableHistory};
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
-
-    // Find sensitive detectors for each detector ID. Note that these are
-    // *thread-local* pointers coming from *global* data: see Geant4 "split
-    // classes"
-    detectors_.reserve(detector_volumes.size());
-    for (G4LogicalVolume* lv : detector_volumes)
-    {
-        CELER_EXPECT(lv);
-        detectors_.push_back(lv->GetSensitiveDetector());
-        CELER_ENSURE(detectors_.back());
-    }
-
-    CELER_ENSURE(detectors_.size() == detector_volumes.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -177,7 +165,10 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
 
         // Hit sensitive detector
         CELER_ASSERT(out.detector[i] < detectors_.size());
-        detectors_[out.detector[i].unchecked_get()]->Hit(step_.get());
+        G4VSensitiveDetector* sd = detectors_[out.detector[i].unchecked_get()]
+                                       ->GetSensitiveDetector();
+        CELER_ASSERT(sd);
+        sd->Hit(step_.get());
     }
 }
 

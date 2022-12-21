@@ -21,12 +21,15 @@ namespace detail
  * Construction:
  * - Created during SharedParams::Initialize alongside the step collector
  * - Is shared across threads
- * - Finds logical volumes that have SDs attached
+ * - Finds *all* logical volumes that have SDs attached (TODO: add list of
+ *   exclusions?)
+ * - Maps those volumes to VecGeom geometry
  * - Creates a HitProcessor for each Geant4 thread
  *
  * Execute:
  * - Can share DetectorStepOutput across threads for now since StepGatherAction
  *   is mutexed across all threads
+ * - Calls a single HitProcessor (thread safe because of caller's mutex)
  */
 class HitManager final : public StepInterface
 {

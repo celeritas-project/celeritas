@@ -36,14 +36,19 @@ namespace detail
  * detector names, maps them to detector IDs, and adds a HitCollector to the
  * action manager.
  *
- * Construction:
- * - Get local G4SD for each G4LV
- *
  * Call operator:
  * - Loop over detector steps
  * - Update step attributes based on hit selection for the detector (TODO:
  *   selection is global for now)
  * - Call the local detector (based on detector ID from map) with the step
+ *
+ * \note For now we store the LogicalVolume rather than the SD in order to work
+ * better with multithreaded code. (The LV `GetSensitiveDetector` returns
+ * thread-local data.) This means you can (and should) share the \c
+ * HitProcessor instance across threads. Once multithreading is better
+ * integrated into Celeritas and we can check how it interacts with CMSSW, then
+ * we can make the whole kernel thread safe by ensuring independent hit
+ * processors (and state data) for every thread.
  */
 class HitProcessor
 {
@@ -55,7 +60,7 @@ class HitProcessor
 
   public:
     // Construct from volumes that have SDs and step selection
-    HitProcessor(const VecLV&         detector_volumes,
+    HitProcessor(VecLV                detector_volumes,
                  const StepSelection& selection,
                  bool                 locate_touchable);
 
@@ -66,14 +71,14 @@ class HitProcessor
     void operator()(const DetectorStepOutput& out) const;
 
   private:
+    //! Map detector IDs to logical volumes
+    VecLV detectors_volumes_;
     //! Temporary step
     std::unique_ptr<G4Step> step_;
     //! Navigator for finding points
     std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
-    //! Map detector IDs to sensitive detector pointers
-    std::vector<G4VSensitiveDetector*> detectors_;
 };
 
 //---------------------------------------------------------------------------//
