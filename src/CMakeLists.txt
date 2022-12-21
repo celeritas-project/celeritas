@@ -92,9 +92,6 @@ if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
     PUBLIC
     $<BUILD_INTERFACE:${Geant4_INCLUDE_DIRS}>
   )
-  celeritas_target_link_libraries(celeritas
-    PRIVATE ${Geant4_LIBRARIES}
-  )
 endif()
 
 #----------------------------------------------------------------------------#
