@@ -28,7 +28,6 @@ class SensitiveDetector final : public G4VSensitiveDetector
     //!@{
     //! \name Type aliases
     using SensitiveHitsCollection = G4THitsCollection<SensitiveHit>;
-
     //!@}
 
   public:
