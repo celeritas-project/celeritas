@@ -13,6 +13,37 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Control options for initializing Celeritas SD callbacks.
+ */
+struct SDSetupOptions
+{
+    struct StepPoint
+    {
+        bool global_time{false};
+        bool position{false};
+        bool momentum_direction{false};
+        bool kinetic_energy{false};
+    };
+
+    //! Call back to Geant4 sensitive detectors
+    bool enabled{true};
+    //! Skip steps that do not deposit energy locally
+    bool ignore_zero_deposition{true};
+
+    //! Save energy deposition
+    bool energy_deposition{true};
+    //! Set TouchableHandle for PreStepPoint
+    bool locate_touchable{false};
+    //! Options for saving and converting beginning-of-step data
+    StepPoint pre;
+    //! Options for saving and converting end-of-step data
+    StepPoint post;
+
+    // TODO: list of detectors to ignore?
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Control options for initializing Celeritas.
  */
 struct SetupOptions
@@ -26,7 +57,6 @@ struct SetupOptions
         return static_cast<size_type>(-1);
     }
 
-    // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
     // TODO: geometry should be exported directly from Geant4 (or written to
@@ -47,6 +77,11 @@ struct SetupOptions
     real_type   secondary_stack_factor{};
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
+    //!@}
+
+    //!@{
+    //! \name Sensitive detector options
+    SDSetupOptions sd;
     //!@}
 
     //!@{

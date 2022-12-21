@@ -131,6 +131,9 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
         // TODO: how to handle these attributes?
         // step_->SetTrack(primary_track);
 
+        // TODO: assert that event ID is consistent with active
+        // LocalTransporter event?
+
         EnumArray<StepPoint, G4StepPoint*> points
             = {step_->GetPreStepPoint(), step_->GetPostStepPoint()};
         for (auto sp : range(StepPoint::size_))
@@ -142,9 +145,15 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
             HP_SET(points[sp]->SetGlobalTime, out.points[sp].time, CLHEP::s);
             HP_SET(points[sp]->SetPosition, out.points[sp].pos, CLHEP::cm);
             HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir, 1);
+            HP_SET(points[sp]->SetKineticEnergy,
+                   out.points[sp].energy,
+                   CLHEP::MeV);
+            // TODO: do we set secondary properties like the velocity,
+            // material, mass, charge,  ... ?
 
             // TODO: how to handle these attributes?
             // step_->SetTrack(primary_track);
+            // dynamic particle, ParticleDefinition
             // pre->SetLocalTime
             // pre->SetProperTime
             // pre->SetTouchableHandle
@@ -154,11 +163,10 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
         if (navi_)
         {
             // Locate pre-step point
-            constexpr bool relative_search = false;
             navi_->LocateGlobalPointAndUpdateTouchable(
                 points[StepPoint::pre]->GetPosition(),
                 touch_handle_(),
-                relative_search);
+                /* relative_search = */ false);
             // TODO: can we be sure we're in the right volume on the first step
             // inside?
         }

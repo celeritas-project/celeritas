@@ -12,6 +12,7 @@
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/Label.hh"
 #include "celeritas/geo/GeoParams.hh"
+#include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
 
@@ -19,16 +20,33 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+void update_selection(StepPointSelection*              selection,
+                      const SDSetupOptions::StepPoint& options)
+{
+    selection->time   = options.global_time;
+    selection->pos    = options.position;
+    selection->dir    = options.momentum_direction;
+    selection->energy = options.kinetic_energy;
+}
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(const GeoParams&     geo,
-                       const StepSelection& selection,
-                       const Options&       options)
-    : selection_(selection), options_(options)
+HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
+    : nonzero_energy_deposition_(setup.ignore_zero_deposition)
 {
-    selection_.event_id = true;
+    CELER_EXPECT(setup.enabled);
+
+    // Convert setup options to step data
+    selection_.energy_deposition = setup.energy_deposition;
+    update_selection(&selection_.points[StepPoint::pre], setup.pre);
+    update_selection(&selection_.points[StepPoint::post], setup.post);
 
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> lv_with_sd;
@@ -62,7 +80,7 @@ HitManager::HitManager(const GeoParams&     geo,
                    << "no sensitive detectors were found");
 
     process_hits_ = std::make_unique<HitProcessor>(
-        std::move(lv_with_sd), selection_, options_.locate_touchable);
+        std::move(lv_with_sd), selection_, setup.locate_touchable);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,7 +100,7 @@ auto HitManager::filters() const -> Filters
         result.detectors[vecgeom_vols_[didx]] = DetectorId{didx};
     }
 
-    result.nonzero_energy_deposition = options_.nonzero_energy_deposition;
+    result.nonzero_energy_deposition = nonzero_energy_deposition_;
 
     return result;
 }

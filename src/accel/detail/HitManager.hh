@@ -13,6 +13,7 @@
 
 namespace celeritas
 {
+struct SDSetupOptions;
 namespace detail
 {
 class HitProcessor;
@@ -36,19 +37,8 @@ class HitProcessor;
 class HitManager final : public StepInterface
 {
   public:
-    struct Options
-    {
-        //! Only tally steps that deposited energy
-        bool nonzero_energy_deposition{true};
-        //! Locate physical volume in Geant4 hierarchy during callback
-        bool locate_touchable{true};
-    };
-
-  public:
     // Construct with VecGeom for mapping volume IDs
-    HitManager(const GeoParams&     geo,
-               const StepSelection& selection,
-               const Options&       options);
+    HitManager(const GeoParams& geo, const SDSetupOptions& setup);
 
     // Default destructor
     ~HitManager();
@@ -66,8 +56,8 @@ class HitManager final : public StepInterface
     void execute(StateDeviceRef const&) final;
 
   private:
+    bool                          nonzero_energy_deposition_{};
     StepSelection                 selection_;
-    Options                       options_;
     DetectorStepOutput steps_;
     std::vector<VolumeId>         vecgeom_vols_;
     std::unique_ptr<HitProcessor> process_hits_;
