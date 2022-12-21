@@ -19,7 +19,7 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 SensitiveDetector::SensitiveDetector(G4String name)
-    : G4VSensitiveDetector(std::move(name)), hcid_(-1)
+    : G4VSensitiveDetector(name), hcid_(-1)
 {
     G4String nameHC = name + "_HC";
     collectionName.insert(nameHC);
