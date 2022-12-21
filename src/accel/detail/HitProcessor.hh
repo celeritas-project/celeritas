@@ -9,13 +9,14 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <G4Navigator.hh>
-#include <G4Step.hh>
+#include <vector>
 #include <G4TouchableHandle.hh>
 
 #include "celeritas/Types.hh"
 
+class G4LogicalVolume;
+class G4Step;
+class G4Navigator;
 class G4VSensitiveDetector;
 
 namespace celeritas
@@ -31,21 +32,18 @@ namespace detail
  *
  * This serves a similar purpose to the \c G4FastSimHitMaker class for
  * generating hit objects. It should be "stream local" but by necessity has to
- * share the same (TODO: name?) HitProcessorManager which takes the input
+ * share the same HitManager which takes the input
  * detector names, maps them to detector IDs, and adds a HitCollector to the
  * action manager.
  *
- * Manager:
- * - Find logical volumes (global!) with attached SDs (local!); SDManager
- *   doesn't have good support for iterating over detectors
- *
- * Local:
+ * Construction:
  * - Get local G4SD for each G4LV
+ *
+ * Call operator:
  * - Loop over detector steps
- * - Map detector ID to local sensitive detector
  * - Update step attributes based on hit selection for the detector (TODO:
  *   selection is global for now)
- * - Call the local detector with the step
+ * - Call the local detector (based on detector ID from map) with the step
  */
 class HitProcessor
 {
@@ -57,7 +55,12 @@ class HitProcessor
 
   public:
     // Construct from volumes that have SDs and step selection
-    HitProcessor(const VecLV& detector_volumes, const StepSelection& selection);
+    HitProcessor(const VecLV&         detector_volumes,
+                 const StepSelection& selection,
+                 bool                 locate_touchable);
+
+    // Default destructor
+    ~HitProcessor();
 
     // Generate and call hits from a detector output
     void operator()(const DetectorStepOutput& out) const;

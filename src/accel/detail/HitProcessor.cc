@@ -9,6 +9,8 @@
 
 #include <algorithm>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4Navigator.hh>
+#include <G4Step.hh>
 #include <G4TransportationManager.hh>
 #include <G4VSensitiveDetector.hh>
 
@@ -25,20 +27,21 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class T>
-const T& convert_to_geant(const T& val)
+inline T convert_to_geant(const T& val, T units)
 {
-    return val;
+    return val * units;
 }
 
 //---------------------------------------------------------------------------//
-G4ThreeVector convert_to_geant(const Real3& arr)
+inline G4ThreeVector convert_to_geant(const Real3& arr, double units)
 {
-    return {arr[0], arr[1], arr[2]};
+    return {arr[0] * units, arr[1] * units, arr[2] * units};
 }
 
 //---------------------------------------------------------------------------//
-double convert_to_geant(const units::MevEnergy& energy)
+inline double convert_to_geant(const units::MevEnergy& energy, double units)
 {
+    CELER_EXPECT(units == CLHEP::MeV);
     return energy.value() * CLHEP::MeV;
 }
 
@@ -50,9 +53,13 @@ double convert_to_geant(const units::MevEnergy& energy)
  * Construct local navigator and step data.
  */
 HitProcessor::HitProcessor(const VecLV&         detector_volumes,
-                           const StepSelection& selection)
+                           const StepSelection& selection,
+                           bool                 locate_touchable)
 {
     CELER_EXPECT(!detector_volumes.empty());
+    CELER_VALIDATE(!locate_touchable || selection.points[StepPoint::pre].pos,
+                   << "cannot set 'locate_touchable' because the pre-step "
+                      "position is not being collected");
 
     // Create temporary objects
     step_ = std::make_unique<G4Step>();
@@ -79,17 +86,22 @@ HitProcessor::HitProcessor(const VecLV&         detector_volumes,
     HP_SETUP_POINT(pre, Pre);
     HP_SETUP_POINT(post, Post);
 #undef HP_SETUP_POINT
+#undef HP_CLEAR_STEP_POINT
 
     // Create navigator
     G4VPhysicalVolume* world_volume
         = G4TransportationManager::GetTransportationManager()
               ->GetNavigatorForTracking()
               ->GetWorldVolume();
-    navi_ = std::make_unique<G4Navigator>();
-    navi_->SetWorldVolume(world_volume);
+    if (locate_touchable && selection.points[StepPoint::pre].pos)
+    {
+        navi_ = std::make_unique<G4Navigator>();
+        navi_->SetWorldVolume(world_volume);
 
-    // Create "touchable handle" (shared pointer to G4TouchableHistory)
-    touch_handle_ = G4TouchableHandle{new G4TouchableHistory};
+        // Create "touchable handle" (shared pointer to G4TouchableHistory)
+        touch_handle_ = G4TouchableHandle{new G4TouchableHistory};
+        step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
+    }
 
     // Find sensitive detectors for each detector ID. Note that these are
     // *thread-local* pointers coming from *global* data: see Geant4 "split
@@ -106,6 +118,9 @@ HitProcessor::HitProcessor(const VecLV&         detector_volumes,
 }
 
 //---------------------------------------------------------------------------//
+HitProcessor::~HitProcessor() = default;
+
+//---------------------------------------------------------------------------//
 /*!
  * Generate and call hits from a detector output.
  */
@@ -115,16 +130,16 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
 
     for (auto i : range(out.size()))
     {
-#define HP_SET(SETTER, OUT)                   \
-    do                                        \
-    {                                         \
-        if (!OUT.empty())                     \
-        {                                     \
-            SETTER(convert_to_geant(OUT[i])); \
-        }                                     \
+#define HP_SET(SETTER, OUT, UNITS)                   \
+    do                                               \
+    {                                                \
+        if (!OUT.empty())                            \
+        {                                            \
+            SETTER(convert_to_geant(OUT[i], UNITS)); \
+        }                                            \
     } while (0)
 
-        HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition);
+        HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
         // TODO: how to handle these attributes?
         // step_->SetTrack(primary_track);
 
@@ -136,9 +151,9 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
             {
                 continue;
             }
-            HP_SET(points[sp]->SetGlobalTime, out.points[sp].time);
-            HP_SET(points[sp]->SetPosition, out.points[sp].pos);
-            HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir);
+            HP_SET(points[sp]->SetGlobalTime, out.points[sp].time, CLHEP::s);
+            HP_SET(points[sp]->SetPosition, out.points[sp].pos, CLHEP::cm);
+            HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir, 1);
 
             // TODO: how to handle these attributes?
             // step_->SetTrack(primary_track);
@@ -148,12 +163,23 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
         }
 #undef HP_SET
 
+        if (navi_)
+        {
+            // Locate pre-step point
+            constexpr bool relative_search = false;
+            navi_->LocateGlobalPointAndUpdateTouchable(
+                points[StepPoint::pre]->GetPosition(),
+                touch_handle_(),
+                relative_search);
+            // TODO: can we be sure we're in the right volume on the first step
+            // inside?
+        }
+
         // Hit sensitive detector
         CELER_ASSERT(out.detector[i] < detectors_.size());
         detectors_[out.detector[i].unchecked_get()]->Hit(step_.get());
     }
 }
-#undef HP_SET
 
 //---------------------------------------------------------------------------//
 } // namespace detail

@@ -26,10 +26,9 @@ namespace detail
  *
  * This implementation class is constructed by the StepCollector.
  *
- * TODO: since each thread has a separate state, but actions are shared across
- * threads, this is *NOT* thread safe. We'll either need to provide a generic
- * way of storing state data and passing it into actions, *or* perhaps a stream
- * ID in the core state so that we have an array of states (one per thread).
+ * TODO: this class is only thread safe by locking it across multiple threads.
+ * We'll need thread-independent states *or* a stream ID in the core state
+ * corresponding to one element in an array of state data.
  */
 template<StepPoint P>
 class StepGatherAction final : public ExplicitActionInterface
@@ -102,7 +101,6 @@ StepGatherAction<P>::get_state(const CoreRef<M>& core) const
     auto& state_store = storage_->get_state(StepStorage::MemSpaceTag<M>{});
     if (CELER_UNLIKELY(!state_store))
     {
-        // TODO: add mutex and multiple states based on number of threads
         // State storage hasn't been allocated yet: allocate based on current
         // state
         state_store = CollectionStateStore<StepStateData, M>{
