@@ -7,32 +7,47 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
-#include <utility>
-#include <G4StepPoint.hh>
+#include <G4HCofThisEvent.hh>
+#include <G4SDManager.hh>
+#include <G4Step.hh>
 #include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 SensitiveDetector::SensitiveDetector(std::string name)
-    : G4VSensitiveDetector(std::move(name))
+    : G4VSensitiveDetector(name), hcid_(-1)
 {
+    this->collectionName.insert(name + "_HC");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set up hit collections for a new event.
  */
-void SensitiveDetector::Initialize(G4HCofThisEvent*) {}
+void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
+{
+    collection_ = std::make_unique<SensitiveHitsCollection>(
+        this->SensitiveDetectorName, this->collectionName[0]);
+    if (hcid_ < 0)
+    {
+        // Initialize during the first event
+        hcid_
+            = G4SDManager::GetSDMpointer()->GetCollectionID(collection_.get());
+        CELER_ASSERT(hcid_ >= 0);
+    }
+    hce->AddHitsCollection(hcid_, collection_.release());
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Add hits to the current hit collection
  */
-G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
+bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
     auto edep = step->GetTotalEnergyDeposit();
 
@@ -41,9 +56,20 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         return false;
     }
 
-    auto time = step->GetPreStepPoint()->GetGlobalTime();
+    // Create a hit for this step
+    auto* touchable = step->GetPreStepPoint()->GetTouchable();
+    CELER_ASSERT(touchable);
+
+    unsigned int id = touchable->GetVolume()->GetCopyNo();
+    HitData      data{id,
+                 edep,
+                 step->GetPreStepPoint()->GetGlobalTime(),
+                 touchable->GetTranslation()};
+
+    collection_->insert(new SensitiveHit(data));
+
     CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into "
-                           << this->GetName() << " at " << time;
+                           << this->GetName() << " at " << data.time;
 
     return true;
 }

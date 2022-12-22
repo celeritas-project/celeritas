@@ -346,6 +346,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/PrimaryGeneratorAction.cc
     demo-geant-integration/RunAction.cc
     demo-geant-integration/SensitiveDetector.cc
+    demo-geant-integration/SensitiveHit.cc
     demo-geant-integration/TrackingAction.cc
   )
   celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
