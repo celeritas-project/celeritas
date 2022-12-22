@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <G4Allocator.hh>
 #include <G4ThreeVector.hh>
 #include <G4VHit.hh>
 
@@ -19,8 +21,8 @@ namespace demo_geant
 struct HitData
 {
     unsigned int  id{0};        //!< detector id
-    G4double      edep{0};      //!< energy deposition
-    G4double      time{0};      //!< time (global coordinate)
+    double        edep{0};      //!< energy deposition
+    double        time{0};      //!< time (global coordinate)
     G4ThreeVector pos{0, 0, 0}; //!< position (global coordinate)
 };
 
@@ -30,18 +32,36 @@ struct HitData
  */
 class SensitiveHit final : public G4VHit
 {
+    using PHitAllocator = G4Allocator<SensitiveHit>*;
+
   public:
     explicit SensitiveHit(const HitData& data);
 
-    // Accessors
-    inline HitData data() const { return data_; }
+    //! Accessor the hit data
+    const HitData& data() const { return data_; }
 
-    // Add energy deposition
-    inline void add_edep(G4double edep) { data_.edep += edep; }
+    // Overload of operator new
+    inline void* operator new(size_t);
 
   private:
-    HitData data_;
+    HitData                            data_;
+    static G4ThreadLocal PHitAllocator allocator_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Overload the operator new with G4Allocator.
+ */
+inline void* SensitiveHit::operator new(size_t)
+{
+    if (!allocator_)
+    {
+        allocator_ = new G4Allocator<SensitiveHit>;
+    }
+    return (void*)allocator_->MallocSingle();
+}
 
 //---------------------------------------------------------------------------//
 } // namespace demo_geant

@@ -13,7 +13,6 @@
 #include "SensitiveHit.hh"
 
 class G4Step;
-class G4String;
 class G4HCofThisEvent;
 
 namespace demo_geant
@@ -24,21 +23,20 @@ namespace demo_geant
  */
 class SensitiveDetector final : public G4VSensitiveDetector
 {
-  public:
     //!@{
     //! \name Type aliases
     using SensitiveHitsCollection = G4THitsCollection<SensitiveHit>;
     //!@}
 
   public:
-    explicit SensitiveDetector(G4String name);
+    explicit SensitiveDetector(std::string name);
 
   protected:
-    void   Initialize(G4HCofThisEvent*) final;
-    G4bool ProcessHits(G4Step*, G4TouchableHistory*) final;
+    void Initialize(G4HCofThisEvent*) final;
+    bool ProcessHits(G4Step*, G4TouchableHistory*) final;
 
   private:
-    G4int                                    hcid_;
+    int                                      hcid_;
     std::unique_ptr<SensitiveHitsCollection> collection_;
 };
 

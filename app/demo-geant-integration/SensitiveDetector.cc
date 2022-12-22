@@ -13,16 +13,16 @@
 #include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
-SensitiveDetector::SensitiveDetector(G4String name)
+SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_(-1)
 {
-    G4String nameHC = name + "_HC";
-    collectionName.insert(nameHC);
+    collectionName.insert(name + "_HC");
 }
 
 //---------------------------------------------------------------------------//
@@ -32,11 +32,13 @@ SensitiveDetector::SensitiveDetector(G4String name)
 void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 {
     collection_ = std::make_unique<SensitiveHitsCollection>(
-        SensitiveDetectorName, collectionName[0]);
+        this->SensitiveDetectorName, this->collectionName[0]);
     if (hcid_ < 0)
     {
+        // Initialize during the first event
         hcid_
             = G4SDManager::GetSDMpointer()->GetCollectionID(collection_.get());
+        CELER_ASSERT(hcid_ >= 0);
     }
     hce->AddHitsCollection(hcid_, collection_.release());
 }
@@ -45,7 +47,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 /*!
  * Add hits to the current hit collection
  */
-G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
+bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
     auto edep = step->GetTotalEnergyDeposit();
 
@@ -54,7 +56,7 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         return false;
     }
 
-    // Fill the hit data for this step
+    // Create a hit for this step
     auto         touchable = step->GetPreStepPoint()->GetTouchable();
     unsigned int id        = touchable->GetVolume()->GetCopyNo();
     HitData      data{id,
@@ -62,17 +64,6 @@ G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
                  step->GetPreStepPoint()->GetGlobalTime(),
                  touchable->GetTranslation()};
 
-    // Add energy deposition for this cell if it was hit before
-    for (auto hit : *(collection_->GetVector()))
-    {
-        if (id == hit->data().id)
-        {
-            hit->add_edep(edep);
-            return true;
-        }
-    }
-
-    // Otherwise, create a new hit
     collection_->insert(new SensitiveHit(data));
 
     CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into "
