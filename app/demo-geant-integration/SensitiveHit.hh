@@ -40,8 +40,9 @@ class SensitiveHit final : public G4VHit
     //! Accessor the hit data
     const HitData& data() const { return data_; }
 
-    // Overload of operator new
+    // Overload of operator new and delete
     inline void* operator new(size_t);
+    inline void  operator delete(void*);
 
   private:
     HitData                            data_;
@@ -61,6 +62,15 @@ inline void* SensitiveHit::operator new(size_t)
         allocator_ = new G4Allocator<SensitiveHit>;
     }
     return (void*)allocator_->MallocSingle();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Overload the operator new with G4Allocator.
+ */
+inline void SensitiveHit::operator delete(void* hit)
+{
+    allocator_->FreeSingle((SensitiveHit*)hit);
 }
 
 //---------------------------------------------------------------------------//
