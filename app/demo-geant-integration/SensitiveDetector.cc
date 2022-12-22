@@ -57,8 +57,10 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     }
 
     // Create a hit for this step
-    auto         touchable = step->GetPreStepPoint()->GetTouchable();
-    unsigned int id        = touchable->GetVolume()->GetCopyNo();
+    auto* touchable = step->GetPreStepPoint()->GetTouchable();
+    CELER_ASSERT(touchable);
+
+    unsigned int id = touchable->GetVolume()->GetCopyNo();
     HitData      data{id,
                  edep,
                  step->GetPreStepPoint()->GetGlobalTime(),
