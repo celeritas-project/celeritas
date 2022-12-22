@@ -101,7 +101,7 @@ double TrapParametersGetZ(G4Trap const& t)
     const double* start = reinterpret_cast<const double*>(&t);
 
     // 10 derives from sizeof(G4VSolid) + ... + offset
-    auto r = start[10];
+    auto r = start[11];
     assert(r == t.GetZHalfLength());
     return r;
 }
@@ -111,16 +111,19 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
                                           double&       phi)
 {
     const double* start = reinterpret_cast<const double*>(&t);
-    assert(t.GetZHalfLength() == start[10]);
+    // std::cout << " - Extra check: Dz = " << t.GetZHalfLength() << "
+    // double[8-12]:"
+    //    <<' '<< start[10] <<' '<< start[11] << "\n";
+    // std::cout << " - Extra check: tan(alpha1) = " << t.GetTanAlpha1()
+    //    << " vs double[16] = " << start[16] << " [17]= " << start[17] <<
+    //    "\n";
+    // std::cout << " - Extra check: tan(alpha2) = " << t.GetTanAlpha2()
+    //     << " vs double[20] = " << start[20] << " [21]= " << start[21] <<
+    //     "\n";
+
+    assert(t.GetZHalfLength() == start[11]);
     double x_peek = start[11]; // tan(theta)*cos(phi)
     double y_peek = start[12]; // tan(theta)*sin(phi)
-
-    // std::cout << " - Extra check: Dz = " << t.GetZHalfLength() << " vs
-    // double[10] = " << start[10] << "\n"; std::cout << " - Extra check:
-    // tan(alpha1) = " << t.GetTanAlpha1() << " vs double[16] = " << start[16]
-    // /* << " [17]= " << start[17] */ << "\n"; std::cout << " - Extra check:
-    // tan(alpha2) = " << t.GetTanAlpha2() << " vs double[20] = "
-    // << start[20] /* << " [21]= " << start[21] */ << "\n";
 
     if (x_peek == 0. && y_peek == 0.)
     {
@@ -603,13 +606,11 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     // TRAPEZOID
     if (auto p = dynamic_cast<G4Trap const*>(shape))
     {
-        // std::cerr << "TRAP " << p->GetName();
-
         double theta;
         double phi;
         TrapParametersGetOriginalThetaAndPhi(*p, theta, phi);
-        // std::cerr << "TRAP " << p->GetName() << " Theta= " << theta << "
-        // Phi= " << phi << "\n";
+        // std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
+        //     << " Phi= " << phi << "\n";
         unplaced_volume = GeoManager::MakeInstance<UnplacedTrapezoid>(
             TrapParametersGetZ(*p),
             theta,
@@ -807,163 +808,6 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             = GeoManager::MakeInstance<UnplacedTet>(pt0, pt1, pt2, pt3);
     }
     // #endif
-
-    //  if (shape->IsA() == TGeoCompositeShape::Class()) {
-    //    TGeoCompositeShape const *const compshape =
-    //    static_cast<TGeoCompositeShape const *>(shape);
-    //    TGeoBoolNode const *const boolnode        = compshape->GetBoolNode();
-    //
-    //    // need the matrix;
-    //    Transformation3D const *lefttrans  =
-    //    Convert(boolnode->GetLeftMatrix());
-    //    Transformation3D const *righttrans =
-    //    Convert(boolnode->GetRightMatrix());
-    //
-    //    auto transformationadjust = [this](Transformation3D *tr, TGeoShape
-    //    const
-    //    *shape) {
-    //      // TODO: combine this with external method
-    //      Transformation3D adjustment;
-    //      if (shape->IsA() == TGeoBBox::Class()) {
-    //        TGeoBBox const *const box = static_cast<TGeoBBox const *>(shape);
-    //        auto o                    = box->GetOrigin();
-    //        if (o[0] != 0. || o[1] != 0. || o[2] != 0.) {
-    //          adjustment = Transformation3D::kIdentity;
-    //          adjustment.SetTranslation(o[0] * LUnit(), o[1] * LUnit(), o[2]
-    //          * LUnit()); adjustment.SetProperties();
-    //          tr->MultiplyFromRight(adjustment);
-    //          tr->SetProperties();
-    //        }
-    //      }
-    //    };
-    //    // adjust transformation in case of shifted boxes
-    //    transformationadjust(const_cast<Transformation3D *>(lefttrans),
-    //    boolnode->GetLeftShape());
-    //    transformationadjust(const_cast<Transformation3D *>(righttrans),
-    //    boolnode->GetRightShape());
-    //
-    //    // unplaced shapes
-    //    VUnplacedVolume const *leftunplaced  =
-    //    Convert(boolnode->GetLeftShape());
-    //    VUnplacedVolume const *rightunplaced =
-    //    Convert(boolnode->GetRightShape());
-    //
-    //    assert(leftunplaced != nullptr);
-    //    assert(rightunplaced != nullptr);
-    //
-    //    // the problem is that I can only place logical volumes
-    //    VPlacedVolume *const leftplaced  = (new
-    //    LogicalVolume("inner_virtual", leftunplaced))->Place(lefttrans);
-    //    VPlacedVolume *const rightplaced = (new
-    //    LogicalVolume("inner_virtual", rightunplaced))->Place(righttrans);
-    //
-    //    // now it depends on concrete type
-    //    if (boolnode->GetBooleanOperator() == TGeoBoolNode::kGeoSubtraction)
-    //    {
-    //      unplaced_volume =
-    //          GeoManager::MakeInstance<UnplacedBooleanVolume<kSubtraction>>(kSubtraction,
-    //          leftplaced, rightplaced);
-    //    } else if (boolnode->GetBooleanOperator() ==
-    //    TGeoBoolNode::kGeoIntersection) {
-    //      unplaced_volume =
-    //          GeoManager::MakeInstance<UnplacedBooleanVolume<kIntersection>>(kIntersection,
-    //          leftplaced, rightplaced);
-    //    } else if (boolnode->GetBooleanOperator() == TGeoBoolNode::kGeoUnion)
-    //    {
-    //      unplaced_volume =
-    //      GeoManager::MakeInstance<UnplacedBooleanVolume<kUnion>>(kUnion,
-    //      leftplaced, rightplaced);
-    //    }
-    //  }
-    //
-
-    //
-    //  // THE SCALED SHAPE
-    //  if (shape->IsA() == TGeoScaledShape::Class()) {
-    //    TGeoScaledShape const *const p = static_cast<TGeoScaledShape const
-    //    *>(shape);
-    //    // First convert the referenced shape
-    //    VUnplacedVolume *referenced_shape = Convert(p->GetShape());
-    //    const double *scale_root          = p->GetScale()->GetScale();
-    //
-    //    unplaced_volume =
-    //        GeoManager::MakeInstance<UnplacedScaledShape>(referenced_shape,
-    //        scale_root[0], scale_root[1], scale_root[2]);
-    //  }
-    //
-    //  // THE ELLIPTICAL TUBE AS SCALED TUBE
-    //--if (auto ct = dynamic_cast<G4EllipticalTubs const *>(shape)) {
-    //  if (shape->IsA() == TGeoEltu::Class()) {
-    //    TGeoEltu const *const p = static_cast<TGeoEltu const *>(shape);
-    //    // Create the corresponding unplaced tube, with:
-    //    // rmin=0, rmax=A, dz=dz, which is scaled with (1., A/B, 1.)
-    //    UnplacedTube *tubeUnplaced =
-    //        GeoManager::MakeInstance<UnplacedTube>(0, p->GetA() * LUnit(),
-    //        p->GetDZ() * LUnit(), 0, kTwoPi);
-    //
-    //    unplaced_volume =
-    //    GeoManager::MakeInstance<UnplacedScaledShape>(tubeUnplaced, 1.,
-    //    p->GetB() / p->GetA(), 1.);
-    //  }
-    //
-    //  // THE ARB8
-    //  if (shape->IsA() == TGeoArb8::Class() || shape->IsA() ==
-    //  TGeoGtra::Class()) {
-    //    TGeoArb8 *p     = (TGeoArb8 *)(shape);
-    //    unplaced_volume = ToUnplacedGenTrap(p);
-    //  }
-    //
-    //  // THE SIMPLE/GENERAL XTRU
-    //  if (shape->IsA() == TGeoXtru::Class()) {
-    //    TGeoXtru *p = (TGeoXtru *)(shape);
-    //    // analyse convertability: the shape must have 2 planes with the same
-    //    scaling
-    //    // and offsets to make a simple extruded
-    //    size_t Nvert = (size_t)p->GetNvert();
-    //    size_t Nsect = (size_t)p->GetNz();
-    //    if (Nsect == 2 && p->GetXOffset(0) == p->GetXOffset(1) &&
-    //    p->GetYOffset(0) == p->GetYOffset(1) &&
-    //        p->GetScale(0) == p->GetScale(1)) {
-    //      double *x = new double[Nvert];
-    //      double *y = new double[Nvert];
-    //      for (size_t i = 0; i < Nvert; ++i) {
-    //        // Normally offsets should be 0 and scales should be 1, but just
-    //        to
-    //        be safe
-    //        x[i] = LUnit() * (p->GetXOffset(0) + p->GetX(i) *
-    //        p->GetScale(0)); y[i] = LUnit() * (p->GetYOffset(0) + p->GetY(i)
-    //        * p->GetScale(0));
-    //      }
-    //      unplaced_volume =
-    //      GeoManager::MakeInstance<UnplacedSExtruVolume>(p->GetNvert(), x, y,
-    //      LUnit() * p->GetZ(0),
-    //                                                                       LUnit()
-    //                                                                       *
-    //                                                                       p->GetZ(1));
-    //      delete[] x;
-    //      delete[] y;
-    //    }
-    //#ifndef VECGEOM_CUDA_INTERFACE
-    //    else {
-    //      // Make the general extruded solid.
-    //      XtruVertex2 *vertices = new XtruVertex2[Nvert];
-    //      XtruSection *sections = new XtruSection[Nsect];
-    //      for (size_t i = 0; i < Nvert; ++i) {
-    //        vertices[i].x = p->GetX(i);
-    //        vertices[i].y = p->GetY(i);
-    //      }
-    //      for (size_t i = 0; i < Nsect; ++i) {
-    //        sections[i].fOrigin.Set(p->GetXOffset(i), p->GetYOffset(i),
-    //        p->GetZ(i));
-    //        sections[i].fScale = p->GetScale(i);
-    //      }
-    //      unplaced_volume = GeoManager::MakeInstance<UnplacedExtruded>(Nvert,
-    //      vertices, Nsect, sections);
-    //      delete[] vertices;
-    //      delete[] sections;
-    //    }
-    //#endif
-    //  }
 
     // THE CUT TUBE
     if (auto ct = dynamic_cast<G4CutTubs const*>(shape))
