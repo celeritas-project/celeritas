@@ -40,6 +40,9 @@ struct SDSetupOptions
     StepPoint post;
 
     // TODO: list of detectors to ignore?
+
+    //! True if SD is enabled
+    explicit operator bool() const { return this->enabled; }
 };
 
 //---------------------------------------------------------------------------//

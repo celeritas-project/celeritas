@@ -58,7 +58,7 @@ class HitManager final : public StepInterface
   private:
     bool                          nonzero_energy_deposition_{};
     StepSelection                 selection_;
-    DetectorStepOutput steps_;
+    DetectorStepOutput            steps_;
     std::vector<VolumeId>         vecgeom_vols_;
     std::unique_ptr<HitProcessor> process_hits_;
 
