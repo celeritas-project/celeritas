@@ -24,6 +24,21 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Set up Celeritas SD options during construction.
+ *
+ * This should be done only during the main/serial thread.
+ */
+DetectorConstruction::DetectorConstruction()
+{
+    auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+    sd.enabled = true;
+    sd.ignore_zero_deposition = true;
+    sd.locate_touchable = true;
+    sd.pre.global_time = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Load geometry and sensitive detector volumes.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()

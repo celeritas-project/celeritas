@@ -69,6 +69,8 @@ struct DetectorStepOutput
 
     //! Number of elements in the detector output.
     size_type size() const { return detector.size(); }
+    //! Whether the size is nonzero
+    explicit operator bool() const { return !detector.empty(); }
 };
 
 //---------------------------------------------------------------------------//

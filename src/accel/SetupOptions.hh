@@ -26,7 +26,7 @@ struct SDSetupOptions
     };
 
     //! Call back to Geant4 sensitive detectors
-    bool enabled{true};
+    bool enabled{false};
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
 

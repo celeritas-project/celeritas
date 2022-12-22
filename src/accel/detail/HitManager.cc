@@ -11,6 +11,7 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/Label.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "accel/SetupOptions.hh"
 
@@ -47,6 +48,10 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
     selection_.energy_deposition = setup.energy_deposition;
     update_selection(&selection_.points[StepPoint::pre], setup.pre);
     update_selection(&selection_.points[StepPoint::post], setup.post);
+    if (setup.locate_touchable)
+    {
+        selection_.points[StepPoint::pre].pos = true;
+    }
 
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> lv_with_sd;
@@ -68,9 +73,19 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
         // Convert volume name to GPU geometry ID
         auto label = Label::from_geant(lv->GetName());
         auto id    = geo.find_volume(label);
+        if (!id)
+        {
+            // Fallback to skipping the extension
+            id = geo.find_volume(label.name);
+            if (id)
+            {
+            CELER_LOG(warning) << "Failed to find " << celeritas_geometry
+                       << " volume corresponding to Geant4 volume '" << lv->GetName() << "'; found '" << geo.id_to_label(id) << "' by omitting the extension";
+            }
+        }
         CELER_VALIDATE(id,
                        << "failed to find " << celeritas_geometry
-                       << " volume corresponding to Geant4 volume " << label);
+                       << " volume corresponding to Geant4 volume '" << lv->GetName() << "'");
 
         // Add Geant4 volume and corresponding volume ID to list
         lv_with_sd.push_back(lv);
@@ -112,7 +127,10 @@ auto HitManager::filters() const -> Filters
 void HitManager::execute(StateHostRef const& data)
 {
     copy_steps(&steps_, data);
-    (*process_hits_)(steps_);
+    if (steps_)
+    {
+        (*process_hits_)(steps_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -122,7 +140,10 @@ void HitManager::execute(StateHostRef const& data)
 void HitManager::execute(StateDeviceRef const& data)
 {
     copy_steps(&steps_, data);
+    if (steps_)
+    {
     (*process_hits_)(steps_);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -49,12 +49,16 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
  */
 bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
+    CELER_EXPECT(collection_);
     auto edep = step->GetTotalEnergyDeposit();
 
     if (edep == 0)
     {
         return false;
     }
+
+    CELER_LOG_LOCAL(debug) << "Depositing " << edep / CLHEP::MeV << " MeV into "
+                           << this->GetName();
 
     // Create a hit for this step
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
@@ -67,9 +71,6 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
                  touchable->GetTranslation()};
 
     collection_->insert(new SensitiveHit(data));
-
-    CELER_LOG_LOCAL(debug) << "Deposited " << edep / CLHEP::MeV << " MeV into "
-                           << this->GetName() << " at " << data.time;
 
     return true;
 }

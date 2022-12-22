@@ -111,8 +111,9 @@ int main(int argc, char* argv[])
     run_manager->SetNumberOfThreads(num_threads);
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
 
-    // Construct physics, geometry, celeritas setup, and user setup
+    // Construct geometry and SD factory
     run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
+
 #if 0
     // TODO: use full physics
     run_manager->SetUserInitialization(new FTFP_BERT);
@@ -122,6 +123,7 @@ int main(int argc, char* argv[])
     run_manager->SetUserInitialization(
         new celeritas::detail::GeantPhysicsList{geant_phys_opts});
 #endif
+
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
