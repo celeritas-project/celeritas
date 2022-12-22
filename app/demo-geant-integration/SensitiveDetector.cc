@@ -22,7 +22,7 @@ namespace demo_geant
 SensitiveDetector::SensitiveDetector(std::string name)
     : G4VSensitiveDetector(name), hcid_(-1)
 {
-    collectionName.insert(name + "_HC");
+    this->collectionName.insert(name + "_HC");
 }
 
 //---------------------------------------------------------------------------//
