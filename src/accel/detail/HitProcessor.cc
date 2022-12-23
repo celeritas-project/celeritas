@@ -15,6 +15,7 @@
 #include <G4VSensitiveDetector.hh>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantVersion.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -115,6 +116,8 @@ HitProcessor::~HitProcessor() = default;
 void HitProcessor::operator()(const DetectorStepOutput& out) const
 {
     CELER_EXPECT(!out.detector.empty());
+
+    CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
     for (auto i : range(out.size()))
     {

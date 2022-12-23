@@ -15,7 +15,6 @@
 #include <G4SystemOfUnits.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 
 namespace demo_geant
 {
@@ -63,9 +62,6 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     {
         return false;
     }
-
-    CELER_LOG_LOCAL(debug) << "Depositing " << edep / CLHEP::MeV
-                           << " MeV into " << this->GetName();
 
     // Create a hit for this step
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
