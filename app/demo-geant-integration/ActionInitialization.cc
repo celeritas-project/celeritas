@@ -9,7 +9,9 @@
 
 #include <G4RunManager.hh>
 
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/ExceptionConverter.hh"
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"

@@ -173,3 +173,22 @@
 #else
 #    define CELER_DEVICE_PREFIX(TOK) DEVICE_UNAVAILABLE
 #endif
+
+/*!
+ * \def CELER_TRY_ELSE
+ *
+ * Execute the statement, catching *all* thrown errors by calling the given
+ * function-like operator with a \c std::exception_ptr object.
+ *
+ * \note A file that uses this macro must include the <exception> header (but
+ * since the \c HANDLE_EXCEPTION needs to take an exception pointer anyway).
+ */
+#define CELER_TRY_ELSE(STATEMENT, HANDLE_EXCEPTION) \
+    try                                             \
+    {                                               \
+        STATEMENT;                                  \
+    }                                               \
+    catch (...)                                     \
+    {                                               \
+        HANDLE_EXCEPTION(std::current_exception()); \
+    }
