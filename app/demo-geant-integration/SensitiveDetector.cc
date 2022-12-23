@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
+#include <memory>
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
