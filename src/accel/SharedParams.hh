@@ -56,9 +56,9 @@ class SharedParams
   private:
     //// DATA ////
 
-    std::shared_ptr<CoreParams> params_;
+    std::shared_ptr<CoreParams>         params_;
     std::shared_ptr<detail::HitManager> hit_manager_;
-    std::shared_ptr<StepCollector> step_collector_;
+    std::shared_ptr<StepCollector>      step_collector_;
 
     //// HELPER FUNCTIONS ////
 

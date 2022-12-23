@@ -32,10 +32,7 @@ class GlobalSetup
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
-    celeritas::SDSetupOptions& GetSDSetupOptions()
-    {
-        return options_->sd;
-    }
+    celeritas::SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
     //! Get an immutable reference to the setup options
     std::shared_ptr<const celeritas::SetupOptions> GetSetupOptions() const

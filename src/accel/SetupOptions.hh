@@ -69,15 +69,15 @@ struct SetupOptions
     //!@{
     //! \name Celeritas stepper options
     //! Number of track "slots" to be transported simultaneously
-    size_type   max_num_tracks{};
+    size_type max_num_tracks{};
     //! Maximum number of events in use
-    size_type   max_num_events{};
+    size_type max_num_events{};
     //! Limit on number of step iterations before aborting
-    size_type   max_steps = no_max_steps();
+    size_type max_steps = no_max_steps();
     //! Maximum number of track initializers (primaries+secondaries)
-    size_type   initializer_capacity{};
+    size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
-    real_type   secondary_stack_factor{};
+    real_type secondary_stack_factor{};
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
     //!@}

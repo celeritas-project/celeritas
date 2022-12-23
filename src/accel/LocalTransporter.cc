@@ -64,7 +64,7 @@ LocalTransporter::LocalTransporter(const SetupOptions& options,
 void LocalTransporter::SetEventId(int id)
 {
     CELER_EXPECT(id >= 0);
-    event_id_ = EventId(id);
+    event_id_      = EventId(id);
     track_counter_ = 0;
 }
 

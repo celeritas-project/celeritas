@@ -79,13 +79,17 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
             id = geo.find_volume(label.name);
             if (id)
             {
-            CELER_LOG(warning) << "Failed to find " << celeritas_geometry
-                       << " volume corresponding to Geant4 volume '" << lv->GetName() << "'; found '" << geo.id_to_label(id) << "' by omitting the extension";
+                CELER_LOG(warning)
+                    << "Failed to find " << celeritas_geometry
+                    << " volume corresponding to Geant4 volume '"
+                    << lv->GetName() << "'; found '" << geo.id_to_label(id)
+                    << "' by omitting the extension";
             }
         }
         CELER_VALIDATE(id,
                        << "failed to find " << celeritas_geometry
-                       << " volume corresponding to Geant4 volume '" << lv->GetName() << "'");
+                       << " volume corresponding to Geant4 volume '"
+                       << lv->GetName() << "'");
 
         // Add Geant4 volume and corresponding volume ID to list
         lv_with_sd.push_back(lv);
@@ -142,7 +146,7 @@ void HitManager::execute(StateDeviceRef const& data)
     copy_steps(&steps_, data);
     if (steps_)
     {
-    (*process_hits_)(steps_);
+        (*process_hits_)(steps_);
     }
 }
 

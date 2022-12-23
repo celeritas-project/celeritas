@@ -30,11 +30,11 @@ namespace demo_geant
  */
 DetectorConstruction::DetectorConstruction()
 {
-    auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd   = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
     sd.enabled = true;
     sd.ignore_zero_deposition = true;
-    sd.locate_touchable = true;
-    sd.pre.global_time = true;
+    sd.locate_touchable       = true;
+    sd.pre.global_time        = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    constexpr bool validate_gdml_schema = false;
+    constexpr bool     validate_gdml_schema = false;
     const std::string& filename = GlobalSetup::Instance()->GetGdmlFile();
     if (filename.empty())
     {

@@ -193,8 +193,8 @@ void SharedParams::locked_initialize(const SetupOptions& options)
     // Construct sensitive detector callback
     if (options.sd)
     {
-        hit_manager_
-            = std::make_shared<detail::HitManager>(*params.geometry, options.sd);
+        hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
+                                                            options.sd);
         step_collector_ = std::make_shared<StepCollector>(
             StepCollector::VecInterface{hit_manager_},
             params.geometry,
