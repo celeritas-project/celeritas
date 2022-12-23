@@ -11,6 +11,7 @@
 #include <sstream>
 #include <G4Exception.hh>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
 namespace celeritas
@@ -21,6 +22,12 @@ namespace
 //! Try removing up to and including the filename from the reported path.
 std::string strip_source_dir(const std::string& filename)
 {
+    if (CELERITAS_DEBUG)
+    {
+        // Don't strip in debug mode
+        return filename;
+    }
+
     auto pos = std::string::npos;
     for (const char* path : {"src/", "app/", "test/"})
     {
