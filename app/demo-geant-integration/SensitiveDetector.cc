@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveDetector.hh"
 
+#include <G4AutoDelete.hh>
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
@@ -31,16 +32,16 @@ SensitiveDetector::SensitiveDetector(std::string name)
  */
 void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 {
-    collection_ = std::make_unique<SensitiveHitsCollection>(
-        this->SensitiveDetectorName, this->collectionName[0]);
+    collection_ = new SensitiveHitsCollection(this->SensitiveDetectorName,
+                                              this->collectionName[0]);
     if (hcid_ < 0)
     {
         // Initialize during the first event
-        hcid_
-            = G4SDManager::GetSDMpointer()->GetCollectionID(collection_.get());
+        hcid_ = G4SDManager::GetSDMpointer()->GetCollectionID(collection_);
         CELER_ASSERT(hcid_ >= 0);
     }
-    hce->AddHitsCollection(hcid_, collection_.release());
+    hce->AddHitsCollection(hcid_, collection_);
+    G4AutoDelete::Register(collection_);
 }
 
 //---------------------------------------------------------------------------//
@@ -57,8 +58,8 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         return false;
     }
 
-    CELER_LOG_LOCAL(debug) << "Depositing " << edep / CLHEP::MeV << " MeV into "
-                           << this->GetName();
+    CELER_LOG_LOCAL(debug) << "Depositing " << edep / CLHEP::MeV
+                           << " MeV into " << this->GetName();
 
     // Create a hit for this step
     auto* touchable = step->GetPreStepPoint()->GetTouchable();
