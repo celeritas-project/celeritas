@@ -62,35 +62,11 @@ int GetNumThreads()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Execute and run.
- */
-int main(int argc, char* argv[])
+void run(int num_threads, const std::string& macro_filename)
 {
-    std::vector<std::string> args(argv, argv + argc);
-    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
-    {
-        std::cerr << "usage: " << args[0] << " {commands}.mac\n"
-                  << "Environment variables:\n"
-                  << "  NUM_THREADS: number of CPU threads\n"
-                  << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
-                  << "  CELER_LOG: global logging level\n"
-                  << "  CELER_LOG_LOCAL: thread-local logging level\n"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Set up the number of threads
+    // Set the random seed *before* the run manager is instantiated
+    // (G4MTRunManager constructor uses the RNG)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
-
-    int num_threads = GetNumThreads();
-    if (num_threads <= 0)
-    {
-        return EXIT_FAILURE;
-    }
 
     std::unique_ptr<G4RunManager> run_manager;
 #if CELERITAS_G4_V10
@@ -128,9 +104,43 @@ int main(int argc, char* argv[])
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
-    CELER_LOG_LOCAL(status)
-        << "Executing macro commands from '" << args[1] << "'";
-    ui->ApplyCommand("/control/execute " + args[1]);
+    CELER_LOG(status)
+        << "Executing macro commands from '" << macro_filename << "'";
+    ui->ApplyCommand("/control/execute " + macro_filename);
+}
 
+//---------------------------------------------------------------------------//
+} // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute and run.
+ */
+int main(int argc, char* argv[])
+{
+    std::vector<std::string> args(argv, argv + argc);
+    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
+    {
+        std::cerr << "usage: " << args[0] << " {commands}.mac\n"
+                  << "Environment variables:\n"
+                  << "  NUM_THREADS: number of CPU threads\n"
+                  << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
+                  << "  CELER_LOG: global logging level\n"
+                  << "  CELER_LOG_LOCAL: thread-local logging level\n"
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Set up the number of threads
+    int num_threads = GetNumThreads();
+    if (num_threads <= 0)
+    {
+        return EXIT_FAILURE;
+    }
+
+    // Run with threads and macro filename
+    run(num_threads, args[1]);
+
+    CELER_LOG(status) << "Run completed successfully; exiting";
     return EXIT_SUCCESS;
 }
