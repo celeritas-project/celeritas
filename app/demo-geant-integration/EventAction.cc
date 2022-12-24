@@ -9,6 +9,9 @@
 
 #include <G4Event.hh>
 
+#include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -24,7 +27,9 @@ EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 void EventAction::BeginOfEventAction(const G4Event* event)
 {
     // Set event ID in local transporter
-    transport_->SetEventId(event->GetEventID());
+    celeritas::ExceptionConverter call_g4exception{"celer0002"};
+    CELER_TRY_ELSE(transport_->SetEventId(event->GetEventID()),
+                   call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
@@ -34,7 +39,8 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 void EventAction::EndOfEventAction(const G4Event*)
 {
     // Transport any tracks left in the buffer
-    transport_->Flush();
+    celeritas::ExceptionConverter call_g4exception{"celer0004"};
+    CELER_TRY_ELSE(transport_->Flush(), call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
