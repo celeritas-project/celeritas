@@ -181,14 +181,18 @@
  * function-like operator with a \c std::exception_ptr object.
  *
  * \note A file that uses this macro must include the <exception> header (but
- * since the \c HANDLE_EXCEPTION needs to take an exception pointer anyway).
+ * since the \c HANDLE_EXCEPTION needs to take an exception pointer, it's
+ * got to be included anyway).
  */
-#define CELER_TRY_ELSE(STATEMENT, HANDLE_EXCEPTION) \
-    try                                             \
-    {                                               \
-        STATEMENT;                                  \
-    }                                               \
-    catch (...)                                     \
-    {                                               \
-        HANDLE_EXCEPTION(std::current_exception()); \
-    }
+#define CELER_TRY_ELSE(STATEMENT, HANDLE_EXCEPTION)     \
+    do                                                  \
+    {                                                   \
+        try                                             \
+        {                                               \
+            STATEMENT;                                  \
+        }                                               \
+        catch (...)                                     \
+        {                                               \
+            HANDLE_EXCEPTION(std::current_exception()); \
+        }                                               \
+    } while (0)
