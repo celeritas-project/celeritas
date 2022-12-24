@@ -11,10 +11,10 @@
 #include <G4Exception.hh>
 
 #include "celeritas_config.h"
+#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
-
 #if CELER_USE_DEVICE
 #    include <thrust/system/system_error.h>
 #endif
