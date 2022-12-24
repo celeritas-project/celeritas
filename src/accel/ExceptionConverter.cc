@@ -13,16 +13,28 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/sys/Environment.hh"
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
+bool determine_strip()
+{
+    if (CELERITAS_DEBUG)
+    {
+        return true;
+    }
+    return !celeritas::getenv("CELER_STRIP_SOURCEDIR").empty();
+}
+
+//---------------------------------------------------------------------------//
 //! Try removing up to and including the filename from the reported path.
 std::string strip_source_dir(const std::string& filename)
 {
-    if (CELERITAS_DEBUG)
+    static const bool do_strip = determine_strip();
+    if (!do_strip)
     {
         // Don't strip in debug mode
         return filename;
