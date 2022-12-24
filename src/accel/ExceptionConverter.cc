@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "ExceptionConverter.hh"
 
-#include <cstring>
 #include <sstream>
 #include <G4Exception.hh>
 
@@ -22,11 +21,11 @@ namespace
 //---------------------------------------------------------------------------//
 bool determine_strip()
 {
-    if (CELERITAS_DEBUG)
+    if (!celeritas::getenv("CELER_STRIP_SOURCEDIR").empty())
     {
         return true;
     }
-    return !celeritas::getenv("CELER_STRIP_SOURCEDIR").empty();
+    return static_cast<bool>(CELERITAS_DEBUG);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,24 +39,24 @@ std::string strip_source_dir(const std::string& filename)
         return filename;
     }
 
-    auto pos = std::string::npos;
-    for (const char* path : {"src/", "app/", "test/"})
+    std::string::size_type max_pos = 0;
+    for (const std::string path : {"src/", "app/", "test/"})
     {
-        pos = filename.rfind(path);
+        auto pos = filename.rfind(path);
 
         if (pos != std::string::npos)
         {
-            pos += std::strlen(path) - 1;
-            break;
+            pos += path.size() - 1;
+            max_pos = std::max(max_pos, pos);
         }
     }
-    if (pos == std::string::npos)
+    if (max_pos == 0)
     {
         // No telling where the filename is from...
         return filename;
     }
 
-    return filename.substr(pos + 1);
+    return filename.substr(max_pos + 1);
 }
 
 //---------------------------------------------------------------------------//
