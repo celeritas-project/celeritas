@@ -205,8 +205,7 @@
 #    define CELER_VALIDATE(COND, MSG)                                         \
         throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal, \
                                        "CELER_VALIDATE cannot be called "     \
-                                       "from "                                \
-                                       "device code",                         \
+                                       "from device code",                    \
                                        __FILE__,                              \
                                        __LINE__});
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
