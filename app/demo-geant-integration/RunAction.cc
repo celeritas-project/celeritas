@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
+#include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -31,13 +34,18 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
 
-    // Initialize shared data
-    params_->Initialize(*options_);
-    CELER_ASSERT(*params_);
+    celeritas::ExceptionConverter call_g4exception{"celer0001"};
+    CELER_TRY_ELSE(
+        {
+            // Initialize shared data
+            params_->Initialize(*options_);
+            CELER_ASSERT(*params_);
 
-    // Construct thread-local transporter
-    *transport_ = celeritas::LocalTransporter(*options_, *params_);
-    CELER_ENSURE(*transport_);
+            // Construct thread-local transporter
+            *transport_ = celeritas::LocalTransporter(*options_, *params_);
+            CELER_ENSURE(*transport_);
+        },
+        call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
