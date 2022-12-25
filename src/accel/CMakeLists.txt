@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit)
+set(PRIVATE_DEPS)
 set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 
 #-----------------------------------------------------------------------------#

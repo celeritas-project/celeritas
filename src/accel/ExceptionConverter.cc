@@ -11,13 +11,8 @@
 #include <G4Exception.hh>
 
 #include "celeritas_config.h"
-#include "corecel/device_runtime_api.h"
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
-#if CELER_USE_DEVICE
-#    include <thrust/system/system_error.h>
-#endif
 
 namespace celeritas
 {
@@ -104,12 +99,6 @@ void ExceptionConverter::operator()(std::exception_ptr eptr)
         G4Exception(
             where.str().c_str(), err_code_, FatalException, what.str().c_str());
     }
-#if CELER_USE_DEVICE
-    catch (const thrust::system_error& e)
-    {
-        G4Exception("Thrust GPU library", err_code_, FatalException, e.what());
-    }
-#endif
     // (Any other errors will be rethrown and abort the program.)
 }
 
