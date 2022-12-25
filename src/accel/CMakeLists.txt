@@ -13,11 +13,12 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  ExceptionConverter.cc
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
 )
+
+celeritas_polysource(ExceptionConverter)
 
 #-----------------------------------------------------------------------------#
 # Create library

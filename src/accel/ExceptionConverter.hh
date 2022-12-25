@@ -38,10 +38,12 @@ class ExceptionConverter
     inline explicit ExceptionConverter(const char* err_code);
 
     // Capture the current exception and convert it to a G4Exception call
-    void operator()(std::exception_ptr p);
+    void operator()(std::exception_ptr p) const;
 
   private:
     const char* err_code_;
+
+    void convert_device_exceptions(std::exception_ptr p) const;
 };
 
 //---------------------------------------------------------------------------//
