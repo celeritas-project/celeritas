@@ -15,10 +15,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
 
-#if CELER_USE_DEVICE
-#    include <thrust/system/system_error.h>
-#endif
-
 namespace celeritas
 {
 namespace
@@ -71,7 +67,7 @@ std::string strip_source_dir(const std::string& filename)
 /*!
  * Capture the current exception and convert it to a G4Exception call.
  */
-void ExceptionConverter::operator()(std::exception_ptr eptr)
+void ExceptionConverter::operator()(std::exception_ptr eptr) const
 {
     try
     {
@@ -104,14 +100,26 @@ void ExceptionConverter::operator()(std::exception_ptr eptr)
         G4Exception(
             where.str().c_str(), err_code_, FatalException, what.str().c_str());
     }
-#if CELER_USE_DEVICE
-    catch (const thrust::system_error& e)
+    catch (const std::runtime_error& e)
     {
-        G4Exception("Thrust GPU library", err_code_, FatalException, e.what());
+        this->convert_device_exceptions(std::current_exception());
     }
-#endif
     // (Any other errors will be rethrown and abort the program.)
 }
 
+#if !CELER_USE_DEVICE
+//---------------------------------------------------------------------------//
+/*!
+ * No other exceptions are caught when device code is disabled.
+ *
+ * See ExceptionConverter.cu for the CUDA implementation of this.
+ */
+inline void
+ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) const
+{
+    std::rethrow_exception(eptr);
+}
+
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas

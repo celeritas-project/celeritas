@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit)
+set(PRIVATE_DEPS)
 set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
@@ -13,11 +13,12 @@ set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
-  ExceptionConverter.cc
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
 )
+
+celeritas_polysource(ExceptionConverter)
 
 #-----------------------------------------------------------------------------#
 # Create library
