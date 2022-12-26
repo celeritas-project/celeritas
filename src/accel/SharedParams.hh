@@ -36,15 +36,19 @@ class SharedParams
     //!@}
 
   public:
-    // Construct a shared pointer to this class for sharing with
-    // LocalTransporter
-    static std::shared_ptr<SharedParams> MakeShared();
-
+    // Default constructors, assignment, destructor
     SharedParams() = default;
+    SharedParams(SharedParams&&)                 = default;
+    SharedParams(const SharedParams&)            = default;
+    SharedParams& operator=(SharedParams&&)      = default;
+    SharedParams& operator=(const SharedParams&) = default;
     ~SharedParams();
 
     // Thread-safe setup of Celeritas using Geant4 data.
     void Initialize(const SetupOptions& options);
+
+    // Write (shared) diagnostic output and clear shared data on master.
+    void Finalize();
 
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
@@ -56,6 +60,7 @@ class SharedParams
     //// DATA ////
 
     std::shared_ptr<CoreParams> params_;
+    std::string                 output_filename_;
 
     //// HELPER FUNCTIONS ////
 
