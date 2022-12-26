@@ -26,7 +26,7 @@ pipeline {
           agent {
             docker {
               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              label 'AMD_Radeon_Instinct_MI100 && rocm-docker && large_images'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
               args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
             }
           }
@@ -43,7 +43,7 @@ pipeline {
           agent {
             docker {
               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              label 'AMD_Radeon_Instinct_MI100 && rocm-docker && large_images'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
               args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
             }
           }
