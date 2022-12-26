@@ -33,7 +33,6 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "SetupOptions.hh"
-#include "detail/HitProcessor.hh"
 
 #if CELERITAS_USE_JSON
 #    include "corecel/io/BuildOutput.hh"
