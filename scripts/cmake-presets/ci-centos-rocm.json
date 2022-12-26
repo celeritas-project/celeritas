@@ -33,7 +33,8 @@
       "description": "Build with address sanitizer flags",
       "inherits": ["base"],
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"},
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "ON"},
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }
     },
