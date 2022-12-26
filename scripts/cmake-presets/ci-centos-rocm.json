@@ -29,8 +29,17 @@
       }
     },
     {
+      "name": "asan",
+      "description": "Build with address sanitizer flags",
+      "inherits": ["base"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"},
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
+      }
+    },
+    {
       "name": "debug",
-      "description": "Build with HIP/ROCM for AMD",
+      "description": "Build debug with HIP/ROCM for AMD",
       "inherits": "base"
     },
     {
@@ -50,6 +59,7 @@
       "verbose": true,
       "jobs": 16
     },
+    {"name": "asan" , "configurePreset": "asan" , "inherits": "base"},
     {"name": "debug" , "configurePreset": "debug" , "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ],
@@ -69,6 +79,7 @@
         "outputOnFailure": true
       }
     },
+    {"name": "asan" , "configurePreset": "asan" , "inherits": "base"},
     {"name": "debug" , "configurePreset": "debug" , "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
