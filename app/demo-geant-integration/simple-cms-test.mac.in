@@ -5,6 +5,7 @@
 
 # TODO: hepmc input
 /setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
+/setup/setOutputFile simple-cms.out.json
 /setup/maxNumTracks 1024
 /setup/maxNumEvents 1024
 /setup/secondaryStackFactor 3

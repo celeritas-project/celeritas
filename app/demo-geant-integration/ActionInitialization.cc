@@ -13,6 +13,7 @@
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"
+#include "MasterRunAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
@@ -29,6 +30,22 @@ ActionInitialization::ActionInitialization()
     params_ = std::make_shared<celeritas::SharedParams>();
     // Make global setup commands available to UI
     GlobalSetup::Instance();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct actions on the master thread.
+ *
+ * Since our \c RunAction::EndOfRunAction only calls \c SharedParams::Finalize
+ * on the master thread, we need a special case for MT mode.
+ */
+void ActionInitialization::BuildForMaster() const
+{
+    CELER_LOG_LOCAL(status) << "Constructing user action on master threads";
+
+    // Run action sets up Celeritas
+    this->SetUserAction(new MasterRunAction{
+        GlobalSetup::Instance()->GetSetupOptions(), params_});
 }
 
 //---------------------------------------------------------------------------//
