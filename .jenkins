@@ -14,7 +14,24 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh bionic-minimal valgrind'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-minimal valgrind'
+          }
+          post {
+            always {
+              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
+            }
+          }
+        }
+        stage('hip-asan') {
+          agent {
+            docker {
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
+              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
+            }
+          }
+          steps {
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm asan'
           }
           post {
             always {
@@ -47,7 +64,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg'
           }
           post {
             always {
@@ -63,7 +80,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg-ndebug'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg-ndebug'
           }
           post {
             always {
@@ -79,7 +96,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-demos'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-demos'
           }
           post {
             always {
@@ -95,7 +112,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-tests'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-tests'
           }
           post {
             always {
