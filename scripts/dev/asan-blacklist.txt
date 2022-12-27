@@ -1,0 +1,5 @@
+# Leaks in clhep@2.4.6.0
+fun:_ZN7HepTool9Evaluator8evaluateEPKc
+# Leaks in geant4@11.0.3
+fun:_ZN15G4LogicalVolume16SetVisAttributesERK15G4VisAttributes
+fun:_ZN19G4PhysicsListHelper17AddTransportationEv
