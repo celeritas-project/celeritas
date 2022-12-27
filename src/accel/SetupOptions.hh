@@ -62,9 +62,15 @@ struct SetupOptions
 
     // TODO: along-step construction option/callback
 
+    //!@{
+    //! \name I/O
     // TODO: geometry should be exported directly from Geant4 (or written to
     // temporary GDML and re-read)
+    //! GDML filename
     std::string geometry_file;
+    //! Filename for JSON diagnostic output
+    std::string output_file;
+    //!@}
 
     //!@{
     //! \name Celeritas stepper options

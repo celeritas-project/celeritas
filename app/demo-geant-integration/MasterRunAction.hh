@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/ActionInitialization.hh
+//! \file demo-geant-integration/MasterRunAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <G4VUserActionInitialization.hh>
+#include <G4UserRunAction.hh>
 
 #include "accel/SharedParams.hh"
 
@@ -16,23 +16,26 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up demo-specific action initializations.
+ * Set up and tear down Celeritas on the master thread for MT mode.
  */
-class ActionInitialization final : public G4VUserActionInitialization
+class MasterRunAction final : public G4UserRunAction
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
+    using SPConstOptions = std::shared_ptr<const celeritas::SetupOptions>;
+    using SPParams       = std::shared_ptr<celeritas::SharedParams>;
     //!@}
 
   public:
-    ActionInitialization();
-    void BuildForMaster() const final;
-    void Build() const final;
+    MasterRunAction(SPConstOptions options, SPParams params);
+
+    void BeginOfRunAction(const G4Run* run) final;
+    void EndOfRunAction(const G4Run* run) final;
 
   private:
-    SPParams params_;
+    SPConstOptions options_;
+    SPParams       params_;
 };
 
 //---------------------------------------------------------------------------//

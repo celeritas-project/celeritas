@@ -12,6 +12,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -66,7 +67,7 @@ std::string strip_source_dir(const std::string& filename)
 /*!
  * Capture the current exception and convert it to a G4Exception call.
  */
-void ExceptionConverter::operator()(std::exception_ptr eptr)
+void ExceptionConverter::operator()(std::exception_ptr eptr) const
 {
     try
     {
@@ -99,8 +100,26 @@ void ExceptionConverter::operator()(std::exception_ptr eptr)
         G4Exception(
             where.str().c_str(), err_code_, FatalException, what.str().c_str());
     }
+    catch (const std::runtime_error& e)
+    {
+        this->convert_device_exceptions(std::current_exception());
+    }
     // (Any other errors will be rethrown and abort the program.)
 }
 
+#if !CELER_USE_DEVICE
+//---------------------------------------------------------------------------//
+/*!
+ * No other exceptions are caught when device code is disabled.
+ *
+ * See ExceptionConverter.cu for the CUDA implementation of this.
+ */
+inline void
+ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) const
+{
+    std::rethrow_exception(eptr);
+}
+
+#endif
 //---------------------------------------------------------------------------//
 } // namespace celeritas

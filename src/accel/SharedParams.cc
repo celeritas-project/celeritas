@@ -13,6 +13,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
+#include "corecel/io/OutputManager.hh"
+#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
@@ -33,6 +36,17 @@
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
 
+#if CELERITAS_USE_JSON
+#    include "corecel/io/BuildOutput.hh"
+#    include "corecel/sys/DeviceIO.json.hh"
+#    include "corecel/sys/Environment.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/KernelRegistry.hh"
+#    include "corecel/sys/KernelRegistryIO.json.hh"
+#    include "celeritas/global/ActionRegistryOutput.hh"
+#    include "celeritas/phys/PhysicsParamsOutput.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -44,7 +58,8 @@ SharedParams::~SharedParams() = default;
  * Thread-safe setup of Celeritas using Geant4 data.
  *
  * This is a separate step from construction because it has to happen at the
- * beginning of the run, not when user classes are created.
+ * beginning of the run, not when user classes are created. It should be called
+ * from all threads to ensure that construction is complete locally.
  */
 void SharedParams::Initialize(const SetupOptions& options)
 {
@@ -76,6 +91,62 @@ void SharedParams::Initialize(const SetupOptions& options)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear shared data after writing out diagnostics.
+ *
+ * This must be executed exactly *once* across all threads and at the end of
+ * the run.
+ */
+void SharedParams::Finalize()
+{
+    CELER_EXPECT(*this);
+
+    if (!output_filename_.empty())
+    {
+#if CELERITAS_USE_JSON
+        CELER_LOG(info) << "Writing Celeritas output to \"" << output_filename_
+                        << '"';
+        OutputManager output;
+
+        // System diagnostics
+        output.insert(OutputInterfaceAdapter<Device>::from_const_ref(
+            OutputInterface::Category::system, "device", celeritas::device()));
+        output.insert(OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "kernels",
+            celeritas::kernel_registry()));
+        output.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+            OutputInterface::Category::system,
+            "environ",
+            celeritas::environment()));
+        output.insert(std::make_shared<BuildOutput>());
+
+        // Problem diagnostics
+        output.insert(
+            std::make_shared<PhysicsParamsOutput>(params_->physics()));
+        output.insert(
+            std::make_shared<ActionRegistryOutput>(params_->action_reg()));
+
+        std::ofstream outf(output_filename_);
+        CELER_VALIDATE(outf,
+                       << "failed to open output file at \""
+                       << output_filename_ << '"');
+        output.output(&outf);
+#else
+        CELER_LOG(warning) << "JSON support is not enabled, so no output will "
+                              "be written to \""
+                           << output_filename_ << '"';
+#endif
+    }
+
+    // Reset all data
+    CELER_LOG_LOCAL(debug) << "Resetting shared parameters";
+    *this = {};
+
+    CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from setup options in a thread-safe manner.
  */
 void SharedParams::locked_initialize(const SetupOptions& options)
@@ -91,6 +162,7 @@ void SharedParams::locked_initialize(const SetupOptions& options)
     }
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas";
+    ScopedTimeLog scoped_time;
 
     celeritas::GeantImporter load_geant_data(
         G4TransportationManager::GetTransportationManager()
@@ -204,6 +276,9 @@ void SharedParams::locked_initialize(const SetupOptions& options)
     // Create params
     CELER_ASSERT(params);
     params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // Save other data as needed
+    output_filename_ = options.output_file;
 }
 
 //---------------------------------------------------------------------------//
