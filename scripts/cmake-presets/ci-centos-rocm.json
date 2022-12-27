@@ -32,9 +32,6 @@
       "name": "asan",
       "description": "Build with address sanitizer flags",
       "inherits": ["base"],
-      "environment": {
-        "ASAN_OPTIONS=detect_leaks=0"
-      },
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
