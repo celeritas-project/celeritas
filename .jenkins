@@ -14,7 +14,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh bionic-minimal valgrind'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-minimal valgrind'
           }
           post {
             always {
@@ -64,7 +64,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg'
           }
           post {
             always {
@@ -80,7 +80,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda full-novg-ndebug'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg-ndebug'
           }
           post {
             always {
@@ -96,7 +96,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-demos'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-demos'
           }
           post {
             always {
@@ -112,7 +112,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh jammy-cuda vecgeom-tests'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-tests'
           }
           post {
             always {
