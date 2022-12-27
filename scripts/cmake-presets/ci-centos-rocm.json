@@ -8,6 +8,9 @@
       "inherits": [".hip-mi100", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
+      "environment": {
+        "PATH": "/opt/rocm-5.4.0/llvm/bin:$penv{PATH}"
+      },
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
