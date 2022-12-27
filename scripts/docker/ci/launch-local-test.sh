@@ -39,8 +39,7 @@ CONTAINER=$(${DOCKER} run -t -d ci-${CONFIG})
 echo "Launched container: ${CONTAINER}" 1>&2
 ${DOCKER} exec -i ${CONTAINER} bash -l <<EOF || echo "*BUILD FAILED*"
 set -e
-git clone https://github.com/celeritas-project/celeritas.git src
-cd src
+git clone https://github.com/celeritas-project/celeritas.git .
 git fetch origin pull/$1/head:mr/$1
 git checkout mr/$1
 entrypoint-shell ./scripts/ci/run-ci.sh ${OS} ${BUILD}
