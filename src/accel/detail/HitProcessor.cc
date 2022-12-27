@@ -101,7 +101,7 @@ HitProcessor::HitProcessor(VecLV                detector_volumes,
         navi_->SetWorldVolume(world_volume);
 
         // Create "touchable handle" (shared pointer to G4TouchableHistory)
-        touch_handle_ = G4TouchableHandle{new G4TouchableHistory};
+        touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
 }
