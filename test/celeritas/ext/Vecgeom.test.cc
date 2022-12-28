@@ -485,7 +485,117 @@ class GeantBuilderTestBase : public VecgeomTestBase,
 
 //---------------------------------------------------------------------------//
 
-#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
+#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
+class FourLevelsGeantTest : public GeantBuilderTestBase
+{
+  public:
+    const char* geometry_basename() const final { return "four-levels"; }
+};
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsGeantTest, accessors)
+{
+    const auto& geom = *this->geometry();
+    EXPECT_EQ(4, geom.num_volumes());
+    EXPECT_EQ(4, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("Envelope", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("Shape1", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("Shape2", geom.id_to_label(VolumeId{3}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(FourLevelsGeantTest, tracking)
+{
+    {
+        SCOPED_TRACE("Rightward");
+        auto result = this->track({-100, -100, -100}, {1, 0, 0});
+        // result.print_expected();
+        static const char* const expected_volumes[] = {"Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {50, 10, 10, 60, 10, 10, 100, 10, 10, 70};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("From outside edge");
+        auto result = this->track({-240, 100., 100.}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {
+            1e-13, 70.0 - 1e-13, 10, 10, 100, 10, 10, 60, 10, 10, 100, 10, 10, 70};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Leaving world");
+        auto result = this->track({-100, 100, 100}, {0, 1, 0});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {50, 10, 20, 60};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upward");
+        auto result = this->track({-100, 100, 100}, {0, 0, 1});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {50, 10, 80};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        // Formerly in linear propagator test, used to fail
+        SCOPED_TRACE("From just outside world");
+        auto result = this->track({-240, 100, 100}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {1e-13, 70, 10, 10, 100, 10, 10, 60, 10, 10, 100, 10, 10, 70};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(DISABLED_SolidsGeantTest)
 class SolidsGeantTest : public GeantBuilderTestBase
 {
   public:
