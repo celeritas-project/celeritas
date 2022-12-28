@@ -32,6 +32,8 @@ include(CMakePackageConfigHelpers)
 # OPTIONS
 #----------------------------------------------------------------------------#
 
+# NOTE: languages must be *first* because their settings affect the
+# find_package calls.
 celeritas_optional_language(CUDA)
 if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
