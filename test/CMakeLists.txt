@@ -105,7 +105,7 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------#
-# TESTING ADDITION TESTS
+# GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL PREFIX detail)
@@ -414,6 +414,18 @@ celeritas_add_device_test(celeritas/track/TrackInit ${_needs_cuda})
 set(CELERITASTEST_PREFIX celeritas/user)
 celeritas_add_test(celeritas/user/DetectorSteps.test.cc GPU)
 celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
+
+#-----------------------------------------------------------------------------#
+# ACCELERITAS TESTS
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_USE_Geant4)
+  celeritas_setup_tests(SERIAL PREFIX accel
+    LINK_LIBRARIES Celeritas::accel
+  )
+
+  celeritas_add_test(accel/ExceptionConverter.test.cc)
+endif()
 
 #-----------------------------------------------------------------------------#
 # DATA UPDATE

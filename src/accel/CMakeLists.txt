@@ -18,6 +18,12 @@ list(APPEND SOURCES
   SharedParams.cc
 )
 
+celeritas_polysource(ExceptionConverter)
+
+if(CELERITAS_USE_JSON)
+  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#

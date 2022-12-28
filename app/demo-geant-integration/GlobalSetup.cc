@@ -39,6 +39,11 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the geometry file name");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("setOutputFile",
+                                                options_->output_file);
+        cmd.SetGuidance("Set the JSON output file name");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",
                                                 options_->max_num_tracks);
         cmd.SetGuidance("Set the maximum number of track slots");
