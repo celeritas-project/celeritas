@@ -283,9 +283,10 @@ struct OrangeStateData
     //// DATA ////
 
     // For each track, one per max_level
-    StateItems<Real3> pos;
-    StateItems<Real3> dir;
-    StateItems<VolumeId> vol;
+    StateItems<Real3>      pos;
+    StateItems<Real3>      dir;
+    StateItems<VolumeId>   vol;
+    StateItems<UniverseId> universe;
 
     // Surface crossing
     StateItems<SurfaceId> surf;
@@ -326,11 +327,12 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        pos = other.pos;
-        dir = other.dir;
-        vol = other.vol;
-        surf = other.surf;
-        sense = other.sense;
+        pos      = other.pos;
+        dir      = other.dir;
+        vol      = other.vol;
+        universe = other.universe;
+        surf     = other.surf;
+        sense    = other.sense;
         boundary = other.boundary;
 
         temp_sense = other.temp_sense;
@@ -357,6 +359,7 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->vol, size);
+    resize(&data->universe, size);
     resize(&data->surf, size);
     resize(&data->sense, size);
     resize(&data->boundary, size);
