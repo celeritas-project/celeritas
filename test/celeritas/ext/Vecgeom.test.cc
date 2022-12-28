@@ -16,7 +16,6 @@
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
 #include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/ext/LoadGdml.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -134,10 +133,13 @@ void VecgeomTestBase::TrackingResult::print_expected()
 }
 
 //---------------------------------------------------------------------------//
+// FOUR-LEVELS TEST
+//---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTestBase,
-                       public GlobalGeoTestBase,
-                       public OnlyGeoTestBase
+class FourLevelsTest : public GlobalGeoTestBase,
+                       public OnlyGeoTestBase,
+                       public VecgeomTestBase
+
 {
   public:
     const char* geometry_basename() const final { return "four-levels"; }
@@ -411,11 +413,42 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-// CONSTRUCT FROM GEANT4 (TODO)
+// SOLIDS TEST
 //---------------------------------------------------------------------------//
 
-class GeantBuilderTestBase : public VecgeomTestBase,
-                             virtual public GeantTestBase
+// TODO: solids are not all implemented in VGDML
+#define SolidsTest DISABLED_SolidsTest
+
+class SolidsTest : public GlobalGeoTestBase,
+                   public OnlyGeoTestBase,
+                   public VecgeomTestBase
+{
+  public:
+    const char* geometry_basename() const final
+    {
+        return "solids";
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, accessors)
+{
+    const auto& geom = *this->geometry();
+    EXPECT_EQ(31, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{1}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{2}).name);
+}
+
+//---------------------------------------------------------------------------//
+// CONSTRUCT FROM GEANT4
+//---------------------------------------------------------------------------//
+
+class GeantBuilderTestBase : virtual public GeantTestBase,
+                             public VecgeomTestBase
 {
   public:
     static void SetUpTestCase()
@@ -435,6 +468,15 @@ class GeantBuilderTestBase : public VecgeomTestBase,
     bool      enable_msc() const final { return false; }
     bool      combined_brems() const final { return false; }
     real_type secondary_stack_factor() const final { return 0; }
+};
+
+//---------------------------------------------------------------------------//
+
+#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
+class SolidsGeantTest : public GeantBuilderTestBase
+{
+  public:
+    const char* geometry_basename() const final { return "solids"; }
 };
 
 //---------------------------------------------------------------------------//
