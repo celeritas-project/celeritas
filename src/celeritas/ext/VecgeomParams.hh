@@ -92,7 +92,12 @@ class VecgeomParams
 
     //// HELPER FUNCTIONS ////
 
-    void build_md();
+    // Construct VecGeom tracking data and copy to GPU
+    void build_tracking();
+    // Construct host/device Celeritas data
+    void build_data();
+    // Construct labels and other host-only metadata
+    void build_metadata();
 };
 
 //---------------------------------------------------------------------------//
