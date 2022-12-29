@@ -417,7 +417,6 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 //---------------------------------------------------------------------------//
 
 // TODO: solids are not all implemented in VGDML
-#define SolidsTest DISABLED_SolidsTest
 
 class SolidsTest : public GlobalGeoTestBase,
                    public OnlyGeoTestBase,
@@ -435,12 +434,37 @@ class SolidsTest : public GlobalGeoTestBase,
 TEST_F(SolidsTest, accessors)
 {
     const auto& geom = *this->geometry();
-    EXPECT_EQ(31, geom.num_volumes());
+    // TODO: this should be 31ish?
+    EXPECT_EQ(25, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
-    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{1}).name);
-    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{2}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, DISABLED_trace)
+{
+    FAIL() << "These are all wrong...";
+    {
+        SCOPED_TRACE("Center +x");
+        auto result = this->track({-100, 0, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+    {
+        SCOPED_TRACE("Upper +x");
+        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+    {
+        SCOPED_TRACE("Lower +x");
+        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+
 }
 
 //---------------------------------------------------------------------------//
@@ -459,9 +483,7 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
     SPConstGeo build_geometry() override
     {
-        // TODO:
-        return nullptr;
-        // return std::make_shared<VecgeomParams>(this->get_world_volume());
+        return std::make_shared<VecgeomParams>(this->get_world_volume());
     }
 
     bool      enable_fluctuation() const final { return false; }
@@ -478,6 +500,65 @@ class SolidsGeantTest : public GeantBuilderTestBase
   public:
     const char* geometry_basename() const final { return "solids"; }
 };
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, accessors)
+{
+    const auto& geom = *this->geometry();
+    // TODO: This is known to be incorrect because of missing VecGeom shapes.
+    EXPECT_EQ(25, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, DISABLED_trace)
+{
+    FAIL() << "These distances are wrong";
+    {
+        SCOPED_TRACE("Center +x");
+        auto                     result = this->track({-100, 0, 0}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"World",
+                                                       "vol1",
+                                                       "World",
+                                                       "vol2",
+                                                       "World",
+                                                       "vol0",
+                                                       "World",
+                                                       "vol3",
+                                                       "World",
+                                                       "vol4",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {72.25, 5.5, 9.25, 1, 11.5, 1, 7, 10, 7, 1, 474.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upper +x");
+        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
+        static const char* const expected_volumes[]
+            = {"World", "vol11", "World", "vol21", "World", "vol31", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {74.5, 1, 11, 2, 22.000001, 4.999999, 484.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Lower +x");
+        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {600};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
 
 //---------------------------------------------------------------------------//
 } // namespace test

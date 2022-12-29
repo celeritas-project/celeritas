@@ -30,6 +30,7 @@
 #include "corecel/sys/Device.hh"
 
 #include "VecgeomData.hh"
+#include "detail/GeantGeoExporter.hh"
 
 namespace celeritas
 {
@@ -47,9 +48,43 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 
     {
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        constexpr bool        validate_xml_schema = false;
-        vgdml::Frontend::Load(filename, validate_xml_schema);
+        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
+
+    this->build_tracking();
+    this->build_data();
+    this->build_metadata();
+
+    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(host_ref_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Translate a geometry from Geant4.
+ *
+ * At present this just exports the geometry to GDML, then loads it through the
+ * VGDML reader.
+ */
+VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
+{
+    CELER_EXPECT(world);
+#if CELERITAS_USE_GEANT4
+    auto filename = detail::GeantGeoExporter::make_tmpfile_name();
+    CELER_LOG(debug) << "Temporary file for Geant4 export: " << filename;
+    {
+        // Export file from Geant4
+        detail::GeantGeoExporter export_to(world);
+        export_to(filename);
+    }
+    {
+        // Import file into VecGeom
+        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+    }
+#else
+    CELER_NOT_CONFIGURED("Geant4");
+#endif
 
     this->build_tracking();
     this->build_data();

@@ -16,6 +16,8 @@
 
 #include "VecgeomData.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -37,6 +39,9 @@ class VecgeomParams
   public:
     // Construct from a GDML filename
     explicit VecgeomParams(const std::string& gdml_filename);
+
+    // Create a VecGeom model from a pre-existing Geant4 geometry
+    explicit VecgeomParams(const G4VPhysicalVolume* world);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams();
