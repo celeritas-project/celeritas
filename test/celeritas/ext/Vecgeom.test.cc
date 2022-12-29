@@ -448,7 +448,6 @@ TEST_F(SolidsTest, accessors)
 
 TEST_F(SolidsTest, DISABLED_trace)
 {
-    FAIL() << "These are all wrong...";
     {
         SCOPED_TRACE("Center +x");
         auto result = this->track({-100, 0, 0}, {1, 0, 0});
@@ -464,7 +463,7 @@ TEST_F(SolidsTest, DISABLED_trace)
         auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
         result.print_expected();
     }
-
+    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//
@@ -520,7 +519,6 @@ TEST_F(SolidsGeantTest, accessors)
 
 TEST_F(SolidsGeantTest, DISABLED_trace)
 {
-    FAIL() << "These distances are wrong";
     {
         SCOPED_TRACE("Center +x");
         auto                     result = this->track({-100, 0, 0}, {1, 0, 0});
@@ -558,6 +556,7 @@ TEST_F(SolidsGeantTest, DISABLED_trace)
         static const real_type expected_distances[] = {600};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
+    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//
