@@ -34,8 +34,8 @@ GlobalSetup::GlobalSetup()
         this, "/setup/", "Demo geant integration setup");
 
     {
-        auto& cmd = messenger_->DeclareProperty("setGeometryFile",
-                                                options_->geometry_file);
+        auto& cmd
+            = messenger_->DeclareProperty("setGeometryFile", geometry_file_);
         cmd.SetGuidance("Set the geometry file name");
     }
     {
