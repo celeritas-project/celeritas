@@ -519,7 +519,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 {
     {
         SCOPED_TRACE("Rightward");
-        auto result = this->track({-100, -100, -100}, {1, 0, 0});
+        auto result = this->track({-10, -10, -10}, {1, 0, 0});
         // result.print_expected();
         static const char* const expected_volumes[] = {"Shape2",
                                                        "Shape1",
@@ -533,53 +533,12 @@ TEST_F(FourLevelsGeantTest, tracking)
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[]
-            = {50, 10, 10, 60, 10, 10, 100, 10, 10, 70};
+            = {5, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("From outside edge");
-        auto result = this->track({-240, 100., 100.}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"[OUTSIDE]",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World",
-                                                       "Envelope",
-                                                       "Shape1",
-                                                       "Shape2",
-                                                       "Shape1",
-                                                       "Envelope",
-                                                       "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {
-            1e-13, 70.0 - 1e-13, 10, 10, 100, 10, 10, 60, 10, 10, 100, 10, 10, 70};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Leaving world");
-        auto result = this->track({-100, 100, 100}, {0, 1, 0});
-        static const char* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {50, 10, 20, 60};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        SCOPED_TRACE("Upward");
-        auto result = this->track({-100, 100, 100}, {0, 0, 1});
-        static const char* const expected_volumes[]
-            = {"Shape2", "Shape1", "World"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {50, 10, 80};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    {
-        // Formerly in linear propagator test, used to fail
-        SCOPED_TRACE("From just outside world");
-        auto result = this->track({-240, 100, 100}, {1, 0, 0});
+        auto result = this->track({-24, 10., 10.}, {1, 0, 0});
         static const char* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
@@ -596,7 +555,48 @@ TEST_F(FourLevelsGeantTest, tracking)
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[]
-            = {1e-13, 70, 10, 10, 100, 10, 10, 60, 10, 10, 100, 10, 10, 70};
+            = {1e-13, 7.0 - 1e-13, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Leaving world");
+        auto result = this->track({-10, 10, 10}, {0, 1, 0});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 2, 6};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upward");
+        auto result = this->track({-10, 10, 10}, {0, 0, 1});
+        static const char* const expected_volumes[]
+            = {"Shape2", "Shape1", "Envelope", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {5, 1, 3, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        // Formerly in linear propagator test, used to fail
+        SCOPED_TRACE("From just outside world");
+        auto result = this->track({-24, 10, 10}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"[OUTSIDE]",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World",
+                                                       "Envelope",
+                                                       "Shape1",
+                                                       "Shape2",
+                                                       "Shape1",
+                                                       "Envelope",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {1e-13, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }

@@ -89,12 +89,17 @@
 #include <iostream>
 #include <list>
 
+#include "corecel/math/Algorithms.hh"
+
 #include "G4Navigator.hh"
 #include "G4PropagatorInField.hh"
 #include "G4RunManager.hh"
 #include "G4TransportationManager.hh"
 
 using namespace vecgeom;
+using celeritas::ipow;
+
+static constexpr double scale = 0.1; // G4 mm to VecGeom cm scale
 
 double TrapParametersGetZ(G4Trap const& t)
 {
@@ -111,15 +116,18 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
                                           double&       phi)
 {
     const double* start = reinterpret_cast<const double*>(&t);
-    // std::cout << " - Extra check: Dz = " << t.GetZHalfLength() << "
-    // double[8-12]:"
-    //    <<' '<< start[10] <<' '<< start[11] << "\n";
-    // std::cout << " - Extra check: tan(alpha1) = " << t.GetTanAlpha1()
-    //    << " vs double[16] = " << start[16] << " [17]= " << start[17] <<
-    //    "\n";
-    // std::cout << " - Extra check: tan(alpha2) = " << t.GetTanAlpha2()
-    //     << " vs double[20] = " << start[20] << " [21]= " << start[21] <<
-    //     "\n";
+#define CHANGED_GEANT4 1
+#ifdef CHANGED_GEANT4
+    std::cout << " - Extra check: Dz = " << t.GetZHalfLength()
+              << " double[8-12]:" << ' ' << start[8] << ' ' << start[9] << ' '
+              << start[10] << ' ' << start[11] << ' ' << start[12] << "\n";
+    std::cout << " - Extra check: tan(alpha1) = " << t.GetTanAlpha1()
+              << " vs double[13-17] = " << start[13] << ' ' << start[14] << ' '
+              << start[15] << ' ' << start[16] << ' ' << start[17] << "\n";
+    std::cout << " - Extra check: tan(alpha2) = " << t.GetTanAlpha2()
+              << " vs double[18-21] = " << start[18] << ' ' << start[19] << ' '
+              << start[20] << ' ' << start[21] << "\n";
+#endif
 
     assert(t.GetZHalfLength() == start[11]);
     double x_peek = start[11]; // tan(theta)*cos(phi)
@@ -137,14 +145,14 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
         theta = std::atan2(x_peek, cos(phi));
     }
 
-// #define CHANGED_GEANT4 1
 #ifdef CHANGED_GEANT4
     G4double g4theta = t.GetTheta();
     G4double g4phi   = t.GetPhi();
-    std::cout << " Trap : name " << t.GetName() << " 'computed' parameters:  "
+    std::cout << " <ChangedGeant4> Trap : name " << t.GetName()
+              << " 'computed' parameters:  "
               << " a) theta = " << theta << " vs g4 " << g4theta
               << " diff = " << theta - g4theta << "\n"
-              << " b) phi   = " << phi << " vs g4 " << phi << " diff = "
+              << " b) phi   = " << phi << " vs g4 " << g4phi << " diff = "
               << phi - g4phi
               // << " Next values = " << start[12] << " , " << start[13]
               << "\n";
@@ -396,16 +404,17 @@ Transformation3D* G4VecGeomConverter::Convert(G4ThreeVector const&    t,
     Transformation3D* transformation;
     if (!rot)
     {
-        transformation = new Transformation3D(t[0], t[1], t[2]);
+        transformation
+            = new Transformation3D(scale * t[0], scale * t[1], scale * t[2]);
     }
     else
     {
         // transformation = new Transformation3D(
         //    t[0], t[1], t[2], rot->xx(), rot->xy(), rot->xz(), rot->yx(),
         //    rot->yy(), rot->yz(), rot->zx(), rot->zy(), rot->zz());
-        transformation = new Transformation3D(t[0],
-                                              t[1],
-                                              t[2],
+        transformation = new Transformation3D(scale * t[0],
+                                              scale * t[1],
+                                              scale * t[2],
                                               rot->xx(),
                                               rot->yx(),
                                               rot->zx(),
@@ -435,17 +444,19 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
-    //  if (!dynamic_cast<UnplacedScaledShape const *>(
-    //          logical_volume->GetUnplacedVolume()) &&
-    //      !dynamic_cast<G4BooleanSolid const *>(
-    //          volume->GetSolid())) {
-    //    const auto v1 = logical_volume->GetUnplacedVolume()->Capacity();
-    //    const auto v2 = volume->GetSolid()->GetCubicVolume();
-    //    std::cerr << "v1 " << v1 << " " << v2 << "\n";
-    //
-    //    assert(v1 > 0.);
-    //    assert(std::abs(v1 - v2) / v1 < 0.05);
-    //  }
+    if (!dynamic_cast<UnplacedScaledShape const*>(
+            logical_volume->GetUnplacedVolume())
+        && !dynamic_cast<G4BooleanSolid const*>(volume->GetSolid()))
+    {
+        const auto v1 = logical_volume->GetUnplacedVolume()->Capacity()
+                        / ipow<3>(scale);
+        const auto v2 = volume->GetSolid()->GetCubicVolume();
+        std::cerr << volume->GetName() << " capacities: VG=" << v1
+                  << " G4=" << v2 << "\n";
+        //
+        //    assert(v1 > 0.);
+        //    assert(std::abs(v1 - v2) / v1 < 0.05);
+    }
     return logical_volume;
 }
 
@@ -493,7 +504,9 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     if (auto box = dynamic_cast<G4Box const*>(shape))
     {
         unplaced_volume = GeoManager::MakeInstance<UnplacedBox>(
-            box->GetXHalfLength(), box->GetYHalfLength(), box->GetZHalfLength());
+            box->GetXHalfLength() * scale,
+            box->GetYHalfLength() * scale,
+            box->GetZHalfLength() * scale);
     }
 
     // THE POLYCONE
@@ -609,19 +622,19 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         double theta;
         double phi;
         TrapParametersGetOriginalThetaAndPhi(*p, theta, phi);
-        // std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
-        //     << " Phi= " << phi << "\n";
+        std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
+                  << " Phi= " << phi << "\n";
         unplaced_volume = GeoManager::MakeInstance<UnplacedTrapezoid>(
-            TrapParametersGetZ(*p),
+            scale * TrapParametersGetZ(*p),
             theta,
             phi,
-            p->GetYHalfLength1(),
-            p->GetXHalfLength1(),
-            p->GetXHalfLength2(),
+            scale * p->GetYHalfLength1(),
+            scale * p->GetXHalfLength1(),
+            scale * p->GetXHalfLength2(),
             p->GetTanAlpha1(),
-            p->GetYHalfLength2(),
-            p->GetXHalfLength3(),
-            p->GetXHalfLength4(),
+            scale * p->GetYHalfLength2(),
+            scale * p->GetXHalfLength3(),
+            scale * p->GetXHalfLength4(),
             p->GetTanAlpha2());
     }
 
@@ -665,7 +678,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         assert(leftunplaced != nullptr);
         assert(rightunplaced != nullptr);
 
-        //    // the problem is that I can only place logical volumes
+        // the problem is that I can only place logical volumes
         VPlacedVolume* const leftplaced
             = (new LogicalVolume("inner_virtual", leftunplaced))
                   ->Place(lefttrans);
@@ -761,7 +774,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     if (auto orb = dynamic_cast<G4Orb const*>(shape))
     {
         unplaced_volume
-            = GeoManager::MakeInstance<UnplacedOrb>(orb->GetRadius());
+            = GeoManager::MakeInstance<UnplacedOrb>(scale * orb->GetRadius());
     }
     if (auto sphr = dynamic_cast<G4Sphere const*>(shape))
     {
@@ -831,7 +844,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     if (unplaced_volume)
     {
         double capacityG4 = const_cast<G4VSolid*>(shape)->GetCubicVolume();
-        double capacityVg = unplaced_volume->Capacity();
+        double capacityVg = unplaced_volume->Capacity() / ipow<3>(scale));
         if (capacityVg < 0)
         {
             std::cerr << "Warning> Capacity given by VecGeom is negative = "
@@ -886,7 +899,9 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
                    shape->GetEntityType().c_str());
         }
         unplaced_volume = new GenericSolid<G4VSolid>(shape);
-        std::cout << " capacity = " << unplaced_volume->Capacity() << "\n";
+        std::cout
+            << " capacity = " << unplaced_volume->Capacity() / ipow<3>(scale)
+            << "\n";
     }
 
     fUnplacedVolumeMap.Set(shape, unplaced_volume);
