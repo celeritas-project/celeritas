@@ -14,9 +14,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/geo/OnlyGeoTestBase.hh"
+#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 
-#include "../GlobalGeoTestBase.hh"
 #include "HeuristicGeoData.hh"
 
 namespace celeritas

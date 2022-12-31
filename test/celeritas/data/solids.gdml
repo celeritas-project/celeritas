@@ -1,4 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!--
+Copied from a Geant4 example: extended/persistency/gdml/G01/solids.gdml
+
+License and Disclaimer
+
+The Geant4 software is copyright of the Copyright Holders of
+the Geant4 Collaboration. It is provided under the terms and
+conditions of the Geant4 Software License, included in the file
+LICENSE and available at http://cern.ch/geant4/license . These
+include a list of copyright holders.
+
+Neither the authors of this software system, nor their employing
+institutes, nor the agencies providing financial support for this
+work make any representation or warranty, express or implied,
+regarding this software system or assume any liability for its
+use. Please see the license in the file LICENSE and URL above
+for the full disclaimer and the limitation of liability.
+
+This code implementation is the result of the scientific and
+technical work of the GEANT4 collaboration.
+By using, copying, modifying or distributing the software (or
+any work based on the software) you agree to acknowledge its
+use in resulting scientific publications, and indicate your
+acceptance of all terms of the Geant4 Software license.
+
+-->
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
  <define>
@@ -68,7 +94,7 @@
   </material>
  </materials>
 
- <solids> 
+ <solids>
   <box name="WorldBox" x="wextent" y="wextent" z="wextent"/>
 
   <box name="b100" x="10.0" y="10.0" z="10.0"/>
@@ -80,11 +106,11 @@
 
   <sphere name="s1" rmax="50.0" deltaphi="TWOPI" deltatheta="PI" aunit="rad"/>
 
-  <arb8 name="arb81" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0" 
-             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0" 
+  <arb8 name="arb81" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
+             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
 	     v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-35.0" />
-  <arb8 name="arb82" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0" 
-             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0" 
+  <arb8 name="arb82" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
+             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
 	     v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-15.0" />
   <trap name="trap1" z="100.0" theta="60.0" phi="60.0"
                              y1="10.0"    x1="10.0" x2="10.0"
@@ -94,16 +120,16 @@
   <tube name="t1000" z="1000.0" rmax="100.0" deltaphi="TWOPI" aunit="rad"/>
   <tube name="t400" z="200.0" rmax="50.0" deltaphi="customangle" aunit="rad"/>
   <tube name="t100" z="100.0" rmax="10.0" deltaphi="TWOPI" aunit="rad"/>
- 
+
   <union name="u1">
    <first ref="b500"/>  <second ref="b100"/>
-   <positionref ref="unionidentitypos" /> 
+   <positionref ref="unionidentitypos" />
    <rotation name="unionidentityrot"/>
    <firstpositionref ref= "center"/>
   </union>
   <subtraction name="sub1">
    <first ref="u1"/> <second ref="b100"/>
-   <position  name="subidentitypos" x="-25."  /> 
+   <position  name="subidentitypos" x="-25."  />
    <rotation name="subidentityrot"/>
   </subtraction>
 
@@ -119,11 +145,11 @@
   </genericPolycone>
 
   <tessellated  aunit="degree" lunit="mm" name="testtessel">
-     <triangular vertex1="v0" vertex2="v1" vertex3="v2"/> 
-     <triangular vertex1="v1" vertex2="v3" vertex3="v2"/> 
-     <triangular vertex1="v3" vertex2="v4" vertex3="v2"/> 
-     <triangular vertex1="v4" vertex2="v0" vertex3="v2"/> 
-     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" /> 
+     <triangular vertex1="v0" vertex2="v1" vertex3="v2"/>
+     <triangular vertex1="v1" vertex2="v3" vertex3="v2"/>
+     <triangular vertex1="v3" vertex2="v4" vertex3="v2"/>
+     <triangular vertex1="v4" vertex2="v0" vertex3="v2"/>
+     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
   </tessellated>
 
   <torus name="testtorus" rmin="0.0" rmax="10.0" rtor="80.0" startphi="0.0" deltaphi="TWOPI"/>
@@ -132,12 +158,12 @@
   <polyhedra aunit="degree" deltaphi="90." lunit="mm" name="testph" numsides="3" startphi="0." >
      <zplane z="10.0" rmin="1.0" rmax="5.0"/>
      <zplane z="100.0" rmin="10.0" rmax="30.0"/>
-  </polyhedra> 
+  </polyhedra>
   <genericPolyhedra aunit="degree" deltaphi="90." lunit="mm" name="testgenph" numsides="3" startphi="0." >
     <rzpoint r="0.0" z="10.0" />
     <rzpoint r="5.0" z="20.0" />
     <rzpoint r="0.0" z="30.0" />
-  </genericPolyhedra> 
+  </genericPolyhedra>
 
   <hype name="testhype" rmin="10.0" rmax="30.0" inst="10.0" outst="20.0" z="50.0"/>
 
@@ -145,16 +171,16 @@
   <ellipsoid name="testellipsoid" ax="10" by="15" cz="20" zcut2="4" lunit="mm"/>
   <elcone name="testelcone" dx="1" dy="1.5" zmax="2" zcut="1.5" lunit="mm"/>
   <paraboloid name="testparaboloid" rlo="10" rhi="15" dz="20" lunit="mm"/>
-  
+
   <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2" />
- 
-  <twistedbox name="ttwistedbox" PhiTwist="1" x="30" y="30" z="30" aunit="rad" lunit="mm"/> 
-  <twistedtrd name="ttwistedtrd" PhiTwist="1" x1="9" x2="8" y1="6" y2="5" z="10" aunit="rad" lunit="mm"/> 
-  <twistedtrap name="ttwistedtrap" PhiTwist="1" z="10" Theta="1" Phi="2" y1="15" y2="15" x1="10" x2="10" x3="10" x4="10" Alph="1" aunit="rad" lunit="mm"/> 
-  <twistedtubs name="ttwistedtubs" endinnerrad="10" endouterrad="15" zlen="40" phi="90." twistedangle="1" aunit="degree" lunit="mm"/> 
+
+  <twistedbox name="ttwistedbox" PhiTwist="1" x="30" y="30" z="30" aunit="rad" lunit="mm"/>
+  <twistedtrd name="ttwistedtrd" PhiTwist="1" x1="9" x2="8" y1="6" y2="5" z="10" aunit="rad" lunit="mm"/>
+  <twistedtrap name="ttwistedtrap" PhiTwist="1" z="10" Theta="1" Phi="2" y1="15" y2="15" x1="10" x2="10" x3="10" x4="10" Alph="1" aunit="rad" lunit="mm"/>
+  <twistedtubs name="ttwistedtubs" endinnerrad="10" endouterrad="15" zlen="40" phi="90." twistedangle="1" aunit="degree" lunit="mm"/>
  </solids>
 
- <structure>  
+ <structure>
   <volume name="vol0">
    <materialref ref="Water"/>
    <solidref ref="b100"/>
@@ -281,112 +307,112 @@
      <volumeref ref="vol0"/>
      <positionref ref="center"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol1"/>
      <positionref ref="pos1"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol2"/>
      <positionref ref="pos2"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol3"/>
      <positionref ref="pos3"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol4"/>
      <positionref ref="pos4"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol11"/>
      <positionref ref="pos11"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol21"/>
      <positionref ref="pos21"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol31"/>
      <positionref ref="pos31"/>
      <rotationref ref="identity"/>
    </physvol>
- 
+
    <physvol>
      <volumeref ref="vol41"/>
      <positionref ref="pos41"/>
      <rotationref ref="identity"/>
-   </physvol> 
-   
+   </physvol>
+
   <physvol>
      <volumeref ref="vol412"/>
      <positionref ref="pos412"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
     <physvol>
      <volumeref ref="vol51"/>
      <positionref ref="pos51"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol61"/>
      <positionref ref="pos61"/>
      <rotationref ref="identity"/>
-   </physvol> 
- 
+   </physvol>
+
    <physvol>
      <volumeref ref="vol71"/>
      <positionref ref="pos71"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol81"/>
      <positionref ref="pos81"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol91"/>
      <positionref ref="pos91"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol101"/>
      <positionref ref="pos101"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol201"/>
      <positionref ref="pos201"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol301"/>
      <positionref ref="pos301"/>
      <rotationref ref="identity"/>
    </physvol>
- 
+
    <physvol>
      <volumeref ref="vol401"/>
      <positionref ref="pos401"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
     <physvol>
      <volumeref ref="vol501"/>
@@ -398,34 +424,34 @@
      <volumeref ref="vol502"/>
      <positionref ref="pos502"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
 
    <physvol>
      <volumeref ref="vol601"/>
      <positionref ref="pos601"/>
      <rotationref ref="identity"/>
-   </physvol> 
- 
+   </physvol>
+
    <physvol>
      <volumeref ref="vol701"/>
      <positionref ref="pos701"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol1001"/>
      <positionref ref="pos1001"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol1002"/>
      <positionref ref="pos1002"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
    <physvol>
      <volumeref ref="vol1003"/>
      <positionref ref="pos1003"/>
      <rotationref ref="identity"/>
-   </physvol> 
+   </physvol>
   </volume>
 
  </structure>
@@ -433,7 +459,7 @@
  <setup name="Default" version="1.0">
   <world ref="World"/>
  </setup>
-</gdml> 
+</gdml>
 
 
 
