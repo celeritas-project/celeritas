@@ -7,14 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/GeantTestBase.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
 #include "celeritas/GlobalTestBase.hh"
-#include "celeritas/ext/LoadGdml.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/ext/VecgeomData.hh"
 #include "celeritas/ext/VecgeomParams.hh"
 #include "celeritas/ext/VecgeomTrackView.hh"
@@ -35,16 +38,10 @@ namespace test
 #    define TEST_IF_CELERITAS_CUDA(name) DISABLED_##name
 #endif
 
-// Always compile and sometimes disable tests that require Geant4
-#if CELERITAS_USE_GEANT4
-#    define TEST_IF_CELERITAS_GEANT(name) name
-#else
-#    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
-#endif
-
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
+
 class VecgeomTestBase : virtual public GlobalTestBase
 {
   public:
@@ -62,33 +59,19 @@ class VecgeomTestBase : virtual public GlobalTestBase
     };
 
   public:
-    //! Construct host state (and load geometry) during steup
-    void SetUp() override
-    {
-        host_state = HostStateStore(this->geometry()->host_ref(), 1);
-    }
-
     //! Create a host track view
     VecgeomTrackView make_geo_track_view()
     {
+        if (!host_state)
+        {
+            host_state = HostStateStore(this->geometry()->host_ref(), 1);
+        }
         return VecgeomTrackView(
             this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
     }
 
     //! Find linear segments until outside
     TrackingResult track(const Real3& pos, const Real3& dir);
-
-  protected:
-    SPConstParticle    build_particle() final { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff      build_cutoff() final { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics     build_physics() final { CELER_ASSERT_UNREACHABLE(); }
-    SPConstTrackInit   build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction      build_along_step() final { CELER_ASSERT_UNREACHABLE(); }
-    SPConstMaterial    build_material() final { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() final
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
 
   private:
     HostStateStore host_state;
@@ -150,8 +133,13 @@ void VecgeomTestBase::TrackingResult::print_expected()
 }
 
 //---------------------------------------------------------------------------//
+// FOUR-LEVELS TEST
+//---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTestBase, public GlobalGeoTestBase
+class FourLevelsTest : public GlobalGeoTestBase,
+                       public OnlyGeoTestBase,
+                       public VecgeomTestBase
+
 {
   public:
     const char* geometry_basename() const final { return "four-levels"; }
@@ -425,35 +413,157 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 }
 
 //---------------------------------------------------------------------------//
-// CONSTRUCT FROM GEANT4 (TODO)
+// SOLIDS TEST
 //---------------------------------------------------------------------------//
 
-#define GeantBuilderTest TEST_IF_CELERITAS_GEANT(GeantBuilderTest)
-class GeantBuilderTest : public VecgeomTestBase, virtual public GlobalTestBase
+// TODO: solids are not all implemented in VGDML
+
+class SolidsTest : public GlobalGeoTestBase,
+                   public OnlyGeoTestBase,
+                   public VecgeomTestBase
+{
+  public:
+    const char* geometry_basename() const final
+    {
+        return "solids";
+    }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, accessors)
+{
+    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    {
+        GTEST_SKIP() << "This geometry crashes when loading in VecGeom 1.1.17";
+    }
+
+    const auto& geom = *this->geometry();
+    // TODO: this should be 31ish?
+    EXPECT_EQ(25, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsTest, DISABLED_trace)
+{
+    {
+        SCOPED_TRACE("Center +x");
+        auto result = this->track({-100, 0, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+    {
+        SCOPED_TRACE("Upper +x");
+        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+    {
+        SCOPED_TRACE("Lower +x");
+        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
+        result.print_expected();
+    }
+    ADD_FAILURE() << "These are all wrong...";
+}
+
+//---------------------------------------------------------------------------//
+// CONSTRUCT FROM GEANT4
+//---------------------------------------------------------------------------//
+
+class GeantBuilderTestBase : virtual public GeantTestBase,
+                             public VecgeomTestBase
 {
   public:
     static void SetUpTestCase()
     {
         // Make sure existing VecGeom geometry has been cleared
-        test::GlobalGeoTestBase::reset_geometry();
-    }
-
-    void SetUp() override
-    {
-        VecgeomTestBase::SetUp();
-        world_volume_
-            = load_gdml(this->test_data_path("celeritas", "four-levels.gdml"));
+        GlobalGeoTestBase::reset_geometry();
     }
 
     SPConstGeo build_geometry() override
     {
-        CELER_NOT_IMPLEMENTED("build_geometry");
-        // return std::make_shared<VecgeomParams>(world_volume.get());
+        return std::make_shared<VecgeomParams>(this->get_world_volume());
     }
 
-  private:
-    UPG4PhysicalVolume world_volume_;
+    bool      enable_fluctuation() const final { return false; }
+    bool      enable_msc() const final { return false; }
+    bool      combined_brems() const final { return false; }
+    real_type secondary_stack_factor() const final { return 0; }
 };
+
+//---------------------------------------------------------------------------//
+
+#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
+class SolidsGeantTest : public GeantBuilderTestBase
+{
+  public:
+    const char* geometry_basename() const final { return "solids"; }
+};
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, accessors)
+{
+    const auto& geom = *this->geometry();
+    // TODO: This is known to be incorrect because of missing VecGeom shapes.
+    EXPECT_EQ(25, geom.num_volumes());
+    EXPECT_EQ(2, geom.max_depth());
+
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{24}).name);
+    EXPECT_EQ("vol0", geom.id_to_label(VolumeId{4}).name);
+    EXPECT_EQ("vol1", geom.id_to_label(VolumeId{5}).name);
+    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(SolidsGeantTest, DISABLED_trace)
+{
+    {
+        SCOPED_TRACE("Center +x");
+        auto                     result = this->track({-100, 0, 0}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"World",
+                                                       "vol1",
+                                                       "World",
+                                                       "vol2",
+                                                       "World",
+                                                       "vol0",
+                                                       "World",
+                                                       "vol3",
+                                                       "World",
+                                                       "vol4",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {72.25, 5.5, 9.25, 1, 11.5, 1, 7, 10, 7, 1, 474.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Upper +x");
+        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
+        static const char* const expected_volumes[]
+            = {"World", "vol11", "World", "vol21", "World", "vol31", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[]
+            = {74.5, 1, 11, 2, 22.000001, 4.999999, 484.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("Lower +x");
+        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
+        static const char* const expected_volumes[] = {"World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {600};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    ADD_FAILURE() << "These are all wrong...";
+}
+
 //---------------------------------------------------------------------------//
 } // namespace test
 } // namespace celeritas

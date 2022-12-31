@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -26,15 +27,9 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public GlobalGeoTestBase
+class GeoMaterialTest : public GlobalGeoTestBase, public OnlyGeoTestBase
 {
     const char* geometry_basename() const override { return "simple-cms"; }
-
-    SPConstParticle  build_particle() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff    build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics   build_physics() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
     SPConstMaterial build_material() override
     {

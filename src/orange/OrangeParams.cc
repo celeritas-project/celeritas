@@ -92,6 +92,17 @@ OrangeParams::OrangeParams(const std::string& json_filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct in-memory from a Geant4 geometry (not implemented).
+ *
+ * Perhaps someday we'll implement in-memory translation...
+ */
+OrangeParams::OrangeParams(const G4VPhysicalVolume*)
+{
+    CELER_NOT_IMPLEMENTED("Geant4->VecGeom geometry translation");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Advanced usage: construct from explicit host data.
  *
  * Volume and surface labels must be unique for the time being.

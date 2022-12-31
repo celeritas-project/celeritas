@@ -98,6 +98,7 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSetup.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantExceptionHandler.cc
+    ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
     ext/detail/ImportProcessConverter.cc
