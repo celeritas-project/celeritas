@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/GeantTestBase.hh"
@@ -57,15 +59,13 @@ class VecgeomTestBase : virtual public GlobalTestBase
     };
 
   public:
-    //! Construct host state (and load geometry) during steup
-    void SetUp() override
-    {
-        host_state = HostStateStore(this->geometry()->host_ref(), 1);
-    }
-
     //! Create a host track view
     VecgeomTrackView make_geo_track_view()
     {
+        if (!host_state)
+        {
+            host_state = HostStateStore(this->geometry()->host_ref(), 1);
+        }
         return VecgeomTrackView(
             this->geometry()->host_ref(), host_state.ref(), ThreadId(0));
     }
@@ -433,6 +433,11 @@ class SolidsTest : public GlobalGeoTestBase,
 
 TEST_F(SolidsTest, accessors)
 {
+    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    {
+        GTEST_SKIP() << "This geometry crashes when loading in VecGeom 1.1.17";
+    }
+
     const auto& geom = *this->geometry();
     // TODO: this should be 31ish?
     EXPECT_EQ(25, geom.num_volumes());
