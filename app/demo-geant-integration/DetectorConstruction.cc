@@ -55,8 +55,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    constexpr bool     validate_gdml_schema = false;
-    const std::string& filename = GlobalSetup::Instance()->GetGdmlFile();
+    const std::string& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
     {
         G4Exception("DetectorConstruction::Construct()",
@@ -64,6 +63,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                     FatalException,
                     "No GDML file was specified with setGeometryFile");
     }
+    constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 
     // Find sensitive detectors

@@ -21,6 +21,8 @@
 #include "OrangeTypes.hh"
 #include "detail/UnitIndexer.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 struct OrangeInput;
@@ -44,6 +46,9 @@ class OrangeParams
   public:
     // Construct from a JSON file (if JSON is enabled)
     explicit OrangeParams(const std::string& json_filename);
+
+    // Construct in-memory from Geant4 (not implemented)
+    explicit OrangeParams(const G4VPhysicalVolume*);
 
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput input);

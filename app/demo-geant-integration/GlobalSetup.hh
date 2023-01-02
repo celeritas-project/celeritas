@@ -28,7 +28,7 @@ class GlobalSetup
 
     //!@{
     //! Demo setup options
-    const std::string& GetGdmlFile() const { return options_->geometry_file; }
+    const std::string& GetGeometryFile() const { return geometry_file_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -47,7 +47,9 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<celeritas::SetupOptions> options_;
-    std::unique_ptr<G4GenericMessenger>      messenger_;
+    std::string                              geometry_file_;
+
+    std::unique_ptr<G4GenericMessenger> messenger_;
 };
 
 //---------------------------------------------------------------------------//

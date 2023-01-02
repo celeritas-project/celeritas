@@ -9,10 +9,13 @@
 
 #include <G4Threading.hh>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "accel/ExceptionConverter.hh"
+
+#include "GlobalSetup.hh"
 
 namespace demo_geant
 {
@@ -35,12 +38,22 @@ void MasterRunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
 
+    if (!CELERITAS_USE_VECGEOM)
+    {
+        // For testing purposes, pass the GDML input filename to Celeritas
+        const_cast<celeritas::SetupOptions&>(*options_).geometry_file
+            = GlobalSetup::Instance()->GetGeometryFile();
+    }
+
     celeritas::ExceptionConverter call_g4exception{"celer0001"};
     CELER_TRY_ELSE(
         {
             // Initialize shared data
             params_->Initialize(*options_);
             CELER_ASSERT(*params_);
+
+            // "Master" geant4 thread only coordinates, not transports, so it
+            // should not create a local state.
         },
         call_g4exception);
 }

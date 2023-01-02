@@ -12,9 +12,9 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/OnlyGeoTestBase.hh"
 
 #include "celeritas_test.hh"
 

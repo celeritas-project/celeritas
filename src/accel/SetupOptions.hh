@@ -64,9 +64,7 @@ struct SetupOptions
 
     //!@{
     //! \name I/O
-    // TODO: geometry should be exported directly from Geant4 (or written to
-    // temporary GDML and re-read)
-    //! GDML filename
+    //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
     //! Filename for JSON diagnostic output
     std::string output_file;

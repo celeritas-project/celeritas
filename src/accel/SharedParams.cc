@@ -8,9 +8,10 @@
 #include "SharedParams.hh"
 
 #include <CLHEP/Random/Random.h>
-#include <G4AutoLock.hh>
+#include <G4Threading.hh>
 #include <G4TransportationManager.hh>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
@@ -63,6 +64,11 @@ SharedParams::~SharedParams() = default;
  */
 void SharedParams::Initialize(const SetupOptions& options)
 {
+    CELER_EXPECT(*this || G4Threading::IsMasterThread());
+
+    CELER_LOG_LOCAL(status) << "Initializing Celeritas";
+    ScopedTimeLog scoped_time;
+
     if (Device::num_devices() > 0)
     {
         // Initialize CUDA (you'll need to use CUDA environment variables to
@@ -81,10 +87,9 @@ void SharedParams::Initialize(const SetupOptions& options)
         }
     }
 
-    if (!*this)
+    if (G4Threading::IsMasterThread())
     {
-        // Maybe the first thread to run: build and store core params
-        this->locked_initialize(options);
+        this->initialize_master(options);
     }
     CELER_ENSURE(*this);
 }
@@ -99,6 +104,7 @@ void SharedParams::Initialize(const SetupOptions& options)
 void SharedParams::Finalize()
 {
     CELER_EXPECT(*this);
+    CELER_EXPECT(G4Threading::IsMasterThread());
 
     if (!output_filename_.empty())
     {
@@ -149,26 +155,9 @@ void SharedParams::Finalize()
 /*!
  * Construct from setup options in a thread-safe manner.
  */
-void SharedParams::locked_initialize(const SetupOptions& options)
+void SharedParams::initialize_master(const SetupOptions& options)
 {
-    static G4Mutex mutex = G4MUTEX_INITIALIZER;
-    G4AutoLock     lock(&mutex);
-
-    if (*this)
-    {
-        // Some other thread constructed params between the thread-unsafe check
-        // and this thread-safe check
-        return;
-    }
-
-    CELER_LOG_LOCAL(status) << "Initializing Celeritas";
-    ScopedTimeLog scoped_time;
-
-    celeritas::GeantImporter load_geant_data(
-        G4TransportationManager::GetTransportationManager()
-            ->GetNavigatorForTracking()
-            ->GetWorldVolume());
-
+    celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
     auto imported = load_geant_data();
     CELER_ASSERT(imported);
 
@@ -179,10 +168,17 @@ void SharedParams::locked_initialize(const SetupOptions& options)
         params.action_reg = std::make_shared<ActionRegistry>();
     }
 
-    // Load geometry
+    // Reload geometry
+    if (!options.geometry_file.empty())
     {
-        // TODO: export GDML through Geant4 to temporary file
+        // Read directly from GDML input
         params.geometry = std::make_shared<GeoParams>(options.geometry_file);
+    }
+    else
+    {
+        // Import from Geant4
+        params.geometry
+            = std::make_shared<GeoParams>(GeantImporter::get_world_volume());
     }
 
     // Load materials
