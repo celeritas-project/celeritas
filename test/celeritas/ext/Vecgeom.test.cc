@@ -509,6 +509,11 @@ class SolidsGeantTest : public GeantBuilderTestBase
 
 TEST_F(SolidsGeantTest, accessors)
 {
+    if (starts_with(celeritas_vecgeom_version, "1.1"))
+    {
+        GTEST_SKIP() << "This geometry crashes when loading in VecGeom 1.1.17";
+    }
+
     const auto& geom = *this->geometry();
     // TODO: This is known to be incorrect because of missing VecGeom shapes.
     EXPECT_EQ(25, geom.num_volumes());
