@@ -24,7 +24,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
-#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -156,8 +156,8 @@ void SharedParams::Finalize()
 void SharedParams::initialize_master(const SetupOptions& options)
 {
     celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
-    auto imported = load_geant_data();
-    CELER_ASSERT(imported);
+    auto imported = std::make_shared<ImportData>(load_geant_data());
+    CELER_ASSERT(imported && *imported);
 
     CoreParams::Input params;
 
@@ -181,24 +181,24 @@ void SharedParams::initialize_master(const SetupOptions& options)
 
     // Load materials
     {
-        params.material = MaterialParams::from_import(imported);
+        params.material = MaterialParams::from_import(*imported);
     }
 
     // Create geometry/material coupling
     {
         params.geomaterial = GeoMaterialParams::from_import(
-            imported, params.geometry, params.material);
+            *imported, params.geometry, params.material);
     }
 
     // Construct particle params
     {
-        params.particle = ParticleParams::from_import(imported);
+        params.particle = ParticleParams::from_import(*imported);
     }
 
     // Construct cutoffs
     {
         params.cutoff = CutoffParams::from_import(
-            imported, params.particle, params.material);
+            *imported, params.particle, params.material);
     }
 
     // Load physics: create individual processes with make_shared
@@ -208,16 +208,16 @@ void SharedParams::initialize_master(const SetupOptions& options)
         input.materials       = params.material;
         input.action_registry = params.action_reg.get();
 
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
         input.options.secondary_stack_factor = options.secondary_stack_factor;
 
         {
             ProcessBuilder::Options opts;
             ProcessBuilder          build_process(
-                imported, opts, params.particle, params.material);
+                *imported, opts, params.particle, params.material);
 
             std::set<ImportProcessClass> all_process_classes;
-            for (const auto& p : imported.processes)
+            for (const auto& p : imported->processes)
             {
                 all_process_classes.insert(p.process_class);
             }
@@ -238,7 +238,7 @@ void SharedParams::initialize_master(const SetupOptions& options)
             *params.material,
             *params.particle,
             *params.physics,
-            imported.em_params.energy_loss_fluct);
+            imported->em_params.energy_loss_fluct);
         params.action_reg->insert(along_step);
     }
 
