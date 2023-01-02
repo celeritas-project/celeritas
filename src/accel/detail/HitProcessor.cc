@@ -101,22 +101,13 @@ HitProcessor::HitProcessor(VecLV                detector_volumes,
         navi_->SetWorldVolume(world_volume);
 
         // Create "touchable handle" (shared pointer to G4TouchableHistory)
-        CELER_LOG_LOCAL(debug) << "Creating touchable history on thread "
-                               << std::this_thread::get_id();
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
 }
 
 //---------------------------------------------------------------------------//
-HitProcessor::~HitProcessor()
-{
-    if (touch_handle_)
-    {
-        CELER_LOG_LOCAL(debug) << "Destroying touchable history on thread "
-                               << std::this_thread::get_id();
-    }
-}
+HitProcessor::~HitProcessor() = default;
 
 //---------------------------------------------------------------------------//
 /*!
