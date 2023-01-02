@@ -148,4 +148,23 @@ void LocalTransporter::Flush()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clear local data.
+ *
+ * This may need to be executed on the same thread it was created in order to
+ * safely deallocate some Geant4 objects under the hood...
+ */
+void LocalTransporter::Finalize()
+{
+    CELER_VALIDATE(buffer_.empty(),
+                   << "some offloaded tracks were not flushed");
+
+    // Reset all data
+    CELER_LOG_LOCAL(debug) << "Resetting local transporter";
+    *this = {};
+
+    CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
 } // namespace celeritas

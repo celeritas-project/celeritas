@@ -50,6 +50,9 @@ class LocalTransporter
     // Transport all buffered tracks to completion
     void Flush();
 
+    // Clear local data and return to an invalid state
+    void Finalize();
+
     // Number of buffered tracks
     size_type GetBufferSize() const { return buffer_.size(); }
 
