@@ -23,7 +23,6 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -34,6 +33,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "SetupOptions.hh"
+#include "AlongStepFactory.hh"
 
 #if CELERITAS_USE_JSON
 #    include "corecel/io/BuildOutput.hh"
@@ -155,6 +155,10 @@ void SharedParams::Finalize()
  */
 void SharedParams::initialize_master(const SetupOptions& options)
 {
+    CELER_VALIDATE(options.make_along_step,
+                   << "along-step action factory 'make_along_step' was not "
+                      "defined in the celeritas::SetupOptions");
+
     celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
     auto imported = std::make_shared<ImportData>(load_geant_data());
     CELER_ASSERT(imported && *imported);
@@ -230,16 +234,22 @@ void SharedParams::initialize_master(const SetupOptions& options)
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
 
-    // TODO: different along-step kernels
+    // Construct along-step action
     {
-        // Create along-step action
-        auto along_step = AlongStepGeneralLinearAction::from_params(
-            params.action_reg->next_id(),
-            *params.material,
-            *params.particle,
-            *params.physics,
-            imported->em_params.energy_loss_fluct);
-        params.action_reg->insert(along_step);
+        AlongStepFactoryInput asfi;
+        asfi.action_id = params.action_reg->next_id();
+        asfi.geometry = params.geometry;
+        asfi.material = params.material;
+        asfi.geomaterial = params.geomaterial;
+        asfi.particle = params.particle;
+        asfi.cutoff = params.cutoff;
+        asfi.physics = params.physics;
+        asfi.imported = imported;
+
+        auto along_step = options.make_along_step(asfi);
+        CELER_VALIDATE(along_step,
+                       << "along-step factory returned a null pointer");
+        params.action_reg->insert(std::move(along_step));
     }
 
     // Construct RNG params
