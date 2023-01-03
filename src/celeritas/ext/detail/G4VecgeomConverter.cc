@@ -54,8 +54,6 @@
 #include <VecGeom/volumes/UnplacedTube.h>
 
 //#include "TGeoManager.h"
-#include <G4PVDivision.hh>
-
 #include "G4AffineTransform.hh"
 #include "G4BooleanSolid.hh"
 #include "G4Box.hh"
@@ -67,6 +65,7 @@
 #include "G4IntersectionSolid.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Orb.hh"
+#include "G4PVDivision.hh"
 #include "G4PVParameterised.hh"
 #include "G4Para.hh"
 #include "G4Polycone.hh"
@@ -906,15 +905,6 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
 
     fUnplacedVolumeMap.Set(shape, unplaced_volume);
     return unplaced_volume;
-}
-
-void G4VecGeomConverter::PrintNodeTable() const
-{
-    //  for (auto iter : fPlacedVolumeMap) {
-    //    std::cerr << iter.first << " " << iter.second << "\n";
-    //    TGeoNode const *n = iter.second;
-    //    n->Print();
-    //  }
 }
 
 void G4VecGeomConverter::Clear()
