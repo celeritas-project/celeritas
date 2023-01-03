@@ -9,10 +9,12 @@
 
 #include <mutex>
 #include <G4SystemOfUnits.hh>
+#include <G4TransportationManager.hh>
 #include <HepMC3/ReaderFactory.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Constants.hh"
 
 #include "GlobalSetup.hh"
 
@@ -32,6 +34,14 @@ HepMC3Reader* HepMC3Reader::instance()
 /*!
  * Add HepMC3 primaries to a Geant4 event. This function is called by
  * `G4VUserPrimaryGeneratorAction::GeneratePrimaries`.
+ *
+ * \note
+ * Current implementation is compatible with our utils/hepmc3-generator
+ * (https://github.com/celeritas-project/utils) output files, including the
+ * translated CMS' Pythia HEPEVT output files to HepMC3 format. Nevertheless,
+ * these files do not have more complex topologies with multiple vertices with
+ * mother/daughter particles. If more complex inputs are used, this will have
+ * to be updated.
  */
 void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 {
@@ -46,23 +56,43 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
         << "Reading HepMC3 event " << gen_event.event_number();
 
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM); // Geant4 units
-    const auto& pos       = gen_event.event_pos();
-    const auto& primaries = gen_event.particles();
+    const auto& event_pos = gen_event.event_pos();
+
+    // Verify if vertex is inside the world volume
+    const auto inside_status
+        = G4TransportationManager::GetTransportationManager()
+              ->GetNavigatorForTracking()
+              ->GetWorldVolume()
+              ->GetLogicalVolume()
+              ->GetSolid()
+              ->Inside(
+                  G4ThreeVector{event_pos.x(), event_pos.y(), event_pos.z()});
+
+    CELER_ASSERT(inside_status == EInside::kInside);
 
     // Add primaries to event
-    for (const auto& primary : primaries)
+    const auto& gen_particles = gen_event.particles();
+    for (const auto& gen_particle : gen_particles)
     {
-        const auto& data = primary->data();
-        const auto& p    = data.momentum;
+        const auto& part_data = gen_particle->data();
 
-        // All primaries start at t = 0
-        auto g4_vtx
-            = std::make_unique<G4PrimaryVertex>(pos.x(), pos.y(), pos.z(), 0);
+        if (part_data.status != 1)
+        {
+            // Skip particles that should not be tracked
+            // Status codes (page 13):
+            // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
+            continue;
+        }
 
-        // TODO: Do we need to check if vertex is inside world volume?
+        auto g4_vtx = std::make_unique<G4PrimaryVertex>(
+            event_pos.x(),
+            event_pos.y(),
+            event_pos.z(),
+            event_pos.t() * CLHEP::s / celeritas::constants::c_light); // [s]
 
-        g4_vtx->SetPrimary(new G4PrimaryParticle(
-            data.pid, p.x(), p.y(), p.z(), data.momentum.e()));
+        const auto& p = part_data.momentum;
+        g4_vtx->SetPrimary(
+            new G4PrimaryParticle(part_data.pid, p.x(), p.y(), p.z(), p.e()));
 
         g4_event->AddPrimaryVertex(g4_vtx.release());
     }
