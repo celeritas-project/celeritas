@@ -24,8 +24,9 @@ struct SetupOptions;
  * preferably as a shared pointer. The shared pointer should be
  * passed to a thread-local \c LocalTransporter instance. At the beginning of
  * the run, after Geant4 has initialized physics data, the \c Initialize method
- * must be called to populate the Celeritas data structures (geometry,
- * physics).
+ * must be called first on the "master" thread to populate the Celeritas data
+ * structures (geometry, physics). \c Initialize must subsequently be invoked
+ * on all worker threads.
  */
 class SharedParams
 {
@@ -36,15 +37,19 @@ class SharedParams
     //!@}
 
   public:
-    // Construct a shared pointer to this class for sharing with
-    // LocalTransporter
-    static std::shared_ptr<SharedParams> MakeShared();
-
+    // Default constructors, assignment, destructor
     SharedParams() = default;
+    SharedParams(SharedParams&&)                 = default;
+    SharedParams(const SharedParams&)            = default;
+    SharedParams& operator=(SharedParams&&)      = default;
+    SharedParams& operator=(const SharedParams&) = default;
     ~SharedParams();
 
     // Thread-safe setup of Celeritas using Geant4 data.
     void Initialize(const SetupOptions& options);
+
+    // Write (shared) diagnostic output and clear shared data on master.
+    void Finalize();
 
     // Access constructed Celeritas data
     inline SPConstParams Params() const;
@@ -56,10 +61,11 @@ class SharedParams
     //// DATA ////
 
     std::shared_ptr<CoreParams> params_;
+    std::string                 output_filename_;
 
     //// HELPER FUNCTIONS ////
 
-    void locked_initialize(const SetupOptions& options);
+    void initialize_master(const SetupOptions& options);
 };
 
 //---------------------------------------------------------------------------//

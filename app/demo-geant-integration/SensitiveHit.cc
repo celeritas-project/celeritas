@@ -3,37 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/ActionInitialization.hh
+//! \file demo-geant-integration/SensitiveHit.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <memory>
-#include <G4VUserActionInitialization.hh>
-
-#include "accel/SharedParams.hh"
+#include "SensitiveHit.hh"
 
 namespace demo_geant
 {
+G4ThreadLocal SensitiveHit::PHitAllocator SensitiveHit::allocator_ = nullptr;
 //---------------------------------------------------------------------------//
 /*!
- * Set up demo-specific action initializations.
+ * Constructor.
  */
-class ActionInitialization final : public G4VUserActionInitialization
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
-    //!@}
-
-  public:
-    ActionInitialization();
-    void BuildForMaster() const final;
-    void Build() const final;
-
-  private:
-    SPParams params_;
-};
-
+SensitiveHit::SensitiveHit(const HitData& data) : G4VHit(), data_{data} {}
 //---------------------------------------------------------------------------//
 } // namespace demo_geant

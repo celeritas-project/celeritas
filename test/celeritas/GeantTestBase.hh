@@ -13,6 +13,8 @@
 
 #include "GlobalGeoTestBase.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 struct ImportData;
@@ -41,6 +43,12 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     static bool is_ci_build();
     static bool is_wildstyle_build();
     static bool is_summit_build();
+    //!@}
+
+    //!@{
+    //! Get the Geant4 top-level geometry element
+    const G4VPhysicalVolume* get_world_volume();
+    const G4VPhysicalVolume* get_world_volume() const;
     //!@}
 
   protected:

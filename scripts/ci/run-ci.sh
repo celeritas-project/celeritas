@@ -10,6 +10,12 @@ test -n "${CMAKE_PRESET}"
 cd "$(dirname $0)"/../..
 ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 
+# Source environment script if necessary
+_ENV_SCRIPT="scripts/env/ci-${OS}.sh"
+if [ -f "${_ENV_SCRIPT}" ]; then
+  . "${_ENV_SCRIPT}"
+fi
+
 # Fetch tags for version provenance
 git fetch --tags
 # Configure

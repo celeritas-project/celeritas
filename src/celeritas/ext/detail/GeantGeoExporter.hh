@@ -3,37 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/ActionInitialization.hh
+//! \file celeritas/ext/detail/GeantGeoExporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-#include <G4VUserActionInitialization.hh>
+#include <string>
 
-#include "accel/SharedParams.hh"
+class G4VPhysicalVolume;
 
-namespace demo_geant
+namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up demo-specific action initializations.
+ * Export a Geant4 geometry to a GDML file.
  */
-class ActionInitialization final : public G4VUserActionInitialization
+class GeantGeoExporter
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPParams = std::shared_ptr<celeritas::SharedParams>;
-    //!@}
+    // Helper function to create a temporary file.
+    static std::string make_tmpfile_name();
 
-  public:
-    ActionInitialization();
-    void BuildForMaster() const final;
-    void Build() const final;
+    // Construct from the world geometry pointer
+    explicit GeantGeoExporter(const G4VPhysicalVolume* world);
+
+    // Save to a file and return properties
+    void operator()(const std::string& filename) const;
 
   private:
-    SPParams params_;
+    const G4VPhysicalVolume* world_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+} // namespace detail
+} // namespace celeritas

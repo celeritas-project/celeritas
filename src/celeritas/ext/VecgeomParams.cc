@@ -15,7 +15,8 @@
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
-#include <celeritas_config.h>
+
+#include "celeritas_config.h"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -29,41 +30,10 @@
 #include "corecel/sys/Device.hh"
 
 #include "VecgeomData.hh"
+#include "detail/GeantGeoExporter.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Get a vector of labels for all vecgeom volumes.
-std::vector<Label> get_volume_labels()
-{
-    auto& vg_manager = vecgeom::GeoManager::Instance();
-
-    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
-
-    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
-    {
-        // Get label
-        const vecgeom::LogicalVolume* vol
-            = vg_manager.FindLogicalVolume(vol_idx);
-        CELER_ASSERT(vol);
-
-        auto label = Label::from_geant(vol->GetLabel());
-        if (label.name.empty())
-        {
-            // Many VGDML imported IDs seem to be empty for CMS
-            label.name = "[unused]";
-            label.ext  = std::to_string(vol_idx);
-        }
-
-        labels[vol_idx] = std::move(label);
-    }
-    return labels;
-}
-//---------------------------------------------------------------------------//
-} // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -78,74 +48,47 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 
     {
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        constexpr bool        validate_xml_schema = false;
-        vgdml::Frontend::Load(filename, validate_xml_schema);
+        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
 
-    vol_labels_ = LabelIdMultiMap<VolumeId>(get_volume_labels());
-    // Check for duplicates
+    this->build_tracking();
+    this->build_data();
+    this->build_metadata();
+
+    CELER_ENSURE(this->num_volumes() > 0);
+    CELER_ENSURE(host_ref_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Translate a geometry from Geant4.
+ *
+ * At present this just exports the geometry to GDML, then loads it through the
+ * VGDML reader.
+ */
+VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
+{
+    CELER_EXPECT(world);
+#if CELERITAS_USE_GEANT4
+    auto filename = detail::GeantGeoExporter::make_tmpfile_name();
+    CELER_LOG(debug) << "Temporary file for Geant4 export: " << filename;
     {
-        auto vol_dupes = vol_labels_.duplicates();
-        if (!vol_dupes.empty())
-        {
-            auto streamed_label = [this](std::ostream& os, VolumeId v) {
-                os << '"' << this->vol_labels_.get(v) << "\" ("
-                   << v.unchecked_get() << ')';
-            };
-
-            CELER_LOG(warning) << "Geometry contains duplicate volume names: "
-                               << join_stream(vol_dupes.begin(),
-                                              vol_dupes.end(),
-                                              ", ",
-                                              streamed_label);
-        }
+        // Export file from Geant4
+        detail::GeantGeoExporter export_to(world);
+        export_to(filename);
     }
-
-    CELER_LOG(status) << "Initializing tracking information";
     {
-        ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
-        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+        // Import file into VecGeom
+        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
     }
-
-    // Save host data
-    auto& vg_manager       = vecgeom::GeoManager::Instance();
-    host_ref_.world_volume = vg_manager.GetWorld();
-    host_ref_.max_depth    = vg_manager.getMaxDepth();
-
-    // Init the bounding volume hierarchy structure
-    vecgeom::cxx::BVHManager::Init();
-
-#if CELERITAS_USE_CUDA
-    if (celeritas::device())
-    {
-        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
-
-        CELER_LOG(debug) << "Converting to CUDA geometry";
-        {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
-            // cuda_manager.set_verbose(1);
-            cuda_manager.LoadGeometry();
-            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
-        }
-
-        CELER_LOG(debug) << "Transferring geometry to GPU";
-        {
-            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
-            auto world_top_devptr = cuda_manager.Synchronize();
-            CELER_ASSERT(world_top_devptr != nullptr);
-            device_ref_.world_volume = world_top_devptr.GetPtr();
-            device_ref_.max_depth    = host_ref_.max_depth;
-            CELER_DEVICE_CHECK_ERROR();
-        }
-        CELER_ENSURE(device_ref_);
-
-        CELER_LOG(debug) << "Initializing BVH on GPU";
-        {
-            vecgeom::cxx::BVHManager::DeviceInit();
-            CELER_DEVICE_CHECK_ERROR();
-        }
-    }
+#else
+    CELER_NOT_CONFIGURED("Geant4");
 #endif
+
+    this->build_tracking();
+    this->build_data();
+    this->build_metadata();
 
     CELER_ENSURE(this->num_volumes() > 0);
     CELER_ENSURE(host_ref_);
@@ -205,5 +148,124 @@ auto VecgeomParams::find_volumes(const std::string& name) const
     return vol_labels_.find_all(name);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids, set up VecGeom tracking data and copy to GPU.
+ */
+void VecgeomParams::build_tracking()
+{
+    CELER_LOG(status) << "Initializing tracking information";
+    {
+        ScopedTimeAndRedirect time_and_output_("vecgeom::ABBoxManager");
+        vecgeom::ABBoxManager::Instance().InitABBoxesForCompleteGeometry();
+    }
+
+    // Init the bounding volume hierarchy structure
+    vecgeom::cxx::BVHManager::Init();
+
+    if (celeritas::device())
+    {
+        // NOTE: this must actually be escaped with preprocessing because the
+        // VecGeom interfaces change depending on the build options.
+#if CELERITAS_USE_CUDA
+        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+
+        CELER_LOG(debug) << "Converting to CUDA geometry";
+        {
+            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
+            // cuda_manager.set_verbose(1);
+            cuda_manager.LoadGeometry();
+            CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
+        }
+
+        CELER_LOG(debug) << "Transferring geometry to GPU";
+        {
+            ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
+            auto world_top_devptr = cuda_manager.Synchronize();
+            CELER_ASSERT(world_top_devptr != nullptr);
+            CELER_DEVICE_CHECK_ERROR();
+        }
+
+        CELER_LOG(debug) << "Initializing BVH on GPU";
+        {
+            vecgeom::cxx::BVHManager::DeviceInit();
+            CELER_DEVICE_CHECK_ERROR();
+        }
+#else
+        CELER_NOT_CONFIGURED("CUDA");
+#endif
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct host/device Celeritas data after setting up VecGeom tracking.
+ */
+void VecgeomParams::build_data()
+{
+    // Save host data
+    auto& vg_manager       = vecgeom::GeoManager::Instance();
+    host_ref_.world_volume = vg_manager.GetWorld();
+    host_ref_.max_depth    = vg_manager.getMaxDepth();
+
+    if (celeritas::device())
+    {
+#if CELERITAS_USE_CUDA
+        auto& cuda_manager       = vecgeom::cxx::CudaManager::Instance();
+        device_ref_.world_volume = cuda_manager.world_gpu();
+#endif
+        device_ref_.max_depth = host_ref_.max_depth;
+    }
+    CELER_ENSURE(host_ref_);
+    CELER_ENSURE(!celeritas::device() || device_ref_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct Celeritas host-only metadata.
+ */
+void VecgeomParams::build_metadata()
+{
+    auto& vg_manager = vecgeom::GeoManager::Instance();
+    CELER_EXPECT(vg_manager.GetRegisteredVolumesCount() > 0);
+
+    std::vector<Label> labels(vg_manager.GetRegisteredVolumesCount());
+
+    for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
+    {
+        // Get label
+        const vecgeom::LogicalVolume* vol
+            = vg_manager.FindLogicalVolume(vol_idx);
+        CELER_ASSERT(vol);
+
+        auto label = Label::from_geant(vol->GetLabel());
+        if (label.name.empty())
+        {
+            // Many VGDML imported IDs seem to be empty for CMS
+            label.name = "[unused]";
+            label.ext  = std::to_string(vol_idx);
+        }
+
+        labels[vol_idx] = std::move(label);
+    }
+    vol_labels_ = LabelIdMultiMap<VolumeId>(std::move(labels));
+    // Check for duplicates
+    {
+        auto vol_dupes = vol_labels_.duplicates();
+        if (!vol_dupes.empty())
+        {
+            auto streamed_label = [this](std::ostream& os, VolumeId v) {
+                os << '"' << this->vol_labels_.get(v) << "\" ("
+                   << v.unchecked_get() << ')';
+            };
+
+            CELER_LOG(warning) << "Geometry contains duplicate volume names: "
+                               << join_stream(vol_dupes.begin(),
+                                              vol_dupes.end(),
+                                              ", ",
+                                              streamed_label);
+        }
+    }
+}
 //---------------------------------------------------------------------------//
 } // namespace celeritas

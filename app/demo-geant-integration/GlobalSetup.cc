@@ -34,14 +34,18 @@ GlobalSetup::GlobalSetup()
         this, "/setup/", "Demo geant integration setup");
 
     {
-        auto& cmd = messenger_->DeclareProperty("setGeometryFile",
-                                                options_->geometry_file);
+        auto& cmd
+            = messenger_->DeclareProperty("setGeometryFile", geometry_file_);
         cmd.SetGuidance("Set the geometry file name");
     }
     {
         auto& cmd = messenger_->DeclareProperty("setHepmc3File", hepmc3_file_);
         cmd.SetGuidance("Set the HepMC3 file name");
-        cmd.SetDefaultValue("");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("setOutputFile",
+                                                options_->output_file);
+        cmd.SetGuidance("Set the JSON output file name");
     }
     {
         auto& cmd = messenger_->DeclareProperty("maxNumTracks",

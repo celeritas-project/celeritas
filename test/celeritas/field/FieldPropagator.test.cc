@@ -17,6 +17,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
@@ -50,19 +51,9 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorTestBase : public GlobalGeoTestBase
+class FieldPropagatorTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
 {
   public:
-    SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstGeoMaterial build_geomaterial() override
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
-    SPConstCutoff    build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics   build_physics() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
-
     SPConstParticle build_particle() override
     {
         using namespace units;

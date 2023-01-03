@@ -31,7 +31,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
     virtual const char* geometry_basename() const = 0;
 
     // Construct a geometry that's persistent across tests
-    SPConstGeo build_geometry() final;
+    SPConstGeo build_geometry() override;
 
     // Clear the lazy geometry
     static void reset_geometry();

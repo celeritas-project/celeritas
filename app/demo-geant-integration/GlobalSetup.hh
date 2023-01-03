@@ -28,7 +28,7 @@ class GlobalSetup
 
     //!@{
     //! Demo setup options
-    const std::string& GetGdmlFile() const { return options_->geometry_file; }
+    const std::string& GetGeometryFile() const { return geometry_file_; }
     const std::string& GetHepmc3File() const { return hepmc3_file_; }
     //!@}
 
@@ -45,8 +45,9 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<celeritas::SetupOptions> options_;
-    std::unique_ptr<G4GenericMessenger>      messenger_;
+    std::string                              geometry_file_;
     std::string                              hepmc3_file_;
+    std::unique_ptr<G4GenericMessenger>      messenger_;
 };
 
 //---------------------------------------------------------------------------//

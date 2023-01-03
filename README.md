@@ -38,8 +38,19 @@ $ cmake ..
 $ make && ctest
 ```
 
+Celeritas guarantees full compatibility and correctness only on the
+combinations of compilers and dependencies tested under continuous integration.
+Currently supported compilers are GCC 11.2 + NVCC 11.8, and HIP-Clang 15.0, but
+since we compile with extra warning flags and avoid non-portable code, most
+other compilers *should* work.
+Currently Geant4 11.0 and VecGeom 1.2 are the only versions that are guaranteed
+to work, but older versions might be OK.
+The full set of configurations is viewable on [the CI web site][jenkins].
+Compatibility fixes that do not cause newer versions to fail are welcome.
+
 [spack]: https://github.com/spack/spack
 [infra]: doc/infrastructure.rst
+[jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/blue/organizations/jenkins/Celeritas/activity?branch=master
 
 # Installation for applications
 

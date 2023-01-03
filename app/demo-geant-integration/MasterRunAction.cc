@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/RunAction.cc
+//! \file demo-geant-integration/MasterRunAction.cc
 //---------------------------------------------------------------------------//
-#include "RunAction.hh"
+#include "MasterRunAction.hh"
 
 #include <G4Threading.hh>
 
@@ -23,21 +23,18 @@ namespace demo_geant
 /*!
  * Construct with Celeritas setup options and shared data.
  */
-RunAction::RunAction(SPConstOptions options,
-                     SPParams       params,
-                     SPTransporter  transport)
-    : options_(options), params_(params), transport_(transport)
+MasterRunAction::MasterRunAction(SPConstOptions options, SPParams params)
+    : options_(options), params_(params)
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
-    CELER_EXPECT(transport_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
  */
-void RunAction::BeginOfRunAction(const G4Run* run)
+void MasterRunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
 
@@ -55,9 +52,8 @@ void RunAction::BeginOfRunAction(const G4Run* run)
             params_->Initialize(*options_);
             CELER_ASSERT(*params_);
 
-            // Construct thread-local transporter
-            *transport_ = celeritas::LocalTransporter(*options_, *params_);
-            CELER_ENSURE(*transport_);
+            // "Master" geant4 thread only coordinates, not transports, so it
+            // should not create a local state.
         },
         call_g4exception);
 }
@@ -66,18 +62,13 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 /*!
  * Finalize Celeritas.
  */
-void RunAction::EndOfRunAction(const G4Run*)
+void MasterRunAction::EndOfRunAction(const G4Run*)
 {
+    CELER_EXPECT(G4Threading::IsMasterThread());
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 
-    // Deallocate Celeritas state data (optional)
-    transport_.reset();
-
-    // Clear shared data and write if master thread (when running without MT)
-    if (G4Threading::IsMasterThread())
-    {
-        params_->Finalize();
-    }
+    // Clear shared data and write if master thread
+    params_->Finalize();
 }
 
 //---------------------------------------------------------------------------//

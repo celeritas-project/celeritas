@@ -15,7 +15,9 @@
 #include <G4SDManager.hh>
 #include <G4VPhysicalVolume.hh>
 
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
@@ -39,7 +41,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     gdml_parser.SetStripFlag(false);
 
     constexpr bool validate_gdml_schema = false;
-    const std::string& filename = GlobalSetup::Instance()->GetGdmlFile();
+    const std::string& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
     {
         G4Exception("DetectorConstruction::Construct()",

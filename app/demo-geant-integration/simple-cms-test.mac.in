@@ -5,6 +5,7 @@
 
 /setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
 /setup/setHepmc3File @PROJECT_SOURCE_DIR@/app/data/input.hepmc3
+/setup/setOutputFile simple-cms.out.json
 /setup/maxNumTracks 1024
 /setup/maxNumEvents 1024
 /setup/secondaryStackFactor 3

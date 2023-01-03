@@ -29,9 +29,13 @@ struct SetupOptions
     // TODO: names of sensitive detectors
     // TODO: along-step construction option/callback
 
-    // TODO: geometry should be exported directly from Geant4 (or written to
-    // temporary GDML and re-read)
+    //!@{
+    //! \name I/O
+    //! GDML filename (optional: defaults to exporting existing Geant4)
     std::string geometry_file;
+    //! Filename for JSON diagnostic output
+    std::string output_file;
+    //!@}
 
     //!@{
     //! \name Celeritas stepper options
