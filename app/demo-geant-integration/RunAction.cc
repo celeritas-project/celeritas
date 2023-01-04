@@ -16,6 +16,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
+#include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -41,11 +42,17 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 {
     CELER_EXPECT(run);
 
-    if (!CELERITAS_USE_VECGEOM)
+    if (G4Threading::IsMasterThread())
     {
-        // For testing purposes, pass the GDML input filename to Celeritas
-        const_cast<celeritas::SetupOptions&>(*options_).geometry_file
-            = GlobalSetup::Instance()->GetGeometryFile();
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            // For testing purposes, pass the GDML input filename to Celeritas
+            const_cast<celeritas::SetupOptions&>(*options_).geometry_file
+                = GlobalSetup::Instance()->GetGeometryFile();
+        }
+
+        // Create the along-step action
+        GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
     }
 
     celeritas::ExceptionConverter call_g4exception{"celer0001"};
