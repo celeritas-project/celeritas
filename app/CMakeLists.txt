@@ -343,7 +343,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/DetectorConstruction.cc
     demo-geant-integration/EventAction.cc
     demo-geant-integration/GlobalSetup.cc
-    demo-geant-integration/MasterRunAction.cc
     demo-geant-integration/NoFieldAlongStepFactory.cc
     demo-geant-integration/PrimaryGeneratorAction.cc
     demo-geant-integration/RunAction.cc

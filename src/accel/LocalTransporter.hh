@@ -38,6 +38,10 @@ class LocalTransporter
     // Initialized with shared (across threads) params
     LocalTransporter(const SetupOptions& options, const SharedParams& params);
 
+    // Alternative to construction + move assignment
+    inline void
+    Initialize(const SetupOptions& options, const SharedParams& params);
+
     // Set the event ID
     void SetEventId(int);
 
@@ -70,6 +74,19 @@ class LocalTransporter
     size_type auto_flush_{};
     size_type max_steps_{};
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper for making initialization more obvious from user code.
+ *
+ * Since a LocalTransporter is shared across threads, this gives it some
+ * symmetry with Finalize.
+ */
+void LocalTransporter::Initialize(const SetupOptions& options,
+                                  const SharedParams& params)
+{
+    *this = LocalTransporter(options, params);
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas

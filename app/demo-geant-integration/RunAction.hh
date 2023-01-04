@@ -31,7 +31,10 @@ class RunAction final : public G4UserRunAction
     //!@}
 
   public:
-    RunAction(SPConstOptions options, SPParams params, SPTransporter transport);
+    RunAction(SPConstOptions options,
+              SPParams       params,
+              SPTransporter  transport,
+              bool           init_celeritas);
 
     void BeginOfRunAction(const G4Run* run) final;
     void EndOfRunAction(const G4Run* run) final;
@@ -40,6 +43,7 @@ class RunAction final : public G4UserRunAction
     SPConstOptions options_;
     SPParams       params_;
     SPTransporter  transport_;
+    bool           init_celeritas_;
 };
 
 //---------------------------------------------------------------------------//
