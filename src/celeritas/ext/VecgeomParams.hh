@@ -16,6 +16,8 @@
 
 #include "VecgeomData.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -38,6 +40,9 @@ class VecgeomParams
     // Construct from a GDML filename
     explicit VecgeomParams(const std::string& gdml_filename);
 
+    // Create a VecGeom model from a pre-existing Geant4 geometry
+    explicit VecgeomParams(const G4VPhysicalVolume* world);
+
     // Clean up VecGeom on destruction
     ~VecgeomParams();
 
@@ -52,8 +57,14 @@ class VecgeomParams
     // Get the label for a placed volume ID
     const Label& id_to_label(VolumeId vol_id) const;
 
+    // Get the volume ID corresponding to a unique name
+    inline VolumeId find_volume(const char* name) const;
+
     // Get the volume ID corresponding to a unique label name
     VolumeId find_volume(const std::string& name) const;
+
+    // Get the volume ID corresponding to a unique label
+    VolumeId find_volume(const Label& label) const;
 
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(const std::string& name) const;
@@ -92,11 +103,28 @@ class VecgeomParams
 
     //// HELPER FUNCTIONS ////
 
-    void build_md();
+    // Construct VecGeom tracking data and copy to GPU
+    void build_tracking();
+    // Construct host/device Celeritas data
+    void build_data();
+    // Construct labels and other host-only metadata
+    void build_metadata();
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Find the unique volume corresponding to a unique name.
+ *
+ * This method is here to disambiguate the implicit std::string and Label
+ * constructors.
+ */
+VolumeId VecgeomParams::find_volume(const char* name) const
+{
+    return this->find_volume(std::string{name});
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * No surface IDs are defined in vecgeom.

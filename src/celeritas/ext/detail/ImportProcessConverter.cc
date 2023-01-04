@@ -33,7 +33,7 @@
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "GeantVersion.hh"
+#include "../GeantVersion.hh"
 
 namespace celeritas
 {

@@ -8,6 +8,7 @@
 #include "AlongStepTestBase.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
@@ -56,7 +57,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         }
 
         // Primary -> track initializer -> track
-        extend_from_primaries(core_ref, primaries);
+        extend_from_primaries(core_ref, make_span(primaries));
         initialize_tracks(core_ref);
     }
 

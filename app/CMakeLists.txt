@@ -333,6 +333,56 @@ if(CELERITAS_BUILD_DEMOS)
 endif()
 
 #-----------------------------------------------------------------------------#
+# DEMO: Geant4 integration
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
+  add_executable(demo-geant-integration
+    demo-geant-integration/demo-geant-integration.cc
+    demo-geant-integration/ActionInitialization.cc
+    demo-geant-integration/DetectorConstruction.cc
+    demo-geant-integration/EventAction.cc
+    demo-geant-integration/GlobalSetup.cc
+    demo-geant-integration/MasterRunAction.cc
+    demo-geant-integration/NoFieldAlongStepFactory.cc
+    demo-geant-integration/PrimaryGeneratorAction.cc
+    demo-geant-integration/RunAction.cc
+    demo-geant-integration/SensitiveDetector.cc
+    demo-geant-integration/SensitiveHit.cc
+    demo-geant-integration/TrackingAction.cc
+  )
+  celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
+
+  if(CELERITAS_BUILD_TESTS)
+    configure_file(
+      "demo-geant-integration/simple-cms-test.mac.in"
+      "simple-cms-test.mac" @ONLY
+    )
+    add_test(NAME "app/demo-geant-integration"
+      COMMAND "$<TARGET_FILE:demo-geant-integration>"
+      "simple-cms-test.mac"
+    )
+    set(_env
+      ${_geant_test_env}
+      "CELER_LOG_LOCAL=debug"
+      "CELER_DISABLE_PARALLEL=1"
+    )
+    if(Geant4_multithreaded_FOUND)
+      list(APPEND _env
+        "NUM_THREADS=2"
+      )
+    endif()
+    if(CELERITAS_USE_OpenMP)
+      list(APPEND _env "OMP_NUM_THREADS=1")
+    endif()
+    set_tests_properties("app/demo-geant-integration" PROPERTIES
+      ENVIRONMENT "${_env}"
+      LABELS "app"
+    )
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
 # Utility: single-track geometry debugging
 #-----------------------------------------------------------------------------#
 

@@ -66,10 +66,8 @@ void GlobalGeoTestBase::reset_geometry()
 //---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
 {
-    // Delayed initialization
-    static LazyGeo lg;
-
-    if (!lg.geo)
+    static bool registered_cleanup = false;
+    if (!registered_cleanup)
     {
         /*! Always reset geometry at end of testing before global destructors.
          *
@@ -80,9 +78,13 @@ auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
          * initialization/destruction order is undefined across translation
          * units.
          */
+        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
         ::testing::AddGlobalTestEnvironment(new CleanupGeoEnvironment());
+        registered_cleanup = true;
     }
 
+    // Delayed initialization
+    static LazyGeo lg;
     return lg;
 }
 

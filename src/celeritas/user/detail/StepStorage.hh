@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <mutex>
 #include <type_traits>
 
 #include "corecel/data/CollectionMirror.hh"
@@ -32,6 +33,9 @@ struct StepStorage
     using MemSpaceTag = std::integral_constant<MemSpace, M>;
 
     //// DATA ////
+
+    // Mutex to prevent multiple CPU threads from writing simultaneously
+    mutable std::mutex mumu;
 
     // Parameter data
     CollectionMirror<StepParamsData> params;

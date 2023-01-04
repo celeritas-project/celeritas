@@ -12,22 +12,6 @@
 
 #include "corecel/Macros.hh"
 
-/*!
- * \def CELER_TRY_ELSE
- *
- * Execute the statement, catching *all* thrown errors by calling the given
- * function-like operator with a \c std::exception_ptr object.
- */
-#define CELER_TRY_ELSE(STATEMENT, HANDLE_EXCEPTION) \
-    try                                             \
-    {                                               \
-        STATEMENT;                                  \
-    }                                               \
-    catch (...)                                     \
-    {                                               \
-        HANDLE_EXCEPTION(std::current_exception()); \
-    }
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

@@ -205,8 +205,7 @@
 #    define CELER_VALIDATE(COND, MSG)                                         \
         throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal, \
                                        "CELER_VALIDATE cannot be called "     \
-                                       "from "                                \
-                                       "device code",                         \
+                                       "from device code",                    \
                                        __FILE__,                              \
                                        __LINE__});
 #    define CELER_NOT_CONFIGURED(WHAT) CELER_ASSERT(0)
@@ -237,7 +236,7 @@
             cudaError_t cuda_result_ = (STATEMENT);                \
             if (CELER_UNLIKELY(cuda_result_ != cudaSuccess))       \
             {                                                      \
-                cudaGetLastError();                                \
+                cuda_result_ = cudaGetLastError();                 \
                 throw ::celeritas::RuntimeError::from_device_call( \
                     cudaGetErrorString(cuda_result_),              \
                     #STATEMENT,                                    \
@@ -279,7 +278,7 @@
             hipError_t hip_result_ = (STATEMENT);                  \
             if (CELER_UNLIKELY(hip_result_ != hipSuccess))         \
             {                                                      \
-                hipGetLastError();                                 \
+                hip_result_ = hipGetLastError();                   \
                 throw ::celeritas::RuntimeError::from_device_call( \
                     hipGetErrorString(hip_result_),                \
                     #STATEMENT,                                    \

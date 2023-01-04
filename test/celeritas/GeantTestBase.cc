@@ -52,7 +52,11 @@ ImportData load_import_data(std::string filename)
 {
     GeantPhysicsOptions options;
     options.em_bins_per_decade = 14;
-    GeantImporter import(GeantSetup(filename, options));
+    // XXX static for now so that Vecgeom or other clients can access geant4
+    // before the test explodes. Instead let's make this a class static
+    // variable that can be reset maybe? Probably doesn't matter in practice
+    // because geant still can't handle multiple runs per exe.
+    static GeantImporter import(GeantSetup{filename, options});
     return import();
 }
 
@@ -71,8 +75,8 @@ bool cstring_equal(const char* lhs, const char* rhs)
 bool GeantTestBase::is_ci_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.4.0")
-           && cstring_equal(celeritas_geant4_version, "10.7.2");
+           && cstring_equal(celeritas_clhep_version, "2.4.6.0")
+           && cstring_equal(celeritas_geant4_version, "11.0.3");
 }
 
 //---------------------------------------------------------------------------//
@@ -80,8 +84,8 @@ bool GeantTestBase::is_ci_build()
 bool GeantTestBase::is_wildstyle_build()
 {
     return cstring_equal(celeritas_rng, "XORWOW")
-           && cstring_equal(celeritas_clhep_version, "2.4.5.1")
-           && cstring_equal(celeritas_geant4_version, "10.7.3");
+           && cstring_equal(celeritas_clhep_version, "2.4.6.0")
+           && cstring_equal(celeritas_geant4_version, "11.0.3");
 }
 
 //---------------------------------------------------------------------------//
@@ -91,6 +95,22 @@ bool GeantTestBase::is_summit_build()
     return cstring_equal(celeritas_rng, "XORWOW")
            && cstring_equal(celeritas_clhep_version, "2.4.5.1")
            && cstring_equal(celeritas_geant4_version, "11.0.0");
+}
+
+//---------------------------------------------------------------------------//
+//! Get the Geant4 top-level geometry element (immutable)
+const G4VPhysicalVolume* GeantTestBase::get_world_volume() const
+{
+    return GeantImporter::get_world_volume();
+}
+
+//---------------------------------------------------------------------------//
+//! Get the Geant4 top-level geometry element
+const G4VPhysicalVolume* GeantTestBase::get_world_volume()
+{
+    // Load geometry
+    this->imported_data();
+    return const_cast<const GeantTestBase*>(this)->get_world_volume();
 }
 
 //---------------------------------------------------------------------------//

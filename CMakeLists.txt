@@ -32,6 +32,8 @@ include(CMakePackageConfigHelpers)
 # OPTIONS
 #----------------------------------------------------------------------------#
 
+# NOTE: languages must be *first* because their settings affect the
+# find_package calls.
 celeritas_optional_language(CUDA)
 if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
@@ -253,8 +255,8 @@ if(CELERITAS_BUILD_DOCS)
     find_program(LATEXMK_EXECUTABLE latexmk)
   endif()
   if(NOT Sphinx_FOUND AND NOT Doxygen_FOUND)
-    message(SEND_ERROR "Sphinx and/or Doxygen are required for testing: setting "
-      "CELERITAS_BUILD_TESTS=OFF for next build")
+    message(SEND_ERROR "Sphinx and/or Doxygen are required for docs: setting "
+      "CELERITAS_BUILD_DOCS=OFF for next build")
     set(CELERITAS_BUILD_DOCS OFF CACHE BOOL
       "Disabled because of missing Doxygen/Sphinx" FORCE)
   endif()

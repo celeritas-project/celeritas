@@ -154,7 +154,7 @@ void run(std::istream* is, OutputManager* output)
     }
 
     // Transport
-    result = (*transport_ptr)(primaries);
+    result = (*transport_ptr)(make_span(primaries));
 
     result.time.setup = setup_time;
 

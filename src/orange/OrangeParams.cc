@@ -92,6 +92,17 @@ OrangeParams::OrangeParams(const std::string& json_filename)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct in-memory from a Geant4 geometry (not implemented).
+ *
+ * Perhaps someday we'll implement in-memory translation...
+ */
+OrangeParams::OrangeParams(const G4VPhysicalVolume*)
+{
+    CELER_NOT_IMPLEMENTED("Geant4->VecGeom geometry translation");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Advanced usage: construct from explicit host data.
  *
  * Volume and surface labels must be unique for the time being.
@@ -197,9 +208,10 @@ const Label& OrangeParams::id_to_label(VolumeId vol) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Locate the volume ID corresponding to a label.
+ * Locate the volume ID corresponding to a unique name.
  *
- * If the label isn't in the geometry, a null ID will be returned.
+ * If the name isn't in the geometry, a null ID will be returned. If the name
+ * is not unique, a RuntimeError will be raised.
  */
 VolumeId OrangeParams::find_volume(const std::string& name) const
 {
@@ -209,6 +221,17 @@ VolumeId OrangeParams::find_volume(const std::string& name) const
     CELER_VALIDATE(result.size() == 1,
                    << "volume '" << name << "' is not unique");
     return result.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Locate the volume ID corresponding to a label.
+ *
+ * If the label isn't in the geometry, a null ID will be returned.
+ */
+VolumeId OrangeParams::find_volume(const Label& label) const
+{
+    return vol_labels_.find(label);
 }
 
 //---------------------------------------------------------------------------//

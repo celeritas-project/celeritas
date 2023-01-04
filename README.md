@@ -6,43 +6,64 @@ requirements of the [HL-LHC upgrade][HLLHC].
 
 [HLLHC]: https://home.cern/science/accelerators/high-luminosity-lhc
 
-# Installation
+# Installation for developers
 
-This project requires external dependencies such as CUDA to build with full
-functionality.  However, any combination of these requirements can be omitted
-to enable limited development on personal machines with fewer available
-components. See [the infrastructure documentation](doc/infrastructure.rst) for
-details on installing.
+Since Celeritas is still under heavy development and is not yet full-featured
+for downstream integration, you are likely installing it for development
+purposes. The [infrastructure documentation][infra] has a
+complete description of the code's dependencies and installation process for
+development.
 
-## Installing with Spack
-
-[Spack](https://github.com/spack/spack) is an HPC-oriented package manager that
-includes numerous scientific packages, including those used in HEP. An included
-Spack "environment" (at `scripts/dev/env/celeritas-{platform}.yaml`) defines
-the required prerequisites for this project.
-
-- Clone Spack following its [getting started instructions][1]
-- To install with CUDA, run `spack external find cuda` and
-  `spack install celeritas +cuda cuda_arch=<ARCH>`, where `<ARCH>` is the
-  numeric portion of the [CUDA architecture flags][2]
-
-[1]: https://spack.readthedocs.io/en/latest/getting_started.html
-[2]: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
-
-## Configuring and building Celeritas manually
-
-The Spack environment at [dev/scripts.yaml](dev/scripts.yaml) lists the full
-dependencies used by the CI for building, testing, and documenting. Install
-those dependencies via Spack or independently, then configure Celeritas.
-
-To configure Celeritas, assuming the dependencies you want are located in the
-`CMAKE_PREFIX_PATH` search path, and other environment variables such as `CXX`
-are set, you should be able to just run CMake and build:
+As an example, if you have the [Spack][spack] package manager
+installed and want to do development on a CUDA system with Volta-class graphics
+cards, execute the following steps:
 ```console
-$ mkdir build
-$ cd build && cmake ..
-$ make
+# Set up CUDA (optional)
+$ spack external find cuda
+$ spack config add packages:all:variants:"+cuda cuda_arch=70"
+# Install celeritas dependencies
+$ spack env create celeritas scripts/spack.yaml
+$ spack env activate celeritas
+$ spack install
+# Configure, build, and test
+$ ./build.sh base
 ```
+
+If you don't use Spack but have all the dependencies you want (Geant4,
+googletest, VecGeom, etc.) in your `CMAKE_PREFIX_PATH`, you can configure and
+build Celeritas as you would any other project:
+```console
+$ mkdir build && cd build
+$ cmake ..
+$ make && ctest
+```
+
+Celeritas guarantees full compatibility and correctness only on the
+combinations of compilers and dependencies tested under continuous integration.
+Currently supported compilers are GCC 11.2 + NVCC 11.8, and HIP-Clang 15.0, but
+since we compile with extra warning flags and avoid non-portable code, most
+other compilers *should* work.
+Currently Geant4 11.0 and VecGeom 1.2 are the only versions that are guaranteed
+to work, but older versions might be OK.
+The full set of configurations is viewable on [the CI web site][jenkins].
+Compatibility fixes that do not cause newer versions to fail are welcome.
+
+[spack]: https://github.com/spack/spack
+[infra]: doc/infrastructure.rst
+[jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/blue/organizations/jenkins/Celeritas/activity?branch=master
+
+# Installation for applications
+
+The easiest way to install Celeritas as a library/app is with Spack:
+- Follow the first two steps above to install [Spack][spack-start] and set up its CUDA usage.
+- Install Celeritas with `spack install celeritas`
+- Use `spack load celeritas` to add the installation to your `PATH`.
+
+Then see the "Downstream usage as a library" section of the [infrastructure
+documentation][infra] for how to use Celeritas in your application or framework.
+
+[spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
+[infra]: doc/infrastructure.rst
 
 # Development
 

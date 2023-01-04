@@ -21,6 +21,8 @@
 #include "OrangeTypes.hh"
 #include "detail/UnitIndexer.hh"
 
+class G4VPhysicalVolume;
+
 namespace celeritas
 {
 struct OrangeInput;
@@ -45,6 +47,9 @@ class OrangeParams
     // Construct from a JSON file (if JSON is enabled)
     explicit OrangeParams(const std::string& json_filename);
 
+    // Construct in-memory from Geant4 (not implemented)
+    explicit OrangeParams(const G4VPhysicalVolume*);
+
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput input);
 
@@ -59,8 +64,14 @@ class OrangeParams
     // Get the label for a placed volume ID
     const Label& id_to_label(VolumeId vol_id) const;
 
-    // Get the volume ID corresponding to a unique label
+    // Get the volume ID corresponding to a unique name
+    inline VolumeId find_volume(const char* name) const;
+
+    // Get the volume ID corresponding to a unique name
     VolumeId find_volume(const std::string& name) const;
+
+    // Get the volume ID corresponding to a unique label
+    VolumeId find_volume(const Label& label) const;
 
     // Get zero or more volume IDs corresponding to a name
     SpanConstVolumeId find_volumes(const std::string& name) const;
@@ -97,6 +108,20 @@ class OrangeParams
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Find the unique volume corresponding to a unique name.
+ *
+ * This method is here to disambiguate the implicit std::string and Label
+ * constructors.
+ */
+VolumeId OrangeParams::find_volume(const char* name) const
+{
+    return this->find_volume(std::string{name});
+}
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
