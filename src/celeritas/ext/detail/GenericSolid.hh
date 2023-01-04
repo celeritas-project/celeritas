@@ -24,14 +24,17 @@
 #include "VecGeom/volumes/PlacedVolume.h"
 #include "VecGeom/volumes/UnplacedVolume.h"
 
+namespace celeritas
+{
+
 template<typename S>
 class GenericSolid : public vecgeom::VUnplacedVolume
 {
   public:
-    using vecgeom::VUnplacedVolume::DistanceToIn;
-    using vecgeom::VUnplacedVolume::DistanceToOut;
-    using vecgeom::VUnplacedVolume::SafetyToIn;
-    using vecgeom::VUnplacedVolume::SafetyToOut;
+    using VUnplacedVolume::DistanceToIn;
+    using VUnplacedVolume::DistanceToOut;
+    using VUnplacedVolume::SafetyToIn;
+    using VUnplacedVolume::SafetyToOut;
 
     explicit GenericSolid(S const* g4solid) : fG4Solid(g4solid) {}
 
@@ -49,8 +52,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
         return EnumInside::kOutside;
     }
 
-    // ---------------- Contains
-    // --------------------------------------------------------------------
+    // ---------------- Contains --------------------------------------------
     VECCORE_ATT_HOST_DEVICE
     bool Contains(vecgeom::Vector3D<Precision> const& p) const override
     {
@@ -66,8 +68,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
         return ConvertEnum(fG4Solid->Inside(ToG4V(p)));
     }
 
-    // ---------------- DistanceToOut functions
-    // -----------------------------------------------------
+    // ---------------- DistanceToOut functions ------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision DistanceToOut(vecgeom::Vector3D<Precision> const& p,
                             vecgeom::Vector3D<Precision> const& d,
@@ -96,25 +97,14 @@ class GenericSolid : public vecgeom::VUnplacedVolume
         return dist;
     }
 
-    // ---------------- SafetyToOut functions
-    // -----------------------------------------------------
+    // ---------------- SafetyToOut functions -------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToOut(vecgeom::Vector3D<Precision> const& p) const override
     {
         return fG4Solid->DistanceToOut(ToG4V(p));
     }
 
-    //#ifdef VECGEOM_VECTORAPI
-    // an explicit SIMD interface
-    // VECCORE_ATT_HOST_DEVICE
-    // Real_v SafetyToOutVec(vecgeom::Vector3D<Real_v> const &p) const override
-    // {
-    //   return Real_v(0);
-    // }
-    // #endif
-
-    // ---------------- DistanceToIn functions
-    // -----------------------------------------------------
+    // ---------------- DistanceToIn functions ------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision
     DistanceToIn(vecgeom::Vector3D<Precision> const& p,
@@ -124,16 +114,14 @@ class GenericSolid : public vecgeom::VUnplacedVolume
         return fG4Solid->DistanceToIn(ToG4V(p), ToG4V(d));
     }
 
-    // ---------------- SafetyToIn functions
-    // -------------------------------------------------------
+    // ---------------- SafetyToIn functions ---------------------------------
     VECCORE_ATT_HOST_DEVICE
     Precision SafetyToIn(vecgeom::Vector3D<Precision> const& p) const override
     {
         return fG4Solid->DistanceToIn(ToG4V(p));
     }
 
-    // ---------------- Normal
-    // ---------------------------------------------------------------------
+    // ---------------- Normal ---------------------------------------------
 
     VECCORE_ATT_HOST_DEVICE
     bool Normal(vecgeom::Vector3D<Precision> const& p,
@@ -144,8 +132,7 @@ class GenericSolid : public vecgeom::VUnplacedVolume
         return true;
     }
 
-    // ----------------- Extent
-    // --------------------------------------------------------------------
+    // ----------------- Extent --------------------------------------------
     VECCORE_ATT_HOST_DEVICE
     void Extent(vecgeom::Vector3D<Precision>& aMin,
                 vecgeom::Vector3D<Precision>& aMax) const override
@@ -177,8 +164,8 @@ class GenericSolid : public vecgeom::VUnplacedVolume
     G4GeometryType GetEntityType() const { return fG4Solid->GetEntityType(); }
 
     vecgeom::VPlacedVolume*
-    SpecializedVolume(LogicalVolume const* const    volume,
-                      Transformation3D const* const transformation,
+    SpecializedVolume(LogicalVolume const* const             volume,
+                      vecgeom::Transformation3D const* const transformation,
                       const TranslationCode,
                       const RotationCode,
                       VPlacedVolume* const /*placement = nullptr*/) const override
@@ -205,3 +192,5 @@ class GenericSolid : public vecgeom::VUnplacedVolume
   private:
     const S* fG4Solid;
 };
+
+} // namespace celeritas

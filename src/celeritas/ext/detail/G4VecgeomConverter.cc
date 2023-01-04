@@ -96,7 +96,9 @@
 #include "G4TransportationManager.hh"
 
 using namespace vecgeom;
-using celeritas::ipow;
+
+namespace celeritas
+{
 
 static constexpr double scale = 0.1; // G4 mm to VecGeom cm scale
 
@@ -162,7 +164,7 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
 
 void InitVecGeomNavigators()
 {
-    for (auto& lvol : vecgeom::GeoManager::Instance().GetLogicalVolumesMap())
+    for (auto& lvol : GeoManager::Instance().GetLogicalVolumesMap())
     {
         if (lvol.second->GetDaughtersp()->size() < 4)
         {
@@ -277,8 +279,8 @@ void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
 }
 
 void G4VecGeomConverter::ExtractReplicatedTransformations(
-    G4PVReplica const&                             replica,
-    std::vector<vecgeom::Transformation3D const*>& transf) const
+    G4PVReplica const&                    replica,
+    std::vector<Transformation3D const*>& transf) const
 {
     // read out parameters
     EAxis  axis;
@@ -314,7 +316,7 @@ void G4VecGeomConverter::ExtractReplicatedTransformations(
     {
         const auto translation = (-width * (nReplicas - 1) * 0.5 + r * width)
                                  * direction;
-        auto tr = new vecgeom::Transformation3D(
+        auto tr = new Transformation3D(
             translation[0], translation[1], translation[2]);
         transf.push_back(tr);
     }
@@ -491,7 +493,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     if (fUnplacedVolumeMap.Contains(shape))
         return const_cast<VUnplacedVolume*>(fUnplacedVolumeMap[shape]);
 
-    // Check whether this is already a VecGeom::VUnplacedVolume
+    // Check whether this is already a vecgeom::VUnplacedVolume
     if (auto existingUnplaced = dynamic_cast<VUnplacedVolume const*>(shape))
         return const_cast<VUnplacedVolume*>(existingUnplaced);
     // This can occur if either:
@@ -664,8 +666,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         }
 
         // need the matrix;
-        Transformation3D const* lefttrans
-            = &vecgeom::Transformation3D::kIdentity;
+        Transformation3D const* lefttrans = &Transformation3D::kIdentity;
         auto                    rot = g4righttrans.NetRotation();
         Transformation3D const* righttrans
             = Convert(g4righttrans.NetTranslation(), &rot);
@@ -735,12 +736,12 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         {
             std::cerr << "NONSIMPLE REFLECTION in solid" << shape->GetName()
                       << "\n";
-            unplaced_volume = new GenericSolid<G4ReflectedSolid>(p);
+            unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
         }
 #else
         std::cerr << "Reflection G4 solid " << shape->GetName()
                   << " -- wrapping G4 implementation.\n";
-        unplaced_volume = new GenericSolid<G4ReflectedSolid>(p);
+        unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
 #endif
     }
 //#endif
@@ -897,7 +898,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
                    shape->GetName().c_str(),
                    shape->GetEntityType().c_str());
         }
-        unplaced_volume = new GenericSolid<G4VSolid>(shape);
+        unplaced_volume = new celeritas::GenericSolid<G4VSolid>(shape);
         std::cout
             << " capacity = " << unplaced_volume->Capacity() / ipow<3>(scale)
             << "\n";
@@ -917,3 +918,4 @@ void G4VecGeomConverter::Clear()
         GeoManager::Instance().SetWorld(nullptr);
     }
 }
+} // namespace celeritas

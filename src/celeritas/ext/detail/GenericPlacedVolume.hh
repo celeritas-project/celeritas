@@ -23,7 +23,8 @@
 // more stuff might be needed
 #include <cassert>
 
-using namespace vecgeom;
+namespace celeritas
+{
 
 #define VECGEOM_VECTORAPI
 
@@ -255,3 +256,4 @@ class GenericPlacedVolume : public vecgeom::VPlacedVolume
 
 #endif // VECGEOM_CUDA_INTERFACE
 };
+} // namespace celeritas

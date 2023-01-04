@@ -30,50 +30,44 @@ class G4VSolid;
 
 namespace celeritas
 {
-inline namespace VECGEOM_IMPL_NAMESPACE
-{
-class LogicalVolume;
-class Transformation3D;
-class UnplacedBox;
-class VUnplacedVolume;
-class VPlacedVolume;
-
-} // namespace VECGEOM_IMPL_NAMESPACE
-} // namespace vecgeom
 
 // class converting G4 to VecGeom (only geometry; no materials)
+using vecgeom::BidirectionalTypeMap;
+using vecgeom::LogicalVolume;
+using vecgeom::Transformation3D;
+using vecgeom::VPlacedVolume;
+using vecgeom::VUnplacedVolume;
+
 class G4VecGeomConverter
 {
   private:
     /** Remember pointer to generated world from imported G4 geometry. */
-    vecgeom::VPlacedVolume const* fWorld;
+    VPlacedVolume const* fWorld;
 
     // one G4 physical volume can correspond to multiple vecgeom placed volumes
     // (in case of replicas)
-    vecgeom::BidirectionalTypeMap<std::vector<vecgeom::VPlacedVolume const*> const*,
-                                  G4VPhysicalVolume const*>
+    BidirectionalTypeMap<std::vector<VPlacedVolume const*> const*,
+                         G4VPhysicalVolume const*>
         fPlacedVolumeMap;
 
-    vecgeom::BidirectionalTypeMap<vecgeom::VUnplacedVolume const*, G4VSolid const*>
+    BidirectionalTypeMap<VUnplacedVolume const*, G4VSolid const*>
         fUnplacedVolumeMap;
-    vecgeom::BidirectionalTypeMap<vecgeom::LogicalVolume const*,
-                                  G4LogicalVolume const*>
+
+    BidirectionalTypeMap<LogicalVolume const*, G4LogicalVolume const*>
         fLogicalVolumeMap;
 
     // fast O(1) lookup to get VecGeom or G4 placed volume based on index
     // FastG4VecGeomLookup fFastG4VGLookup;
-    std::vector<vecgeom::Transformation3D const*> fReplicaTransformations;
+    std::vector<Transformation3D const*> fReplicaTransformations;
 
     int fVerbose;
 
   public:
-    // vecgeom::VPlacedVolume const* world() const { return fWorld; }
-
     void SetVerbose(const int verbose) { fVerbose = verbose; }
     int  GetVerboseLevel() const { return fVerbose; }
 
     /// Get placed volume that corresponds to a G4VPhysicalVolume
-    std::vector<vecgeom::VPlacedVolume const*> const*
+    std::vector<VPlacedVolume const*> const*
     GetPlacedVolume(G4VPhysicalVolume const* n) const
     {
         if (n == nullptr)
@@ -102,32 +96,29 @@ class G4VecGeomConverter
      * Will take care not to convert anything twice by checking the
      * bidirectional map between Geant4 and VecGeom geometry.
      */
-    std::vector<vecgeom::VPlacedVolume const*> const*
-    Convert(G4VPhysicalVolume const*);
+    std::vector<VPlacedVolume const*> const* Convert(G4VPhysicalVolume const*);
 
     /**
      * @brief Special treatment needed for replicated volumes.
      */
     void ExtractReplicatedTransformations(
-        G4PVReplica const&,
-        std::vector<vecgeom::Transformation3D const*>&) const;
+        G4PVReplica const&, std::vector<Transformation3D const*>&) const;
 
     /**
      * @brief Converts G4 solids into VecGeom unplaced volumes
      */
-    vecgeom::VUnplacedVolume* Convert(G4VSolid const*);
+    VUnplacedVolume* Convert(G4VSolid const*);
 
     /**
      * @brief Converts logical volumes from Geant4 into VecGeom.
      * All daughters' physical volumes will be recursively converted.
      */
-    vecgeom::LogicalVolume*   Convert(G4LogicalVolume const*);
+    LogicalVolume* Convert(G4LogicalVolume const*);
 
     /**
      * @brief Converts transformation matrices
      */
-    vecgeom::Transformation3D*
-    Convert(G4ThreeVector const&, G4RotationMatrix const*);
+    Transformation3D* Convert(G4ThreeVector const&, G4RotationMatrix const*);
 
   public:
     // constructor
@@ -152,3 +143,4 @@ class G4VecGeomConverter
     G4VecGeomConverter(G4VecGeomConverter const&)            = delete;
     G4VecGeomConverter& operator=(G4VecGeomConverter const&) = delete;
 };
+} // namespace celeritas
