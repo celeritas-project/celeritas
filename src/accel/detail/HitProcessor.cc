@@ -147,7 +147,6 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
             }
             HP_SET(points[sp]->SetGlobalTime, out.points[sp].time, CLHEP::s);
             HP_SET(points[sp]->SetPosition, out.points[sp].pos, CLHEP::cm);
-            HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir, 1);
             HP_SET(points[sp]->SetKineticEnergy,
                    out.points[sp].energy,
                    CLHEP::MeV);

@@ -24,7 +24,6 @@ struct SDSetupOptions
     {
         bool global_time{false};
         bool position{false};
-        bool momentum_direction{false};
         bool kinetic_energy{false};
     };
 
