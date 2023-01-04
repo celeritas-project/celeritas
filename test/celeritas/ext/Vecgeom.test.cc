@@ -308,7 +308,7 @@ TEST_F(FourLevelsTest, tracking)
     {
         // Formerly in linear propagator test, used to fail
         SCOPED_TRACE("From just outside world");
-        auto result = this->track({-24, 6.5, 6.5}, {1, 0, 0});
+        auto result = this->track({-24, 10, 10}, {1, 0, 0});
         static const char* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
@@ -324,20 +324,8 @@ TEST_F(FourLevelsTest, tracking)
                                                        "Envelope",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {1e-13,
-                                                       6.9999999999999,
-                                                       1,
-                                                       5.2928932188135,
-                                                       1.4142135623731,
-                                                       5.2928932188135,
-                                                       1,
-                                                       6,
-                                                       1,
-                                                       5.2928932188135,
-                                                       1.4142135623731,
-                                                       5.2928932188135,
-                                                       1,
-                                                       7};
+        static const real_type expected_distances[]
+            = {1e-13, 7, 1, 1, 10, 1, 1, 6, 1, 1, 10, 1, 1, 7};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
