@@ -35,6 +35,7 @@ class GlobalSetup
     //!@{
     //! Demo setup options
     const std::string& GetGeometryFile() const { return geometry_file_; }
+    const std::string& GetHepmc3File() const { return hepmc3_file_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -55,10 +56,10 @@ class GlobalSetup
     ~GlobalSetup();
 
     // Data
-    std::shared_ptr<SetupOptions> options_;
-    std::string                   geometry_file_;
-
-    std::unique_ptr<G4GenericMessenger> messenger_;
+    std::shared_ptr<celeritas::SetupOptions> options_;
+    std::string                              geometry_file_;
+    std::string                              hepmc3_file_;
+    std::unique_ptr<G4GenericMessenger>      messenger_;
 };
 
 //---------------------------------------------------------------------------//

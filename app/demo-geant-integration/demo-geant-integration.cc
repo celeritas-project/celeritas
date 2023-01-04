@@ -38,6 +38,7 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "HepMC3Reader.hh"
 
 namespace
 {
@@ -104,9 +105,13 @@ void run(int num_threads, const std::string& macro_filename)
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
-    CELER_LOG(status)
-        << "Executing macro commands from '" << macro_filename << "'";
+    CELER_LOG(status) << "Executing macro commands from '" << macro_filename
+                      << "'";
     ui->ApplyCommand("/control/execute " + macro_filename);
+
+    // Initialize run and process events
+    run_manager->Initialize();
+    run_manager->BeamOn(demo_geant::HepMC3Reader::instance()->num_events());
 }
 
 //---------------------------------------------------------------------------//

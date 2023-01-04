@@ -40,6 +40,10 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the geometry file name");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("setHepmc3File", hepmc3_file_);
+        cmd.SetGuidance("Set the HepMC3 file name");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("setOutputFile",
                                                 options_->output_file);
         cmd.SetGuidance("Set the JSON output file name");
