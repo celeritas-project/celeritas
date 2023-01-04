@@ -11,18 +11,10 @@
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
 
-#include "corecel/io/Logger.hh"
-
 #include "HepMC3Reader.hh"
 
 namespace demo_geant
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct empty.
- */
-PrimaryGeneratorAction::PrimaryGeneratorAction() {}
-
 //---------------------------------------------------------------------------//
 /*!
  * Generate primaries from HepMC3 input file.

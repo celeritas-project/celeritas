@@ -8,13 +8,12 @@
 #include "HepMC3Reader.hh"
 
 #include <mutex>
-#include <G4SystemOfUnits.hh>
+#include <G4PhysicalConstants.hh>
 #include <G4TransportationManager.hh>
 #include <HepMC3/ReaderFactory.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/Constants.hh"
 
 #include "GlobalSetup.hh"
 
@@ -59,20 +58,12 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     const auto& event_pos = gen_event.event_pos();
 
     // Verify if vertex is inside the world volume
-    const auto inside_status
-        = G4TransportationManager::GetTransportationManager()
-              ->GetNavigatorForTracking()
-              ->GetWorldVolume()
-              ->GetLogicalVolume()
-              ->GetSolid()
-              ->Inside(
-                  G4ThreeVector{event_pos.x(), event_pos.y(), event_pos.z()});
-
-    CELER_ASSERT(inside_status == EInside::kInside);
+    CELER_ASSERT(world_solid_->Inside(G4ThreeVector{
+                     event_pos.x(), event_pos.y(), event_pos.z()})
+                 == EInside::kInside);
 
     // Add primaries to event
-    const auto& gen_particles = gen_event.particles();
-    for (const auto& gen_particle : gen_particles)
+    for (const auto& gen_particle : gen_event.particles())
     {
         const auto& part_data = gen_particle->data();
 
@@ -88,7 +79,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
             event_pos.x(),
             event_pos.y(),
             event_pos.z(),
-            event_pos.t() * CLHEP::s / celeritas::constants::c_light); // [s]
+            event_pos.t() / CLHEP::c_light); // [ns] (Geant4 standard unit)
 
         const auto& p = part_data.momentum;
         g4_vtx->SetPrimary(
@@ -102,11 +93,17 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with HepMC3 input filename and store total number of events.
+ * Construct with provided HepMC3 input filename.
  */
-HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
+HepMC3Reader::HepMC3Reader()
+    : G4VPrimaryGenerator()
+    , world_solid_(G4TransportationManager::GetTransportationManager()
+                       ->GetNavigatorForTracking()
+                       ->GetWorldVolume()
+                       ->GetLogicalVolume()
+                       ->GetSolid())
 {
-    std::string filename = GlobalSetup::Instance()->GetHepmc3File();
+    const std::string filename = GlobalSetup::Instance()->GetHepmc3File();
     CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
     input_file_ = HepMC3::deduce_reader(filename);
 
@@ -119,8 +116,9 @@ HepMC3Reader::HepMC3Reader() : G4VPrimaryGenerator()
         num_events_++;
     }
 
-    CELER_LOG(status) << "counted events is " << num_events_;
+    CELER_LOG(debug) << "HepMC3 file has " << num_events_ << " events";
     CELER_ENSURE(num_events_ > 0);
+    CELER_ENSURE(world_solid_);
 }
 
 //---------------------------------------------------------------------------//

@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ParticleGun.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
 #include "HepMC3Reader.hh"
@@ -22,7 +21,7 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
     // Construct primary action
-    PrimaryGeneratorAction();
+    PrimaryGeneratorAction() = default;
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;

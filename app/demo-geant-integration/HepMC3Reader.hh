@@ -10,10 +10,8 @@
 #include <memory>
 #include <vector>
 #include <G4Event.hh>
+#include <G4LogicalVolume.hh>
 #include <G4VPrimaryGenerator.hh>
-#include <HepMC3/GenEvent.h>
-#include <HepMC3/GenParticle_fwd.h>
-#include <HepMC3/GenVertex_fwd.h>
 
 // Forward declarations
 namespace HepMC3
@@ -25,11 +23,13 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * HepMC3 reader class.
+ * Singleton HepMC3 reader class.
  *
- * Singleton constructed the first time `instance()` is invoked by any given
- * thread. As is it an implementation of `G4VPrimaryGenerator`, the HepMC3
- * reader should be used by a concrete `G4VUserPrimaryGeneratorAction` class:
+ * This singleton is shared among threads so that events can be correctly split
+ * up between them, being constructed the first time `instance()` is invoked.
+ * As this is a derived `G4VPrimaryGenerator` class, the HepMC3Reader
+ * must be used by a concrete implementation of the
+ * `G4VUserPrimaryGeneratorAction` class:
  * \code
    void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
    {
@@ -50,8 +50,9 @@ class HepMC3Reader final : public G4VPrimaryGenerator
     std::size_t num_events() { return num_events_; }
 
   private:
-    std::shared_ptr<HepMC3::Reader> input_file_; // HepMC3 input file
-    std::size_t                     num_events_; // Total number of events
+    G4VSolid*                       world_solid_; // World volume solid
+    std::shared_ptr<HepMC3::Reader> input_file_;  // HepMC3 input file
+    std::size_t                     num_events_;  // Total number of events
 
   private:
     // Construct singleton with HepMC3 filename; called by instance()
