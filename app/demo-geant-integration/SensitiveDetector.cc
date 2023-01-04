@@ -52,7 +52,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent* hce)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add hits to the current hit collection
+ * Add hits to the current hit collection.
  */
 bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {

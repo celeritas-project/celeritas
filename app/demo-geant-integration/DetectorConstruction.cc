@@ -33,10 +33,20 @@ namespace demo_geant
 DetectorConstruction::DetectorConstruction()
 {
     auto& sd   = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+
+    // Use Celeritas "hit processor" to call back to Geant4 SDs.
     sd.enabled = true;
+
+    // Only call back for nonzero energy depositions: this is currently a
+    // global option for all detectors, so if any SDs extract data from tracks
+    // with no local energy deposition over the step, it must be set to false.
     sd.ignore_zero_deposition = true;
-    sd.locate_touchable       = true;
-    sd.pre.global_time        = true;
+
+    // Using the pre-step point, reconstruct the G4 touchable handle.
+    sd.locate_touchable = true;
+
+    // Since at least one SD uses the pre-step time, export it from Celeritas.
+    sd.pre.global_time = true;
 }
 
 //---------------------------------------------------------------------------//
