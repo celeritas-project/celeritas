@@ -557,6 +557,83 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_on_boundary());
 }
 
+TEST_F(UniversesTest, boundary_crossing_multiple_universes)
+{
+    // auto geo = this->make_track_view();
+
+    //// Initialize in outermost universe
+    // geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
+    // EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
+    // EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    // EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    // EXPECT_FALSE(geo.is_outside());
+    // EXPECT_FALSE(geo.is_on_boundary());
+
+    // auto next = geo.find_next_step();
+    // EXPECT_SOFT_EQ(1.0, next.distance);
+    // EXPECT_TRUE(next.boundary);
+    // std::cout<<"NEXT
+    // BOUNDARY"<<this->params().id_to_label(geo.next_surface_id())<<std::endl;
+
+    /////////////////////
+
+    // geo = Initializer_t{{0.5, -2, 1}, {-1, 0, 0}};
+    // EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+
+    // auto next = geo.find_next_step();
+
+    // EXPECT_SOFT_EQ(0.5, next.distance);
+    // EXPECT_TRUE(next.boundary);
+    // std::cout<<"NEXT
+    // BOUNDARY"<<this->params().id_to_label(geo.next_surface_id())<<std::endl;
+
+    //////
+
+    // geo.move_to_boundary();
+    // geo.cross_boundary();
+    // EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+
+    // Advance toward the boundary
+    // geo.move_internal(1.0);
+    // EXPECT_VEC_SOFT_EQ(Real3({0., -2, 1}), geo.pos());
+    // EXPECT_EQ(SurfaceId{}, geo.surface_id());
+
+    //// Move to boundary
+    // geo.move_to_boundary();
+    // EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, sqrt_two}), geo.pos());
+    // EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    // EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    // EXPECT_FALSE(geo.is_outside());
+    // EXPECT_TRUE(geo.is_on_boundary());
+    // EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
+
+    //// Logically flip the surface into the new volume
+    // geo.cross_boundary();
+    // EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    // EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+    // EXPECT_TRUE(geo.is_outside());
+    // EXPECT_TRUE(geo.is_on_boundary());
+    // EXPECT_DOUBLE_EQ(0.0, geo.find_safety());
+
+    //// Move internally to an arbitrary position
+    // geo.find_next_step();
+    // EXPECT_TRUE(geo.is_on_boundary());
+    // geo.move_internal({2, 2, 0});
+    // EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    // EXPECT_FALSE(geo.is_on_boundary());
+    // geo.set_dir({0, 1, 0});
+    // EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, geo.find_safety());
+    // geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
+
+    // next = geo.find_next_step();
+    // EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, next.distance);
+    // EXPECT_TRUE(next.boundary);
+    // geo.move_to_boundary();
+    // geo.cross_boundary();
+    // EXPECT_EQ(VolumeId{1}, geo.volume_id());
+    // EXPECT_EQ(SurfaceId{0}, geo.surface_id());
+}
+
 TEST_F(Geant4Testem15Test, params)
 {
     OrangeParams const& geo = this->params();

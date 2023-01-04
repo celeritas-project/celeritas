@@ -204,23 +204,28 @@ OrangeTrackView::operator=(Initializer_t const& init)
     local.temp_sense = this->make_temp_sense();
 
     // Initialize logical state
-    UniverseId uid = top_universe_id();
-    VolumeId global_vol_id{};
+    UniverseId next_uid = top_universe_id();
+    UniverseId uid;
+
+    VolumeId            global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 
     // Recurse into daughter universes starting with the outermost universe
     do
     {
+        uid          = next_uid;
         auto tracker = this->make_tracker(uid);
         auto tinit = tracker.initialize(local);
         // TODO: error correction/graceful failure if initialiation failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
-        uid = params_.volume_records[global_vol_id].daughter;
-    } while (uid);
+        next_uid = params_.volume_records[global_vol_id].daughter;
+    } while (next_uid);
 
     states_.vol[thread_] = global_vol_id;
+
+    states_.universe[thread_] = UniverseId{0};
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -288,6 +293,60 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         // Reset a previously found truncated distance
         this->clear_next_step();
     }
+
+    // if (!this->has_next_step())
+    //{
+    //    // The univese the particle is currently within
+    //    const auto& current_uid = states_.universe[thread_];
+
+    //    // The next uid we will test
+    //    UniverseId          next_uid = top_universe_id();
+
+    //    // The uid we are testing
+    //    UniverseId          uid;
+
+    //    auto min_step = no_intersection();
+    //    celeritas::detail::OnSurface min_surface;
+    //    UniverseId min_uid;
+
+    //    // Create local state
+    //    detail::LocalState local;
+    //    local.pos        = init.pos;
+    //    local.dir        = init.dir;
+    //    local.volume     = {};
+    //    local.surface    = {};
+    //    local.temp_sense = this->make_temp_sense();
+
+    //    do
+    //    {
+    //        uid = next_uid;
+
+    //        auto tracker = this->make_tracker(uid);
+
+    //        auto tinit   = tracker.initialize(local);
+    //        CELER_ASSERT(tinit.volume && !tinit.surface);
+    //        global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
+
+    //        auto isect    = tracker.intersect(this->make_local_state());
+
+    //        if (isect.distance < min_step)
+    //        {
+    //            min_step   = isect.distance;
+    //            min_surface = isect.surface;
+    //            min_uid = uid;
+    //        }
+
+    //        next_uid = params_.volume_records[global_vol_id].daughter;
+
+    //    }
+    //    while (uid != current_uid);
+
+    //    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
+    //
+    //    next_step_ = min_step;
+    //    next_surface_ = unit_indexer.global_surface(uid, min_surface);
+
+    // }
 
     if (!this->has_next_step())
     {
