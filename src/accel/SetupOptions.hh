@@ -7,18 +7,31 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <string>
 
 namespace celeritas
 {
+struct AlongStepFactoryInput;
+class ExplicitActionInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Control options for initializing Celeritas.
+ *
+ * The interface for the "along-step factory" (input parameters and output) is
+ * described in AlongStepFactory.hh .
  */
 struct SetupOptions
 {
+    //!@{
+    //! \name Type aliases
     using size_type = unsigned int;
     using real_type = double;
+
+    using SPConstAction = std::shared_ptr<const ExplicitActionInterface>;
+    using AlongStepFactory
+        = std::function<SPConstAction(const AlongStepFactoryInput&)>;
+    //!@}
 
     //! Don't limit the number of steps
     static constexpr size_type no_max_steps()
@@ -27,7 +40,6 @@ struct SetupOptions
     }
 
     // TODO: names of sensitive detectors
-    // TODO: along-step construction option/callback
 
     //!@{
     //! \name I/O
@@ -51,6 +63,11 @@ struct SetupOptions
     real_type   secondary_stack_factor{};
     //! Sync the GPU at every kernel for error checking
     bool sync{false};
+    //!@}
+
+    //!@{
+    //! \name Stepping actions
+    AlongStepFactory make_along_step;
     //!@}
 
     //!@{

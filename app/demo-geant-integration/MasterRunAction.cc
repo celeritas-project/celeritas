@@ -16,6 +16,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
+#include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -44,6 +45,9 @@ void MasterRunAction::BeginOfRunAction(const G4Run* run)
         const_cast<celeritas::SetupOptions&>(*options_).geometry_file
             = GlobalSetup::Instance()->GetGeometryFile();
     }
+
+    // Create the along-step action
+    GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
 
     celeritas::ExceptionConverter call_g4exception{"celer0001"};
     CELER_TRY_ELSE(

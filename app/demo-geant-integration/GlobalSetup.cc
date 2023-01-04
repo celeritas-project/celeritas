@@ -9,6 +9,7 @@
 
 #include <G4GenericMessenger.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 
 namespace demo_geant
@@ -29,7 +30,7 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
-    options_   = std::make_shared<celeritas::SetupOptions>();
+    options_   = std::make_shared<SetupOptions>();
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");
 
@@ -87,6 +88,20 @@ GlobalSetup::GlobalSetup()
     {
         // TODO: expose other options here
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the along-step factory.
+ *
+ * The "asf" can be an instance of a class inheriting from \c
+ * celeritas::AlongStepFactoryInterface , a functor, or just a function.
+ */
+void GlobalSetup::SetAlongStep(SetupOptions::AlongStepFactory asf)
+{
+    CELER_EXPECT(asf);
+
+    options_->make_along_step = std::move(asf);
 }
 
 //---------------------------------------------------------------------------//
