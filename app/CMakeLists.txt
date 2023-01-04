@@ -369,7 +369,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     )
     if(Geant4_multithreaded_FOUND)
       list(APPEND _env
-        "NUM_THREADS=2"
+        "G4FORCENUMBEROFTHREADS=2"
       )
     endif()
     if(CELERITAS_USE_OpenMP)

@@ -23,4 +23,11 @@
 #    else
 #        define CELERITAS_G4_V10 0
 #    endif
+
+#    include <G4GlobalConfig.hh>
+#    ifdef G4MULTITHREADED
+#        define CELERITAS_G4_MT 1
+#    else
+#        define CELERITAS_G4_MT 0
+#    endif
 #endif
