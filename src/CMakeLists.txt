@@ -56,7 +56,12 @@ endif()
 
 set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var CELERITAS_BUILD_TYPE CELERITAS_HOSTNAME CELERITAS_RNG)
+set(CELERITAS_GEOMETRY "ORANGE")
+if(CELERITAS_USE_VecGeom)
+  set(CELERITAS_GEOMETRY "VecGeom")
+endif()
+foreach(_var BUILD_TYPE GEOMETRY HOSTNAME RNG)
+  set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
     "static const char ${_lower}[] = \"${${_var}}\";\n"

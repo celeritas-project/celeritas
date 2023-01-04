@@ -64,7 +64,7 @@ LocalTransporter::LocalTransporter(const SetupOptions& options,
 void LocalTransporter::SetEventId(int id)
 {
     CELER_EXPECT(id >= 0);
-    event_id_ = EventId(id);
+    event_id_      = EventId(id);
     track_counter_ = 0;
 }
 
@@ -126,7 +126,8 @@ void LocalTransporter::Flush()
     }
 
     CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks with Celeritas";
+                          << " tracks from event " << event_id_.unchecked_get()
+                          << " with Celeritas";
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
@@ -144,6 +145,25 @@ void LocalTransporter::Flush()
         track_counts = (*step_)();
         ++step_iters;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear local data.
+ *
+ * This may need to be executed on the same thread it was created in order to
+ * safely deallocate some Geant4 objects under the hood...
+ */
+void LocalTransporter::Finalize()
+{
+    CELER_VALIDATE(buffer_.empty(),
+                   << "some offloaded tracks were not flushed");
+
+    // Reset all data
+    CELER_LOG_LOCAL(debug) << "Resetting local transporter";
+    *this = {};
+
+    CELER_ENSURE(!*this);
 }
 
 //---------------------------------------------------------------------------//

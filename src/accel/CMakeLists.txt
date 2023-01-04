@@ -16,6 +16,8 @@ list(APPEND SOURCES
   Logger.cc
   LocalTransporter.cc
   SharedParams.cc
+  detail/HitManager.cc
+  detail/HitProcessor.cc
 )
 
 celeritas_polysource(ExceptionConverter)

@@ -107,7 +107,7 @@ void assign_field(std::vector<T>*     dst,
  * consistent values for all tracks with valid detector IDs.
  */
 template<>
-void copy<MemSpace::device>(
+void copy_steps<MemSpace::device>(
     DetectorStepOutput*                                          output,
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {

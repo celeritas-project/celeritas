@@ -69,14 +69,17 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 void RunAction::EndOfRunAction(const G4Run*)
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
+    celeritas::ExceptionConverter call_g4exception{"celer0005"};
 
-    // Deallocate Celeritas state data (optional)
-    transport_.reset();
+    // Deallocate Celeritas state data (ensures that objects are deleted on the
+    // thread in which they're created, necessary by some geant4
+    // thread-local allocators)
+    CELER_TRY_ELSE(transport_->Finalize(), call_g4exception);
 
     // Clear shared data and write if master thread (when running without MT)
     if (G4Threading::IsMasterThread())
     {
-        params_->Finalize();
+        CELER_TRY_ELSE(params_->Finalize(), call_g4exception);
     }
 }
 

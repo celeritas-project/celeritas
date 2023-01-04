@@ -23,6 +23,12 @@ namespace demo_geant
 class GlobalSetup
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SetupOptions = celeritas::SetupOptions;
+    //!@}
+
+  public:
     // Return non-owning pointer to a singleton
     static GlobalSetup* Instance();
 
@@ -31,11 +37,17 @@ class GlobalSetup
     const std::string& GetGeometryFile() const { return geometry_file_; }
     //!@}
 
+    //! Get a mutable reference to the setup options for DetectorConstruction
+    celeritas::SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
+
     //! Get an immutable reference to the setup options
-    std::shared_ptr<const celeritas::SetupOptions> GetSetupOptions() const
+    std::shared_ptr<const SetupOptions> GetSetupOptions() const
     {
         return options_;
     }
+
+    // Set the along-step factory function/instance
+    void SetAlongStep(SetupOptions::AlongStepFactory asf);
 
   private:
     // Private constructor since we're a singleton
@@ -43,8 +55,8 @@ class GlobalSetup
     ~GlobalSetup();
 
     // Data
-    std::shared_ptr<celeritas::SetupOptions> options_;
-    std::string                              geometry_file_;
+    std::shared_ptr<SetupOptions> options_;
+    std::string                   geometry_file_;
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

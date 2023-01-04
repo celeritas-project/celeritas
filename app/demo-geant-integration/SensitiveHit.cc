@@ -7,13 +7,32 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveHit.hh"
 
+#include "corecel/Macros.hh"
+
 namespace demo_geant
 {
-G4ThreadLocal SensitiveHit::PHitAllocator SensitiveHit::allocator_ = nullptr;
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and access a thread-local allocator.
+ *
+ * The allocator must never be deleted because destroying it seems to corrupt
+ * the application's memory.
+ */
+auto SensitiveHit::allocator() -> HitAllocator&
+{
+    static G4ThreadLocal HitAllocator* alloc_;
+    if (CELER_UNLIKELY(!alloc_))
+    {
+        alloc_ = new HitAllocator;
+    }
+    return *alloc_;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Constructor.
  */
 SensitiveHit::SensitiveHit(const HitData& data) : G4VHit(), data_{data} {}
+
 //---------------------------------------------------------------------------//
 } // namespace demo_geant

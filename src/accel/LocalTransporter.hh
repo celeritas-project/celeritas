@@ -50,6 +50,9 @@ class LocalTransporter
     // Transport all buffered tracks to completion
     void Flush();
 
+    // Clear local data and return to an invalid state
+    void Finalize();
+
     // Number of buffered tracks
     size_type GetBufferSize() const { return buffer_.size(); }
 
@@ -61,8 +64,8 @@ class LocalTransporter
     std::shared_ptr<StepperInterface>     step_;
     std::vector<Primary>                  buffer_;
 
-    EventId                               event_id_;
-    TrackId::size_type                    track_counter_{};
+    EventId            event_id_;
+    TrackId::size_type track_counter_{};
 
     size_type auto_flush_{};
     size_type max_steps_{};

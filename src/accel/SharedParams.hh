@@ -13,8 +13,13 @@
 
 namespace celeritas
 {
+namespace detail
+{
+class HitManager;
+}
 class CoreParams;
 struct SetupOptions;
+class StepCollector;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,8 +65,10 @@ class SharedParams
   private:
     //// DATA ////
 
-    std::shared_ptr<CoreParams> params_;
-    std::string                 output_filename_;
+    std::shared_ptr<CoreParams>         params_;
+    std::shared_ptr<detail::HitManager> hit_manager_;
+    std::shared_ptr<StepCollector>      step_collector_;
+    std::string                         output_filename_;
 
     //// HELPER FUNCTIONS ////
 

@@ -26,6 +26,31 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Set up Celeritas SD options during construction.
+ *
+ * This should be done only during the main/serial thread.
+ */
+DetectorConstruction::DetectorConstruction()
+{
+    auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+
+    // Use Celeritas "hit processor" to call back to Geant4 SDs.
+    sd.enabled = true;
+
+    // Only call back for nonzero energy depositions: this is currently a
+    // global option for all detectors, so if any SDs extract data from tracks
+    // with no local energy deposition over the step, it must be set to false.
+    sd.ignore_zero_deposition = true;
+
+    // Using the pre-step point, reconstruct the G4 touchable handle.
+    sd.locate_touchable = true;
+
+    // Since at least one SD uses the pre-step time, export it from Celeritas.
+    sd.pre.global_time = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Load geometry and sensitive detector volumes.
  */
 G4VPhysicalVolume* DetectorConstruction::Construct()
@@ -40,7 +65,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    constexpr bool validate_gdml_schema = false;
     const std::string& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
     {
@@ -49,6 +73,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
                     FatalException,
                     "No GDML file was specified with setGeometryFile");
     }
+    constexpr bool validate_gdml_schema = false;
     gdml_parser.Read(filename, validate_gdml_schema);
 
     // Find sensitive detectors
