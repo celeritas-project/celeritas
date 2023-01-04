@@ -16,7 +16,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Small class for volume and material labels
+/*!
+ * Helper class for managing volume and material labels.
+ *
+ * This class is needed because names in Geant4/VecGeom can be non-unique. The
+ * only way to map between duplicate volume names between VecGeom and Geant4 is
+ * to ensure that pointers are written on output (and not cleared on input),
+ * and to use those as an "extension" to differentiate the duplicate volumes.
+ *
+ * Materials likewise can have duplicate names (perhaps because some have
+ * different range cutoffs, etc.), so this class can be used to return a range
+ * of IDs that match a single material name.
+ *
+ * \sa corecel/cont/LabelIdMultiMap.hh
+ */
 struct Label
 {
     std::string name; //!< Primary readable label component

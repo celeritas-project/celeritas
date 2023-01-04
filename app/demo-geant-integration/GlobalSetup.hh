@@ -23,6 +23,12 @@ namespace demo_geant
 class GlobalSetup
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using SetupOptions = celeritas::SetupOptions;
+    //!@}
+
+  public:
     // Return non-owning pointer to a singleton
     static GlobalSetup* Instance();
 
@@ -32,11 +38,17 @@ class GlobalSetup
     const std::string& GetHepmc3File() const { return hepmc3_file_; }
     //!@}
 
+    //! Get a mutable reference to the setup options for DetectorConstruction
+    celeritas::SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
+
     //! Get an immutable reference to the setup options
-    std::shared_ptr<const celeritas::SetupOptions> GetSetupOptions() const
+    std::shared_ptr<const SetupOptions> GetSetupOptions() const
     {
         return options_;
     }
+
+    // Set the along-step factory function/instance
+    void SetAlongStep(SetupOptions::AlongStepFactory asf);
 
   private:
     // Private constructor since we're a singleton

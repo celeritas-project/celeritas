@@ -23,8 +23,7 @@
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
-#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -32,8 +31,11 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/StepCollector.hh"
 
+#include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+#include "detail/HitManager.hh"
 
 #if CELERITAS_USE_JSON
 #    include "corecel/io/BuildOutput.hh"
@@ -155,9 +157,13 @@ void SharedParams::Finalize()
  */
 void SharedParams::initialize_master(const SetupOptions& options)
 {
+    CELER_VALIDATE(options.make_along_step,
+                   << "along-step action factory 'make_along_step' was not "
+                      "defined in the celeritas::SetupOptions");
+
     celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
-    auto imported = load_geant_data();
-    CELER_ASSERT(imported);
+    auto imported = std::make_shared<ImportData>(load_geant_data());
+    CELER_ASSERT(imported && *imported);
 
     CoreParams::Input params;
 
@@ -181,24 +187,24 @@ void SharedParams::initialize_master(const SetupOptions& options)
 
     // Load materials
     {
-        params.material = MaterialParams::from_import(imported);
+        params.material = MaterialParams::from_import(*imported);
     }
 
     // Create geometry/material coupling
     {
         params.geomaterial = GeoMaterialParams::from_import(
-            imported, params.geometry, params.material);
+            *imported, params.geometry, params.material);
     }
 
     // Construct particle params
     {
-        params.particle = ParticleParams::from_import(imported);
+        params.particle = ParticleParams::from_import(*imported);
     }
 
     // Construct cutoffs
     {
         params.cutoff = CutoffParams::from_import(
-            imported, params.particle, params.material);
+            *imported, params.particle, params.material);
     }
 
     // Load physics: create individual processes with make_shared
@@ -208,16 +214,16 @@ void SharedParams::initialize_master(const SetupOptions& options)
         input.materials       = params.material;
         input.action_registry = params.action_reg.get();
 
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
         input.options.secondary_stack_factor = options.secondary_stack_factor;
 
         {
             ProcessBuilder::Options opts;
             ProcessBuilder          build_process(
-                imported, opts, params.particle, params.material);
+                *imported, opts, params.particle, params.material);
 
             std::set<ImportProcessClass> all_process_classes;
-            for (const auto& p : imported.processes)
+            for (const auto& p : imported->processes)
             {
                 all_process_classes.insert(p.process_class);
             }
@@ -230,16 +236,22 @@ void SharedParams::initialize_master(const SetupOptions& options)
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
 
-    // TODO: different along-step kernels
+    // Construct along-step action
     {
-        // Create along-step action
-        auto along_step = AlongStepGeneralLinearAction::from_params(
-            params.action_reg->next_id(),
-            *params.material,
-            *params.particle,
-            *params.physics,
-            imported.em_params.energy_loss_fluct);
-        params.action_reg->insert(along_step);
+        AlongStepFactoryInput asfi;
+        asfi.action_id = params.action_reg->next_id();
+        asfi.geometry = params.geometry;
+        asfi.material = params.material;
+        asfi.geomaterial = params.geomaterial;
+        asfi.particle = params.particle;
+        asfi.cutoff = params.cutoff;
+        asfi.physics = params.physics;
+        asfi.imported = imported;
+
+        auto along_step = options.make_along_step(asfi);
+        CELER_VALIDATE(along_step,
+                       << "along-step factory returned a null pointer");
+        params.action_reg->insert(std::move(along_step));
     }
 
     // Construct RNG params
@@ -257,8 +269,14 @@ void SharedParams::initialize_master(const SetupOptions& options)
     }
 
     // Construct sensitive detector callback
+    if (options.sd)
     {
-        // TODO: interface for accepting other user hit callbacks
+        hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
+                                                            options.sd);
+        step_collector_ = std::make_shared<StepCollector>(
+            StepCollector::VecInterface{hit_manager_},
+            params.geometry,
+            params.action_reg.get());
     }
 
     // Create params

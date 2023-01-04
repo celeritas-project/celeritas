@@ -32,45 +32,42 @@ struct HitData
  */
 class SensitiveHit final : public G4VHit
 {
-    using PHitAllocator = G4Allocator<SensitiveHit>*;
-
   public:
     explicit SensitiveHit(const HitData& data);
 
     //! Accessor the hit data
     const HitData& data() const { return data_; }
 
-    // Overload of operator new and delete
+    // Overload new/delete to use a custom allocator.
     inline void* operator new(size_t);
     inline void  operator delete(void*);
 
   private:
-    HitData                            data_;
-    static G4ThreadLocal PHitAllocator allocator_;
+    using HitAllocator = G4Allocator<SensitiveHit>;
+
+    HitData data_;
+
+    static HitAllocator& allocator();
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Overload the operator new with G4Allocator.
+ * Use G4Allocator to allocate memory for a SensitiveHit.
  */
 inline void* SensitiveHit::operator new(size_t)
 {
-    if (!allocator_)
-    {
-        allocator_ = new G4Allocator<SensitiveHit>;
-    }
-    return (void*)allocator_->MallocSingle();
+    return SensitiveHit::allocator().MallocSingle();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Overload the operator new with G4Allocator.
+ * Use G4Allocator to release memory for a SensitiveHit.
  */
 inline void SensitiveHit::operator delete(void* hit)
 {
-    allocator_->FreeSingle((SensitiveHit*)hit);
+    SensitiveHit::allocator().FreeSingle(static_cast<SensitiveHit*>(hit));
 }
 
 //---------------------------------------------------------------------------//

@@ -63,6 +63,58 @@ int GetNumThreads()
 }
 
 //---------------------------------------------------------------------------//
+void run(int num_threads, const std::string& macro_filename)
+{
+    // Set the random seed *before* the run manager is instantiated
+    // (G4MTRunManager constructor uses the RNG)
+    CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
+
+    std::unique_ptr<G4RunManager> run_manager;
+#if CELERITAS_G4_V10
+    if (num_threads > 1)
+    {
+        run_manager = std::make_unique<G4MTRunManager>();
+    }
+    else
+    {
+        run_manager = std::make_unique<G4RunManager>();
+    }
+#else
+    run_manager.reset(G4RunManagerFactory::CreateRunManager(
+        num_threads > 1 ? G4RunManagerType::MT : G4RunManagerType::Serial));
+#endif
+    CELER_ASSERT(run_manager);
+
+    run_manager->SetNumberOfThreads(num_threads);
+    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+
+    // Construct geometry and SD factory
+    run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
+
+#if 0
+    // TODO: use full physics
+    run_manager->SetUserInitialization(new FTFP_BERT);
+#else
+    // For now (reduced output) use just EM
+    celeritas::GeantPhysicsOptions geant_phys_opts{};
+    run_manager->SetUserInitialization(
+        new celeritas::detail::GeantPhysicsList{geant_phys_opts});
+#endif
+
+    run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
+
+    G4UImanager* ui = G4UImanager::GetUIpointer();
+    CELER_ASSERT(ui);
+    CELER_LOG(status) << "Executing macro commands from '" << macro_filename
+                      << "'";
+    ui->ApplyCommand("/control/execute " + macro_filename);
+
+    // Initialize run and process events
+    run_manager->Initialize();
+    run_manager->BeamOn(demo_geant::HepMC3Reader::instance()->num_events());
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -85,56 +137,15 @@ int main(int argc, char* argv[])
     }
 
     // Set up the number of threads
-    CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
-
     int num_threads = GetNumThreads();
     if (num_threads <= 0)
     {
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<G4RunManager> run_manager;
-#if CELERITAS_G4_V10
-    if (num_threads > 1)
-    {
-        run_manager = std::make_unique<G4MTRunManager>();
-    }
-    else
-    {
-        run_manager = std::make_unique<G4RunManager>();
-    }
-#else
-    run_manager.reset(G4RunManagerFactory::CreateRunManager(
-        num_threads > 1 ? G4RunManagerType::MT : G4RunManagerType::Serial));
-#endif
-    CELER_ASSERT(run_manager);
+    // Run with threads and macro filename
+    run(num_threads, args[1]);
 
-    run_manager->SetNumberOfThreads(num_threads);
-    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
-
-    // Construct physics, geometry, celeritas setup, and user setup
-    run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
-#if 0
-    // TODO: use full physics
-    run_manager->SetUserInitialization(new FTFP_BERT);
-#else
-    // For now (reduced output) use just EM
-    celeritas::GeantPhysicsOptions geant_phys_opts{};
-    run_manager->SetUserInitialization(
-        new celeritas::detail::GeantPhysicsList{geant_phys_opts});
-#endif
-    run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
-
-    // Load input parameters from macro
-    G4UImanager* ui = G4UImanager::GetUIpointer();
-    CELER_ASSERT(ui);
-    CELER_LOG_LOCAL(status)
-        << "Executing macro commands from '" << args[1] << "'";
-    ui->ApplyCommand("/control/execute " + args[1]);
-
-    // Initialize run and process events
-    run_manager->Initialize();
-    run_manager->BeamOn(demo_geant::HepMC3Reader::instance()->num_events());
-
+    CELER_LOG(status) << "Run completed successfully; exiting";
     return EXIT_SUCCESS;
 }

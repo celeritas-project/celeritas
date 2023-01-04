@@ -24,7 +24,8 @@ namespace demo_geant
 class DetectorConstruction final : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction() = default;
+    // Set up global celeritas SD options during construction
+    DetectorConstruction();
 
     G4VPhysicalVolume* Construct() final;
     void               ConstructSDandField() final;
