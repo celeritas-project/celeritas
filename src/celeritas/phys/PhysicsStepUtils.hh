@@ -24,7 +24,6 @@
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
-#include "CutoffView.hh"
 #include "ParticleTrackView.hh"
 #include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"

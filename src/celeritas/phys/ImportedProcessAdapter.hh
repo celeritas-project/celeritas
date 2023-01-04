@@ -95,7 +95,7 @@ class ImportedProcessAdapter
                            std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits(Applicability range) const;
+    StepLimitBuilders step_limits(Applicability applic) const;
 
     // Access the imported processes
     SPConstImported const& processes() const { return imported_; }

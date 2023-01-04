@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Access invariant material- and particle-dependent cutoff values.
  *
- * \c CutoffParamsData is defined in \c CutoffInterface and constructed by
+ * \c CutoffParamsData is defined in \c CutoffData.hh and constructed by
  * \c CutoffParams .
  *
  * \code
