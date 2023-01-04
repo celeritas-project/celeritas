@@ -52,7 +52,10 @@ class SharedParams
     ~SharedParams();
 
     // Construct Celeritas using Geant4 data on the master thread.
-    void Initialize(const SetupOptions& options);
+    explicit SharedParams(const SetupOptions& options);
+
+    // Initialize shared data on the "master" thread
+    inline void Initialize(const SetupOptions& options);
 
     // Set up global thread-local data on worker threads
     static void InitializeWorker(const SetupOptions& options);
@@ -78,6 +81,15 @@ class SharedParams
 
     void initialize_impl(const SetupOptions& options);
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper for making initialization more obvious from user code.
+ */
+void SharedParams::Initialize(const SetupOptions& options)
+{
+    *this = SharedParams(options);
+}
 
 //---------------------------------------------------------------------------//
 /*!

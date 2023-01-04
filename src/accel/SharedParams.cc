@@ -63,9 +63,11 @@ SharedParams::~SharedParams() = default;
  * and it must complete before any worker thread tries to access the shared
  * data.
  */
-void SharedParams::Initialize(const SetupOptions& options)
+SharedParams::SharedParams(const SetupOptions& options)
 {
     CELER_EXPECT(!*this);
+
+    SharedParams::InitializeWorker(options);
 
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
     ScopedTimeLog scoped_time;
@@ -84,7 +86,7 @@ void SharedParams::Initialize(const SetupOptions& options)
  */
 void SharedParams::InitializeWorker(const SetupOptions& options)
 {
-    CELER_LOG_LOCAL(status) << "Initializing Celeritas worker thread";
+    CELER_LOG_LOCAL(status) << "Initializing thread-local global data";
     ScopedTimeLog scoped_time;
 
     if (Device::num_devices() > 0)
