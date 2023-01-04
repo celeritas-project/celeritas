@@ -59,6 +59,10 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 {
     CELER_EXPECT(core);
 
+    // Lock mutex to prevent multiple CPU threads from
+    // creating/accessing/processing state data simultaneously
+    std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
+
     const auto& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
 
@@ -87,6 +91,12 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 template<StepPoint P>
 void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 {
+    CELER_EXPECT(core);
+
+    // Lock mutex to prevent multiple CPU threads from
+    // creating/accessing/processing state data simultaneously
+    std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
+
 #if CELER_USE_DEVICE
     auto& step_state = this->get_state(core);
     step_gather_device<P>(core, storage_->params.device_ref(), step_state);
@@ -99,7 +109,6 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
         }
     }
 #else
-    (void)sizeof(core);
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 #endif
 }

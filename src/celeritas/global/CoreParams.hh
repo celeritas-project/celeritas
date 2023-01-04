@@ -46,7 +46,6 @@ class CoreParams
     using SPConstRng         = std::shared_ptr<const RngParams>;
     using SPConstTrackInit   = std::shared_ptr<const TrackInitParams>;
     using SPActionRegistry   = std::shared_ptr<ActionRegistry>;
-    using SPConstAction      = std::shared_ptr<const ExplicitActionInterface>;
 
     using HostRef   = HostCRef<CoreParamsData>;
     using DeviceRef = DeviceCRef<CoreParamsData>;

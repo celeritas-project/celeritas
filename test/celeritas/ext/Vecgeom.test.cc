@@ -435,11 +435,17 @@ TEST_F(SolidsTest, accessors)
 {
     if (starts_with(celeritas_vecgeom_version, "1.1"))
     {
-        GTEST_SKIP() << "This geometry crashes when loading in VecGeom 1.1.17";
+        FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
+    }
+    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+    {
+        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
     const auto& geom = *this->geometry();
-    // TODO: this should be 31ish?
+    // TODO: there are 27 actual solids, but there are a few "unused" volumes
+    // created during construction, and different versions of VecGeom are
+    // missing different solids (and thus are missing volumes!)
     EXPECT_EQ(25, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
@@ -511,11 +517,18 @@ TEST_F(SolidsGeantTest, accessors)
 {
     if (starts_with(celeritas_vecgeom_version, "1.1"))
     {
-        GTEST_SKIP() << "This geometry crashes when loading in VecGeom 1.1.17";
+        FAIL() << "VecGeom 1.1.17 crashes when trying to load unknown solids";
+    }
+    else if (celeritas_vecgeom_version == std::string{"1.2.0"})
+    {
+        ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
     const auto& geom = *this->geometry();
-    // TODO: This is known to be incorrect because of missing VecGeom shapes.
+    // TODO: there are 27 actual solids, but there are a few "unused" volumes
+    // created during construction, and different versions of VecGeom are
+    // missing different solids (and thus are missing volumes!)
+    // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
     EXPECT_EQ(25, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 

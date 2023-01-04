@@ -31,9 +31,11 @@
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/user/StepCollector.hh"
 
-#include "SetupOptions.hh"
 #include "AlongStepFactory.hh"
+#include "SetupOptions.hh"
+#include "detail/HitManager.hh"
 
 #if CELERITAS_USE_JSON
 #    include "corecel/io/BuildOutput.hh"
@@ -267,8 +269,14 @@ void SharedParams::initialize_master(const SetupOptions& options)
     }
 
     // Construct sensitive detector callback
+    if (options.sd)
     {
-        // TODO: interface for accepting other user hit callbacks
+        hit_manager_ = std::make_shared<detail::HitManager>(*params.geometry,
+                                                            options.sd);
+        step_collector_ = std::make_shared<StepCollector>(
+            StepCollector::VecInterface{hit_manager_},
+            params.geometry,
+            params.action_reg.get());
     }
 
     // Create params

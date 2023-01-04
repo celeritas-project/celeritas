@@ -155,7 +155,7 @@ TEST_F(DetectorStepsTest, host)
 
     // Create output placeholder and copy data over
     DetectorStepOutput output;
-    copy(&output, make_ref(states));
+    copy_steps(&output, make_ref(states));
 
     static const int expected_detector[]
         = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
@@ -191,11 +191,11 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
     // Construct reference values
     DetectorStepOutput host_output;
-    copy(&host_output, make_ref(host_states));
+    copy_steps(&host_output, make_ref(host_states));
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy(&output, device_states.ref());
+    copy_steps(&output, device_states.ref());
 
     EXPECT_VEC_EQ(host_output.track_id, output.track_id);
     EXPECT_VEC_EQ(host_output.event_id, output.event_id);
@@ -225,7 +225,7 @@ TEST_F(SmallDetectorStepsTest, host)
 
     // Create output placeholder and copy data over
     DetectorStepOutput output;
-    copy(&output, make_ref(states));
+    copy_steps(&output, make_ref(states));
 
     static const int expected_detector[]
         = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
@@ -263,7 +263,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy(&output, device_states.ref());
+    copy_steps(&output, device_states.ref());
 
     std::size_t num_tracks = 614;
     EXPECT_EQ(num_tracks, output.track_id.size());
