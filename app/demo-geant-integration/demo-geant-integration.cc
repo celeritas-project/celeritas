@@ -17,7 +17,7 @@
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
 
-#include "celeritas/ext/GeantVersion.hh"
+#include "celeritas/ext/GeantConfig.hh"
 #if !CELERITAS_G4_V10
 #    include <G4RunManagerFactory.hh>
 #else

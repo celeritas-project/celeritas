@@ -16,7 +16,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantVersion.hh"
+#include "celeritas/ext/GeantConfig.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 

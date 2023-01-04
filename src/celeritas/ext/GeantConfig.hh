@@ -3,27 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantVersion.hh
-//! \brief Define macros for Geant4 compatibility.
+//! \file celeritas/ext/GeantConfig.hh
+//! \brief Define macros for Geant4 versions and features.
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas_config.h"
 
-#if CELERITAS_USE_GEANT4
-
-#    include <G4Version.hh>
-
 /*!
  * \def CELERITAS_G4_V10
  *
- * Macro for differentiating between Geant4 v10 and v11. Undefined if Geant4 is
- * not enabled.
+ * Macro constant for differentiating between Geant4 v10 and v11.
  */
+#if CELERITAS_USE_GEANT4
+
+#    include <G4Version.hh>
 #    if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100
 #        define CELERITAS_G4_V10 1
 #    else
 #        define CELERITAS_G4_V10 0
 #    endif
-
 #endif
