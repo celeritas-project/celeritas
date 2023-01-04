@@ -9,11 +9,21 @@
 
 namespace demo_geant
 {
-G4ThreadLocal SensitiveHit::PHitAllocator SensitiveHit::allocator_ = nullptr;
+//---------------------------------------------------------------------------//
+/*!
+ * Construct and access a thread-local allocator.
+ */
+auto SensitiveHit::allocator() -> HitAllocator&
+{
+    static G4ThreadLocal HitAllocator alloc_;
+    return alloc_;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Constructor.
  */
 SensitiveHit::SensitiveHit(const HitData& data) : G4VHit(), data_{data} {}
+
 //---------------------------------------------------------------------------//
 } // namespace demo_geant
