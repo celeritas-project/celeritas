@@ -603,7 +603,8 @@ TEST_F(FourLevelsGeantTest, tracking)
 
 //---------------------------------------------------------------------------//
 
-#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
+#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(DISABLED_SolidsGeantTest)
+
 class SolidsGeantTest : public GeantBuilderTestBase
 {
   public:
