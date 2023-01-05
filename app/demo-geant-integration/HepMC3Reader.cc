@@ -19,6 +19,33 @@
 
 namespace demo_geant
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Get the world solid volume.
+ *
+ * This must be called *after* detector setup, otherwise the app will crash.
+ */
+G4VSolid* get_world_solid()
+{
+    auto* nav = G4TransportationManager::GetTransportationManager()
+                    ->GetNavigatorForTracking();
+    CELER_ASSERT(nav);
+    auto* world = nav->GetWorldVolume();
+    CELER_VALIDATE(world,
+                   << "detector geometry was not initialized before "
+                      "HepMC3Reader was instantiated");
+    auto* lv = world->GetLogicalVolume();
+    CELER_ASSERT(lv);
+    auto* solid = lv->GetSolid();
+    CELER_ENSURE(solid);
+    return solid;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Return non-owning pointer to a singleton.
@@ -96,12 +123,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
  * Construct with provided HepMC3 input filename.
  */
 HepMC3Reader::HepMC3Reader()
-    : G4VPrimaryGenerator()
-    , world_solid_(G4TransportationManager::GetTransportationManager()
-                       ->GetNavigatorForTracking()
-                       ->GetWorldVolume()
-                       ->GetLogicalVolume()
-                       ->GetSolid())
+    : G4VPrimaryGenerator(), world_solid_(get_world_solid())
 {
     const std::string filename = GlobalSetup::Instance()->GetHepmc3File();
     CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
