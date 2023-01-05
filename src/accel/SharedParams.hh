@@ -30,8 +30,9 @@ class StepCollector;
  * passed to a thread-local \c LocalTransporter instance. At the beginning of
  * the run, after Geant4 has initialized physics data, the \c Initialize method
  * must be called first on the "master" thread to populate the Celeritas data
- * structures (geometry, physics). \c Initialize must subsequently be invoked
- * on all worker threads.
+ * structures (geometry, physics). \c InitializeWorker must subsequently be
+ * invoked on all worker threads to set up thread-local data (specifically,
+ * CUDA device initialization).
  */
 class SharedParams
 {
@@ -50,8 +51,14 @@ class SharedParams
     SharedParams& operator=(const SharedParams&) = default;
     ~SharedParams();
 
-    // Thread-safe setup of Celeritas using Geant4 data.
-    void Initialize(const SetupOptions& options);
+    // Construct Celeritas using Geant4 data on the master thread.
+    explicit SharedParams(const SetupOptions& options);
+
+    // Initialize shared data on the "master" thread
+    inline void Initialize(const SetupOptions& options);
+
+    // On worker threads, set up data with thread storage duration
+    static void InitializeWorker(const SetupOptions& options);
 
     // Write (shared) diagnostic output and clear shared data on master.
     void Finalize();
@@ -72,8 +79,18 @@ class SharedParams
 
     //// HELPER FUNCTIONS ////
 
-    void initialize_master(const SetupOptions& options);
+    static void initialize_device(const SetupOptions& options);
+    void        initialize_core(const SetupOptions& options);
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper for making initialization more obvious from user code.
+ */
+void SharedParams::Initialize(const SetupOptions& options)
+{
+    *this = SharedParams(options);
+}
 
 //---------------------------------------------------------------------------//
 /*!

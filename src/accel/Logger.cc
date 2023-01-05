@@ -38,7 +38,7 @@ class MtLogger
 //---------------------------------------------------------------------------//
 MtLogger::MtLogger(int num_threads) : num_threads_(num_threads)
 {
-    CELER_EXPECT(num_threads_ > 0);
+    CELER_EXPECT(num_threads_ >= 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -63,9 +63,14 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
     int local_thread = G4Threading::G4GetThreadId();
     if (local_thread >= 0)
     {
-        // Threading is initialized
-        cerr << color_code('W') << '[' << G4Threading::G4GetThreadId() << '/'
-             << num_threads_ << "] " << color_code(' ');
+        // On a worker thread
+        cerr << color_code('W') << '[' << G4Threading::G4GetThreadId();
+        if (num_threads_ > 0)
+        {
+            // Using MT runner (as opposed to tasking/serial)
+            cerr << '/' << num_threads_;
+        }
+        cerr << "] " << color_code(' ');
     }
 
     // clang-format off

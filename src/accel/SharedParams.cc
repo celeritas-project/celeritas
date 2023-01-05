@@ -8,7 +8,6 @@
 #include "SharedParams.hh"
 
 #include <CLHEP/Random/Random.h>
-#include <G4Threading.hh>
 #include <G4TransportationManager.hh>
 
 #include "celeritas_config.h"
@@ -56,42 +55,43 @@ SharedParams::~SharedParams() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Thread-safe setup of Celeritas using Geant4 data.
+ * Set up Celeritas using Geant4 data.
  *
  * This is a separate step from construction because it has to happen at the
  * beginning of the run, not when user classes are created. It should be called
- * from all threads to ensure that construction is complete locally.
+ * from the "master" thread (for MT mode) or from the main thread (for Serial),
+ * and it must complete before any worker thread tries to access the shared
+ * data.
  */
-void SharedParams::Initialize(const SetupOptions& options)
+SharedParams::SharedParams(const SetupOptions& options)
 {
-    CELER_EXPECT(*this || G4Threading::IsMasterThread());
+    CELER_EXPECT(!*this);
 
-    CELER_LOG_LOCAL(status) << "Initializing Celeritas";
+    CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
     ScopedTimeLog scoped_time;
 
-    if (Device::num_devices() > 0)
-    {
-        // Initialize CUDA (you'll need to use CUDA environment variables to
-        // control the preferred device)
-        celeritas::activate_device(Device{0});
+    // Initialize device and other "global" data
+    SharedParams::initialize_device(options);
 
-        // Heap size must be set before creating VecGeom device instance; and
-        // let's just set the stack size as well
-        if (options.cuda_stack_size > 0)
-        {
-            celeritas::set_cuda_stack_size(options.cuda_stack_size);
-        }
-        if (options.cuda_heap_size > 0)
-        {
-            celeritas::set_cuda_heap_size(options.cuda_heap_size);
-        }
-    }
+    // Construct core data
+    this->initialize_core(options);
 
-    if (G4Threading::IsMasterThread())
-    {
-        this->initialize_master(options);
-    }
     CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * On worker threads, set up data with thread storage duration.
+ *
+ * Some data that has "static" storage duration (such as CUDA device
+ * properties) in single-thread mode has "thread" storage in a multithreaded
+ * application. It must be initialized on all threads.
+ */
+void SharedParams::InitializeWorker(const SetupOptions& options)
+{
+    CELER_LOG_LOCAL(status) << "Initializing worker thread";
+    ScopedTimeLog scoped_time;
+    return SharedParams::initialize_device(options);
 }
 
 //---------------------------------------------------------------------------//
@@ -104,7 +104,6 @@ void SharedParams::Initialize(const SetupOptions& options)
 void SharedParams::Finalize()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(G4Threading::IsMasterThread());
 
     if (!output_filename_.empty())
     {
@@ -153,9 +152,43 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from setup options in a thread-safe manner.
+ * Initialize GPU device on each thread.
+ *
+ * This is thread safe and must be called from every worker thread.
  */
-void SharedParams::initialize_master(const SetupOptions& options)
+void SharedParams::initialize_device(const SetupOptions& options)
+{
+    if (Device::num_devices() == 0)
+    {
+        // No GPU is enabled so no global initialization is needed
+        return;
+    }
+
+    // Initialize CUDA (you'll need to use CUDA environment variables to
+    // control the preferred device)
+    celeritas::activate_device(Device{0});
+
+    // Heap size must be set before creating VecGeom device instance; and
+    // let's just set the stack size as well
+    if (options.cuda_stack_size > 0)
+    {
+        celeritas::set_cuda_stack_size(options.cuda_stack_size);
+    }
+    if (options.cuda_heap_size > 0)
+    {
+        celeritas::set_cuda_heap_size(options.cuda_heap_size);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from setup options.
+ *
+ * This is not thread-safe and should only be called from a single CPU thread
+ * that is guaranteed to complete the initialization before any other threads
+ * try to access the shared data.
+ */
+void SharedParams::initialize_core(const SetupOptions& options)
 {
     CELER_VALIDATE(options.make_along_step,
                    << "along-step action factory 'make_along_step' was not "
