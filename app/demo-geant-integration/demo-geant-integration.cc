@@ -23,12 +23,7 @@
 #    include <G4MTRunManager.hh>
 #endif
 
-#if 0
-#    include <FTFP_BERT.hh>
-#else
-#    include "celeritas/ext/GeantPhysicsOptions.hh"
-#    include "celeritas/ext/detail/GeantPhysicsList.hh"
-#endif
+#include <FTFP_BERT.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -70,19 +65,9 @@ void run(const std::string& macro_filename)
     CELER_LOG(info) << "Run manager type: "
                     << celeritas::TypeDemangler<G4RunManager>{}(*run_manager);
 
-    // Construct geometry and SD factory
+    // Construct geometry, SD factory, physics, actions
     run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
-
-#if 0
-    // TODO: use full physics
     run_manager->SetUserInitialization(new FTFP_BERT);
-#else
-    // For now (reduced output) use just EM
-    celeritas::GeantPhysicsOptions geant_phys_opts{};
-    run_manager->SetUserInitialization(
-        new celeritas::detail::GeantPhysicsList{geant_phys_opts});
-#endif
-
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
     G4UImanager* ui = G4UImanager::GetUIpointer();

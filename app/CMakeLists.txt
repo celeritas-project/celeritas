@@ -259,7 +259,7 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
-    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
+    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/gamma-3evt-15prim.hepmc3")
     set(_mctruth_out "")
     set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
     if(CELERITAS_USE_ROOT)
@@ -356,6 +356,13 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     HepMC3::HepMC3
   )
   if(CELERITAS_BUILD_TESTS)
+    set(DEMO_MAX_NUM_TRACKS 1024)
+    set(DEMO_INIT_CAPACITY 32768)
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      set(DEMO_MAX_NUM_TRACKS 524288)
+      set(DEMO_INIT_CAPACITY 4194304)
+    endif()
+
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY
