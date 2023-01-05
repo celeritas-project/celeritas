@@ -79,8 +79,8 @@ class LocalTransporter
 /*!
  * Helper for making initialization more obvious from user code.
  *
- * Since a LocalTransporter is shared across threads, this gives it some
- * symmetry with Finalize.
+ * This gives it some symmetry with Finalize, which is provided as an
+ * exception-friendly destructor.
  */
 void LocalTransporter::Initialize(const SetupOptions& options,
                                   const SharedParams& params)

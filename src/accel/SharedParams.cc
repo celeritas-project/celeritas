@@ -67,45 +67,31 @@ SharedParams::SharedParams(const SetupOptions& options)
 {
     CELER_EXPECT(!*this);
 
-    SharedParams::InitializeWorker(options);
-
     CELER_LOG_LOCAL(status) << "Initializing Celeritas shared data";
     ScopedTimeLog scoped_time;
 
-    this->initialize_impl(options);
+    // Initialize device and other "global" data
+    SharedParams::initialize_device(options);
+
+    // Construct core data
+    this->initialize_core(options);
+
     CELER_ENSURE(*this);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize thread-local data.
+ * On worker threads, set up data with thread storage duration.
  *
- * This is a separate step from construction because it has to happen at the
- * beginning of the run, not when user classes are created. It should be called
- * from all threads to ensure that construction is complete locally.
+ * Some data that has "static" storage duration (such as CUDA device
+ * properties) in single-thread mode has "thread" storage in a multithreaded
+ * application. It must be initialized on all threads.
  */
 void SharedParams::InitializeWorker(const SetupOptions& options)
 {
-    CELER_LOG_LOCAL(status) << "Initializing thread-local global data";
+    CELER_LOG_LOCAL(status) << "Initializing worker thread";
     ScopedTimeLog scoped_time;
-
-    if (Device::num_devices() > 0)
-    {
-        // Initialize CUDA (you'll need to use CUDA environment variables to
-        // control the preferred device)
-        celeritas::activate_device(Device{0});
-
-        // Heap size must be set before creating VecGeom device instance; and
-        // let's just set the stack size as well
-        if (options.cuda_stack_size > 0)
-        {
-            celeritas::set_cuda_stack_size(options.cuda_stack_size);
-        }
-        if (options.cuda_heap_size > 0)
-        {
-            celeritas::set_cuda_heap_size(options.cuda_heap_size);
-        }
-    }
+    return SharedParams::initialize_device(options);
 }
 
 //---------------------------------------------------------------------------//
@@ -166,11 +152,43 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize GPU device on each thread.
+ *
+ * This is thread safe and must be called from every worker thread.
+ */
+void SharedParams::initialize_device(const SetupOptions& options)
+{
+    if (Device::num_devices() == 0)
+    {
+        // No GPU is enabled so no global initialization is needed
+        return;
+    }
+
+    // Initialize CUDA (you'll need to use CUDA environment variables to
+    // control the preferred device)
+    celeritas::activate_device(Device{0});
+
+    // Heap size must be set before creating VecGeom device instance; and
+    // let's just set the stack size as well
+    if (options.cuda_stack_size > 0)
+    {
+        celeritas::set_cuda_stack_size(options.cuda_stack_size);
+    }
+    if (options.cuda_heap_size > 0)
+    {
+        celeritas::set_cuda_heap_size(options.cuda_heap_size);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from setup options.
  *
- * This is not thread-safe and should
+ * This is not thread-safe and should only be called from a single CPU thread
+ * that is guaranteed to complete the initialization before any other threads
+ * try to access the shared data.
  */
-void SharedParams::initialize_impl(const SetupOptions& options)
+void SharedParams::initialize_core(const SetupOptions& options)
 {
     CELER_VALIDATE(options.make_along_step,
                    << "along-step action factory 'make_along_step' was not "

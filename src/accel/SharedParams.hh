@@ -57,7 +57,7 @@ class SharedParams
     // Initialize shared data on the "master" thread
     inline void Initialize(const SetupOptions& options);
 
-    // Set up global thread-local data on worker threads
+    // On worker threads, set up data with thread storage duration
     static void InitializeWorker(const SetupOptions& options);
 
     // Write (shared) diagnostic output and clear shared data on master.
@@ -79,7 +79,8 @@ class SharedParams
 
     //// HELPER FUNCTIONS ////
 
-    void initialize_impl(const SetupOptions& options);
+    static void initialize_device(const SetupOptions& options);
+    void        initialize_core(const SetupOptions& options);
 };
 
 //---------------------------------------------------------------------------//
