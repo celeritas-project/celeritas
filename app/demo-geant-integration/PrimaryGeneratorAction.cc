@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
-#include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4ThreeVector.hh>
+#include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
 
 #include "HepMC3Reader.hh"
 
@@ -21,7 +20,9 @@ namespace demo_geant
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    HepMC3Reader::instance()->GeneratePrimaryVertex(event);
+    celeritas::ExceptionConverter call_g4exception{"celer0000"};
+    CELER_TRY_ELSE(HepMC3Reader::Instance()->GeneratePrimaryVertex(event),
+                   call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

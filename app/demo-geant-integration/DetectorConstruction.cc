@@ -17,7 +17,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
@@ -32,7 +31,7 @@ namespace demo_geant
  */
 DetectorConstruction::DetectorConstruction()
 {
-    auto& sd   = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
+    auto& sd = demo_geant::GlobalSetup::Instance()->GetSDSetupOptions();
 
     // Use Celeritas "hit processor" to call back to Geant4 SDs.
     sd.enabled = true;

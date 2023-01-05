@@ -50,7 +50,7 @@ G4VSolid* get_world_solid()
 /*!
  * Return non-owning pointer to a singleton.
  */
-HepMC3Reader* HepMC3Reader::instance()
+HepMC3Reader* HepMC3Reader::Instance()
 {
     static HepMC3Reader hepmc3_reader_singleton;
     return &hepmc3_reader_singleton;
@@ -128,6 +128,7 @@ HepMC3Reader::HepMC3Reader()
     const std::string filename = GlobalSetup::Instance()->GetHepmc3File();
     CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
     input_file_ = HepMC3::deduce_reader(filename);
+    CELER_VALIDATE(input_file_, << "failed to deduce event input file type");
 
     // Fetch total number of events
     const auto temp_file = HepMC3::deduce_reader(filename);

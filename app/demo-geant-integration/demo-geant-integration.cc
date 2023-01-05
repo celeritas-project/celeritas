@@ -31,9 +31,11 @@
 #endif
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"
 
 #include "ActionInitialization.hh"
@@ -91,7 +93,14 @@ void run(const std::string& macro_filename)
 
     // Initialize run and process events
     run_manager->Initialize();
-    run_manager->BeamOn(demo_geant::HepMC3Reader::instance()->num_events());
+
+    // Load the input file
+    int num_events{0};
+    CELER_TRY_ELSE(
+        num_events = demo_geant::HepMC3Reader::Instance()->num_events(),
+        celeritas::ExceptionConverter{"demo-geant000"});
+
+    run_manager->BeamOn(num_events);
 }
 
 //---------------------------------------------------------------------------//
