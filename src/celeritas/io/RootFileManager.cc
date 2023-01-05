@@ -33,8 +33,8 @@ RootFileManager::RootFileManager(const char* filename)
  * scope that a RootFileManager exists, but this function explicitly shows the
  * relationship between the newly created tree and `this->tfile_`.
  *
- * To expand this class to write multiple root files (one per thread), we just
- * need to add a `tid` input parameter and call `tfile_[tid]->cd()`.
+ * To expand this class to write multiple root files (one per thread), add a
+ * `tid` input parameter and call `tfile_[tid].get()`.
  */
 detail::RootUniquePtr<TTree>
 RootFileManager::make_tree(const char* name, const char* title)

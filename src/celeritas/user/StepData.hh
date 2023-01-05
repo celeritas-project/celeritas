@@ -70,6 +70,7 @@ struct StepSelection
     EnumArray<StepPoint, StepPointSelection> points;
 
     bool event_id{false};
+    bool parent_id{false};
     bool track_step_count{false};
     bool action_id{false};
     bool step_length{false};
@@ -86,6 +87,7 @@ struct StepSelection
             true,
             true,
             true,
+            true,
             true};
     }
 
@@ -93,8 +95,8 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || track_step_count || action_id || step_length || particle
-               || energy_deposition;
+               || parent_id || track_step_count || action_id || step_length
+               || particle || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -106,6 +108,7 @@ struct StepSelection
         }
 
         this->event_id |= other.event_id;
+        this->parent_id |= other.parent_id;
         this->track_step_count |= other.track_step_count;
         this->action_id |= other.action_id;
         this->step_length |= other.step_length;
@@ -240,8 +243,9 @@ struct StepStateData
 
     // Sim
     StateItems<EventId>   event_id;
-    StateItems<size_type> track_step_count;
+    StateItems<TrackId>   parent_id;
     StateItems<ActionId>  action_id;
+    StateItems<size_type> track_step_count;
     StateItems<real_type> step_length;
 
     // Physics
@@ -258,9 +262,10 @@ struct StepStateData
         };
 
         return !track_id.empty() && right_sized(detector)
-               && right_sized(event_id) && right_sized(track_step_count)
-               && right_sized(action_id) && right_sized(step_length)
-               && right_sized(particle) && right_sized(energy_deposition);
+               && right_sized(event_id) && right_sized(parent_id)
+               && right_sized(track_step_count) && right_sized(action_id)
+               && right_sized(step_length) && right_sized(particle)
+               && right_sized(energy_deposition);
     }
 
     //! State size
@@ -278,6 +283,7 @@ struct StepStateData
         }
 
         track_id          = other.track_id;
+        parent_id         = other.parent_id;
         detector          = other.detector;
         event_id          = other.event_id;
         track_step_count  = other.track_step_count;
@@ -352,6 +358,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
     }
 
     SD_RESIZE_IF_SELECTED(event_id);
+    SD_RESIZE_IF_SELECTED(parent_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
     SD_RESIZE_IF_SELECTED(action_id);

@@ -66,7 +66,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 
     {
         const auto sim      = track.make_sim_view();
-        bool inactive = (sim.status() == TrackStatus::inactive);
+        bool       inactive = (sim.status() == TrackStatus::inactive);
 
         if (P == StepPoint::post)
         {
@@ -129,6 +129,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
+            SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
             const auto& limit = sim.step_limit();

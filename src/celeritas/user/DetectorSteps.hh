@@ -62,6 +62,7 @@ struct DetectorStepOutput
 
     // Additional optional data
     std::vector<EventId>    event_id;
+    std::vector<TrackId>    parent_id;
     std::vector<size_type>  track_step_count;
     std::vector<real_type>  step_length;
     std::vector<ParticleId> particle;

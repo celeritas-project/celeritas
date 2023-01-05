@@ -80,6 +80,7 @@ class RootStepWriter final : public StepInterface
     {
         int                              event_id;
         int                              track_id;
+        int                              parent_id;
         int                              action_id;
         int                              track_step_count;
         int                              particle;          //!< PDG number
@@ -94,8 +95,7 @@ class RootStepWriter final : public StepInterface
     SPParticleParams             particles_;
     StepSelection                selection_;
     detail::RootUniquePtr<TTree> tstep_tree_;
-    // Members of tstep_ are used as references for the step TTree branches
-    TStepData tstep_;
+    TStepData tstep_; // Members are used as refs of the TTree branches
 };
 
 //---------------------------------------------------------------------------//

@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
-#include <algorithm>
-#include <iostream>
-#include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -74,8 +71,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect step data from each track on each thread id and fill the ROOT step
- * tree.
+ * Collect step data and fill the ROOT TTree for all active threads.
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
@@ -104,6 +100,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         tstep_.track_id = steps.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
+        RSW_STORE(parent_id, .unchecked_get());
         RSW_STORE(action_id, .get());
         RSW_STORE(energy_deposition, .value());
         RSW_STORE(step_length, /* no getter */);
@@ -137,9 +134,6 @@ void RootStepWriter::execute(StateHostRef const& steps)
  * object. Therefore, the data is flattened so that each member of `TStepData`
  * is an individual branch that stores primitive types and is created based on
  * the `StepSelection` booleans.
- *
- * A macro is used to simplify the process of moving from Collection to a ROOT
- * branch.
  */
 void RootStepWriter::make_tree()
 {
@@ -156,10 +150,12 @@ void RootStepWriter::make_tree()
 
     tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
+    RSW_CREATE_BRANCH(parent_id, "parent_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
     RSW_CREATE_BRANCH(particle, "particle");
+    RSW_CREATE_BRANCH(energy_deposition, "energy_deposition");
     // Pre-step
     RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
     RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");
