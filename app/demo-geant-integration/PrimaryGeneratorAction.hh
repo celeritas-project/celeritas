@@ -7,28 +7,24 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ParticleGun.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
+
+#include "HepMC3Reader.hh"
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
  * Minimal implementation of a primary generator action class.
- *
- * TODO: replace with HepMC3 input.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
-    // Set up particle gun.
-    PrimaryGeneratorAction();
+    // Construct primary action
+    PrimaryGeneratorAction() = default;
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
-
-  private:
-    G4ParticleGun gun_;
 };
 
 //---------------------------------------------------------------------------//
