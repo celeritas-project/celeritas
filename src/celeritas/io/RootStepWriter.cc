@@ -155,6 +155,7 @@ void RootStepWriter::make_tree()
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
     RSW_CREATE_BRANCH(particle, "particle");
+    RSW_CREATE_BRANCH(energy_deposition, "energy_deposition");
     // Pre-step
     RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
     RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");
