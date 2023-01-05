@@ -26,7 +26,7 @@ namespace celeritas
  */
 struct OrangeParamsScalars
 {
-    static constexpr size_type max_level{1};
+    static constexpr size_type max_level{20};
 
     size_type max_faces{};
     size_type max_intersections{};
@@ -282,15 +282,19 @@ struct OrangeStateData
 
     //// DATA ////
 
-    // For each track, one per max_level
+    // Dimensions {num_tracks}
+    StateItems<LevelId> level;
+    StateItems<LevelId> next_level;
+
+    // Dimensions {num_tracks, max_level}
     StateItems<Real3>      pos;
     StateItems<Real3>      dir;
     StateItems<VolumeId>   vol;
     StateItems<UniverseId> universe;
 
-    // Surface crossing
-    StateItems<SurfaceId> surf;
-    StateItems<Sense> sense;
+    // Surface crossing, dimensions {num_tracks, max_level}
+    StateItems<SurfaceId>      surf;
+    StateItems<Sense>          sense;
     StateItems<BoundaryResult> boundary;
 
     // Scratch space
@@ -355,19 +359,26 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
                    size_type size)
 {
     CELER_EXPECT(data);
-    CELER_EXPECT(size > 0);
+    CELER_EXPECT(num_tracks > 0);
+
+    resize(&data->level, num_tracks);
+    resize(&data->next_level, num_tracks);
+
+    auto size = params.scalars.max_level * num_tracks;
+
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->vol, size);
+
     resize(&data->universe, size);
     resize(&data->surf, size);
     resize(&data->sense, size);
     resize(&data->boundary, size);
 
-    size_type face_states = params.scalars.max_faces * size;
+    size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);
 
-    size_type isect_states = params.scalars.max_intersections * size;
+    size_type isect_states = params.scalars.max_intersections * num_tracks;
     resize(&data->temp_face, isect_states);
     resize(&data->temp_distance, isect_states);
     resize(&data->temp_isect, isect_states);

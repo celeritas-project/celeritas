@@ -221,10 +221,12 @@ OrangeTrackView::operator=(Initializer_t const& init)
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
         next_uid = params_.volume_records[global_vol_id].daughter;
+
     } while (next_uid);
 
     states_.vol[thread_] = global_vol_id;
 
+    // states_.universe[thread_] = UniverseId{0};
     states_.universe[thread_] = UniverseId{0};
 
     CELER_ENSURE(!this->has_next_step());
