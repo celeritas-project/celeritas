@@ -125,9 +125,9 @@ void LocalTransporter::Flush()
         return;
     }
 
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
+    CELER_LOG_LOCAL(info)
+        << "Transporting " << buffer_.size() << " tracks from event "
+        << event_id_.unchecked_get() + 1 << " with Celeritas";
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
