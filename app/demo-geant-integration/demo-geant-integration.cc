@@ -35,6 +35,7 @@
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "GlobalSetup.hh"
 #include "HepMC3Reader.hh"
 
 namespace
@@ -69,6 +70,9 @@ void run(const std::string& macro_filename)
     run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT);
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
+
+    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(
+        {"CoulombScat", "muIoni", "muBrems", "muPairProd"});
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);

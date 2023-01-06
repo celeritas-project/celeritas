@@ -50,6 +50,9 @@ class GlobalSetup
     // Set the along-step factory function/instance
     void SetAlongStep(SetupOptions::AlongStepFactory asf);
 
+    // Set the list of ignored EM process names
+    void SetIgnoreProcesses(SetupOptions::VecString ignored);
+
   private:
     // Private constructor since we're a singleton
     GlobalSetup();

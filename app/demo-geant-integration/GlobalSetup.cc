@@ -109,6 +109,15 @@ void GlobalSetup::SetAlongStep(SetupOptions::AlongStepFactory asf)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Set the list of ignored EM process names.
+ */
+void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
+{
+    options_->ignore_processes = std::move(ignored);
+}
+
+//---------------------------------------------------------------------------//
 //! Default destructor
 GlobalSetup::~GlobalSetup() = default;
 
