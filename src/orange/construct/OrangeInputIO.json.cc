@@ -13,6 +13,7 @@
 #include "corecel/cont/Array.json.hh"
 #include "corecel/cont/Label.json.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/StringEnumMap.hh"
 
 namespace celeritas
 {
@@ -20,38 +21,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build a vector of strings for each surface type.
- */
-std::vector<std::string> make_surface_strings()
-{
-    std::vector<std::string> result(static_cast<size_type>(SurfaceType::size_));
-    for (auto surf_type : range(SurfaceType::size_))
-    {
-        result[static_cast<size_type>(surf_type)] = to_cstring(surf_type);
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a surface type string to an enum for I/O.
  */
 SurfaceType to_surface_type(const std::string& s)
 {
-    // The number of surface types will be short, and presumably each string is
-    // small enough to fit inside string's static allocation. Therefore the
-    // string search will be on a small-ish, nearly contiguous block of memory,
-    // so it's preferable than using unordered_map or a more heavyweight
-    // container.
-    static const auto surface_string = make_surface_strings();
-
-    auto iter = std::find(surface_string.begin(), surface_string.end(), s);
-    CELER_VALIDATE(iter != surface_string.end(),
-                   << "invalid surface string '" << s << "'");
-
-    unsigned int result_int = iter - surface_string.begin();
-    CELER_EXPECT(result_int < static_cast<size_type>(SurfaceType::size_));
-    return static_cast<SurfaceType>(result_int);
+    static const auto from_string
+        = StringEnumMap<SurfaceType>::from_cstring_func(to_cstring,
+                                                        "surface type");
+    return from_string(s);
 }
 
 //---------------------------------------------------------------------------//

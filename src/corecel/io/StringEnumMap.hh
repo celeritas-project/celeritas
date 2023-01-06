@@ -22,6 +22,9 @@ namespace celeritas
  * Note that since a map is built at construction time, instances of this class
  * should be \c static to amortize the cost.
  *
+ * \todo If the size of the strings is short and there aren't a lot of them, it
+ * will be faster to use a fixed-size array and search over them.
+ *
  * Example:
  * \code
 void from_json(const nlohmann::json& j, GeantSetupOptions& opts)
