@@ -167,7 +167,7 @@ const char* to_geant_name(ImportProcessClass value)
                   "Enum strings are incorrect");
 
     return strings[static_cast<unsigned int>(value)];
-};
+}
 
 //---------------------------------------------------------------------------//
 /*!

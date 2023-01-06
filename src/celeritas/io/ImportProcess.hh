@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 // IWYU pragma: begin_exports
