@@ -275,13 +275,14 @@ TransporterInput load_input(const LDemoArgs& args)
             opts.brem_combined = args.brem_combined;
 
             ProcessBuilder build_process(
-                imported_data, opts, params.particle, params.material);
+                imported_data, params.particle, params.material, opts);
             // TODO: there's got to be a cleaner way to get the set of all
             // processes: maybe better to change how the ImportData is
             // structured
             for (auto p : get_all_process_classes(imported_data.processes))
             {
                 input.processes.push_back(build_process(p));
+                CELER_ASSERT(input.processes.back());
             }
         }
 
