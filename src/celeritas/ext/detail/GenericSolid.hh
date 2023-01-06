@@ -18,11 +18,10 @@
 #define VECGEOM_VECTORAPI
 
 #include <iostream>
-
-#include "Geant4/G4VSolid.hh"
-#include "VecGeom/volumes/LogicalVolume.h"
-#include "VecGeom/volumes/PlacedVolume.h"
-#include "VecGeom/volumes/UnplacedVolume.h"
+#include <G4VSolid.hh>
+#include <VecGeom/volumes/LogicalVolume.h>
+#include <VecGeom/volumes/PlacedVolume.h>
+#include <VecGeom/volumes/UnplacedVolume.h>
 
 namespace celeritas
 {

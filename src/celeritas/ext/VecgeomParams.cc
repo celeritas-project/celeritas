@@ -21,9 +21,6 @@
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
 #endif
-#if CELERITAS_USE_GEANT4
-#    include <Geant4/G4VPhysicalVolume.hh>
-#endif
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
@@ -33,11 +30,7 @@
 #include "corecel/sys/Device.hh"
 
 #include "VecgeomData.hh"
-#include "detail/GeantGeoExporter.hh"
-
-#if CELERITAS_USE_GEANT4
-#    include "detail/G4VecgeomConverter.hh"
-#endif
+#include "detail/G4VecgeomConvert.hh"
 
 namespace celeritas
 {
@@ -69,23 +62,16 @@ VecgeomParams::VecgeomParams(const std::string& filename)
 //---------------------------------------------------------------------------//
 /*!
  * Translate a geometry from Geant4.
- *
- * At present this just exports the geometry to GDML, then loads it through the
- * VGDML reader.
  */
 VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
 {
     CELER_EXPECT(world);
-#if CELERITAS_USE_GEANT4
     CELER_LOG(info) << "Importing VecGeom model from Geant4";
 
     // Convert the geometry to VecGeom
-    G4VecGeomConverter converter;
-    converter.SetVerbose(1);
-    converter.ConvertG4Geometry(world);
+    detail::g4_to_vecgeom(world, /* verbose = */ true);
     CELER_LOG(info) << "Converted: max_depth = "
-                    << vecgeom::GeoManager::Instance().getMaxDepth()
-                    << " -- Top G4 volume: " << world->GetName();
+                    << vecgeom::GeoManager::Instance().getMaxDepth();
 
     //.. dump VecGeom geometry details for comparison
     vecgeom::VPlacedVolume const* vgWorld
@@ -93,10 +79,6 @@ VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
     CELER_ENSURE(vgWorld);
     CELER_LOG(debug) << "Top VecGeom volume: " << vgWorld->GetName()
                      << " - Label: " << vgWorld->GetLabel();
-
-#else
-    CELER_NOT_CONFIGURED("Geant4");
-#endif
 
     this->build_tracking();
     this->build_data();

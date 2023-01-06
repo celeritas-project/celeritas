@@ -16,12 +16,11 @@
 
 #include <utility>
 #include <vector>
+#include <G4PVReplica.hh>
+#include <G4RotationMatrix.hh>
+#include <G4ThreeVector.hh>
 #include <VecGeom/base/TypeMap.h>
 #include <VecGeom/management/GeoManager.h>
-
-#include "Geant4/G4PVReplica.hh"
-#include "Geant4/G4RotationMatrix.hh"
-#include "Geant4/G4ThreeVector.hh"
 
 class G4LogicalVolume;
 class G4AffineTransformation;

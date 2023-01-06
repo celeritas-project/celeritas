@@ -14,11 +14,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "Geant4/G4LogicalVolume.hh"
-#include "VecGeom/base/Cuda.h"
-#include "VecGeom/base/Transformation3D.h"
-#include "VecGeom/volumes/LogicalVolume.h"
-#include "VecGeom/volumes/PlacedVolume.h"
+#include <G4LogicalVolume.hh>
+#include <VecGeom/base/Cuda.h>
+#include <VecGeom/base/Transformation3D.h>
+#include <VecGeom/volumes/LogicalVolume.h>
+#include <VecGeom/volumes/PlacedVolume.h>
 
 // more stuff might be needed
 #include <cassert>

@@ -13,6 +13,37 @@
 //---------------------------------------------------------------------------//
 #include "G4VecgeomConverter.hh"
 
+#include <cassert>
+#include <iostream>
+#include <list>
+#include <G4AffineTransform.hh>
+#include <G4BooleanSolid.hh>
+#include <G4Box.hh>
+#include <G4Cons.hh>
+#include <G4CutTubs.hh>
+#include <G4DisplacedSolid.hh>
+#include <G4ExtrudedSolid.hh>
+#include <G4GenericPolycone.hh>
+#include <G4IntersectionSolid.hh>
+#include <G4LogicalVolume.hh>
+#include <G4Orb.hh>
+#include <G4PVDivision.hh>
+#include <G4PVParameterised.hh>
+#include <G4Para.hh>
+#include <G4Polycone.hh>
+#include <G4Polyhedra.hh>
+#include <G4ReflectedSolid.hh>
+#include <G4Sphere.hh>
+#include <G4SubtractionSolid.hh>
+#include <G4Tet.hh>
+#include <G4Torus.hh>
+#include <G4Transform3D.hh>
+#include <G4Trap.hh>
+#include <G4Trd.hh>
+#include <G4Tubs.hh>
+#include <G4UnionSolid.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VisExtent.hh>
 #include <VecGeom/base/Stopwatch.h>
 #include <VecGeom/base/Transformation3D.h>
 #include <VecGeom/management/FlatVoxelManager.h>
@@ -52,48 +83,14 @@
 #include <VecGeom/volumes/UnplacedTrapezoid.h>
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
-
-//#include "TGeoManager.h"
-#include "G4AffineTransform.hh"
-#include "G4BooleanSolid.hh"
-#include "G4Box.hh"
-#include "G4Cons.hh"
-#include "G4CutTubs.hh"
-#include "G4DisplacedSolid.hh"
-#include "G4ExtrudedSolid.hh"
-#include "G4GenericPolycone.hh"
-#include "G4IntersectionSolid.hh"
-#include "G4LogicalVolume.hh"
-#include "G4Orb.hh"
-#include "G4PVDivision.hh"
-#include "G4PVParameterised.hh"
-#include "G4Para.hh"
-#include "G4Polycone.hh"
-#include "G4Polyhedra.hh"
-#include "G4ReflectedSolid.hh"
-#include "G4Sphere.hh"
-#include "G4SubtractionSolid.hh"
-#include "G4Tet.hh"
-#include "G4Torus.hh"
-#include "G4Transform3D.hh"
-#include "G4Trap.hh"
-#include "G4Trd.hh"
-#include "G4Tubs.hh"
-#include "G4UnionSolid.hh"
-#include "G4VPhysicalVolume.hh"
-#include "G4VisExtent.hh"
 // more stuff might be needed
 
-#include <cassert>
-#include <iostream>
-#include <list>
+#include <G4Navigator.hh>
+#include <G4PropagatorInField.hh>
+#include <G4RunManager.hh>
+#include <G4TransportationManager.hh>
 
 #include "corecel/math/Algorithms.hh"
-
-#include "G4Navigator.hh"
-#include "G4PropagatorInField.hh"
-#include "G4RunManager.hh"
-#include "G4TransportationManager.hh"
 
 using namespace vecgeom;
 

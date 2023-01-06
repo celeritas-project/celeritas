@@ -92,7 +92,8 @@ if(CELERITAS_RNG STREQUAL "CURAND")
 endif()
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_object_library(celeritas_geant4
+  set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
+  set(_cg4_sources
     ext/LoadGdml.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
@@ -103,12 +104,16 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantPhysicsList.cc
     ext/detail/ImportProcessConverter.cc
   )
-  target_link_libraries(celeritas_geant4
-    PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}
-  )
   if(CELERITAS_USE_VecGeom)
-    list(APPEND SOURCES ext/detail/G4VecgeomConverter.cc)
+    list(APPEND _cg4_sources
+      ext/detail/G4VecgeomConvert.cc
+      ext/detail/G4VecgeomConverter.cc
+    )
+    list(APPEND _cg4_libs VecGeom::vecgeom)
   endif()
+  celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
+
+  target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_geant4>)
   list(APPEND PRIVATE_DEPS celeritas_geant4)
 endif()
