@@ -43,18 +43,12 @@ acceptance of all terms of the Geant4 Software license.
   <position name="pos21"  x="-125" y=" 125"/>
   <position name="pos31"  x=" 125" y=" 125"/>
   <position name="pos41"  x=" 250" y=" 125"/>
-  <position name="pos412"  x=" 250" y=" 225"/>
   <position name="pos51"  x=" 550" y=" 125"/>
   <position name="pos61"  x=" 550" y="-125"/>
-  <position name="pos71"  x=" 550" y=" 0"/>
-  <position name="pos81"  x="-550" y=" 125"/>
-  <position name="pos91"  x="-550" y="-125"/>
-  <position name="pos101" x="-550" />
   <position name="pos201"  x=" 750" y=" 0"/>
   <position name="pos301"  x=" 750" y=" 125"/>
   <position name="pos401"  x=" 750" y="-125"/>
   <position name="pos501"  x="-750" y="-125"/>
-  <position name="pos502"  x="-750" y="-225"/>
   <position name="pos601"  x="-750" y=" 125"/>
   <position name="pos701"  x="-750" y=" 0"/>
   <position name="pos801"  x="950"  y=" 125"/>
@@ -138,12 +132,6 @@ acceptance of all terms of the Geant4 Software license.
     <zplane z="100.0" rmin="10.0" rmax="30.0"/>
   </polycone>
 
-  <genericPolycone aunit="degree" name="testgenpoly" deltaphi="360.0" startphi="0.0">
-    <rzpoint r="0.0" z="10.0" />
-    <rzpoint r="5.0" z="20.0" />
-    <rzpoint r="0.0" z="30.0" />
-  </genericPolycone>
-
   <tessellated  aunit="degree" lunit="mm" name="testtessel">
      <triangular vertex1="v0" vertex2="v1" vertex3="v2"/>
      <triangular vertex1="v1" vertex2="v3" vertex3="v2"/>
@@ -159,11 +147,6 @@ acceptance of all terms of the Geant4 Software license.
      <zplane z="10.0" rmin="1.0" rmax="5.0"/>
      <zplane z="100.0" rmin="10.0" rmax="30.0"/>
   </polyhedra>
-  <genericPolyhedra aunit="degree" deltaphi="90." lunit="mm" name="testgenph" numsides="3" startphi="0." >
-    <rzpoint r="0.0" z="10.0" />
-    <rzpoint r="5.0" z="20.0" />
-    <rzpoint r="0.0" z="30.0" />
-  </genericPolyhedra>
 
   <hype name="testhype" rmin="10.0" rmax="30.0" inst="10.0" outst="20.0" z="50.0"/>
 
@@ -174,10 +157,6 @@ acceptance of all terms of the Geant4 Software license.
 
   <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2" />
 
-  <twistedbox name="ttwistedbox" PhiTwist="1" x="30" y="30" z="30" aunit="rad" lunit="mm"/>
-  <twistedtrd name="ttwistedtrd" PhiTwist="1" x1="9" x2="8" y1="6" y2="5" z="10" aunit="rad" lunit="mm"/>
-  <twistedtrap name="ttwistedtrap" PhiTwist="1" z="10" Theta="1" Phi="2" y1="15" y2="15" x1="10" x2="10" x3="10" x4="10" Alph="1" aunit="rad" lunit="mm"/>
-  <twistedtubs name="ttwistedtubs" endinnerrad="10" endouterrad="15" zlen="40" phi="90." twistedangle="1" aunit="degree" lunit="mm"/>
  </solids>
 
  <structure>
@@ -225,11 +204,6 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="testpoly"/>
   </volume>
 
-  <volume name="vol412">
-   <materialref ref="Water"/>
-   <solidref ref="testgenpoly"/>
-  </volume>
-
    <volume name="vol51">
    <materialref ref="Water"/>
    <solidref ref="testellipsoid"/>
@@ -240,25 +214,6 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="testtet"/>
   </volume>
 
-  <volume name="vol71">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedbox"/>
-  </volume>
-
-  <volume name="vol81">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtrd"/>
-  </volume>
-
-  <volume name="vol91">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtrap"/>
-  </volume>
-
-  <volume name="vol101">
-   <materialref ref="Water"/>
-   <solidref ref="ttwistedtubs"/>
-  </volume>
   <volume name="vol201">
    <materialref ref="Water"/>
    <solidref ref="testtessel"/>
@@ -275,10 +230,6 @@ acceptance of all terms of the Geant4 Software license.
    <materialref ref="Water"/>
    <solidref ref="testph"/>
   </volume>
-  <volume name="vol502">
-   <materialref ref="Water"/>
-   <solidref ref="testgenph"/>
-   </volume>
   <volume name="vol601">
    <materialref ref="Water"/>
    <solidref ref="testhype"/>
@@ -357,12 +308,6 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="identity"/>
    </physvol>
 
-  <physvol>
-     <volumeref ref="vol412"/>
-     <positionref ref="pos412"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
     <physvol>
      <volumeref ref="vol51"/>
      <positionref ref="pos51"/>
@@ -375,27 +320,6 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="identity"/>
    </physvol>
 
-   <physvol>
-     <volumeref ref="vol71"/>
-     <positionref ref="pos71"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="vol81"/>
-     <positionref ref="pos81"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol91"/>
-     <positionref ref="pos91"/>
-     <rotationref ref="identity"/>
-   </physvol>
-   <physvol>
-     <volumeref ref="vol101"/>
-     <positionref ref="pos101"/>
-     <rotationref ref="identity"/>
-   </physvol>
    <physvol>
      <volumeref ref="vol201"/>
      <positionref ref="pos201"/>
@@ -417,12 +341,6 @@ acceptance of all terms of the Geant4 Software license.
     <physvol>
      <volumeref ref="vol501"/>
      <positionref ref="pos501"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="vol502"/>
-     <positionref ref="pos502"/>
      <rotationref ref="identity"/>
    </physvol>
 

@@ -425,9 +425,6 @@ TEST_F(SolidsTest, accessors)
     }
 
     const auto& geom = *this->geometry();
-    // TODO: there are 27 actual solids, but there are a few "unused" volumes
-    // created during construction, and different versions of VecGeom are
-    // missing different solids (and thus are missing volumes!)
     EXPECT_EQ(25, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
