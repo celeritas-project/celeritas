@@ -68,7 +68,7 @@ void run(const std::string& macro_filename)
 
     // Construct geometry, SD factory, physics, actions
     run_manager->SetUserInitialization(new demo_geant::DetectorConstruction{});
-    run_manager->SetUserInitialization(new FTFP_BERT);
+    run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
     demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(
