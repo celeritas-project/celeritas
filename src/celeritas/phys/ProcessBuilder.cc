@@ -28,6 +28,9 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct imported process data.
+ *
+ * \warning If Livermore and SB data is present in the import data, their
+ * lifetime must extend beyond the \c ProcessBuilder instance.
  */
 ProcessBuilder::ProcessBuilder(const ImportData& data,
                                SPConstParticle   particle,
@@ -49,21 +52,10 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
     {
         read_sb_ = make_imported_element_loader(data.sb_data);
     }
-    else
-    {
-        read_sb_ = SeltzerBergerReader{};
-    }
-
-    if (!data.sb_data.empty())
+    if (!data.livermore_pe_data.empty())
     {
         read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
-    else
-    {
-        read_livermore_ = LivermorePEReader{};
-    }
-
-    CELER_ENSURE(read_sb_ && read_livermore_);
 }
 
 //---------------------------------------------------------------------------//
@@ -151,6 +143,11 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
     options.enable_lpm      = enable_lpm_;
     options.use_integral_xs = use_integral_xs_;
 
+    if (!read_sb_)
+    {
+        read_sb_ = SeltzerBergerReader{};
+    }
+
     return std::make_shared<BremsstrahlungProcess>(
         this->particle(), this->material(), this->imported(), read_sb_, options);
 }
@@ -158,6 +155,11 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
+    if (!read_livermore_)
+    {
+        read_livermore_ = LivermorePEReader{};
+    }
+
     return std::make_shared<PhotoelectricProcess>(
         this->particle(), this->material(), this->imported(), read_livermore_);
 }
