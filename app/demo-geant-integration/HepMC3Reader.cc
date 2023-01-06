@@ -78,8 +78,9 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     input_file_->read_event(gen_event);
     CELER_ASSERT(!input_file_->failed());
 
-    CELER_LOG_LOCAL(status)
-        << "Reading HepMC3 event " << gen_event.event_number();
+    CELER_LOG_LOCAL(info) << "Converting " << gen_event.particles().size()
+                          << " primaries from event "
+                          << gen_event.event_number();
 
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM); // Geant4 units
     const auto& event_pos = gen_event.event_pos();
@@ -94,11 +95,14 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     {
         const auto& part_data = gen_particle->data();
 
-        if (part_data.status != 1)
+        if (part_data.status <= 0)
         {
             // Skip particles that should not be tracked
             // Status codes (page 13):
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
+            CELER_LOG_LOCAL(info)
+                << "Skipped status code " << part_data.status << " for "
+                << part_data.momentum.e() << "MeV primary";
             continue;
         }
 
