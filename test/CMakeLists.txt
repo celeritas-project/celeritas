@@ -279,9 +279,21 @@ celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
 set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
+  set(_vg_geant)
+  if(CELERITAS_USE_Geant4)
+    set(_vg_geant
+      ${_needs_geant4}
+      FILTER
+        "-*Geant*"
+        "FourLevelsGeantTest.*"
+        "SolidsGeantTest.*"
+    )
+  endif()
+
   celeritas_add_device_test(celeritas/ext/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
-    ${_optional_geant4_env})
+    ${_vg_geant}
+  )
   #celeritas_add_device_test(celeritas/ext/G4VecgeomConversion ${_needs_geant4}
   #  LINK_LIBRARIES ${Geant4_LIBRARIES})
 endif()
