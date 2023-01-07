@@ -31,7 +31,7 @@ iwyu_tool.py -p $1 -- \
 SKIP_FORMAT=
 if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
   echo "warning: Git repository is dirty so patches will not be applied"
-  SKIP_FORMAT=true
+  return 0
 else
   fix_includes.py --nocomments -p $1 < $OUTFILE
 fi
@@ -39,9 +39,10 @@ fi
 if [ -z "${SKIP_FORMAT}" ]; then
   # Fix include ordering
   git add -u :/
-  SKIP_GCF=1 git commit -m "IWYU" --author="Mr. Clean <noreply@github.com>"
-  git-clang-format HEAD^
+  SKIP_GCF=1 git commit -m "IWYU" --author="Mr. Clean <noreply@github.com>" >/dev/null
+  git-clang-format HEAD^ || true
   git add -u :/
   SKIP_GCF=1 git commit --amend -m "IWYU+Clean" >/dev/null
   git reset HEAD^
+  git co HEAD -- ":/src/celeritas/*/generated/*"
 fi
