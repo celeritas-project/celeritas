@@ -354,11 +354,22 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     Celeritas::accel
   )
   if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
-    set(DEMO_MAX_NUM_TRACKS 1024)
-    set(DEMO_INIT_CAPACITY 32768)
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
       set(DEMO_MAX_NUM_TRACKS 524288)
       set(DEMO_INIT_CAPACITY 4194304)
+    else()
+      # Use smaller number of tracks when running on CPU
+      set(DEMO_MAX_NUM_TRACKS 1024)
+      set(DEMO_INIT_CAPACITY 32768)
+    endif()
+
+    if(NOT CELERITAS_DEBUG)
+      set(DEMO_EVENTS
+        "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarsplit-12evt-1108prim.hepmc3")
+    else()
+      # Use fewer events for debug
+      set(DEMO_EVENTS
+        "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarbits-12evt-118prim.hepmc3")
     endif()
 
     configure_file(
