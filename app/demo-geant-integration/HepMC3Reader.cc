@@ -129,7 +129,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 HepMC3Reader::HepMC3Reader()
     : G4VPrimaryGenerator(), world_solid_(get_world_solid())
 {
-    const std::string filename = GlobalSetup::Instance()->GetHepmc3File();
+    const std::string filename = GlobalSetup::Instance()->GetEventFile();
     CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
     input_file_ = HepMC3::deduce_reader(filename);
     CELER_VALIDATE(input_file_, << "failed to deduce event input file type");
