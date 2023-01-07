@@ -9,6 +9,8 @@
 
 #include <G4VUserPrimaryGeneratorAction.hh>
 
+#include "accel/HepMC3Reader.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -23,6 +25,9 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
+
+    // Global hepmc3 file reader shared across threads
+    static celeritas::HepMC3Reader& Reader();
 };
 
 //---------------------------------------------------------------------------//

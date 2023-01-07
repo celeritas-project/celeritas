@@ -352,9 +352,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   )
   celeritas_target_link_libraries(demo-geant-integration
     Celeritas::accel
-    HepMC3::HepMC3
   )
-  if(CELERITAS_BUILD_TESTS)
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY

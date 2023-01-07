@@ -9,7 +9,8 @@
 
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
-#include "accel/HepMC3Reader.hh"
+
+#include "GlobalSetup.hh"
 
 namespace demo_geant
 {
@@ -20,9 +21,22 @@ namespace demo_geant
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     celeritas::ExceptionConverter call_g4exception{"celer0000"};
-    CELER_TRY_ELSE(
-        celeritas::HepMC3Reader::Instance()->GeneratePrimaryVertex(event),
-        call_g4exception);
+    CELER_TRY_ELSE(this->Reader().GeneratePrimaryVertex(event),
+                   call_g4exception);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Global HepMC3 file reader shared across threads.
+ *
+ * The first time this is called, the reader will be initialized from the
+ * GlobalSetup event file argument.
+ */
+celeritas::HepMC3Reader& PrimaryGeneratorAction::Reader()
+{
+    static celeritas::HepMC3Reader reader{
+        GlobalSetup::Instance()->GetEventFile()};
+    return reader;
 }
 
 //---------------------------------------------------------------------------//

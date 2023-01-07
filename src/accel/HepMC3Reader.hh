@@ -8,23 +8,25 @@
 #pragma once
 
 #include <memory>
-#include <vector>
+#include <mutex>
 #include <G4Event.hh>
 #include <G4VPrimaryGenerator.hh>
 
-// Forward declarations
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
+
+class G4VSolid;
+
 namespace HepMC3
 {
 class Reader;
 } // namespace HepMC3
 
-class G4VSolid;
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Singleton HepMC3 reader class.
+ * HepMC3 reader class for sharing across threads.
  *
  * This singleton is shared among threads so that events can be correctly split
  * up between them, being constructed the first time `instance()` is invoked.
@@ -41,8 +43,8 @@ namespace celeritas
 class HepMC3Reader final : public G4VPrimaryGenerator
 {
   public:
-    //! Return non-owning pointer to a singleton
-    static HepMC3Reader* Instance();
+    // Construct with HepMC3 filename; called by Instance()
+    explicit HepMC3Reader(const std::string& filename);
 
     //! Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;
@@ -51,16 +53,26 @@ class HepMC3Reader final : public G4VPrimaryGenerator
     int num_events() { return num_events_; }
 
   private:
-    G4VSolid*                       world_solid_; // World volume solid
-    std::shared_ptr<HepMC3::Reader> input_file_;  // HepMC3 input file
-    int                             num_events_;  // Total number of events
+    using SPReader = std::shared_ptr<HepMC3::Reader>;
 
-  private:
-    // Construct singleton with HepMC3 filename; called by Instance()
-    HepMC3Reader();
-    // Default destructor in .cc
-    ~HepMC3Reader();
+    int        num_events_;  // Total number of events
+    G4VSolid*  world_solid_; // World volume solid
+    SPReader   reader_;      // HepMC3 input reader
+    std::mutex read_mutex_;
 };
+
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_HEPMC3
+inline HepMC3Reader::HepMC3Reader(const std::string& filename)
+{
+    CELER_NOT_CONFIGURED("HepMC3");
+    (void)sizeof(world_solid_);
+    (void)sizeof(reader_);
+    (void)sizeof(read_mutex_);
+}
+
+inline void HepMC3Reader::GeneratePrimaryVertex(G4Event*) {}
+#endif
 
 //---------------------------------------------------------------------------//
 } // namespace celeritas
