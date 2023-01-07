@@ -53,8 +53,8 @@ int PrimaryGeneratorAction::NumEvents()
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     celeritas::ExceptionConverter call_g4exception{"celer0000"};
-    CELER_TRY_ELSE(shared_reader().GeneratePrimaryVertex(event),
-                   call_g4exception);
+    CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

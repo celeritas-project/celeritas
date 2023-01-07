@@ -85,8 +85,9 @@ void run(const std::string& macro_filename)
 
     // Load the input file
     int num_events{0};
-    CELER_TRY_ELSE(num_events = demo_geant::PrimaryGeneratorAction::NumEvents(),
-                   celeritas::ExceptionConverter{"demo-geant000"});
+    CELER_TRY_HANDLE(
+        num_events = demo_geant::PrimaryGeneratorAction::NumEvents(),
+        celeritas::ExceptionConverter{"demo-geant000"});
 
     run_manager->BeamOn(num_events);
 }
