@@ -41,7 +41,7 @@ HepMC3PrimaryGenerator& shared_reader()
  *
  * This will load the HepMC3 file if not already active.
  */
-void PrimaryGeneratorAction::NumEvents()
+int PrimaryGeneratorAction::NumEvents()
 {
     return shared_reader().NumEvents();
 }
