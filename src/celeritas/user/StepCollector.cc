@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
 
 #include "StepData.hh"

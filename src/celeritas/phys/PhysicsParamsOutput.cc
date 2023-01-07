@@ -15,7 +15,7 @@
 #include "corecel/io/JsonPimpl.hh"
 
 #include "Model.hh"
-#include "PhysicsParams.hh"
+#include "PhysicsParams.hh" // IWYU pragma: keep
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 

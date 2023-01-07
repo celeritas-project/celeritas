@@ -14,7 +14,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
-#include "ActionRegistry.hh"
+#include "ActionInterface.hh"
+#include "ActionRegistry.hh" // IWYU pragma: keep
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
