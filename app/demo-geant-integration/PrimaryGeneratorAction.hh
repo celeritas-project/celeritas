@@ -9,25 +9,23 @@
 
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-#include "accel/HepMC3Reader.hh"
-
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Minimal implementation of a primary generator action class.
+ * Read tracks from a HepMC3 file.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
+    // Get the total number of events available in the HepMC3 file
+    static int NumEvents();
+
     // Construct primary action
     PrimaryGeneratorAction() = default;
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
-
-    // Global hepmc3 file reader shared across threads
-    static celeritas::HepMC3Reader& Reader();
 };
 
 //---------------------------------------------------------------------------//

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/HepMC3Reader.hh
+//! \file accel/HepMC3PrimaryGenerator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,27 +30,27 @@ namespace celeritas
  *
  * This singleton is shared among threads so that events can be correctly split
  * up between them, being constructed the first time `instance()` is invoked.
- * As this is a derived `G4VPrimaryGenerator` class, the HepMC3Reader
+ * As this is a derived `G4VPrimaryGenerator` class, the HepMC3PrimaryGenerator
  * must be used by a concrete implementation of the
  * `G4VUserPrimaryGeneratorAction` class:
  * \code
    void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
    {
-       HepMC3Reader::Instance()->GeneratePrimaryVertex(event);
+       HepMC3PrimaryGenerator::Instance()->GeneratePrimaryVertex(event);
    }
  * \endcode
  */
-class HepMC3Reader final : public G4VPrimaryGenerator
+class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 {
   public:
-    // Construct with HepMC3 filename; called by Instance()
-    explicit HepMC3Reader(const std::string& filename);
+    // Construct with HepMC3 filename
+    explicit HepMC3PrimaryGenerator(const std::string& filename);
 
     //! Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;
 
     //! Get total number of events
-    int num_events() { return num_events_; }
+    int NumEvents() { return num_events_; }
 
   private:
     using SPReader = std::shared_ptr<HepMC3::Reader>;
@@ -63,7 +63,7 @@ class HepMC3Reader final : public G4VPrimaryGenerator
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_HEPMC3
-inline HepMC3Reader::HepMC3Reader(const std::string& filename)
+inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
 {
     CELER_NOT_CONFIGURED("HepMC3");
     (void)sizeof(world_solid_);
@@ -71,7 +71,7 @@ inline HepMC3Reader::HepMC3Reader(const std::string& filename)
     (void)sizeof(read_mutex_);
 }
 
-inline void HepMC3Reader::GeneratePrimaryVertex(G4Event*) {}
+inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*) {}
 #endif
 
 //---------------------------------------------------------------------------//

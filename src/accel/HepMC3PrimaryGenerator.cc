@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/HepMC3Reader.cc
+//! \file accel/HepMC3PrimaryGenerator.cc
 //---------------------------------------------------------------------------//
-#include "HepMC3Reader.hh"
+#include "HepMC3PrimaryGenerator.hh"
 
 #include <mutex>
 #include <G4PhysicalConstants.hh>
@@ -33,7 +33,7 @@ G4VSolid* get_world_solid()
     auto* world = nav->GetWorldVolume();
     CELER_VALIDATE(world,
                    << "detector geometry was not initialized before "
-                      "HepMC3Reader was instantiated");
+                      "HepMC3PrimaryGenerator was instantiated");
     auto* lv = world->GetLogicalVolume();
     CELER_ASSERT(lv);
     auto* solid = lv->GetSolid();
@@ -46,9 +46,9 @@ G4VSolid* get_world_solid()
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with provided HepMC3 input filename.
+ * Construct with a path to a HepMC3-compatible input file.
  */
-HepMC3Reader::HepMC3Reader(const std::string& filename)
+HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
     : world_solid_{get_world_solid()}
 {
     CELER_LOG(info) << "Loading HepMC3 input file at " << filename;
@@ -85,7 +85,7 @@ HepMC3Reader::HepMC3Reader(const std::string& filename)
  * mother/daughter particles. If more complex inputs are used, this will have
  * to be updated.
  */
-void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
+void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
     HepMC3::GenEvent gen_event;
 
@@ -115,7 +115,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
     for (const auto& gen_particle : gen_event.particles())
     {
         // Convert primary to Geant4 vertex
-        const auto& part_data = gen_particle->data();
+        const HepMC3::GenParticleData& part_data = gen_particle->data();
 
         if (part_data.status <= 0)
         {

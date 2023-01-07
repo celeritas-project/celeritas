@@ -28,7 +28,7 @@ endif()
 
 if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
-  list(APPEND SOURCES HepMC3Reader.cc)
+  list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
