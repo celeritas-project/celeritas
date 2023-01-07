@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/HepMC3Reader.hh
+//! \file accel/HepMC3Reader.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,7 +20,7 @@ class Reader;
 
 class G4VSolid;
 
-namespace demo_geant
+namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -63,4 +63,4 @@ class HepMC3Reader final : public G4VPrimaryGenerator
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+} // namespace celeritas

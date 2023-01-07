@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/HepMC3Reader.cc
+//! \file accel/HepMC3Reader.cc
 //---------------------------------------------------------------------------//
 #include "HepMC3Reader.hh"
 
@@ -17,7 +17,7 @@
 
 #include "GlobalSetup.hh"
 
-namespace demo_geant
+namespace celeritas
 {
 namespace
 {
@@ -155,4 +155,4 @@ HepMC3Reader::HepMC3Reader()
 HepMC3Reader::~HepMC3Reader() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+} // namespace celeritas

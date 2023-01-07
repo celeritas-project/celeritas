@@ -9,8 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
-
-#include "HepMC3Reader.hh"
+#include "accel/HepMC3Reader.hh"
 
 namespace demo_geant
 {
@@ -21,8 +20,9 @@ namespace demo_geant
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     celeritas::ExceptionConverter call_g4exception{"celer0000"};
-    CELER_TRY_ELSE(HepMC3Reader::Instance()->GeneratePrimaryVertex(event),
-                   call_g4exception);
+    CELER_TRY_ELSE(
+        celeritas::HepMC3Reader::Instance()->GeneratePrimaryVertex(event),
+        call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

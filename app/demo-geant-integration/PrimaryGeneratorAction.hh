@@ -9,8 +9,6 @@
 
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-#include "HepMC3Reader.hh"
-
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
