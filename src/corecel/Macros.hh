@@ -180,8 +180,8 @@
  * "Try" to execute the statement, and "handle" *all* thrown errors by calling
  * the given function-like error handler with a \c std::exception_ptr object.
  *
- * \note A file that uses this macro must include the <exception> header (but
- * since the \c HANDLE_EXCEPTION needs to take an exception pointer, it's
+ * \note A file that uses this macro must include the \c \<exception\> header
+ * (but since the \c HANDLE_EXCEPTION needs to take an exception pointer, it's
  * got to be included anyway).
  */
 #define CELER_TRY_HANDLE(STATEMENT, HANDLE_EXCEPTION)   \

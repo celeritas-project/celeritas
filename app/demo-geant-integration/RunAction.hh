@@ -19,6 +19,13 @@ namespace demo_geant
 //---------------------------------------------------------------------------//
 /*!
  * Set up and tear down Celeritas.
+ *
+ * Each Geant4 thread creates an instance of this class. In multithreaded mode,
+ * the "master" instance does not have a local transporter and is responsible
+ * for initializing the \c celeritas::SharedParams which is shared across all
+ * threads/tasks. Worker threads are given a thread-local \c
+ * celeritas::LocalTransporter which allocates Celeritas track state data at
+ * the beginning of the run and clears it at the end.
  */
 class RunAction final : public G4UserRunAction
 {

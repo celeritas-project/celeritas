@@ -17,7 +17,8 @@ namespace demo_geant
 /*!
  * Manage begin- and end-of-event setup.
  *
- * This class should be local to a thread/task/stream.
+ * This class is local to a thread/task/stream, but it shares \c
+ * LocalTransporter with other user actions on the current thread.
  */
 class EventAction final : public G4UserEventAction
 {

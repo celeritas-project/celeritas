@@ -16,13 +16,13 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas shared data.
+ * Construct with thread-local Celeritas data.
  */
 EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize Celeritas.
+ * Inform Celeritas of the new event's ID.
  */
 void EventAction::BeginOfEventAction(const G4Event* event)
 {
@@ -34,7 +34,7 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Finalize Celeritas.
+ * Flush all offloaded tracks before ending the event.
  */
 void EventAction::EndOfEventAction(const G4Event*)
 {
