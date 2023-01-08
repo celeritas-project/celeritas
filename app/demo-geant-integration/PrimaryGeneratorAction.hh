@@ -13,7 +13,7 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Read tracks from a HepMC3 file.
+ * Generate events by reading from a HepMC3 file.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {

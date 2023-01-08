@@ -74,7 +74,7 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
  * Add HepMC3 primaries to a Geant4 event.
  *
  * This function should be called by \c
- * G4VUserPrimaryGeneratorAction::GeneratePrimaries . It is thread safe as lnog
+ * G4VUserPrimaryGeneratorAction::GeneratePrimaries . It is thread safe as long
  * as \c g4_event is thread-local.
  *
  * \note
