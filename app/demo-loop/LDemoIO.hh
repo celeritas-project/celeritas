@@ -22,6 +22,11 @@
 
 #include "Transporter.hh"
 
+namespace celeritas
+{
+class CoreParams;
+}
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
@@ -98,8 +103,18 @@ void from_json(const nlohmann::json& j, LDemoArgs& value);
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
              LDemoArgs&                                   args);
 
+void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
+                       celeritas::CoreParams core_params);
+
 #if !CELERITAS_USE_ROOT
 inline void to_root(std::shared_ptr<celeritas::RootFileManager>&, LDemoArgs&)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline void
+store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
+                  celeritas::CoreParams                        core_params)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

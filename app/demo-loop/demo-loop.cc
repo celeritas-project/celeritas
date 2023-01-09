@@ -126,6 +126,8 @@ void run(std::istream* is, OutputManager* output)
         to_root(root_manager, run_args);
     }
 
+    store_core_params(root_manager, transport_ptr->params());
+
     // Run all the primaries
     TransporterResult    result;
     std::vector<Primary> primaries;
