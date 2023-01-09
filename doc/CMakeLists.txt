@@ -8,6 +8,9 @@
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
 
+# Use full version string instead of short version
+set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
+
 # File setup
 set(DOXYGEN_EXCLUDE_PATTERNS
   "*.nohepmc.cc"

@@ -72,9 +72,9 @@ extensions = [
 
 if celer_config['options']['breathe']:
     extensions.append('breathe')
-    breathe_default_project = project
+    breathe_default_project = 'celeritas'
     breathe_projects = {
-        project: build_dir / 'xml'
+        breathe_default_project: build_dir / 'xml'
     }
     breathe_default_members = ('members',)
 
