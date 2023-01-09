@@ -16,10 +16,10 @@
 
 #include "CutoffData.hh"
 #include "CutoffView.hh"
-#include "ParticleParams.hh"
 
 namespace celeritas
 {
+class ParticleParams;
 struct ImportData;
 
 //---------------------------------------------------------------------------//

@@ -31,7 +31,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
 
-#include "data/AtomicRelaxationData.hh"
+#include "data/AtomicRelaxationData.hh" // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas

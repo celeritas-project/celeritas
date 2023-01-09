@@ -11,7 +11,7 @@
 
 #include "corecel/Types.hh"
 
-#include "StepData.hh"
+#include "StepData.hh" // IWYU pragma: export
 
 namespace celeritas
 {

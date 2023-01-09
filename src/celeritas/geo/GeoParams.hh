@@ -10,9 +10,10 @@
 
 #include "celeritas_config.h"
 #if CELERITAS_USE_VECGEOM
-#    include "celeritas/ext/VecgeomParams.hh"
+#    include "celeritas/ext/VecgeomParams.hh" // IWYU pragma: export
 #else
-#    include "orange/OrangeParams.hh"
+#    include "orange/OrangeParams.hh" // IWYU pragma: export
 #endif
 
-#include "GeoParamsFwd.hh"
+// Include type alias for GeoParams
+#include "GeoParamsFwd.hh" // IWYU pragma: export

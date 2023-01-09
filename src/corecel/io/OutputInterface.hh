@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <string> // IWYU pragma: export
 
 namespace celeritas
 {

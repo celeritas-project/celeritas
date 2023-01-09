@@ -24,7 +24,7 @@
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
 
-#include "MaterialData.hh"
+#include "MaterialData.hh" // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas

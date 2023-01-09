@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/ParticleData.hh" // IWYU pragma: associated
 
 namespace celeritas
 {

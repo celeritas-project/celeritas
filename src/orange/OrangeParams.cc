@@ -22,7 +22,7 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 
-#include "OrangeData.hh"
+#include "OrangeData.hh" // IWYU pragma: associated
 #include "OrangeTypes.hh"
 #include "construct/OrangeInput.hh"
 #include "detail/UnitInserter.hh"

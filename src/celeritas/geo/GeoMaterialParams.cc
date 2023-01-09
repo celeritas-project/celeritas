@@ -24,7 +24,7 @@
 #include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
-#include "GeoMaterialData.hh"
+#include "GeoMaterialData.hh" // IWYU pragma: associated
 
 namespace celeritas
 {
