@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/MpiCommunicatorImpl.hh
-//! Type definitions for MPI parallel operations (implementation-agnostic)
+//! \brief Type definitions for MPI parallel operations (MPI optional)
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,7 +26,7 @@ using MpiComm = MPI_Comm;
 
 #else
 
-//@{
+//!@{
 //! Mock MPI communicator
 struct MpiComm
 {

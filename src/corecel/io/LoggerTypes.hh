@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/LoggerTypes.hh
-//! Type definitions for logging utilities
+//! \brief Type definitions for logging utilities
 //---------------------------------------------------------------------------//
 #pragma once
 

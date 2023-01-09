@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/Types.hh
-//! Type definitions for common Celeritas functionality
+//! \brief Type definitions for common Celeritas functionality
 //---------------------------------------------------------------------------//
 #pragma once
 

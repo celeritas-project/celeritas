@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/RootInterfaceLinkDef.h
-//! Define the classes added to the ROOT dictionary.
+//! \brief Define the classes added to the ROOT dictionary
 //---------------------------------------------------------------------------//
 #ifdef __CINT__
 
