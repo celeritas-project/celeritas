@@ -67,9 +67,13 @@
 #include <VecGeom/volumes/UnplacedBox.h>
 #include <VecGeom/volumes/UnplacedCone.h>
 #include <VecGeom/volumes/UnplacedCutTube.h>
+#include <VecGeom/volumes/UnplacedEllipsoid.h>
+#include <VecGeom/volumes/UnplacedEllipticalCone.h>
+#include <VecGeom/volumes/UnplacedEllipticalTube.h>
 #include <VecGeom/volumes/UnplacedExtruded.h>
 #include <VecGeom/volumes/UnplacedGenTrap.h>
 #include <VecGeom/volumes/UnplacedGenericPolycone.h>
+#include <VecGeom/volumes/UnplacedHype.h>
 #include <VecGeom/volumes/UnplacedOrb.h>
 #include <VecGeom/volumes/UnplacedParaboloid.h>
 #include <VecGeom/volumes/UnplacedParallelepiped.h>
@@ -83,6 +87,7 @@
 #include <VecGeom/volumes/UnplacedTrapezoid.h>
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
+
 // more stuff might be needed
 
 #include <G4Navigator.hh>
@@ -114,8 +119,8 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
                                           double&       phi)
 {
     const double* start = reinterpret_cast<const double*>(&t);
-#define CHANGED_GEANT4 1
-#ifdef CHANGED_GEANT4
+//#define GEODEBUG 1
+#ifdef GEODEBUG
     std::cout << " - Extra check: Dz = " << t.GetZHalfLength()
               << " double[8-12]:" << ' ' << start[8] << ' ' << start[9] << ' '
               << start[10] << ' ' << start[11] << ' ' << start[12] << "\n";
@@ -143,7 +148,7 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
         theta = std::atan2(x_peek, cos(phi));
     }
 
-#ifdef CHANGED_GEANT4
+#ifdef GEODEBUG
     G4double g4theta = t.GetTheta();
     G4double g4phi   = t.GetPhi();
     std::cout << " <ChangedGeant4> Trap : name " << t.GetName()
@@ -449,8 +454,11 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
         const auto v1 = logical_volume->GetUnplacedVolume()->Capacity()
                         / ipow<3>(scale);
         const auto v2 = volume->GetSolid()->GetCubicVolume();
-        std::cerr << volume->GetName() << " capacities: VG=" << v1
-                  << " G4=" << v2 << "\n";
+        if (fabs((v1 / v2) - 1.0) > 0.1)
+        {
+            std::cerr << volume->GetName() << " capacities: VG=" << v1
+                      << " G4=" << v2 << "\n";
+        }
         //
         //    assert(v1 > 0.);
         //    assert(std::abs(v1 - v2) / v1 < 0.05);
@@ -518,9 +526,9 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         std::unique_ptr<double[]> rmaxs(new double[NZs]); // double rmaxs[NZs];
         for (int i = 0; i < NZs; ++i)
         {
-            zs[i]    = params->Z_values[i];
-            rmins[i] = params->Rmin[i];
-            rmaxs[i] = params->Rmax[i];
+            zs[i]    = scale * params->Z_values[i];
+            rmins[i] = scale * params->Rmin[i];
+            rmaxs[i] = scale * params->Rmax[i];
         }
         unplaced_volume
             = GeoManager::MakeInstance<UnplacedPolycone>(params->Start_angle,
@@ -546,9 +554,9 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         std::unique_ptr<double[]> rmaxs(new double[NZs]); // double rmaxs[NZs];
         for (int i = 0; i < NZs; ++i)
         {
-            zs[i]    = params->Z_values[i];
-            rmins[i] = params->Rmin[i] * convertRad;
-            rmaxs[i] = params->Rmax[i] * convertRad;
+            zs[i]    = scale * params->Z_values[i];
+            rmins[i] = scale * params->Rmin[i] * convertRad;
+            rmaxs[i] = scale * params->Rmax[i] * convertRad;
         }
 
         auto phistart = params->Start_angle;
@@ -567,61 +575,60 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             rmaxs.get());
     }
 
-    // THE TUBESEG
+    // Tube section
     else if (auto tube = dynamic_cast<G4Tubs const*>(shape))
     {
-        unplaced_volume
-            = GeoManager::MakeInstance<UnplacedTube>(tube->GetInnerRadius(),
-                                                     tube->GetOuterRadius(),
-                                                     tube->GetZHalfLength(),
-                                                     tube->GetStartPhiAngle(),
-                                                     tube->GetDeltaPhiAngle());
+        unplaced_volume = GeoManager::MakeInstance<UnplacedTube>(
+            scale * tube->GetInnerRadius(),
+            scale * tube->GetOuterRadius(),
+            scale * tube->GetZHalfLength(),
+            tube->GetStartPhiAngle(),
+            tube->GetDeltaPhiAngle());
     }
 
-    //
-    // THE CONESEG
+    // Cone section
     else if (auto cone = dynamic_cast<G4Cons const*>(shape))
     {
         unplaced_volume = GeoManager::MakeInstance<UnplacedCone>(
-            cone->GetInnerRadiusMinusZ(),
-            cone->GetOuterRadiusMinusZ(),
-            cone->GetInnerRadiusPlusZ(),
-            cone->GetOuterRadiusPlusZ(),
-            cone->GetZHalfLength(),
+            scale * cone->GetInnerRadiusMinusZ(),
+            scale * cone->GetOuterRadiusMinusZ(),
+            scale * cone->GetInnerRadiusPlusZ(),
+            scale * cone->GetOuterRadiusPlusZ(),
+            scale * cone->GetZHalfLength(),
             cone->GetStartPhiAngle(),
             cone->GetDeltaPhiAngle());
     }
 
-    // THE TORUS
+    // Torus
     else if (auto torus = dynamic_cast<G4Torus const*>(shape))
     {
-        unplaced_volume
-            = GeoManager::MakeInstance<UnplacedTorus2>(torus->GetRmin(),
-                                                       torus->GetRmax(),
-                                                       torus->GetRtor(),
-                                                       torus->GetSPhi(),
-                                                       torus->GetDPhi());
+        unplaced_volume = GeoManager::MakeInstance<UnplacedTorus2>(
+            scale * torus->GetRmin(),
+            scale * torus->GetRmax(),
+            scale * torus->GetRtor(),
+            torus->GetSPhi(),
+            torus->GetDPhi());
     }
 
     // TRD
     else if (auto trd = dynamic_cast<G4Trd const*>(shape))
     {
-        unplaced_volume
-            = GeoManager::MakeInstance<UnplacedTrd>(trd->GetXHalfLength1(),
-                                                    trd->GetXHalfLength2(),
-                                                    trd->GetYHalfLength1(),
-                                                    trd->GetYHalfLength2(),
-                                                    trd->GetZHalfLength());
+        unplaced_volume = GeoManager::MakeInstance<UnplacedTrd>(
+            scale * trd->GetXHalfLength1(),
+            scale * trd->GetXHalfLength2(),
+            scale * trd->GetYHalfLength1(),
+            scale * trd->GetYHalfLength2(),
+            scale * trd->GetZHalfLength());
     }
 
-    // TRAPEZOID
+    // Trapezoid
     else if (auto p = dynamic_cast<G4Trap const*>(shape))
     {
         double theta;
         double phi;
         TrapParametersGetOriginalThetaAndPhi(*p, theta, phi);
-        std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
-                  << " Phi= " << phi << "\n";
+        // std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
+        //           << " Phi= " << phi << "\n";
         unplaced_volume = GeoManager::MakeInstance<UnplacedTrapezoid>(
             scale * TrapParametersGetZ(*p),
             theta,
@@ -636,6 +643,169 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             p->GetTanAlpha2());
     }
 
+    // Parallelepiped
+    else if (auto pp = dynamic_cast<G4Para const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedParallelepiped>(
+            scale * pp->GetXHalfLength(),
+            scale * pp->GetYHalfLength(),
+            scale * pp->GetZHalfLength(),
+            std::atan(pp->GetTanAlpha()), // pp->GetOriginalAlpha(),
+            pp->GetTheta(),
+            pp->GetPhi());
+    }
+
+    // Hyperbolae
+    else if (auto hype = dynamic_cast<G4Hype const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedHype>(
+            scale * hype->GetInnerRadius(),
+            scale * hype->GetOuterRadius(),
+            hype->GetInnerStereo(),
+            hype->GetOuterStereo(),
+            scale * hype->GetZHalfLength());
+    }
+
+    // Orb
+    else if (auto orb = dynamic_cast<G4Orb const*>(shape))
+    {
+        unplaced_volume
+            = GeoManager::MakeInstance<UnplacedOrb>(scale * orb->GetRadius());
+    }
+
+    // Sphere
+    else if (auto sphr = dynamic_cast<G4Sphere const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedSphere>(
+            scale * sphr->GetInnerRadius(),
+            scale * sphr->GetOuterRadius(),
+            sphr->GetStartPhiAngle(),
+            sphr->GetDeltaPhiAngle(),
+            sphr->GetStartThetaAngle(),
+            sphr->GetDeltaThetaAngle());
+    }
+
+    // Ellipsoid
+    else if (auto ell = dynamic_cast<G4Ellipsoid const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedEllipsoid>(
+            scale * ell->GetDx(),
+            scale * ell->GetDy(),
+            scale * ell->GetDz(),
+            scale * ell->GetZBottomCut(),
+            scale * ell->GetZTopCut());
+    }
+
+    // Elliptical cone
+    else if (auto elc = dynamic_cast<G4EllipticalCone const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedEllipticalCone>(
+            scale * elc->GetSemiAxisX(),
+            scale * elc->GetSemiAxisY(),
+            scale * elc->GetZMax(),
+            scale * elc->GetZTopCut());
+    }
+
+    // Elliptical tube
+    else if (auto elt = dynamic_cast<G4EllipticalTube const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedEllipticalTube>(
+            scale * elt->GetDx(), scale * elt->GetDy(), scale * elt->GetDz());
+    }
+
+    // Tetrahedron
+    else if (auto tet = dynamic_cast<G4Tet const*>(shape))
+    {
+        G4ThreeVector anchor, p1, p2, p3;
+        tet->GetVertices(anchor, p1, p2, p3);
+        // Else use std::vector<G4ThreeVector> vertices = tet->GetVertices();
+        const Vector3D<Precision> pt0(
+            anchor.getX(), anchor.getY(), anchor.getZ());
+        const Vector3D<Precision> pt1(p1.getX(), p1.getY(), p1.getZ());
+        const Vector3D<Precision> pt2(p2.getX(), p2.getY(), p2.getZ());
+        const Vector3D<Precision> pt3(p3.getX(), p3.getY(), p3.getZ());
+        unplaced_volume = GeoManager::MakeInstance<UnplacedTet>(
+            scale * pt0, scale * pt1, scale * pt2, scale * pt3);
+#ifdef GEODEBUG
+        auto& vx = static_cast<UnplacedTet const*>(unplaced_volume)
+                       ->GetStruct()
+                       .fVertex;
+        std::cout << "TET: G4: p0=(" << pt0.x() << "; " << pt0.y() << "; "
+                  << pt0.z() << ") "
+                  << " p1=(" << p1.getX() << "; " << p1.getY() << "; "
+                  << p1.getZ() << ") "
+                  << " p2=(" << p2.getX() << "; " << p2.getY() << "; "
+                  << p2.getZ() << ") "
+                  << " p3=(" << p3.getX() << "; " << p3.getY() << "; "
+                  << p3.getZ() << ")\n"
+                  << "\t\tVG: p0=(" << vx[0].x() << "; " << vx[0].y() << "; "
+                  << vx[0].z() << ") "
+                  << " p1=(" << vx[1].x() << "; " << vx[1].y() << "; "
+                  << vx[1].z() << ") "
+                  << " p2=(" << vx[2].x() << "; " << vx[2].y() << "; "
+                  << vx[2].z() << ") "
+                  << " p3=(" << vx[3].x() << "; " << vx[3].y() << "; "
+                  << vx[3].z() << ") " << std::endl;
+#endif
+    }
+
+    // Generic trapezoid
+    else if (auto gt = dynamic_cast<G4GenericTrap const*>(shape))
+    {
+        // auto params = p->GetOriginalParameters();
+        // fix dimensions - (requires making a copy of some arrays)
+        const int                 nVtx = gt->GetNofVertices();
+        std::unique_ptr<double[]> vx(new double[nVtx]);
+        std::unique_ptr<double[]> vy(new double[nVtx]);
+        for (int i = 0; i < nVtx; ++i)
+        {
+            G4TwoVector vtx = gt->GetVertex(i);
+            vx[i]           = scale * vtx.x();
+            vy[i]           = scale * vtx.y();
+        }
+        unplaced_volume = GeoManager::MakeInstance<UnplacedGenTrap>(
+            vx.get(), vy.get(), scale * gt->GetZHalfLength());
+    }
+
+    // Generic polycone
+    else if (auto gp = dynamic_cast<G4GenericPolycone const*>(shape))
+    {
+        // auto params = p->GetOriginalParameters();
+        // fix dimensions - (requires making a copy of some arrays)
+        const int                 nRZs = gp->GetNumRZCorner();
+        std::unique_ptr<double[]> zs(new double[nRZs]); // double zs[nRZs];
+        std::unique_ptr<double[]> rs(new double[nRZs]); // double rs[nRZs];
+        for (int i = 0; i < nRZs; ++i)
+        {
+            G4PolyconeSideRZ rzCorner = gp->GetCorner(i);
+            zs[i]                     = scale * rzCorner.z;
+            rs[i]                     = scale * rzCorner.r;
+        }
+        unplaced_volume = GeoManager::MakeInstance<UnplacedGenericPolycone>(
+            gp->GetStartPhi(),
+            gp->GetEndPhi() - gp->GetStartPhi(),
+            nRZs,
+            zs.get(),
+            rs.get());
+    }
+
+    // Cut tube
+    else if (auto ct = dynamic_cast<G4CutTubs const*>(shape))
+    {
+        G4ThreeVector lowNorm = ct->GetLowNorm();
+        G4ThreeVector hiNorm  = ct->GetHighNorm();
+        unplaced_volume       = GeoManager::MakeInstance<UnplacedCutTube>(
+            scale * ct->GetInnerRadius(),
+            scale * ct->GetOuterRadius(),
+            scale * ct->GetZHalfLength(),
+            ct->GetStartPhiAngle(),
+            ct->GetDeltaPhiAngle(),
+            Vector3D<Precision>(lowNorm[0], lowNorm[1], lowNorm[2]),
+            Vector3D<Precision>(hiNorm[0], hiNorm[1], hiNorm[2]));
+        // TODO: consider moving this as a specialization to UnplacedTube
+    }
+
+    // Boolean volumes
     else if (auto boolean = dynamic_cast<G4BooleanSolid const*>(shape))
     {
         // the "right" shape should be a G4DisplacedSolid which holds the
@@ -741,102 +911,20 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
 #endif
     }
-//#endif
-//  // THE PARABOLOID
-//  if (shape->IsA() == TGeoParaboloid::Class()) {
-//    TGeoParaboloid const *const p = static_cast<TGeoParaboloid const
-//    *>(shape);
-//
-//    unplaced_volume =
-//    GeoManager::MakeInstance<UnplacedParaboloid>(p->GetRlo() * LUnit(),
-//    p->GetRhi() * LUnit(),
-//                                                                   p->GetDz()
-//                                                                   *
-//                                                                   LUnit());
-//  }
-//
-#ifdef TRIAL_PARA
-    // Doesn't compile with current G4 --> TO BE ACTIVATED LATER ON
-    else if (auto pp = dynamic_cast<G4Para const*>(shape))
-    {
-        unplaced_volume = GeoManager::MakeInstance<UnplacedParallelepiped>(
-            pp->GetXHalfLength(),
-            pp->GetYHalfLength(),
-            pp->GetZHalfLength(),
-            std::atan(pp->GetTanAlpha()), // pp->GetOriginalAlpha(),
-            pp->GetOriginalTheta(),
-            pp->GetOriginalPhi());
-    }
-#endif
-    else if (auto orb = dynamic_cast<G4Orb const*>(shape))
-    {
-        unplaced_volume
-            = GeoManager::MakeInstance<UnplacedOrb>(scale * orb->GetRadius());
-    }
-
-    else if (auto sphr = dynamic_cast<G4Sphere const*>(shape))
-    {
-        unplaced_volume = GeoManager::MakeInstance<UnplacedSphere>(
-            sphr->GetInnerRadius(),
-            sphr->GetOuterRadius(),
-            sphr->GetStartPhiAngle(),
-            sphr->GetDeltaPhiAngle(),
-            sphr->GetStartThetaAngle(),
-            sphr->GetDeltaThetaAngle());
-    }
-
-    else if (auto gp = dynamic_cast<G4GenericPolycone const*>(shape))
-    {
-        // auto params = p->GetOriginalParameters();
-        // fix dimensions - (requires making a copy of some arrays)
-        const int                 nRZs = gp->GetNumRZCorner();
-        std::unique_ptr<double[]> zs(new double[nRZs]); // double zs[nRZs];
-        std::unique_ptr<double[]> rs(new double[nRZs]); // double rs[nRZs];
-        for (int i = 0; i < nRZs; ++i)
-        {
-            G4PolyconeSideRZ rzCorner = gp->GetCorner(i);
-            zs[i]                     = rzCorner.z;
-            rs[i]                     = rzCorner.r;
-        }
-        unplaced_volume = GeoManager::MakeInstance<UnplacedGenericPolycone>(
-            gp->GetStartPhi(),
-            gp->GetEndPhi() - gp->GetStartPhi(),
-            nRZs,
-            zs.get(),
-            rs.get());
-    }
-
-    // #ifdef TRIAL_TET
-    else if (auto tet = dynamic_cast<G4Tet const*>(shape))
-    {
-        G4ThreeVector anchor, p1, p2, p3;
-        tet->GetVertices(anchor, p1, p2, p3);
-        // Else use std::vector<G4ThreeVector> vertices = tet->GetVertices();
-        const Vector3D<Precision> pt0(
-            anchor.getX(), anchor.getY(), anchor.getZ());
-        const Vector3D<Precision> pt1(p1.getX(), p1.getY(), p1.getZ());
-        const Vector3D<Precision> pt2(p2.getX(), p2.getY(), p2.getZ());
-        const Vector3D<Precision> pt3(p3.getX(), p3.getY(), p3.getZ());
-        unplaced_volume
-            = GeoManager::MakeInstance<UnplacedTet>(pt0, pt1, pt2, pt3);
-    }
-    // #endif
-
-    // THE CUT TUBE
-    else if (auto ct = dynamic_cast<G4CutTubs const*>(shape))
-    {
-        G4ThreeVector lowNorm = ct->GetLowNorm();
-        G4ThreeVector hiNorm  = ct->GetHighNorm();
-        unplaced_volume       = GeoManager::MakeInstance<UnplacedCutTube>(
-            ct->GetInnerRadius(),
-            ct->GetOuterRadius(),
-            ct->GetZHalfLength(),
-            ct->GetStartPhiAngle(),
-            ct->GetDeltaPhiAngle(),
-            Vector3D<Precision>(lowNorm[0], lowNorm[1], lowNorm[2]),
-            Vector3D<Precision>(hiNorm[0], hiNorm[1], hiNorm[2]));
-        // TODO: consider moving this as a specialization to UnplacedTube
-    }
+    //#endif
+    //  // THE PARABOLOID
+    //  if (shape->IsA() == TGeoParaboloid::Class()) {
+    //    TGeoParaboloid const *const p = static_cast<TGeoParaboloid const
+    //    *>(shape);
+    //
+    //    unplaced_volume =
+    //    GeoManager::MakeInstance<UnplacedParaboloid>(p->GetRlo() * LUnit(),
+    //    p->GetRhi() * LUnit(),
+    //                                                                   p->GetDz()
+    //                                                                   *
+    //                                                                   LUnit());
+    //  }
+    //
 
 #ifdef CHECK_CAPACITY
     // Check capacity as a 'soft' confirmation that the shape / solid was

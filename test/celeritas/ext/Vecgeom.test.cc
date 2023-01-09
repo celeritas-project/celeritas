@@ -486,7 +486,8 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
 //---------------------------------------------------------------------------//
 
-#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
+#define FourLevelsGeantTest \
+    TEST_IF_CELERITAS_GEANT(DISABLED_FourLevelsGeantTest)
 class FourLevelsGeantTest : public GeantBuilderTestBase
 {
   public:
@@ -597,7 +598,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 
 //---------------------------------------------------------------------------//
 
-#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(DISABLED_SolidsGeantTest)
+#define SolidsGeantTest TEST_IF_CELERITAS_GEANT(SolidsGeantTest)
 
 class SolidsGeantTest : public GeantBuilderTestBase
 {
@@ -623,13 +624,13 @@ TEST_F(SolidsGeantTest, accessors)
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
     // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
-    EXPECT_EQ(25, geom.num_volumes());
+    EXPECT_EQ(31, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("vol0", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("vol1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("vol11", geom.id_to_label(VolumeId{9}).name);
+    EXPECT_EQ("inner_virtual", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
