@@ -37,11 +37,11 @@ GlobalSetup::GlobalSetup()
     {
         auto& cmd
             = messenger_->DeclareProperty("setGeometryFile", geometry_file_);
-        cmd.SetGuidance("Set the geometry file name");
+        cmd.SetGuidance("Set the filename of the GDML detector geometry");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("setHepmc3File", hepmc3_file_);
-        cmd.SetGuidance("Set the HepMC3 file name");
+        auto& cmd = messenger_->DeclareProperty("setEventFile", event_file_);
+        cmd.SetGuidance("Set the filename of the event input read by HepMC3");
     }
     {
         auto& cmd = messenger_->DeclareProperty("setOutputFile",

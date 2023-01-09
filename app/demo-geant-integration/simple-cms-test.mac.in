@@ -4,7 +4,7 @@
 /event/verbose 0
 
 /setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
-/setup/setHepmc3File @PROJECT_SOURCE_DIR@/app/data/ttbar-12evt-1208prim.hepmc3
+/setup/setEventFile @PROJECT_SOURCE_DIR@/app/data/ttbar-12evt-1208prim.hepmc3
 /setup/setOutputFile simple-cms.out.json
 /setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
 /setup/maxNumEvents 1024

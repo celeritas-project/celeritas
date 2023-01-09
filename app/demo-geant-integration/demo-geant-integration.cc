@@ -36,7 +36,7 @@
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
-#include "HepMC3Reader.hh"
+#include "PrimaryGeneratorAction.hh"
 
 namespace
 {
@@ -85,9 +85,8 @@ void run(const std::string& macro_filename)
 
     // Load the input file
     int num_events{0};
-    CELER_TRY_ELSE(
-        num_events = demo_geant::HepMC3Reader::Instance()->num_events(),
-        celeritas::ExceptionConverter{"demo-geant000"});
+    CELER_TRY_ELSE(num_events = demo_geant::PrimaryGeneratorAction::NumEvents(),
+                   celeritas::ExceptionConverter{"demo-geant000"});
 
     run_manager->BeamOn(num_events);
 }

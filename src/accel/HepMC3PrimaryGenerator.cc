@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-geant-integration/HepMC3Reader.cc
+//! \file accel/HepMC3PrimaryGenerator.cc
 //---------------------------------------------------------------------------//
-#include "HepMC3Reader.hh"
+#include "HepMC3PrimaryGenerator.hh"
 
 #include <mutex>
 #include <G4PhysicalConstants.hh>
@@ -15,9 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
-#include "GlobalSetup.hh"
-
-namespace demo_geant
+namespace celeritas
 {
 namespace
 {
@@ -35,7 +33,7 @@ G4VSolid* get_world_solid()
     auto* world = nav->GetWorldVolume();
     CELER_VALIDATE(world,
                    << "detector geometry was not initialized before "
-                      "HepMC3Reader was instantiated");
+                      "HepMC3PrimaryGenerator was instantiated");
     auto* lv = world->GetLogicalVolume();
     CELER_ASSERT(lv);
     auto* solid = lv->GetSolid();
@@ -48,18 +46,36 @@ G4VSolid* get_world_solid()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return non-owning pointer to a singleton.
+ * Construct with a path to a HepMC3-compatible input file.
  */
-HepMC3Reader* HepMC3Reader::Instance()
+HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
+    : world_solid_{get_world_solid()}
 {
-    static HepMC3Reader hepmc3_reader_singleton;
-    return &hepmc3_reader_singleton;
+    CELER_LOG(info) << "Loading HepMC3 input file at " << filename;
+    reader_ = HepMC3::deduce_reader(filename);
+    CELER_VALIDATE(reader_, << "failed to deduce event input file type");
+
+    // Fetch total number of events
+    SPReader temp_reader = HepMC3::deduce_reader(filename);
+    CELER_ASSERT(temp_reader);
+    num_events_ = 0;
+    while (!temp_reader->failed())
+    {
+        temp_reader->skip(1);
+        num_events_++;
+    }
+
+    CELER_LOG(debug) << "HepMC3 file has " << num_events_ << " events";
+    CELER_ENSURE(num_events_ > 0);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add HepMC3 primaries to a Geant4 event. This function is called by
- * `G4VUserPrimaryGeneratorAction::GeneratePrimaries`.
+ * Add HepMC3 primaries to a Geant4 event.
+ *
+ * This function should be called by \c
+ * G4VUserPrimaryGeneratorAction::GeneratePrimaries . It is thread safe as long
+ * as \c g4_event is thread-local.
  *
  * \note
  * Current implementation is compatible with our utils/hepmc3-generator
@@ -69,31 +85,37 @@ HepMC3Reader* HepMC3Reader::Instance()
  * mother/daughter particles. If more complex inputs are used, this will have
  * to be updated.
  */
-void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
+void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
-    static std::mutex           hepmc3_mutex;
-    std::lock_guard<std::mutex> scoped_lock{hepmc3_mutex};
-
     HepMC3::GenEvent gen_event;
-    input_file_->read_event(gen_event);
-    CELER_ASSERT(!input_file_->failed());
 
-    CELER_LOG_LOCAL(info) << "Converting " << gen_event.particles().size()
+    {
+        // Read the next event from the file.
+        G4AutoLock scoped_lock{read_mutex_};
+        reader_->read_event(gen_event);
+        CELER_ASSERT(!reader_->failed());
+    }
+
+    CELER_LOG_LOCAL(info) << "Read " << gen_event.particles().size()
                           << " primaries from event "
                           << gen_event.event_number();
 
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM); // Geant4 units
     const auto& event_pos = gen_event.event_pos();
 
-    // Verify if vertex is inside the world volume
+    // Verify that vertex is inside the world volume
+    if (CELERITAS_DEBUG && CELER_UNLIKELY(!world_solid_))
+    {
+        world_solid_ = get_world_solid();
+    }
     CELER_ASSERT(world_solid_->Inside(G4ThreeVector{
                      event_pos.x(), event_pos.y(), event_pos.z()})
                  == EInside::kInside);
 
-    // Add primaries to event
     for (const auto& gen_particle : gen_event.particles())
     {
-        const auto& part_data = gen_particle->data();
+        // Convert primary to Geant4 vertex
+        const HepMC3::GenParticleData& part_data = gen_particle->data();
 
         if (part_data.status <= 0)
         {
@@ -102,7 +124,7 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
             // http://hepmc.web.cern.ch/hepmc/releases/HepMC2_user_manual.pdf
             CELER_LOG_LOCAL(info)
                 << "Skipped status code " << part_data.status << " for "
-                << part_data.momentum.e() << "MeV primary";
+                << part_data.momentum.e() << " MeV primary";
             continue;
         }
 
@@ -123,36 +145,4 @@ void HepMC3Reader::GeneratePrimaryVertex(G4Event* g4_event)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct with provided HepMC3 input filename.
- */
-HepMC3Reader::HepMC3Reader()
-    : G4VPrimaryGenerator(), world_solid_(get_world_solid())
-{
-    const std::string filename = GlobalSetup::Instance()->GetHepmc3File();
-    CELER_LOG(info) << "Constructing HepMC3 reader with " << filename;
-    input_file_ = HepMC3::deduce_reader(filename);
-    CELER_VALIDATE(input_file_, << "failed to deduce event input file type");
-
-    // Fetch total number of events
-    const auto temp_file = HepMC3::deduce_reader(filename);
-    num_events_          = 0;
-    while (!temp_file->failed())
-    {
-        temp_file->skip(1);
-        num_events_++;
-    }
-
-    CELER_LOG(debug) << "HepMC3 file has " << num_events_ << " events";
-    CELER_ENSURE(num_events_ > 0);
-    CELER_ENSURE(world_solid_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Default destructor.
- */
-HepMC3Reader::~HepMC3Reader() = default;
-
-//---------------------------------------------------------------------------//
-} // namespace demo_geant
+} // namespace celeritas
