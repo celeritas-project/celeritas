@@ -125,7 +125,7 @@ acceptance of all terms of the Geant4 Software license.
    <first ref="b500"/>  <second ref="b100"/>
    <positionref ref="unionidentitypos" />
    <rotation name="unionidentityrot"/>
-   <firstpositionref ref= "center"/>
+   <firstpositionref ref="center"/>
   </union>
   <subtraction name="sub1">
    <first ref="u1"/> <second ref="b100"/>
