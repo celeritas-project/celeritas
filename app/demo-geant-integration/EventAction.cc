@@ -28,8 +28,8 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 {
     // Set event ID in local transporter
     celeritas::ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_ELSE(transport_->SetEventId(event->GetEventID()),
-                   call_g4exception);
+    CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ void EventAction::EndOfEventAction(const G4Event*)
 {
     // Transport any tracks left in the buffer
     celeritas::ExceptionConverter call_g4exception{"celer0004"};
-    CELER_TRY_ELSE(transport_->Flush(), call_g4exception);
+    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

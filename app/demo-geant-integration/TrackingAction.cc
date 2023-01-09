@@ -54,7 +54,7 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track)
     {
         // Celeritas is transporting this track
         celeritas::ExceptionConverter call_g4exception{"celer0003"};
-        CELER_TRY_ELSE(transport_->Push(*track), call_g4exception);
+        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }

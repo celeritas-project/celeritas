@@ -36,7 +36,7 @@ void livermore_pe_interact(
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(celeritas::ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(celeritas::ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }

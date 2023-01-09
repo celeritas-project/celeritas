@@ -28,7 +28,7 @@ void BoundaryAction::execute(CoreHostRef const& data) const
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }

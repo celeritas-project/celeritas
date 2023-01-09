@@ -23,7 +23,7 @@ void locate_alive(
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < core_data.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }

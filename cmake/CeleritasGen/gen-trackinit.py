@@ -69,7 +69,7 @@ namespace generated
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < {num_threads}; ++i)
     {{
-        CELER_TRY_ELSE(launch(ThreadId{{i}}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{{i}}), capture_exception);
     }}
     log_and_rethrow(std::move(capture_exception));
 }}

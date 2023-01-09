@@ -60,20 +60,20 @@ void RunAction::BeginOfRunAction(const G4Run* run)
         GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
 
         // Initialize shared data and setup GPU on all threads
-        CELER_TRY_ELSE(params_->Initialize(*options_), call_g4exception);
+        CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
         CELER_ASSERT(*params_);
     }
     else
     {
-        CELER_TRY_ELSE(celeritas::SharedParams::InitializeWorker(*options_),
-                       call_g4exception);
+        CELER_TRY_HANDLE(celeritas::SharedParams::InitializeWorker(*options_),
+                         call_g4exception);
     }
 
     if (transport_)
     {
         // Allocate data in shared thread-local transporter
-        CELER_TRY_ELSE(transport_->Initialize(*options_, *params_),
-                       call_g4exception);
+        CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
+                         call_g4exception);
         CELER_ENSURE(*transport_);
     }
 }
@@ -92,13 +92,13 @@ void RunAction::EndOfRunAction(const G4Run*)
         // Deallocate Celeritas state data (ensures that objects are deleted on
         // the thread in which they're created, necessary by some geant4
         // thread-local allocators)
-        CELER_TRY_ELSE(transport_->Finalize(), call_g4exception);
+        CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
     }
 
     if (init_celeritas_)
     {
         // Clear shared data and write
-        CELER_TRY_ELSE(params_->Finalize(), call_g4exception);
+        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
 }
 

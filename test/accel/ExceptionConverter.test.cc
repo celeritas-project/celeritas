@@ -80,7 +80,7 @@ class ExceptionConverterTest : public ::celeritas::test::Test
 TEST_F(ExceptionConverterTest, debug)
 {
     ExceptionConverter call_g4e{"test001"};
-    CELER_TRY_ELSE(
+    CELER_TRY_HANDLE(
         throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal,
                                        "there are five lights",
                                        "me.cc",
@@ -97,8 +97,8 @@ TEST_F(ExceptionConverterTest, debug)
 TEST_F(ExceptionConverterTest, runtime)
 {
     ExceptionConverter call_g4e{"test002"};
-    CELER_TRY_ELSE(CELER_VALIDATE(2 + 2 == 5, << "math actually works"),
-                   call_g4e);
+    CELER_TRY_HANDLE(CELER_VALIDATE(2 + 2 == 5, << "math actually works"),
+                     call_g4e);
 
     EXPECT_EQ(0, handler().origin.find("accel/ExceptionConverter.test.cc"))
         << "actual path: '" << handler().origin << '\'';
