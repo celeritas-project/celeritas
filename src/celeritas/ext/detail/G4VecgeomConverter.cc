@@ -22,22 +22,30 @@
 #include <G4Cons.hh>
 #include <G4CutTubs.hh>
 #include <G4DisplacedSolid.hh>
-#include <G4ExtrudedSolid.hh>
+#include <G4Ellipsoid.hh>
+#include <G4EllipticalCone.hh>
+#include <G4EllipticalTube.hh>
+//#include <G4ExtrudedSolid.hh>
 #include <G4GenericPolycone.hh>
+#include <G4GenericTrap.hh>
+#include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
 #include <G4LogicalVolume.hh>
+#include <G4Navigator.hh>
 #include <G4Orb.hh>
 #include <G4PVDivision.hh>
 #include <G4PVParameterised.hh>
 #include <G4Para.hh>
 #include <G4Polycone.hh>
 #include <G4Polyhedra.hh>
+#include <G4PropagatorInField.hh>
 #include <G4ReflectedSolid.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
 #include <G4Tet.hh>
 #include <G4Torus.hh>
 #include <G4Transform3D.hh>
+#include <G4TransportationManager.hh>
 #include <G4Trap.hh>
 #include <G4Trd.hh>
 #include <G4Tubs.hh>
@@ -87,13 +95,6 @@
 #include <VecGeom/volumes/UnplacedTrapezoid.h>
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
-
-// more stuff might be needed
-
-#include <G4Navigator.hh>
-#include <G4PropagatorInField.hh>
-#include <G4RunManager.hh>
-#include <G4TransportationManager.hh>
 
 #include "corecel/math/Algorithms.hh"
 
@@ -726,27 +727,6 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         const Vector3D<Precision> pt3(p3.getX(), p3.getY(), p3.getZ());
         unplaced_volume = GeoManager::MakeInstance<UnplacedTet>(
             scale * pt0, scale * pt1, scale * pt2, scale * pt3);
-#ifdef GEODEBUG
-        auto& vx = static_cast<UnplacedTet const*>(unplaced_volume)
-                       ->GetStruct()
-                       .fVertex;
-        std::cout << "TET: G4: p0=(" << pt0.x() << "; " << pt0.y() << "; "
-                  << pt0.z() << ") "
-                  << " p1=(" << p1.getX() << "; " << p1.getY() << "; "
-                  << p1.getZ() << ") "
-                  << " p2=(" << p2.getX() << "; " << p2.getY() << "; "
-                  << p2.getZ() << ") "
-                  << " p3=(" << p3.getX() << "; " << p3.getY() << "; "
-                  << p3.getZ() << ")\n"
-                  << "\t\tVG: p0=(" << vx[0].x() << "; " << vx[0].y() << "; "
-                  << vx[0].z() << ") "
-                  << " p1=(" << vx[1].x() << "; " << vx[1].y() << "; "
-                  << vx[1].z() << ") "
-                  << " p2=(" << vx[2].x() << "; " << vx[2].y() << "; "
-                  << vx[2].z() << ") "
-                  << " p3=(" << vx[3].x() << "; " << vx[3].y() << "; "
-                  << vx[3].z() << ") " << std::endl;
-#endif
     }
 
     // Generic trapezoid
