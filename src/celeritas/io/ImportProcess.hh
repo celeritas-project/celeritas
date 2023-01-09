@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 // IWYU pragma: begin_exports
@@ -38,6 +39,7 @@ enum class ImportProcessType
     parallel,
     phonon,
     ucn,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -48,7 +50,9 @@ enum class ImportProcessType
  */
 enum class ImportProcessClass
 {
+    // User-defined
     unknown,
+    // EM
     ion_ioni,
     msc,
     h_ioni,
@@ -65,6 +69,7 @@ enum class ImportProcessClass
     mu_ioni,
     mu_brems,
     mu_pair_prod,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -155,6 +160,11 @@ struct ImportProcess
 const char* to_cstring(ImportProcessType value);
 const char* to_cstring(ImportProcessClass value);
 const char* to_cstring(ImportModelClass value);
+
+// Get the default Geant4 process name
+const char* to_geant_name(ImportProcessClass value);
+// Convert a Geant4 process name to an IPC (throw RuntimeError if unsupported)
+ImportProcessClass geant_name_to_import_process_class(const std::string& s);
 
 // Whether Celeritas requires microscopic xs data for sampling
 bool needs_micro_xs(ImportModelClass model);

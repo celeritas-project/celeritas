@@ -9,6 +9,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace celeritas
 {
@@ -64,6 +65,7 @@ struct SetupOptions
     using SPConstAction = std::shared_ptr<const ExplicitActionInterface>;
     using AlongStepFactory
         = std::function<SPConstAction(const AlongStepFactoryInput&)>;
+    using VecString = std::vector<std::string>;
     //!@}
 
     //! Don't limit the number of steps
@@ -104,6 +106,12 @@ struct SetupOptions
     //!@{
     //! \name Sensitive detector options
     SDSetupOptions sd;
+    //!@}
+
+    //!@{
+    //! \name Physics options
+    //! Ignore the following EM process names
+    VecString ignore_processes;
     //!@}
 
     //!@{

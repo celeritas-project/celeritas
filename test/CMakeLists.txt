@@ -269,8 +269,6 @@ celeritas_add_test(celeritas/em/RelativisticBrem.test.cc)
 celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
 celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
 
-celeritas_add_test(celeritas/em/ImportedProcesses.test.cc ${_needs_root}
-  ${_optional_geant4_env})
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
@@ -373,6 +371,8 @@ celeritas_add_device_test(celeritas/phys/Physics)
 celeritas_add_test(celeritas/phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(celeritas/phys/PrimaryGenerator.test.cc
   LINK_LIBRARIES ${_optional_json_link})
+celeritas_add_test(celeritas/phys/ProcessBuilder.test.cc ${_needs_root}
+  ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
 # Random

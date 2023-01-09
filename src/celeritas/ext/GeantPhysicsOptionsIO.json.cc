@@ -88,7 +88,7 @@ const char* to_cstring(RelaxationSelection value)
 //---------------------------------------------------------------------------//
 void from_json(const nlohmann::json& j, MscModelSelection& value)
 {
-    static auto from_string
+    static const auto from_string
         = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
                                                               "msc model");
     value = from_string(j.get<std::string>());
@@ -101,7 +101,7 @@ void to_json(nlohmann::json& j, const MscModelSelection& value)
 
 void from_json(const nlohmann::json& j, BremsModelSelection& value)
 {
-    static auto from_string
+    static const auto from_string
         = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
                                                                 "brems model");
     value = from_string(j.get<std::string>());
@@ -114,7 +114,7 @@ void to_json(nlohmann::json& j, const BremsModelSelection& value)
 
 void from_json(const nlohmann::json& j, RelaxationSelection& value)
 {
-    static auto from_string
+    static const auto from_string
         = StringEnumMap<RelaxationSelection>::from_cstring_func(
             to_cstring, "atomic relaxation");
     value = from_string(j.get<std::string>());

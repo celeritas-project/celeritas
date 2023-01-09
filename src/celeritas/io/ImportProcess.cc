@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/io/StringEnumMap.hh"
 
 namespace celeritas
 {
@@ -131,6 +132,57 @@ const char* to_cstring(ImportModelClass value)
     CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the default Geant4 process name for an ImportProcessClass.
+ */
+const char* to_geant_name(ImportProcessClass value)
+{
+    CELER_EXPECT(value != ImportProcessClass::size_);
+
+    static const char* const strings[] = {
+        "",            // unknown,
+        "ionIoni",     // ion_ioni,
+        "msc",         // msc,
+        "hIoni",       // h_ioni,
+        "hBrems",      // h_brems,
+        "hPairProd",   // h_pair_prod,
+        "CoulombScat", // coulomb_scat,
+        "eIoni",       // e_ioni,
+        "eBrem",       // e_brems,
+        "phot",        // photoelectric,
+        "compt",       // compton,
+        "conv",        // conversion,
+        "Rayl",        // rayleigh,
+        "annihil",     // annihilation,
+        "muIoni",      // mu_ioni,
+        "muBrems",     // mu_brems,
+        "muPairProd",  // mu_pair_prod,
+    };
+    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
+                          * sizeof(const char*)
+                      == sizeof(strings),
+                  "Enum strings are incorrect");
+
+    return strings[static_cast<unsigned int>(value)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a Geant4 process name to an IPC.
+ *
+ * This will throw a \c celeritas::RuntimeError if the string is not known to
+ * us.
+ */
+ImportProcessClass geant_name_to_import_process_class(const std::string& s)
+{
+    static const auto from_string
+        = StringEnumMap<ImportProcessClass>::from_cstring_func(
+            to_geant_name, "process class");
+
+    return from_string(s);
 }
 
 //---------------------------------------------------------------------------//

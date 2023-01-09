@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SharedParams.hh"
 
+#include <memory>
 #include <CLHEP/Random/Random.h>
 #include <G4TransportationManager.hh>
 
@@ -49,6 +50,63 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+std::vector<std::shared_ptr<const Process>>
+build_processes(const ImportData&                            imported,
+                const SetupOptions&                          options,
+                const std::shared_ptr<const ParticleParams>& particle,
+                const std::shared_ptr<const MaterialParams>& material)
+{
+    // Build a list of processes to ignore
+    ProcessBuilder::UserBuildMap ignore;
+    for (const std::string& process_name : options.ignore_processes)
+    {
+        ImportProcessClass ipc;
+        try
+        {
+            ipc = geant_name_to_import_process_class(process_name);
+        }
+        catch (const RuntimeError&)
+        {
+            CELER_LOG(warning) << "User-ignored process '" << process_name
+                               << "' is unknown to Celeritas";
+            continue;
+        }
+        ignore.emplace(ipc, WarnAndIgnoreProcess{ipc});
+    }
+    ProcessBuilder::Options opts;
+    ProcessBuilder build_process(imported, particle, material, ignore, opts);
+
+    // Get the set of all user-input processes
+    std::set<ImportProcessClass> all_process_classes;
+    for (const auto& p : imported.processes)
+    {
+        all_process_classes.insert(p.process_class);
+    }
+
+    // Build proceses
+    std::vector<std::shared_ptr<const Process>> result;
+    for (auto p : all_process_classes)
+    {
+        result.push_back(build_process(p));
+        if (!result.back())
+        {
+            // Deliberately ignored process
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(p);
+            result.pop_back();
+        }
+    }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "no supported physics processes were found");
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+} // namespace
+
 //---------------------------------------------------------------------------//
 //! Default destructor
 SharedParams::~SharedParams() = default;
@@ -245,26 +303,13 @@ void SharedParams::initialize_core(const SetupOptions& options)
         PhysicsParams::Input input;
         input.particles       = params.particle;
         input.materials       = params.material;
+        input.processes       = build_processes(
+            *imported, options, params.particle, params.material);
+        input.relaxation      = nullptr; // TODO: add later?
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
         input.options.secondary_stack_factor = options.secondary_stack_factor;
-
-        {
-            ProcessBuilder::Options opts;
-            ProcessBuilder          build_process(
-                *imported, opts, params.particle, params.material);
-
-            std::set<ImportProcessClass> all_process_classes;
-            for (const auto& p : imported->processes)
-            {
-                all_process_classes.insert(p.process_class);
-            }
-            for (auto p : all_process_classes)
-            {
-                input.processes.push_back(build_process(p));
-            }
-        }
 
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }

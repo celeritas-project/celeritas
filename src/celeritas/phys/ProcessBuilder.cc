@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ProcessBuilder.hh"
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -27,39 +28,47 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct imported process data.
+ *
+ * \warning If Livermore and SB data is present in the import data, their
+ * lifetime must extend beyond the \c ProcessBuilder instance.
  */
 ProcessBuilder::ProcessBuilder(const ImportData& data,
-                               Options           options,
                                SPConstParticle   particle,
-                               SPConstMaterial   material)
-    : particle_(std::move(particle))
-    , material_(std::move(material))
+                               SPConstMaterial   material,
+                               UserBuildMap      user_build,
+                               Options           options)
+    : input_{std::move(material), std::move(particle), nullptr}
+    , user_build_map_(std::move(user_build))
     , brem_combined_(options.brem_combined)
     , enable_lpm_(data.em_params.lpm)
     , use_integral_xs_(data.em_params.integral_approach)
 {
-    CELER_EXPECT(particle_);
-    CELER_EXPECT(material_);
+    CELER_EXPECT(input_.material);
+    CELER_EXPECT(input_.particle);
 
-    processes_ = std::make_shared<ImportedProcesses>(data.processes);
+    input_.imported = std::make_shared<ImportedProcesses>(data.processes);
 
     if (!data.sb_data.empty())
     {
         read_sb_ = make_imported_element_loader(data.sb_data);
     }
-    else
-    {
-        read_sb_ = SeltzerBergerReader{};
-    }
-
-    if (!data.sb_data.empty())
+    if (!data.livermore_pe_data.empty())
     {
         read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
-    else
-    {
-        read_livermore_ = LivermorePEReader{};
-    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without custom user builders.
+ */
+ProcessBuilder::ProcessBuilder(const ImportData& data,
+                               SPConstParticle   particle,
+                               SPConstMaterial   material,
+                               Options           options)
+    : ProcessBuilder(
+        data, std::move(particle), std::move(material), UserBuildMap{}, options)
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -69,13 +78,22 @@ ProcessBuilder::~ProcessBuilder() = default;
 //---------------------------------------------------------------------------//
 /*!
  * Construct a \c Process from a given processs class.
+ *
+ * This may return a null process (with a warning) if the user specifically
  */
-auto ProcessBuilder::operator()(ImportProcessClass ipc) -> SPProcess
+auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
 {
-    using IPC          = ImportProcessClass;
-    using BuilderMemFn = SPProcess (ProcessBuilder::*)();
+    // First, look for user-supplied processes
+    {
+        auto user_iter = user_build_map_.find(ipc);
+        if (user_iter != user_build_map_.end())
+        {
+            return user_iter->second(input_);
+        }
+    }
 
-    static const std::unordered_map<IPC, BuilderMemFn> builder_funcs{
+    using BuilderMemFn = SPProcess (ProcessBuilder::*)();
+    static const std::unordered_map<IPC, BuilderMemFn> builtin_build{
         {IPC::annihilation, &ProcessBuilder::build_annihilation},
         {IPC::compton, &ProcessBuilder::build_compton},
         {IPC::conversion, &ProcessBuilder::build_conversion},
@@ -86,20 +104,25 @@ auto ProcessBuilder::operator()(ImportProcessClass ipc) -> SPProcess
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
     };
 
-    auto iter = builder_funcs.find(ipc);
-    CELER_VALIDATE(iter != builder_funcs.end(),
-                   << "cannot build unsupported EM process '"
-                   << to_cstring(ipc) << "'");
+    // Next, try built-in processes
+    {
+        auto iter = builtin_build.find(ipc);
+        CELER_VALIDATE(iter != builtin_build.end(),
+                       << "cannot build unsupported EM process '"
+                       << to_cstring(ipc) << "'");
 
-    BuilderMemFn build_impl{iter->second};
-    return (this->*build_impl)();
+        BuilderMemFn build_impl{iter->second};
+        auto         result = (this->*build_impl)();
+        CELER_ENSURE(result);
+        return result;
+    }
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_msc() -> SPProcess
 {
     return std::make_shared<MultipleScatteringProcess>(
-        particle_, material_, processes_);
+        this->particle(), this->material(), this->imported());
 }
 
 //---------------------------------------------------------------------------//
@@ -108,7 +131,8 @@ auto ProcessBuilder::build_eioni() -> SPProcess
     EIonizationProcess::Options options;
     options.use_integral_xs = use_integral_xs_;
 
-    return std::make_shared<EIonizationProcess>(particle_, processes_, options);
+    return std::make_shared<EIonizationProcess>(
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,21 +143,31 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
     options.enable_lpm      = enable_lpm_;
     options.use_integral_xs = use_integral_xs_;
 
+    if (!read_sb_)
+    {
+        read_sb_ = SeltzerBergerReader{};
+    }
+
     return std::make_shared<BremsstrahlungProcess>(
-        particle_, material_, processes_, read_sb_, options);
+        this->particle(), this->material(), this->imported(), read_sb_, options);
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_photoelectric() -> SPProcess
 {
+    if (!read_livermore_)
+    {
+        read_livermore_ = LivermorePEReader{};
+    }
+
     return std::make_shared<PhotoelectricProcess>(
-        particle_, material_, processes_, read_livermore_);
+        this->particle(), this->material(), this->imported(), read_livermore_);
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_compton() -> SPProcess
 {
-    return std::make_shared<ComptonProcess>(particle_, processes_);
+    return std::make_shared<ComptonProcess>(this->particle(), this->imported());
 }
 
 //---------------------------------------------------------------------------//
@@ -143,13 +177,14 @@ auto ProcessBuilder::build_conversion() -> SPProcess
     options.enable_lpm = enable_lpm_;
 
     return std::make_shared<GammaConversionProcess>(
-        particle_, processes_, options);
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_rayleigh() -> SPProcess
 {
-    return std::make_shared<RayleighProcess>(particle_, material_, processes_);
+    return std::make_shared<RayleighProcess>(
+        this->particle(), this->material(), this->imported());
 }
 
 //---------------------------------------------------------------------------//
@@ -158,7 +193,18 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
     EPlusAnnihilationProcess::Options options;
     options.use_integral_xs = use_integral_xs_;
 
-    return std::make_shared<EPlusAnnihilationProcess>(particle_, options);
+    return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
+                                                      options);
+}
+//---------------------------------------------------------------------------//
+/*!
+ * Warn and return a null process.
+ */
+auto WarnAndIgnoreProcess::operator()(argument_type) const -> result_type
+{
+    CELER_LOG(warning) << "Omitting " << to_cstring(this->process)
+                       << " from physics process list";
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//

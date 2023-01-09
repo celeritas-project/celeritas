@@ -86,35 +86,18 @@ ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
  */
 ImportProcessClass to_import_process_class(const G4VProcess& process)
 {
-    static const std::unordered_map<std::string, ImportProcessClass> process_map
-        = {
-            // clang-format off
-            {"ionIoni",     ImportProcessClass::ion_ioni},
-            {"msc",         ImportProcessClass::msc},
-            {"hIoni",       ImportProcessClass::h_ioni},
-            {"hBrems",      ImportProcessClass::h_brems},
-            {"hPairProd",   ImportProcessClass::h_pair_prod},
-            {"CoulombScat", ImportProcessClass::coulomb_scat},
-            {"eIoni",       ImportProcessClass::e_ioni},
-            {"eBrem",       ImportProcessClass::e_brems},
-            {"phot",        ImportProcessClass::photoelectric},
-            {"compt",       ImportProcessClass::compton},
-            {"conv",        ImportProcessClass::conversion},
-            {"Rayl",        ImportProcessClass::rayleigh},
-            {"annihil",     ImportProcessClass::annihilation},
-            {"muIoni",      ImportProcessClass::mu_ioni},
-            {"muBrems",     ImportProcessClass::mu_brems},
-            {"muPairProd",  ImportProcessClass::mu_pair_prod},
-            // clang-format on
-        };
-    auto iter = process_map.find(process.GetProcessName());
-    if (iter == process_map.end())
+    auto&&             name = process.GetProcessName();
+    ImportProcessClass result;
+    try
     {
-        CELER_LOG(warning) << "Encountered unknown process '"
-                           << process.GetProcessName() << "'";
-        return ImportProcessClass::unknown;
+        result = geant_name_to_import_process_class(name);
     }
-    return iter->second;
+    catch (const celeritas::RuntimeError&)
+    {
+        CELER_LOG(warning) << "Encountered unknown process '" << name << "'";
+        result = ImportProcessClass::unknown;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

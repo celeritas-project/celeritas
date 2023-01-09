@@ -4,9 +4,9 @@
 /event/verbose 0
 
 /setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
-/setup/setEventFile @PROJECT_SOURCE_DIR@/app/data/input.hepmc3
+/setup/setEventFile @DEMO_EVENTS@
 /setup/setOutputFile simple-cms.out.json
-/setup/maxNumTracks 1024
+/setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
 /setup/maxNumEvents 1024
 /setup/secondaryStackFactor 3
-/setup/initializerCapacity 1048576
+/setup/initializerCapacity @DEMO_INIT_CAPACITY@

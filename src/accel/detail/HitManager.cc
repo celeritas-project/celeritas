@@ -8,6 +8,7 @@
 #include "HitManager.hh"
 
 #include <G4LogicalVolumeStore.hh>
+#include <G4GDMLWriteStructure.hh>
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/cont/Label.hh"
@@ -55,6 +56,9 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> lv_with_sd;
 
+    // Helper class to extract GDML names+labels from Geant4 volume
+    G4GDMLWriteStructure temp_writer;
+
     // Loop over all logical volumes
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
@@ -70,8 +74,9 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
         }
 
         // Convert volume name to GPU geometry ID
-        auto label = Label::from_geant(lv->GetName());
-        auto id    = geo.find_volume(label);
+        auto label
+            = Label::from_geant(temp_writer.GenerateName(lv->GetName(), lv));
+        auto id = geo.find_volume(label);
         if (!id)
         {
             // Fallback to skipping the extension
