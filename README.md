@@ -6,6 +6,23 @@ requirements of the [HL-LHC upgrade][HLLHC].
 
 [HLLHC]: https://home.cern/science/accelerators/high-luminosity-lhc
 
+# Documentation
+
+Most of the Celeritas documentation is readable through the codebase through a
+combination of [static RST documentation](doc/index.rst) and Doxygen-markup
+comments in the source code itself. The full [Celeritas user
+documentation][user-docs] (including selected code documentation incorporated
+by Breathe) and the [Celeritas code documentation][dev-docs] are mirrored on
+our GitHub pages site. You can generate these yourself by
+setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running `ninja
+doc` (user) or `ninja doxygen` (developer). A continuously updated version of
+the [static Celeritas user documentation][rtd] (without API documentation) is
+hosted on `readthedocs.io`.
+
+[user-docs]: https://celeritas-project.github.io/celeritas/user/index.html)
+[dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html)
+[rtd]: https://celeritas.readthedocs.io/en/latest/
+
 # Installation for developers
 
 Since Celeritas is still under heavy development and is not yet full-featured
@@ -70,14 +87,6 @@ documentation][infra] for how to use Celeritas in your application or framework.
 See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
 [the development guidelines](doc/appendices/development.rst) for further
 details on coding in Celeritas, and [the administration guidelines](doc/appendices/administration.rst) for community standards and roles.
-
-# Documentation
-
-The full code documentation (including API descriptions) is available by
-setting the `CELERITAS_BUILD_DOCS=ON` configuration option. A mostly complete
-version of the [Celeritas documentation][docs] is hosted on `readthedocs.io`.
-
-[docs]: https://celeritas.readthedocs.io/en/latest/
 
 # Citing Celeritas
 
