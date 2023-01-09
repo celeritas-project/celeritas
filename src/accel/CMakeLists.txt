@@ -26,6 +26,11 @@ if(CELERITAS_USE_JSON)
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
+if(CELERITAS_USE_HepMC3)
+  list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
+  list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#

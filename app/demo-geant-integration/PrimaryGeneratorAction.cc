@@ -7,21 +7,54 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
-#include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4ThreeVector.hh>
+#include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
 
-#include "HepMC3Reader.hh"
+#include "GlobalSetup.hh"
+
+using celeritas::HepMC3PrimaryGenerator;
 
 namespace demo_geant
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Global HepMC3 file reader shared across threads.
+ *
+ * The first time this is called, the reader will be initialized from the
+ * GlobalSetup event file argument.
+ */
+HepMC3PrimaryGenerator& shared_reader()
+{
+    static celeritas::HepMC3PrimaryGenerator reader{
+        GlobalSetup::Instance()->GetEventFile()};
+    return reader;
+}
+//---------------------------------------------------------------------------//
+} // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the total number of events available in the HepMC3 file.
+ *
+ * This will load the HepMC3 file if not already active.
+ */
+int PrimaryGeneratorAction::NumEvents()
+{
+    return shared_reader().NumEvents();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Generate primaries from HepMC3 input file.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    HepMC3Reader::instance()->GeneratePrimaryVertex(event);
+    celeritas::ExceptionConverter call_g4exception{"celer0000"};
+    CELER_TRY_ELSE(shared_reader().GeneratePrimaryVertex(event),
+                   call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

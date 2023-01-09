@@ -9,17 +9,18 @@
 
 #include <G4VUserPrimaryGeneratorAction.hh>
 
-#include "HepMC3Reader.hh"
-
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Minimal implementation of a primary generator action class.
+ * Generate events by reading from a HepMC3 file.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
+    // Get the total number of events available in the HepMC3 file
+    static int NumEvents();
+
     // Construct primary action
     PrimaryGeneratorAction() = default;
 

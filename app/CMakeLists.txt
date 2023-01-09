@@ -343,7 +343,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/DetectorConstruction.cc
     demo-geant-integration/EventAction.cc
     demo-geant-integration/GlobalSetup.cc
-    demo-geant-integration/HepMC3Reader.cc
     demo-geant-integration/NoFieldAlongStepFactory.cc
     demo-geant-integration/PrimaryGeneratorAction.cc
     demo-geant-integration/RunAction.cc
@@ -353,9 +352,8 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   )
   celeritas_target_link_libraries(demo-geant-integration
     Celeritas::accel
-    HepMC3::HepMC3
   )
-  if(CELERITAS_BUILD_TESTS)
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY
