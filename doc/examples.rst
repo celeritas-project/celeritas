@@ -15,7 +15,7 @@ Geant4 integration
 ==================
 
 This lengthy example is a generic demonstration of using Celeritas to offload
-EM tracks from a Geant4 application. It is compatible with Geant4 10.7­11.0.
+EM tracks from a Geant4 application. It is compatible with Geant4 10.7--11.0.
 See :ref:`accel` for API documentation of the Celeritas classes being called.
 
 Main executable
@@ -84,9 +84,9 @@ Sensitive Detectors
 -------------------
 
 The SD setup options in the ``DetectorConstruction`` constructor should be set
-as the union of requirements over all user Geant4 sensitive detectors. The SD
-The sensitive detector here is pretty generic and requires only the touchable,
-the energy deposition, and the time.
+as the union of requirements over all user Geant4 sensitive detectors.  The
+sensitive detector here is pretty generic and requires only the touchable, the
+energy deposition, and the time.
 
 .. literalinclude:: ../app/demo-geant-integration/SensitiveDetector.hh
    :start-at: #pragma
