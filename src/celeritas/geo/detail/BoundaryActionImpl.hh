@@ -7,7 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {

@@ -8,9 +8,7 @@
 #include "Environment.hh"
 
 #include <cstdlib>
-#include <iostream>
 #include <mutex>
-#include <thread>
 
 #include "corecel/Assert.hh"
 

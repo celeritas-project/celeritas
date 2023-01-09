@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+
 #include "corecel/Assert.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"

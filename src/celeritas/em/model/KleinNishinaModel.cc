@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "KleinNishinaModel.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/em/generated/KleinNishinaInteract.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "CutoffParams.hh"
 
+#include <type_traits>
 #include <utility>
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportMaterial.hh"

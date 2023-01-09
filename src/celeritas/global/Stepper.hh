@@ -16,6 +16,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 #include "celeritas/track/TrackInitData.hh"
 

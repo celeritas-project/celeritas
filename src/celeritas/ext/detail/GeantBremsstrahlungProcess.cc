@@ -7,14 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "GeantBremsstrahlungProcess.hh"
 
+#include <algorithm>
+#include <cstddef>
+#include <limits>
+#include <ostream>
 #include <G4Electron.hh>
 #include <G4EmParameters.hh>
+#include <G4EmProcessSubType.hh>
 #include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Positron.hh>
 #include <G4SeltzerBergerModel.hh>
 #include <G4SystemOfUnits.hh>
+#include <G4VEmFluctuationModel.hh>
+#include <G4VEmModel.hh>
 #include <G4eBremsstrahlungRelModel.hh>
+
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 namespace celeritas
 {

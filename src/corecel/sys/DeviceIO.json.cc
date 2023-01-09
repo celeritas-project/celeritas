@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "DeviceIO.json.hh"
 
+#include <map>
+
 #include "celeritas_config.h"
 
 #include "Device.hh"

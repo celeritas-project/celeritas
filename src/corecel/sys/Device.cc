@@ -7,12 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "Device.hh"
 
-#include <cstdlib>
 #include <iostream> // IWYU pragma: keep
 #include <mutex>
-#include <thread>
+#include <utility>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 #if CELERITAS_USE_OPENMP
 #    include <omp.h>
 #endif

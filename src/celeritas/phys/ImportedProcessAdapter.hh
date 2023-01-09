@@ -29,6 +29,7 @@ namespace celeritas
 {
 class ParticleParams;
 struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage imported physics data.

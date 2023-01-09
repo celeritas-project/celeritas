@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/grid/XsGridData.hh"
 

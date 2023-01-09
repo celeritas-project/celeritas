@@ -13,6 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "ElectronBremsData.hh"
 

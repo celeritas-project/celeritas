@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "CuHipRngStateInit.hh"
 
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "../CuHipRngData.hh"
 #include "../CuHipRngEngine.hh"

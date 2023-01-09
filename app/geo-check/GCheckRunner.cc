@@ -7,12 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "GCheckRunner.hh"
 
+#include <iostream>
+#include <type_traits>
+#include <utility>
+#include <vector>
+#include <math.h>
+
+#include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Stopwatch.hh"
-#include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "orange/OrangeData.hh"
+#include "celeritas/geo/GeoData.hh"
 
 #include "GCheckKernel.hh"
 

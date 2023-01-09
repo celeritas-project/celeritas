@@ -7,13 +7,19 @@
 //! Import Celeritas input data from Geant4 and serialize as ROOT.
 //---------------------------------------------------------------------------//
 
+#include <cstdlib>
+#include <initializer_list>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"

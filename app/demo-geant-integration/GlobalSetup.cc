@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
+#include <utility>
 #include <G4GenericMessenger.hh>
 
 #include "corecel/Assert.hh"

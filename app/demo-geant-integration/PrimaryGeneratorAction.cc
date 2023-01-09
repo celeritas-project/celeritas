@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
+#include <G4Event.hh>
+
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"

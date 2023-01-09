@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/Types.hh"
 
 #include "RelativisticBremData.hh"
 #include "SeltzerBergerData.hh"

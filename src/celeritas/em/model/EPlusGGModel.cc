@@ -7,12 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "EPlusGGModel.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/generated/EPlusGGInteract.hh"
-#include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleView.hh"
 

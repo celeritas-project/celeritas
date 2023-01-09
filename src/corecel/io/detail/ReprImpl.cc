@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "ReprImpl.hh"
 
+#include <cctype>
 #include <cstdio>
-#include <cstring>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {

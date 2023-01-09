@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ExceptionOutput.hh"
 
+#include <string>
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/sys/TypeDemangler.hh"

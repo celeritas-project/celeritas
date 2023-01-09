@@ -8,26 +8,43 @@
 #include "PhysicsParams.hh"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
+#include <set>
 #include <tuple>
+#include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/VectorUtils.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/AtomicRelaxationParams.hh" // IWYU pragma: keep
+#include "celeritas/em/data/AtomicRelaxationData.hh"
+#include "celeritas/em/data/EPlusGGData.hh"
+#include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/grid/UniformGrid.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"
 #include "generated/DiscreteSelectAction.hh"

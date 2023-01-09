@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <csignal>
+#include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"

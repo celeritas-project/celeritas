@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
@@ -26,6 +27,7 @@ class G4VPhysicalVolume;
 namespace celeritas
 {
 struct OrangeInput;
+
 //---------------------------------------------------------------------------//
 /*!
  * Persistent model data for an ORANGE geometry.

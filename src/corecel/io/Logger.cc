@@ -8,12 +8,15 @@
 #include "Logger.hh"
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <sstream> // IWYU pragma: keep
+#include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"

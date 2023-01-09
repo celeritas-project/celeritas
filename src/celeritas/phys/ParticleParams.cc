@@ -8,11 +8,16 @@
 #include "ParticleParams.hh"
 
 #include <algorithm>
+#include <cstdlib>
+#include <tuple>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh" // IWYU pragma: associated
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

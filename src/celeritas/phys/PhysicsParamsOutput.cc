@@ -7,12 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsParamsOutput.hh"
 
+#include <type_traits>
 #include <utility>
 
 #include "celeritas_config.h"
-#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/phys/Process.hh"
 
 #include "Model.hh"
 #include "PhysicsParams.hh" // IWYU pragma: keep

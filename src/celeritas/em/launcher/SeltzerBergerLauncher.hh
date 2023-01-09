@@ -11,7 +11,12 @@
 #include "corecel/Macros.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/interactor/SeltzerBergerInteractor.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {

@@ -8,10 +8,15 @@
 #include "EPlusAnnihilationProcess.hh"
 
 #include <memory>
+#include <type_traits>
 #include <utility>
 
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

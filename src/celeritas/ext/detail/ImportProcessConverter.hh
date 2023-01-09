@@ -22,7 +22,6 @@ using celeritas::ImportProcess;
 
 class TFile;
 class TTree;
-
 class G4VProcess;
 class G4VEmProcess;
 class G4VEmModel;

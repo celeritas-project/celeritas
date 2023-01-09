@@ -8,16 +8,16 @@
 #include "CombinedBremModel.hh"
 
 #include <memory>
+#include <type_traits>
 #include <utility>
 
-#include "corecel/Assert.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/generated/CombinedBremInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
-#include "celeritas/phys/Applicability.hh"
 
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"

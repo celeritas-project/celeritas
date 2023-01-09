@@ -8,6 +8,7 @@
 #include "GeantLoggerAdapter.hh"
 
 #include <cctype>
+#include <memory>
 #include <G4strstreambuf.hh>
 
 #include "corecel/io/Logger.hh"

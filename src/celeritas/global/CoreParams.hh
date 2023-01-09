@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "corecel/Assert.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"

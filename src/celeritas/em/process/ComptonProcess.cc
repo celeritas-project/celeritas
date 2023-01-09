@@ -9,7 +9,11 @@
 
 #include <utility>
 
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/KleinNishinaModel.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

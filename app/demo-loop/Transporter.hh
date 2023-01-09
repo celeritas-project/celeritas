@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -19,6 +20,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {

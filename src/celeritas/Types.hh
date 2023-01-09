@@ -8,7 +8,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 // IWYU pragma: begin_exports
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"

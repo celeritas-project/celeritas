@@ -8,6 +8,7 @@
 #include "SurfaceIO.hh"
 
 #include <cmath>
+#include <ostream>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/cont/SpanIO.hh"

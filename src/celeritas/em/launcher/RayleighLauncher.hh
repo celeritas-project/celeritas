@@ -11,7 +11,13 @@
 #include "corecel/Macros.hh"
 #include "celeritas/em/data/RayleighData.hh"
 #include "celeritas/em/interactor/RayleighInteractor.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/random/RngEngine.hh"
 
 namespace celeritas
 {

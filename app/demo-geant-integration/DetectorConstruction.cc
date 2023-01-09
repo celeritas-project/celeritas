@@ -15,8 +15,8 @@
 #include <G4SDManager.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"

@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "KernelRegistryIO.json.hh"
 
+#include <atomic>
+#include <string>
+
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/KernelAttributes.hh"
 
 #include "KernelRegistry.hh"
 

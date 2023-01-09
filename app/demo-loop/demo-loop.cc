@@ -5,21 +5,25 @@
 //---------------------------------------------------------------------------//
 //! \file demo-loop/demo-loop.cc
 //---------------------------------------------------------------------------//
-#include <cstddef>
+#include <cstdlib>
+#include <exception>
 #include <fstream>
 #include <functional>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <random>
-#include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_version.h"
-#include "corecel/data/Ref.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputManager.hh"
 #include "corecel/sys/Device.hh"
@@ -31,14 +35,19 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/StepCollector.hh"
+#include "celeritas/user/StepData.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"

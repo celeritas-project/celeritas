@@ -7,14 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "Stepper.hh"
 
-#include "corecel/Assert.hh"
+#include <type_traits>
+#include <utility>
+
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/phys/Primary.hh"
-#include "celeritas/track/TrackInitParams.hh"
+#include "orange/OrangeData.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/random/XorwowRngData.hh"
+#include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 #include "detail/ActionSequence.hh"
 

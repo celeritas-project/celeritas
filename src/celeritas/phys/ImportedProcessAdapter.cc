@@ -8,16 +8,18 @@
 #include "ImportedProcessAdapter.hh"
 
 #include <algorithm>
-#include <ostream>
 #include <tuple>
+#include <type_traits>
 
-#include "corecel/cont/EnumArray.hh"
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/phys/Applicability.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleParams.hh" // IWYU pragma: keep

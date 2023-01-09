@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "ProcessBuilder.hh"
 
+#include <unordered_map>
+#include <utility>
+
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"

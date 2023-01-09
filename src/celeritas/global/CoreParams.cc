@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include <string>
+#include <type_traits>
+#include <utility>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "KNDemoIO.hh"
 
+#include <string>
 #include <nlohmann/json.hpp>
 
 namespace demo_interactor

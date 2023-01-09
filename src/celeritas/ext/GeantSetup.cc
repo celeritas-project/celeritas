@@ -8,13 +8,13 @@
 #include "GeantSetup.hh"
 
 #include <memory>
-#include <G4Event.hh>
-#include <G4ParticleGun.hh>
+#include <utility>
 #include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4VUserActionInitialization.hh>
+#include <G4RunManager.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VUserDetectorConstruction.hh>
-#include <G4VUserPrimaryGeneratorAction.hh>
+
+#include "corecel/io/Logger.hh"
 
 #include "GeantConfig.hh"
 #if CELERITAS_G4_V10
