@@ -90,6 +90,7 @@
 #include <VecGeom/volumes/UnplacedSExtruVolume.h>
 #include <VecGeom/volumes/UnplacedScaledShape.h>
 #include <VecGeom/volumes/UnplacedSphere.h>
+#include <VecGeom/volumes/UnplacedTessellated.h>
 #include <VecGeom/volumes/UnplacedTet.h>
 #include <VecGeom/volumes/UnplacedTorus2.h>
 #include <VecGeom/volumes/UnplacedTrapezoid.h>
@@ -455,10 +456,15 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
         const auto v1 = logical_volume->GetUnplacedVolume()->Capacity()
                         / ipow<3>(scale);
         const auto v2 = volume->GetSolid()->GetCubicVolume();
-        if (fabs((v1 / v2) - 1.0) > 0.1)
+        if (fabs((v1 / v2) - 1.0) > 0.05)
         {
             std::cerr << volume->GetName() << " capacities: VG=" << v1
-                      << " G4=" << v2 << "\n";
+                      << "  G4=" << v2;
+            //        << "\n VG Volume: ";
+            //  logical_volume->GetUnplacedVolume()->Print();
+            // std::cerr <<"G4 volume: ";
+            // volume->GetSolid()->StreamInfo(std::cerr);
+            std::cerr << std::endl;
         }
         //
         //    assert(v1 > 0.);
@@ -750,11 +756,10 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     // Generic polycone
     else if (auto gp = dynamic_cast<G4GenericPolycone const*>(shape))
     {
-        // auto params = p->GetOriginalParameters();
         // fix dimensions - (requires making a copy of some arrays)
         const int                 nRZs = gp->GetNumRZCorner();
-        std::unique_ptr<double[]> zs(new double[nRZs]); // double zs[nRZs];
-        std::unique_ptr<double[]> rs(new double[nRZs]); // double rs[nRZs];
+        std::unique_ptr<double[]> zs(new double[nRZs]);
+        std::unique_ptr<double[]> rs(new double[nRZs]);
         for (int i = 0; i < nRZs; ++i)
         {
             G4PolyconeSideRZ rzCorner = gp->GetCorner(i);
@@ -765,8 +770,43 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             gp->GetStartPhi(),
             gp->GetEndPhi() - gp->GetStartPhi(),
             nRZs,
-            zs.get(),
-            rs.get());
+            rs.get(),
+            zs.get());
+    }
+
+    // Tessellated solids
+    else if (auto tess = dynamic_cast<G4TessellatedSolid const*>(shape))
+    {
+        using Vertex = vecgeom::Vector3D<vecgeom::Precision>;
+
+        unplaced_volume = GeoManager::MakeInstance<UnplacedTessellated>();
+        UnplacedTessellated* unpvol
+            = static_cast<UnplacedTessellated*>(unplaced_volume);
+
+        const int                 nFacets = tess->GetNumberOfFacets();
+        std::unique_ptr<Vertex[]> vtx(new Vertex[4]); // 3- or 4-side facets
+                                                      // only
+        for (int i = 0; i < nFacets; ++i)
+        {
+            const G4VFacet* facet = tess->GetFacet(i);
+            const int       nVtx  = facet->GetNumberOfVertices();
+            for (int iv = 0; iv < nVtx; ++iv)
+            {
+                auto vxg4 = facet->GetVertex(iv);
+                vtx[iv].Set(
+                    scale * vxg4.x(), scale * vxg4.y(), scale * vxg4.z());
+            }
+
+            if (nVtx == 3)
+            {
+                unpvol->AddTriangularFacet(vtx[0], vtx[1], vtx[2], ABSOLUTE);
+            }
+            else
+            {
+                unpvol->AddQuadrilateralFacet(
+                    vtx[0], vtx[1], vtx[2], vtx[3], ABSOLUTE);
+            }
+        }
     }
 
     // Cut tube
@@ -891,20 +931,18 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
 #endif
     }
-    //#endif
-    //  // THE PARABOLOID
+
+    //  // Paraboloid
     //  if (shape->IsA() == TGeoParaboloid::Class()) {
     //    TGeoParaboloid const *const p = static_cast<TGeoParaboloid const
     //    *>(shape);
     //
     //    unplaced_volume =
-    //    GeoManager::MakeInstance<UnplacedParaboloid>(p->GetRlo() * LUnit(),
-    //    p->GetRhi() * LUnit(),
-    //                                                                   p->GetDz()
-    //                                                                   *
-    //                                                                   LUnit());
+    //    GeoManager::MakeInstance<UnplacedParaboloid>(
+    //        scale * p->GetRlo() * LUnit(),
+    //        scale * p->GetRhi() * LUnit(),
+    //        scale * p->GetDz() * LUnit());
     //  }
-    //
 
 #ifdef CHECK_CAPACITY
     // Check capacity as a 'soft' confirmation that the shape / solid was
