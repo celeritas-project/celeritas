@@ -7,21 +7,26 @@
 //---------------------------------------------------------------------------//
 #include "LDemoIO.hh"
 
-#include <algorithm>
 #include <set>
-#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"

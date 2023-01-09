@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "ExceptionConverter.hh"
 
-#include <sstream>
+#include <algorithm>
+#include <initializer_list>
+#include <stdexcept>
+#include <string>
 #include <G4Exception.hh>
 
 #include "celeritas_config.h"

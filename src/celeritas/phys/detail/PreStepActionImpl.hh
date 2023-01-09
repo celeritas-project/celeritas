@@ -7,10 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/random/RngEngine.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "../PhysicsStepUtils.hh"
 

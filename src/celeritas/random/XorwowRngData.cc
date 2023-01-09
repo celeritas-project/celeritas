@@ -8,6 +8,7 @@
 #include "XorwowRngData.hh"
 
 #include <random>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"

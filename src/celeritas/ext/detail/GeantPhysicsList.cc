@@ -10,14 +10,17 @@
 #include <memory>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
+#include <G4Electron.hh>
 #include <G4EmParameters.hh>
+#include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4LivermorePhotoElectricModel.hh>
-#include <G4LivermoreRayleighModel.hh>
 #include <G4MollerBhabhaModel.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
+#include <G4Positron.hh>
+#include <G4ProcessType.hh>
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
 #include <G4SystemOfUnits.hh>
@@ -26,11 +29,12 @@
 #include <G4eCoulombScatteringModel.hh>
 #include <G4eIonisation.hh>
 #include <G4eMultipleScattering.hh>
-#include <G4eeToTwoGammaModel.hh>
 #include <G4eplusAnnihilation.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 #include "GeantBremsstrahlungProcess.hh"
 

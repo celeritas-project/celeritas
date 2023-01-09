@@ -8,11 +8,19 @@
 #include "StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <type_traits>
+#include <utility>
 
-#include "celeritas/geo/GeoParams.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Label.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/user/StepInterface.hh"
+#include "celeritas/user/detail/StepStorage.hh"
 
-#include "StepData.hh"
 #include "detail/StepGatherAction.hh"
 
 namespace celeritas

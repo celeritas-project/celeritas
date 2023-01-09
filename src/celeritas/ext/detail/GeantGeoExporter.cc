@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoExporter.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
-#include <G4Threading.hh>
 #include <G4GDMLParser.hh>
+#include <G4Threading.hh>
 #include <G4VPhysicalVolume.hh>
+
+#include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 namespace celeritas
 {

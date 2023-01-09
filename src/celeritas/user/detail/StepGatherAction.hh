@@ -7,9 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../StepData.hh"

@@ -7,7 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorOptionsIO.json.hh"
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
+#include "corecel/Assert.hh"
 #include "corecel/cont/Array.json.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/StringEnumMap.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {

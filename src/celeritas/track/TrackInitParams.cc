@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitParams.hh"
 
+#include <utility>
+
+#include "corecel/Assert.hh"
+#include "celeritas/track/TrackInitData.hh" // IWYU pragma: associated
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

@@ -7,15 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
+#include <utility>
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
+#include "celeritas/global/alongstep/AlongStepLauncher.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "AlongStepLauncher.hh"

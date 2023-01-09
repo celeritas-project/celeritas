@@ -7,8 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/Secondary.hh"
 
 #include "../SimTrackView.hh"
 #include "Utils.hh"

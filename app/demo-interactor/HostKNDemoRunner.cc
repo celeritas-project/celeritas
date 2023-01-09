@@ -7,22 +7,31 @@
 //---------------------------------------------------------------------------//
 #include "HostKNDemoRunner.hh"
 
-#include <iostream>
 #include <random>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "corecel/data/StackAllocatorData.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
+#include "celeritas/grid/UniformGridData.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/ParticleView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include "Detector.hh"
+#include "DetectorData.hh"
+#include "KNDemoKernel.hh"
 #include "KernelUtils.hh"
 
 using namespace celeritas;

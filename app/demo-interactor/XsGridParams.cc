@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"

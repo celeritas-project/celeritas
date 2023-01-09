@@ -10,7 +10,6 @@
 #include <cmath>
 #include <utility>
 
-#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"

@@ -3,7 +3,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/track/detail/ProcessPrimariesLauncher.hh" // IWYU pragma: associated
 #include "corecel/cont/Span.hh"
 #include "celeritas/phys/Primary.hh"
 

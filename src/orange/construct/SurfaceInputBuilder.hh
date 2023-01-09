@@ -16,6 +16,7 @@ namespace celeritas
 {
 struct Label;
 struct SurfaceInput;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct surfaces on the host.

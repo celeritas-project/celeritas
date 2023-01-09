@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "DetectorSteps.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 
 #include "StepData.hh"

@@ -8,17 +8,21 @@
 #include "UrbanMscModel.hh"
 
 #include <cmath>
+#include <utility>
 
-#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

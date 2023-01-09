@@ -8,10 +8,13 @@
 #include "AtomicRelaxationReader.hh"
 
 #include <fstream>
+#include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/io/ImportAtomicRelaxation.hh"
 
 namespace celeritas
 {

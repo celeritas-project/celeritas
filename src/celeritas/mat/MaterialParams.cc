@@ -11,20 +11,18 @@
 #include <cmath>
 #include <utility>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportElement.hh"
-#include "celeritas/io/ImportMaterial.hh"
 
-#include "MaterialData.hh"
+#include "MaterialData.hh" // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas

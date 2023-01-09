@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <G4RunManager.hh>
-
 #include "corecel/io/Logger.hh"
+#include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"

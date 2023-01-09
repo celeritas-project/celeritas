@@ -8,18 +8,22 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "CutoffData.hh"
 #include "CutoffView.hh"
-#include "ParticleParams.hh"
 
 namespace celeritas
 {
+class ParticleParams;
 struct ImportData;
 
 //---------------------------------------------------------------------------//

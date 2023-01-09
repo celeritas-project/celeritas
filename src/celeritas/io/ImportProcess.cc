@@ -8,9 +8,11 @@
 #include "ImportProcess.hh"
 
 #include <algorithm>
+#include <initializer_list>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/StringEnumMap.hh"
 
 namespace celeritas

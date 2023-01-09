@@ -7,9 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Atomics.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/track/SimData.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 namespace celeritas
 {

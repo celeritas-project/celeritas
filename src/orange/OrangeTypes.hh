@@ -8,12 +8,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <functional>
 #include <utility>
 
+#include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/Types.hh"
 
 #include "Types.hh" // IWYU pragma: export
 

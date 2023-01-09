@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 

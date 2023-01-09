@@ -8,6 +8,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"

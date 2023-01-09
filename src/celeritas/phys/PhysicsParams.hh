@@ -8,11 +8,15 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/global/ActionInterface.hh"

@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "orange/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -14,9 +18,11 @@
 namespace celeritas
 {
 struct SDSetupOptions;
+
 namespace detail
 {
 class HitProcessor;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage the conversion of hits from Celeritas to Geant4.

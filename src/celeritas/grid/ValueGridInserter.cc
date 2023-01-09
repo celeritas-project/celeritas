@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ValueGridInserter.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 
 #include "XsGridData.hh"
 

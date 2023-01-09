@@ -9,8 +9,6 @@
 
 #include <utility>
 
-#include "corecel/Assert.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//

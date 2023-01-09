@@ -7,9 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "ImportedModelAdapter.hh"
 
+#include <map>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+#include "celeritas/phys/Applicability.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleParams.hh"

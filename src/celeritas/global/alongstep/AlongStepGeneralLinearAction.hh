@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -20,7 +21,6 @@ namespace celeritas
 {
 class UrbanMscModel;
 class FluctuationParams;
-
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;

@@ -7,10 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4ParticleDefinition.hh>
+#include <G4ThreeVector.hh>
 
+#include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"

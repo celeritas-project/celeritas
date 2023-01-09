@@ -8,6 +8,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
@@ -16,6 +17,7 @@
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas

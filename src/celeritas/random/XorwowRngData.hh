@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"

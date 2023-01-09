@@ -7,15 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "AtomicRelaxationParams.hh"
 
-#include <algorithm>
-#include <cmath>
-#include <numeric>
 #include <set>
+#include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -23,15 +20,17 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh" // IWYU pragma: keep
-#include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
+#include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
 
-#include "data/AtomicRelaxationData.hh"
+#include "data/AtomicRelaxationData.hh" // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas

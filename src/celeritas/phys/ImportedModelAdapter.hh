@@ -27,6 +27,7 @@
 namespace celeritas
 {
 class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct microscopic cross section from imported physics data.

@@ -27,16 +27,19 @@
 // Override an undocumented cuRAND API definition to enable usage in host code.
 #    define QUALIFIERS static __forceinline__ __host__ __device__
 #    include <curand_kernel.h>
+
 #    define CELER_RNG_PREFIX(TOK) cu##TOK
 #elif CELERITAS_USE_HIP
 // Override an undocumented hipRAND API definition to enable usage in host
 // code.
 #    define FQUALIFIERS __forceinline__ __host__ __device__
 #    include <hiprand/hiprand_kernel.h>
+
 #    define CELER_RNG_PREFIX(TOK) hip##TOK
 #else
 // CuHipRng is invalid
 #    include "detail/mockrand.hh"
+
 #    define CELER_RNG_PREFIX(TOK) mock##TOK
 #endif
 

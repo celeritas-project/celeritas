@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "corecel/Types.hh"
 #include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"

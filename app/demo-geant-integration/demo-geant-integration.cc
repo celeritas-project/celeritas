@@ -9,7 +9,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <CLHEP/Random/Random.h>
@@ -28,7 +27,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Environment.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/Logger.hh"

@@ -7,11 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "Assert.hh"
 
+#include "corecel/Macros.hh"
+
 #if CELERITAS_USE_MPI
 #    include <mpi.h>
 #endif
 
 #include <sstream>
+#include <utility>
 
 #include "io/ColorUtils.hh"
 #include "sys/Environment.hh" // IWYU pragma: keep

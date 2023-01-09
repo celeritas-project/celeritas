@@ -7,9 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsOptionsIO.json.hh"
 
+#include <string>
+
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/StringEnumMap.hh"
 #include "corecel/math/QuantityIO.json.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 namespace celeritas
 {

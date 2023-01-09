@@ -8,6 +8,7 @@
 #include "SeltzerBergerReader.hh"
 
 #include <fstream>
+#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"

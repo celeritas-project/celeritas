@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SensitiveHit.hh"
 
+#include <G4Types.hh>
+
 #include "corecel/Macros.hh"
 
 namespace demo_geant

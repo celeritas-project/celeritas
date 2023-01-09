@@ -7,13 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Atomics.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/phys/Secondary.hh"
+#include "celeritas/track/SimData.hh"
+#include "celeritas/track/TrackInitData.hh"
 
 #include "../SimTrackView.hh"
 

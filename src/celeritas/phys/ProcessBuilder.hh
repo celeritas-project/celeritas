@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+#include <memory>
 #include <unordered_map>
 
 #include "celeritas/io/ImportProcess.hh"
@@ -20,7 +22,6 @@ namespace celeritas
 class ImportedProcesses;
 class MaterialParams;
 class ParticleParams;
-
 struct ImportData;
 struct ImportLivermorePE;
 struct ImportSBTable;

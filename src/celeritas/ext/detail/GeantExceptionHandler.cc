@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantExceptionHandler.hh"
 
-#include <sstream>
+#include <memory>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"

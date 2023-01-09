@@ -29,7 +29,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 
-#include "VecgeomData.hh"
+#include "VecgeomData.hh" // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
 
 namespace celeritas

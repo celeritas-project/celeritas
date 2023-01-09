@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
+#include <G4ParticleDefinition.hh>
 #include <G4VEnergyLossProcess.hh>
 
 #include "../GeantPhysicsOptions.hh"

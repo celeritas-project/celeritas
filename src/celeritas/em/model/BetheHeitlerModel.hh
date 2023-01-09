@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "celeritas/em/data/BetheHeitlerData.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

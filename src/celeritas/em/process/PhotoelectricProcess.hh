@@ -11,6 +11,8 @@
 #include <memory>
 
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
@@ -18,6 +20,7 @@
 namespace celeritas
 {
 struct ImportLivermorePE;
+
 //---------------------------------------------------------------------------//
 /*!
  * Photoelectric effect process for gammas.

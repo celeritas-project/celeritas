@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4ParticleDefinition.hh>
 #include <G4VUserPhysicsList.hh>
 
 #include "../GeantPhysicsOptions.hh"

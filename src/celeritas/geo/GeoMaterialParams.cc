@@ -10,21 +10,20 @@
 #include <algorithm>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
-#include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "orange/OrangeParams.hh"
+#include "corecel/io/detail/Joined.hh"
 #include "orange/Types.hh"
 #include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
-#include "GeoMaterialData.hh"
+#include "GeoMaterialData.hh" // IWYU pragma: associated
 
 namespace celeritas
 {

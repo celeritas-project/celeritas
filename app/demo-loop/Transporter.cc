@@ -10,8 +10,10 @@
 #include <csignal>
 #include <memory>
 #include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/VectorUtils.hh"
@@ -19,9 +21,10 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistry.hh" // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/phys/Model.hh"
 
+#include "diagnostic/Diagnostic.hh"
 #include "diagnostic/EnergyDiagnostic.hh"
 #include "diagnostic/ParticleProcessDiagnostic.hh"
 #include "diagnostic/StepDiagnostic.hh"

@@ -8,18 +8,26 @@
 #include "SeltzerBergerModel.hh"
 
 #include <algorithm>
+#include <cmath>
+#include <utility>
+#include <vector>
 
-#include "corecel/Assert.hh"
+#include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/generated/SeltzerBergerInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/interactor/detail/SBPositronXsCorrector.hh"
+#include "celeritas/grid/TwodGridData.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

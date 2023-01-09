@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "corecel/Assert.hh"
+#include "orange/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 

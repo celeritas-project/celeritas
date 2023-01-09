@@ -10,6 +10,9 @@
 #include <string>
 #include <utility>
 
+#include "corecel/io/Logger.hh"
+#include "corecel/io/detail/LoggerMessage.hh"
+
 #include "LoggerTypes.hh"
 #include "detail/LoggerMessage.hh" // IWYU pragma: keep
 
@@ -50,6 +53,7 @@
 namespace celeritas
 {
 class MpiCommunicator;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage logging in serial and parallel.

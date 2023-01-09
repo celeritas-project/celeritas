@@ -7,6 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
+#include <functional>
+#include <string>
+#include <type_traits>
+#include <utility>
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"

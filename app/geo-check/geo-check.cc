@@ -6,10 +6,25 @@
 //! \file geo-check.cc
 //---------------------------------------------------------------------------//
 
+#include <cstdlib>
+#include <exception>
 #include <fstream>
+#include <initializer_list>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+#include <nlohmann/json.hpp>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "orange/Types.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
 
 #include "GCheckRunner.hh"
 #include "nlohmann/json.hpp"

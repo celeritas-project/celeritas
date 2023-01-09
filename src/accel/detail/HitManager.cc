@@ -7,13 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "HitManager.hh"
 
-#include <G4LogicalVolumeStore.hh>
+#include <utility>
 #include <G4GDMLWriteStructure.hh>
+#include <G4LogicalVolume.hh>
+#include <G4LogicalVolumeStore.hh>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Label.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"

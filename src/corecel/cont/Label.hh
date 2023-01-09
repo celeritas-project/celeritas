@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <utility>
 
 #include "corecel/math/HashUtils.hh"
 
