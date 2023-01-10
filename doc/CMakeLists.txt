@@ -227,5 +227,8 @@ celeritas_build_latex(
 )
 
 add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
+if(CELERITAS_USE_BREATHE)
+  add_dependencies(doc_pdf doxygen_xml)
+endif()
 
 #-----------------------------------------------------------------------------#
