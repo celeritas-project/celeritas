@@ -83,7 +83,7 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
     std::vector<int> pdg;
-    auto&&           pdg_input = j.at("pdg");
+    auto&& pdg_input = j.at("pdg");
     if (pdg_input.is_array())
     {
         pdg_input.get_to(pdg);
@@ -111,7 +111,7 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
     {
         // Backward compatibility: monoenergetic energy
         opts.energy.distribution = DistributionSelection::delta;
-        opts.energy.params       = {energy_input.get<double>()};
+        opts.energy.params = {energy_input.get<double>()};
     }
     auto&& pos_input = j.at("position");
     if (pos_input.is_object())
