@@ -19,13 +19,13 @@
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VSensitiveDetector.hh>
+#include <G4Version.hh>
 
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantConfig.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -75,10 +75,10 @@ HitProcessor::HitProcessor(VecLV detector_volumes,
     // Create temporary objects
     step_ = std::make_unique<G4Step>();
 
-#if CELERITAS_G4_V10
-#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11 */
-#else
+#if G4VERSION_NUMBER >= 1101
 #    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
+#else
+#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.1 */
 #endif
 
 #define HP_SETUP_POINT(LOWER, TITLE)                                          \
