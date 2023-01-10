@@ -1,4 +1,4 @@
-.. Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
@@ -7,6 +7,22 @@
 ***************
 Release History
 ***************
+
+Version 0.1.4
+=============
+
+This version fixes significant errors in along-step tracking when multiple
+scattering and/or magnetic fields are in use.
+
+Bug fixes
+---------
+
+* Fix additional failures resulting from direction change on a boundary after crossing *(@amandalund, #517)*
+* Fix the true path length limit of UrbanMsc *(@whokion, #521)*
+* Fix field propagation for stuck and long-track particles *(@sethrj, #518)*
+* Don't slow particles to zero when hitting boundary *(@sethrj, #524)*
+* Cache multiple scattering range at the first step in a new volume *(@whokion, #527)*
+* Reset physics state when a secondary is initialized in the parent's track slot *(@amandalund, #528)*
 
 Version 0.1.3
 =============
@@ -29,7 +45,7 @@ This is a bug-fixing patch that addresses a few outstanding build issues,
 targeted at making it easier to run and debug the regression problem suite.
 
 New features
----------
+------------
 
 * Save JSON exception output if demo loop fails by *(@sethrj, #507)*
 
