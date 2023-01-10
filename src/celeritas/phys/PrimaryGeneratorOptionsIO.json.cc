@@ -83,7 +83,16 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
     std::vector<int> pdg;
-    j.at("pdg").get_to(pdg);
+    auto&&           pdg_input = j.at("pdg");
+    if (pdg_input.is_array())
+    {
+        pdg_input.get_to(pdg);
+    }
+    else
+    {
+        // Backward compatibility: single PDG
+        pdg = {pdg_input.get<int>()};
+    }
     opts.pdg.reserve(pdg.size());
     for (int i : pdg)
     {
@@ -93,9 +102,39 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
     }
     j.at("num_events").get_to(opts.num_events);
     j.at("primaries_per_event").get_to(opts.primaries_per_event);
-    j.at("energy").get_to(opts.energy);
-    j.at("position").get_to(opts.position);
-    j.at("direction").get_to(opts.direction);
+    auto&& energy_input = j.at("energy");
+    if (energy_input.is_object())
+    {
+        energy_input.get_to(opts.energy);
+    }
+    else
+    {
+        // Backward compatibility: monoenergetic energy
+        opts.energy.distribution = DistributionSelection::delta;
+        opts.energy.params       = {energy_input.get<double>()};
+    }
+    auto&& pos_input = j.at("position");
+    if (pos_input.is_object())
+    {
+        pos_input.get_to(opts.position);
+    }
+    else
+    {
+        // Backward compatibility: point source
+        opts.position.distribution = DistributionSelection::delta;
+        pos_input.get_to(opts.position.params);
+    }
+    auto&& dir_input = j.at("direction");
+    if (dir_input.is_object())
+    {
+        dir_input.get_to(opts.direction);
+    }
+    else
+    {
+        // Backward compatibility: point source
+        opts.direction.distribution = DistributionSelection::delta;
+        dir_input.get_to(opts.direction.params);
+    }
 }
 
 //---------------------------------------------------------------------------//
