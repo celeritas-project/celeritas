@@ -11,6 +11,10 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "../data/AtomicRelaxationData.hh"
 

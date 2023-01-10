@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
+#include <utility>
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
+#include "celeritas/global/alongstep/AlongStepLauncher.hh"
 
 #include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"

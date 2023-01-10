@@ -7,22 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "OrangeParams.hh"
 
-#include <algorithm>
 #include <fstream>
 #include <initializer_list>
+#include <utility>
+#include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "orange/BoundingBox.hh"
 
-#include "OrangeData.hh"
+#include "OrangeData.hh" // IWYU pragma: associated
 #include "OrangeTypes.hh"
 #include "construct/OrangeInput.hh"
 #include "detail/UnitInserter.hh"

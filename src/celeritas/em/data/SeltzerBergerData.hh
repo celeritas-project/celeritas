@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"

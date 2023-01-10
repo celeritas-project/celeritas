@@ -11,8 +11,10 @@
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
+#include <G4StepPoint.hh>
 #include <G4String.hh>
-#include <G4SystemOfUnits.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
 

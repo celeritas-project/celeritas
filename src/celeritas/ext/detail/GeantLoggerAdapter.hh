@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4String.hh>
+#include <G4Types.hh>
 #include <G4coutDestination.hh>
 
 #include "corecel/io/LoggerTypes.hh"

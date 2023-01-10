@@ -8,12 +8,20 @@
 #pragma once
 
 #include <algorithm>
+#include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Atomics.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"

@@ -7,9 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "StepGatherAction.hh"
 
+#include <mutex>
+#include <utility>
+
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/user/StepData.hh"
 
 #include "StepGatherLauncher.hh"
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"

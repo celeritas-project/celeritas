@@ -9,11 +9,15 @@
 
 #include <algorithm>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 #include "../ActionRegistry.hh"
 

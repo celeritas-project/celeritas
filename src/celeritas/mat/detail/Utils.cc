@@ -7,12 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "Utils.hh"
 
-#include <algorithm>
 #include <cmath>
 
-#include "corecel/cont/Range.hh"
+#include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Constants.hh"
 
 #include "../MaterialData.hh"

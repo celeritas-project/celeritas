@@ -10,9 +10,13 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleData.hh"

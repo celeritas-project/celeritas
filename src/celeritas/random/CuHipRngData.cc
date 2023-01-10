@@ -11,6 +11,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 
 #include "detail/CuHipRngStateInit.hh"
 

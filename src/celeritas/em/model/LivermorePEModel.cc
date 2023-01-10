@@ -11,21 +11,20 @@
 #include <utility>
 #include <vector>
 
-#include "corecel/Assert.hh"
-#include "corecel/cont/Array.hh"
+#include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/math/Quantity.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/generated/LivermorePEInteract.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/ElementView.hh"
-#include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

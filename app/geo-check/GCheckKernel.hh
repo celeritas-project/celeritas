@@ -7,6 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "celeritas_config.h"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "orange/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"

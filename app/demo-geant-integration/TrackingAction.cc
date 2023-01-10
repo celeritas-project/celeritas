@@ -8,6 +8,8 @@
 #include "TrackingAction.hh"
 
 #include <algorithm>
+#include <iterator>
+#include <type_traits>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>

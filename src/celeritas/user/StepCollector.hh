@@ -8,7 +8,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
+#include "celeritas/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 
 #include "StepInterface.hh"

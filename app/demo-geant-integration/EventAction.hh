@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <G4UserEventAction.hh>
 
 #include "accel/LocalTransporter.hh"

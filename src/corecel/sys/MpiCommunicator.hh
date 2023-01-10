@@ -7,11 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/detail/MpiCommunicatorImpl.hh"
+
 #include "detail/MpiCommunicatorImpl.hh" // IWYU pragma: keep
 
 namespace celeritas
 {
 class Device;
+
 //---------------------------------------------------------------------------//
 /*!
  * Abstraction of an MPI communicator.

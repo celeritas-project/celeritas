@@ -7,10 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "Utils.hh"
 
-#include <cmath>
+#include <algorithm>
+#include <utility>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
 
 namespace celeritas
 {

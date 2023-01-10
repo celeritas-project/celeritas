@@ -8,8 +8,11 @@
 #include "GCheckKernel.hh"
 
 #include <cstdio>
+#include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "orange/OrangeData.hh"
 #include "celeritas/field/LinearPropagator.hh"
 #include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
 

@@ -8,8 +8,12 @@
 #include "ScopedTimeAndRedirect.hh"
 
 #include <iostream>
+#include <utility>
 
-#include "ColorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
+
 #include "Logger.hh"
 
 namespace celeritas

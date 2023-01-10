@@ -8,7 +8,7 @@
 #include "EventReader.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/phys/Primary.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {

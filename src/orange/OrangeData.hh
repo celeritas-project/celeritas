@@ -8,6 +8,8 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"

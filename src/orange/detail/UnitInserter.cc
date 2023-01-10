@@ -13,13 +13,17 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/surf/SurfaceAction.hh"
 #include "orange/surf/Surfaces.hh"
+#include "orange/surf/detail/SurfaceAction.hh"
 
 namespace celeritas
 {

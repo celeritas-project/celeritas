@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "FieldDriverOptionsIO.json.hh"
 
+#include <string>
 #include <nlohmann/json.hpp>
 
 #include "FieldDriverOptions.hh"

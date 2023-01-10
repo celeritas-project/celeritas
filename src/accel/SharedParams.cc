@@ -7,17 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "SharedParams.hh"
 
+#include <fstream>
 #include <memory>
+#include <set>
+#include <type_traits>
+#include <utility>
+#include <vector>
 #include <CLHEP/Random/Random.h>
-#include <G4TransportationManager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputManager.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -28,6 +34,7 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"

@@ -7,7 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "OutputManager.hh"
 
+#include <string>
+#include <type_traits>
+#include <utility>
+
 #include "celeritas_config.h"
+#include "corecel/io/OutputInterface.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif

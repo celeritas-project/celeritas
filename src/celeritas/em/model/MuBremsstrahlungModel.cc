@@ -7,9 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "MuBremsstrahlungModel.hh"
 
-#include "corecel/Assert.hh"
+#include <utility>
+
+#include "celeritas/Quantities.hh"
 #include "celeritas/em/generated/MuBremsstrahlungInteract.hh"
+#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

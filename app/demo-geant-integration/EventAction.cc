@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "EventAction.hh"
 
+#include <type_traits>
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"

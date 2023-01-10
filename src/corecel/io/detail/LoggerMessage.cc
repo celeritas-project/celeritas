@@ -7,9 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "LoggerMessage.hh"
 
+#include <exception>
+#include <functional>
 #include <sstream>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 
 namespace celeritas
 {

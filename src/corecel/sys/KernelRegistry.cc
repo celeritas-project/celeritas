@@ -8,9 +8,11 @@
 #include "KernelRegistry.hh"
 
 #include <iostream> // IWYU pragma: keep
+#include <utility>
 
-#include "corecel/Macros.hh"
+#include "celeritas_config.h"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelAttributes.hh"
 
 namespace celeritas
 {

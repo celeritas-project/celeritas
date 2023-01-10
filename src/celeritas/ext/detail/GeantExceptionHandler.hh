@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4ExceptionSeverity.hh>
+#include <G4Types.hh>
 #include <G4VExceptionHandler.hh>
 
 namespace celeritas

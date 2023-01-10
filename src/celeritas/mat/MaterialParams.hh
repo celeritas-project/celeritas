@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
@@ -16,6 +17,7 @@
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -28,6 +30,7 @@
 namespace celeritas
 {
 struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Data management for material, element, and nuclide properties.

@@ -7,29 +7,39 @@
 //---------------------------------------------------------------------------//
 #include "ImportProcessConverter.hh"
 
-#include <iterator>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <map>
+#include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <G4Element.hh>
+#include <G4EmParameters.hh>
+#include <G4Material.hh>
+#include <G4MaterialCutsCouple.hh>
 #include <G4NistManager.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4PhysicsTable.hh>
+#include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
 #include <G4ProductionCutsTable.hh>
+#include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
+#include <G4VMscModel.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "celeritas/io/ImportPhysicsTable.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 

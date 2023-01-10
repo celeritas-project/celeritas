@@ -7,12 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/grid/UniformGridData.hh"
 
 #include "XsGridData.hh"
 

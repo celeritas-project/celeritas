@@ -14,6 +14,7 @@
 
 class G4Step;
 class G4HCofThisEvent;
+class G4TouchableHistory;
 
 namespace demo_geant
 {

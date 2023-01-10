@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
 

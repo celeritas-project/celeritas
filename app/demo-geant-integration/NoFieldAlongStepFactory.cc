@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "NoFieldAlongStepFactory.hh"
 
-#include "celeritas/io/ImportData.hh"
+#include <memory>
+#include <type_traits>
+
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/io/ImportData.hh"
 
 namespace demo_geant
 {

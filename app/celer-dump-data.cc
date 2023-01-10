@@ -8,16 +8,26 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 using namespace celeritas;
 using std::cout;

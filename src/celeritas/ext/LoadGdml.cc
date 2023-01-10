@@ -10,7 +10,6 @@
 #include <G4GDMLParser.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 

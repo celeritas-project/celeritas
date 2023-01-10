@@ -7,15 +7,24 @@
 //---------------------------------------------------------------------------//
 #include "HitProcessor.hh"
 
-#include <algorithm>
+#include <string>
+#include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4LogicalVolume.hh>
 #include <G4Navigator.hh>
 #include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4ThreeVector.hh>
+#include <G4TouchableHistory.hh>
 #include <G4TransportationManager.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VSensitiveDetector.hh>
 
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantConfig.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"

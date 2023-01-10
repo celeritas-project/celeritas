@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "ScopedStreamRedirect.hh"
 #include "ScopedTimeLog.hh"

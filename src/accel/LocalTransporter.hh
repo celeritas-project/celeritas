@@ -7,17 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
 #include <G4Track.hh>
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {
 struct SetupOptions;
 class SharedParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage offloading of tracks to Celeritas.

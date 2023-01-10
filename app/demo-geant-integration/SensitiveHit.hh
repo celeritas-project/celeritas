@@ -39,7 +39,7 @@ class SensitiveHit final : public G4VHit
     const HitData& data() const { return data_; }
 
     // Overload new/delete to use a custom allocator.
-    inline void* operator new(size_t);
+    inline void* operator new(std::size_t);
     inline void  operator delete(void*);
 
   private:
@@ -56,7 +56,7 @@ class SensitiveHit final : public G4VHit
 /*!
  * Use G4Allocator to allocate memory for a SensitiveHit.
  */
-inline void* SensitiveHit::operator new(size_t)
+inline void* SensitiveHit::operator new(std::size_t)
 {
     return SensitiveHit::allocator().MallocSingle();
 }
