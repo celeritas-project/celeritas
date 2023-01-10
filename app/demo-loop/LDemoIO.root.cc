@@ -13,7 +13,6 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include "corecel/io/Logger.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -22,10 +21,41 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Store CoreParams data to the ROOT MC truth output file. Currently only
+ * storing the action labels so their IDs can be identified. If other
+ * parameters are needed for future debugging/analyses, this function can
+ * easily be expanded.
+ */
+void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
+                       celeritas::CoreParams core_params)
+{
+    CELER_EXPECT(root_manager);
+
+    auto action_reg = core_params.action_reg();
+    CELER_EXPECT(action_reg);
+
+    auto tree_params = root_manager->make_tree("core_params", "core_params");
+
+    std::vector<std::string> action_labels;
+    tree_params->Branch("action_labels", &action_labels);
+    action_labels.resize(action_reg->num_actions());
+
+    for (const auto id : celeritas::range(action_reg->num_actions()))
+    {
+        action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
+    }
+
+    tree_params->Fill();
+    tree_params->Write();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Store input information to the ROOT MC truth output file.
  */
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-             LDemoArgs&                                   args)
+             LDemoArgs&                                   args,
+             celeritas::CoreParams                        core_params)
 {
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);
@@ -57,35 +87,9 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
     // Fill tree and write it to file
     tree_input->Fill();
     tree_input->Write();
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Store CoreParams data to the ROOT MC truth output file. Currently it only
- * stores the action labels so they can be identified during the data analysis.
- */
-void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-                       celeritas::CoreParams core_params)
-{
-    CELER_EXPECT(root_manager);
-
-    auto action_reg = core_params.action_reg();
-    CELER_EXPECT(action_reg);
-
-    auto tree_params = root_manager->make_tree("core_params", "core_params");
-
-    std::vector<std::string> action_labels;
-    tree_params->Branch("action_labels", &action_labels);
-
-    action_labels.resize(action_reg->num_actions());
-
-    for (const auto id : celeritas::range(action_reg->num_actions()))
-    {
-        action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
-    }
-
-    tree_params->Fill();
-    tree_params->Write();
+    // Store Celeritas CoreParams
+    store_core_params(root_manager, core_params);
 }
 
 //---------------------------------------------------------------------------//

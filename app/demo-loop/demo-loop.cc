@@ -123,10 +123,8 @@ void run(std::istream* is, OutputManager* output)
             transport_ptr->params().action_reg().get());
 
         // Store input data
-        to_root(root_manager, run_args);
+        to_root(root_manager, run_args, transport_ptr->params());
     }
-
-    store_core_params(root_manager, transport_ptr->params());
 
     // Run all the primaries
     TransporterResult    result;
