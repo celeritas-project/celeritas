@@ -107,7 +107,7 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
 #if !CELERITAS_USE_ROOT
 inline void to_root(std::shared_ptr<celeritas::RootFileManager>&,
                     LDemoArgs&,
-                    celeritas::CoreParams&)
+                    celeritas::CoreParams)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

@@ -122,7 +122,7 @@ void run(std::istream* is, OutputManager* output)
             transport_ptr->params().geometry(),
             transport_ptr->params().action_reg().get());
 
-        // Store input data
+        // Store input and CoreParams data
         to_root(root_manager, run_args, transport_ptr->params());
     }
 
