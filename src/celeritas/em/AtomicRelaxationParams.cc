@@ -23,14 +23,14 @@
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/ElementView.hh"
-#include "celeritas/mat/MaterialParams.hh" // IWYU pragma: keep
+#include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialView.hh"
-#include "celeritas/phys/CutoffParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
-#include "data/AtomicRelaxationData.hh" // IWYU pragma: associated
+#include "data/AtomicRelaxationData.hh"  // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas
@@ -43,7 +43,7 @@ namespace celeritas
  * there will be no atomic relaxation data for Z < 6. Transitions are only
  * provided for K, L, M, N, and some O shells.
  */
-AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
+AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     : is_auger_enabled_(inp.is_auger_enabled)
 {
     CELER_EXPECT(inp.cutoffs);
@@ -54,7 +54,7 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 
     // Get particle IDs
     host_data.ids.electron = inp.particles->find(pdg::electron());
-    host_data.ids.gamma    = inp.particles->find(pdg::gamma());
+    host_data.ids.gamma = inp.particles->find(pdg::gamma());
     CELER_VALIDATE(host_data.ids.electron && host_data.ids.gamma,
                    << "missing electron and/or gamma particles "
                       "(required for atomic relaxation)");
@@ -62,13 +62,13 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
     // Find the minimum electron and photon cutoff energy for each element over
     // all materials. This is used to calculate the maximum number of
     // secondaries that could be created in atomic relaxation for each element.
-    size_type              num_elements = inp.materials->num_elements();
+    size_type num_elements = inp.materials->num_elements();
     std::vector<MevEnergy> electron_cutoff(num_elements, max_quantity());
     std::vector<MevEnergy> gamma_cutoff(num_elements, max_quantity());
     for (auto mat_id : range(MaterialId{inp.materials->num_materials()}))
     {
         // Electron and photon energy cutoffs for this material
-        auto cutoffs  = inp.cutoffs->get(mat_id);
+        auto cutoffs = inp.cutoffs->get(mat_id);
         auto material = inp.materials->get(mat_id);
         for (auto comp_id : range(ElementComponentId{material.num_elements()}))
         {
@@ -105,8 +105,8 @@ AtomicRelaxationParams::AtomicRelaxationParams(const Input& inp)
 /*!
  * Convert an element input to a AtomicRelaxElement and store.
  */
-void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
-                                            HostData*                     data,
+void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
+                                            HostData* data,
                                             MevEnergy electron_cutoff,
                                             MevEnergy gamma_cutoff)
 {
@@ -115,7 +115,7 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
 
     // Collect all the subshell designators for this element
     std::set<int> designators;
-    for (const auto& shell : inp.shells)
+    for (auto const& shell : inp.shells)
     {
         designators.insert(shell.designator);
 
@@ -123,12 +123,12 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
         // probabilities are normalized so that the sum over all radiative and
         // non-radiative transitions is 1
         real_type norm = 0.;
-        for (const auto& transition : shell.fluor)
+        for (auto const& transition : shell.fluor)
         {
             norm += transition.probability;
             designators.insert(transition.initial_shell);
         }
-        for (const auto& transition : shell.auger)
+        for (auto const& transition : shell.auger)
         {
             norm += transition.probability;
             designators.insert(transition.initial_shell);
@@ -141,7 +141,7 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
     // is ok for an index to be greater than or equal to the size of the shells
     // array; this just means there is no transition data for that shell)
     std::unordered_map<int, SubshellId> des_to_id;
-    size_type                           index = 0;
+    size_type index = 0;
     for (auto des : designators)
     {
         des_to_id[des] = SubshellId{index++};
@@ -201,4 +201,4 @@ void AtomicRelaxationParams::append_element(const ImportAtomicRelaxation& inp,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

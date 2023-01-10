@@ -42,7 +42,7 @@ class CylCentered
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage       = Span<const real_type, 1>;
+    using Storage = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -73,14 +73,14 @@ class CylCentered
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
-    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+    inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
-        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
     //! Square of cylinder radius
@@ -138,7 +138,7 @@ CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
  * Determine the sense of the position relative to this surface.
  */
 template<Axis T>
-CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(const Real3& pos) const
+CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
 {
     const real_type u = pos[u_index()];
     const real_type v = pos[v_index()];
@@ -152,8 +152,8 @@ CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(const Real3& pos) const
  */
 template<Axis T>
 CELER_FUNCTION auto
-CylCentered<T>::calc_intersections(const Real3& pos,
-                                   const Real3& dir,
+CylCentered<T>::calc_intersections(Real3 const& pos,
+                                   Real3 const& dir,
                                    SurfaceState on_surface) const
     -> Intersections
 {
@@ -191,7 +191,7 @@ CylCentered<T>::calc_intersections(const Real3& pos,
  * Calculate outward normal at a position.
  */
 template<Axis T>
-CELER_FUNCTION Real3 CylCentered<T>::calc_normal(const Real3& pos) const
+CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
 {
     Real3 norm{0, 0, 0};
 
@@ -223,4 +223,4 @@ CELER_CONSTEXPR_FUNCTION int CylCentered<T>::v_index()
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

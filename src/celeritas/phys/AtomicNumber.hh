@@ -82,4 +82,4 @@ CELER_DEFINE_ATOMICNUMBER_CMP(>=)
 #undef CELER_DEFINE_ATOMICNUMBER_CMP
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

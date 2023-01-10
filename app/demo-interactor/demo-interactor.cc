@@ -43,7 +43,7 @@ namespace demo_interactor
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
-    constexpr auto zero   = zero_quantity();
+    constexpr auto zero = zero_quantity();
     constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
@@ -65,7 +65,7 @@ void run(std::istream& is)
     auto inp = nlohmann::json::parse(is);
 
     // Construct runner
-    auto         grid_params = inp.at("grid_params").get<DeviceGridParams>();
+    auto grid_params = inp.at("grid_params").get<DeviceGridParams>();
     KNDemoRunner run(load_params(), load_xs(), grid_params);
 
     // For now, only do a single run
@@ -90,7 +90,7 @@ void run(std::istream& is)
     };
     cout << outp.dump() << endl;
 }
-} // namespace demo_interactor
+}  // namespace demo_interactor
 
 //---------------------------------------------------------------------------//
 /*!

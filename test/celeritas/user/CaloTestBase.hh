@@ -29,7 +29,7 @@ class CaloTestBase : virtual public StepCollectorTestBase
 {
   public:
     using VecPrimary = std::vector<Primary>;
-    using VecString  = std::vector<std::string>;
+    using VecString = std::vector<std::string>;
 
     struct RunResult
     {
@@ -50,9 +50,9 @@ class CaloTestBase : virtual public StepCollectorTestBase
 
   protected:
     std::shared_ptr<ExampleCalorimeters> example_calos_;
-    std::shared_ptr<StepCollector>       collector_;
+    std::shared_ptr<StepCollector> collector_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

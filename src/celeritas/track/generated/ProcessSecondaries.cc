@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void process_secondaries(
-    const CoreHostRef& core_data)
+    CoreHostRef const& core_data)
 {
     MultiExceptionHandler capture_exception;
     detail::ProcessSecondariesLauncher<MemSpace::host> launch(core_data);
@@ -30,5 +30,5 @@ void process_secondaries(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

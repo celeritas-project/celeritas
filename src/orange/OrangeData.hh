@@ -57,18 +57,18 @@ struct VolumeRecord
     ItemRange<SurfaceId> faces;
     ItemRange<logic_int> logic;
 
-    logic_int     max_intersections{0};
-    logic_int     flags{0};
-    UniverseId    daughter;
+    logic_int max_intersections{0};
+    logic_int flags{0};
+    UniverseId daughter;
     TranslationId daughter_translation;
     // TODO (KENO geometry): zorder
 
     //! Flag values (bit field)
     enum Flags : logic_int
     {
-        internal_surfaces = 0x1, //!< "Complex" distance-to-boundary
-        implicit_vol      = 0x2, //!< Background/exterior volume
-        simple_safety     = 0x4, //!< Fast safety calculation
+        internal_surfaces = 0x1,  //!< "Complex" distance-to-boundary
+        implicit_vol = 0x2,  //!< Background/exterior volume
+        simple_safety = 0x4,  //!< Fast safety calculation
         embedded_universe = 0x8  //!< Volume contains embeddded universe
     };
 };
@@ -94,7 +94,7 @@ struct SurfacesRecord
     using RealId = OpaqueId<real_type>;
 
     ItemRange<SurfaceType> types;
-    ItemRange<RealId>      data_offsets;
+    ItemRange<RealId> data_offsets;
 
     //! Number of surfaces stored
     CELER_FUNCTION size_type size() const { return types.size(); }
@@ -127,8 +127,8 @@ struct SimpleUnitRecord
     using VolumeRecordRange = Range<VolumeId>;
 
     // Surface data
-    SurfacesRecord          surfaces;
-    ItemRange<Connectivity> connectivity; // Index by SurfaceId
+    SurfacesRecord surfaces;
+    ItemRange<Connectivity> connectivity;  // Index by SurfaceId
 
     // Volume data [index by VolumeId]
     VolumeRecordRange volumes;
@@ -138,8 +138,8 @@ struct SimpleUnitRecord
 
     // TODO: transforms
     // TODO: acceleration structure (bvh/kdtree/grid)
-    VolumeId background{}; //!< Default if not in any other volume
-    bool     simple_safety{};
+    VolumeId background{};  //!< Default if not in any other volume
+    bool simple_safety{};
 
     //! True if defined
     explicit CELER_FUNCTION operator bool() const
@@ -163,12 +163,12 @@ struct UnitIndexerData
     Collection<size_type, W, M> volumes;
 
     template<Ownership W2, MemSpace M2>
-    UnitIndexerData& operator=(const UnitIndexerData<W2, M2>& other)
+    UnitIndexerData& operator=(UnitIndexerData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 
         surfaces = other.surfaces;
-        volumes  = other.volumes;
+        volumes = other.volumes;
 
         CELER_ENSURE(*this);
         return *this;
@@ -201,7 +201,7 @@ struct OrangeParamsData
     using UnivItems = Collection<T, W, M, UniverseId>;
     template<class T>
     using VolumeItems = Collection<T, W, M, VolumeId>;
-    using RealId      = OpaqueId<real_type>;
+    using RealId = OpaqueId<real_type>;
 
     //// DATA ////
 
@@ -210,19 +210,19 @@ struct OrangeParamsData
 
     // High-level universe definitions
     UnivItems<UniverseType> universe_type;
-    UnivItems<size_type>    universe_index;
+    UnivItems<size_type> universe_index;
     Items<SimpleUnitRecord> simple_unit;
 
     // Low-level storage
-    Items<SurfaceId>          surface_ids;
-    Items<VolumeId>           volume_ids;
-    Items<RealId>             real_ids;
-    Items<logic_int>          logic_ints;
-    Items<real_type>          reals;
-    Items<SurfaceType>        surface_types;
-    Items<Connectivity>       connectivities;
+    Items<SurfaceId> surface_ids;
+    Items<VolumeId> volume_ids;
+    Items<RealId> real_ids;
+    Items<logic_int> logic_ints;
+    Items<real_type> reals;
+    Items<SurfaceType> surface_types;
+    Items<Connectivity> connectivities;
     VolumeItems<VolumeRecord> volume_records;
-    Items<Translation>        translations;
+    Items<Translation> translations;
 
     UnitIndexerData<W, M> unit_indexer_data;
 
@@ -240,23 +240,23 @@ struct OrangeParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    OrangeParamsData& operator=(const OrangeParamsData<W2, M2>& other)
+    OrangeParamsData& operator=(OrangeParamsData<W2, M2> const& other)
     {
         scalars = other.scalars;
 
-        universe_type  = other.universe_type;
+        universe_type = other.universe_type;
         universe_index = other.universe_index;
-        simple_unit    = other.simple_unit;
+        simple_unit = other.simple_unit;
 
-        surface_ids       = other.surface_ids;
-        volume_ids        = other.volume_ids;
-        real_ids          = other.real_ids;
-        logic_ints        = other.logic_ints;
-        reals             = other.reals;
-        surface_types     = other.surface_types;
-        connectivities    = other.connectivities;
-        volume_records    = other.volume_records;
-        translations      = other.translations;
+        surface_ids = other.surface_ids;
+        volume_ids = other.volume_ids;
+        real_ids = other.real_ids;
+        logic_ints = other.logic_ints;
+        reals = other.reals;
+        surface_types = other.surface_types;
+        connectivities = other.connectivities;
+        volume_records = other.volume_records;
+        translations = other.translations;
         unit_indexer_data = other.unit_indexer_data;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
@@ -283,20 +283,20 @@ struct OrangeStateData
     //// DATA ////
 
     // For each track, one per max_level
-    StateItems<Real3>    pos;
-    StateItems<Real3>    dir;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
     StateItems<VolumeId> vol;
 
     // Surface crossing
-    StateItems<SurfaceId>      surf;
-    StateItems<Sense>          sense;
+    StateItems<SurfaceId> surf;
+    StateItems<Sense> sense;
     StateItems<BoundaryResult> boundary;
 
     // Scratch space
-    Items<Sense>     temp_sense;    // [track][max_faces]
-    Items<FaceId>    temp_face;     // [track][max_intersections]
-    Items<real_type> temp_distance; // [track][max_intersections]
-    Items<size_type> temp_isect;    // [track][max_intersections]
+    Items<Sense> temp_sense;  // [track][max_faces]
+    Items<FaceId> temp_face;  // [track][max_intersections]
+    Items<real_type> temp_distance;  // [track][max_intersections]
+    Items<size_type> temp_isect;  // [track][max_intersections]
 
     //// METHODS ////
 
@@ -326,17 +326,17 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        pos      = other.pos;
-        dir      = other.dir;
-        vol      = other.vol;
-        surf     = other.surf;
-        sense    = other.sense;
+        pos = other.pos;
+        dir = other.dir;
+        vol = other.vol;
+        surf = other.surf;
+        sense = other.sense;
         boundary = other.boundary;
 
-        temp_sense    = other.temp_sense;
-        temp_face     = other.temp_face;
+        temp_sense = other.temp_sense;
+        temp_face = other.temp_face;
         temp_distance = other.temp_distance;
-        temp_isect    = other.temp_isect;
+        temp_isect = other.temp_isect;
 
         CELER_ENSURE(*this);
         return *this;
@@ -349,8 +349,8 @@ struct OrangeStateData
  */
 template<MemSpace M>
 inline void resize(OrangeStateData<Ownership::value, M>* data,
-                   const HostCRef<OrangeParamsData>&     params,
-                   size_type                             size)
+                   HostCRef<OrangeParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
@@ -373,4 +373,4 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

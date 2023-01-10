@@ -18,8 +18,8 @@ namespace celeritas
 namespace generated
 {
 void init_tracks(
-    const CoreHostRef& core_data,
-    const size_type num_vacancies)
+    CoreHostRef const& core_data,
+    size_type const num_vacancies)
 {
     MultiExceptionHandler capture_exception;
     detail::InitTracksLauncher<MemSpace::host> launch(core_data, num_vacancies);
@@ -31,5 +31,5 @@ void init_tracks(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

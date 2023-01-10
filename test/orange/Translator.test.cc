@@ -35,5 +35,5 @@ TEST_F(TranslatorTest, up)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

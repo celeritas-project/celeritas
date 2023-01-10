@@ -59,7 +59,7 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::device>;
 template<>
 struct VecgeomNavCollection<Ownership::value, MemSpace::host>
 {
-    using NavState   = vecgeom::cxx::NavigationState;
+    using NavState = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
 
     std::vector<UPNavState> nav_state;
@@ -77,7 +77,7 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::host>
 template<>
 struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 {
-    using NavState   = vecgeom::cxx::NavigationState;
+    using NavState = vecgeom::cxx::NavigationState;
     using UPNavState = std::unique_ptr<NavState>;
 
     Span<UPNavState> nav_state;
@@ -121,9 +121,9 @@ struct VecgeomNavCollection<Ownership::value, MemSpace::device>
         = std::unique_ptr<vecgeom::cxx::NavStatePool, NavStatePoolDeleter>;
 
     UPNavStatePool pool;
-    void*          ptr       = nullptr;
-    int            max_depth = 0;
-    size_type      size      = 0;
+    void* ptr = nullptr;
+    int max_depth = 0;
+    size_type size = 0;
 
     // Resize based on geometry params and state size
     void resize(int max_depth, size_type size);
@@ -178,5 +178,5 @@ VecgeomNavCollection<Ownership::reference, MemSpace::device>::at(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

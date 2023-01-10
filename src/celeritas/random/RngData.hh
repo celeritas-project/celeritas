@@ -20,7 +20,7 @@ template<Ownership W, MemSpace M>
 using RngParamsData = CuHipRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = CuHipRngStateData<W, M>;
-} // namespace celeritas
+}  // namespace celeritas
 #elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
 #    include "XorwowRngData.hh"
 namespace celeritas
@@ -29,6 +29,6 @@ template<Ownership W, MemSpace M>
 using RngParamsData = XorwowRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = XorwowRngStateData<W, M>;
-} // namespace celeritas
+}  // namespace celeritas
 #endif
 // IWYU pragma: end_exports

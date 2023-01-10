@@ -42,5 +42,5 @@ inline void RootDeleter<T>::operator()(T*) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

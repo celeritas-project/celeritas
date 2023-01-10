@@ -46,12 +46,12 @@ class InitTracksLauncher
     //!@{
     //! Type aliases
     using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef  = CoreStateData<Ownership::reference, M>;
+    using StateRef = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION InitTracksLauncher(const CoreRef<M>& core_data,
+    CELER_FUNCTION InitTracksLauncher(CoreRef<M> const& core_data,
                                       size_type /* num_vacancies */)
         : params_(core_data.params), states_(core_data.states)
     {
@@ -63,8 +63,8 @@ class InitTracksLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef& params_;
-    const StateRef&  states_;
+    ParamsRef const& params_;
+    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -78,8 +78,8 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
-    const auto&             data = states_.init;
-    const TrackInitializer& init
+    auto const& data = states_.init;
+    TrackInitializer const& init
         = data.initializers[from_back(data.initializers.size(), tid)];
 
     // Thread ID of vacant track where the new track will be initialized
@@ -123,7 +123,7 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
         }
 
         // Initialize the material
-        GeoMaterialView   geo_mat(params_.geo_mats);
+        GeoMaterialView geo_mat(params_.geo_mats);
         MaterialTrackView mat(params_.materials, states_.materials, vacancy);
         mat = {geo_mat.material_id(geo.volume_id())};
     }
@@ -137,5 +137,5 @@ CELER_FUNCTION void InitTracksLauncher<M>::operator()(ThreadId tid) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

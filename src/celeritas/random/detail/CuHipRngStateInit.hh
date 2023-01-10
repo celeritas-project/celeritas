@@ -34,7 +34,7 @@ struct CuHipRngInitData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CuHipRngInitData& operator=(const CuHipRngInitData<W2, M2>& other)
+    CuHipRngInitData& operator=(CuHipRngInitData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         seeds = other.seeds;
@@ -44,24 +44,24 @@ struct CuHipRngInitData
 
 //---------------------------------------------------------------------------//
 // Initialize the RNG state on host/device
-void rng_state_init(const DeviceRef<CuHipRngStateData>& rng,
-                    const DeviceCRef<CuHipRngInitData>& seeds);
+void rng_state_init(DeviceRef<CuHipRngStateData> const& rng,
+                    DeviceCRef<CuHipRngInitData> const& seeds);
 
-void rng_state_init(const HostRef<CuHipRngStateData>& rng,
-                    const HostCRef<CuHipRngInitData>& seeds);
+void rng_state_init(HostRef<CuHipRngStateData> const& rng,
+                    HostCRef<CuHipRngInitData> const& seeds);
 
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-inline void rng_state_init(const DeviceRef<CuHipRngStateData>&,
-                           const DeviceCRef<CuHipRngInitData>&)
+inline void rng_state_init(DeviceRef<CuHipRngStateData> const&,
+                           DeviceCRef<CuHipRngInitData> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

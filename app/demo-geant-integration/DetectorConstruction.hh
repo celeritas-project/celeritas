@@ -28,12 +28,12 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     DetectorConstruction();
 
     G4VPhysicalVolume* Construct() final;
-    void               ConstructSDandField() final;
+    void ConstructSDandField() final;
 
   private:
-    std::unique_ptr<G4VPhysicalVolume>                    world_;
+    std::unique_ptr<G4VPhysicalVolume> world_;
     std::vector<std::pair<G4LogicalVolume*, std::string>> detectors_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

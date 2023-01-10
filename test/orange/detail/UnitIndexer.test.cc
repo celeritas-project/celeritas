@@ -26,7 +26,7 @@ class UnitIndexerTest : public Test
         = UnitIndexerData<Ownership::const_reference, MemSpace::host>;
     using VecSize = std::vector<size_type>;
 
-    const CollectionHostRef& host_ref() const { return data_.host(); }
+    CollectionHostRef const& host_ref() const { return data_.host(); }
 
     void set_data(VecSize surfaces, VecSize volumes)
     {
@@ -103,7 +103,7 @@ TEST_F(UnitIndexerTest, multi)
     const std::vector<size_type> cells_per_uni{1, 1, 1, 2};
 
     std::vector<size_type> surfaces = {0, 4, 5, 5, 6};
-    std::vector<size_type> volumes  = {0, 1, 2, 3, 5};
+    std::vector<size_type> volumes = {0, 1, 2, 3, 5};
 
     this->set_data(surfaces, volumes);
     UnitIndexer indexer(this->host_ref());
@@ -143,5 +143,5 @@ TEST_F(UnitIndexerTest, multi)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

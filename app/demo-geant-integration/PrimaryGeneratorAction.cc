@@ -35,7 +35,7 @@ HepMC3PrimaryGenerator& shared_reader()
     return reader;
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,4 +60,4 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

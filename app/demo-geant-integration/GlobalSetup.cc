@@ -31,7 +31,7 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
-    options_   = std::make_shared<SetupOptions>();
+    options_ = std::make_shared<SetupOptions>();
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");
 
@@ -123,4 +123,4 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 GlobalSetup::~GlobalSetup() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

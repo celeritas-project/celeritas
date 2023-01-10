@@ -36,7 +36,7 @@ class ExponentialDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = RealType;
     //!@}
 
@@ -80,4 +80,4 @@ CELER_FUNCTION auto ExponentialDistribution<RT>::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

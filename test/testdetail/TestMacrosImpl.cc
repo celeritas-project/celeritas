@@ -29,8 +29,8 @@ int num_digits(unsigned long val)
     if (val == 0)
         return 1;
 
-    int           result = 0;
-    unsigned long cur    = 1;
+    int result = 0;
+    unsigned long cur = 1;
 
     while (cur <= val)
     {
@@ -47,8 +47,8 @@ int num_digits(unsigned long val)
  *
  * where too long means > digits digits.
  */
-const char*
-trunc_string(unsigned int digits, const char* str, const char* trunc)
+char const*
+trunc_string(unsigned int digits, char const* str, char const* trunc)
 {
     CELER_EXPECT(str && trunc);
     CELER_EXPECT(digits > 0);
@@ -62,5 +62,5 @@ trunc_string(unsigned int digits, const char* str, const char* trunc)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

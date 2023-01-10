@@ -21,4 +21,4 @@ class OrangeParams;
 using GeoParams = OrangeParams;
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

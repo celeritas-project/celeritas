@@ -30,19 +30,19 @@ namespace celeritas
  */
 enum class ImportTableType
 {
-    dedx,         //!< Energy loss summed over processes
-    dedx_process, //!< Energy loss table for a process
+    dedx,  //!< Energy loss summed over processes
+    dedx_process,  //!< Energy loss table for a process
     dedx_subsec,
     dedx_unrestricted,
     ionization,
     ionization_subsec,
-    csda_range, //!< Continuous slowing down approximation
+    csda_range,  //!< Continuous slowing down approximation
     range,
     secondary_range,
-    inverse_range, //!< Inverse mapping of range: (range -> energy)
-    lambda,        //!< Macroscopic cross section
-    sublambda,     //!< For subcutoff regions
-    lambda_prim,   //!< Cross section scaled by energy
+    inverse_range,  //!< Inverse mapping of range: (range -> energy)
+    lambda,  //!< Macroscopic cross section
+    sublambda,  //!< For subcutoff regions
+    lambda_prim,  //!< Cross section scaled by energy
 };
 
 //---------------------------------------------------------------------------//
@@ -51,12 +51,12 @@ enum class ImportTableType
  */
 enum class ImportUnits
 {
-    none,       //!< Unitless
-    mev,        //!< Energy [MeV]
-    mev_per_cm, //!< Energy loss [MeV/cm]
-    cm,         //!< Range [cm]
-    cm_inv,     //!< Macroscopic xs [1/cm]
-    cm_mev_inv, //!< Macroscopic xs divided by energy [1/cm-MeV]
+    none,  //!< Unitless
+    mev,  //!< Energy [MeV]
+    mev_per_cm,  //!< Energy loss [MeV/cm]
+    cm,  //!< Range [cm]
+    cm_inv,  //!< Macroscopic xs [1/cm]
+    cm_mev_inv,  //!< Macroscopic xs divided by energy [1/cm-MeV]
 };
 
 //---------------------------------------------------------------------------//
@@ -65,9 +65,9 @@ enum class ImportUnits
  */
 struct ImportPhysicsTable
 {
-    ImportTableType                  table_type;
-    ImportUnits                      x_units{ImportUnits::none};
-    ImportUnits                      y_units{ImportUnits::none};
+    ImportTableType table_type;
+    ImportUnits x_units{ImportUnits::none};
+    ImportUnits y_units{ImportUnits::none};
     std::vector<ImportPhysicsVector> physics_vectors;
 };
 
@@ -75,8 +75,8 @@ struct ImportPhysicsTable
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-const char* to_cstring(ImportTableType value);
-const char* to_cstring(ImportUnits value);
+char const* to_cstring(ImportTableType value);
+char const* to_cstring(ImportUnits value);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

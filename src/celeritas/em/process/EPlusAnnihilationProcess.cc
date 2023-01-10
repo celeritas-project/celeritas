@@ -25,7 +25,7 @@ namespace celeritas
  * Construct from host data.
  */
 EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
-                                                   Options          options)
+                                                   Options options)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
     , options_(options)
@@ -69,4 +69,4 @@ std::string EPlusAnnihilationProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

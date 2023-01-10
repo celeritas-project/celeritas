@@ -23,8 +23,8 @@ namespace celeritas
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                                            SPConstMaterials materials,
-                                           SPConstImported  process_data,
-                                           ReadData         load_data)
+                                           SPConstImported process_data,
+                                           ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -68,4 +68,4 @@ std::string PhotoelectricProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

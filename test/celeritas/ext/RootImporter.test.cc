@@ -53,7 +53,7 @@ class RootImporterTest : public Test
     }
 
     std::string root_filename_;
-    ImportData  data_;
+    ImportData data_;
 
     ScopedRootErrorHandler scoped_root_error_;
 };
@@ -63,13 +63,13 @@ class RootImporterTest : public Test
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, particles)
 {
-    const auto& particles = data_.particles;
+    auto const& particles = data_.particles;
     EXPECT_EQ(3, particles.size());
 
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
-    std::vector<int>         loaded_pdgs;
-    for (const auto& particle : particles)
+    std::vector<int> loaded_pdgs;
+    for (auto const& particle : particles)
     {
         loaded_names.push_back(particle.name);
         loaded_pdgs.push_back(particle.pdg);
@@ -89,39 +89,39 @@ TEST_F(RootImporterTest, particles)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, elements)
 {
-    const auto& elements = data_.elements;
+    auto const& elements = data_.elements;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
-    for (const auto& element : elements)
+    for (auto const& element : elements)
     {
         names.push_back(element.name);
     }
 
-    static const char* expected_names[] = {"Fe", "Cr", "Ni", "H"};
+    static char const* expected_names[] = {"Fe", "Cr", "Ni", "H"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, materials)
 {
-    const auto& materials = data_.materials;
+    auto const& materials = data_.materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
-    for (const auto& material : materials)
+    for (auto const& material : materials)
     {
         names.push_back(material.name);
     }
 
-    static const char* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, processes)
 {
-    const auto& processes = data_.processes;
+    auto const& processes = data_.processes;
     EXPECT_EQ(10, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
@@ -144,28 +144,28 @@ TEST_F(RootImporterTest, processes)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, volumes)
 {
-    const auto& volumes = data_.volumes;
+    auto const& volumes = data_.volumes;
     EXPECT_EQ(5, volumes.size());
 
     std::vector<unsigned int> material_ids;
-    std::vector<std::string>  names, solids;
+    std::vector<std::string> names, solids;
 
-    for (const auto& volume : volumes)
+    for (auto const& volume : volumes)
     {
         material_ids.push_back(volume.material_id);
         names.push_back(volume.name);
         solids.push_back(volume.solid_name);
     }
 
-    const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
+    unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
 
-    static const char* expected_names[] = {"box0x125555be0",
+    static char const* expected_names[] = {"box0x125555be0",
                                            "box0x125556d20",
                                            "box0x125557160",
                                            "box0x1255575a0",
                                            "World0x125555f10"};
 
-    static const char* expected_solids[] = {"box0x125555b70",
+    static char const* expected_solids[] = {"box0x125555b70",
                                             "box0x125556c70",
                                             "box0x1255570a0",
                                             "box0x125557500",
@@ -177,5 +177,5 @@ TEST_F(RootImporterTest, volumes)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -20,7 +20,7 @@ class StepCollectorTestBase : virtual public GlobalTestBase
     //!@{
     //! \name Type aliases
     using VecPrimary = std::vector<Primary>;
-    using VecString  = std::vector<std::string>;
+    using VecString = std::vector<std::string>;
     //!@}
 
   public:
@@ -28,5 +28,5 @@ class StepCollectorTestBase : virtual public GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -8,7 +8,7 @@
 #pragma once
 
 #include <atomic>
-#include <iosfwd> // IWYU pragma: keep
+#include <iosfwd>  // IWYU pragma: keep
 #include <memory>
 #include <mutex>
 #include <string>
@@ -36,9 +36,9 @@ struct KernelProfiling
 //---------------------------------------------------------------------------//
 struct KernelMetadata
 {
-    std::string      name;
+    std::string name;
     KernelAttributes attributes;
-    KernelProfiling  profiling;
+    KernelProfiling profiling;
 };
 
 //! Ordered identifiers for registered kernels
@@ -72,7 +72,7 @@ class KernelRegistry
     //// CONSTRUCTION ////
 
     // Register a kernel and return optional reference to profiling info
-    KernelProfiling* insert(const char* name, KernelAttributes&& attrs);
+    KernelProfiling* insert(char const* name, KernelAttributes&& attrs);
 
     //// ACCESSORS ////
 
@@ -80,13 +80,13 @@ class KernelRegistry
     KernelId::size_type num_kernels() const;
 
     // Access kernel data for a single kernel
-    const KernelMetadata& kernel(KernelId id) const;
+    KernelMetadata const& kernel(KernelId id) const;
 
   private:
     using UPKM = std::unique_ptr<KernelMetadata>;
 
     mutable std::mutex kernels_mutex_;
-    std::vector<UPKM>  kernels_;
+    std::vector<UPKM> kernels_;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ class KernelRegistry
 KernelRegistry& kernel_registry();
 
 // Write kernel statistics to a stream
-std::ostream& operator<<(std::ostream& os, const KernelMetadata& md);
+std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -115,4 +115,4 @@ void KernelProfiling::log_launch(int num_threads)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

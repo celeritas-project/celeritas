@@ -45,22 +45,22 @@ class RelativisticBremInteractor
   public:
     //!@{
     //! Type aliases
-    using Energy      = units::MevEnergy;
-    using Momentum    = units::MevMomentum;
+    using Energy = units::MevEnergy;
+    using Momentum = units::MevMomentum;
     using ElementData = RelBremElementData;
-    using ItemIdT     = celeritas::ItemId<unsigned int>;
+    using ItemIdT = celeritas::ItemId<unsigned int>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    RelativisticBremInteractor(const RelativisticBremRef& shared,
-                               const ParticleTrackView&   particle,
-                               const Real3&               direction,
-                               const CutoffView&          cutoffs,
+    RelativisticBremInteractor(RelativisticBremRef const& shared,
+                               ParticleTrackView const& particle,
+                               Real3 const& direction,
+                               CutoffView const& cutoffs,
                                StackAllocator<Secondary>& allocate,
-                               const MaterialView&        material,
-                               const ElementComponentId&  elcomp_id);
+                               MaterialView const& material,
+                               ElementComponentId const& elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -70,13 +70,13 @@ class RelativisticBremInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const RelativisticBremRef& shared_;
+    RelativisticBremRef const& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle momentum
     const Momentum inc_momentum_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
@@ -98,13 +98,13 @@ class RelativisticBremInteractor
  */
 CELER_FUNCTION
 RelativisticBremInteractor::RelativisticBremInteractor(
-    const RelativisticBremRef& shared,
-    const ParticleTrackView&   particle,
-    const Real3&               direction,
-    const CutoffView&          cutoffs,
+    RelativisticBremRef const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& direction,
+    CutoffView const& cutoffs,
     StackAllocator<Secondary>& allocate,
-    const MaterialView&        material,
-    const ElementComponentId&  elcomp_id)
+    MaterialView const& material,
+    ElementComponentId const& elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
@@ -149,4 +149,4 @@ CELER_FUNCTION Interaction RelativisticBremInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

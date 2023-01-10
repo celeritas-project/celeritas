@@ -41,13 +41,13 @@ TEST(ArrayTest, all)
     EXPECT_EQ(3, x[1]);
     EXPECT_EQ(static_cast<void*>(&x), x.data());
 
-    const auto& cx = x;
+    auto const& cx = x;
     EXPECT_FALSE(cx.empty());
     EXPECT_EQ(3, cx.size());
     EXPECT_EQ(1, cx.front());
     EXPECT_EQ(2, cx.back());
     EXPECT_EQ(3, cx[1]);
-    EXPECT_EQ(static_cast<const void*>(&x), cx.data());
+    EXPECT_EQ(static_cast<void const*>(&x), cx.data());
 
     Array<int, 3> y{20, 30, 40};
     EXPECT_EQ(x, x);
@@ -81,5 +81,5 @@ TEST(EnumArrayTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

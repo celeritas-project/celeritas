@@ -82,5 +82,5 @@ std::string MockModel::description() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

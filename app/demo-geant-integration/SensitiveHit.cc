@@ -34,7 +34,7 @@ auto SensitiveHit::allocator() -> HitAllocator&
 /*!
  * Constructor.
  */
-SensitiveHit::SensitiveHit(const HitData& data) : G4VHit(), data_{data} {}
+SensitiveHit::SensitiveHit(HitData const& data) : G4VHit(), data_{data} {}
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

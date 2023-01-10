@@ -39,11 +39,11 @@ inline CELER_FUNCTION Interaction foo_interact(
 template<class D, class F>
 CELER_FUNCTION detail::InteractionLauncherImpl<D, F>
 make_interaction_launcher(CoreRef<MemSpace::native> const& core_data,
-                          D const&                         model_data,
-                          F&&                              call_with_track)
+                          D const& model_data,
+                          F&& call_with_track)
 {
     return {core_data, model_data, ::celeritas::forward<F>(call_with_track)};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -35,7 +35,7 @@ bin_energy_kernel(const CoreStateDeviceRef states, PointersDevice pointers)
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(const CoreStateDeviceRef& states, PointersDevice& pointers)
+void bin_energy(CoreStateDeviceRef const& states, PointersDevice& pointers)
 {
     CELER_LAUNCH_KERNEL(bin_energy,
                         celeritas::device().default_block_size(),
@@ -44,4 +44,4 @@ void bin_energy(const CoreStateDeviceRef& states, PointersDevice& pointers)
                         pointers);
 }
 
-} // namespace demo_loop
+}  // namespace demo_loop

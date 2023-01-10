@@ -24,20 +24,20 @@ class EPlusAnnihilationProcess final : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
     // Options for electron-positron annihilation
     struct Options
     {
-        bool use_integral_xs{true}; //!> Use integral method for sampling
-                                    //! discrete interaction length
+        bool use_integral_xs{true};  //!> Use integral method for sampling
+                                     //! discrete interaction length
     };
 
   public:
     // Construct from particle data
     explicit EPlusAnnihilationProcess(SPConstParticles particles,
-                                      Options          options);
+                                      Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -53,9 +53,9 @@ class EPlusAnnihilationProcess final : public Process
 
   private:
     SPConstParticles particles_;
-    ParticleId       positron_id_;
-    Options          options_;
+    ParticleId positron_id_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

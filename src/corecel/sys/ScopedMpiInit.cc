@@ -76,7 +76,7 @@ ScopedMpiInit::~ScopedMpiInit()
         {
             CELER_MPI_CALL(MPI_Finalize());
         }
-        catch (const RuntimeError& e)
+        catch (RuntimeError const& e)
         {
             std::cerr << "During destruction of scoped MPI initialization: "
                       << e.what() << std::endl;
@@ -122,4 +122,4 @@ auto ScopedMpiInit::status() -> Status
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

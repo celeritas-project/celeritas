@@ -23,11 +23,11 @@ namespace celeritas
 struct ImportElement
 {
     std::string name;
-    int         atomic_number;
-    double      atomic_mass;           //!< [atomic mass unit]
-    double      radiation_length_tsai; //!< [g/cm^2]
-    double      coulomb_factor;
+    int atomic_number;
+    double atomic_mass;  //!< [atomic mass unit]
+    double radiation_length_tsai;  //!< [g/cm^2]
+    double coulomb_factor;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

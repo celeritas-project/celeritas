@@ -46,7 +46,7 @@ class MagFieldEquation
     MagFieldEquation(FieldT&& field, units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
-    inline CELER_FUNCTION OdeState operator()(const OdeState& y) const;
+    inline CELER_FUNCTION OdeState operator()(OdeState const& y) const;
 
   private:
     // Field evaluator
@@ -64,7 +64,7 @@ class MagFieldEquation
  */
 template<class FieldT>
 CELER_FUNCTION
-MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
+MagFieldEquation<FieldT>::MagFieldEquation(FieldT&& field,
                                            units::ElementaryCharge charge)
     : calc_field_(::celeritas::forward<FieldT>(field))
     , coeffi_{native_value_from(charge)
@@ -89,7 +89,7 @@ MagFieldEquation<FieldT>::MagFieldEquation(FieldT&&                field,
  */
 template<class FieldT>
 CELER_FUNCTION auto
-MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
+MagFieldEquation<FieldT>::operator()(OdeState const& y) const -> OdeState
 {
     CELER_EXPECT(y.mom[0] != 0 || y.mom[1] != 0 || y.mom[2] != 0);
     real_type momentum_inv = celeritas::rsqrt(dot_product(y.mom, y.mom));
@@ -108,4 +108,4 @@ MagFieldEquation<FieldT>::operator()(const OdeState& y) const -> OdeState
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

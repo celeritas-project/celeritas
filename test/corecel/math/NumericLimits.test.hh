@@ -24,7 +24,7 @@ struct NLTestOutput
     T nan;
     T inf;
     T max;
-    T inv_zero; // Test for expected infinity
+    T inv_zero;  // Test for expected infinity
 };
 
 //---------------------------------------------------------------------------//
@@ -41,5 +41,5 @@ inline NLTestOutput<T> nl_test()
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

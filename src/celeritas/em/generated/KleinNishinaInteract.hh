@@ -19,21 +19,21 @@ namespace celeritas
 namespace generated
 {
 void klein_nishina_interact(
-    const celeritas::KleinNishinaHostRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::host>&);
+    celeritas::KleinNishinaHostRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::host> const&);
 
 void klein_nishina_interact(
-    const celeritas::KleinNishinaDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&);
+    celeritas::KleinNishinaDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
 inline void klein_nishina_interact(
-    const celeritas::KleinNishinaDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&)
+    celeritas::KleinNishinaDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

@@ -70,7 +70,7 @@ struct CuHipRngParamsData<W, MemSpace::device>
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CuHipRngParamsData& operator=(const CuHipRngParamsData<W2, M2>&)
+    CuHipRngParamsData& operator=(CuHipRngParamsData<W2, M2> const&)
     {
         return *this;
     }
@@ -90,7 +90,7 @@ struct CuHipRngParamsData<W, MemSpace::host>
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CuHipRngParamsData& operator=(const CuHipRngParamsData<W2, M2>& other)
+    CuHipRngParamsData& operator=(CuHipRngParamsData<W2, M2> const& other)
     {
         seed = other.seed;
         return *this;
@@ -146,7 +146,7 @@ struct CuHipRngStateData
  */
 template<MemSpace M>
 void resize(CuHipRngStateData<Ownership::value, M>* state,
-            const HostCRef<CuHipRngParamsData>&     params,
-            size_type                               size);
+            HostCRef<CuHipRngParamsData> const& params,
+            size_type size);
 
-} // namespace celeritas
+}  // namespace celeritas

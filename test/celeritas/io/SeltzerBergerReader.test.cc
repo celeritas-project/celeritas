@@ -17,7 +17,7 @@ namespace test
 
 TEST(SeltzerBergerReaderTest, read)
 {
-    const double log_incident_energy[]
+    double const log_incident_energy[]
         = {-6.9078,  -6.5023,  -6.2146,  -5.8091, -5.5215, -5.2983, -5.116,
            -4.8283,  -4.6052,  -4.1997,  -3.912,  -3.5066, -3.2189, -2.9957,
            -2.8134,  -2.5257,  -2.3026,  -1.8971, -1.6094, -1.204,  -0.91629,
@@ -27,14 +27,14 @@ TEST(SeltzerBergerReaderTest, read)
            5.2983,   5.7038,   5.9915,   6.2146,  6.3969,  6.6846,  6.9078,
            7.3132,   7.6009,   8.0064,   8.294,   8.5172,  8.6995,  8.9872,
            9.2103};
-    const double exiting_efrac[]
+    double const exiting_efrac[]
         = {1e-12, 0.025, 0.05,  0.075,  0.1,    0.15,    0.2,     0.25,
            0.3,   0.35,  0.4,   0.45,   0.5,    0.55,    0.6,     0.65,
            0.7,   0.75,  0.8,   0.85,   0.9,    0.925,   0.95,    0.97,
            0.99,  0.995, 0.999, 0.9995, 0.9999, 0.99995, 0.99999, 1};
 
     SeltzerBergerReader read_sb;
-    const auto          result = read_sb(AtomicNumber{1}); // Hydrogen
+    auto const result = read_sb(AtomicNumber{1});  // Hydrogen
     EXPECT_VEC_SOFT_EQ(log_incident_energy, result.x);
     EXPECT_VEC_SOFT_EQ(exiting_efrac, result.y);
     EXPECT_EQ(1824, result.value.size());
@@ -47,5 +47,5 @@ TEST(SeltzerBergerReaderTest, read)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

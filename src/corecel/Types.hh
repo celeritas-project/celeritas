@@ -43,7 +43,7 @@ enum class MemSpace
     host,
     device,
 #ifdef CELER_DEVICE_SOURCE
-    native = device, // Included by a CUDA/HIP file
+    native = device,  // Included by a CUDA/HIP file
 #else
     native = host,
 #endif
@@ -52,9 +52,9 @@ enum class MemSpace
 //! Data ownership flag
 enum class Ownership
 {
-    value,           //!< Ownership of the data, only on host
-    reference,       //!< Mutable reference to the data
-    const_reference, //!< Immutable reference to the data
+    value,  //!< Ownership of the data, only on host
+    reference,  //!< Mutable reference to the data
+    const_reference,  //!< Immutable reference to the data
 };
 
 #if !defined(SWIG) || SWIG_VERSION > 0x050000
@@ -89,4 +89,4 @@ using NativeRef = S<Ownership::reference, MemSpace::native>;
 //!@}
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

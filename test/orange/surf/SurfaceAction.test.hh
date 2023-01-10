@@ -28,9 +28,9 @@ struct OrangeMiniStateData
     template<class T>
     using StateItems = StateCollection<T, W, M>;
 
-    StateItems<Real3>     pos;
-    StateItems<Real3>     dir;
-    StateItems<Sense>     sense;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
+    StateItems<Sense> sense;
     StateItems<real_type> distance;
 
     //! True if sizes are consistent and nonzero
@@ -49,9 +49,9 @@ struct OrangeMiniStateData
     OrangeMiniStateData& operator=(OrangeMiniStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        pos      = other.pos;
-        dir      = other.dir;
-        sense    = other.sense;
+        pos = other.pos;
+        dir = other.dir;
+        sense = other.sense;
         distance = other.distance;
         CELER_ENSURE(*this);
         return *this;
@@ -67,7 +67,7 @@ struct OrangeMiniStateData
  */
 template<MemSpace M>
 inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
-                   const HostCRef<OrangeParamsData>&,
+                   HostCRef<OrangeParamsData> const&,
                    size_type size)
 {
     CELER_EXPECT(data);
@@ -86,17 +86,17 @@ inline void resize(OrangeMiniStateData<Ownership::value, M>* data,
 //! Calculate the sense of a surface at a given position.
 struct CalcSenseDistance
 {
-    const Real3& pos;
-    const Real3& dir;
-    Sense*       sense;
-    real_type*   distance;
+    Real3 const& pos;
+    Real3 const& dir;
+    Sense* sense;
+    real_type* distance;
 
     template<class S>
     CELER_FUNCTION void operator()(S&& surf)
     {
         // Calculate sense
         auto signed_sense = surf.calc_sense(this->pos);
-        *this->sense      = to_sense(signed_sense);
+        *this->sense = to_sense(signed_sense);
 
         // Calculate nearest distance
         auto intersect = surf.calc_intersections(
@@ -141,10 +141,10 @@ struct CalcSenseDistanceLauncher
 struct SATestInput
 {
     using ParamsRef = DeviceCRef<OrangeParamsData>;
-    using StateRef  = DeviceRef<OrangeMiniStateData>;
+    using StateRef = DeviceRef<OrangeMiniStateData>;
 
     ParamsRef params;
-    StateRef  states;
+    StateRef states;
 };
 
 //---------------------------------------------------------------------------//
@@ -159,5 +159,5 @@ inline void sa_test(SATestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

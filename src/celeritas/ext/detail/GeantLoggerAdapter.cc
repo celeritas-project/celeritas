@@ -49,7 +49,7 @@ GeantLoggerAdapter::~GeantLoggerAdapter()
 /*!
  * Process stdout message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cout(const G4String& str)
+G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
 {
     return this->log_impl(str, LogLevel::diagnostic);
 }
@@ -58,7 +58,7 @@ G4int GeantLoggerAdapter::ReceiveG4cout(const G4String& str)
 /*!
  * Process stderr message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cerr(const G4String& str)
+G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
 {
     return this->log_impl(str, LogLevel::info);
 }
@@ -67,7 +67,7 @@ G4int GeantLoggerAdapter::ReceiveG4cerr(const G4String& str)
 /*!
  * Log the actual message.
  */
-G4int GeantLoggerAdapter::log_impl(const G4String& str, LogLevel level)
+G4int GeantLoggerAdapter::log_impl(G4String const& str, LogLevel level)
 {
     G4String temp(str);
     // Strip trailing whitespace
@@ -85,5 +85,5 @@ G4int GeantLoggerAdapter::log_impl(const G4String& str, LogLevel level)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

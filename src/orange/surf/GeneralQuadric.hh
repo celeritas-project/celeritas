@@ -34,8 +34,8 @@ class GeneralQuadric
   public:
     //@{
     //! Type aliases
-    using Intersections  = Array<real_type, 2>;
-    using Storage        = Span<const real_type, 10>;
+    using Intersections = Array<real_type, 2>;
+    using Storage = Span<const real_type, 10>;
     using SpanConstReal3 = Span<const real_type, 3>;
     //@}
 
@@ -54,10 +54,10 @@ class GeneralQuadric
     //// CONSTRUCTORS ////
 
     // Construct with radius
-    explicit inline CELER_FUNCTION GeneralQuadric(const Real3& abc,
-                                                  const Real3& def,
-                                                  const Real3& ghi,
-                                                  real_type    j);
+    explicit inline CELER_FUNCTION GeneralQuadric(Real3 const& abc,
+                                                  Real3 const& def,
+                                                  Real3 const& ghi,
+                                                  real_type j);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION GeneralQuadric(Storage);
@@ -82,14 +82,14 @@ class GeneralQuadric
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
-    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+    inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
-        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -108,10 +108,10 @@ class GeneralQuadric
 /*!
  * Construct with all coefficients.
  */
-CELER_FUNCTION GeneralQuadric::GeneralQuadric(const Real3& abc,
-                                              const Real3& def,
-                                              const Real3& ghi,
-                                              real_type    j)
+CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
+                                              Real3 const& def,
+                                              Real3 const& ghi,
+                                              real_type j)
     : a_(abc[0])
     , b_(abc[1])
     , c_(abc[2])
@@ -147,7 +147,7 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(Storage data)
 /*!
  * Determine the sense of the position relative to this surface.
  */
-CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(const Real3& pos) const
+CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
 {
     const real_type x = pos[0];
     const real_type y = pos[1];
@@ -164,8 +164,8 @@ CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(const Real3& pos) const
  * Calculate all possible straight-line intersections with this surface.
  */
 CELER_FUNCTION auto
-GeneralQuadric::calc_intersections(const Real3& pos,
-                                   const Real3& dir,
+GeneralQuadric::calc_intersections(Real3 const& pos,
+                                   Real3 const& dir,
                                    SurfaceState on_surface) const
     -> Intersections
 {
@@ -192,7 +192,7 @@ GeneralQuadric::calc_intersections(const Real3& pos,
 /*!
  * Calculate outward normal at a position.
  */
-CELER_FUNCTION Real3 GeneralQuadric::calc_normal(const Real3& pos) const
+CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
 {
     const real_type x = pos[0];
     const real_type y = pos[1];
@@ -208,4 +208,4 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_normal(const Real3& pos) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

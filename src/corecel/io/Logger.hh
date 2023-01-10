@@ -14,7 +14,7 @@
 #include "corecel/io/detail/LoggerMessage.hh"
 
 #include "LoggerTypes.hh"
-#include "detail/LoggerMessage.hh" // IWYU pragma: keep
+#include "detail/LoggerMessage.hh"  // IWYU pragma: keep
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -71,9 +71,9 @@ class Logger
 {
   public:
     // Construct with communicator (only rank zero is active) and handler
-    Logger(const MpiCommunicator& comm,
-           LogHandler             handle,
-           const char*            level_env = nullptr);
+    Logger(MpiCommunicator const& comm,
+           LogHandler handle,
+           char const* level_env = nullptr);
 
     // Create a logger that flushes its contents when it destructs
     inline detail::LoggerMessage operator()(Provenance prov, LogLevel lev);
@@ -86,7 +86,7 @@ class Logger
 
   private:
     LogHandler handle_;
-    LogLevel   min_level_ = LogLevel::status;
+    LogLevel min_level_ = LogLevel::status;
 };
 
 //---------------------------------------------------------------------------//
@@ -117,4 +117,4 @@ Logger& world_logger();
 Logger& self_logger();
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

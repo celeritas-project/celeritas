@@ -48,8 +48,8 @@ TEST_F(UniformRealDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    double                    min = 0.0;
-    double                    max = 5.0;
+    double min = 0.0;
+    double max = 5.0;
     UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);
@@ -62,10 +62,10 @@ TEST_F(UniformRealDistributionTest, bin)
     }
 
     // PRINT_EXPECTED(counters);
-    const int expected_counters[] = {2071, 1955, 1991, 2013, 1970};
+    int const expected_counters[] = {2071, 1955, 1991, 2013, 1970};
     EXPECT_VEC_EQ(expected_counters, counters);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

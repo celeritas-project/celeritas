@@ -48,13 +48,13 @@ OrangeInput to_input(UnitInput u)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert a vector of senses to a string.
  */
-std::string OrangeGeoTestBase::senses_to_string(Span<const Sense> senses)
+std::string OrangeGeoTestBase::senses_to_string(Span<Sense const> senses)
 {
     std::ostringstream os;
     os << '{' << join(senses.begin(), senses.end(), ' ', [](Sense s) {
@@ -67,7 +67,7 @@ std::string OrangeGeoTestBase::senses_to_string(Span<const Sense> senses)
 /*!
  * Convert a string to a vector of senses.
  */
-std::vector<Sense> OrangeGeoTestBase::string_to_senses(const std::string& s)
+std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
 {
     std::vector<Sense> result(s.size());
     std::transform(s.begin(), s.end(), result.begin(), [](char c) {
@@ -85,7 +85,7 @@ OrangeGeoTestBase::~OrangeGeoTestBase() = default;
 /*!
  * Load a geometry from the given JSON filename.
  */
-void OrangeGeoTestBase::build_geometry(const char* filename)
+void OrangeGeoTestBase::build_geometry(char const* filename)
 {
     CELER_EXPECT(!params_);
     CELER_EXPECT(filename);
@@ -176,7 +176,7 @@ void OrangeGeoTestBase::build_geometry(UnitInput input)
 /*!
  * Lazily create and get a single-serving host state.
  */
-auto OrangeGeoTestBase::host_state() -> const HostStateRef&
+auto OrangeGeoTestBase::host_state() -> HostStateRef const&
 {
     CELER_EXPECT(params_);
     if (!host_state_)
@@ -198,12 +198,12 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
     CELER_EXPECT(params_);
 
     // TODO: update when multiple units are in play
-    const auto& host_ref = this->params().host_ref();
+    auto const& host_ref = this->params().host_ref();
     CELER_ASSERT(host_ref.simple_unit.size() == 1);
 
     os << "# Surfaces\n";
     Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
-    auto     surf_to_stream = make_surface_action(surfaces, ToStream{os});
+    auto surf_to_stream = make_surface_action(surfaces, ToStream{os});
 
     // Loop over all surfaces and apply
     for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
@@ -218,7 +218,7 @@ void OrangeGeoTestBase::describe(std::ostream& os) const
 /*!
  * Find the surface from its label (nullptr allowed)
  */
-SurfaceId OrangeGeoTestBase::find_surface(const char* label) const
+SurfaceId OrangeGeoTestBase::find_surface(char const* label) const
 {
     CELER_EXPECT(params_);
     SurfaceId surface_id;
@@ -235,7 +235,7 @@ SurfaceId OrangeGeoTestBase::find_surface(const char* label) const
 /*!
  * Find the volume from its label (nullptr allowed)
  */
-VolumeId OrangeGeoTestBase::find_volume(const char* label) const
+VolumeId OrangeGeoTestBase::find_volume(char const* label) const
 {
     CELER_EXPECT(params_);
     VolumeId volume_id;
@@ -273,5 +273,5 @@ std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

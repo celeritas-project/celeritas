@@ -30,9 +30,9 @@ class ImageStore
     //!@{
     //! Type aliases
     using real_type = celeritas::real_type;
-    using UInt2     = celeritas::Array<unsigned int, 2>;
-    using Real3     = celeritas::Real3;
-    using VecInt    = std::vector<int>;
+    using UInt2 = celeritas::Array<unsigned int, 2>;
+    using Real3 = celeritas::Real3;
+    using VecInt = std::vector<int>;
     //!@}
 
   public:
@@ -50,31 +50,31 @@ class ImageStore
     //// HOST ACCESSORS ////
 
     //! Upper left corner of the image
-    const Real3& origin() const { return origin_; }
+    Real3 const& origin() const { return origin_; }
 
     //! Downward axis (increasing j)
-    const Real3& down_ax() const { return down_ax_; }
+    Real3 const& down_ax() const { return down_ax_; }
 
     //! Rightward axis (increasing i)
-    const Real3& right_ax() const { return right_ax_; }
+    Real3 const& right_ax() const { return right_ax_; }
 
     //! Width of a pixel
     real_type pixel_width() const { return pixel_width_; }
 
     //! Dimensions {j, i} of the image
-    const UInt2& dims() const { return dims_; }
+    UInt2 const& dims() const { return dims_; }
 
     // Copy out the image to the host
     VecInt data_to_host() const;
 
   private:
-    Real3                        origin_;
-    Real3                        down_ax_;
-    Real3                        right_ax_;
-    real_type                    pixel_width_;
-    UInt2                        dims_;
+    Real3 origin_;
+    Real3 down_ax_;
+    Real3 right_ax_;
+    real_type pixel_width_;
+    UInt2 dims_;
     celeritas::DeviceVector<int> image_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

@@ -30,10 +30,10 @@ class BremsstrahlungProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
-    using ReadData         = std::function<ImportSBTable(AtomicNumber)>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using ReadData = std::function<ImportSBTable(AtomicNumber)>;
     //!@}
 
     // Options for the Bremsstrahlung process
@@ -42,19 +42,19 @@ class BremsstrahlungProcess : public Process
     {
         bool combined_model{true};  //!> Use a unified relativistic/SB
                                     //! interactor
-        bool enable_lpm{true};      //!> Account for LPM effect at very high
-                                    //! energies
-        bool use_integral_xs{true}; //!> Use integral method for sampling
-                                    //! discrete interaction length
+        bool enable_lpm{true};  //!> Account for LPM effect at very high
+                                //! energies
+        bool use_integral_xs{true};  //!> Use integral method for sampling
+                                     //! discrete interaction length
     };
 
   public:
     // Construct from Bremsstrahlung data
     BremsstrahlungProcess(SPConstParticles particles,
                           SPConstMaterials materials,
-                          SPConstImported  process_data,
-                          ReadData         load_sb_table,
-                          Options          options);
+                          SPConstImported process_data,
+                          ReadData load_sb_table,
+                          Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -69,12 +69,12 @@ class BremsstrahlungProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
-    SPConstMaterials       materials_;
+    SPConstParticles particles_;
+    SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    ReadData               load_sb_;
-    Options                options_;
+    ReadData load_sb_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

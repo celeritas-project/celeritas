@@ -24,12 +24,12 @@ struct ImageRunArgs
     celeritas::Real3 lower_left;
     celeritas::Real3 upper_right;
     celeritas::Real3 rightward_ax;
-    unsigned int     vertical_pixels;
+    unsigned int vertical_pixels;
 };
 
-void to_json(nlohmann::json& j, const ImageRunArgs& value);
-void from_json(const nlohmann::json& j, ImageRunArgs& value);
+void to_json(nlohmann::json& j, ImageRunArgs const& value);
+void from_json(nlohmann::json const& j, ImageRunArgs& value);
 
-void to_json(nlohmann::json& j, const ImageStore& value);
+void to_json(nlohmann::json& j, ImageStore const& value);
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

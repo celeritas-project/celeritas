@@ -22,13 +22,13 @@ namespace test
 using VecSense = std::vector<Sense>;
 
 constexpr auto lbegin = logic::lbegin;
-constexpr auto ltrue  = logic::ltrue;
-constexpr auto lor    = logic::lor;
-constexpr auto land   = logic::land;
-constexpr auto lnot   = logic::lnot;
-constexpr auto lend   = logic::lend;
+constexpr auto ltrue = logic::ltrue;
+constexpr auto lor = logic::lor;
+constexpr auto land = logic::land;
+constexpr auto lnot = logic::lnot;
+constexpr auto lend = logic::lend;
 
-constexpr auto s_in  = Sense::inside;
+constexpr auto s_in = Sense::inside;
 constexpr auto s_out = Sense::outside;
 
 //---------------------------------------------------------------------------//
@@ -126,6 +126,6 @@ TEST(LogicEvaluatorTest, evaluate)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-} // namespace celeritas
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas

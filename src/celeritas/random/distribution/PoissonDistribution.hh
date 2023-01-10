@@ -51,7 +51,7 @@ class PoissonDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = unsigned int;
     //!@}
 
@@ -67,7 +67,7 @@ class PoissonDistribution
     static CELER_CONSTEXPR_FUNCTION int lambda_threshold() { return 16; }
 
   private:
-    const real_type               lambda_;
+    const real_type lambda_;
     NormalDistribution<real_type> sample_normal_;
 };
 
@@ -97,7 +97,7 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
     if (lambda_ <= PoissonDistribution::lambda_threshold())
     {
         // Use direct method
-        int       k = 0;
+        int k = 0;
         real_type p = std::exp(lambda_);
         do
         {
@@ -110,4 +110,4 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
     return result_type(sample_normal_(rng) + real_type(0.5));
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

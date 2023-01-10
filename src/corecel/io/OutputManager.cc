@@ -21,7 +21,7 @@
 #include "corecel/cont/Range.hh"
 
 #include "JsonPimpl.hh"
-#include "Logger.hh" // IWYU pragma: keep
+#include "Logger.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -38,7 +38,7 @@ void OutputManager::insert(SPConstInterface interface)
     CELER_VALIDATE(!label.empty(), << "empty label for output interface");
 
     Category cat = interface->category();
-    auto     iter_inserted
+    auto iter_inserted
         = interfaces_[cat].insert({std::move(label), std::move(interface)});
     CELER_VALIDATE(iter_inserted.second,
                    << "duplicate output entry '" << iter_inserted.first->first
@@ -57,12 +57,12 @@ void OutputManager::output(JsonPimpl* j) const
     for (auto cat : range(Category::size_))
     {
         nlohmann::json cat_result;
-        for (const auto& kv : interfaces_[cat])
+        for (auto const& kv : interfaces_[cat])
         {
             // Hack for inlining input/result outputs in Transporter: to be
             // removed when the individual interfaces are converted to
             // OutputInterface
-            bool      is_global = (kv.first == "*");
+            bool is_global = (kv.first == "*");
             JsonPimpl json_wrap;
             if (is_global)
             {
@@ -111,4 +111,4 @@ void OutputManager::output(std::ostream* os) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

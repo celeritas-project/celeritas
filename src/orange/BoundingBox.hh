@@ -39,15 +39,15 @@ class BoundingBox
     inline CELER_FUNCTION BoundingBox();
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION BoundingBox(const Real3& lower, const Real3& upper);
+    inline CELER_FUNCTION BoundingBox(Real3 const& lower, Real3 const& upper);
 
     //// ACCESSORS ////
 
     // Lower bbox coordinate
-    CELER_FORCEINLINE_FUNCTION const Real3& lower() const;
+    CELER_FORCEINLINE_FUNCTION Real3 const& lower() const;
 
     // Upper bbox coordinate
-    CELER_FORCEINLINE_FUNCTION const Real3& upper() const;
+    CELER_FORCEINLINE_FUNCTION Real3 const& upper() const;
 
     // Whether the bbox is assigned
     CELER_FORCEINLINE_FUNCTION explicit operator bool() const;
@@ -85,7 +85,7 @@ CELER_FUNCTION BoundingBox::BoundingBox()
  * The lower and upper points are allowed to be equal (an empty bounding box
  * at a single point) but upper must not be less than lower.
  */
-CELER_FUNCTION BoundingBox::BoundingBox(const Real3& lo, const Real3& hi)
+CELER_FUNCTION BoundingBox::BoundingBox(Real3 const& lo, Real3 const& hi)
     : lower_(lo), upper_(hi)
 {
     CELER_EXPECT(lower_[0] <= upper_[0] && lower_[1] <= upper_[1]
@@ -96,7 +96,7 @@ CELER_FUNCTION BoundingBox::BoundingBox(const Real3& lo, const Real3& hi)
 /*!
  * Lower bbox coordinate (must be valid).
  */
-CELER_FUNCTION const Real3& BoundingBox::lower() const
+CELER_FUNCTION Real3 const& BoundingBox::lower() const
 {
     CELER_EXPECT(*this);
     return lower_;
@@ -106,7 +106,7 @@ CELER_FUNCTION const Real3& BoundingBox::lower() const
 /*!
  * Upper bbox coordinate (must be valid).
  */
-CELER_FUNCTION const Real3& BoundingBox::upper() const
+CELER_FUNCTION Real3 const& BoundingBox::upper() const
 {
     CELER_EXPECT(*this);
     return upper_;
@@ -122,4 +122,4 @@ CELER_FUNCTION BoundingBox::operator bool() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

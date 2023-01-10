@@ -55,14 +55,14 @@ class SBPositronXsCorrector
   public:
     //!@{
     using Energy = units::MevEnergy;
-    using Mass   = units::MevMass;
-    using Xs     = Quantity<SBElementTableData::XsUnits>;
+    using Mass = units::MevMass;
+    using Xs = Quantity<SBElementTableData::XsUnits>;
     //!@}
 
   public:
     // Construct with positron data
     inline CELER_FUNCTION SBPositronXsCorrector(Mass positron_mass,
-                                                const ElementView& el,
+                                                ElementView const& el,
                                                 Energy min_gamma_energy,
                                                 Energy inc_energy);
 
@@ -70,7 +70,7 @@ class SBPositronXsCorrector
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
     // Get the maximum differential cross section for the incident energy
-    inline CELER_FUNCTION Xs max_xs(const SBEnergyDistHelper& helper) const;
+    inline CELER_FUNCTION Xs max_xs(SBEnergyDistHelper const& helper) const;
 
   private:
     //// DATA ////
@@ -92,8 +92,8 @@ class SBPositronXsCorrector
  * Construct with positron data and energy range.
  */
 CELER_FUNCTION
-SBPositronXsCorrector::SBPositronXsCorrector(Mass               positron_mass,
-                                             const ElementView& el,
+SBPositronXsCorrector::SBPositronXsCorrector(Mass positron_mass,
+                                             ElementView const& el,
                                              Energy min_gamma_energy,
                                              Energy inc_energy)
     : positron_mass_{positron_mass.value()}
@@ -115,7 +115,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
-    real_type delta  = cutoff_invbeta_ - this->calc_invbeta(energy.value());
+    real_type delta = cutoff_invbeta_ - this->calc_invbeta(energy.value());
     real_type result = std::exp(alpha_z_ * delta);
     CELER_ENSURE(result <= 1);
     return result;
@@ -129,7 +129,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
  * energy grid point.
  */
 CELER_FUNCTION auto
-SBPositronXsCorrector::max_xs(const SBEnergyDistHelper& helper) const -> Xs
+SBPositronXsCorrector::max_xs(SBEnergyDistHelper const& helper) const -> Xs
 {
     return helper.xs_zero();
 }
@@ -167,4 +167,4 @@ SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

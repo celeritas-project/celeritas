@@ -20,11 +20,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
-                                     const ParticleParams& particles)
+MollerBhabhaModel::MollerBhabhaModel(ActionId id,
+                                     ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
 
@@ -51,12 +51,12 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     Applicability electron_applic, positron_applic;
 
     electron_applic.particle = interface_.ids.electron;
-    electron_applic.lower    = zero_quantity();
-    electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
+    electron_applic.lower = zero_quantity();
+    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
 
     positron_applic.particle = interface_.ids.positron;
-    positron_applic.lower    = zero_quantity();
-    positron_applic.upper    = electron_applic.upper;
+    positron_applic.lower = zero_quantity();
+    positron_applic.upper = electron_applic.upper;
 
     return {electron_applic, positron_applic};
 }
@@ -98,4 +98,4 @@ ActionId MollerBhabhaModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

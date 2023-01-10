@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     using celeritas::ScopedMpiInit;
 
     // Initialize MPI
-    ScopedMpiInit   scoped_mpi(&argc, &argv);
+    ScopedMpiInit scoped_mpi(&argc, &argv);
     MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
                ? MpiCommunicator{}

@@ -46,5 +46,5 @@ inline double mockrand_uniform_double(MockRandState*)
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

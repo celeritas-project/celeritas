@@ -19,7 +19,7 @@ namespace
 {
 bool determine_use_color(FILE* stream)
 {
-    const std::string& color_str = celeritas::getenv("GTEST_COLOR");
+    std::string const& color_str = celeritas::getenv("GTEST_COLOR");
     if (color_str == "0")
     {
         // GTEST_COLOR explicitly disables color
@@ -34,7 +34,7 @@ bool determine_use_color(FILE* stream)
     if (isatty(fileno(stream)))
     {
         // Given stream says it's a "terminal" i.e. user-facing
-        const std::string& term_str = celeritas::getenv("TERM");
+        std::string const& term_str = celeritas::getenv("TERM");
         if (term_str.find("xterm") != std::string::npos)
         {
             // 'xterm' is in the TERM type, so assume it uses colors
@@ -44,7 +44,7 @@ bool determine_use_color(FILE* stream)
 
     return false;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -69,7 +69,7 @@ bool use_color()
  *  - [W]hite bold
  *  - [ ] default (reset color)
  */
-const char* color_code(char abbrev)
+char const* color_code(char abbrev)
 {
     if (!use_color())
         return "";
@@ -99,4 +99,4 @@ const char* color_code(char abbrev)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

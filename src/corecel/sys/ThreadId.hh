@@ -21,4 +21,4 @@ struct Thread;
 using ThreadId = OpaqueId<struct Thread>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

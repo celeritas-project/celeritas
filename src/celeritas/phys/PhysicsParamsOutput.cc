@@ -17,7 +17,7 @@
 #include "celeritas/phys/Process.hh"
 
 #include "Model.hh"
-#include "PhysicsParams.hh" // IWYU pragma: keep
+#include "PhysicsParams.hh"  // IWYU pragma: keep
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
@@ -53,7 +53,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(ModelId{physics_->num_models()}))
         {
-            const Model& m = *physics_->model(id);
+            Model const& m = *physics_->model(id);
 
             models.push_back(
                 {{"label", m.label()},
@@ -68,7 +68,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
         for (auto id : range(ProcessId{physics_->num_processes()}))
         {
-            const Process& p = *physics_->process(id);
+            Process const& p = *physics_->process(id);
 
             processes.push_back({{"label", p.label()}});
         }
@@ -77,10 +77,10 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
     // Save options
     {
-        const auto& scalars = physics_->host_ref().scalars;
+        auto const& scalars = physics_->host_ref().scalars;
 
         auto options = json::object();
-#    define PPO_SAVE_OPTION(NAME) options[#    NAME] = scalars.NAME
+#    define PPO_SAVE_OPTION(NAME) options[#NAME] = scalars.NAME
         PPO_SAVE_OPTION(min_range);
         PPO_SAVE_OPTION(max_step_over_range);
         PPO_SAVE_OPTION(min_eprime_over_e);
@@ -93,10 +93,10 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 
     // Save sizes
     {
-        const auto& data = physics_->host_ref();
+        auto const& data = physics_->host_ref();
 
         auto sizes = json::object();
-#    define PPO_SAVE_SIZE(NAME) sizes[#    NAME] = data.NAME.size()
+#    define PPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
         PPO_SAVE_SIZE(reals);
         PPO_SAVE_SIZE(model_ids);
         PPO_SAVE_SIZE(value_grids);
@@ -117,4 +117,4 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

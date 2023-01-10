@@ -32,5 +32,5 @@ void Filler<T, MemSpace::device>::operator()(Span<T> data) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

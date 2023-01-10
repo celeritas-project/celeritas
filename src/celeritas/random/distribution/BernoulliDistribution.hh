@@ -94,4 +94,4 @@ CELER_FUNCTION auto BernoulliDistribution::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

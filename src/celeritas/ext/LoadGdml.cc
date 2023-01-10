@@ -27,13 +27,13 @@ void detail::PVDeleter::operator()(G4VPhysicalVolume* vol) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
  * Load a gdml input file, creating a pointer with ownership semantics.
  */
-UPG4PhysicalVolume load_gdml(const std::string& filename)
+UPG4PhysicalVolume load_gdml(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
 
@@ -54,4 +54,4 @@ UPG4PhysicalVolume load_gdml(const std::string& filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

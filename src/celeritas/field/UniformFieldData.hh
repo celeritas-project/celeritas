@@ -17,9 +17,9 @@ namespace celeritas
 
 struct UniformFieldParams
 {
-    Real3              field{0, 0, 0};
+    Real3 field{0, 0, 0};
     FieldDriverOptions options;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

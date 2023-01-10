@@ -61,7 +61,7 @@ class QuadraticSolver
   private:
     //// DATA ////
     real_type a_inv_;
-    real_type hba_; // (b/2)/a
+    real_type hba_;  // (b/2)/a
 };
 
 //---------------------------------------------------------------------------//
@@ -72,9 +72,9 @@ class QuadraticSolver
  *
  * This is used for cones, simple quadrics, and general quadrics.
  */
-CELER_FUNCTION auto QuadraticSolver::solve_general(real_type    a,
-                                                   real_type    half_b,
-                                                   real_type    c,
+CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
+                                                   real_type half_b,
+                                                   real_type c,
                                                    SurfaceState on_surface)
     -> Intersections
 {
@@ -128,16 +128,16 @@ CELER_FUNCTION auto QuadraticSolver::operator()(real_type c) const
 {
     // Scale c by 1/a in accordance with scaling of b
     c *= a_inv_;
-    real_type b2_4 = ipow<2>(hba_); // (b/2)^2
+    real_type b2_4 = ipow<2>(hba_);  // (b/2)^2
 
     Intersections result;
 
     if (b2_4 > c)
     {
         // Two real roots, r1 and r2
-        real_type t2 = std::sqrt(b2_4 - c); // (b^2 - 4ac) / 4
-        result[0]    = -hba_ - t2;
-        result[1]    = -hba_ + t2;
+        real_type t2 = std::sqrt(b2_4 - c);  // (b^2 - 4ac) / 4
+        result[0] = -hba_ - t2;
+        result[1] = -hba_ + t2;
 
         if (result[1] <= 0)
         {
@@ -191,5 +191,5 @@ CELER_FUNCTION auto QuadraticSolver::operator()() const -> Intersections
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

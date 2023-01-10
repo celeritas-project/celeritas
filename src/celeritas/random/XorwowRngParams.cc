@@ -28,4 +28,4 @@ XorwowRngParams::XorwowRngParams(unsigned int seed)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

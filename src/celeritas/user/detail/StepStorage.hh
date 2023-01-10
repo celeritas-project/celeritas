@@ -43,7 +43,7 @@ struct StepStorage
     // State data
     struct
     {
-        StepStateCollection<MemSpace::host>   host;
+        StepStateCollection<MemSpace::host> host;
         StepStateCollection<MemSpace::device> device;
     } states;
 
@@ -66,5 +66,5 @@ struct StepStorage
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

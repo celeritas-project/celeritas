@@ -51,7 +51,7 @@ class GammaDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -65,11 +65,11 @@ class GammaDistribution
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    const real_type               alpha_;
-    const real_type               beta_;
-    const real_type               alpha_p_;
-    const real_type               d_;
-    const real_type               c_;
+    const real_type alpha_;
+    const real_type beta_;
+    const real_type alpha_p_;
+    const real_type d_;
+    const real_type c_;
     NormalDistribution<real_type> sample_normal_;
 };
 
@@ -122,4 +122,4 @@ CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

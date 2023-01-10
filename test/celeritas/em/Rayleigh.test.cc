@@ -34,20 +34,20 @@ class RayleighInteractorTest : public InteractorHostTestBase
     void SetUp() override
     {
         using namespace units;
-        constexpr auto zero   = zero_quantity();
+        constexpr auto zero = zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Set up shared particle data for RayleighModel
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable}});
-        const auto& particles = *this->particle_params();
-        model_ref_.ids.gamma  = particles.find(pdg::gamma());
+        auto const& particles = *this->particle_params();
+        model_ref_.ids.gamma = particles.find(pdg::gamma());
 
         // Setup MaterialView
         MaterialParams::Input inp;
-        inp.elements  = {{AtomicNumber{8}, units::AmuMass{15.999}, "O"},
-                         {AtomicNumber{74}, units::AmuMass{183.84}, "W"},
-                         {AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
+        inp.elements = {{AtomicNumber{8}, units::AmuMass{15.999}, "O"},
+                        {AtomicNumber{74}, units::AmuMass{183.84}, "W"},
+                        {AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
         inp.materials = {
             {1.0 * constants::na_avogadro,
              293.0,
@@ -70,7 +70,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
         this->set_imported_processes(imported);
 
         // Construct RayleighModel and save the host data reference
-        model_     = std::make_shared<RayleighModel>(ActionId{0},
+        model_ = std::make_shared<RayleighModel>(ActionId{0},
                                                  particles,
                                                  *this->material_params(),
                                                  this->imported_processes());
@@ -82,7 +82,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
         this->set_material("PbWO");
     }
 
-    void sanity_check(const Interaction& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         // Check change to parent track - coherent scattering
         EXPECT_EQ(this->particle_track().energy().value(),
@@ -92,7 +92,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
 
   protected:
     std::shared_ptr<RayleighModel> model_;
-    RayleighRef                    model_ref_;
+    RayleighRef model_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,7 +104,7 @@ TEST_F(RayleighInteractorTest, basic)
     // Sample an element (TODO: add ElementSelector)
     ElementId el_id{0};
 
-    std::vector<real_type>         angle;
+    std::vector<real_type> angle;
     std::vector<unsigned long int> rng_counts;
 
     // Sample scattering angle and count rng used for each incident energy
@@ -140,7 +140,7 @@ TEST_F(RayleighInteractorTest, basic)
                                         0.99999999296325,
                                         0.999999999919784};
 
-    const unsigned long int expected_rng_counts[]
+    unsigned long int const expected_rng_counts[]
         = {14, 8, 8, 8, 8, 8, 8, 8, 8};
 
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
@@ -149,7 +149,7 @@ TEST_F(RayleighInteractorTest, basic)
 
 TEST_F(RayleighInteractorTest, stress_test)
 {
-    const int num_samples = 8192;
+    int const num_samples = 8192;
 
     // Sample an element
     ElementId el_id{0};
@@ -213,5 +213,5 @@ TEST_F(RayleighInteractorTest, stress_test)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

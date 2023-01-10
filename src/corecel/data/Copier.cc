@@ -18,10 +18,10 @@ namespace celeritas
 /*!
  * Perform a memcpy on the data.
  */
-void copy_bytes(MemSpace    dstmem,
-                void*       dst,
-                MemSpace    srcmem,
-                const void* src,
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
                 std::size_t count)
 {
     if (srcmem == MemSpace::host && dstmem == MemSpace::host)
@@ -45,4 +45,4 @@ void copy_bytes(MemSpace    dstmem,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

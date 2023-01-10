@@ -34,8 +34,8 @@ struct InteractionLauncherImpl
     //// DATA ////
 
     CoreRefNative const& core_data;
-    D const&             model_data;
-    F                    call_with_track;
+    D const& model_data;
+    F call_with_track;
 
     //// METHODS ////
 
@@ -99,5 +99,5 @@ InteractionLauncherImpl<D, F>::operator()(ThreadId thread) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

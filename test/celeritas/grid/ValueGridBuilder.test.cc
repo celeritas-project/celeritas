@@ -29,20 +29,20 @@ using std::make_shared;
 class ValueGridBuilderTest : public Test
 {
   public:
-    using SPConstBuilder = std::shared_ptr<const ValueGridBuilder>;
-    using VecBuilder     = std::vector<SPConstBuilder>;
-    using VecReal        = std::vector<real_type>;
-    using Energy         = XsCalculator::Energy;
-    using XsIndex        = ValueGridInserter::XsIndex;
+    using SPConstBuilder = std::shared_ptr<ValueGridBuilder const>;
+    using VecBuilder = std::vector<SPConstBuilder>;
+    using VecReal = std::vector<real_type>;
+    using Energy = XsCalculator::Energy;
+    using XsIndex = ValueGridInserter::XsIndex;
 
   protected:
-    void build(const VecBuilder& entries)
+    void build(VecBuilder const& entries)
     {
         CELER_EXPECT(!entries.empty());
 
         // Insert
         ValueGridInserter insert(&real_storage, &grid_storage);
-        for (const SPConstBuilder& b : entries)
+        for (SPConstBuilder const& b : entries)
         {
             b->build(insert);
         }
@@ -68,10 +68,10 @@ TEST_F(ValueGridBuilderTest, xs_grid)
             1e1, 1e2, 1e3, VecReal{.1, .2 * 1e2, .3 * 1e3}));
     }
     {
-        const real_type lambda_energy[]      = {1e-3, 1e-2, 1e-1};
-        const real_type lambda[]             = {10, 1, .1};
+        const real_type lambda_energy[] = {1e-3, 1e-2, 1e-1};
+        const real_type lambda[] = {10, 1, .1};
         const real_type lambda_prim_energy[] = {1e-1, 1e0, 10};
-        const real_type lambda_prim[]        = {.1 * 1e-1, .01 * 1, .001 * 10};
+        const real_type lambda_prim[] = {.1 * 1e-1, .01 * 1, .001 * 10};
 
         entries.push_back(Builder_t::from_geant(
             lambda_energy, lambda, lambda_prim_energy, lambda_prim));
@@ -151,5 +151,5 @@ TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -18,4 +18,4 @@ namespace demo_interactor
 std::shared_ptr<XsGridParams> load_xs();
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

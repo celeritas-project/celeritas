@@ -53,7 +53,7 @@ struct NoMsc
 struct LinearPropagatorFactory
 {
     CELER_FUNCTION decltype(auto)
-    operator()(const ParticleTrackView&, GeoTrackView* geo) const
+    operator()(ParticleTrackView const&, GeoTrackView* geo) const
     {
         return LinearPropagator{geo};
     };
@@ -92,5 +92,5 @@ along_step_neutral(NoData, NoData, NoData, CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

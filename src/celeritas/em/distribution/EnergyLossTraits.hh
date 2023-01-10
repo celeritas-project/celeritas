@@ -44,4 +44,4 @@ struct EnergyLossTraits<EnergyLossFluctuationModel::urban>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

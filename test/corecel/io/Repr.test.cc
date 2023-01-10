@@ -26,7 +26,7 @@ namespace test
 //---------------------------------------------------------------------------//
 
 template<class T, class... Args>
-std::string repr_to_string(const T& obj, Args... args)
+std::string repr_to_string(T const& obj, Args... args)
 {
     std::ostringstream os;
     os << repr(obj, args...);
@@ -68,7 +68,7 @@ TEST(ReprTest, container)
     unsigned int uints[] = {11, 22};
     EXPECT_EQ("{11u, 22u}", repr_to_string(make_span(uints)));
 
-    const char* const cstrings[] = {"one", "three", "five"};
+    char const* const cstrings[] = {"one", "three", "five"};
     EXPECT_EQ("{\"one\", \"three\", \"five\"}", repr_to_string(cstrings));
 
     const std::string strings[] = {"a", "", "special\nchars\t"};
@@ -76,5 +76,5 @@ TEST(ReprTest, container)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

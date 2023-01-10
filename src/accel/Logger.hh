@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Create a multithread-friendly logger
-Logger make_mt_logger(const G4RunManager&);
+Logger make_mt_logger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

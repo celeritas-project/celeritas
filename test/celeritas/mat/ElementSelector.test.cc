@@ -71,7 +71,7 @@ class ElementSelectorTest : public Test
               {ElementId{3}, 0.12}},
              "everything_weighted"},
         };
-        mats      = std::make_shared<MaterialParams>(std::move(inp));
+        mats = std::make_shared<MaterialParams>(std::move(inp));
         host_mats = mats->host_ref();
 
         // Allocate storage
@@ -79,9 +79,9 @@ class ElementSelectorTest : public Test
     }
 
     std::shared_ptr<MaterialParams> mats;
-    MaterialParamsRef               host_mats;
-    RandomEngine                    rng;
-    std::vector<real_type>          storage;
+    MaterialParamsRef host_mats;
+    RandomEngine rng;
+    std::vector<real_type> storage;
 };
 
 // Return cross section proportional to the element ID offset by 1.
@@ -95,7 +95,7 @@ real_type mock_micro_xs(ElementId el_id)
 // and particle state
 struct CalcFancyMicroXs
 {
-    CalcFancyMicroXs(const MaterialParamsRef& mats, units::MevEnergy energy)
+    CalcFancyMicroXs(MaterialParamsRef const& mats, units::MevEnergy energy)
         : mats_(mats), inv_energy_(1 / energy.value())
     {
     }
@@ -107,8 +107,8 @@ struct CalcFancyMicroXs
         return el.cbrt_z() * inv_energy_;
     }
 
-    const MaterialParamsRef& mats_;
-    real_type                inv_energy_;
+    MaterialParamsRef const& mats_;
+    real_type inv_energy_;
 };
 
 //---------------------------------------------------------------------------//
@@ -126,11 +126,11 @@ TEST_F(ElementSelectorTest, TEST_IF_CELERITAS_DEBUG(vacuum))
 //! Single element should always select the first one.
 TEST_F(ElementSelectorTest, single)
 {
-    MaterialView    material(host_mats, mats->find_material("Al"));
+    MaterialView material(host_mats, mats->find_material("Al"));
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Construction should have precalculated cross sections
-    const double expected_elemental_micro_xs[] = {3};
+    double const expected_elemental_micro_xs[] = {3};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(3.0, select_el.material_micro_xs());
@@ -150,7 +150,7 @@ TEST_F(ElementSelectorTest, everything_even)
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
-    const double expected_elemental_micro_xs[] = {1, 2, 3, 4};
+    double const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(2.5, select_el.material_micro_xs());
@@ -165,7 +165,7 @@ TEST_F(ElementSelectorTest, everything_even)
     }
 
     // Proportional to micro_xs (equal number density)
-    const int expected_tally[] = {1032, 2014, 2971, 3983};
+    int const expected_tally[] = {1032, 2014, 2971, 3983};
     EXPECT_VEC_EQ(expected_tally, tally);
 
     // Test with sequence engine
@@ -178,7 +178,7 @@ TEST_F(ElementSelectorTest, everything_even)
             auto el_id = select_el(seq_rng);
             selection.push_back(el_id.unchecked_get());
         }
-        const int expected_selection[] = {0, 0, 1, 2, 2, 3};
+        int const expected_selection[] = {0, 0, 1, 2, 2, 3};
         EXPECT_VEC_EQ(expected_selection, selection);
     }
 }
@@ -186,12 +186,12 @@ TEST_F(ElementSelectorTest, everything_even)
 //! Number densities scaled to 1/xs so equiprobable
 TEST_F(ElementSelectorTest, everything_weighted)
 {
-    MaterialView    material(host_mats,
+    MaterialView material(host_mats,
                           mats->find_material("everything_weighted"));
     ElementSelector select_el(material, mock_micro_xs, make_span(storage));
 
     // Test cross sections
-    const double expected_elemental_micro_xs[] = {1, 2, 3, 4};
+    double const expected_elemental_micro_xs[] = {1, 2, 3, 4};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(1.92, select_el.material_micro_xs());
@@ -206,7 +206,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
     }
 
     // Equiprobable
-    const int expected_tally[] = {2574, 2395, 2589, 2442};
+    int const expected_tally[] = {2574, 2395, 2589, 2442};
     EXPECT_VEC_EQ(expected_tally, tally);
 }
 
@@ -214,7 +214,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
 TEST_F(ElementSelectorTest, even_zero_xs)
 {
     MaterialView material(host_mats, mats->find_material("everything_even"));
-    auto         calc_xs
+    auto calc_xs
         = [](ElementId el) -> real_type { return (el.get() % 2 ? 1 : 0); };
     ElementSelector select_el(material, calc_xs, make_span(storage));
 
@@ -225,7 +225,7 @@ TEST_F(ElementSelectorTest, even_zero_xs)
         auto el_id = select_el(seq_rng);
         selection.push_back(el_id.unchecked_get());
     }
-    const int expected_selection[] = {1, 1, 1, 3, 3};
+    int const expected_selection[] = {1, 1, 1, 3, 3};
     EXPECT_VEC_EQ(expected_selection, selection);
 }
 
@@ -233,18 +233,18 @@ TEST_F(ElementSelectorTest, even_zero_xs)
 TEST_F(ElementSelectorTest, fancy_xs)
 {
     units::MevEnergy energy{123};
-    MaterialView     material(host_mats,
+    MaterialView material(host_mats,
                           mats->find_material("everything_weighted"));
-    ElementSelector  select_el(
+    ElementSelector select_el(
         material, CalcFancyMicroXs{host_mats, energy}, make_span(storage));
 
     // Test cross sections
-    const double expected_elemental_micro_xs[] = {
+    double const expected_elemental_micro_xs[] = {
         0.008130081300813, 0.01808113894772, 0.01911654217659, 0.0305389085709};
     EXPECT_VEC_SOFT_EQ(expected_elemental_micro_xs,
                        select_el.elemental_micro_xs());
     EXPECT_SOFT_EQ(0.014965228148605575, select_el.material_micro_xs());
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Write a host-side Secondary to a stream for debugging.
  */
-std::ostream& operator<<(std::ostream& os, const Secondary& s)
+std::ostream& operator<<(std::ostream& os, Secondary const& s)
 {
     os << "Secondary{";
     if (s)
@@ -29,4 +29,4 @@ std::ostream& operator<<(std::ostream& os, const Secondary& s)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

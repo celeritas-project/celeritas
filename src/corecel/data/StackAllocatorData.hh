@@ -23,8 +23,8 @@ namespace celeritas
 template<class T, Ownership W, MemSpace M>
 struct StackAllocatorData
 {
-    celeritas::Collection<T, W, M>         storage; //!< Allocated capacity
-    celeritas::Collection<size_type, W, M> size;    //!< Stored size
+    celeritas::Collection<T, W, M> storage;  //!< Allocated capacity
+    celeritas::Collection<size_type, W, M> size;  //!< Stored size
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -41,7 +41,7 @@ struct StackAllocatorData
     {
         CELER_EXPECT(other);
         storage = other.storage;
-        size    = other.size;
+        size = other.size;
         return *this;
     }
 };
@@ -61,4 +61,4 @@ resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

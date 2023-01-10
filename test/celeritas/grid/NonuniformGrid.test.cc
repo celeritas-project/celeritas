@@ -26,12 +26,12 @@ class NonuniformGridTest : public Test
     void SetUp() override
     {
         auto build = make_builder(&data);
-        irange     = build.insert_back({0, 1, 3, 3, 7});
-        ref        = data;
+        irange = build.insert_back({0, 1, 3, 3, 7});
+        ref = data;
     }
 
-    ItemRange<int>                                              irange;
-    Collection<int, Ownership::value, MemSpace::host>           data;
+    ItemRange<int> irange;
+    Collection<int, Ownership::value, MemSpace::host> data;
     Collection<int, Ownership::const_reference, MemSpace::host> ref;
 };
 
@@ -64,5 +64,5 @@ TEST_F(NonuniformGridTest, find)
 #endif
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

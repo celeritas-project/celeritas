@@ -23,7 +23,7 @@ namespace
 struct Moveable
 {
     std::string msg;
-    int*        counter;
+    int* counter;
 
     Moveable(std::string m, int* c) : msg(std::move(m)), counter(c)
     {
@@ -37,18 +37,18 @@ struct Moveable
 
     Moveable& operator=(Moveable&& rhs)
     {
-        msg     = std::move(rhs.msg);
+        msg = std::move(rhs.msg);
         counter = rhs.counter;
         ++(*counter);
         return *this;
     }
 
     // Delete copy and copy assign
-    Moveable(const Moveable& rhs)            = delete;
-    Moveable& operator=(const Moveable& rhs) = delete;
+    Moveable(Moveable const& rhs) = delete;
+    Moveable& operator=(Moveable const& rhs) = delete;
 };
 
-std::ostream& operator<<(std::ostream& os, const Moveable& m)
+std::ostream& operator<<(std::ostream& os, Moveable const& m)
 {
     return os << m.msg;
 }
@@ -58,7 +58,7 @@ struct transform_functor
     int* counter = nullptr;
 
     template<class T>
-    T operator()(const T& rhs)
+    T operator()(T const& rhs)
     {
         if (counter)
             ++(*counter);
@@ -66,7 +66,7 @@ struct transform_functor
     }
 };
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 using JoinTest = Test;
 
@@ -113,12 +113,12 @@ TEST_F(JoinTest, transformed)
 TEST_F(JoinTest, streamed)
 {
     // Join using stream operator
-    using Pair_t              = std::pair<int, double>;
+    using Pair_t = std::pair<int, double>;
     std::vector<Pair_t> pairs = {{3, 1.5}, {4, -1.0}, {5, 1e9}};
 
     // >>> MOVE CONJUNCTION
 
-    int      counter = 0;
+    int counter = 0;
     Moveable conjunction{", ", &counter};
 
     // NOTE: if the Join implementation class uses a const std::string& for the
@@ -128,19 +128,19 @@ TEST_F(JoinTest, streamed)
     auto j = join_stream(pairs.begin(),
                          pairs.end(),
                          std::move(conjunction),
-                         [](std::ostream& os, const Pair_t& p) {
+                         [](std::ostream& os, Pair_t const& p) {
                              os << p.first << "->" << p.second;
                          });
     // Change the conjunction; shouldn't matter to the first output
     int unused_counter = 0;
-    conjunction        = Moveable{"@", &unused_counter};
+    conjunction = Moveable{"@", &unused_counter};
 
     EXPECT_EQ("3->1.5, 4->-1, 5->1e+09", to_string(j));
     EXPECT_EQ(1, counter);
 
     // >>> REFERENCE CONJUNCTION
 
-    auto j2 = join(pairs.begin(), pairs.end(), conjunction, [](const Pair_t& p) {
+    auto j2 = join(pairs.begin(), pairs.end(), conjunction, [](Pair_t const& p) {
         return p.first * p.second;
     });
     // Change the passed value
@@ -151,5 +151,5 @@ TEST_F(JoinTest, streamed)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

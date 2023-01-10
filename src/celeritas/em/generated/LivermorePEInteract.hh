@@ -19,21 +19,21 @@ namespace celeritas
 namespace generated
 {
 void livermore_pe_interact(
-    const celeritas::LivermorePEHostRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::host>&);
+    celeritas::LivermorePEHostRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::host> const&);
 
 void livermore_pe_interact(
-    const celeritas::LivermorePEDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&);
+    celeritas::LivermorePEDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
 inline void livermore_pe_interact(
-    const celeritas::LivermorePEDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&)
+    celeritas::LivermorePEDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

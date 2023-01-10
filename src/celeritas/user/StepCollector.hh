@@ -25,7 +25,7 @@ namespace detail
 template<StepPoint P>
 class StepGatherAction;
 struct StepStorage;
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -46,14 +46,14 @@ class StepCollector
     //!@{
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
-    using SPConstGeo      = std::shared_ptr<const GeoParams>;
-    using VecInterface    = std::vector<SPStepInterface>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
   public:
     // Construct with options and register pre/post-step actions
-    StepCollector(VecInterface    callbacks,
-                  SPConstGeo      geo,
+    StepCollector(VecInterface callbacks,
+                  SPConstGeo geo,
                   ActionRegistry* action_registry);
 
     // Default destructor and move
@@ -62,17 +62,17 @@ class StepCollector
     StepCollector& operator=(StepCollector&&);
 
     // See which data are being gathered
-    const StepSelection& selection() const;
+    StepSelection const& selection() const;
 
   private:
     template<StepPoint P>
     using SPStepGatherAction = std::shared_ptr<detail::StepGatherAction<P>>;
-    using SPStepStorage      = std::shared_ptr<detail::StepStorage>;
+    using SPStepStorage = std::shared_ptr<detail::StepStorage>;
 
-    SPStepStorage                       storage_;
-    SPStepGatherAction<StepPoint::pre>  pre_action_;
+    SPStepStorage storage_;
+    SPStepGatherAction<StepPoint::pre> pre_action_;
     SPStepGatherAction<StepPoint::post> post_action_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

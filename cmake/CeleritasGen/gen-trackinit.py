@@ -47,8 +47,8 @@ inline {devicefunc_decl_noargs}
 }}
 #endif
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
@@ -75,8 +75,8 @@ namespace generated
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -101,7 +101,7 @@ namespace
     detail::{clsname}Launcher<MemSpace::device> launch({kernel_arglist});
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
 {devicefunc_decl}
 {{
@@ -112,23 +112,23 @@ namespace
         {kernel_arglist});
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 Param = namedtuple("Param", ["type", "name"])
 
 
 def make_const(type_name):
-    if type_name.startswith('const '):
-        return type_name
-    return 'const ' + type_name
+    if not type_name.endswith(' const'):
+        return type_name + ' const'
+    return type_name
 
 
 def make_const_reference(type_name):
     if type_name.startswith('Span<') or type_name == 'size_type':
-        return 'const ' + type_name
-    return f'const {type_name}&'
+        return make_const(type_name)
+    return type_name + ' const&'
 
 
 class ParamList(list):

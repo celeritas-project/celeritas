@@ -40,24 +40,24 @@ namespace {namespace}
 namespace generated
 {{
 void {func}_interact(
-    const {namespace}::{class}HostRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::host>&);
+    {namespace}::{class}HostRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::host> const&);
 
 void {func}_interact(
-    const {namespace}::{class}DeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&);
+    {namespace}::{class}DeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
 inline void {func}_interact(
-    const {namespace}::{class}DeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&)
+    {namespace}::{class}DeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&)
 {{
     CELER_ASSERT_UNREACHABLE();
 }}
 #endif
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
@@ -79,8 +79,8 @@ namespace {namespace}
 namespace generated
 {{
 void {func}_interact(
-    const {namespace}::{class}HostRef& model_data,
-    const celeritas::CoreRef<MemSpace::host>& core_data)
+    {namespace}::{class}HostRef const& model_data,
+    celeritas::CoreRef<MemSpace::host> const& core_data)
 {{
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -98,8 +98,8 @@ void {func}_interact(
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -122,8 +122,8 @@ namespace generated
 namespace
 {{
 __global__ void{launch_bounds}{func}_interact_kernel(
-    const {namespace}::{class}DeviceRef model_data,
-    const celeritas::CoreRef<MemSpace::device> core_data)
+    {namespace}::{class}DeviceRef const model_data,
+    celeritas::CoreRef<MemSpace::device> const core_data)
 {{
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
@@ -135,11 +135,11 @@ __global__ void{launch_bounds}{func}_interact_kernel(
         {namespace}::{func}_interact_track);
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
 void {func}_interact(
-    const {namespace}::{class}DeviceRef& model_data,
-    const celeritas::CoreRef<MemSpace::device>& core_data)
+    {namespace}::{class}DeviceRef const& model_data,
+    celeritas::CoreRef<MemSpace::device> const& core_data)
 {{
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -150,8 +150,8 @@ void {func}_interact(
                         model_data, core_data);
 }}
 
-}} // namespace generated
-}} // namespace {namespace}
+}}  // namespace generated
+}}  // namespace {namespace}
 """
 
 TEMPLATES = {

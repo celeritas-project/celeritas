@@ -24,7 +24,7 @@ class AtomicRelaxationReader
   public:
     //!@{
     //! Type aliases
-    using result_type  = ImportAtomicRelaxation;
+    using result_type = ImportAtomicRelaxation;
     //!@}
 
   public:
@@ -32,8 +32,8 @@ class AtomicRelaxationReader
     AtomicRelaxationReader();
 
     // Construct the reader from the paths to the data directory
-    explicit AtomicRelaxationReader(const char* fluor_path,
-                                    const char* auger_path);
+    explicit AtomicRelaxationReader(char const* fluor_path,
+                                    char const* auger_path);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -46,4 +46,4 @@ class AtomicRelaxationReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

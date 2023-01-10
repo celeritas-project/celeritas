@@ -34,12 +34,12 @@ namespace celeritas
 struct Applicability
 {
     using EnergyUnits = units::Mev;
-    using Energy      = Quantity<EnergyUnits>;
+    using Energy = Quantity<EnergyUnits>;
 
     MaterialId material{};
     ParticleId particle{};
-    Energy     lower = zero_quantity();
-    Energy     upper = max_quantity();
+    Energy lower = zero_quantity();
+    Energy upper = max_quantity();
 
     //! Range for a particle at rest
     static inline Applicability at_rest(ParticleId id)
@@ -47,8 +47,8 @@ struct Applicability
         CELER_EXPECT(id);
         Applicability result;
         result.particle = id;
-        result.lower    = neg_max_quantity();
-        result.upper    = zero_quantity();
+        result.lower = neg_max_quantity();
+        result.upper = zero_quantity();
         return result;
     }
 
@@ -61,13 +61,13 @@ struct Applicability
 
 //!@{
 //! Comparators
-inline bool operator==(const Applicability& lhs, const Applicability& rhs)
+inline bool operator==(Applicability const& lhs, Applicability const& rhs)
 {
     return std::make_tuple(lhs.material, lhs.particle, lhs.lower, lhs.upper)
            == std::make_tuple(rhs.material, rhs.particle, rhs.lower, rhs.upper);
 }
 
-inline bool operator<(const Applicability& lhs, const Applicability& rhs)
+inline bool operator<(Applicability const& lhs, Applicability const& rhs)
 {
     return std::make_tuple(lhs.material, lhs.particle, lhs.lower, lhs.upper)
            < std::make_tuple(rhs.material, rhs.particle, rhs.lower, rhs.upper);
@@ -75,4 +75,4 @@ inline bool operator<(const Applicability& lhs, const Applicability& rhs)
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

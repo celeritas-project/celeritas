@@ -26,7 +26,7 @@ struct UniverseTypeTraits;
     template<>                                          \
     struct UniverseTypeTraits<UniverseType::ENUM_VALUE> \
     {                                                   \
-        using record_type  = CLS##Record;               \
+        using record_type = CLS##Record;                \
         using tracker_type = CLS##Tracker;              \
     }
 
@@ -35,4 +35,4 @@ ORANGE_UNIV_TRAITS(simple, SimpleUnit);
 #undef ORANGE_UNIV_TRAITS
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

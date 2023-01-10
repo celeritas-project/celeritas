@@ -31,9 +31,9 @@ class PlaneAlignedTest : public Test
 {
   protected:
     template<class S>
-    real_type calc_intersection(const S&     surf,
-                                Real3        pos,
-                                Real3        dir,
+    real_type calc_intersection(S const& surf,
+                                Real3 pos,
+                                Real3 dir,
                                 SurfaceState s = SurfaceState::off)
     {
         static_assert(sizeof(typename S::Intersections) == sizeof(double),
@@ -125,5 +125,5 @@ TEST_F(PlaneAlignedTest, plane_z)
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -33,7 +33,7 @@ class LoggerTest : public Test
     {
         if (ScopedMpiInit::status() != ScopedMpiInit::Status::disabled)
         {
-            comm_self  = MpiCommunicator::comm_self();
+            comm_self = MpiCommunicator::comm_self();
             comm_world = MpiCommunicator::comm_world();
         }
     }
@@ -50,7 +50,7 @@ struct ExpensiveToPrint
 {
 };
 
-std::ostream& operator<<(std::ostream& os, const ExpensiveToPrint&)
+std::ostream& operator<<(std::ostream& os, ExpensiveToPrint const&)
 {
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(2s);
@@ -88,14 +88,14 @@ TEST_F(LoggerTest, null)
 
 TEST_F(LoggerTest, custom_log)
 {
-    Provenance  last_prov;
-    LogLevel    last_lev = LogLevel::debug;
+    Provenance last_prov;
+    LogLevel last_lev = LogLevel::debug;
     std::string last_msg;
 
     Logger log(comm_self, [&](Provenance prov, LogLevel lev, std::string msg) {
         last_prov = prov;
-        last_lev  = lev;
-        last_msg  = std::move(msg);
+        last_lev = lev;
+        last_msg = std::move(msg);
     });
 
     // Update level
@@ -153,7 +153,7 @@ TEST_F(LoggerTest, env_setup)
              << msg << endl;
         EXPECT_EQ("This should print", msg);
     };
-    auto celer_setenv = [](const std::string& key, const std::string& val) {
+    auto celer_setenv = [](std::string const& key, std::string const& val) {
         environment().insert({key, val});
     };
 
@@ -176,5 +176,5 @@ TEST_F(LoggerTest, env_setup)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -13,7 +13,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-EventReader::EventReader(const char*, SPConstParticles)
+EventReader::EventReader(char const*, SPConstParticles)
 {
     CELER_NOT_CONFIGURED("HepMC3");
 }
@@ -27,4 +27,4 @@ auto EventReader::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

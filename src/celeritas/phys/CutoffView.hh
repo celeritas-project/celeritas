@@ -30,15 +30,15 @@ class CutoffView
   public:
     //!@{
     //! Type aliases
-    using CutoffId   = OpaqueId<ParticleCutoff>;
+    using CutoffId = OpaqueId<ParticleCutoff>;
     using CutoffData = NativeCRef<CutoffParamsData>;
-    using Energy     = units::MevEnergy;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct for the given particle and material ids
     inline CELER_FUNCTION
-    CutoffView(const CutoffData& params, MaterialId material);
+    CutoffView(CutoffData const& params, MaterialId material);
 
     // Return energy cutoff value
     inline CELER_FUNCTION Energy energy(ParticleId particle) const;
@@ -47,8 +47,8 @@ class CutoffView
     inline CELER_FUNCTION real_type range(ParticleId particle) const;
 
   private:
-    const CutoffData& params_;
-    MaterialId        material_;
+    CutoffData const& params_;
+    MaterialId material_;
 
     //// HELPER FUNCTIONS ////
 
@@ -63,7 +63,7 @@ class CutoffView
  * Construct view from host/device for the given material id.
  */
 CELER_FUNCTION
-CutoffView::CutoffView(const CutoffData& params, MaterialId material)
+CutoffView::CutoffView(CutoffData const& params, MaterialId material)
     : params_(params), material_(material)
 {
     CELER_EXPECT(params_);
@@ -103,4 +103,4 @@ CELER_FUNCTION ParticleCutoff CutoffView::get(ParticleId particle) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

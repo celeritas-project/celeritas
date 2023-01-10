@@ -27,10 +27,10 @@ class Test : public ::testing::Test
     Test() = default;
 
     // Generate test-unique filename
-    std::string make_unique_filename(const char* ext = "");
+    std::string make_unique_filename(char const* ext = "");
 
     // Get the path to a test file in `{source}/test/{subdir}/data/{filename}`
-    static std::string test_data_path(const char* subdir, const char* filename);
+    static std::string test_data_path(char const* subdir, char const* filename);
 
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();
@@ -43,5 +43,5 @@ class Test : public ::testing::Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -18,7 +18,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -30,21 +30,21 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-void update_selection(StepPointSelection*              selection,
-                      const SDSetupOptions::StepPoint& options)
+void update_selection(StepPointSelection* selection,
+                      SDSetupOptions::StepPoint const& options)
 {
-    selection->time   = options.global_time;
-    selection->pos    = options.position;
+    selection->time = options.global_time;
+    selection->pos = options.position;
     selection->energy = options.kinetic_energy;
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
+HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
 {
     CELER_EXPECT(setup.enabled);
@@ -160,5 +160,5 @@ void HitManager::execute(StateDeviceRef const& data)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

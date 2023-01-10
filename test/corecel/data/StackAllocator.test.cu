@@ -84,13 +84,13 @@ __global__ void sa_clear_kernel(SATestInput const input)
         allocate.clear();
     }
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-SATestOutput sa_test(const SATestInput& input)
+SATestOutput sa_test(SATestInput const& input)
 {
     // Construct and initialize output data
     thrust::device_vector<SATestOutput> out(1);
@@ -117,12 +117,12 @@ SATestOutput sa_test(const SATestInput& input)
 
 //---------------------------------------------------------------------------//
 //! Clear secondaries, only a single thread needed
-void sa_clear(const SATestInput& input)
+void sa_clear(SATestInput const& input)
 {
     CELER_LAUNCH_KERNEL(sa_clear, device().threads_per_warp(), 1, input);
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -29,14 +29,14 @@ namespace detail
  * magnetic field.
  */
 inline CELER_FUNCTION void
-along_step_uniform_msc(const NativeCRef<UrbanMscData>& msc,
-                       const UniformFieldParams&       field,
+along_step_uniform_msc(NativeCRef<UrbanMscData> const& msc,
+                       UniformFieldParams const& field,
                        NoData,
                        CoreTrackView const& track)
 {
     return along_step(
         UrbanMsc{msc},
-        [&field](const ParticleTrackView& particle, GeoTrackView* geo) {
+        [&field](ParticleTrackView const& particle, GeoTrackView* geo) {
             return make_mag_field_propagator<DormandPrinceStepper>(
                 UniformField(field.field), field.options, particle, geo);
         },
@@ -45,5 +45,5 @@ along_step_uniform_msc(const NativeCRef<UrbanMscData>& msc,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

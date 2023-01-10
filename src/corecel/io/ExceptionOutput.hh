@@ -56,4 +56,4 @@ class ExceptionOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

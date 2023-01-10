@@ -20,9 +20,9 @@ namespace celeritas
 enum class ImportPhysicsVectorType
 {
     unknown,
-    linear, //!< Uniform and linear in x
-    log,    //!< Uniform and logarithmic in x
-    free,   //!< Nonuniform in x
+    linear,  //!< Uniform and linear in x
+    log,  //!< Uniform and logarithmic in x
+    free,  //!< Nonuniform in x
 };
 
 //---------------------------------------------------------------------------//
@@ -36,15 +36,15 @@ enum class ImportPhysicsVectorType
 struct ImportPhysicsVector
 {
     ImportPhysicsVectorType vector_type;
-    std::vector<double>     x; //!< Geant4 binVector
-    std::vector<double>     y; //!< Geant4 dataVector
+    std::vector<double> x;  //!< Geant4 binVector
+    std::vector<double> y;  //!< Geant4 dataVector
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-const char* to_cstring(ImportPhysicsVectorType value);
+char const* to_cstring(ImportPhysicsVectorType value);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

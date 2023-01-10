@@ -28,12 +28,12 @@ class ExampleMctruth final : public StepInterface
   public:
     struct Step
     {
-        int    event;
-        int    track;
-        int    step;
-        int    volume; // Beginning of step
-        double pos[3]; // Beginning of step
-        double dir[3]; // Beginning of step
+        int event;
+        int track;
+        int step;
+        int volume;  // Beginning of step
+        double pos[3];  // Beginning of step
+        double dir[3];  // Beginning of step
     };
 
   public:
@@ -56,7 +56,7 @@ class ExampleMctruth final : public StepInterface
     void sort();
 
     //! Access all steps
-    Span<const Step> steps() const { return make_span(steps_); }
+    Span<Step const> steps() const { return make_span(steps_); }
 
     //! Reset after output or whatever
     void clear() { steps_.clear(); }
@@ -66,5 +66,5 @@ class ExampleMctruth final : public StepInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

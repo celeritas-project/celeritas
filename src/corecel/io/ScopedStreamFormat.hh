@@ -34,7 +34,7 @@ class ScopedStreamFormat
 
   private:
     std::ios* stream_;
-    std::ios  orig_;
+    std::ios orig_;
 };
 
 //---------------------------------------------------------------------------//
@@ -60,4 +60,4 @@ ScopedStreamFormat::~ScopedStreamFormat()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

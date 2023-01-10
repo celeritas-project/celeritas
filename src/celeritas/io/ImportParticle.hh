@@ -22,13 +22,13 @@ namespace celeritas
 struct ImportParticle
 {
     std::string name;
-    int         pdg;
-    double      mass;     //!< [MeV]
-    double      charge;   //!< [Multiple of electron charge]
-    double      spin;     //!< [Multiple of hbar]
-    double      lifetime; //!< [s]
-    bool        is_stable;
+    int pdg;
+    double mass;  //!< [MeV]
+    double charge;  //!< [Multiple of electron charge]
+    double spin;  //!< [Multiple of hbar]
+    double lifetime;  //!< [s]
+    bool is_stable;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

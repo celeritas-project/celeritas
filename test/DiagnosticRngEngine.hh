@@ -29,7 +29,7 @@ class DiagnosticRngEngine
     //!@{
     //! Type aliases
     using result_type = typename Engine::result_type;
-    using size_type   = std::size_t;
+    using size_type = std::size_t;
     //!@}
 
   public:
@@ -58,10 +58,10 @@ class DiagnosticRngEngine
     //!@}
 
   private:
-    Engine    engine_;
+    Engine engine_;
     size_type num_samples_ = 0;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

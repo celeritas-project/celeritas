@@ -18,7 +18,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using VecInt   = std::vector<int>;
+using VecInt = std::vector<int>;
 using Vec_UInt = std::vector<unsigned int>;
 
 enum class Color : unsigned int
@@ -26,14 +26,14 @@ enum class Color : unsigned int
     red,
     green,
     blue,
-    size_ //!< Note: "size_" is necessary to take a range of enums
+    size_  //!< Note: "size_" is necessary to take a range of enums
 };
 
 enum class WontWorkColors
 {
-    red   = 1,
+    red = 1,
     green = 2,
-    blue  = 4,
+    blue = 4,
 };
 
 namespace pokemon
@@ -172,7 +172,7 @@ TEST(RangeTest, empty)
 
 TEST(RangeTest, enums)
 {
-    int  ctr          = 0;
+    int ctr = 0;
     auto most_pokemon = range(pokemon::charmander, pokemon::size_);
     for (pokemon::Pokemon p : most_pokemon)
     {
@@ -411,7 +411,7 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
     {
         input.y[i] = i;
     }
-    input.num_threads       = device().threads_per_warp();
+    input.num_threads = device().threads_per_warp();
     input.threads_per_block = 256;
 
     // Calculate saxpy using CPU
@@ -427,5 +427,5 @@ TEST(TEST_IF_CELER_DEVICE(DeviceRangeTest), grid_stride)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

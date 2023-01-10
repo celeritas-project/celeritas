@@ -21,9 +21,9 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(ExponentialDistributionTest, all)
 {
-    int                                     num_samples = 10000;
-    double                                  lambda      = 0.25;
-    ExponentialDistribution<>               sample(lambda);
+    int num_samples = 10000;
+    double lambda = 0.25;
+    ExponentialDistribution<> sample(lambda);
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> counters(5);
@@ -44,11 +44,11 @@ TEST(ExponentialDistributionTest, all)
     }
 
     // PRINT_EXPECTED(counters);
-    const int expected_counters[] = {2180, 1717, 2411, 2265, 1427};
+    int const expected_counters[] = {2180, 1717, 2411, 2265, 1427};
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

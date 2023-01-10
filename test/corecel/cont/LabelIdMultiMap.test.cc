@@ -23,11 +23,11 @@ namespace
 {
 //---------------------------------------------------------------------------//
 
-using CatId       = OpaqueId<struct Cat>;
+using CatId = OpaqueId<struct Cat>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
-using VecLabel    = CatMultiMap::VecLabel;
+using VecLabel = CatMultiMap::VecLabel;
 
-std::ostream& operator<<(std::ostream& os, const CatId& cat)
+std::ostream& operator<<(std::ostream& os, CatId const& cat)
 {
     os << "CatId{";
     if (cat)
@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& os, const CatId& cat)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 TEST(LabelTest, ordering)
 {
@@ -76,7 +76,7 @@ TEST(LabelIdMultiMapTest, empty)
 {
     const CatMultiMap default_cats;
     const CatMultiMap empty_cats(VecLabel{});
-    for (const CatMultiMap* cats : {&default_cats, &empty_cats})
+    for (CatMultiMap const* cats : {&default_cats, &empty_cats})
     {
         EXPECT_EQ(0, cats->size());
         EXPECT_EQ(CatId{}, cats->find(Label{"merry"}));
@@ -111,7 +111,7 @@ TEST(LabelIdMultiMapTest, some_labels)
     EXPECT_EQ(CatId{1}, cats.find(Label{"fluffy"}));
     EXPECT_EQ(CatId{2}, cats.find(Label{"fluffy", "jr"}));
     {
-        auto               found            = cats.find_all("fluffy");
+        auto found = cats.find_all("fluffy");
         static const CatId expected_found[] = {CatId{1}, CatId{2}, CatId{3}};
         EXPECT_VEC_EQ(expected_found, found);
     }
@@ -138,22 +138,22 @@ TEST(LabelIdMultiMapTest, shuffled_labels)
 
     // Check discontinuous ID listing
     {
-        auto               found            = cats.find_all("a");
+        auto found = cats.find_all("a");
         static const CatId expected_found[] = {CatId{3}};
         EXPECT_VEC_EQ(expected_found, found);
     }
     {
-        auto               found            = cats.find_all("b");
+        auto found = cats.find_all("b");
         static const CatId expected_found[] = {CatId{2}, CatId{1}};
         EXPECT_VEC_EQ(expected_found, found);
     }
     {
-        auto               found            = cats.find_all("c");
+        auto found = cats.find_all("c");
         static const CatId expected_found[] = {CatId{4}, CatId{5}, CatId{0}};
         EXPECT_VEC_EQ(expected_found, found);
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

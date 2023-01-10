@@ -26,15 +26,15 @@ class DisabledStorage
   public:
     //!@{
     //! \name Type aliases
-    using element_type    = T;
-    using value_type      = std::remove_cv_t<T>;
-    using size_type       = std::size_t;
-    using pointer         = T*;
-    using const_pointer   = const T*;
-    using reference       = T&;
-    using const_reference = const T&;
-    using iterator        = pointer;
-    using const_iterator  = const_pointer;
+    using element_type = T;
+    using value_type = std::remove_cv_t<T>;
+    using size_type = std::size_t;
+    using pointer = T*;
+    using const_pointer = T const*;
+    using reference = T&;
+    using const_reference = T const&;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
     //!@}
   public:
     //!@{
@@ -60,5 +60,5 @@ class DisabledStorage
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

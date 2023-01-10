@@ -34,5 +34,5 @@ class DummyAction final : public ExplicitActionInterface, public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

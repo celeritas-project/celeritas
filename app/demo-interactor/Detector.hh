@@ -28,21 +28,21 @@ class Detector
   public:
     //!@{
     //! Type aliases
-    using Params        = DetectorParamsData;
-    using State         = DetectorStateData<celeritas::Ownership::reference,
+    using Params = DetectorParamsData;
+    using State = DetectorStateData<celeritas::Ownership::reference,
                                     celeritas::MemSpace::native>;
-    using SpanConstHits = celeritas::Span<const Hit>;
-    using HitId         = celeritas::OpaqueId<Hit>;
+    using SpanConstHits = celeritas::Span<Hit const>;
+    using HitId = celeritas::OpaqueId<Hit>;
     //!@}
 
   public:
     // Construct from data references
-    inline CELER_FUNCTION Detector(const Params& params, const State& state);
+    inline CELER_FUNCTION Detector(Params const& params, State const& state);
 
     //// BUFFER INPUT ////
 
     // Record a hit
-    inline CELER_FUNCTION void buffer_hit(const Hit& hit);
+    inline CELER_FUNCTION void buffer_hit(Hit const& hit);
 
     //// BUFFER PROCESSING ////
 
@@ -58,8 +58,8 @@ class Detector
     inline CELER_FUNCTION void clear_buffer();
 
   private:
-    const Params&                  params_;
-    const State&                   state_;
+    Params const& params_;
+    State const& state_;
     celeritas::StackAllocator<Hit> allocate_;
 };
 
@@ -69,7 +69,7 @@ class Detector
 /*!
  * Construct with defaults.
  */
-CELER_FUNCTION Detector::Detector(const Params& params, const State& state)
+CELER_FUNCTION Detector::Detector(Params const& params, State const& state)
     : params_(params), state_(state), allocate_(state.hit_buffer)
 {
 }
@@ -78,7 +78,7 @@ CELER_FUNCTION Detector::Detector(const Params& params, const State& state)
 /*!
  * Push the given hit onto the back of the detector stack.
  */
-CELER_FUNCTION void Detector::buffer_hit(const Hit& hit)
+CELER_FUNCTION void Detector::buffer_hit(Hit const& hit)
 {
     CELER_EXPECT(hit.thread);
     CELER_EXPECT(hit.time > 0);
@@ -109,10 +109,10 @@ CELER_FUNCTION void Detector::process_hit(HitId id)
 
     using namespace celeritas;
 
-    const Hit&      hit = state_.hit_buffer.storage[id];
-    UniformGrid     grid(params_.tally_grid);
+    Hit const& hit = state_.hit_buffer.storage[id];
+    UniformGrid grid(params_.tally_grid);
     const real_type z_pos = hit.pos[2];
-    size_type       bin;
+    size_type bin;
 
     if (z_pos <= grid.front())
         bin = 0;
@@ -136,4 +136,4 @@ CELER_FUNCTION void Detector::clear_buffer()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

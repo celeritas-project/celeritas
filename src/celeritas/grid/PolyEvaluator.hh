@@ -45,7 +45,7 @@ class PolyEvaluator
   public:
     //!@{
     //! Type aliases
-    using result_type   = T;
+    using result_type = T;
     using argument_type = T;
     //!@}
 
@@ -95,4 +95,4 @@ constexpr auto make_poly_evaluator(Ts... args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

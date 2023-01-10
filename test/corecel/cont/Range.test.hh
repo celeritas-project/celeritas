@@ -21,11 +21,11 @@ namespace test
 //! Input data
 struct RangeTestInput
 {
-    int              a;
+    int a;
     std::vector<int> x;
     std::vector<int> y;
-    unsigned int     num_threads;
-    unsigned int     threads_per_block;
+    unsigned int num_threads;
+    unsigned int threads_per_block;
 };
 
 //! Output data
@@ -46,5 +46,5 @@ inline RangeTestOutput rangedev_test(RangeTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

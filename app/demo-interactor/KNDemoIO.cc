@@ -15,19 +15,19 @@ namespace demo_interactor
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-void to_json(nlohmann::json& j, const DeviceGridParams& v)
+void to_json(nlohmann::json& j, DeviceGridParams const& v)
 {
     j = nlohmann::json{{"threads_per_block", v.threads_per_block},
                        {"sync", v.sync}};
 }
 
-void from_json(const nlohmann::json& j, DeviceGridParams& v)
+void from_json(nlohmann::json const& j, DeviceGridParams& v)
 {
     j.at("threads_per_block").get_to(v.threads_per_block);
     j.at("sync").get_to(v.sync);
 }
 
-void to_json(nlohmann::json& j, const KNDemoRunArgs& v)
+void to_json(nlohmann::json& j, KNDemoRunArgs const& v)
 {
     j = nlohmann::json{{"energy", v.energy},
                        {"seed", v.seed},
@@ -36,7 +36,7 @@ void to_json(nlohmann::json& j, const KNDemoRunArgs& v)
                        {"tally_grid", v.tally_grid}};
 }
 
-void from_json(const nlohmann::json& j, KNDemoRunArgs& v)
+void from_json(nlohmann::json const& j, KNDemoRunArgs& v)
 {
     j.at("energy").get_to(v.energy);
     j.at("seed").get_to(v.seed);
@@ -45,7 +45,7 @@ void from_json(const nlohmann::json& j, KNDemoRunArgs& v)
     j.at("tally_grid").get_to(v.tally_grid);
 }
 
-void to_json(nlohmann::json& j, const KNDemoResult& v)
+void to_json(nlohmann::json& j, KNDemoResult const& v)
 {
     j = nlohmann::json{{"time", v.time},
                        {"alive", v.alive},
@@ -53,7 +53,7 @@ void to_json(nlohmann::json& j, const KNDemoResult& v)
                        {"total_time", v.total_time}};
 }
 
-void from_json(const nlohmann::json& j, KNDemoResult& v)
+void from_json(nlohmann::json const& j, KNDemoResult& v)
 {
     j.at("time").get_to(v.time);
     j.at("alive").get_to(v.alive);
@@ -63,21 +63,21 @@ void from_json(const nlohmann::json& j, KNDemoResult& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor
 
 namespace celeritas
 {
-void to_json(nlohmann::json& j, const UniformGridData& v)
+void to_json(nlohmann::json& j, UniformGridData const& v)
 {
     j = nlohmann::json{
         {"size", v.size}, {"front", v.front}, {"delta", v.delta}};
 }
 
-void from_json(const nlohmann::json& j, UniformGridData& v)
+void from_json(nlohmann::json const& j, UniformGridData& v)
 {
     j.at("size").get_to(v.size);
     j.at("front").get_to(v.front);
     j.at("delta").get_to(v.delta);
     v.back = v.front + v.delta * (v.size - 1);
 }
-} // namespace celeritas
+}  // namespace celeritas

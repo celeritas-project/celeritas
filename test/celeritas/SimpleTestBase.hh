@@ -22,19 +22,19 @@ namespace test
 class SimpleTestBase : virtual public GlobalGeoTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "two-boxes"; }
+    char const* geometry_basename() const override { return "two-boxes"; }
 
     virtual real_type secondary_stack_factor() const { return 1.0; }
 
-    SPConstMaterial    build_material() override;
+    SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
-    SPConstParticle    build_particle() override;
-    SPConstCutoff      build_cutoff() override;
-    SPConstPhysics     build_physics() override;
-    SPConstTrackInit   build_init() override;
-    SPConstAction      build_along_step() override;
+    SPConstParticle build_particle() override;
+    SPConstCutoff build_cutoff() override;
+    SPConstPhysics build_physics() override;
+    SPConstTrackInit build_init() override;
+    SPConstAction build_along_step() override;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

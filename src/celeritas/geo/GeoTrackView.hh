@@ -24,4 +24,4 @@ using GeoTrackView = VecgeomTrackView;
 using GeoTrackView = OrangeTrackView;
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

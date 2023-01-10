@@ -82,4 +82,4 @@ struct FieldDriverOptions
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

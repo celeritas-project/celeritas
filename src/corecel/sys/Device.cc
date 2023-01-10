@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Device.hh"
 
-#include <iostream> // IWYU pragma: keep
+#include <iostream>  // IWYU pragma: keep
 #include <mutex>
 #include <utility>
 
@@ -115,7 +115,7 @@ Device& global_device()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // MEMBER FUNCTIONS
@@ -129,7 +129,7 @@ Device& global_device()
  */
 int Device::num_devices()
 {
-    static const int result = determine_num_devices();
+    static int const result = determine_num_devices();
     return result;
 }
 
@@ -142,7 +142,7 @@ int Device::num_devices()
  */
 bool Device::debug()
 {
-    static const bool result = determine_debug();
+    static bool const result = determine_debug();
     return result;
 }
 
@@ -163,12 +163,12 @@ Device::Device(int id) : id_(id)
 #    endif
 
     CELER_DEVICE_CALL_PREFIX(GetDeviceProperties(&props, id));
-    name_                  = props.name;
-    total_global_mem_      = props.totalGlobalMem;
+    name_ = props.name;
+    total_global_mem_ = props.totalGlobalMem;
     max_threads_per_block_ = props.maxThreadsDim[0];
-    max_blocks_per_grid_   = props.maxGridSize[0];
-    max_threads_per_cu_    = props.maxThreadsPerMultiProcessor;
-    threads_per_warp_      = props.warpSize;
+    max_blocks_per_grid_ = props.maxGridSize[0];
+    max_threads_per_cu_ = props.maxThreadsPerMultiProcessor;
+    threads_per_warp_ = props.warpSize;
 #    if CELERITAS_USE_HIP
     if (name_.empty())
     {
@@ -177,7 +177,7 @@ Device::Device(int id) : id_(id)
         // "gfx90a:sramecc+:xnack-" (SRAM ECC and XNACK are memory related
         // flags )
         std::string gcn_arch_name = props.gcnArchName;
-        auto        pos           = gcn_arch_name.find(':');
+        auto pos = gcn_arch_name.find(':');
         if (pos != std::string::npos)
         {
             gcn_arch_name.erase(pos);
@@ -186,15 +186,15 @@ Device::Device(int id) : id_(id)
     }
 #    endif
 
-    extra_["clock_rate"]           = props.clockRate;
+    extra_["clock_rate"] = props.clockRate;
     extra_["multiprocessor_count"] = props.multiProcessorCount;
-    extra_["max_cache_size"]       = props.l2CacheSize;
-    extra_["memory_clock_rate"]    = props.memoryClockRate;
-    extra_["regs_per_block"]       = props.regsPerBlock;
+    extra_["max_cache_size"] = props.l2CacheSize;
+    extra_["memory_clock_rate"] = props.memoryClockRate;
+    extra_["regs_per_block"] = props.regsPerBlock;
     extra_["shared_mem_per_block"] = props.sharedMemPerBlock;
-    extra_["total_const_mem"]      = props.totalConstMem;
-    extra_["capability_major"]     = props.major;
-    extra_["capability_minor"]     = props.minor;
+    extra_["total_const_mem"] = props.totalConstMem;
+    extra_["capability_major"] = props.major;
+    extra_["capability_minor"] = props.minor;
 #    if CELERITAS_USE_CUDA
 #        if CUDART_VERSION >= 11000
     extra_["max_blocks_per_multiprocessor"] = props.maxBlocksPerMultiProcessor;
@@ -210,7 +210,7 @@ Device::Device(int id) : id_(id)
     eu_per_cu_ = CELER_EU_PER_CU;
 
     // Set default block size from environment
-    const std::string& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
+    std::string const& bsize_str = celeritas::getenv("CELER_BLOCK_SIZE");
     if (!bsize_str.empty())
     {
         default_block_size_ = std::stoi(bsize_str);
@@ -237,7 +237,7 @@ Device::Device(int id) : id_(id)
 /*!
  * Get the shared default device.
  */
-const Device& device()
+Device const& device()
 {
     return global_device();
 }
@@ -265,7 +265,7 @@ void activate_device(Device&& device)
                            << device.device_id() << " of "
                            << Device::num_devices();
     ScopedTimeLog scoped_time;
-    Device&       d = global_device();
+    Device& d = global_device();
     {
         // Lock *after* getting the pointer to the global_device, because
         // the global_device function (in debug mode) also uses this lock.
@@ -282,7 +282,7 @@ void activate_device(Device&& device)
 /*!
  * Print device info.
  */
-std::ostream& operator<<(std::ostream& os, const Device& d)
+std::ostream& operator<<(std::ostream& os, Device const& d)
 {
     if (d)
     {
@@ -333,4 +333,4 @@ void set_cuda_heap_size(int limit)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

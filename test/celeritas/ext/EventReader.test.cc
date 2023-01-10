@@ -22,7 +22,7 @@ namespace test
 //---------------------------------------------------------------------------//
 
 class EventReaderTest : public Test,
-                        public ::testing::WithParamInterface<const char*>
+                        public ::testing::WithParamInterface<char const*>
 {
   protected:
     void SetUp() override
@@ -31,7 +31,7 @@ class EventReaderTest : public Test,
         using units::MevMass;
         using units::second;
 
-        auto           zero   = zero_quantity();
+        auto zero = zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create shared standard model particle data
@@ -59,7 +59,7 @@ class EventReaderTest : public Test,
                                   {"gamma", pdg::gamma(), zero, zero, stable}});
     }
 
-    std::string                     filename_;
+    std::string filename_;
     std::shared_ptr<ParticleParams> particle_params_;
 };
 
@@ -75,12 +75,12 @@ TEST_P(EventReaderTest, read_all_formats)
     EventReader read_event(filename_.c_str(), particle_params_);
 
     // Expected PDG: 2212, 1, 2212, -2, 22, -24, 1, -2
-    const int expected_def_id[] = {0, 1, 0, 2, 4, 3, 1, 2};
+    int const expected_def_id[] = {0, 1, 0, 2, 4, 3, 1, 2};
 
-    const double expected_energy[] = {
+    double const expected_energy[] = {
         7.e6, 3.2238e4, 7.e6, 5.7920e4, 4.233e3, 8.5925e4, 2.9552e4, 5.6373e4};
 
-    const double expected_direction[][3] = {
+    double const expected_direction[][3] = {
         {0, 0, 1},
         {2.326451417389850e-2, -4.866936365179566e-2, 9.985439676959555e-1},
         {0, 0, -1},
@@ -91,14 +91,14 @@ TEST_P(EventReaderTest, read_all_formats)
         {7.028153760960004e-2, -8.780402697122620e-1, -4.733981307893478e-1}};
 
     // Read events from the event record
-    int  event_count = 0;
-    auto primaries   = read_event();
+    int event_count = 0;
+    auto primaries = read_event();
     while (!primaries.empty())
     {
         EXPECT_EQ(8, primaries.size());
         for (auto i : range(primaries.size()))
         {
-            const auto& primary = primaries[i];
+            auto const& primary = primaries[i];
 
             // Check that the particle types were read correctly
             EXPECT_EQ(expected_def_id[i], primary.particle_id.get());
@@ -108,7 +108,7 @@ TEST_P(EventReaderTest, read_all_formats)
 
             // Check that the position, direction, and energy were read
             // correctly
-            const double expected_position[] = {0, 0, 0};
+            double const expected_position[] = {0, 0, 0};
             EXPECT_VEC_SOFT_EQ(expected_position, primary.position);
             EXPECT_VEC_SOFT_EQ(expected_direction[i], primary.direction);
             EXPECT_DOUBLE_EQ(expected_energy[i], primary.energy.value());
@@ -129,5 +129,5 @@ INSTANTIATE_TEST_SUITE_P(EventReaderTests,
                                          "event-record.hepevt"));
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

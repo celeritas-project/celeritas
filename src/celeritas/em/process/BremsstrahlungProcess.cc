@@ -25,9 +25,9 @@ namespace celeritas
  */
 BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
                                              SPConstMaterials materials,
-                                             SPConstImported  process_data,
-                                             ReadData         load_sb,
-                                             Options          options)
+                                             SPConstImported process_data,
+                                             ReadData load_sb,
+                                             Options options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -94,4 +94,4 @@ std::string BremsstrahlungProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

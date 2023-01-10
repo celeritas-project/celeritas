@@ -24,10 +24,10 @@ namespace detail
  * Construct with EADL transition data and production thresholds.
  */
 MaxSecondariesCalculator::MaxSecondariesCalculator(
-    const Values&                         data,
-    const ItemRange<AtomicRelaxSubshell>& shells,
-    Energy                                electron_cut,
-    Energy                                gamma_cut)
+    Values const& data,
+    ItemRange<AtomicRelaxSubshell> const& shells,
+    Energy electron_cut,
+    Energy gamma_cut)
     : data_(data)
     , shells_(data.shells[shells])
     , electron_cut_(electron_cut)
@@ -71,7 +71,7 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
         return count + it->second;
 
     size_type sub_count = 0;
-    for (const auto& transition :
+    for (auto const& transition :
          data_.transitions[shells_[vacancy_shell.get()].transitions])
     {
         // If this is a non-radiative transition with an energy above the
@@ -97,7 +97,7 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
  * Construct with EADL transition data.
  */
 MaxStackSizeCalculator::MaxStackSizeCalculator(
-    const Values& data, const ItemRange<AtomicRelaxSubshell>& shells)
+    Values const& data, ItemRange<AtomicRelaxSubshell> const& shells)
     : data_(data), shells_(data.shells[shells])
 {
 }
@@ -138,7 +138,7 @@ size_type MaxStackSizeCalculator::calc(SubshellId vacancy_shell)
         return it->second;
 
     size_type max_depth = 0;
-    for (const auto& transition :
+    for (auto const& transition :
          data_.transitions[shells_[vacancy_shell.get()].transitions])
     {
         // If this is a non-radiative transition two vacancies are created and
@@ -149,7 +149,7 @@ size_type MaxStackSizeCalculator::calc(SubshellId vacancy_shell)
         {
             depth = this->calc(transition.auger_shell) + 1;
         }
-        depth     = max(depth, this->calc(transition.initial_shell));
+        depth = max(depth, this->calc(transition.initial_shell));
         max_depth = max(max_depth, depth);
     }
     visited_[vacancy_shell] = max_depth;
@@ -161,8 +161,8 @@ size_type MaxStackSizeCalculator::calc(SubshellId vacancy_shell)
  * Calculate the maximum possible number of secondaries produced in atomic
  * relaxation.
  */
-size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
-                               const ItemRange<AtomicRelaxSubshell>&   shells,
+size_type calc_max_secondaries(MaxSecondariesCalculator::Values const& data,
+                               ItemRange<AtomicRelaxSubshell> const& shells,
                                units::MevEnergy electron_cut,
                                units::MevEnergy gamma_cut)
 {
@@ -174,12 +174,12 @@ size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
  * Calculate the maximum size the stack of subshell vacancies can grow to in
  * atomic relaxation.
  */
-size_type calc_max_stack_size(const MaxSecondariesCalculator::Values& data,
-                              const ItemRange<AtomicRelaxSubshell>&   shells)
+size_type calc_max_stack_size(MaxSecondariesCalculator::Values const& data,
+                              ItemRange<AtomicRelaxSubshell> const& shells)
 {
     return MaxStackSizeCalculator(data, shells)();
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

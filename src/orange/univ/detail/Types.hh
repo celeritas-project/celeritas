@@ -72,14 +72,14 @@ class OnTface
     }
 
   private:
-    IdT   id_{};
+    IdT id_{};
     Sense sense_{Sense::inside};
 };
 
 //! Equality of an OnFace (mostly for testing)
 template<class ValueT>
 CELER_CONSTEXPR_FUNCTION bool
-operator==(const OnTface<ValueT>& lhs, const OnTface<ValueT>& rhs) noexcept
+operator==(OnTface<ValueT> const& lhs, OnTface<ValueT> const& rhs) noexcept
 {
     return lhs.id() == rhs.id()
            && (!lhs || lhs.uncheckced_sense() == rhs.unchecked_sense());
@@ -88,13 +88,13 @@ operator==(const OnTface<ValueT>& lhs, const OnTface<ValueT>& rhs) noexcept
 //! Inequality for OnFace
 template<class ValueT>
 CELER_CONSTEXPR_FUNCTION bool
-operator!=(const OnTface<ValueT>& lhs, const OnTface<ValueT>& rhs) noexcept
+operator!=(OnTface<ValueT> const& lhs, OnTface<ValueT> const& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
 using OnSurface = OnTface<struct Surface>;
-using OnFace    = OnTface<struct Face>;
+using OnFace = OnTface<struct Face>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -131,7 +131,7 @@ struct Intersection
  */
 struct Initialization
 {
-    VolumeId  volume;
+    VolumeId volume;
     OnSurface surface;
 
     //! Whether initialization succeeded
@@ -155,11 +155,11 @@ struct Initialization
  */
 struct TempNextFace
 {
-    FaceId*    face{nullptr};
+    FaceId* face{nullptr};
     real_type* distance{nullptr};
     size_type* isect{nullptr};
 
-    size_type size{0}; //!< Maximum number of intersections
+    size_type size{0};  //!< Maximum number of intersections
 
     explicit CELER_FORCEINLINE_FUNCTION operator bool() const
     {
@@ -180,14 +180,14 @@ struct TempNextFace
  */
 struct LocalState
 {
-    Real3        pos;
-    Real3        dir;
-    VolumeId     volume;
-    OnSurface    surface;
-    Span<Sense>  temp_sense;
+    Real3 pos;
+    Real3 dir;
+    VolumeId volume;
+    OnSurface surface;
+    Span<Sense> temp_sense;
     TempNextFace temp_next;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

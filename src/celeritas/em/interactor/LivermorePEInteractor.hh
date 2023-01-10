@@ -59,13 +59,13 @@ class LivermorePEInteractor
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEInteractor(const LivermorePERef&         shared,
-                          const AtomicRelaxationHelper& relaxation,
-                          ElementId                     el_id,
-                          const ParticleTrackView&      particle,
-                          const CutoffView&             cutoffs,
-                          const Real3&                  inc_direction,
-                          StackAllocator<Secondary>&    allocate);
+    LivermorePEInteractor(LivermorePERef const& shared,
+                          AtomicRelaxationHelper const& relaxation,
+                          ElementId el_id,
+                          ParticleTrackView const& particle,
+                          CutoffView const& cutoffs,
+                          Real3 const& inc_direction,
+                          StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -75,15 +75,15 @@ class LivermorePEInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const LivermorePERef& shared_;
+    LivermorePERef const& shared_;
     // Shared scratch space
-    const AtomicRelaxationHelper& relaxation_;
+    AtomicRelaxationHelper const& relaxation_;
     // Index in MaterialParams elements
     ElementId el_id_;
     // Production thresholds
-    const CutoffView& cutoffs_;
+    CutoffView const& cutoffs_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Incident gamma energy
     const real_type inc_energy_;
     // Allocate space for one or more secondary particles
@@ -115,13 +115,13 @@ class LivermorePEInteractor
  */
 CELER_FUNCTION
 LivermorePEInteractor::LivermorePEInteractor(
-    const LivermorePERef&         shared,
-    const AtomicRelaxationHelper& relaxation,
-    ElementId                     el_id,
-    const ParticleTrackView&      particle,
-    const CutoffView&             cutoffs,
-    const Real3&                  inc_direction,
-    StackAllocator<Secondary>&    allocate)
+    LivermorePERef const& shared,
+    AtomicRelaxationHelper const& relaxation,
+    ElementId el_id,
+    ParticleTrackView const& particle,
+    CutoffView const& cutoffs,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , relaxation_(relaxation)
     , el_id_(el_id)
@@ -164,15 +164,15 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // locally.
     if (CELER_UNLIKELY(!shell_id))
     {
-        Interaction result       = Interaction::from_absorption();
+        Interaction result = Interaction::from_absorption();
         result.energy_deposition = Energy{inc_energy_};
         return result;
     }
 
     real_type binding_energy;
     {
-        const auto& el     = shared_.xs.elements[el_id_];
-        const auto& shells = shared_.xs.shells[el.shells];
+        auto const& el = shared_.xs.elements[el_id_];
+        auto const& shells = shared_.xs.shells[el.shells];
         binding_energy
             = value_as<Energy>(shells[shell_id.get()].binding_energy);
     }
@@ -180,7 +180,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     // Outgoing secondary is an electron
     CELER_ASSERT(!secondaries.empty());
     {
-        Secondary& electron  = secondaries.front();
+        Secondary& electron = secondaries.front();
         electron.particle_id = shared_.ids.electron;
 
         // Electron kinetic energy is the difference between the incident
@@ -202,7 +202,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
             cutoffs_, shell_id, secondaries.subspan(1));
 
         auto outgoing = sample_relaxation(rng);
-        secondaries   = {secondaries.data(), 1 + outgoing.count};
+        secondaries = {secondaries.data(), 1 + outgoing.count};
 
         // The local energy deposition is the difference between the binding
         // energy of the vacancy subshell and the sum of the energies of any
@@ -227,20 +227,20 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
 template<class Engine>
 CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) const
 {
-    const LivermoreElement& el       = shared_.xs.elements[el_id_];
-    const auto&             shells   = shared_.xs.shells[el.shells];
-    size_type               shell_id = 0;
+    LivermoreElement const& el = shared_.xs.elements[el_id_];
+    auto const& shells = shared_.xs.shells[el.shells];
+    size_type shell_id = 0;
 
     const real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
         // TODO: use Selector-with-remainder
-        real_type       xs              = 0;
+        real_type xs = 0;
         const real_type inv_cube_energy = ipow<3>(inv_energy_);
         for (; shell_id < shells.size(); ++shell_id)
         {
-            const auto& shell = shells[shell_id];
+            auto const& shell = shells[shell_id];
             if (Energy{inc_energy_} < shell.binding_energy)
             {
                 // No chance of interaction because binding energy is higher
@@ -271,12 +271,12 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
         // an algorithm to encapsulate and later accelerate it.
 
         // Low/high index on params
-        const int       pidx      = Energy{inc_energy_} < el.thresh_hi ? 0 : 1;
+        int const pidx = Energy{inc_energy_} < el.thresh_hi ? 0 : 1;
         const size_type shell_end = shells.size() - 1;
 
         for (; shell_id < shell_end; ++shell_id)
         {
-            const auto&                 param = shells[shell_id].param[pidx];
+            auto const& param = shells[shell_id].param[pidx];
             PolyEvaluator<real_type, 5> eval_poly(
                 param[0], param[1], param[2], param[3], param[4], param[5]);
 
@@ -323,8 +323,8 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 
     // Calculate Lorentz factors of the photoelectron
     real_type gamma = energy_per_mecsq + 1;
-    real_type beta  = std::sqrt(energy_per_mecsq * (gamma + 1)) / gamma;
-    real_type a     = (1 - beta) / beta;
+    real_type beta = std::sqrt(energy_per_mecsq * (gamma + 1)) / gamma;
+    real_type a = (1 - beta) / beta;
 
     // Second term inside the brackets in Eq. 2.8 in the Penelope manual
     constexpr real_type half = 0.5;
@@ -342,7 +342,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
         // Sample 1 - cos \theta from the distribution given in Eq. 2.9 using
         // the inverse function (Eq. 2.11)
         real_type u = generate_canonical(rng);
-        nu          = 2 * a * (2 * u + (a + 2) * std::sqrt(u))
+        nu = 2 * a * (2 * u + (a + 2) * std::sqrt(u))
              / (ipow<2>(a + 2) - 4 * u);
 
         // Calculate the rejection function (Eq 2.8) at the sampled value
@@ -356,4 +356,4 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

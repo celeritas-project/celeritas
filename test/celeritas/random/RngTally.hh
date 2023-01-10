@@ -24,8 +24,8 @@ namespace test
 struct RngTally
 {
     double moments[4] = {0, 0, 0, 0};
-    double min        = 1;
-    double max        = 0;
+    double min = 1;
+    double max = 0;
 
     void operator()(double xi)
     {
@@ -59,5 +59,5 @@ struct RngTally
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

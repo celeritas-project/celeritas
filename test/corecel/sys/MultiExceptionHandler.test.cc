@@ -94,5 +94,5 @@ TEST_F(MultiExceptionHandlerTest, DISABLED_uncaught)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

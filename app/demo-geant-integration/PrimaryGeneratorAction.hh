@@ -29,4 +29,4 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

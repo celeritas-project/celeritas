@@ -64,8 +64,8 @@ class CutoffParamsTest : public Test
 
         // Set up ParticleParams
         ParticleParams::Input p_input;
-        constexpr auto        zero   = zero_quantity();
-        constexpr auto        stable = ParticleRecord::stable_decay_constant();
+        constexpr auto zero = zero_quantity();
+        constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         p_input.push_back({"electron",
                            pdg::electron(),
@@ -90,9 +90,9 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
     CutoffParams cutoff_params(input);
 
     std::vector<double> energies, ranges;
-    for (const auto pid : range(ParticleId{particle_params->size()}))
+    for (auto const pid : range(ParticleId{particle_params->size()}))
     {
-        for (const auto matid : range(MaterialId{material_params->size()}))
+        for (auto const matid : range(MaterialId{material_params->size()}))
         {
             CutoffView cutoff_view(cutoff_params.host_ref(), matid);
             energies.push_back(cutoff_view.energy(pid).value());
@@ -100,8 +100,8 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
         }
     }
 
-    const double expected_energies[] = {0, 0, 0, 0, 0, 0};
-    const double expected_ranges[]   = {0, 0, 0, 0, 0, 0};
+    double const expected_energies[] = {0, 0, 0, 0, 0, 0};
+    double const expected_ranges[] = {0, 0, 0, 0, 0, 0};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
@@ -109,7 +109,7 @@ TEST_F(CutoffParamsTest, empty_cutoffs)
 
 TEST_F(CutoffParamsTest, electron_cutoffs)
 {
-    CutoffParams::Input           input;
+    CutoffParams::Input input;
     CutoffParams::MaterialCutoffs mat_cutoffs;
     input.materials = material_params;
     input.particles = particle_params;
@@ -121,9 +121,9 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
     CutoffParams cutoff_params(input);
 
     std::vector<double> energies, ranges;
-    for (const auto pid : range(ParticleId{particle_params->size()}))
+    for (auto const pid : range(ParticleId{particle_params->size()}))
     {
-        for (const auto matid : range(MaterialId{material_params->size()}))
+        for (auto const matid : range(MaterialId{material_params->size()}))
         {
             CutoffView cutoff_view(cutoff_params.host_ref(), matid);
 
@@ -132,8 +132,8 @@ TEST_F(CutoffParamsTest, electron_cutoffs)
         }
     }
 
-    const double expected_energies[] = {0.2, 0, 0.4, 0, 0, 0};
-    const double expected_ranges[]   = {0.1, 0, 0.3, 0, 0, 0};
+    double const expected_energies[] = {0.2, 0, 0.4, 0, 0, 0};
+    double const expected_ranges[] = {0.1, 0, 0.3, 0, 0, 0};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
@@ -152,23 +152,23 @@ class CutoffParamsImportTest : public Test
         data_ = import_from_root();
     }
     std::string root_filename_;
-    ImportData  data_;
+    ImportData data_;
 
     ScopedRootErrorHandler scoped_root_error_;
 };
 
 TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
 {
-    const auto particles = ParticleParams::from_import(data_);
-    const auto materials = MaterialParams::from_import(data_);
-    const auto cutoffs = CutoffParams::from_import(data_, particles, materials);
+    auto const particles = ParticleParams::from_import(data_);
+    auto const materials = MaterialParams::from_import(data_);
+    auto const cutoffs = CutoffParams::from_import(data_, particles, materials);
 
     std::vector<double> energies, ranges;
 
-    for (const auto pid :
+    for (auto const pid :
          {particles->find(pdg::electron()), particles->find(pdg::gamma())})
     {
-        for (const auto matid : range(MaterialId{materials->size()}))
+        for (auto const matid : range(MaterialId{materials->size()}))
         {
             CutoffView cutoff_view(cutoffs->host_ref(), matid);
             energies.push_back(cutoff_view.energy(pid).value());
@@ -176,14 +176,14 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
         }
     }
 
-    const double expected_energies[]
+    double const expected_energies[]
         = {0.00099, 1.31345289979559, 0.00099, 0.0209231725658313};
-    const double expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
+    double const expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

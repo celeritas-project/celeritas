@@ -28,7 +28,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
 {
   public:
     // Overload with the base filename of the geometry
-    virtual const char* geometry_basename() const = 0;
+    virtual char const* geometry_basename() const = 0;
 
     // Construct a geometry that's persistent across tests
     SPConstGeo build_geometry() override;
@@ -42,7 +42,7 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
     struct LazyGeo
     {
         std::string basename{};
-        SPConstGeo  geo{};
+        SPConstGeo geo{};
     };
 
     static LazyGeo& lazy_geo();
@@ -55,5 +55,5 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

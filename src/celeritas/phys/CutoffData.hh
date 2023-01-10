@@ -19,8 +19,8 @@ namespace celeritas
  */
 struct ParticleCutoff
 {
-    units::MevEnergy energy{}; //!< Converted range value
-    real_type        range{};  //!< [cm]
+    units::MevEnergy energy{};  //!< Converted range value
+    real_type range{};  //!< [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -44,13 +44,13 @@ struct CutoffParamsData
     using ParticleItems = Collection<T, W, M, ParticleId>;
 
     // Backend storage
-    Items<ParticleCutoff> cutoffs; //!< [num_materials][num_particles]
+    Items<ParticleCutoff> cutoffs;  //!< [num_materials][num_particles]
 
     // Direct address table for mapping particle ID to index in cutoffs
     ParticleItems<size_type> id_to_index;
 
-    ParticleId::size_type num_particles; //!< Particles with production cuts
-    MaterialId::size_type num_materials; //!< All materials in the problem
+    ParticleId::size_type num_particles;  //!< Particles with production cuts
+    MaterialId::size_type num_materials;  //!< All materials in the problem
 
     //// MEMBER FUNCTIONS ////
 
@@ -63,12 +63,12 @@ struct CutoffParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CutoffParamsData& operator=(const CutoffParamsData<W2, M2>& other)
+    CutoffParamsData& operator=(CutoffParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 
-        this->cutoffs       = other.cutoffs;
-        this->id_to_index   = other.id_to_index;
+        this->cutoffs = other.cutoffs;
+        this->id_to_index = other.id_to_index;
         this->num_particles = other.num_particles;
         this->num_materials = other.num_materials;
 
@@ -77,4 +77,4 @@ struct CutoffParamsData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

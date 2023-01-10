@@ -34,14 +34,14 @@ namespace test
 struct PhysTestInit
 {
     units::MevEnergy energy;
-    MaterialId       mat;
-    ParticleId       particle;
+    MaterialId mat;
+    ParticleId particle;
 };
 
 struct PTestInput
 {
     DeviceCRef<PhysicsParamsData> params;
-    DeviceRef<PhysicsStateData>   states;
+    DeviceRef<PhysicsStateData> states;
     StateCollection<PhysTestInit, Ownership::const_reference, MemSpace::device>
         inits;
 
@@ -53,8 +53,8 @@ struct PTestInput
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
-                                          PhysicsStepView&  pstep,
-                                          units::MevEnergy  energy)
+                                          PhysicsStepView& pstep,
+                                          units::MevEnergy energy)
 {
     // Calc total macro_xs over processes
     real_type total_xs = 0;
@@ -64,7 +64,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
         if (auto id = phys.value_grid(ValueGridType::macro_xs, ppid))
         {
             auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            process_xs   = calc_xs(energy);
+            process_xs = calc_xs(energy);
         }
 
         // Zero cross section if outside of model range
@@ -80,14 +80,14 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
     phys.interaction_mfp(1 / total_xs);
 
     // Calc minimum range
-    const auto inf  = numeric_limits<real_type>::infinity();
-    real_type  step = inf;
+    auto const inf = numeric_limits<real_type>::infinity();
+    real_type step = inf;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
     {
         if (auto id = phys.value_grid(ValueGridType::range, ppid))
         {
             auto calc_range = phys.make_calculator<RangeCalculator>(id);
-            step            = min(step, calc_range(energy));
+            step = min(step, calc_range(energy));
         }
     }
     if (step != inf)
@@ -102,15 +102,15 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void phys_cuda_test(const PTestInput&);
+void phys_cuda_test(PTestInput const&);
 
 #if !CELER_USE_DEVICE
-inline void phys_cuda_test(const PTestInput&)
+inline void phys_cuda_test(PTestInput const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

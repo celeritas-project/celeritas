@@ -24,7 +24,7 @@ TEST(UniformBoxDistributionTest, all)
 {
     int num_samples = 10000;
 
-    UniformBoxDistribution<>          sample_point({-1, -2, -3}, {3, 6, 9});
+    UniformBoxDistribution<> sample_point({-1, -2, -3}, {3, 6, 9});
     DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);
@@ -52,5 +52,5 @@ TEST(UniformBoxDistributionTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -50,11 +50,11 @@ class ProcessBuilder
   public:
     //!@{
     //! \name Type aliases
-    using IPC             = ImportProcessClass;
-    using SPProcess       = std::shared_ptr<Process>;
-    using SPConstParticle = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterial = std::shared_ptr<const MaterialParams>;
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using IPC = ImportProcessClass;
+    using SPProcess = std::shared_ptr<Process>;
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
     struct Options
@@ -72,23 +72,23 @@ class ProcessBuilder
 
     //!@{
     //! \name User builder type aliases
-    using UserBuildFunction = std::function<SPProcess(const UserBuildInput&)>;
-    using UserBuildMap      = std::unordered_map<IPC, UserBuildFunction>;
+    using UserBuildFunction = std::function<SPProcess(UserBuildInput const&)>;
+    using UserBuildMap = std::unordered_map<IPC, UserBuildFunction>;
     //!@}
 
   public:
     // Construct from imported and shared data and user construction
-    ProcessBuilder(const ImportData& data,
-                   SPConstParticle   particle,
-                   SPConstMaterial   material,
-                   UserBuildMap      user_build,
-                   Options           options);
+    ProcessBuilder(ImportData const& data,
+                   SPConstParticle particle,
+                   SPConstMaterial material,
+                   UserBuildMap user_build,
+                   Options options);
 
     // Construct without custom user builders
-    ProcessBuilder(const ImportData& data,
-                   SPConstParticle   particle,
-                   SPConstMaterial   material,
-                   Options           options);
+    ProcessBuilder(ImportData const& data,
+                   SPConstParticle particle,
+                   SPConstMaterial material,
+                   Options options);
 
     // Default destructor
     ~ProcessBuilder();
@@ -99,9 +99,9 @@ class ProcessBuilder
   private:
     //// DATA ////
 
-    UserBuildInput                                 input_;
-    UserBuildMap                                   user_build_map_;
-    std::function<ImportSBTable(AtomicNumber)>     read_sb_;
+    UserBuildInput input_;
+    UserBuildMap user_build_map_;
+    std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
 
     bool brem_combined_;
@@ -138,8 +138,8 @@ class ProcessBuilder
 struct WarnAndIgnoreProcess
 {
     //// TYPES ////
-    using argument_type = const ProcessBuilder::UserBuildInput&;
-    using result_type   = ProcessBuilder::SPProcess;
+    using argument_type = ProcessBuilder::UserBuildInput const&;
+    using result_type = ProcessBuilder::SPProcess;
 
     //// DATA ////
 
@@ -151,4 +151,4 @@ struct WarnAndIgnoreProcess
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

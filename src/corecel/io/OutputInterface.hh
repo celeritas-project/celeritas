@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string> // IWYU pragma: export
+#include <string>  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -57,10 +57,10 @@ class OutputInterface
 //---------------------------------------------------------------------------//
 
 // Get a string representation of the category
-const char* to_cstring(OutputInterface::Category value);
+char const* to_cstring(OutputInterface::Category value);
 
 // Get the JSON representation of a single output (mostly for testing)
-std::string to_string(const OutputInterface& output);
+std::string to_string(OutputInterface const& output);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

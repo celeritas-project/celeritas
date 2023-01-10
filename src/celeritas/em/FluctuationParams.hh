@@ -25,24 +25,24 @@ class FluctuationParams
   public:
     //!@{
     //! \name Type aliases
-    using HostRef   = celeritas::HostCRef<FluctuationData>;
+    using HostRef = celeritas::HostCRef<FluctuationData>;
     using DeviceRef = celeritas::DeviceCRef<FluctuationData>;
     //!@}
 
   public:
     // Construct with particle and material data
-    FluctuationParams(const ParticleParams& particles,
-                      const MaterialParams& materials);
+    FluctuationParams(ParticleParams const& particles,
+                      MaterialParams const& materials);
 
     //! Access physics properties on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access physics properties on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     CollectionMirror<FluctuationData> data_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -46,9 +46,9 @@ struct StepDiagnosticData
 
     //// DATA ////
 
-    Items<size_type> counts; //!< Bin tracks by particle and step count
-    size_type        num_bins;
-    size_type        num_particles;
+    Items<size_type> counts;  //!< Bin tracks by particle and step count
+    size_type num_bins;
+    size_type num_particles;
 
     //// METHODS ////
 
@@ -64,8 +64,8 @@ struct StepDiagnosticData
     StepDiagnosticData& operator=(StepDiagnosticData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        counts        = other.counts;
-        num_bins      = other.num_bins;
+        counts = other.counts;
+        num_bins = other.num_bins;
         num_particles = other.num_particles;
         return *this;
     }
@@ -85,21 +85,21 @@ class StepDiagnostic : public Diagnostic<M>
   public:
     //!@{
     //! Type aliases
-    using size_type        = celeritas::size_type;
+    using size_type = celeritas::size_type;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
-    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
+    using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared problem data and upper bound on steps per track
-    StepDiagnostic(const ParamsRef& params,
+    StepDiagnostic(ParamsRef const& params,
                    SPConstParticles particles,
-                   size_type        num_tracks,
-                   size_type        max_steps);
+                   size_type num_tracks,
+                   size_type max_steps);
 
     // Number of steps per track, tallied before post-processing
-    void mid_step(const StateRef& states) final;
+    void mid_step(StateRef const& states) final;
 
     // Collect diagnostic results
     void get_result(TransporterResult* result) final;
@@ -109,7 +109,7 @@ class StepDiagnostic : public Diagnostic<M>
 
   private:
     // Shared problem data
-    const ParamsRef& params_;
+    ParamsRef const& params_;
     // Shared particle data for getting particle name from particle ID
     SPConstParticles particles_;
     // Data for finding distribution of steps per track
@@ -129,37 +129,37 @@ class StepLauncher
     //!@{
     //! Type aliases
     using size_type = celeritas::size_type;
-    using ThreadId  = celeritas::ThreadId;
+    using ThreadId = celeritas::ThreadId;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
-    using StateRef  = celeritas::CoreStateData<Ownership::reference, M>;
+    using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION StepLauncher(const ParamsRef&         params,
-                                const StateRef&          states,
+    CELER_FUNCTION StepLauncher(ParamsRef const& params,
+                                StateRef const& states,
                                 StepDiagnosticDataRef<M> data);
 
     // Create track views and tally steps per track
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef&         params_;
-    const StateRef&          states_;
+    ParamsRef const& params_;
+    StateRef const& states_;
     StepDiagnosticDataRef<M> data_;
 };
 
-void count_steps(const celeritas::CoreParamsHostRef&   params,
-                 const celeritas::CoreStateHostRef&    states,
+void count_steps(celeritas::CoreParamsHostRef const& params,
+                 celeritas::CoreStateHostRef const& states,
                  StepDiagnosticDataRef<MemSpace::host> data);
 
-void count_steps(const celeritas::CoreParamsDeviceRef&   params,
-                 const celeritas::CoreStateDeviceRef&    states,
+void count_steps(celeritas::CoreParamsDeviceRef const& params,
+                 celeritas::CoreStateDeviceRef const& states,
                  StepDiagnosticDataRef<MemSpace::device> data);
 
 #if !CELER_USE_DEVICE
-inline void count_steps(const celeritas::CoreParamsDeviceRef&,
-                        const celeritas::CoreStateDeviceRef&,
+inline void count_steps(celeritas::CoreParamsDeviceRef const&,
+                        celeritas::CoreStateDeviceRef const&,
                         StepDiagnosticDataRef<MemSpace::device>)
 {
     CELER_ASSERT_UNREACHABLE();
@@ -173,10 +173,10 @@ inline void count_steps(const celeritas::CoreParamsDeviceRef&,
  * Construct from shared data.
  */
 template<MemSpace M>
-StepDiagnostic<M>::StepDiagnostic(const ParamsRef& params,
+StepDiagnostic<M>::StepDiagnostic(ParamsRef const& params,
                                   SPConstParticles particles,
-                                  size_type        num_tracks,
-                                  size_type        max_steps)
+                                  size_type num_tracks,
+                                  size_type max_steps)
     : params_(params), particles_(particles)
 {
     CELER_EXPECT(params_);
@@ -187,7 +187,7 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsRef& params,
     ::celeritas::HostVal<StepDiagnosticData> host_data;
 
     // Add two extra bins for underflow and overflow
-    host_data.num_bins      = max_steps + 2;
+    host_data.num_bins = max_steps + 2;
     host_data.num_particles = particles_->size();
 
     // Tracks binned by number of steps and particle type (indexed as
@@ -210,7 +210,7 @@ StepDiagnostic<M>::StepDiagnostic(const ParamsRef& params,
  * the original track data.
  */
 template<MemSpace M>
-void StepDiagnostic<M>::mid_step(const StateRef& states)
+void StepDiagnostic<M>::mid_step(StateRef const& states)
 {
     StepDiagnosticDataRef<M> data_ref;
     data_ref = data_;
@@ -250,7 +250,7 @@ StepDiagnostic<M>::steps()
     for (auto particle_id : range(celeritas::ParticleId{particles_->size()}))
     {
         auto start = BinId{particle_id.get() * data.num_bins};
-        auto end   = BinId{start.get() + data.num_bins};
+        auto end = BinId{start.get() + data.num_bins};
         CELER_ASSERT(end.get() <= data.counts.size());
         auto counts = data.counts[celeritas::ItemRange<size_type>{start, end}];
 
@@ -271,8 +271,8 @@ StepDiagnostic<M>::steps()
  * Construct with shared and state data.
  */
 template<MemSpace M>
-CELER_FUNCTION StepLauncher<M>::StepLauncher(const ParamsRef&         params,
-                                             const StateRef&          states,
+CELER_FUNCTION StepLauncher<M>::StepLauncher(ParamsRef const& params,
+                                             StateRef const& states,
                                              StepDiagnosticDataRef<M> data)
     : params_(params), states_(states), data_(data)
 {
@@ -314,4 +314,4 @@ CELER_FUNCTION void StepLauncher<M>::operator()(ThreadId tid) const
     }
 }
 
-} // namespace demo_loop
+}  // namespace demo_loop

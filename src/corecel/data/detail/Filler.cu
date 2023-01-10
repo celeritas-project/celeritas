@@ -16,5 +16,5 @@ template struct Filler<real_type, MemSpace::device>;
 template struct Filler<size_type, MemSpace::device>;
 template struct Filler<int, MemSpace::device>;
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

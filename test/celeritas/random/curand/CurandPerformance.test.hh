@@ -20,11 +20,11 @@ namespace test
 //---------------------------------------------------------------------------//
 struct TestParams
 {
-    size_type     nsamples;  //! number of samples
-    size_type     nthreads;  //! number of threads per blocks
-    size_type     nblocks;   //! number of blocks per grids
-    unsigned long seed;      //! seed
-    real_type     tolerance; //! tolerance of random errors
+    size_type nsamples;  //! number of samples
+    size_type nthreads;  //! number of threads per blocks
+    size_type nblocks;  //! number of blocks per grids
+    unsigned long seed;  //! seed
+    real_type tolerance;  //! tolerance of random errors
 };
 
 //! Output results
@@ -40,5 +40,5 @@ template<class T>
 TestOutput curand_test(TestParams params);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

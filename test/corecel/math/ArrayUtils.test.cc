@@ -71,11 +71,11 @@ TEST(ArrayUtilsTest, distance)
 
 TEST(ArrayUtilsTest, normalize_direction)
 {
-    Real3  direction{1, 2, 3};
+    Real3 direction{1, 2, 3};
     double norm = 1 / std::sqrt(1 + 4 + 9);
     normalize_direction(&direction);
 
-    static const double expected[] = {1 * norm, 2 * norm, 3 * norm};
+    static double const expected[] = {1 * norm, 2 * norm, 3 * norm};
     EXPECT_VEC_SOFT_EQ(expected, direction);
 }
 
@@ -96,10 +96,10 @@ TEST(ArrayUtilsTest, rotate)
     // transform through some directions
     double costheta = std::cos(2.0 / 3.0);
     double sintheta = std::sqrt(1.0 - costheta * costheta);
-    double phi      = 2 * constants::pi / 3.0;
+    double phi = 2 * constants::pi / 3.0;
 
     double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
-    Real3  expected
+    Real3 expected
         = {vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
                - vec[Y] * sintheta * sin(phi) * a,
            vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
@@ -157,10 +157,10 @@ TEST(ArrayUtilsTest, rotate)
     EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, {0.0, 0.0, -1.0}));
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
-    vec      = rotate(scatter, {0.0, 0.0, 1.0});
+    vec = rotate(scatter, {0.0, 0.0, 1.0});
     EXPECT_VEC_SOFT_EQ(expected, vec);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

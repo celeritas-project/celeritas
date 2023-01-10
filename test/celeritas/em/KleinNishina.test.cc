@@ -29,9 +29,9 @@ class KleinNishinaInteractorTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        const auto& params = *this->particle_params();
+        auto const& params = *this->particle_params();
         data_.ids.electron = params.find(pdg::electron());
-        data_.ids.gamma    = params.find(pdg::gamma());
+        data_.ids.gamma = params.find(pdg::gamma());
         data_.inv_electron_mass
             = 1 / (params.get(data_.ids.electron).mass().value());
 
@@ -40,7 +40,7 @@ class KleinNishinaInteractorTest : public InteractorHostTestBase
         this->set_inc_direction({0, 0, 1});
     }
 
-    void sanity_check(const Interaction& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         // SCOPED_TRACE(interaction);
 
@@ -53,7 +53,7 @@ class KleinNishinaInteractorTest : public InteractorHostTestBase
 
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());
-        const auto& electron = interaction.secondaries.front();
+        auto const& electron = interaction.secondaries.front();
         if (electron)
         {
             // Secondary survived cutoff
@@ -96,7 +96,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
                                     this->particle_track(),
                                     this->direction(),
                                     this->secondary_allocator());
-    RandomEngine&          rng_engine = this->rng();
+    RandomEngine& rng_engine = this->rng();
 
     std::vector<double> energy;
     std::vector<double> energy_electron;
@@ -123,13 +123,13 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_energy[]
+    double const expected_energy[]
         = {0.4581502636229, 1.325852509857, 9.837250571445, 0.5250297816972};
-    const double expected_costheta[] = {
+    double const expected_costheta[] = {
         -0.0642523962721, 0.6656882878883, 0.9991545931877, 0.07782377978055};
-    const double expected_energy_electron[]
+    double const expected_energy_electron[]
         = {9.541849736377, 8.674147490143, 0.1627494285554, 9.474970218303};
-    const double expected_costheta_electron[]
+    double const expected_costheta_electron[]
         = {0.998962567429, 0.9941635460938, 0.3895748042313, 0.9986216572142};
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -147,7 +147,7 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
 
 TEST_F(KleinNishinaInteractorTest, stress_test)
 {
-    const int           num_samples = 8192;
+    int const num_samples = 8192;
     std::vector<double> avg_engine_samples;
 
     for (double inc_e : {0.01, 1.0, 10.0, 1000.0})
@@ -155,12 +155,12 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
         SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
         this->set_inc_particle(pdg::gamma(), MevEnergy{inc_e});
 
-        RandomEngine&           rng_engine            = this->rng();
+        RandomEngine& rng_engine = this->rng();
         RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions (shouldn't affect anything
         // substantial, but scattering near Z axis loses precision)
-        for (const Real3& inc_dir :
+        for (Real3 const& inc_dir :
              {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
@@ -189,7 +189,7 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
 
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[]
+    double const expected_avg_engine_samples[]
         = {10.99816894531, 9.483154296875, 8.295532226562, 8.00439453125};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
@@ -198,9 +198,9 @@ TEST_F(KleinNishinaInteractorTest, distributions)
 {
     RandomEngine& rng_engine = this->rng();
 
-    const int    num_samples   = 10000;
-    const double inc_energy    = 1;
-    Real3        inc_direction = {0, 0, 1};
+    int const num_samples = 10000;
+    double const inc_energy = 1;
+    Real3 inc_direction = {0, 0, 1};
     this->set_inc_particle(pdg::gamma(), MevEnergy{inc_energy});
     this->set_inc_direction(inc_direction);
     this->resize_secondaries(num_samples);
@@ -211,7 +211,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
                                     this->direction(),
                                     this->secondary_allocator());
 
-    int              nbins = 10;
+    int nbins = 10;
     std::vector<int> eps_dist(nbins);
     std::vector<int> costheta_dist(nbins);
 
@@ -220,8 +220,8 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     {
         Interaction out = interact(rng_engine);
         // Bin energy loss
-        double eps     = out.energy.value() / inc_energy;
-        int    eps_bin = eps * nbins;
+        double eps = out.energy.value() / inc_energy;
+        int eps_bin = eps * nbins;
         if (eps_bin >= 0 && eps_bin < nbins)
         {
             ++eps_dist[eps_bin];
@@ -229,7 +229,7 @@ TEST_F(KleinNishinaInteractorTest, distributions)
 
         // Bin directional change
         double costheta = dot_product(inc_direction, out.direction);
-        int ct_bin = (1 + costheta) / 2 * nbins; // Remap from [-1,1] to [0,1]
+        int ct_bin = (1 + costheta) / 2 * nbins;  // Remap from [-1,1] to [0,1]
         if (ct_bin >= 0 && ct_bin < nbins)
         {
             ++costheta_dist[ct_bin];
@@ -238,14 +238,14 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
     // PRINT_EXPECTED(eps_dist);
     // PRINT_EXPECTED(costheta_dist);
-    const int expected_eps_dist[]
+    int const expected_eps_dist[]
         = {0, 0, 2010, 1365, 1125, 1067, 1077, 1066, 1123, 1167};
-    const int expected_costheta_dist[]
+    int const expected_costheta_dist[]
         = {495, 459, 512, 528, 565, 701, 803, 1101, 1693, 3143};
     EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

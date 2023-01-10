@@ -32,14 +32,14 @@ class CoreTrackView
     //!@{
     //! Type aliases
     using ParamsRef = NativeCRef<CoreParamsData>;
-    using StateRef  = NativeRef<CoreStateData>;
+    using StateRef = NativeRef<CoreStateData>;
     //!@}
 
   public:
     // Construct with comprehensive param/state data and thread
-    inline CELER_FUNCTION CoreTrackView(const ParamsRef& params,
-                                        const StateRef&  states,
-                                        ThreadId         thread);
+    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
+                                        StateRef const& states,
+                                        ThreadId thread);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView make_sim_view() const;
@@ -78,9 +78,9 @@ class CoreTrackView
     inline CELER_FUNCTION ActionId propagation_limit_action() const;
 
   private:
-    const StateRef&  states_;
-    const ParamsRef& params_;
-    const ThreadId   thread_;
+    StateRef const& states_;
+    ParamsRef const& params_;
+    const ThreadId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,9 +90,9 @@ class CoreTrackView
  * Construct with comprehensive param/state data and thread.
  */
 CELER_FUNCTION
-CoreTrackView::CoreTrackView(const ParamsRef& params,
-                             const StateRef&  states,
-                             ThreadId         thread)
+CoreTrackView::CoreTrackView(ParamsRef const& params,
+                             StateRef const& states,
+                             ThreadId thread)
     : states_(states), params_(params), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());
@@ -214,4 +214,4 @@ CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

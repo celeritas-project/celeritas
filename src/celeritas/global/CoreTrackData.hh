@@ -42,14 +42,14 @@ struct CoreScalars
 template<Ownership W, MemSpace M>
 struct CoreParamsData
 {
-    GeoParamsData<W, M>         geometry;
+    GeoParamsData<W, M> geometry;
     GeoMaterialParamsData<W, M> geo_mats;
-    MaterialParamsData<W, M>    materials;
-    ParticleParamsData<W, M>    particles;
-    CutoffParamsData<W, M>      cutoffs;
-    PhysicsParamsData<W, M>     physics;
-    RngParamsData<W, M>         rng;
-    TrackInitParamsData<W, M>   init;
+    MaterialParamsData<W, M> materials;
+    ParticleParamsData<W, M> particles;
+    CutoffParamsData<W, M> cutoffs;
+    PhysicsParamsData<W, M> physics;
+    RngParamsData<W, M> rng;
+    TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
 
@@ -62,18 +62,18 @@ struct CoreParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CoreParamsData& operator=(const CoreParamsData<W2, M2>& other)
+    CoreParamsData& operator=(CoreParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        geometry  = other.geometry;
-        geo_mats  = other.geo_mats;
+        geometry = other.geometry;
+        geo_mats = other.geo_mats;
         materials = other.materials;
         particles = other.particles;
-        cutoffs   = other.cutoffs;
-        physics   = other.physics;
-        rng       = other.rng;
-        init      = other.init;
-        scalars   = other.scalars;
+        cutoffs = other.cutoffs;
+        physics = other.physics;
+        rng = other.rng;
+        init = other.init;
+        scalars = other.scalars;
         return *this;
     }
 };
@@ -90,12 +90,12 @@ struct CoreStateData
     template<class T>
     using Items = StateCollection<T, W, M>;
 
-    GeoStateData<W, M>       geometry;
-    MaterialStateData<W, M>  materials;
-    ParticleStateData<W, M>  particles;
-    PhysicsStateData<W, M>   physics;
-    RngStateData<W, M>       rng;
-    SimStateData<W, M>       sim;
+    GeoStateData<W, M> geometry;
+    MaterialStateData<W, M> materials;
+    ParticleStateData<W, M> particles;
+    PhysicsStateData<W, M> physics;
+    RngStateData<W, M> rng;
+    SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
 
     //! Number of state elements
@@ -113,22 +113,22 @@ struct CoreStateData
     CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry  = other.geometry;
+        geometry = other.geometry;
         materials = other.materials;
         particles = other.particles;
-        physics   = other.physics;
-        rng       = other.rng;
-        sim       = other.sim;
-        init      = other.init;
+        physics = other.physics;
+        rng = other.rng;
+        sim = other.sim;
+        init = other.init;
         return *this;
     }
 };
 
 // TODO: DEPRECATED TYPE ALIASES
 using CoreParamsDeviceRef = DeviceCRef<CoreParamsData>;
-using CoreParamsHostRef   = HostCRef<CoreParamsData>;
-using CoreStateDeviceRef  = DeviceRef<CoreStateData>;
-using CoreStateHostRef    = HostRef<CoreStateData>;
+using CoreParamsHostRef = HostCRef<CoreParamsData>;
+using CoreStateDeviceRef = DeviceRef<CoreStateData>;
+using CoreStateHostRef = HostRef<CoreStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -140,14 +140,14 @@ template<MemSpace M>
 struct CoreRef
 {
     CoreParamsData<Ownership::const_reference, M> params;
-    CoreStateData<Ownership::reference, M>        states;
+    CoreStateData<Ownership::reference, M> states;
 
     //! True if assigned
     CELER_FUNCTION operator bool() const { return params && states; }
 };
 
 // TODO: DEPRECATED TYPE ALIASES
-using CoreHostRef   = CoreRef<MemSpace::host>;
+using CoreHostRef = CoreRef<MemSpace::host>;
 using CoreDeviceRef = CoreRef<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
@@ -156,8 +156,8 @@ using CoreDeviceRef = CoreRef<MemSpace::device>;
  */
 template<MemSpace M>
 inline void resize(CoreStateData<Ownership::value, M>* state,
-                   const HostCRef<CoreParamsData>&     params,
-                   size_type                           size)
+                   HostCRef<CoreParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(params);
@@ -172,4 +172,4 @@ inline void resize(CoreStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

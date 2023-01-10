@@ -45,29 +45,29 @@ class VecgeomTrackView
     //!@{
     //! Type aliases
     using Initializer_t = GeoTrackInitializer;
-    using ParamsRef     = NativeCRef<VecgeomParamsData>;
-    using StateRef      = NativeRef<VecgeomStateData>;
+    using ParamsRef = NativeCRef<VecgeomParamsData>;
+    using StateRef = NativeRef<VecgeomStateData>;
     //!@}
 
     //! Helper struct for initializing from an existing geometry state
     struct DetailedInitializer
     {
-        VecgeomTrackView& other; //!< Existing geometry
-        Real3             dir;   //!< New direction
+        VecgeomTrackView& other;  //!< Existing geometry
+        Real3 dir;  //!< New direction
     };
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION VecgeomTrackView(const ParamsRef& data,
-                                           const StateRef&  stateview,
-                                           ThreadId         id);
+    inline CELER_FUNCTION VecgeomTrackView(ParamsRef const& data,
+                                           StateRef const& stateview,
+                                           ThreadId id);
 
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
-    operator=(const Initializer_t& init);
+    operator=(Initializer_t const& init);
     // Initialize the state from a parent state and new direction
     inline CELER_FUNCTION VecgeomTrackView&
-    operator=(const DetailedInitializer& init);
+    operator=(DetailedInitializer const& init);
 
     //// STATIC ACCESSORS ////
 
@@ -78,13 +78,13 @@ class VecgeomTrackView
 
     //!@{
     //! State accessors
-    CELER_FORCEINLINE_FUNCTION const Real3& pos() const { return pos_; }
-    CELER_FORCEINLINE_FUNCTION const Real3& dir() const { return dir_; }
+    CELER_FORCEINLINE_FUNCTION Real3 const& pos() const { return pos_; }
+    CELER_FORCEINLINE_FUNCTION Real3 const& dir() const { return dir_; }
     //!@}
 
     // Get the volume ID in the current cell.
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
-    CELER_FORCEINLINE_FUNCTION int      volume_physid() const;
+    CELER_FORCEINLINE_FUNCTION int volume_physid() const;
 
     //!@{
     //! VecGeom states are never "on" a surface
@@ -115,31 +115,31 @@ class VecgeomTrackView
     inline CELER_FUNCTION void move_internal(real_type step);
 
     // Move within the volume to a specific point
-    inline CELER_FUNCTION void move_internal(const Real3& pos);
+    inline CELER_FUNCTION void move_internal(Real3 const& pos);
 
     // Cross from one side of the current surface to the other
     inline CELER_FUNCTION void cross_boundary();
 
     // Change direction
-    inline CELER_FUNCTION void set_dir(const Real3& newdir);
+    inline CELER_FUNCTION void set_dir(Real3 const& newdir);
 
   private:
     //// TYPES ////
 
-    using Volume   = vecgeom::LogicalVolume;
+    using Volume = vecgeom::LogicalVolume;
     using NavState = vecgeom::NavigationState;
 
     //// DATA ////
 
     //! Shared/persistent geometry data
-    const ParamsRef& params_;
+    ParamsRef const& params_;
 
     //!@{
     //! Referenced thread-local data
-    NavState&  vgstate_;
-    NavState&  vgnext_;
-    Real3&     pos_;
-    Real3&     dir_;
+    NavState& vgstate_;
+    NavState& vgnext_;
+    Real3& pos_;
+    Real3& dir_;
     real_type& next_step_;
     //!@}
 
@@ -149,7 +149,7 @@ class VecgeomTrackView
     inline CELER_FUNCTION bool has_next_step() const;
 
     //! Get a reference to the current volume
-    inline CELER_FUNCTION const Volume& volume() const;
+    inline CELER_FUNCTION Volume const& volume() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -159,9 +159,9 @@ class VecgeomTrackView
  * Construct from persistent and state data.
  */
 CELER_FUNCTION
-VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
-                                   const StateRef&  states,
-                                   ThreadId         thread)
+VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
+                                   StateRef const& states,
+                                   ThreadId thread)
     : params_(params)
     , vgstate_(states.vgstate.at(params_.max_depth, thread))
     , vgnext_(states.vgnext.at(params_.max_depth, thread))
@@ -180,17 +180,17 @@ VecgeomTrackView::VecgeomTrackView(const ParamsRef& params,
  * initialized this way.
  */
 CELER_FUNCTION VecgeomTrackView&
-VecgeomTrackView::operator=(const Initializer_t& init)
+VecgeomTrackView::operator=(Initializer_t const& init)
 {
     // Initialize position/direction
-    pos_       = init.pos;
-    dir_       = init.dir;
+    pos_ = init.pos;
+    dir_ = init.dir;
     next_step_ = 0;
 
     // Set up current state and locate daughter volume.
     vgstate_.Clear();
-    const vecgeom::VPlacedVolume* worldvol       = params_.world_volume;
-    const bool                    contains_point = true;
+    vecgeom::VPlacedVolume const* worldvol = params_.world_volume;
+    bool const contains_point = true;
 
     // Note that LocateGlobalPoint sets `vgstate_`. If `vgstate_` is outside
     // (including possibly on the outside volume edge), the volume pointer it
@@ -211,7 +211,7 @@ VecgeomTrackView::operator=(const Initializer_t& init)
  * alive.
  */
 CELER_FUNCTION
-VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
+VecgeomTrackView& VecgeomTrackView::operator=(DetailedInitializer const& init)
 {
     if (this != &init.other)
     {
@@ -221,7 +221,7 @@ VecgeomTrackView& VecgeomTrackView::operator=(const DetailedInitializer& init)
     }
 
     // Set up the next state and initialize the direction
-    dir_       = init.dir;
+    dir_ = init.dir;
     next_step_ = 0;
 
     CELER_ENSURE(!this->has_next_step());
@@ -324,7 +324,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     {
         // Find distance to interior from outside world volume
         auto* pplvol = params_.world_volume;
-        next_step_   = pplvol->DistanceToIn(
+        next_step_ = pplvol->DistanceToIn(
             detail::to_vector(pos_), detail::to_vector(dir_), max_step);
 
         vgnext_.Clear();
@@ -384,7 +384,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     // Move next step
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0.;
-    vgstate_.SetBoundaryState(true); // XXX
+    vgstate_.SetBoundaryState(true);  // XXX
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -442,9 +442,9 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
  * \warning It's up to the caller to make sure that the position is
  * "nearby" and within the same volume.
  */
-CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
+CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
 {
-    pos_       = pos;
+    pos_ = pos;
     next_step_ = 0;
     vgstate_.SetBoundaryState(false);
 
@@ -458,10 +458,10 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(const Real3& pos)
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
  */
-CELER_FUNCTION void VecgeomTrackView::set_dir(const Real3& newdir)
+CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
-    dir_       = newdir;
+    dir_ = newdir;
     next_step_ = 0;
 }
 
@@ -480,12 +480,12 @@ CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION const vecgeom::LogicalVolume& VecgeomTrackView::volume() const
+CELER_FUNCTION vecgeom::LogicalVolume const& VecgeomTrackView::volume() const
 {
-    const vecgeom::VPlacedVolume* physvol_ptr = vgstate_.Top();
+    vecgeom::VPlacedVolume const* physvol_ptr = vgstate_.Top();
     CELER_ENSURE(physvol_ptr);
     return *physvol_ptr->GetLogicalVolume();
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

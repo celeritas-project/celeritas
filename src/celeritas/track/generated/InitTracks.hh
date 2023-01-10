@@ -11,19 +11,19 @@ namespace generated
 {
 
 void init_tracks(
-    const CoreHostRef& core_data,
-    const size_type num_vacancies);
+    CoreHostRef const& core_data,
+    size_type const num_vacancies);
 
 void init_tracks(
-    const CoreDeviceRef& core_data,
-    const size_type num_vacancies);
+    CoreDeviceRef const& core_data,
+    size_type const num_vacancies);
 
 #if !CELER_USE_DEVICE
-inline void init_tracks(const CoreDeviceRef&, const size_type)
+inline void init_tracks(CoreDeviceRef const&, size_type const)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

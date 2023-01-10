@@ -35,19 +35,19 @@ class SBEnergyDistHelper
   public:
     //!@{
     //! Type aliases
-    using SBDXsec  = NativeCRef<SeltzerBergerTableData>;
-    using Xs       = Quantity<SBElementTableData::XsUnits>;
-    using Energy   = units::MevEnergy;
+    using SBDXsec = NativeCRef<SeltzerBergerTableData>;
+    using Xs = Quantity<SBElementTableData::XsUnits>;
+    using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistHelper(const SBDXsec& differential_xs,
-                                             Energy         inc_energy,
-                                             ElementId      element,
-                                             EnergySq       density_correction,
-                                             Energy         min_gamma_energy);
+    inline CELER_FUNCTION SBEnergyDistHelper(SBDXsec const& differential_xs,
+                                             Energy inc_energy,
+                                             ElementId element,
+                                             EnergySq density_correction,
+                                             Energy min_gamma_energy);
 
     // Sample scaled energy (analytic component of exiting distribution)
     template<class Engine>
@@ -65,7 +65,7 @@ class SBEnergyDistHelper
   private:
     //// IMPLEMENTATION TYPES ////
 
-    using SBTables          = NativeCRef<SeltzerBergerTableData>;
+    using SBTables = NativeCRef<SeltzerBergerTableData>;
     using ReciprocalSampler = ReciprocalDistribution<real_type>;
 
     struct MaxXs
@@ -77,19 +77,19 @@ class SBEnergyDistHelper
     //// IMPLEMENTATION DATA ////
 
     const TwodSubgridCalculator calc_xs_;
-    const MaxXs                 max_xs_;
+    const MaxXs max_xs_;
 
-    const real_type         inv_inc_energy_;
-    const real_type         dens_corr_;
+    const real_type inv_inc_energy_;
+    const real_type dens_corr_;
     const ReciprocalSampler sample_exit_esq_;
 
     //// CONSTRUCTION HELPER FUNCTIONS ////
 
     inline CELER_FUNCTION TwodSubgridCalculator make_xs_calc(
-        const SBTables&, real_type inc_energy, ElementId element) const;
+        SBTables const&, real_type inc_energy, ElementId element) const;
 
-    inline CELER_FUNCTION MaxXs calc_max_xs(const SBTables& xs_params,
-                                            ElementId       element) const;
+    inline CELER_FUNCTION MaxXs calc_max_xs(SBTables const& xs_params,
+                                            ElementId element) const;
 
     inline CELER_FUNCTION ReciprocalSampler
     make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
@@ -105,11 +105,11 @@ class SBEnergyDistHelper
  * Model's applicability must be consistent with the table data.
  */
 CELER_FUNCTION
-SBEnergyDistHelper::SBEnergyDistHelper(const SBDXsec& differential_xs,
-                                       Energy         inc_energy,
-                                       ElementId      element,
-                                       EnergySq       density_correction,
-                                       Energy         min_gamma_energy)
+SBEnergyDistHelper::SBEnergyDistHelper(SBDXsec const& differential_xs,
+                                       Energy inc_energy,
+                                       ElementId element,
+                                       EnergySq density_correction,
+                                       Energy min_gamma_energy)
     : calc_xs_{this->make_xs_calc(differential_xs, inc_energy.value(), element)}
     , max_xs_{this->calc_max_xs(differential_xs, element)}
     , inv_inc_energy_(1 / inc_energy.value())
@@ -150,12 +150,12 @@ CELER_FUNCTION auto SBEnergyDistHelper::calc_xs(Energy e) const -> Xs
  * Construct the differential cross section calculator for exit energy.
  */
 CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
-    const SBTables& xs_params, real_type inc_energy, ElementId element) const
+    SBTables const& xs_params, real_type inc_energy, ElementId element) const
 {
     CELER_EXPECT(element < xs_params.elements.size());
     CELER_EXPECT(inc_energy > 0);
 
-    const TwodGridData& grid = xs_params.elements[element].grid;
+    TwodGridData const& grid = xs_params.elements[element].grid;
     CELER_ASSERT(inc_energy >= std::exp(xs_params.reals[grid.x.front()])
                  && inc_energy < std::exp(xs_params.reals[grid.x.back()]));
 
@@ -184,16 +184,16 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
  * \note This is called during construction, so \c calc_xs_ must be initialized
  * before whatever calls this.
  */
-CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(const SBTables& xs_params,
+CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
                                                     ElementId element) const
     -> MaxXs
 {
     CELER_EXPECT(element);
-    const SBElementTableData& el = xs_params.elements[element];
+    SBElementTableData const& el = xs_params.elements[element];
 
-    const size_type x_idx  = calc_xs_.x_index();
+    const size_type x_idx = calc_xs_.x_index();
     const real_type x_frac = calc_xs_.x_fraction();
-    MaxXs           result;
+    MaxXs result;
 
     // Calc max xs
     auto get_value = [&xs_params, &el](size_type ix) -> real_type {
@@ -229,4 +229,4 @@ SBEnergyDistHelper::make_esq_sampler(real_type inc_energy,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

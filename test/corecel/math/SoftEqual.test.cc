@@ -41,7 +41,7 @@ class FloatingTest : public Test
 {
   protected:
     using value_type = T;
-    using Limits_t   = std::numeric_limits<value_type>;
+    using Limits_t = std::numeric_limits<value_type>;
 };
 
 using FloatTypes = ::testing::Types<float, double>;
@@ -54,8 +54,8 @@ TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 TYPED_TEST(FloatingTest, soft_equal)
 {
     using value_type = typename TestFixture::value_type;
-    using Limits_t   = typename TestFixture::Limits_t;
-    using Comp_t     = SoftEqual<value_type>;
+    using Limits_t = typename TestFixture::Limits_t;
+    using Comp_t = SoftEqual<value_type>;
 
     Comp_t comp;
 
@@ -89,7 +89,7 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_FALSE(comp(nan, nan));
 
     // Test infinities
-    const value_type inf    = Limits_t::infinity();
+    const value_type inf = Limits_t::infinity();
     const value_type maxval = Limits_t::max();
     EXPECT_FALSE(comp(0, inf));
     EXPECT_FALSE(comp(inf, 0));
@@ -102,8 +102,8 @@ TYPED_TEST(FloatingTest, soft_equal)
 TYPED_TEST(FloatingTest, soft_zero)
 {
     using value_type = typename TestFixture::value_type;
-    using Limits_t   = typename TestFixture::Limits_t;
-    using Comp_t     = SoftZero<value_type>;
+    using Limits_t = typename TestFixture::Limits_t;
+    using Comp_t = SoftZero<value_type>;
 
     Comp_t comp;
 
@@ -145,5 +145,5 @@ TYPED_TEST(FloatingTest, soft_mod)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

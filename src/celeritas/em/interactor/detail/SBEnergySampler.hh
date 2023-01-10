@@ -35,20 +35,20 @@ class SBEnergySampler
   public:
     //!@{
     //! Type aliases
-    using Energy  = units::MevEnergy;
-    using Mass    = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     using SBTable = NativeCRef<SeltzerBergerTableData>;
     //!@}
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION SBEnergySampler(const SBTable& differential_xs,
-                                          const ParticleTrackView& particle,
-                                          const Energy&       gamma_cutoff,
-                                          const MaterialView& material,
-                                          const ElementComponentId& elcomp_id,
-                                          const Mass&               inc_mass,
-                                          const bool is_electron);
+    inline CELER_FUNCTION SBEnergySampler(SBTable const& differential_xs,
+                                          ParticleTrackView const& particle,
+                                          Energy const& gamma_cutoff,
+                                          MaterialView const& material,
+                                          ElementComponentId const& elcomp_id,
+                                          Mass const& inc_mass,
+                                          bool const is_electron);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -57,19 +57,19 @@ class SBEnergySampler
   private:
     //// DATA ////
     // Differential cross section table
-    const SBTable& differential_xs_;
+    SBTable const& differential_xs_;
     // Incident particle energy
     const Energy inc_energy_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
     // Material in which interaction occurs
-    const MaterialView& material_;
+    MaterialView const& material_;
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
     // Incident particle mass
     const Mass inc_mass_;
     // Incident particle identification flag
-    const bool inc_particle_is_electron_;
+    bool const inc_particle_is_electron_;
     // Density correction
     real_type density_correction_;
 };
@@ -81,13 +81,13 @@ class SBEnergySampler
  * Construct from incident particle and energy.
  */
 CELER_FUNCTION
-SBEnergySampler::SBEnergySampler(const SBTable&            differential_xs,
-                                 const ParticleTrackView&  particle,
-                                 const Energy&             gamma_cutoff,
-                                 const MaterialView&       material,
-                                 const ElementComponentId& elcomp_id,
-                                 const Mass&               inc_mass,
-                                 const bool                is_electron)
+SBEnergySampler::SBEnergySampler(SBTable const& differential_xs,
+                                 ParticleTrackView const& particle,
+                                 Energy const& gamma_cutoff,
+                                 MaterialView const& material,
+                                 ElementComponentId const& elcomp_id,
+                                 Mass const& inc_mass,
+                                 bool const is_electron)
     : differential_xs_(differential_xs)
     , inc_energy_(particle.energy())
     , gamma_cutoff_(gamma_cutoff)
@@ -99,7 +99,7 @@ SBEnergySampler::SBEnergySampler(const SBTable&            differential_xs,
     // Density correction
     real_type density_factor = material.electron_density() * migdal_constant();
     real_type total_energy_val = inc_energy_.value() + inc_mass_.value();
-    density_correction_        = density_factor * ipow<2>(total_energy_val);
+    density_correction_ = density_factor * ipow<2>(total_energy_val);
 }
 
 //---------------------------------------------------------------------------//
@@ -143,4 +143,4 @@ CELER_FUNCTION auto SBEnergySampler::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

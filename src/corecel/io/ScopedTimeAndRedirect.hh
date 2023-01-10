@@ -41,9 +41,9 @@ class ScopedTimeAndRedirect
   private:
     std::unique_ptr<ScopedStreamRedirect> stdout_;
     std::unique_ptr<ScopedStreamRedirect> stderr_;
-    std::string                           label_;
-    ScopedTimeLog                         scoped_time_;
+    std::string label_;
+    ScopedTimeLog scoped_time_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -24,4 +24,4 @@ class NoFieldAlongStepFactory final
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace demo_geant

@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "io/ColorUtils.hh"
-#include "sys/Environment.hh" // IWYU pragma: keep
+#include "sys/Environment.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -42,7 +42,7 @@ bool determine_verbose_message()
 /*!
  * Construct a debug assertion message for printing.
  */
-std::string build_debug_error_msg(const DebugErrorDetails& d)
+std::string build_debug_error_msg(DebugErrorDetails const& d)
 {
     std::ostringstream msg;
     // clang-format off
@@ -62,9 +62,9 @@ std::string build_debug_error_msg(const DebugErrorDetails& d)
 /*!
  * Construct a runtime assertion message for printing.
  */
-std::string build_runtime_error_msg(const RuntimeErrorDetails& d)
+std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
 {
-    static const bool verbose_message = determine_verbose_message();
+    static bool const verbose_message = determine_verbose_message();
 
     std::ostringstream msg;
 
@@ -95,13 +95,13 @@ std::string build_runtime_error_msg(const RuntimeErrorDetails& d)
     return msg.str();
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Get a human-readable string describing a debug error.
  */
-const char* to_cstring(DebugErrorType which)
+char const* to_cstring(DebugErrorType which)
 {
     switch (which)
     {
@@ -125,7 +125,7 @@ const char* to_cstring(DebugErrorType which)
 /*!
  * Get a human-readable string describing a runtime error.
  */
-const char* to_cstring(RuntimeErrorType which)
+char const* to_cstring(RuntimeErrorType which)
 {
     switch (which)
     {
@@ -161,9 +161,9 @@ DebugError::DebugError(DebugErrorDetails d)
  * Construct a runtime exception from a validation failure.
  */
 RuntimeError RuntimeError::from_validate(std::string what,
-                                         const char* code,
-                                         const char* file,
-                                         int         line)
+                                         char const* code,
+                                         char const* file,
+                                         int line)
 {
     return RuntimeError{{RuntimeErrorType::validate, what, code, file, line}};
 }
@@ -172,10 +172,10 @@ RuntimeError RuntimeError::from_validate(std::string what,
 /*!
  * Construct a runtime exception from a CUDA/HIP runtime failure.
  */
-RuntimeError RuntimeError::from_device_call(const char* error_string,
-                                            const char* code,
-                                            const char* file,
-                                            int         line)
+RuntimeError RuntimeError::from_device_call(char const* error_string,
+                                            char const* code,
+                                            char const* file,
+                                            int line)
 {
     return RuntimeError{
         {RuntimeErrorType::device, error_string, code, file, line}};
@@ -186,9 +186,9 @@ RuntimeError RuntimeError::from_device_call(const char* error_string,
  * Construct a message and throw an error from a runtime MPI failure.
  */
 RuntimeError RuntimeError::from_mpi_call(CELER_MAYBE_UNUSED int errorcode,
-                                         const char*            code,
-                                         const char*            file,
-                                         int                    line)
+                                         char const* code,
+                                         char const* file,
+                                         int line)
 {
     std::string error_string;
 #if CELERITAS_USE_MPI
@@ -211,9 +211,9 @@ RuntimeError RuntimeError::from_mpi_call(CELER_MAYBE_UNUSED int errorcode,
  * \param code A computery error code
  * \param desc Description of the failure
  */
-RuntimeError RuntimeError::from_geant_exception(const char* origin,
-                                                const char* code,
-                                                const char* desc)
+RuntimeError RuntimeError::from_geant_exception(char const* origin,
+                                                char const* code,
+                                                char const* desc)
 {
     return RuntimeError{{RuntimeErrorType::geant, desc, code, origin, 0}};
 }
@@ -225,7 +225,7 @@ RuntimeError RuntimeError::from_geant_exception(const char* origin,
  * \param origin Usually the function that throws
  * \param msg Description of the failure
  */
-RuntimeError RuntimeError::from_root_error(const char* origin, const char* msg)
+RuntimeError RuntimeError::from_root_error(char const* origin, char const* msg)
 {
     return RuntimeError{{RuntimeErrorType::root, msg, nullptr, origin, 0}};
 }
@@ -240,4 +240,4 @@ RuntimeError::RuntimeError(RuntimeErrorDetails d)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

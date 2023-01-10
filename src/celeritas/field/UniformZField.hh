@@ -25,11 +25,11 @@ class UniformZField
 
     //! Return the field at the given position
     CELER_FUNCTION
-    Real3 operator()(const Real3&) const { return {0, 0, value_}; }
+    Real3 operator()(Real3 const&) const { return {0, 0, value_}; }
 
   private:
     real_type value_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

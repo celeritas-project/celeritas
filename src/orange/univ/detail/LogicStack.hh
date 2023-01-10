@@ -43,7 +43,7 @@ class LogicStack
     //@{
     //! Typedefs
     using value_type = bool;
-    using size_type  = celeritas::size_type;
+    using size_type = celeritas::size_type;
     //@}
 
   public:
@@ -109,8 +109,8 @@ class LogicStack
   private:
     //// DATA ////
 
-    size_type data_{0}; //!< Stack data
-    size_type size_{0}; //!< Stack depth
+    size_type data_{0};  //!< Stack data
+    size_type size_{0};  //!< Stack depth
 };
 
 //---------------------------------------------------------------------------//
@@ -190,7 +190,7 @@ CELER_FUNCTION void LogicStack::apply_and()
 {
     CELER_EXPECT(size() >= size_type(2));
     size_type temp = LogicStack::lsb(data_);
-    data_          = LogicStack::shr(data_) & (temp | ~size_type(1));
+    data_ = LogicStack::shr(data_) & (temp | ~size_type(1));
     --size_;
 }
 
@@ -206,5 +206,5 @@ CELER_FUNCTION void LogicStack::apply_or()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

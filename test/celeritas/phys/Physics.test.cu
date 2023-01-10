@@ -31,20 +31,20 @@ __global__ void phys_test_kernel(const PTestInput inp)
     if (tid.get() >= inp.states.size())
         return;
 
-    const auto&      init = inp.inits[tid];
+    auto const& init = inp.inits[tid];
     PhysicsTrackView phys(inp.params, inp.states, init.particle, init.mat, tid);
-    PhysicsStepView  step(inp.params, inp.states, tid);
+    PhysicsStepView step(inp.params, inp.states, tid);
 
-    phys                  = PhysicsTrackInitializer{};
+    phys = PhysicsTrackInitializer{};
     inp.result[tid.get()] = calc_step(phys, step, init.energy);
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void phys_cuda_test(const PTestInput& input)
+void phys_cuda_test(PTestInput const& input)
 {
     CELER_ASSERT(input.inits.size() == input.states.size());
 
@@ -53,5 +53,5 @@ void phys_cuda_test(const PTestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void locate_alive(
-    const CoreHostRef& core_data)
+    CoreHostRef const& core_data)
 {
     MultiExceptionHandler capture_exception;
     detail::LocateAliveLauncher<MemSpace::host> launch(core_data);
@@ -30,5 +30,5 @@ void locate_alive(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

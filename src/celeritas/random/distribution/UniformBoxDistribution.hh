@@ -27,7 +27,7 @@ class UniformBoxDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = Array<real_type, 3>;
     //!@}
 
@@ -83,4 +83,4 @@ UniformBoxDistribution<RealType>::operator()(Generator& rng) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -19,9 +19,9 @@ class ScopedMpiInit
     //! Status of initialization
     enum class Status
     {
-        disabled      = -1, //!< Not compiled *or* disabled via environment
+        disabled = -1,  //!< Not compiled *or* disabled via environment
         uninitialized = 0,  //!< MPI_Init has not been called anywhere
-        initialized   = 1   //!< MPI_Init has been called somewhere
+        initialized = 1  //!< MPI_Init has been called somewhere
     };
 
     // Whether MPI has been initialized
@@ -42,4 +42,4 @@ class ScopedMpiInit
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -46,10 +46,10 @@ class LabelIdMultiMap
   public:
     //!@{
     //! Type aliases
-    using IdT          = I;
-    using SpanConstIdT = Span<const IdT>;
-    using VecLabel     = std::vector<Label>;
-    using size_type    = typename IdT::size_type;
+    using IdT = I;
+    using SpanConstIdT = Span<IdT const>;
+    using VecLabel = std::vector<Label>;
+    using size_type = typename IdT::size_type;
     //!@}
 
   public:
@@ -60,13 +60,13 @@ class LabelIdMultiMap
     explicit LabelIdMultiMap(VecLabel keys);
 
     // Access the range of IDs corresponding to a label
-    inline SpanConstIdT find_all(const std::string& label) const;
+    inline SpanConstIdT find_all(std::string const& label) const;
 
     // Access an ID by label/sublabel pair
-    inline IdT find(const Label& label_sub) const;
+    inline IdT find(Label const& label_sub) const;
 
     // Access the label+sublabel pair for an Id
-    inline const Label& get(IdT id) const;
+    inline Label const& get(IdT id) const;
 
     //! Get duplicate labels to warn about
     SpanConstIdT duplicates() const { return make_span(duplicates_); }
@@ -75,10 +75,10 @@ class LabelIdMultiMap
     size_type size() const { return keys_.size(); }
 
   private:
-    VecLabel                                   keys_;
-    std::vector<IdT>                           id_data_;
-    std::vector<size_type>                     id_offsets_;
-    std::vector<IdT>                           duplicates_;
+    VecLabel keys_;
+    std::vector<IdT> id_data_;
+    std::vector<size_type> id_offsets_;
+    std::vector<IdT> duplicates_;
     std::unordered_map<std::string, size_type> ids_;
 };
 
@@ -118,8 +118,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
     ids_.insert({keys_[id_data_[0].unchecked_get()].name, 0});
     for (auto idx : range<size_type>(1, id_data_.size()))
     {
-        const Label& prev = keys_[id_data_[idx - 1].unchecked_get()];
-        const Label& cur  = keys_[id_data_[idx].unchecked_get()];
+        Label const& prev = keys_[id_data_[idx - 1].unchecked_get()];
+        Label const& cur = keys_[id_data_[idx].unchecked_get()];
         if (prev == cur)
         {
             if (duplicates_.empty()
@@ -150,7 +150,7 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel keys) : keys_(std::move(keys))
  * Access the range of IDs corresponding to a label.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find_all(const std::string& name) const
+auto LabelIdMultiMap<I>::find_all(std::string const& name) const
     -> SpanConstIdT
 {
     auto iter = ids_.find(name);
@@ -160,7 +160,7 @@ auto LabelIdMultiMap<I>::find_all(const std::string& name) const
     size_type offset_idx = iter->second;
     CELER_ASSERT(offset_idx + 1 < id_offsets_.size());
     size_type start = id_offsets_[offset_idx];
-    size_type stop  = id_offsets_[offset_idx + 1];
+    size_type stop = id_offsets_[offset_idx + 1];
     CELER_ENSURE(start < stop && stop <= id_data_.size());
     return {id_data_.data() + start, stop - start};
 }
@@ -172,7 +172,7 @@ auto LabelIdMultiMap<I>::find_all(const std::string& name) const
  * This returns a \c false OpaqueId if no such label pair exists.
  */
 template<class I>
-auto LabelIdMultiMap<I>::find(const Label& label_sub) const -> IdT
+auto LabelIdMultiMap<I>::find(Label const& label_sub) const -> IdT
 {
     auto items = this->find_all(label_sub.name);
 
@@ -198,11 +198,11 @@ auto LabelIdMultiMap<I>::find(const Label& label_sub) const -> IdT
  * This raises an exception if the ID is outside of the valid range.
  */
 template<class I>
-const Label& LabelIdMultiMap<I>::get(IdT id) const
+Label const& LabelIdMultiMap<I>::get(IdT id) const
 {
     CELER_EXPECT(id < this->size());
     return keys_[id.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

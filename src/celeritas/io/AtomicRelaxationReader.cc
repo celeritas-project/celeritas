@@ -25,7 +25,7 @@ namespace celeritas
  */
 AtomicRelaxationReader::AtomicRelaxationReader()
 {
-    const std::string& dir = celeritas::getenv("G4LEDATA");
+    std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate atomic relaxation data)");
@@ -37,8 +37,8 @@ AtomicRelaxationReader::AtomicRelaxationReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-AtomicRelaxationReader::AtomicRelaxationReader(const char* fluor_path,
-                                               const char* auger_path)
+AtomicRelaxationReader::AtomicRelaxationReader(char const* fluor_path,
+                                               char const* auger_path)
     : fluor_path_(fluor_path), auger_path_(auger_path)
 {
     CELER_EXPECT(!fluor_path_.empty());
@@ -78,15 +78,15 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     // transition probability, and transition energy. A row of -1 marks the end
     // of the shell data, and -2 marks the end of the file.
     {
-        std::string   filename = fluor_path_ + "/fl-tr-pr-" + z_str + ".dat";
+        std::string filename = fluor_path_ + "/fl-tr-pr-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain fluorescence data)");
 
-        int    des    = 0;
+        int des = 0;
         double energy = 0;
-        double prob   = 0;
+        double prob = 0;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des;
@@ -124,16 +124,16 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     // shell, transition probability, and transition energy. A row of -1 marks
     // the end of the shell data, and -2 marks the end of the file.
     {
-        std::string   filename = auger_path_ + "/au-tr-pr-" + z_str + ".dat";
+        std::string filename = auger_path_ + "/au-tr-pr-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain Auger transition data)");
 
-        int    des       = 0;
-        int    auger_des = 0;
-        double energy    = 0;
-        double prob      = 0;
+        int des = 0;
+        int auger_des = 0;
+        double energy = 0;
+        double prob = 0;
 
         // Get the designator for the first section of shell data
         infile >> des >> des >> des >> des;
@@ -169,9 +169,9 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
     for (auto& shell : result.shells)
     {
         double norm = 0;
-        for (const auto& transition : shell.fluor)
+        for (auto const& transition : shell.fluor)
             norm += transition.probability;
-        for (const auto& transition : shell.auger)
+        for (auto const& transition : shell.auger)
             norm += transition.probability;
         CELER_ASSERT(soft_near(1., norm, 1.e-5));
 
@@ -186,4 +186,4 @@ AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

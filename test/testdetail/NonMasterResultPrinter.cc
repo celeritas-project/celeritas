@@ -27,7 +27,7 @@ NonMasterResultPrinter::NonMasterResultPrinter(int rank) : rank_(rank) {}
  * Print output.
  */
 void NonMasterResultPrinter::OnTestPartResult(
-    const ::testing::TestPartResult& result)
+    ::testing::TestPartResult const& result)
 {
     // If the test part succeeded, we don't need to do anything.
     if (result.type() == ::testing::TestPartResult::kSuccess)
@@ -52,5 +52,5 @@ void NonMasterResultPrinter::OnTestPartResult(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

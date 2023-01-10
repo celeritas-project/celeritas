@@ -30,7 +30,7 @@ namespace detail
         {
             std::rethrow_exception(*eptr_iter);
         }
-        catch (const std::exception& e)
+        catch (std::exception const& e)
         {
             CELER_LOG_LOCAL(critical) << "ignoring exception: " << e.what();
         }
@@ -42,7 +42,7 @@ namespace detail
 
     std::rethrow_exception(exc_vec.front());
 }
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -58,7 +58,7 @@ MultiExceptionHandler::~MultiExceptionHandler()
             {
                 std::rethrow_exception(eptr);
             }
-            catch (const std::exception& e)
+            catch (std::exception const& e)
             {
                 CELER_LOG_LOCAL(critical) << e.what();
             }
@@ -80,7 +80,7 @@ MultiExceptionHandler::~MultiExceptionHandler()
 void MultiExceptionHandler::operator()(std::exception_ptr p)
 {
 #ifdef _OPENMP
-#    pragma omp critical (MultiExceptionHandler)
+#    pragma omp critical(MultiExceptionHandler)
 #endif
     {
         exceptions_.push_back(std::move(p));
@@ -88,4 +88,4 @@ void MultiExceptionHandler::operator()(std::exception_ptr p)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -32,9 +32,9 @@ Environment& environment()
 /*!
  * Thread-safe access to global modified environment variables.
  */
-const std::string& getenv(const std::string& key)
+std::string const& getenv(std::string const& key)
 {
-    static std::mutex           getenv_mutex;
+    static std::mutex getenv_mutex;
     std::lock_guard<std::mutex> scoped_lock{getenv_mutex};
     return environment()[key];
 }
@@ -43,12 +43,12 @@ const std::string& getenv(const std::string& key)
 /*!
  * Write the accessed environment variables to a stream.
  */
-std::ostream& operator<<(std::ostream& os, const Environment& env)
+std::ostream& operator<<(std::ostream& os, Environment const& env)
 {
     os << "{\n";
-    for (const auto& kvref : env.ordered_environment())
+    for (auto const& kvref : env.ordered_environment())
     {
-        const Environment::value_type& kv = kvref;
+        Environment::value_type const& kv = kvref;
         os << "  " << kv.first << ": '" << kv.second << "',\n";
     }
     os << '}';
@@ -61,10 +61,10 @@ std::ostream& operator<<(std::ostream& os, const Environment& env)
 /*!
  * Set a value from the system environment.
  */
-auto Environment::load_from_getenv(const key_type& key) -> const mapped_type&
+auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
 {
     std::string value;
-    if (const char* sys_value = std::getenv(key.c_str()))
+    if (char const* sys_value = std::getenv(key.c_str()))
     {
         // Variable is set in the user environment
         value = sys_value;
@@ -85,7 +85,7 @@ auto Environment::load_from_getenv(const key_type& key) -> const mapped_type&
  *
  * Existing environment variables will *not* be overwritten.
  */
-void Environment::insert(const value_type& value)
+void Environment::insert(value_type const& value)
 {
     auto iter_inserted = vars_.insert(value);
     if (iter_inserted.second)
@@ -96,4 +96,4 @@ void Environment::insert(const value_type& value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

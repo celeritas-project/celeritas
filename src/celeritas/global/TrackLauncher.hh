@@ -50,4 +50,4 @@ make_track_launcher(CoreRef<MemSpace::native> const& data, F&& call_with_track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

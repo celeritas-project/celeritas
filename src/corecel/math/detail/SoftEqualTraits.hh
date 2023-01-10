@@ -56,5 +56,5 @@ struct SoftEqualTraits<float>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

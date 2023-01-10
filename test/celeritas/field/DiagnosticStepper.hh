@@ -27,7 +27,7 @@ class DiagnosticStepper
     //!@{
     //! Type aliases
     using result_type = typename StepperT::result_type;
-    using size_type   = std::size_t;
+    using size_type = std::size_t;
     //!@}
 
   public:
@@ -38,7 +38,7 @@ class DiagnosticStepper
     }
 
     //! Calculate a step and increment the counter
-    result_type operator()(real_type step, const OdeState& beg_state) const
+    result_type operator()(real_type step, OdeState const& beg_state) const
     {
         ++count_;
         return do_step_(step, beg_state);
@@ -50,9 +50,9 @@ class DiagnosticStepper
     void reset_count() { count_ = 0; }
 
   private:
-    StepperT          do_step_;
+    StepperT do_step_;
     mutable size_type count_ = 0;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

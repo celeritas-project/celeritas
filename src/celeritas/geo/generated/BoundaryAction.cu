@@ -32,9 +32,9 @@ __global__ void boundary_kernel(CoreDeviceRef const data
     auto launch = make_track_launcher(data, detail::boundary_track);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
-void BoundaryAction::execute(const CoreDeviceRef& data) const
+void BoundaryAction::execute(CoreDeviceRef const& data) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(boundary,
@@ -43,5 +43,5 @@ void BoundaryAction::execute(const CoreDeviceRef& data) const
                         data);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

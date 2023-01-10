@@ -29,11 +29,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RelativisticBremModel::RelativisticBremModel(ActionId              id,
-                                             const ParticleParams& particles,
-                                             const MaterialParams& materials,
-                                             SPConstImported       data,
-                                             bool                  enable_lpm)
+RelativisticBremModel::RelativisticBremModel(ActionId id,
+                                             ParticleParams const& particles,
+                                             MaterialParams const& materials,
+                                             SPConstImported data,
+                                             bool enable_lpm)
     : imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
@@ -44,10 +44,10 @@ RelativisticBremModel::RelativisticBremModel(ActionId              id,
 
     HostValue host_ref;
 
-    host_ref.ids.action   = id;
+    host_ref.ids.action = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
-    host_ref.ids.gamma    = particles.find(pdg::gamma());
+    host_ref.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(host_ref.ids,
                    << "missing IDs (required for " << this->description()
@@ -75,11 +75,11 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower    = seltzer_berger_limit();
-    electron_brem.upper    = high_energy_limit();
+    electron_brem.lower = seltzer_berger_limit();
+    electron_brem.upper = high_energy_limit();
 
     Applicability positron_brem = electron_brem;
-    positron_brem.particle      = this->host_ref().ids.positron;
+    positron_brem.particle = this->host_ref().ids.positron;
 
     return {electron_brem, positron_brem};
 }
@@ -123,9 +123,9 @@ ActionId RelativisticBremModel::action_id() const
 /*!
  * Build RelativisticBremData (lpm_table and elem_data).
  */
-void RelativisticBremModel::build_data(HostValue*            data,
-                                       const MaterialParams& materials,
-                                       real_type             particle_mass)
+void RelativisticBremModel::build_data(HostValue* data,
+                                       MaterialParams const& materials,
+                                       real_type particle_mass)
 {
     // Build element data for available elements
     unsigned int num_elements = materials.num_elements();
@@ -144,7 +144,7 @@ void RelativisticBremModel::build_data(HostValue*            data,
  * Initialise data for a given element:
  * G4eBremsstrahlungRelModel::InitialiseElementData()
  */
-auto RelativisticBremModel::compute_element_data(const ElementView& elem,
+auto RelativisticBremModel::compute_element_data(ElementView const& elem,
                                                  real_type electron_mass)
     -> ElementData
 {
@@ -156,24 +156,24 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
     real_type ff_inel;
     if (z < AtomicNumber{5})
     {
-        ff_el   = RelativisticBremModel::get_form_factor(z).el;
+        ff_el = RelativisticBremModel::get_form_factor(z).el;
         ff_inel = RelativisticBremModel::get_form_factor(z).inel;
     }
     else
     {
-        ff_el   = real_type(std::log(184.15)) - elem.log_z() / 3;
+        ff_el = real_type(std::log(184.15)) - elem.log_z() / 3;
         ff_inel = real_type(std::log(1194.0)) - 2 * elem.log_z() / 3;
     }
 
-    real_type fc   = elem.coulomb_correction();
+    real_type fc = elem.coulomb_correction();
     real_type invz = real_type(1) / z.unchecked_get();
     real_type z13 = elem.cbrt_z();
     real_type z23 = ipow<2>(z13);
 
-    data.fz             = elem.log_z() / 3 + fc;
-    data.factor1        = (ff_el - fc) + ff_inel * invz;
-    data.factor2        = (1 + invz) / 12;
-    data.gamma_factor   = 100 * electron_mass / z13;
+    data.fz = elem.log_z() / 3 + fc;
+    data.factor1 = (ff_el - fc) + ff_inel * invz;
+    data.factor2 = (1 + invz) / 12;
+    data.gamma_factor = 100 * electron_mass / z13;
     data.epsilon_factor = 100 * electron_mass / z23;
 
     return data;
@@ -186,7 +186,7 @@ auto RelativisticBremModel::compute_element_data(const ElementView& elem,
  * For light elements (Z < 5) where Thomas-Fermi model doesn't work.
  * Excerpted from G4eBremsstrahlungRelModel of Geant4 10.7.
  */
-auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
+auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> FormFactor const&
 {
     CELER_EXPECT(z && z < AtomicNumber{8});
     static const FormFactor form_factor[] = {{5.3104, 5.9173},
@@ -201,4 +201,4 @@ auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> const FormFactor&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

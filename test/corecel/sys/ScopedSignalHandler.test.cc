@@ -113,5 +113,5 @@ TEST(ScopedSignalHandlerTest, nested)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

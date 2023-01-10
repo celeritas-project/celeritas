@@ -29,9 +29,9 @@ namespace celeritas
 struct LivermoreSubshell
 {
     using EnergyUnits = units::Mev;
-    using XsUnits     = units::Barn;
-    using Energy      = Quantity<EnergyUnits>;
-    using Real6       = Array<real_type, 6>;
+    using XsUnits = units::Barn;
+    using Energy = Quantity<EnergyUnits>;
+    using Real6 = Array<real_type, 6>;
 
     // Binding energy of the electron
     Energy binding_energy;
@@ -74,8 +74,8 @@ struct LivermoreElement
 
     // Energy threshold for using the parameterized subshell cross sections in
     // the lower and upper energy range
-    Energy thresh_lo; //!< Use tabulated XS below this energy
-    Energy thresh_hi; //!< Use lower parameterization below, upper above
+    Energy thresh_lo;  //!< Use tabulated XS below this energy
+    Energy thresh_hi;  //!< Use lower parameterization below, upper above
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -100,8 +100,8 @@ struct LivermorePEXsData
 
     //// MEMBER DATA ////
 
-    Items<real_type>               reals;
-    Items<LivermoreSubshell>       shells;
+    Items<real_type> reals;
+    Items<LivermoreSubshell> shells;
     ElementItems<LivermoreElement> elements;
 
     //// MEMBER FUNCTIONS ////
@@ -114,11 +114,11 @@ struct LivermorePEXsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    LivermorePEXsData& operator=(const LivermorePEXsData<W2, M2>& other)
+    LivermorePEXsData& operator=(LivermorePEXsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        reals    = other.reals;
-        shells   = other.shells;
+        reals = other.reals;
+        shells = other.shells;
         elements = other.elements;
         return *this;
     }
@@ -174,19 +174,19 @@ struct LivermorePEData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    LivermorePEData& operator=(const LivermorePEData<W2, M2>& other)
+    LivermorePEData& operator=(LivermorePEData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids               = other.ids;
+        ids = other.ids;
         inv_electron_mass = other.inv_electron_mass;
-        xs                = other.xs;
+        xs = other.xs;
         return *this;
     }
 };
 
 using LivermorePEDeviceRef = DeviceCRef<LivermorePEData>;
-using LivermorePEHostRef   = HostCRef<LivermorePEData>;
-using LivermorePERef       = NativeCRef<LivermorePEData>;
+using LivermorePEHostRef = HostCRef<LivermorePEData>;
+using LivermorePERef = NativeCRef<LivermorePEData>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

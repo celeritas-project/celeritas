@@ -15,11 +15,11 @@ namespace celeritas
 /*!
  * Get a string corresponding to a surface type.
  */
-const char* to_cstring(SurfaceType value)
+char const* to_cstring(SurfaceType value)
 {
     CELER_EXPECT(value != SurfaceType::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "px",
         "py",
         "pz",
@@ -43,7 +43,7 @@ const char* to_cstring(SurfaceType value)
         "gq",
     };
     static_assert(
-        static_cast<unsigned int>(SurfaceType::size_) * sizeof(const char*)
+        static_cast<unsigned int>(SurfaceType::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -51,4 +51,4 @@ const char* to_cstring(SurfaceType value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

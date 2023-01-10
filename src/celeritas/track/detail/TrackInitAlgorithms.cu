@@ -75,5 +75,5 @@ size_type exclusive_scan_counts<MemSpace::device>(Span<size_type> counts)
 
 //---------------------------------------------------------------------------//
 #undef LAUNCH_KERNEL
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

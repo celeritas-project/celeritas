@@ -26,11 +26,11 @@ void ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) cons
     {
         std::rethrow_exception(eptr);
     }
-    catch (const thrust::system_error& e)
+    catch (thrust::system_error const& e)
     {
         G4Exception("Thrust GPU library", err_code_, FatalException, e.what());
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

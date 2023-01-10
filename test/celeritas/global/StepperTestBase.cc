@@ -31,8 +31,8 @@ StepperTestBase::StepperTestBase()
 {
     auto& action_reg = *this->action_reg();
 
-    static const char desc[] = "count the number of executions";
-    dummy_action_            = std::make_shared<DummyAction>(
+    static char const desc[] = "count the number of executions";
+    dummy_action_ = std::make_shared<DummyAction>(
         action_reg.next_id(), "dummy-action", desc);
     action_reg.insert(dummy_action_);
 }
@@ -44,7 +44,7 @@ StepperInput StepperTestBase::make_stepper_input(size_type tracks)
     CELER_EXPECT(tracks > 0);
 
     StepperInput result;
-    result.params          = this->core();
+    result.params = this->core();
     result.num_track_slots = tracks;
 
     return result;
@@ -56,8 +56,8 @@ StepperInput StepperTestBase::make_stepper_input(size_type tracks)
  */
 auto StepperTestBase::check_setup() -> SetupCheckResult
 {
-    const PhysicsParams& p = *this->physics();
-    SetupCheckResult     result;
+    PhysicsParams const& p = *this->physics();
+    SetupCheckResult result;
 
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
@@ -66,8 +66,8 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 
     // Create temporary host stepper to get action ordering
     Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1));
-    const auto&             action_seq = temp_stepper.actions();
-    for (const auto& sp_action : action_seq.actions())
+    auto const& action_seq = temp_stepper.actions();
+    for (auto const& sp_action : action_seq.actions())
     {
         result.actions.push_back(sp_action->label());
     }
@@ -77,13 +77,13 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 
 //---------------------------------------------------------------------------//
 auto StepperTestBase::run(StepperInterface& step,
-                          size_type         num_primaries) const -> RunResult
+                          size_type num_primaries) const -> RunResult
 {
     CELER_EXPECT(step);
 
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
-    auto counts    = step(make_span(primaries));
+    auto counts = step(make_span(primaries));
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
@@ -91,8 +91,8 @@ auto StepperTestBase::run(StepperInterface& step,
     result.active = {counts.active};
     result.queued = {counts.queued};
 
-    const size_type max_steps   = this->max_average_steps() * num_primaries;
-    size_type       accum_steps = counts.active;
+    const size_type max_steps = this->max_average_steps() * num_primaries;
+    size_type accum_steps = counts.active;
 
     while (counts)
     {
@@ -117,7 +117,7 @@ double StepperTestBase::RunResult::calc_avg_steps_per_primary() const
 {
     CELER_EXPECT(*this);
     size_type num_primaries = this->active.front();
-    auto      accum_steps   = std::accumulate(
+    auto accum_steps = std::accumulate(
         this->active.begin(), this->active.end(), size_type{0});
     return static_cast<double>(accum_steps)
            / static_cast<double>(num_primaries);
@@ -204,5 +204,5 @@ void StepperTestBase::RunResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

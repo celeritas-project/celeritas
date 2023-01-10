@@ -39,7 +39,7 @@
 namespace
 {
 //---------------------------------------------------------------------------//
-void run(const std::string& macro_filename)
+void run(std::string const& macro_filename)
 {
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
@@ -91,7 +91,7 @@ void run(const std::string& macro_filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

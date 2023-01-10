@@ -36,8 +36,8 @@ class SurfaceInputBuilder
     //! Type-deleted reference to a surface
     struct GenericSurfaceRef
     {
-        SurfaceType           type;
-        Span<const real_type> data;
+        SurfaceType type;
+        Span<real_type const> data;
 
         inline explicit operator bool() const;
     };
@@ -48,10 +48,10 @@ class SurfaceInputBuilder
 
     // Add a new surface
     template<class T>
-    inline SurfaceId operator()(const T& surface, const Label& label);
+    inline SurfaceId operator()(T const& surface, Label const& label);
 
     // Append a generic surface view to the vector
-    SurfaceId operator()(GenericSurfaceRef generic_surf, const Label& label);
+    SurfaceId operator()(GenericSurfaceRef generic_surf, Label const& label);
 
   private:
     SurfaceInput* input_;
@@ -73,7 +73,7 @@ SurfaceInputBuilder::GenericSurfaceRef::operator bool() const
  * Add a surface (type-deleted) with the given coefficients
  */
 template<class T>
-SurfaceId SurfaceInputBuilder::operator()(const T& surface, const Label& label)
+SurfaceId SurfaceInputBuilder::operator()(T const& surface, Label const& label)
 {
     static_assert(sizeof(typename T::Intersections) > 0,
                   "Template parameter must be a surface class");
@@ -83,4 +83,4 @@ SurfaceId SurfaceInputBuilder::operator()(const T& surface, const Label& label)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

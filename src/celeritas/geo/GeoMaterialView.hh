@@ -25,13 +25,13 @@ class GeoMaterialView
 
   public:
     // Construct from shared data
-    inline CELER_FUNCTION GeoMaterialView(const GeoMaterialData& params);
+    inline CELER_FUNCTION GeoMaterialView(GeoMaterialData const& params);
 
     // Return material for the given volume
     inline CELER_FUNCTION MaterialId material_id(VolumeId volume) const;
 
   private:
-    const GeoMaterialData& params_;
+    GeoMaterialData const& params_;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,7 +41,7 @@ class GeoMaterialView
  * Construct from shared data.
  */
 CELER_FUNCTION
-GeoMaterialView::GeoMaterialView(const GeoMaterialData& params)
+GeoMaterialView::GeoMaterialView(GeoMaterialData const& params)
     : params_(params)
 {
 }
@@ -60,4 +60,4 @@ CELER_FUNCTION MaterialId GeoMaterialView::material_id(VolumeId volume) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

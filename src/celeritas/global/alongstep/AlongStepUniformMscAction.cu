@@ -23,8 +23,8 @@ namespace
 //---------------------------------------------------------------------------//
 __global__ void
 along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
-                              DeviceCRef<UrbanMscData> const  msc_data,
-                              UniformFieldParams const        field_params)
+                              DeviceCRef<UrbanMscData> const msc_data,
+                              UniformFieldParams const field_params)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < track_data.states.size()))
@@ -38,13 +38,13 @@ along_step_uniform_msc_kernel(CoreRef<MemSpace::device> const track_data,
     launch(tid);
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepUniformMscAction::execute(const CoreDeviceRef& data) const
+void AlongStepUniformMscAction::execute(CoreDeviceRef const& data) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_uniform_msc,
@@ -56,4 +56,4 @@ void AlongStepUniformMscAction::execute(const CoreDeviceRef& data) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

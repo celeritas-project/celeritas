@@ -31,10 +31,10 @@ class CurandTest : public Test
     void SetUp() override
     {
         // Test parameters on the host
-        test_params.nsamples  = 1.e+7;
-        test_params.nblocks   = 1;
-        test_params.nthreads  = 1;
-        test_params.seed      = 12345u;
+        test_params.nsamples = 1.e+7;
+        test_params.nblocks = 1;
+        test_params.nthreads = 1;
+        test_params.seed = 12345u;
         test_params.tolerance = 1.0e-3;
     }
 
@@ -44,7 +44,7 @@ class CurandTest : public Test
         T devStates;
         curand_init(test_params.seed, 0, 0, &devStates);
 
-        double sum  = 0;
+        double sum = 0;
         double sum2 = 0;
         for (CELER_MAYBE_UNUSED auto i : range(test_params.nsamples))
         {
@@ -53,7 +53,7 @@ class CurandTest : public Test
             sum2 += u01 * u01;
         }
 
-        double mean     = sum / test_params.nsamples;
+        double mean = sum / test_params.nsamples;
         double variance = sum2 / test_params.nsamples - mean * mean;
         EXPECT_SOFT_NEAR(mean, 0.5, test_params.tolerance);
         EXPECT_SOFT_NEAR(variance, 1 / 12., test_params.tolerance);
@@ -92,7 +92,7 @@ TEST_F(CurandTest, std_mt19937_host)
     // Mersenne Twister generator
     auto rng = DiagnosticRngEngine<std::mt19937>();
 
-    double sum  = 0;
+    double sum = 0;
     double sum2 = 0;
     for (CELER_MAYBE_UNUSED auto i : range(test_params.nsamples))
     {
@@ -101,7 +101,7 @@ TEST_F(CurandTest, std_mt19937_host)
         sum2 += u01 * u01;
     }
 
-    double mean     = sum / test_params.nsamples;
+    double mean = sum / test_params.nsamples;
     double variance = sum2 / test_params.nsamples - mean * mean;
     EXPECT_SOFT_NEAR(mean, 0.5, test_params.tolerance);
     EXPECT_SOFT_NEAR(variance, 1 / 12., test_params.tolerance);
@@ -117,24 +117,24 @@ class CurandDeviceTest : public CurandTest
     void SetUp() override
     {
         // Test parameters on the device (100 * host nsamples)
-        test_params.nsamples  = 1.e+9;
-        test_params.nblocks   = 64;
-        test_params.nthreads  = 256;
-        test_params.seed      = 12345u;
+        test_params.nsamples = 1.e+9;
+        test_params.nblocks = 64;
+        test_params.nthreads = 256;
+        test_params.seed = 12345u;
         test_params.tolerance = 1.0e-3;
     }
 
   public:
     void check_mean_device(TestOutput result)
     {
-        double sum_total  = 0;
+        double sum_total = 0;
         double sum2_total = 0;
         for (auto i : range(test_params.nblocks * test_params.nthreads))
         {
             sum_total += result.sum[i];
             sum2_total += result.sum2[i];
         }
-        double mean     = sum_total / test_params.nsamples;
+        double mean = sum_total / test_params.nsamples;
         double variance = sum2_total / test_params.nsamples - mean * mean;
         EXPECT_SOFT_NEAR(mean, 0.5, test_params.tolerance);
         EXPECT_SOFT_NEAR(variance, 1 / 12., test_params.tolerance);
@@ -170,5 +170,5 @@ TEST_F(CurandDeviceTest, curand_mtgp32_device)
 }
 #endif
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

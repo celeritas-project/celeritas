@@ -19,7 +19,7 @@ namespace celeritas
 {
 struct Applicability;
 struct PhysicsParamsOptions;
-} // namespace celeritas
+}  // namespace celeritas
 
 namespace celeritas
 {
@@ -49,32 +49,32 @@ class MockTestBase : virtual public GlobalGeoTestBase
     //!@{
     //! Type aliases
     using PhysicsOptions = PhysicsParamsOptions;
-    using ModelCallback  = std::function<void(ActionId)>;
-    using SpanConstModel = Span<const ModelId>;
+    using ModelCallback = std::function<void(ActionId)>;
+    using SpanConstModel = Span<ModelId const>;
     //!@}
 
   public:
-    Applicability make_applicability(const char* name,
-                                     double      lo_energy,
-                                     double      hi_energy) const;
+    Applicability make_applicability(char const* name,
+                                     double lo_energy,
+                                     double hi_energy) const;
 
     ModelCallback make_model_callback() const;
 
-    inline Span<const ModelId> called_models() const
+    inline Span<ModelId const> called_models() const
     {
         return make_span(interactions_);
     }
 
   protected:
-    const char* geometry_basename() const override { return "three-spheres"; }
+    char const* geometry_basename() const override { return "three-spheres"; }
 
-    SPConstMaterial    build_material() override;
+    SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
-    SPConstParticle    build_particle() override;
-    SPConstCutoff      build_cutoff() override;
-    SPConstPhysics     build_physics() override;
-    SPConstAction      build_along_step() override;
-    SPConstTrackInit   build_init() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstParticle build_particle() override;
+    SPConstCutoff build_cutoff() override;
+    SPConstPhysics build_physics() override;
+    SPConstAction build_along_step() override;
+    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
 
     virtual PhysicsOptions build_physics_options() const;
 
@@ -82,9 +82,9 @@ class MockTestBase : virtual public GlobalGeoTestBase
     //// DATA ////
 
     mutable std::vector<ModelId> interactions_;
-    ActionId::size_type          model_to_action_{0};
+    ActionId::size_type model_to_action_{0};
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

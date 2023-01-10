@@ -20,10 +20,10 @@ class UniformField
 {
   public:
     //! Construct with a field vector
-    explicit CELER_FUNCTION UniformField(const Real3& value) : value_(value) {}
+    explicit CELER_FUNCTION UniformField(Real3 const& value) : value_(value) {}
 
     //! Return the field at the given position
-    CELER_FUNCTION const Real3& operator()(const Real3&) const
+    CELER_FUNCTION Real3 const& operator()(Real3 const&) const
     {
         return value_;
     }
@@ -33,4 +33,4 @@ class UniformField
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

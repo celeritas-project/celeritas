@@ -39,11 +39,11 @@ class RBEnergySampler
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RBEnergySampler(const RelativisticBremRef& shared,
-                                          const ParticleTrackView&   particle,
-                                          const CutoffView&          cutoffs,
-                                          const MaterialView&        material,
-                                          const ElementComponentId& elcomp_id);
+    inline CELER_FUNCTION RBEnergySampler(RelativisticBremRef const& shared,
+                                          ParticleTrackView const& particle,
+                                          CutoffView const& cutoffs,
+                                          MaterialView const& material,
+                                          ElementComponentId const& elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -67,16 +67,16 @@ class RBEnergySampler
  * Construct from incident particle and energy.
  */
 CELER_FUNCTION
-RBEnergySampler::RBEnergySampler(const RelativisticBremRef& shared,
-                                 const ParticleTrackView&   particle,
-                                 const CutoffView&          cutoffs,
-                                 const MaterialView&        material,
-                                 const ElementComponentId&  elcomp_id)
+RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
+                                 ParticleTrackView const& particle,
+                                 CutoffView const& cutoffs,
+                                 MaterialView const& material,
+                                 ElementComponentId const& elcomp_id)
     : calc_dxsec_(shared, particle.energy(), material, elcomp_id)
 {
     // Min and max kinetic energy limits for sampling the secondary photon
     real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.ids.gamma));
-    real_type inc_energy   = value_as<Energy>(particle.energy());
+    real_type inc_energy = value_as<Energy>(particle.energy());
 
     tmin_sq_ = ipow<2>(min(gamma_cutoff, inc_energy));
     tmax_sq_ = ipow<2>(min(value_as<Energy>(high_energy_limit()), inc_energy));
@@ -103,11 +103,11 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     do
     {
         gamma_energy = std::sqrt(sample_exit_esq(rng) - density_corr);
-        dsigma       = calc_dxsec_(Energy{gamma_energy});
+        dsigma = calc_dxsec_(Energy{gamma_energy});
     } while (!BernoulliDistribution(dsigma / calc_dxsec_.maximum_value())(rng));
 
     return Energy{gamma_energy};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -21,4 +21,4 @@ using RngParams = CuHipRngParams;
 class XorwowRngParams;
 using RngParams = XorwowRngParams;
 #endif
-} // namespace celeritas
+}  // namespace celeritas

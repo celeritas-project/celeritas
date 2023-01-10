@@ -22,8 +22,8 @@ namespace celeritas
  */
 template<MemSpace M>
 void resize(XorwowRngStateData<Ownership::value, M>* state,
-            const HostCRef<XorwowRngParamsData>&     params,
-            size_type                                size)
+            HostCRef<XorwowRngParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params);
@@ -33,7 +33,7 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
     // Seed sequence to generate well-distributed seed numbers
     std::seed_seq seeds(params.seed.begin(), params.seed.end());
     // 32-bit generator to fill initial states
-    std::mt19937                          rng(seeds);
+    std::mt19937 rng(seeds);
     std::uniform_int_distribution<uint_t> sample_uniform_int;
 
     // Create seeds for device in host memory
@@ -68,12 +68,12 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 //---------------------------------------------------------------------------//
 // Explicit instantiations
 template void resize(HostVal<XorwowRngStateData>*,
-                     const HostCRef<XorwowRngParamsData>&,
+                     HostCRef<XorwowRngParamsData> const&,
                      size_type);
 
 template void resize(XorwowRngStateData<Ownership::value, MemSpace::device>*,
-                     const HostCRef<XorwowRngParamsData>&,
+                     HostCRef<XorwowRngParamsData> const&,
                      size_type);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

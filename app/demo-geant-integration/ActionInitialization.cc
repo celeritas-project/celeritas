@@ -82,4 +82,4 @@ void ActionInitialization::Build() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

@@ -43,18 +43,18 @@ class MollerBhabhaInteractor
   public:
     //!@{
     //! \name Type aliases
-    using Mass     = units::MevMass;
-    using Energy   = units::MevEnergy;
+    using Mass = units::MevMass;
+    using Energy = units::MevEnergy;
     using Momentum = units::MevMomentum;
     //!@}
 
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    MollerBhabhaInteractor(const MollerBhabhaData&    shared,
-                           const ParticleTrackView&   particle,
-                           const CutoffView&          cutoffs,
-                           const Real3&               inc_direction,
+    MollerBhabhaInteractor(MollerBhabhaData const& shared,
+                           ParticleTrackView const& particle,
+                           CutoffView const& cutoffs,
+                           Real3 const& inc_direction,
                            StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
@@ -63,19 +63,19 @@ class MollerBhabhaInteractor
 
   private:
     // Shared constant physics properties
-    const MollerBhabhaData& shared_;
+    MollerBhabhaData const& shared_;
     // Incident energy [MeV]
     const real_type inc_energy_;
     // Incident momentum [MeV]
     const real_type inc_momentum_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Secondary electron cutoff for current material
     const real_type electron_cutoff_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
-    const bool inc_particle_is_electron_;
+    bool const inc_particle_is_electron_;
 };
 
 //---------------------------------------------------------------------------//
@@ -88,10 +88,10 @@ class MollerBhabhaInteractor
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
-    const MollerBhabhaData&    shared,
-    const ParticleTrackView&   particle,
-    const CutoffView&          cutoffs,
-    const Real3&               inc_direction,
+    MollerBhabhaData const& shared,
+    ParticleTrackView const& particle,
+    CutoffView const& cutoffs,
+    Real3 const& inc_direction,
     StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_{value_as<Energy>(particle.energy())}
@@ -183,7 +183,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     Real3 inc_exiting_direction;
     for (int i = 0; i < 3; ++i)
     {
-        real_type inc_momentum_ijk       = inc_momentum_ * inc_direction_[i];
+        real_type inc_momentum_ijk = inc_momentum_ * inc_direction_[i];
         real_type secondary_momentum_ijk = secondary_momentum
                                            * secondary_direction[i];
         inc_exiting_direction[i] = inc_momentum_ijk - secondary_momentum_ijk;
@@ -192,18 +192,18 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
 
     // Construct interaction for change to primary (incident) particle
     const real_type inc_exiting_energy = inc_energy_ - secondary_energy;
-    Interaction     result;
-    result.energy      = Energy{inc_exiting_energy};
+    Interaction result;
+    result.energy = Energy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction   = inc_exiting_direction;
+    result.direction = inc_exiting_direction;
 
     // Assign values to the secondary particle
     electron_secondary[0].particle_id = shared_.ids.electron;
-    electron_secondary[0].energy      = Energy{secondary_energy};
-    electron_secondary[0].direction   = secondary_direction;
+    electron_secondary[0].energy = Energy{secondary_energy};
+    electron_secondary[0].direction = secondary_direction;
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

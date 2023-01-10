@@ -19,21 +19,21 @@ namespace celeritas
 namespace generated
 {
 void moller_bhabha_interact(
-    const celeritas::MollerBhabhaHostRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::host>&);
+    celeritas::MollerBhabhaHostRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::host> const&);
 
 void moller_bhabha_interact(
-    const celeritas::MollerBhabhaDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&);
+    celeritas::MollerBhabhaDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
 inline void moller_bhabha_interact(
-    const celeritas::MollerBhabhaDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&)
+    celeritas::MollerBhabhaDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

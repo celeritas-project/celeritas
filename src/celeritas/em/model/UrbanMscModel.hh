@@ -26,15 +26,15 @@ class UrbanMscModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef   = HostCRef<UrbanMscData>;
+    using HostRef = HostCRef<UrbanMscData>;
     using DeviceRef = DeviceCRef<UrbanMscData>;
     //@}
 
   public:
     // Construct from model ID and other necessary data
-    UrbanMscModel(ActionId              id,
-                  const ParticleParams& particles,
-                  const MaterialParams& materials);
+    UrbanMscModel(ActionId id,
+                  ParticleParams const& particles,
+                  MaterialParams const& materials);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -61,10 +61,10 @@ class UrbanMscModel final : public Model
     }
 
     //! Access UrbanMsc data on the host
-    const HostRef& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const { return mirror_.host(); }
 
     //! Access UrbanMsc data on the device
-    const DeviceRef& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const { return mirror_.device(); }
 
   private:
     //// DATA ////
@@ -74,14 +74,14 @@ class UrbanMscModel final : public Model
 
     //// TYPES ////
 
-    using HostValue    = HostVal<UrbanMscData>;
+    using HostValue = HostVal<UrbanMscData>;
     using MaterialData = UrbanMscMaterialData;
 
     //// HELPER FUNCTIONS ////
 
-    void build_data(HostValue* host_data, const MaterialParams& materials);
-    MaterialData calc_material_data(const MaterialView& material_view);
+    void build_data(HostValue* host_data, MaterialParams const& materials);
+    MaterialData calc_material_data(MaterialView const& material_view);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

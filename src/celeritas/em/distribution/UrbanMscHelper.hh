@@ -31,15 +31,15 @@ class UrbanMscHelper
   public:
     //!@{
     //! Type aliases
-    using Energy       = units::MevEnergy;
+    using Energy = units::MevEnergy;
     using MaterialData = UrbanMscMaterialData;
     //!@}
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscHelper(const UrbanMscRef&       shared,
-                                         const ParticleTrackView& particle,
-                                         const PhysicsTrackView&  physics);
+    inline CELER_FUNCTION UrbanMscHelper(UrbanMscRef const& shared,
+                                         ParticleTrackView const& particle,
+                                         PhysicsTrackView const& physics);
 
     //// HELPER FUNCTIONS ////
 
@@ -60,7 +60,7 @@ class UrbanMscHelper
     // Incident particle energy
     const real_type inc_energy_;
     // PhysicsTrackView
-    const PhysicsTrackView& physics_;
+    PhysicsTrackView const& physics_;
     // Range scaling factor
     const real_type dtrl_;
 
@@ -79,9 +79,9 @@ class UrbanMscHelper
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
-                               const ParticleTrackView& particle,
-                               const PhysicsTrackView&  physics)
+UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
+                               ParticleTrackView const& particle,
+                               PhysicsTrackView const& physics)
     : inc_energy_(value_as<Energy>(particle.energy()))
     , physics_(physics)
     , dtrl_(shared.params.dtrl())
@@ -101,8 +101,8 @@ UrbanMscHelper::UrbanMscHelper(const UrbanMscRef&       shared,
  */
 CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
 {
-    auto      calc_xs = physics_.make_calculator<XsCalculator>(mfp_gid_);
-    real_type xsec    = calc_xs(energy) / ipow<2>(energy.value());
+    auto calc_xs = physics_.make_calculator<XsCalculator>(mfp_gid_);
+    real_type xsec = calc_xs(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0);
     return 1 / xsec;
 }
@@ -143,4 +143,4 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

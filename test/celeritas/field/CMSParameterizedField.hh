@@ -44,7 +44,7 @@ class CMSParameterizedField
 
     // Return the magnetic field for the given position
     CELER_FUNCTION
-    inline Real3 operator()(const Real3& pos) const;
+    inline Real3 operator()(Real3 const& pos) const;
 
   private:
     // Evaluate the magnetic field for the given r and z
@@ -65,14 +65,14 @@ class CMSParameterizedField
  * with the CMS detector geometry.
  */
 CELER_FUNCTION
-auto CMSParameterizedField::operator()(const Real3& pos) const -> Real3
+auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
 {
     using units::tesla;
 
     Real3 value{0., 0., 0.};
 
-    real_type r    = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
-    Real3     bw   = this->evaluate_field(r, pos[2]);
+    real_type r = std::sqrt(ipow<2>(pos[0]) + ipow<2>(pos[1]));
+    Real3 bw = this->evaluate_field(r, pos[2]);
     real_type rinv = (r > 0) ? 1 / r : 0;
 
     value[0] = tesla * bw[0] * pos[0] * rinv;
@@ -105,10 +105,10 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
                               2.12500,
                               1.77436};
 
-    real_type ap2   = 4 * ipow<2>(prm[0] / prm[1]);
-    real_type hb0   = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
+    real_type ap2 = 4 * ipow<2>(prm[0] / prm[1]);
+    real_type hb0 = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
     real_type hlova = 1 / std::sqrt(ap2);
-    real_type ainv  = 2 * hlova / prm[1];
+    real_type ainv = 2 * hlova / prm[1];
     real_type coeff = 1 / ipow<2>(prm[8]);
 
     // Convert to m (cms magnetic field parameterization)
@@ -117,15 +117,15 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     // The max Bz point is shifted in z
     z -= prm[3];
 
-    real_type az    = std::fabs(z);
+    real_type az = std::fabs(z);
     real_type zainv = z * ainv;
-    real_type u     = hlova - zainv;
-    real_type v     = hlova + zainv;
+    real_type u = hlova - zainv;
+    real_type v = hlova + zainv;
 
     Real4 fu = this->evaluate_parameters(u);
     Real4 gv = this->evaluate_parameters(v);
 
-    real_type rat  = real_type(0.5) * r * ainv;
+    real_type rat = real_type(0.5) * r * ainv;
     real_type rat2 = ipow<2>(rat);
 
     Real3 bw;
@@ -162,5 +162,5 @@ auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

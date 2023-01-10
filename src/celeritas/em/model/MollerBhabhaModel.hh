@@ -22,7 +22,7 @@ class MollerBhabhaModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    MollerBhabhaModel(ActionId id, const ParticleParams& particles);
+    MollerBhabhaModel(ActionId id, ParticleParams const& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -53,4 +53,4 @@ class MollerBhabhaModel final : public Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

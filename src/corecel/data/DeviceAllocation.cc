@@ -62,4 +62,4 @@ void DeviceAllocation::DeviceFreeDeleter::operator()(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

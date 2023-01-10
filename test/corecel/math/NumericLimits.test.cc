@@ -30,7 +30,7 @@ TYPED_TEST_SUITE(RealNumericLimitsTest, RealTypes, );
 
 TYPED_TEST(RealNumericLimitsTest, host)
 {
-    using std_limits_t   = std::numeric_limits<TypeParam>;
+    using std_limits_t = std::numeric_limits<TypeParam>;
     using celer_limits_t = numeric_limits<TypeParam>;
 
     EXPECT_EQ(std_limits_t::epsilon(), celer_limits_t::epsilon());
@@ -47,7 +47,7 @@ TYPED_TEST(RealNumericLimitsTest, DISABLED_device)
 #endif
 {
     using celer_limits_t = numeric_limits<TypeParam>;
-    auto result          = nl_test<TypeParam>();
+    auto result = nl_test<TypeParam>();
 
     EXPECT_EQ(celer_limits_t::epsilon(), result.eps);
     EXPECT_TRUE(std::isnan(result.nan));
@@ -71,11 +71,11 @@ TYPED_TEST_SUITE(UIntNumericLimitsTest, UIntTypes, );
 
 TYPED_TEST(UIntNumericLimitsTest, host)
 {
-    using std_limits_t   = std::numeric_limits<TypeParam>;
+    using std_limits_t = std::numeric_limits<TypeParam>;
     using celer_limits_t = numeric_limits<TypeParam>;
 
     EXPECT_EQ(std_limits_t::max(), celer_limits_t::max());
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

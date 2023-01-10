@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct MollerBhabhaIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId electron;
     ParticleId positron;
 
@@ -56,8 +56,8 @@ struct MollerBhabhaData
     }
 };
 
-using MollerBhabhaHostRef   = MollerBhabhaData;
+using MollerBhabhaHostRef = MollerBhabhaData;
 using MollerBhabhaDeviceRef = MollerBhabhaData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

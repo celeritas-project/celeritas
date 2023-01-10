@@ -22,7 +22,7 @@ namespace test
 //---------------------------------------------------------------------------//
 
 using Intersections = CCylX::Intersections;
-using VecReal       = std::vector<real_type>;
+using VecReal = std::vector<real_type>;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -77,7 +77,7 @@ TEST(TestCCylX, intersect)
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{0, 0, -5.0}, Real3{0, 0, 1}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
@@ -85,7 +85,7 @@ TEST(TestCCylX, intersect)
 
     // From outside, tangent
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{0, -3, -5.0}, Real3{0, 0, 1}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
@@ -93,7 +93,7 @@ TEST(TestCCylX, intersect)
 
     // From outside, hitting neither
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{0, 0, -5.0}, Real3{0, 1, 0}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
@@ -144,7 +144,7 @@ TEST(TestCCylY, intersect)
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, 0, 0}, Real3{1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
@@ -152,7 +152,7 @@ TEST(TestCCylY, intersect)
 
     // From outside, tangent
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, 0, -3}, Real3{1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
@@ -160,7 +160,7 @@ TEST(TestCCylY, intersect)
 
     // From outside, hitting neither
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, 0, 0}, Real3{0, 0, 1}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
@@ -226,7 +226,7 @@ TEST(TestCCylZ, calc_intersections)
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, 0, 0}, Real3{1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
@@ -234,7 +234,7 @@ TEST(TestCCylZ, calc_intersections)
 
     // From outside, tangent
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, -3, 0}, Real3{1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
@@ -242,7 +242,7 @@ TEST(TestCCylZ, calc_intersections)
 
     // From outside, hitting neither
     distances[0] = distances[1] = -1;
-    distances                   = cyl.calc_intersections(
+    distances = cyl.calc_intersections(
         Real3{-5.0, 0, 0}, Real3{0, 1, 0}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
@@ -252,7 +252,7 @@ TEST(TestCCylZ, calc_intersections)
 TEST(TestCCylZ, calc_intersections_on_surface)
 {
     CCylZ::Intersections distances;
-    const real_type      eps = 1.e-4;
+    const real_type eps = 1.e-4;
 
     {
         CCylZ cyl(1.0);
@@ -393,14 +393,14 @@ class DegenerateBoundaryTest : public Test
 
   protected:
     real_type radius = -1;
-    real_type eps    = -1;
+    real_type eps = -1;
 };
 
 void DegenerateBoundaryTest::run(real_type xdir) const
 {
-    CCylZ                cyl(radius);
+    CCylZ cyl(radius);
     CCylZ::Intersections distances = {-1, -1};
-    const real_type      tol       = std::max(1.e-14, 2 * std::fabs(eps));
+    const real_type tol = std::max(1.e-14, 2 * std::fabs(eps));
 
     // Distance across the cylinder
     const real_type diameter = 2 * radius;
@@ -409,13 +409,13 @@ void DegenerateBoundaryTest::run(real_type xdir) const
     Real3 dir = {xdir, 0, 0};
 
     //// Inward boundary ////
-    pos[0]    = -xdir * (diameter / 2 + eps);
+    pos[0] = -xdir * (diameter / 2 + eps);
     distances = cyl.calc_intersections(pos, dir, SurfaceState::on);
     EXPECT_SOFT_NEAR(diameter + eps, distances[0], tol);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     //// Outward boundary ////
-    pos[0]    = xdir * (diameter / 2 + eps);
+    pos[0] = xdir * (diameter / 2 + eps);
     distances = cyl.calc_intersections(pos, dir, SurfaceState::on);
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
@@ -439,5 +439,5 @@ TEST_F(DegenerateBoundaryTest, pos)
     run_all();
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

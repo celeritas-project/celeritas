@@ -28,8 +28,8 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 process_primaries_kernel(
-    const CoreDeviceRef core_data,
-    const Span<const Primary> primaries)
+    CoreDeviceRef const core_data,
+    Span<const Primary> const primaries)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < primaries.size()))
@@ -38,11 +38,11 @@ process_primaries_kernel(
     detail::ProcessPrimariesLauncher<MemSpace::device> launch(core_data, primaries);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 void process_primaries(
-    const CoreDeviceRef& core_data,
-    const Span<const Primary> primaries)
+    CoreDeviceRef const& core_data,
+    Span<const Primary> const primaries)
 {
     CELER_LAUNCH_KERNEL(
         process_primaries,
@@ -51,5 +51,5 @@ void process_primaries(
         core_data, primaries);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

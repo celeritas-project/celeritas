@@ -43,7 +43,7 @@ class LoggerMessage
     ~LoggerMessage();
 
     // Default move construct and assignment
-    LoggerMessage(LoggerMessage&&)            = default;
+    LoggerMessage(LoggerMessage&&) = default;
     LoggerMessage& operator=(LoggerMessage&&) = default;
 
     // Write the object to the stream if applicable
@@ -57,9 +57,9 @@ class LoggerMessage
     inline void setstate(std::ostream::iostate state);
 
   private:
-    LogHandler*                   handle_;
-    Provenance                    prov_;
-    LogLevel                      lev_;
+    LogHandler* handle_;
+    Provenance prov_;
+    LogLevel lev_;
     std::unique_ptr<std::ostream> os_;
 };
 
@@ -103,5 +103,5 @@ void LoggerMessage::setstate(std::ostream::iostate state)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

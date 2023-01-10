@@ -57,16 +57,16 @@ struct Joined
 {
     InputIterator first;
     InputIterator last;
-    Conjunction   conjunction;
-    StreamOp      op;
+    Conjunction conjunction;
+    StreamOp op;
 };
 
 //---------------------------------------------------------------------------//
 template<class I, class C, class S>
-std::ostream& operator<<(std::ostream& os, const Joined<I, C, S>& j)
+std::ostream& operator<<(std::ostream& os, Joined<I, C, S> const& j)
 {
     auto iter = j.first;
-    auto op   = j.op;
+    auto op = j.op;
 
     // First element is not preceded by a conjunction
     if (iter != j.last)
@@ -86,7 +86,7 @@ std::ostream& operator<<(std::ostream& os, const Joined<I, C, S>& j)
 
 //---------------------------------------------------------------------------//
 template<class I, class C, class S>
-std::string to_string(const Joined<I, C, S>& j)
+std::string to_string(Joined<I, C, S> const& j)
 {
     std::ostringstream os;
     os << j;
@@ -94,5 +94,5 @@ std::string to_string(const Joined<I, C, S>& j)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

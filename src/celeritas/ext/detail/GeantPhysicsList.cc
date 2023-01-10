@@ -46,7 +46,7 @@ namespace detail
 /*!
  * Construct with physics options.
  */
-GeantPhysicsList::GeantPhysicsList(const Options& options) : options_(options)
+GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 {
     // Set EM options
     auto& em_parameters = *G4EmParameters::Instance();
@@ -122,7 +122,7 @@ void GeantPhysicsList::ConstructProcess()
 void GeantPhysicsList::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    auto* gamma        = G4Gamma::Gamma();
+    auto* gamma = G4Gamma::Gamma();
 
     {
         // Compton Scattering: G4KleinNishinaCompton
@@ -238,7 +238,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
 
         auto process = std::make_unique<G4CoulombScattering>();
-        auto model   = std::make_unique<G4eCoulombScatteringModel>();
+        auto model = std::make_unique<G4eCoulombScatteringModel>();
         process->SetMinKinEnergy(msc_energy_limit);
         model->SetLowEnergyLimit(msc_energy_limit);
         model->SetActivationLowEnergyLimit(msc_energy_limit);
@@ -281,5 +281,5 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -25,20 +25,20 @@ class ImageTrackView
   public:
     //!@{
     //! Type aliases
-    using ThreadId  = celeritas::ThreadId;
-    using Real3     = celeritas::Real3;
+    using ThreadId = celeritas::ThreadId;
+    using Real3 = celeritas::Real3;
     using real_type = celeritas::real_type;
     //!@}
 
   public:
     // Construct with image data and thread ID
-    inline CELER_FUNCTION ImageTrackView(const ImageData& shared, ThreadId tid);
+    inline CELER_FUNCTION ImageTrackView(ImageData const& shared, ThreadId tid);
 
     // Calculate start position
     inline CELER_FUNCTION Real3 start_pos() const;
 
     //! Start direction (rightward axis)
-    CELER_FUNCTION const Real3& start_dir() const { return shared_.right_ax; }
+    CELER_FUNCTION Real3 const& start_dir() const { return shared_.right_ax; }
 
     //! Pixel width
     CELER_FUNCTION real_type pixel_width() const
@@ -50,8 +50,8 @@ class ImageTrackView
     inline CELER_FUNCTION void set_pixel(unsigned int i, int value);
 
   private:
-    const ImageData& shared_;
-    unsigned int     j_index_;
+    ImageData const& shared_;
+    unsigned int j_index_;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,7 +61,7 @@ class ImageTrackView
  * Construct with defaults.
  */
 CELER_FUNCTION
-ImageTrackView::ImageTrackView(const ImageData& shared, ThreadId tid)
+ImageTrackView::ImageTrackView(ImageData const& shared, ThreadId tid)
     : shared_(shared), j_index_(tid.get())
 {
     CELER_EXPECT(j_index_ < shared_.dims[0]);
@@ -73,7 +73,7 @@ ImageTrackView::ImageTrackView(const ImageData& shared, ThreadId tid)
  */
 CELER_FUNCTION auto ImageTrackView::start_pos() const -> Real3
 {
-    Real3     result;
+    Real3 result;
     real_type down_offset = (j_index_ + real_type(0.5)) * shared_.pixel_width;
     for (int i = 0; i < 3; ++i)
     {
@@ -96,4 +96,4 @@ CELER_FUNCTION void ImageTrackView::set_pixel(unsigned int i, int value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

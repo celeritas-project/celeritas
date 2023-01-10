@@ -35,10 +35,10 @@ using Real3 = Array<real_type, 3>;
  */
 enum class Axis
 {
-    x,    //!< X axis/I index coordinate
-    y,    //!< Y axis/J index coordinate
-    z,    //!< Z axis/K index coordinate
-    size_ //!< Sentinel value for looping over axes
+    x,  //!< X axis/I index coordinate
+    y,  //!< Y axis/J index coordinate
+    z,  //!< Z axis/K index coordinate
+    size_  //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ struct GeoTrackInitializer
  */
 struct Propagation
 {
-    real_type distance{0}; //!< Distance traveled
+    real_type distance{0};  //!< Distance traveled
     bool boundary{false};  //!< True if hit a boundary before given distance
 };
 
@@ -76,4 +76,4 @@ inline constexpr char to_char(Axis ax)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

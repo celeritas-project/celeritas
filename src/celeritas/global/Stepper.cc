@@ -79,7 +79,7 @@ auto Stepper<M>::operator()() -> result_type
     extend_from_secondaries(core_ref_);
 
     // Get the number of track initializers and active tracks
-    result.alive  = states_.size() - core_ref_.states.init.vacancies.size();
+    result.alive = states_.size() - core_ref_.states.init.vacancies.size();
     result.queued = core_ref_.states.init.initializers.size();
 
     return result;
@@ -117,4 +117,4 @@ template class Stepper<MemSpace::host>;
 template class Stepper<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

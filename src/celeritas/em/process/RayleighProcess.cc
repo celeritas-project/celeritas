@@ -23,7 +23,7 @@ namespace celeritas
  */
 RayleighProcess::RayleighProcess(SPConstParticles particles,
                                  SPConstMaterials materials,
-                                 SPConstImported  process_data)
+                                 SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(
@@ -63,4 +63,4 @@ std::string RayleighProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -51,4 +51,4 @@ std::string ScopedStreamRedirect::str()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

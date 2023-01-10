@@ -36,7 +36,7 @@ class OpaqueId
     //!@{
     //! \name Type aliases
     using value_type = ValueT;
-    using size_type  = SizeT;
+    using size_type = SizeT;
     //!@}
 
   public:
@@ -138,7 +138,7 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 //! \cond
@@ -149,11 +149,11 @@ template<class V, class S>
 struct hash<celeritas::OpaqueId<V, S>>
 {
     using argument_type = celeritas::OpaqueId<V, S>;
-    using result_type   = std::size_t;
-    result_type operator()(const argument_type& id) const noexcept
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& id) const noexcept
     {
         return std::hash<S>()(id.unchecked_get());
     }
 };
-} // namespace std
+}  // namespace std
 //! \endcond

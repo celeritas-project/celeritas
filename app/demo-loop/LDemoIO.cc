@@ -24,7 +24,7 @@
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
@@ -46,7 +46,7 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-void to_json(nlohmann::json& j, const EnergyDiagInput& v)
+void to_json(nlohmann::json& j, EnergyDiagInput const& v)
 {
     j = nlohmann::json{{"axis", std::string(1, v.axis)},
                        {"min", v.min},
@@ -54,7 +54,7 @@ void to_json(nlohmann::json& j, const EnergyDiagInput& v)
                        {"num_bins", v.num_bins}};
 }
 
-void from_json(const nlohmann::json& j, EnergyDiagInput& v)
+void from_json(nlohmann::json const& j, EnergyDiagInput& v)
 {
     std::string temp_axis;
     j.at("axis").get_to(temp_axis);
@@ -75,11 +75,11 @@ namespace
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get the set of all process classes in the input
-auto get_all_process_classes(const std::vector<ImportProcess>& processes)
+auto get_all_process_classes(std::vector<ImportProcess> const& processes)
     -> decltype(auto)
 {
     std::set<ImportProcessClass> result;
-    for (const auto& p : processes)
+    for (auto const& p : processes)
     {
         result.insert(p.process_class);
     }
@@ -87,12 +87,12 @@ auto get_all_process_classes(const std::vector<ImportProcess>& processes)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON and ROOT
-void to_json(nlohmann::json& j, const LDemoArgs& v)
+void to_json(nlohmann::json& j, LDemoArgs const& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
                        {"physics_filename", v.physics_filename},
@@ -137,7 +137,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     }
 }
 
-void from_json(const nlohmann::json& j, LDemoArgs& v)
+void from_json(nlohmann::json const& j, LDemoArgs& v)
 {
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
@@ -197,10 +197,10 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
 //!@}
 
 //---------------------------------------------------------------------------//
-TransporterInput load_input(const LDemoArgs& args)
+TransporterInput load_input(LDemoArgs const& args)
 {
     CELER_LOG(status) << "Loading input and initializing problem data";
-    TransporterInput  result;
+    TransporterInput result;
     CoreParams::Input params;
 
     ImportData imported_data;
@@ -266,11 +266,11 @@ TransporterInput load_input(const LDemoArgs& args)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles       = params.particle;
-        input.materials       = params.material;
+        input.particles = params.particle;
+        input.materials = params.material;
         input.action_registry = params.action_reg.get();
 
-        input.options.fixed_step_limiter     = args.step_limiter;
+        input.options.fixed_step_limiter = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.options.linear_loss_limit
             = imported_data.em_params.linear_loss_limit;
@@ -312,7 +312,7 @@ TransporterInput load_input(const LDemoArgs& args)
                        << "energy loss fluctuations are not supported "
                           "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;
-        field_params.field   = args.mag_field;
+        field_params.field = args.mag_field;
         field_params.options = args.field_options;
 
         // Interpret input in units of Tesla
@@ -346,9 +346,9 @@ TransporterInput load_input(const LDemoArgs& args)
             << " cannot be less than num_events="
             << args.primary_gen_options.num_events);
         TrackInitParams::Input input;
-        input.capacity   = args.initializer_capacity;
+        input.capacity = args.initializer_capacity;
         input.max_events = args.max_events;
-        params.init      = std::make_shared<TrackInitParams>(input);
+        params.init = std::make_shared<TrackInitParams>(input);
     }
 
     // Create params
@@ -360,10 +360,10 @@ TransporterInput load_input(const LDemoArgs& args)
                    << "nonpositive max_num_tracks=" << args.max_num_tracks);
     CELER_VALIDATE(args.max_steps > 0,
                    << "nonpositive max_steps=" << args.max_steps);
-    result.num_track_slots    = args.max_num_tracks;
-    result.max_steps          = args.max_steps;
+    result.num_track_slots = args.max_num_tracks;
+    result.max_steps = args.max_steps;
     result.enable_diagnostics = args.enable_diagnostics;
-    result.sync               = args.sync;
+    result.sync = args.sync;
 
     // Save diagnosics
     result.energy_diag = args.energy_diag;
@@ -376,11 +376,11 @@ TransporterInput load_input(const LDemoArgs& args)
 /*!
  * Construct parameters, input, and transporter from the given run arguments.
  */
-std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args)
+std::unique_ptr<TransporterBase> build_transporter(LDemoArgs const& run_args)
 {
     using celeritas::MemSpace;
 
-    TransporterInput                 input = load_input(run_args);
+    TransporterInput input = load_input(run_args);
     std::unique_ptr<TransporterBase> result;
 
     if (run_args.use_device)
@@ -401,4 +401,4 @@ std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

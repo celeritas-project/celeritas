@@ -19,21 +19,21 @@ namespace celeritas
 namespace generated
 {
 void combined_brem_interact(
-    const celeritas::CombinedBremHostRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::host>&);
+    celeritas::CombinedBremHostRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::host> const&);
 
 void combined_brem_interact(
-    const celeritas::CombinedBremDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&);
+    celeritas::CombinedBremDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
 inline void combined_brem_interact(
-    const celeritas::CombinedBremDeviceRef&,
-    const celeritas::CoreRef<celeritas::MemSpace::device>&)
+    celeritas::CombinedBremDeviceRef const&,
+    celeritas::CoreRef<celeritas::MemSpace::device> const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

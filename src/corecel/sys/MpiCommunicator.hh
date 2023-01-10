@@ -10,7 +10,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/detail/MpiCommunicatorImpl.hh"
 
-#include "detail/MpiCommunicatorImpl.hh" // IWYU pragma: keep
+#include "detail/MpiCommunicatorImpl.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -63,13 +63,13 @@ class MpiCommunicator
 
   private:
     MpiComm comm_ = detail::mpi_comm_null();
-    int     rank_ = 0;
-    int     size_ = 1;
+    int rank_ = 0;
+    int size_ = 1;
 };
 
 //---------------------------------------------------------------------------//
 // Initialize a device in a round-robin fashion from a communicator.
-Device make_device(const MpiCommunicator&);
+Device make_device(MpiCommunicator const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -88,4 +88,4 @@ MpiCommunicator MpiCommunicator::comm_world()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

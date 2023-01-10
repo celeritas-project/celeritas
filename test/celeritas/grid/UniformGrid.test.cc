@@ -21,10 +21,10 @@ class UniformGridTest : public Test
   protected:
     void SetUp() override
     {
-        input.size  = 3; //!< Number of grid points (2 bins!)
+        input.size = 3;  //!< Number of grid points (2 bins!)
         input.front = 1.0;
         input.delta = 1.5;
-        input.back  = input.front + input.delta * (input.size - 1);
+        input.back = input.front + input.delta * (input.size - 1);
     }
 
     UniformGridData input;
@@ -74,8 +74,8 @@ TEST_F(UniformGridTest, from_bounds)
 
 TEST_F(UniformGridTest, from_logbounds)
 {
-    const double log_emin = std::log(1.0);
-    const double log_emax = std::log(1e5);
+    double const log_emin = std::log(1.0);
+    double const log_emax = std::log(1e5);
     input = UniformGridData::from_bounds(log_emin, log_emax, 6);
 
     UniformGrid grid(input);
@@ -84,7 +84,7 @@ TEST_F(UniformGridTest, from_logbounds)
     EXPECT_DOUBLE_EQ(log_emax, grid.back());
     EXPECT_EQ(0, grid.find(log_emin));
 
-    const double log10 = std::log(10);
+    double const log10 = std::log(10);
     EXPECT_EQ(0, grid.find(std::nextafter(log10, 0.)));
     EXPECT_EQ(1, grid.find(std::log(10)));
     EXPECT_EQ(1, grid.find(std::nextafter(log10, 1e100)));
@@ -95,5 +95,5 @@ TEST_F(UniformGridTest, from_logbounds)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

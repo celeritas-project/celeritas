@@ -22,8 +22,8 @@ namespace celeritas
  * Construct process from host data.
  */
 EIonizationProcess::EIonizationProcess(SPConstParticles particles,
-                                       SPConstImported  process_data,
-                                       Options          options)
+                                       SPConstImported process_data,
+                                       Options options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
@@ -63,4 +63,4 @@ std::string EIonizationProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

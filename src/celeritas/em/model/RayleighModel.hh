@@ -30,17 +30,17 @@ class RayleighModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef         = HostCRef<RayleighData>;
-    using DeviceRef       = DeviceCRef<RayleighData>;
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using HostRef = HostCRef<RayleighData>;
+    using DeviceRef = DeviceCRef<RayleighData>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //@}
 
   public:
     // Construct from model ID and other necessary data
-    RayleighModel(ActionId              id,
-                  const ParticleParams& particles,
-                  const MaterialParams& materials,
-                  SPConstImported       data);
+    RayleighModel(ActionId id,
+                  ParticleParams const& particles,
+                  MaterialParams const& materials,
+                  SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -64,10 +64,10 @@ class RayleighModel final : public Model
     std::string description() const final { return "Rayleigh scattering"; }
 
     //! Access Rayleigh data on the host
-    const HostRef& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const { return mirror_.host(); }
 
     //! Access Rayleigh data on the device
-    const DeviceRef& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const { return mirror_.device(); }
 
   private:
     //// DATA ////
@@ -79,14 +79,14 @@ class RayleighModel final : public Model
 
     //// TYPES ////
 
-    using HostValue    = HostVal<RayleighData>;
+    using HostValue = HostVal<RayleighData>;
     using ElScatParams = RayleighParameters;
 
     //// HELPER FUNCTIONS ////
 
-    void build_data(HostValue* host_data, const MaterialParams& materials);
-    static const ElScatParams& get_el_parameters(AtomicNumber atomic_number);
+    void build_data(HostValue* host_data, MaterialParams const& materials);
+    static ElScatParams const& get_el_parameters(AtomicNumber atomic_number);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

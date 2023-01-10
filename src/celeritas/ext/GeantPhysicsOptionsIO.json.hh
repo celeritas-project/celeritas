@@ -16,10 +16,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 // Read options from JSON
-void from_json(const nlohmann::json& j, GeantPhysicsOptions& opts);
+void from_json(nlohmann::json const& j, GeantPhysicsOptions& opts);
 
 // Write options to JSON
-void to_json(nlohmann::json& j, const GeantPhysicsOptions& opts);
+void to_json(nlohmann::json& j, GeantPhysicsOptions const& opts);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

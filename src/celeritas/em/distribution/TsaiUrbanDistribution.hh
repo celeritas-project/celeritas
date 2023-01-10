@@ -38,8 +38,8 @@ class TsaiUrbanDistribution
   public:
     //!@{
     //! Type aliases
-    using Energy      = units::MevEnergy;
-    using Mass        = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     using result_type = real_type;
     //!@}
 
@@ -89,4 +89,4 @@ CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

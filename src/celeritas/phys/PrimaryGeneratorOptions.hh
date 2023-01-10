@@ -29,7 +29,7 @@ enum class DistributionSelection
  */
 struct DistributionOptions
 {
-    DistributionSelection  distribution{DistributionSelection::size_};
+    DistributionSelection distribution{DistributionSelection::size_};
     std::vector<real_type> params;
 
     //! Whether the options are valid
@@ -54,11 +54,11 @@ struct DistributionOptions
 struct PrimaryGeneratorOptions
 {
     std::vector<PDGNumber> pdg;
-    size_type              num_events{};
-    size_type              primaries_per_event{};
-    DistributionOptions    energy;
-    DistributionOptions    position;
-    DistributionOptions    direction;
+    size_type num_events{};
+    size_type primaries_per_event{};
+    DistributionOptions energy;
+    DistributionOptions position;
+    DistributionOptions direction;
 
     //! Whether the options are valid
     explicit operator bool() const
@@ -73,4 +73,4 @@ struct PrimaryGeneratorOptions
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

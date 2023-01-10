@@ -22,8 +22,8 @@ namespace celeritas
  * Construct from particles and imported Geant data.
  */
 GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
-                                               SPConstImported  process_data,
-                                               Options          options)
+                                               SPConstImported process_data,
+                                               Options options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
@@ -65,4 +65,4 @@ std::string GammaConversionProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

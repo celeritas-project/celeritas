@@ -15,9 +15,9 @@ namespace celeritas
 /*!
  * Get the string value for a table type.
  */
-const char* to_cstring(ImportTableType value)
+char const* to_cstring(ImportTableType value)
 {
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "dedx",
         "dedx_process",
         "dedx_subsec",
@@ -32,7 +32,7 @@ const char* to_cstring(ImportTableType value)
         "sublambda",
         "lambda_prim",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
@@ -41,9 +41,9 @@ const char* to_cstring(ImportTableType value)
 /*!
  * Get the string value for units.
  */
-const char* to_cstring(ImportUnits value)
+char const* to_cstring(ImportUnits value)
 {
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "unitless",
         "MeV",
         "MeV/cm",
@@ -51,10 +51,10 @@ const char* to_cstring(ImportUnits value)
         "1/cm",
         "1/cm-MeV",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

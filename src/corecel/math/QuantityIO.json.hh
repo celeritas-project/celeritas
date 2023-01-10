@@ -21,7 +21,7 @@ namespace celeritas
  * Read a quantity from a JSON file.
  */
 template<class UnitT, class ValueT>
-void from_json(const nlohmann::json& j, Quantity<UnitT, ValueT>& q)
+void from_json(nlohmann::json const& j, Quantity<UnitT, ValueT>& q)
 {
     static_assert(sizeof(UnitT::label()) > 0,
                   "Unit does not have a 'label' definition");
@@ -48,7 +48,7 @@ void from_json(const nlohmann::json& j, Quantity<UnitT, ValueT>& q)
  * Write an array to a JSON file.
  */
 template<class UnitT, class ValueT>
-void to_json(nlohmann::json& j, const Quantity<UnitT, ValueT>& q)
+void to_json(nlohmann::json& j, Quantity<UnitT, ValueT> const& q)
 {
     static_assert(sizeof(UnitT::label()) > 0,
                   "Unit does not have a 'label' definition");
@@ -56,4 +56,4 @@ void to_json(nlohmann::json& j, const Quantity<UnitT, ValueT>& q)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

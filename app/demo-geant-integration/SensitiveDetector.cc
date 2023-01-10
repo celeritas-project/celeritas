@@ -70,7 +70,7 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     CELER_ASSERT(touchable);
 
     unsigned int id = touchable->GetVolume()->GetCopyNo();
-    HitData      data{id,
+    HitData data{id,
                  edep,
                  step->GetPreStepPoint()->GetGlobalTime(),
                  touchable->GetTranslation()};
@@ -81,4 +81,4 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

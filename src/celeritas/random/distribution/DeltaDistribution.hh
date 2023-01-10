@@ -42,4 +42,4 @@ class DeltaDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

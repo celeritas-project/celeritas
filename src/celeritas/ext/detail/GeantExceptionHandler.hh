@@ -30,12 +30,12 @@ class GeantExceptionHandler final : public G4VExceptionHandler
 {
   public:
     // Accept error codes from geant4
-    G4bool Notify(const char*         originOfException,
-                  const char*         exceptionCode,
+    G4bool Notify(char const* originOfException,
+                  char const* exceptionCode,
                   G4ExceptionSeverity severity,
-                  const char*         description) final;
+                  char const* description) final;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

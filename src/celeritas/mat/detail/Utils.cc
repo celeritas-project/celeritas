@@ -36,7 +36,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
     CELER_EXPECT(atomic_number);
     using constants::alpha_fine_structure;
 
-    static const double zeta[] = {2.0205690315959429e-01,
+    static double const zeta[] = {2.0205690315959429e-01,
                                   3.6927755143369927e-02,
                                   8.3492773819228271e-03,
                                   2.0083928260822143e-03,
@@ -55,7 +55,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
 
     const real_type alphazsq
         = ipow<2>(alpha_fine_structure * atomic_number.unchecked_get());
-    real_type fz    = 1 / (1 + alphazsq);
+    real_type fz = 1 / (1 + alphazsq);
     real_type azpow = 1;
     for (double zeta_i : zeta)
     {
@@ -74,7 +74,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
  * See ElementView::mass_radiation_coeff for details on this calculation and
  * how it's used.
  */
-real_type calc_mass_rad_coeff(const ElementRecord& el)
+real_type calc_mass_rad_coeff(ElementRecord const& el)
 {
     CELER_EXPECT(el.atomic_number);
     CELER_EXPECT(el.atomic_mass > zero_quantity());
@@ -121,7 +121,7 @@ units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number)
 {
     CELER_EXPECT(atomic_number);
     // Mean excitation energy for Z=1-98 [eV]
-    static const double mean_excitation_energy[] = {
+    static double const mean_excitation_energy[] = {
         19.2,  41.8,  40.0,  63.7,  76.0,  81.0,  82.0,  95.0,  115.0, 137.0,
         149.0, 156.0, 166.0, 173.0, 173.0, 180.0, 174.0, 188.0, 190.0, 191.0,
         216.0, 233.0, 245.0, 257.0, 272.0, 286.0, 297.0, 311.0, 322.0, 330.0,
@@ -139,5 +139,5 @@ units::MevEnergy get_mean_excitation_energy(AtomicNumber atomic_number)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

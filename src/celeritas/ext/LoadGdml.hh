@@ -27,7 +27,7 @@ struct PVDeleter
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
@@ -43,7 +43,7 @@ using UPG4PhysicalVolume
 /*!
  * Load a GDML file and return the world volume.
  */
-UPG4PhysicalVolume load_gdml(const std::string& gdml_filename);
+UPG4PhysicalVolume load_gdml(std::string const& gdml_filename);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -54,11 +54,11 @@ inline void detail::PVDeleter::operator()(G4VPhysicalVolume*) const
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline UPG4PhysicalVolume load_gdml(const std::string&)
+inline UPG4PhysicalVolume load_gdml(std::string const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

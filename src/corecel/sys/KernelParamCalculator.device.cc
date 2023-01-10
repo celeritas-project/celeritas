@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Add a new kernel to the registry.
  */
-void KernelParamCalculator::register_kernel(const char*        name,
+void KernelParamCalculator::register_kernel(char const* name,
                                             KernelAttributes&& attributes)
 {
     profiling_
@@ -33,4 +33,4 @@ void KernelParamCalculator::log_launch(size_type min_num_threads) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

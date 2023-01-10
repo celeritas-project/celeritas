@@ -62,9 +62,9 @@ struct SetupOptions
     using size_type = unsigned int;
     using real_type = double;
 
-    using SPConstAction = std::shared_ptr<const ExplicitActionInterface>;
+    using SPConstAction = std::shared_ptr<ExplicitActionInterface const>;
     using AlongStepFactory
-        = std::function<SPConstAction(const AlongStepFactoryInput&)>;
+        = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using VecString = std::vector<std::string>;
     //!@}
 
@@ -122,4 +122,4 @@ struct SetupOptions
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -43,7 +43,7 @@ void do_templated_stuff(T)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace tdtest
+}  // namespace tdtest
 
 namespace celeritas
 {
@@ -96,10 +96,10 @@ TEST(TypeDemanglerTest, dynamic)
     using namespace tdtest;
 
     TypeDemangler<JapaneseIsland> demangle;
-    const Honshu                  honshu{};
-    const Hokkaido                hokkaido{};
-    const JapaneseIsland&         hon_ptr = honshu;
-    const JapaneseIsland&         hok_ptr = hokkaido;
+    const Honshu honshu{};
+    const Hokkaido hokkaido{};
+    JapaneseIsland const& hon_ptr = honshu;
+    JapaneseIsland const& hok_ptr = hokkaido;
 
     EXPECT_EQ(demangle(honshu), demangle(hon_ptr));
     EXPECT_EQ(demangle(hokkaido), demangle(hok_ptr));
@@ -111,5 +111,5 @@ TEST(TypeDemanglerTest, dynamic)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

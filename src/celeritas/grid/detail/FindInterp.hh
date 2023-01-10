@@ -25,8 +25,8 @@ namespace detail
 template<class T>
 struct FindInterp
 {
-    size_type index{};    //!< Lower index into the grid
-    T         fraction{}; //!< Fraction of the value between its neighbors
+    size_type index{};  //!< Lower index into the grid
+    T fraction{};  //!< Fraction of the value between its neighbors
 };
 
 //---------------------------------------------------------------------------//
@@ -44,20 +44,20 @@ struct FindInterp
  */
 template<class Grid>
 inline CELER_FUNCTION FindInterp<typename Grid::value_type>
-find_interp(const Grid& grid, typename Grid::value_type value)
+find_interp(Grid const& grid, typename Grid::value_type value)
 {
     CELER_EXPECT(value >= grid.front() && value < grid.back());
 
     FindInterp<typename Grid::value_type> result;
     result.index = grid.find(value);
     CELER_ASSERT(result.index + 1 < grid.size());
-    const auto lower_val = grid[result.index];
-    const auto upper_val = grid[result.index + 1];
-    result.fraction      = (value - lower_val) / (upper_val - lower_val);
+    auto const lower_val = grid[result.index];
+    auto const upper_val = grid[result.index + 1];
+    result.fraction = (value - lower_val) / (upper_val - lower_val);
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

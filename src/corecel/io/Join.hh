@@ -47,9 +47,9 @@ join(InputIterator first, InputIterator last, Conjunction&& conjunction)
  */
 template<class InputIterator, class Conjunction, class UnaryOperation>
 detail::Joined<InputIterator, Conjunction, detail::UnaryToStream<UnaryOperation>>
-join(InputIterator    first,
-     InputIterator    last,
-     Conjunction&&    conjunction,
+join(InputIterator first,
+     InputIterator last,
+     Conjunction&& conjunction,
      UnaryOperation&& op)
 {
     return {first,
@@ -67,7 +67,7 @@ detail::Joined<InputIterator, Conjunction, StreamOp>
 join_stream(InputIterator first,
             InputIterator last,
             Conjunction&& conjunction,
-            StreamOp&&    op)
+            StreamOp&& op)
 {
     return {first,
             last,
@@ -76,4 +76,4 @@ join_stream(InputIterator first,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

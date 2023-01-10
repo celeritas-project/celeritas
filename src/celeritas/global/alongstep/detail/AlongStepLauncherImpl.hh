@@ -41,10 +41,10 @@ struct AlongStepLauncherImpl
     //// DATA ////
 
     CoreRefNative const& core_data;
-    M                    msc_data;
-    P                    propagator_data;
-    E                    eloss_data;
-    F                    call_with_track;
+    M msc_data;
+    P propagator_data;
+    E eloss_data;
+    F call_with_track;
 
     //// METHODS ////
 
@@ -79,5 +79,5 @@ AlongStepLauncherImpl<M, P, E, F>::operator()(ThreadId thread) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

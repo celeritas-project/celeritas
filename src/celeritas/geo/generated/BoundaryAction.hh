@@ -42,5 +42,5 @@ inline void BoundaryAction::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

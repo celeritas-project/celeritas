@@ -27,13 +27,13 @@ class UniformGrid
   public:
     //!@{
     //! Type aliases
-    using size_type  = ::celeritas::size_type;
+    using size_type = ::celeritas::size_type;
     using value_type = ::celeritas::real_type;
     //!@}
 
   public:
     // Construct with data
-    explicit inline CELER_FUNCTION UniformGrid(const UniformGridData& data);
+    explicit inline CELER_FUNCTION UniformGrid(UniformGridData const& data);
 
     //! Number of grid points
     CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size; }
@@ -51,10 +51,10 @@ class UniformGrid
     inline CELER_FUNCTION size_type find(value_type value) const;
 
     //! Get the data used to construct this class
-    CELER_FUNCTION const UniformGridData& data() const { return data_; }
+    CELER_FUNCTION UniformGridData const& data() const { return data_; }
 
   private:
-    const UniformGridData& data_;
+    UniformGridData const& data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,7 +64,7 @@ class UniformGrid
  * Construct with data.
  */
 CELER_FUNCTION
-UniformGrid::UniformGrid(const UniformGridData& data) : data_(data)
+UniformGrid::UniformGrid(UniformGridData const& data) : data_(data)
 {
     CELER_EXPECT(data_);
 }
@@ -97,4 +97,4 @@ CELER_FUNCTION size_type UniformGrid::find(value_type value) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

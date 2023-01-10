@@ -19,10 +19,10 @@ namespace celeritas
  * Write the elements of span \a s to stream \a os.
  */
 template<class T, std::size_t E>
-std::ostream& operator<<(std::ostream& os, const Span<T, E>& s)
+std::ostream& operator<<(std::ostream& os, Span<T, E> const& s)
 {
-    std::streamsize size      = s.size();
-    std::streamsize width     = os.width();
+    std::streamsize size = s.size();
+    std::streamsize width = os.width();
     std::streamsize remainder = 0;
 
     os.width(0);
@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& os, const Span<T, E>& s)
         // Individual width is 1/N of that, rounded down, keep remainder
         // separate
         remainder = width % size;
-        width     = width / size;
+        width = width / size;
     }
     else
     {
@@ -60,4 +60,4 @@ std::ostream& operator<<(std::ostream& os, const Span<T, E>& s)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

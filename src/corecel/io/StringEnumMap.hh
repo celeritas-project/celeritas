@@ -55,14 +55,14 @@ class StringEnumMap
 
     // Construct with a function that takes an enum and returns a stringlike
     template<class U>
-    explicit inline StringEnumMap(U&&         enum_to_string,
+    explicit inline StringEnumMap(U&& enum_to_string,
                                   char const* desc = nullptr);
 
     // Convert from a string
-    inline T operator()(const std::string& s) const;
+    inline T operator()(std::string const& s) const;
 
   private:
-    char const*                        description_;
+    char const* description_;
     std::unordered_map<std::string, T> map_;
 };
 
@@ -104,7 +104,7 @@ StringEnumMap<T>::StringEnumMap(U&& enum_to_string, char const* desc)
  * Convert a string to the corresponding enum.
  */
 template<class T>
-T StringEnumMap<T>::operator()(const std::string& s) const
+T StringEnumMap<T>::operator()(std::string const& s) const
 {
     auto result = map_.find(s);
     CELER_VALIDATE(result != map_.end(),
@@ -114,4 +114,4 @@ T StringEnumMap<T>::operator()(const std::string& s) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas
