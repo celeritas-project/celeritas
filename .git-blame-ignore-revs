@@ -1,10 +1,13 @@
 # Reorganize repository
 c93d9582552e2d7ad4e18d9d74b7e9e62de53c0e
-# Update copyrights and fix documentation
+# Update copyrights
 7a0f476ae128025a8843ba2b1e6e6284efb7d0dd
+c06d0a263847884aff7aefc9280c758860ea5fc2
 # clang-format and IWYU
 0e14b341e12eb750b627e7d61602e50c68db2551
 954cd07322312b43eb7dc926abd0054f630a8eff
+350a3c60a4cf34a63b342daa3de6e09de22ec06b
+638f7f9665222a1f49f9e1275d43bb8c74ce66e2
 # consolidate .hh, i.hh
 128b0eff32a159005019a8f18619e3630181d9d0
 d90f9cb55c0df92e36ccfd0646f9ffd1a51bbd14
