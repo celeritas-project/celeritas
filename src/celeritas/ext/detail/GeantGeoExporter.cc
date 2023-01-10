@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoExporter.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/io/ScopedTimeAndRedirect.hh"
-#include <G4Threading.hh>
 #include <G4GDMLParser.hh>
+#include <G4Threading.hh>
 #include <G4VPhysicalVolume.hh>
+
+#include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 namespace celeritas
 {
@@ -31,7 +33,7 @@ std::string GeantGeoExporter::make_tmpfile_name()
 /*!
  * Create with a reference to the world volume.
  */
-GeantGeoExporter::GeantGeoExporter(const G4VPhysicalVolume* world)
+GeantGeoExporter::GeantGeoExporter(G4VPhysicalVolume const* world)
     : world_(world)
 {
     CELER_EXPECT(world_);
@@ -44,7 +46,7 @@ GeantGeoExporter::GeantGeoExporter(const G4VPhysicalVolume* world)
  * This should be called only by the master thread. (It's a null-op in the GDML
  * parser for other threads, but we should be explicit.)
  */
-void GeantGeoExporter::operator()(const std::string& filename) const
+void GeantGeoExporter::operator()(std::string const& filename) const
 {
     CELER_EXPECT(G4Threading::IsMasterThread());
 
@@ -57,11 +59,9 @@ void GeantGeoExporter::operator()(const std::string& filename) const
     parser.SetOverlapCheck(true);
     parser.SetOutputFileOverwrite(true);
     constexpr bool append_pointers = true;
-    parser.Write(filename,
-                 world_,
-                 append_pointers);
+    parser.Write(filename, world_, append_pointers);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

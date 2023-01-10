@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #include "SeltzerBergerReader.hh"
 
 #include <fstream>
+#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -22,7 +23,7 @@ namespace celeritas
  */
 SeltzerBergerReader::SeltzerBergerReader()
 {
-    const std::string& dir = celeritas::getenv("G4LEDATA");
+    std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate Seltzer-Berger data)");
@@ -35,7 +36,7 @@ SeltzerBergerReader::SeltzerBergerReader()
  * The path should point to the files that are usually stored in
  * [Geant4-install]/share/Geant4-10.7.0/data/G4EMLOW7.12/brem_SB/.
  */
-SeltzerBergerReader::SeltzerBergerReader(const char* path) : path_(path)
+SeltzerBergerReader::SeltzerBergerReader(char const* path) : path_(path)
 {
     CELER_EXPECT(path_.size());
     if (path_.back() == '/')
@@ -61,7 +62,7 @@ SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
     result_type result;
 
     // Open file for given atomic number
-    std::string   file = path_ + "/br" + z_str;
+    std::string file = path_ + "/br" + z_str;
     std::ifstream input_stream(file.c_str());
     CELER_VALIDATE(input_stream,
                    << "failed to open '" << file
@@ -113,4 +114,4 @@ SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

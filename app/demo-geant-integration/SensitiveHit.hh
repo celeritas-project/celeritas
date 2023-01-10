@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,10 +20,10 @@ namespace demo_geant
  */
 struct HitData
 {
-    unsigned int  id{0};        //!< detector id
-    double        edep{0};      //!< energy deposition
-    double        time{0};      //!< time (global coordinate)
-    G4ThreeVector pos{0, 0, 0}; //!< position (global coordinate)
+    unsigned int id{0};  //!< detector id
+    double edep{0};  //!< energy deposition
+    double time{0};  //!< time (global coordinate)
+    G4ThreeVector pos{0, 0, 0};  //!< position (global coordinate)
 };
 
 //---------------------------------------------------------------------------//
@@ -33,14 +33,14 @@ struct HitData
 class SensitiveHit final : public G4VHit
 {
   public:
-    explicit SensitiveHit(const HitData& data);
+    explicit SensitiveHit(HitData const& data);
 
     //! Accessor the hit data
-    const HitData& data() const { return data_; }
+    HitData const& data() const { return data_; }
 
     // Overload new/delete to use a custom allocator.
-    inline void* operator new(size_t);
-    inline void  operator delete(void*);
+    inline void* operator new(std::size_t);
+    inline void operator delete(void*);
 
   private:
     using HitAllocator = G4Allocator<SensitiveHit>;
@@ -56,7 +56,7 @@ class SensitiveHit final : public G4VHit
 /*!
  * Use G4Allocator to allocate memory for a SensitiveHit.
  */
-inline void* SensitiveHit::operator new(size_t)
+inline void* SensitiveHit::operator new(std::size_t)
 {
     return SensitiveHit::allocator().MallocSingle();
 }
@@ -71,4 +71,4 @@ inline void SensitiveHit::operator delete(void* hit)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ struct NLTestOutput
     T nan;
     T inf;
     T max;
-    T inv_zero; // Test for expected infinity
+    T inv_zero;  // Test for expected infinity
 };
 
 //---------------------------------------------------------------------------//
@@ -41,5 +41,5 @@ inline NLTestOutput<T> nl_test()
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

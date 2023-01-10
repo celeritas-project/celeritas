@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ class AllElementReader
 
   public:
     //! Construct from vector of imported elements
-    explicit AllElementReader(const VecElements& els) : elements_(els)
+    explicit AllElementReader(VecElements const& els) : elements_(els)
     {
         CELER_EXPECT(!elements_.empty());
     }
@@ -44,11 +44,11 @@ class AllElementReader
     template<class ReadOneElement>
     auto operator()(ReadOneElement&& read_el) const -> decltype(auto)
     {
-        using result_type  = typename ReadOneElement::result_type;
+        using result_type = typename ReadOneElement::result_type;
 
         std::map<int, result_type> result_map;
 
-        for (const ImportElement& element : elements_)
+        for (ImportElement const& element : elements_)
         {
             AtomicNumber z{element.atomic_number};
             CELER_ASSERT(z);
@@ -58,9 +58,9 @@ class AllElementReader
     }
 
   private:
-    const std::vector<ImportElement>& elements_;
+    std::vector<ImportElement> const& elements_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

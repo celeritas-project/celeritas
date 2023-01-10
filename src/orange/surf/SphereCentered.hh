@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,7 +27,7 @@ class SphereCentered
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage       = Span<const real_type, 1>;
+    using Storage = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -61,14 +61,14 @@ class SphereCentered
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
-    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+    inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
-        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
     // Square of the radius
@@ -100,7 +100,7 @@ CELER_FUNCTION SphereCentered::SphereCentered(Storage data)
 /*!
  * Determine the sense of the position relative to this surface.
  */
-CELER_FUNCTION SignedSense SphereCentered::calc_sense(const Real3& pos) const
+CELER_FUNCTION SignedSense SphereCentered::calc_sense(Real3 const& pos) const
 {
     return real_to_sense(dot_product(pos, pos) - radius_sq_);
 }
@@ -110,8 +110,8 @@ CELER_FUNCTION SignedSense SphereCentered::calc_sense(const Real3& pos) const
  * Calculate all possible straight-line intersections with this surface.
  */
 CELER_FUNCTION auto
-SphereCentered::calc_intersections(const Real3& pos,
-                                   const Real3& dir,
+SphereCentered::calc_intersections(Real3 const& pos,
+                                   Real3 const& dir,
                                    SurfaceState on_surface) const
     -> Intersections
 {
@@ -130,7 +130,7 @@ SphereCentered::calc_intersections(const Real3& pos,
 /*!
  * Calculate outward normal at a position.
  */
-CELER_FUNCTION Real3 SphereCentered::calc_normal(const Real3& pos) const
+CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
 {
     Real3 result{pos};
     normalize_direction(&result);
@@ -138,4 +138,4 @@ CELER_FUNCTION Real3 SphereCentered::calc_normal(const Real3& pos) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

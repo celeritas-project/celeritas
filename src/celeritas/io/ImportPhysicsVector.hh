@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,9 +20,9 @@ namespace celeritas
 enum class ImportPhysicsVectorType
 {
     unknown,
-    linear, //!< Uniform and linear in x
-    log,    //!< Uniform and logarithmic in x
-    free,   //!< Nonuniform in x
+    linear,  //!< Uniform and linear in x
+    log,  //!< Uniform and logarithmic in x
+    free,  //!< Nonuniform in x
 };
 
 //---------------------------------------------------------------------------//
@@ -36,15 +36,15 @@ enum class ImportPhysicsVectorType
 struct ImportPhysicsVector
 {
     ImportPhysicsVectorType vector_type;
-    std::vector<double>     x; //!< Geant4 binVector
-    std::vector<double>     y; //!< Geant4 dataVector
+    std::vector<double> x;  //!< Geant4 binVector
+    std::vector<double> y;  //!< Geant4 dataVector
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-const char* to_cstring(ImportPhysicsVectorType value);
+char const* to_cstring(ImportPhysicsVectorType value);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

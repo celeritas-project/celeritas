@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,18 +23,18 @@ namespace celeritas
 /*!
  * Get a string corresponding to a category.
  */
-const char* to_cstring(Category value)
+char const* to_cstring(Category value)
 {
     CELER_EXPECT(value != Category::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "input",
         "result",
         "system",
         "internal",
     };
     static_assert(
-        static_cast<unsigned int>(Category::size_) * sizeof(const char*)
+        static_cast<unsigned int>(Category::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -45,7 +45,7 @@ const char* to_cstring(Category value)
 /*!
  * Get the JSON representation of a single output (mostly for testing).
  */
-std::string to_string(const OutputInterface& output)
+std::string to_string(OutputInterface const& output)
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
@@ -58,4 +58,4 @@ std::string to_string(const OutputInterface& output)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

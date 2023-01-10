@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,22 +42,22 @@ class TabulatedElementSelector
 
   public:
     // Construct with xs CDF data for a particular model and material
-    inline CELER_FUNCTION TabulatedElementSelector(const ValueTable&   table,
-                                                   const GridValues&   grids,
-                                                   const GridIdValues& ids,
-                                                   const Values&       reals,
-                                                   Energy              energy);
+    inline CELER_FUNCTION TabulatedElementSelector(ValueTable const& table,
+                                                   GridValues const& grids,
+                                                   GridIdValues const& ids,
+                                                   Values const& reals,
+                                                   Energy energy);
 
     // Sample with the given RNG
     template<class Engine>
     inline CELER_FUNCTION ElementComponentId operator()(Engine& rng) const;
 
   private:
-    const ValueTable&   table_;
-    const GridValues&   grids_;
-    const GridIdValues& ids_;
-    const Values&       reals_;
-    const Energy        energy_;
+    ValueTable const& table_;
+    GridValues const& grids_;
+    GridIdValues const& ids_;
+    Values const& reals_;
+    const Energy energy_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,11 +67,11 @@ class TabulatedElementSelector
  * Construct with xs CDF data for a particular model and material.
  */
 CELER_FUNCTION
-TabulatedElementSelector::TabulatedElementSelector(const ValueTable&   table,
-                                                   const GridValues&   grids,
-                                                   const GridIdValues& ids,
-                                                   const Values&       reals,
-                                                   Energy              energy)
+TabulatedElementSelector::TabulatedElementSelector(ValueTable const& table,
+                                                   GridValues const& grids,
+                                                   GridIdValues const& ids,
+                                                   Values const& reals,
+                                                   Energy energy)
     : table_(table), grids_(grids), ids_(ids), reals_(reals), energy_(energy)
 {
     CELER_EXPECT(table);
@@ -99,4 +99,4 @@ TabulatedElementSelector::operator()(Engine& rng) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

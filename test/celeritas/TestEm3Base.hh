@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,13 +22,13 @@ namespace test
 class TestEm3Base : public GeantTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "testem3-flat"; }
-    bool        enable_fluctuation() const override { return true; }
-    bool        enable_msc() const override { return false; }
-    bool        combined_brems() const override { return true; }
-    real_type   secondary_stack_factor() const override { return 3.0; }
+    char const* geometry_basename() const override { return "testem3-flat"; }
+    bool enable_fluctuation() const override { return true; }
+    bool enable_msc() const override { return false; }
+    bool combined_brems() const override { return true; }
+    real_type secondary_stack_factor() const override { return 3.0; }
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

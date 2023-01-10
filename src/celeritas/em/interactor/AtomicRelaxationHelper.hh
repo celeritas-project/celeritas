@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -55,10 +55,10 @@ class AtomicRelaxationHelper
   public:
     // Construct with the currently interacting element
     inline CELER_FUNCTION
-    AtomicRelaxationHelper(const AtomicRelaxParamsRef& shared,
-                           const AtomicRelaxStateRef&  states,
-                           ElementId                   el_id,
-                           ThreadId                    tid);
+    AtomicRelaxationHelper(AtomicRelaxParamsRef const& shared,
+                           AtomicRelaxStateRef const& states,
+                           ElementId el_id,
+                           ThreadId tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -71,15 +71,15 @@ class AtomicRelaxationHelper
 
     // Create the sampling distribution from sampled shell and allocated mem
     inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(const CutoffView& cutoffs,
-                       SubshellId        shell_id,
-                       Span<Secondary>   secondaries) const;
+    build_distribution(CutoffView const& cutoffs,
+                       SubshellId shell_id,
+                       Span<Secondary> secondaries) const;
 
   private:
-    const AtomicRelaxParamsRef& shared_;
-    const AtomicRelaxStateRef&  states_;
-    const ElementId             el_id_;
-    const ThreadId              thread_;
+    AtomicRelaxParamsRef const& shared_;
+    AtomicRelaxStateRef const& states_;
+    const ElementId el_id_;
+    const ThreadId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,10 +90,10 @@ class AtomicRelaxationHelper
  */
 CELER_FUNCTION
 AtomicRelaxationHelper::AtomicRelaxationHelper(
-    const AtomicRelaxParamsRef& shared,
-    const AtomicRelaxStateRef&  states,
-    ElementId                   el_id,
-    ThreadId                    tid)
+    AtomicRelaxParamsRef const& shared,
+    AtomicRelaxStateRef const& states,
+    ElementId el_id,
+    ThreadId tid)
     : shared_(shared), states_(states), el_id_(el_id), thread_(tid)
 {
     CELER_EXPECT(!shared_ || el_id_ < shared_.elements.size());
@@ -131,7 +131,7 @@ CELER_FUNCTION size_type AtomicRelaxationHelper::max_secondaries() const
 CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
 {
     CELER_EXPECT(*this);
-    auto             offset = thread_.get() * shared_.max_stack_size;
+    auto offset = thread_.get() * shared_.max_stack_size;
     Span<SubshellId> all_scratch
         = states_.scratch[AllItems<SubshellId, MemSpace::native>{}];
     CELER_ENSURE(offset + shared_.max_stack_size <= all_scratch.size());
@@ -143,9 +143,9 @@ CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
  * Create the sampling distribution.
  */
 CELER_FUNCTION AtomicRelaxation
-AtomicRelaxationHelper::build_distribution(const CutoffView& cutoffs,
-                                           SubshellId        shell_id,
-                                           Span<Secondary>   secondaries) const
+AtomicRelaxationHelper::build_distribution(CutoffView const& cutoffs,
+                                           SubshellId shell_id,
+                                           Span<Secondary> secondaries) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(secondaries.size() == this->max_secondaries());
@@ -154,4 +154,4 @@ AtomicRelaxationHelper::build_distribution(const CutoffView& cutoffs,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

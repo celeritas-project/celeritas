@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ActionInitialization.hh"
 
-#include <G4RunManager.hh>
-
 #include "corecel/io/Logger.hh"
+#include "accel/LocalTransporter.hh"
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"
@@ -83,4 +82,4 @@ void ActionInitialization::Build() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

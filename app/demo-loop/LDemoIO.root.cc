@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
     tree_params->Branch("action_labels", &action_labels);
     action_labels.resize(action_reg->num_actions());
 
-    for (const auto id : celeritas::range(action_reg->num_actions()))
+    for (auto const id : celeritas::range(action_reg->num_actions()))
     {
         action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
     }
@@ -66,8 +66,8 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
  * Store input information to the ROOT MC truth output file.
  */
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-             LDemoArgs&                                   args,
-             celeritas::CoreParams                        core_params)
+             LDemoArgs& args,
+             celeritas::CoreParams core_params)
 {
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);
@@ -105,4 +105,4 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

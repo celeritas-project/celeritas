@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "corecel/Types.hh"
 #include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -28,11 +31,11 @@ class HostKNDemoRunner
   public:
     //!@{
     //! Type aliases
-    using size_type   = celeritas::size_type;
+    using size_type = celeritas::size_type;
     using result_type = demo_interactor::KNDemoResult;
     using constSPParticleParams
         = std::shared_ptr<const celeritas::ParticleParams>;
-    using constSPXsGridParams = std::shared_ptr<const XsGridParams>;
+    using constSPXsGridParams = std::shared_ptr<XsGridParams const>;
     //!@}
 
   public:
@@ -43,10 +46,10 @@ class HostKNDemoRunner
     result_type operator()(demo_interactor::KNDemoRunArgs args);
 
   private:
-    constSPParticleParams       pparams_;
-    constSPXsGridParams         xsparams_;
+    constSPParticleParams pparams_;
+    constSPXsGridParams xsparams_;
     celeritas::KleinNishinaData kn_data_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

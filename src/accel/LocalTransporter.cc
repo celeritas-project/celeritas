@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,10 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4ParticleDefinition.hh>
+#include <G4ThreeVector.hh>
 
+#include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -21,26 +28,26 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class T>
-inline T convert_from_geant(const T& val, T units)
+inline T convert_from_geant(T const& val, T units)
 {
     return val / units;
 }
 
 //---------------------------------------------------------------------------//
-inline Real3 convert_from_geant(const G4ThreeVector& vec, double units)
+inline Real3 convert_from_geant(G4ThreeVector const& vec, double units)
 {
     return {vec[0] / units, vec[1] / units, vec[2] / units};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared (MT) params.
  */
-LocalTransporter::LocalTransporter(const SetupOptions& options,
-                                   const SharedParams& params)
+LocalTransporter::LocalTransporter(SetupOptions const& options,
+                                   SharedParams const& params)
     : auto_flush_(options.max_num_tracks), max_steps_(options.max_steps)
 {
     CELER_EXPECT(params);
@@ -64,7 +71,7 @@ LocalTransporter::LocalTransporter(const SetupOptions& options,
 void LocalTransporter::SetEventId(int id)
 {
     CELER_EXPECT(id >= 0);
-    event_id_      = EventId(id);
+    event_id_ = EventId(id);
     track_counter_ = 0;
 }
 
@@ -72,7 +79,7 @@ void LocalTransporter::SetEventId(int id)
 /*!
  * Whether Celeritas supports offloading of this track.
  */
-bool LocalTransporter::IsApplicable(const G4Track& g4track) const
+bool LocalTransporter::IsApplicable(G4Track const& g4track) const
 {
     PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
     return static_cast<bool>(particles_->find(pdg));
@@ -82,7 +89,7 @@ bool LocalTransporter::IsApplicable(const G4Track& g4track) const
 /*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
-void LocalTransporter::Push(const G4Track& g4track)
+void LocalTransporter::Push(G4Track const& g4track)
 {
     CELER_EXPECT(event_id_);
     CELER_EXPECT(this->IsApplicable(g4track));
@@ -94,9 +101,9 @@ void LocalTransporter::Push(const G4Track& g4track)
     track.energy = units::MevEnergy{
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV)};
 
-    track.position  = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
+    track.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
-    track.time      = convert_from_geant(g4track.GetGlobalTime(), CLHEP::s);
+    track.time = convert_from_geant(g4track.GetGlobalTime(), CLHEP::s);
 
     // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
     // they must be sequential from zero for a given event. We may need to save
@@ -125,9 +132,9 @@ void LocalTransporter::Flush()
         return;
     }
 
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
+    CELER_LOG_LOCAL(info)
+        << "Transporting " << buffer_.size() << " tracks from event "
+        << event_id_.unchecked_get() + 1 << " with Celeritas";
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
@@ -167,4 +174,4 @@ void LocalTransporter::Finalize()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

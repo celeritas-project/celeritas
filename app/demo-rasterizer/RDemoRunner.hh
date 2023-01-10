@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ class RDemoRunner
     //!@{
     //! Type aliases
     using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
-    using Args       = ImageRunArgs;
+    using Args = ImageRunArgs;
     //!@}
 
   public:
@@ -40,4 +40,4 @@ class RDemoRunner
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

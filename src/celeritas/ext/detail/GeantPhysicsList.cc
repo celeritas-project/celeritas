@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,14 +10,17 @@
 #include <memory>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
+#include <G4Electron.hh>
 #include <G4EmParameters.hh>
+#include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4LivermorePhotoElectricModel.hh>
-#include <G4LivermoreRayleighModel.hh>
 #include <G4MollerBhabhaModel.hh>
 #include <G4PairProductionRelModel.hh>
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
+#include <G4Positron.hh>
+#include <G4ProcessType.hh>
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
 #include <G4SystemOfUnits.hh>
@@ -26,11 +29,12 @@
 #include <G4eCoulombScatteringModel.hh>
 #include <G4eIonisation.hh>
 #include <G4eMultipleScattering.hh>
-#include <G4eeToTwoGammaModel.hh>
 #include <G4eplusAnnihilation.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 #include "GeantBremsstrahlungProcess.hh"
 
@@ -42,7 +46,7 @@ namespace detail
 /*!
  * Construct with physics options.
  */
-GeantPhysicsList::GeantPhysicsList(const Options& options) : options_(options)
+GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 {
     // Set EM options
     auto& em_parameters = *G4EmParameters::Instance();
@@ -118,7 +122,7 @@ void GeantPhysicsList::ConstructProcess()
 void GeantPhysicsList::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
-    auto* gamma        = G4Gamma::Gamma();
+    auto* gamma = G4Gamma::Gamma();
 
     {
         // Compton Scattering: G4KleinNishinaCompton
@@ -234,7 +238,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
 
         auto process = std::make_unique<G4CoulombScattering>();
-        auto model   = std::make_unique<G4eCoulombScatteringModel>();
+        auto model = std::make_unique<G4eCoulombScatteringModel>();
         process->SetMinKinEnergy(msc_energy_limit);
         model->SetLowEnergyLimit(msc_energy_limit);
         model->SetActivationLowEnergyLimit(msc_energy_limit);
@@ -277,5 +281,5 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

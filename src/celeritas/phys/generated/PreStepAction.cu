@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,9 +41,9 @@ pre_step_kernel(CoreDeviceRef const data
     auto launch = make_track_launcher(data, detail::pre_step_track);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
-void PreStepAction::execute(const CoreDeviceRef& data) const
+void PreStepAction::execute(CoreDeviceRef const& data) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(pre_step,
@@ -52,5 +52,5 @@ void PreStepAction::execute(const CoreDeviceRef& data) const
                         data);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

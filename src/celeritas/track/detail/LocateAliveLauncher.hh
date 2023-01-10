@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,8 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/cont/Span.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
+#include "celeritas/phys/Secondary.hh"
 
 #include "../SimTrackView.hh"
 #include "Utils.hh"
@@ -33,12 +38,12 @@ class LocateAliveLauncher
     //!@{
     //! Type aliases
     using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef  = CoreStateData<Ownership::reference, M>;
+    using StateRef = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
-    CELER_FUNCTION LocateAliveLauncher(const CoreRef<M>& core_data)
+    CELER_FUNCTION LocateAliveLauncher(CoreRef<M> const& core_data)
         : params_(core_data.params), states_(core_data.states)
     {
         CELER_EXPECT(params_);
@@ -49,8 +54,8 @@ class LocateAliveLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef& params_;
-    const StateRef&  states_;
+    ParamsRef const& params_;
+    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,13 +66,13 @@ template<MemSpace M>
 CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 {
     // Count the number of secondaries produced by each track
-    size_type    num_secondaries{0};
+    size_type num_secondaries{0};
     SimTrackView sim(states_.sim, tid);
 
     if (sim.status() != TrackStatus::inactive)
     {
         PhysicsStepView phys(params_.physics, states_.physics, tid);
-        for (const auto& secondary : phys.secondaries())
+        for (auto const& secondary : phys.secondaries())
         {
             if (secondary)
             {
@@ -100,5 +105,5 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(ThreadId tid) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

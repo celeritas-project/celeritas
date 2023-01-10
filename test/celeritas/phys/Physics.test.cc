@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,12 +39,12 @@ using MevEnergy = units::MevEnergy;
 class PhysicsParamsTest : public MockTestBase
 {
   public:
-    const SPConstParticle& particles() { return MockTestBase::particle(); }
+    SPConstParticle const& particles() { return MockTestBase::particle(); }
 };
 
 TEST_F(PhysicsParamsTest, accessors)
 {
-    const PhysicsParams& p = *this->physics();
+    PhysicsParams const& p = *this->physics();
 
     EXPECT_EQ(6, p.num_processes());
     EXPECT_EQ(2 + 1 + 3 + 2 + 2 + 1, p.num_models());
@@ -65,7 +65,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> model_desc;
     for (auto model_id : range(ModelId{p.num_models()}))
     {
-        const Model& m = *p.model(model_id);
+        Model const& m = *p.model(model_id);
         model_names.push_back(m.label());
         model_desc.push_back(m.description());
     }
@@ -138,7 +138,7 @@ TEST_F(PhysicsParamsTest, output)
 
 class PhysicsTrackViewHostTest : public PhysicsParamsTest
 {
-    using Base         = PhysicsParamsTest;
+    using Base = PhysicsParamsTest;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   public:
@@ -157,7 +157,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
         CELER_ASSERT(this->physics());
         params_ref = this->physics()->host_ref();
-        state      = StateStore(params_ref, state_size);
+        state = StateStore(params_ref, state_size);
 
         // Clear secondary data (done in pre-step kernel)
         {
@@ -181,7 +181,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         }
     }
 
-    PhysicsTrackView make_track_view(const char* particle, MaterialId mid)
+    PhysicsTrackView make_track_view(char const* particle, MaterialId mid)
     {
         CELER_EXPECT(particle && mid);
 
@@ -205,7 +205,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return PhysicsStepView(params_ref, state.ref(), tid);
     }
 
-    PhysicsStepView make_step_view(const char* particle)
+    PhysicsStepView make_step_view(char const* particle)
     {
         auto pid = this->particles()->find(particle);
         CELER_ASSERT(pid);
@@ -216,7 +216,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
     }
 
     ParticleProcessId
-    find_ppid(const PhysicsTrackView& track, const char* label) const
+    find_ppid(PhysicsTrackView const& track, char const* label) const
     {
         auto iter = process_names.find(label);
         CELER_VALIDATE(iter != process_names.end(),
@@ -233,17 +233,17 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
     RandomEngine& rng() { return rng_; }
 
-    ParamsHostRef                    params_ref;
-    StateStore                       state;
+    ParamsHostRef params_ref;
+    StateStore state;
     std::map<std::string, ProcessId> process_names;
-    RandomEngine                     rng_;
+    RandomEngine rng_;
 };
 
 TEST_F(PhysicsTrackViewHostTest, track_view)
 {
     PhysicsTrackView gamma = this->make_track_view("gamma", MaterialId{0});
     PhysicsTrackView celer = this->make_track_view("celeriton", MaterialId{1});
-    const PhysicsTrackView& gamma_cref = gamma;
+    PhysicsTrackView const& gamma_cref = gamma;
 
     // Interaction MFP
     {
@@ -265,9 +265,9 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
     // Range-to-step for different ranges
     // (additionally tested in calc_eloss_range)
-    real_type              rho = params_ref.scalars.min_range;
+    real_type rho = params_ref.scalars.min_range;
     std::vector<real_type> step;
-    const real_type        eps = std::numeric_limits<real_type>::epsilon();
+    const real_type eps = std::numeric_limits<real_type>::epsilon();
 
     for (real_type r : {real_type(0.1) * rho,
                         real_type(1 - 1000 * eps) * rho,
@@ -285,7 +285,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
         EXPECT_LE(s, r) << "s - r == " << s - r;
         step.push_back(s);
     }
-    static const double expected_step[] = {0.01,
+    static double const expected_step[] = {0.01,
                                            0.099999999999978,
                                            0.099999999999998,
                                            0.1,
@@ -300,9 +300,9 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
 
 TEST_F(PhysicsTrackViewHostTest, step_view)
 {
-    PhysicsStepView        gamma      = this->make_step_view(ThreadId{0});
-    PhysicsStepView        celer      = this->make_step_view(ThreadId{1});
-    const PhysicsStepView& gamma_cref = gamma;
+    PhysicsStepView gamma = this->make_step_view(ThreadId{0});
+    PhysicsStepView celer = this->make_step_view(ThreadId{1});
+    PhysicsStepView const& gamma_cref = gamma;
 
     // Cross sections
     {
@@ -394,7 +394,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 {
     std::vector<int> grid_ids;
 
-    for (const char* particle : {"gamma", "celeriton", "anti-celeriton"})
+    for (char const* particle : {"gamma", "celeriton", "anti-celeriton"})
     {
         for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
@@ -415,7 +415,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
 
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
-    static const int expected_grid_ids[]
+    static int const expected_grid_ids[]
         = {0,  -1, -1, -1, 3,  -1, -1, -1, 1,  -1, -1, -1, 4,  -1, -1, -1, 2,
            -1, -1, -1, 5,  -1, -1, -1, 6,  -1, -1, -1, 9,  10, 11, -1, 18, -1,
            -1, -1, 7,  -1, -1, -1, 12, 13, 14, -1, 19, -1, -1, -1, 8,  -1, -1,
@@ -429,7 +429,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     // Cross sections: same across particle types, constant in energy, scale
     // according to material number density
     std::vector<real_type> xs;
-    for (const char* particle : {"gamma", "celeriton"})
+    for (char const* particle : {"gamma", "celeriton"})
     {
         for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
@@ -443,7 +443,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
         }
     }
 
-    const double expected_xs[] = {0.0001, 0.001, 0.1, 0.0001, 0.001, 0.1};
+    double const expected_xs[] = {0.0001, 0.001, 0.1, 0.0001, 0.001, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
@@ -458,7 +458,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 
     // Range: increases with energy, constant with material. Stopped particle
     // range and step will be zero.
-    for (const char* particle : {"celeriton", "anti-celeriton"})
+    for (char const* particle : {"celeriton", "anti-celeriton"})
     {
         const PhysicsTrackView phys
             = this->make_track_view(particle, MaterialId{0});
@@ -480,9 +480,9 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
         }
     }
 
-    static const double expected_eloss[]
+    static double const expected_eloss[]
         = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
-    static const double expected_range[] = {5.2704627669473e-05,
+    static double const expected_range[] = {5.2704627669473e-05,
                                             0.016666666666667,
                                             1.6666666666667,
                                             166.66666666667,
@@ -490,14 +490,14 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
                                             0.014285714285714,
                                             1.4285714285714,
                                             142.85714285714};
-    static const double expected_step[]  = {5.2704627669473e-05,
-                                            0.016666666666667,
-                                            0.48853333333333,
-                                            33.493285333333,
-                                            4.5175395145263e-05,
-                                            0.014285714285714,
-                                            0.44011428571429,
-                                            28.731372571429};
+    static double const expected_step[] = {5.2704627669473e-05,
+                                           0.016666666666667,
+                                           0.48853333333333,
+                                           33.493285333333,
+                                           4.5175395145263e-05,
+                                           0.014285714285714,
+                                           0.44011428571429,
+                                           28.731372571429};
     EXPECT_VEC_SOFT_EQ(expected_eloss, eloss);
     EXPECT_VEC_SOFT_EQ(expected_range, range);
     EXPECT_VEC_SOFT_EQ(expected_step, step);
@@ -507,8 +507,8 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 {
     {
         // No energy loss tables
-        const auto phys = this->make_track_view("celeriton", MaterialId{2});
-        auto       ppid = this->find_ppid(phys, "scattering");
+        auto const phys = this->make_track_view("celeriton", MaterialId{2});
+        auto ppid = this->find_ppid(phys, "scattering");
         ASSERT_TRUE(ppid);
         EXPECT_FALSE(phys.integral_xs_process(ppid));
 
@@ -518,10 +518,10 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
     {
         // Energy loss tables and energy-dependent macro xs
         std::vector<real_type> xs, max_xs;
-        const auto phys = this->make_track_view("electron", MaterialId{2});
-        auto       ppid = this->find_ppid(phys, "barks");
+        auto const phys = this->make_track_view("electron", MaterialId{2});
+        auto ppid = this->find_ppid(phys, "barks");
         ASSERT_TRUE(ppid);
-        const auto& integral_proc = phys.integral_xs_process(ppid);
+        auto const& integral_proc = phys.integral_xs_process(ppid);
         EXPECT_TRUE(integral_proc);
 
         MaterialView material = this->material()->get(MaterialId{2});
@@ -531,8 +531,8 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
             max_xs.push_back(phys.calc_max_xs(
                 integral_proc, ppid, material, MevEnergy{energy}));
         }
-        const double expected_xs[] = {0.6, 36. / 55, 1.2, 1979. / 1650, 0.6};
-        const double expected_max_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
+        double const expected_xs[] = {0.6, 36. / 55, 1.2, 1979. / 1650, 0.6};
+        double const expected_max_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
         EXPECT_VEC_SOFT_EQ(expected_xs, xs);
         EXPECT_VEC_SOFT_EQ(expected_max_xs, max_xs);
     }
@@ -556,17 +556,17 @@ TEST_F(PhysicsTrackViewHostTest, model_finder)
 
 TEST_F(PhysicsTrackViewHostTest, element_selector)
 {
-    MevEnergy  energy{2};
+    MevEnergy energy{2};
     MaterialId mid{2};
 
     // Get the sampled process (constant micro xs)
-    const PhysicsTrackView phys      = this->make_track_view("celeriton", mid);
-    auto                   purr_ppid = this->find_ppid(phys, "purrs");
+    const PhysicsTrackView phys = this->make_track_view("celeriton", mid);
+    auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
 
     // Find the model that applies at the given energy
     auto find_model = phys.make_model_finder(purr_ppid);
-    auto pmid       = find_model(energy);
+    auto pmid = find_model(energy);
     ASSERT_TRUE(pmid);
 
     // Sample from material composed of three elements (PMF = [0.1, 0.3, 0.6])
@@ -577,11 +577,11 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
         std::vector<int> counts(this->material()->get(mid).num_elements());
         for (CELER_MAYBE_UNUSED auto i : range(1e5))
         {
-            const auto elcomp_id = select_element(this->rng());
+            auto const elcomp_id = select_element(this->rng());
             ASSERT_LT(elcomp_id.get(), counts.size());
             ++counts[elcomp_id.get()];
         }
-        static const int expected_counts[] = {10210, 30025, 59765};
+        static int const expected_counts[] = {10210, 30025, 59765};
         EXPECT_VEC_EQ(expected_counts, counts);
     }
 
@@ -597,10 +597,10 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
 TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 {
     std::vector<real_type> step;
-    for (const char* particle : {"gamma", "anti-celeriton"})
+    for (char const* particle : {"gamma", "anti-celeriton"})
     {
         PhysicsTrackView phys = this->make_track_view(particle, MaterialId{1});
-        PhysicsStepView  pstep = this->make_step_view(particle);
+        PhysicsStepView pstep = this->make_step_view(particle);
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
@@ -608,7 +608,7 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
         }
     }
 
-    const double expected_step[] = {166.6666666667,
+    double const expected_step[] = {166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
                                     166.6666666667,
@@ -643,7 +643,7 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
         CELER_ASSERT(this->physics());
     }
 
-    StateStore                                                        states;
+    StateStore states;
     StateCollection<PhysTestInit, Ownership::value, MemSpace::device> inits;
 };
 
@@ -653,7 +653,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
     {
         StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
 
-        auto         init_builder = make_builder(&temp_inits);
+        auto init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;
         for (unsigned int matid : {0, 2})
         {
@@ -677,7 +677,7 @@ TEST_F(PHYS_DEVICE_TEST, all)
     PTestInput inp;
     inp.params = this->physics()->device_ref();
     inp.states = this->states.ref();
-    inp.inits  = this->inits;
+    inp.inits = this->inits;
     inp.result = step.device_ref();
 
     phys_cuda_test(inp);
@@ -706,7 +706,7 @@ class EPlusAnnihilationTest : public PhysicsParamsTest
   public:
     SPConstMaterial build_material() override;
     SPConstParticle build_particle() override;
-    SPConstPhysics  build_physics() override;
+    SPConstPhysics build_physics() override;
 };
 
 //---------------------------------------------------------------------------//
@@ -716,7 +716,7 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
     using namespace constants;
 
     MaterialParams::Input mi;
-    mi.elements  = {{AtomicNumber{19}, AmuMass{39.0983}, "K"}};
+    mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, "K"}};
     mi.materials = {{1e-5 * na_avogadro,
                      293.,
                      MatterState::solid,
@@ -731,7 +731,7 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 {
     using namespace units;
 
-    constexpr auto zero   = zero_quantity();
+    constexpr auto zero = zero_quantity();
     constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
@@ -747,9 +747,9 @@ auto EPlusAnnihilationTest::build_particle() -> SPConstParticle
 auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input physics_inp;
-    physics_inp.materials      = this->material();
-    physics_inp.particles      = this->particles();
-    physics_inp.options        = this->build_physics_options();
+    physics_inp.materials = this->material();
+    physics_inp.particles = this->particles();
+    physics_inp.options = this->build_physics_options();
     physics_inp.action_registry = this->action_reg().get();
 
     EPlusAnnihilationProcess::Options epgg_options;
@@ -762,7 +762,7 @@ auto EPlusAnnihilationTest::build_physics() -> SPConstPhysics
 
 TEST_F(EPlusAnnihilationTest, accessors)
 {
-    const PhysicsParams& p = *this->physics();
+    PhysicsParams const& p = *this->physics();
 
     EXPECT_EQ(1, p.num_processes());
     EXPECT_EQ(1, p.num_models());
@@ -775,10 +775,10 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
         this->physics()->host_ref(), 1};
     HostCRef<PhysicsParamsData> params_ref{this->physics()->host_ref()};
 
-    const auto pid = this->particles()->find("positron");
+    auto const pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);
     const ParticleProcessId ppid{0};
-    const MaterialId        matid{0};
+    const MaterialId matid{0};
 
     PhysicsTrackView phys(params_ref, state.ref(), pid, matid, ThreadId{0});
     phys = PhysicsTrackInitializer{};
@@ -794,5 +794,5 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
                    phys.calc_xs(ppid, material_view, MevEnergy{0.1}));
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

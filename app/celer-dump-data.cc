@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,16 +8,26 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 using namespace celeritas;
 using std::cout;
@@ -29,7 +39,7 @@ using std::setw;
 /*!
  * Print particle properties.
  */
-void print_particles(const ParticleParams& particles)
+void print_particles(ParticleParams const& particles)
 {
     CELER_LOG(info) << "Loaded " << particles.size() << " particles";
 
@@ -42,7 +52,7 @@ void print_particles(const ParticleParams& particles)
 
     for (auto particle_id : range(ParticleId{particles.size()}))
     {
-        const auto& p = particles.get(particle_id);
+        auto const& p = particles.get(particle_id);
 
         // clang-format off
         cout << "| "
@@ -73,7 +83,7 @@ void print_elements(std::vector<ImportElement>& elements)
 
     for (unsigned int element_id : range(elements.size()))
     {
-        const auto& element = elements.at(element_id);
+        auto const& element = elements[element_id];
         // clang-format off
         cout << "| "
              << setw(10) << std::left << element_id << " | "
@@ -90,8 +100,8 @@ void print_elements(std::vector<ImportElement>& elements)
  * Print material properties.
  */
 void print_materials(std::vector<ImportMaterial>& materials,
-                     std::vector<ImportElement>&  elements,
-                     const ParticleParams&        particles)
+                     std::vector<ImportElement>& elements,
+                     ParticleParams const& particles)
 {
     CELER_LOG(info) << "Loaded " << materials.size() << " materials";
     cout << R"gfm(
@@ -103,7 +113,7 @@ void print_materials(std::vector<ImportMaterial>& materials,
 
     for (unsigned int material_id : range(materials.size()))
     {
-        const auto& material = materials.at(material_id);
+        auto const& material = materials[material_id];
 
         cout << "| " << setw(11) << material_id << " | " << setw(31)
              << material.name << " | " << setw(31)
@@ -111,7 +121,7 @@ void print_materials(std::vector<ImportMaterial>& materials,
                     join(material.elements.begin(),
                          material.elements.end(),
                          ", ",
-                         [&](const auto& mat_el_comp) {
+                         [&](auto const& mat_el_comp) {
                              return elements.at(mat_el_comp.element_id).name;
                          }))
              << " |\n";
@@ -130,17 +140,17 @@ void print_materials(std::vector<ImportMaterial>& materials,
     std::map<int, std::string> pdg_label;
     for (auto particle_id : range(ParticleId{particles.size()}))
     {
-        const int   pdg   = particles.id_to_pdg(particle_id).get();
-        const auto& label = particles.id_to_label(particle_id);
+        int const pdg = particles.id_to_pdg(particle_id).get();
+        auto const& label = particles.id_to_label(particle_id);
         pdg_label.insert({pdg, label});
     }
 
     for (unsigned int material_id : range(materials.size()))
     {
-        bool        is_first_line = true;
-        const auto& material      = materials.at(material_id);
+        bool is_first_line = true;
+        auto const& material = materials[material_id];
 
-        for (const auto& cutoff_key : material.pdg_cutoffs)
+        for (auto const& cutoff_key : material.pdg_cutoffs)
         {
             auto iter = pdg_label.find(cutoff_key.first);
             if (iter == pdg_label.end())
@@ -172,10 +182,10 @@ void print_materials(std::vector<ImportMaterial>& materials,
 /*!
  * Print process information.
  */
-void print_process(const ImportProcess&               proc,
-                   const std::vector<ImportMaterial>& materials,
-                   const std::vector<ImportElement>&  elements,
-                   const ParticleParams&              particles)
+void print_process(ImportProcess const& proc,
+                   std::vector<ImportMaterial> const& materials,
+                   std::vector<ImportElement> const& elements,
+                   ParticleParams const& particles)
 {
     if (proc.process_type != ImportProcessType::electromagnetic)
     {
@@ -197,29 +207,29 @@ void print_process(const ImportProcess&               proc,
 
     cout << "### Microscopic cross-sections\n\n";
 
-    for (const auto& iter : proc.micro_xs)
+    for (auto const& iter : proc.micro_xs)
     {
         // Print models
         cout << to_cstring(iter.first) << "\n";
 
-        const auto& micro_xs = iter.second;
+        auto const& micro_xs = iter.second;
         for (size_type mat_id = 0; mat_id < micro_xs.size(); mat_id++)
         {
             // Print materials
-            cout << "\n- " << materials.at(mat_id).name << "\n\n";
+            cout << "\n- " << materials[mat_id].name << "\n\n";
             cout << "| Element       | Size  | Endpoints (MeV, cm^2) |\n"
                  << "| ------------- | ----- | "
                     "-----------------------------------------------------"
                     "------- "
                     "|\n";
 
-            const auto& elem_phys_vectors = micro_xs.at(mat_id);
+            auto const& elem_phys_vectors = micro_xs[mat_id];
 
             for (auto i : celeritas::range(elem_phys_vectors.size()))
             {
                 // Print elements and their physics vectors
-                const auto physvec = elem_phys_vectors.at(i);
-                cout << "| " << setw(13) << std::left << elements.at(i).name
+                auto const& physvec = elem_phys_vectors[i];
+                cout << "| " << setw(13) << std::left << elements[i].name
                      << " | " << setw(5) << physvec.x.size() << " | ("
                      << setprecision(3) << setw(12) << physvec.x.front()
                      << ", " << setprecision(3) << setw(12)
@@ -234,7 +244,7 @@ void print_process(const ImportProcess&               proc,
 
     cout << "### Macroscopic cross-sections\n";
 
-    for (const auto& table : proc.tables)
+    for (auto const& table : proc.tables)
     {
         cout << "\n------\n\n" << to_cstring(table.table_type) << ":\n\n";
 
@@ -245,7 +255,7 @@ void print_process(const ImportProcess&               proc,
                 "------------------------------------------------------------ "
                 "|\n";
 
-        for (const auto& physvec : table.physics_vectors)
+        for (auto const& physvec : table.physics_vectors)
         {
             cout << "| " << setw(13) << std::left
                  << to_cstring(physvec.vector_type) << " | " << setw(5)
@@ -263,9 +273,9 @@ void print_process(const ImportProcess&               proc,
 /*!
  * Print stored data for all available processes.
  */
-void print_processes(const ImportData& data, const ParticleParams& particles)
+void print_processes(ImportData const& data, ParticleParams const& particles)
 {
-    const auto& processes = data.processes;
+    auto const& processes = data.processes;
     CELER_LOG(info) << "Loaded " << processes.size() << " processes";
 
     // Print summary
@@ -275,7 +285,7 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
 | Process        | Particle      | Models                    | Tables                          |
 | -------------- | ------------- | ------------------------- | ------------------------------- |
 )gfm";
-    for (const ImportProcess& proc : processes)
+    for (ImportProcess const& proc : processes)
     {
         auto pdef_id = particles.find(PDGNumber{proc.particle_pdg});
         CELER_ASSERT(pdef_id);
@@ -291,7 +301,7 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
              << to_string(join(proc.tables.begin(),
                                proc.tables.end(),
                                ", ",
-                               [](const ImportPhysicsTable& tab) {
+                               [](ImportPhysicsTable const& tab) {
                                    return to_cstring(tab.table_type);
                                }))
              << " |\n";
@@ -299,7 +309,7 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
     cout << endl;
 
     // Print details
-    for (const ImportProcess& proc : processes)
+    for (ImportProcess const& proc : processes)
     {
         print_process(proc, data.materials, data.elements, particles);
     }
@@ -309,8 +319,8 @@ void print_processes(const ImportData& data, const ParticleParams& particles)
 /*!
  * Print volume properties.
  */
-void print_volumes(const std::vector<ImportVolume>&   volumes,
-                   const std::vector<ImportMaterial>& materials)
+void print_volumes(std::vector<ImportVolume> const& volumes,
+                   std::vector<ImportMaterial> const& materials)
 {
     CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
@@ -322,8 +332,8 @@ void print_volumes(const std::vector<ImportVolume>&   volumes,
 
     for (unsigned int volume_id : range(volumes.size()))
     {
-        const auto& volume   = volumes.at(volume_id);
-        const auto& material = materials.at(volume.material_id);
+        auto const& volume = volumes[volume_id];
+        auto const& material = materials.at(volume.material_id);
 
         // clang-format off
         cout << "| "
@@ -340,7 +350,7 @@ void print_volumes(const std::vector<ImportVolume>&   volumes,
 /*!
  * Print EM parameters.
  */
-void print_em_params(const ImportEmParameters& em_params)
+void print_em_params(ImportEmParameters const& em_params)
 {
     // NOTE: boolalpha doesn't work with setw, see
     // https://timsong-cpp.github.io/lwg-issues/2703
@@ -365,7 +375,7 @@ void print_em_params(const ImportEmParameters& em_params)
 /*!
  * Print Seltzer-Berger map.
  */
-void print_sb_data(const ImportData::ImportSBMap& sb_map)
+void print_sb_data(ImportData::ImportSBMap const& sb_map)
 {
     if (sb_map.empty())
     {
@@ -381,9 +391,9 @@ void print_sb_data(const ImportData::ImportSBMap& sb_map)
 | ------------- | ---------------------------------------------------------- |
 )gfm";
 
-    for (const auto& key : sb_map)
+    for (auto const& key : sb_map)
     {
-        const auto& table = key.second;
+        auto const& table = key.second;
 
         cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
              << setw(7) << table.x.front() << ", " << setprecision(3)
@@ -400,7 +410,7 @@ void print_sb_data(const ImportData::ImportSBMap& sb_map)
 /*!
  * Print Livermore PE map.
  */
-void print_livermore_pe_data(const ImportData::ImportLivermorePEMap& lpe_map)
+void print_livermore_pe_data(ImportData::ImportLivermorePEMap const& lpe_map)
 {
     if (lpe_map.empty())
     {
@@ -418,9 +428,9 @@ void print_livermore_pe_data(const ImportData::ImportLivermorePEMap& lpe_map)
 | ------------- | ---------------------------- | ------------- |
 )gfm";
 
-    for (const auto& key : lpe_map)
+    for (auto const& key : lpe_map)
     {
-        const auto& ilpe = key.second;
+        auto const& ilpe = key.second;
 
         cout << "| " << setw(13) << key.first << " | (" << setprecision(3)
              << setw(12) << ilpe.thresh_lo << ", " << setprecision(3)
@@ -435,7 +445,7 @@ void print_livermore_pe_data(const ImportData::ImportLivermorePEMap& lpe_map)
  * Print atomic relaxation map.
  */
 void print_atomic_relaxation_data(
-    const ImportData::ImportAtomicRelaxationMap& ar_map)
+    ImportData::ImportAtomicRelaxationMap const& ar_map)
 {
     if (ar_map.empty())
     {
@@ -453,9 +463,9 @@ void print_atomic_relaxation_data(
 | ------------- | ------------- |
 )gfm";
 
-    for (const auto& key : ar_map)
+    for (auto const& key : ar_map)
     {
-        const auto& iar = key.second;
+        auto const& iar = key.second;
 
         cout << "| " << setw(13) << key.first << " | " << setw(13)
              << iar.shells.size() << " |\n";
@@ -491,18 +501,18 @@ int main(int argc, char* argv[])
         RootImporter import(argv[1]);
         data = import();
     }
-    catch (const RuntimeError& e)
+    catch (RuntimeError const& e)
     {
         CELER_LOG(critical) << "Runtime error: " << e.what();
         return EXIT_FAILURE;
     }
-    catch (const DebugError& e)
+    catch (DebugError const& e)
     {
         CELER_LOG(critical) << "Assertion failure: " << e.what();
         return EXIT_FAILURE;
     }
 
-    const auto particle_params = ParticleParams::from_import(data);
+    auto const&& particle_params = ParticleParams::from_import(data);
 
     print_particles(*particle_params);
     print_elements(data.elements);

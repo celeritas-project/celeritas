@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,8 +22,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 __global__ void
-along_step_general_linear_kernel(CoreRef<MemSpace::device> const   track_data,
-                                 DeviceCRef<UrbanMscData> const    msc_data,
+along_step_general_linear_kernel(CoreRef<MemSpace::device> const track_data,
+                                 DeviceCRef<UrbanMscData> const msc_data,
                                  DeviceCRef<FluctuationData> const fluct)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -38,13 +38,13 @@ along_step_general_linear_kernel(CoreRef<MemSpace::device> const   track_data,
     launch(tid);
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepGeneralLinearAction::execute(const CoreDeviceRef& data) const
+void AlongStepGeneralLinearAction::execute(CoreDeviceRef const& data) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_general_linear,
@@ -56,4 +56,4 @@ void AlongStepGeneralLinearAction::execute(const CoreDeviceRef& data) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

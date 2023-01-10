@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,8 +40,8 @@ class CollectionStateStore
   public:
     //!@{
     //! \name Type aliases
-    using Value     = S<Ownership::value, M>;
-    using Ref       = S<Ownership::reference, M>;
+    using Value = S<Ownership::value, M>;
+    using Ref = S<Ownership::reference, M>;
     using size_type = ThreadId::size_type;
     //!@}
 
@@ -50,7 +50,7 @@ class CollectionStateStore
 
     // Construct from parameters
     template<template<Ownership, MemSpace> class P>
-    inline CollectionStateStore(const HostCRef<P>& p, size_type size);
+    inline CollectionStateStore(HostCRef<P> const& p, size_type size);
 
     // Construct without parameters
     explicit inline CollectionStateStore(size_type size);
@@ -60,18 +60,18 @@ class CollectionStateStore
 
     // Copy construction from state data (convenience for unit tests)
     template<Ownership W2, MemSpace M2>
-    explicit inline CollectionStateStore(const S<W2, M2>& other);
+    explicit inline CollectionStateStore(S<W2, M2> const& other);
 
     // Copy assignment from state data (convenience for unit tests)
     template<Ownership W2, MemSpace M2>
-    inline CollectionStateStore& operator=(const S<W2, M2>& other);
+    inline CollectionStateStore& operator=(S<W2, M2> const& other);
 
     //!@{
     //! Default copy/move construction/assignment
-    CollectionStateStore(const CollectionStateStore&)            = default;
-    CollectionStateStore& operator=(const CollectionStateStore&) = default;
-    CollectionStateStore(CollectionStateStore&&)                 = default;
-    CollectionStateStore& operator=(CollectionStateStore&&)      = default;
+    CollectionStateStore(CollectionStateStore const&) = default;
+    CollectionStateStore& operator=(CollectionStateStore const&) = default;
+    CollectionStateStore(CollectionStateStore&&) = default;
+    CollectionStateStore& operator=(CollectionStateStore&&) = default;
     //!@}
 
     //! Whether any data is being stored
@@ -81,11 +81,11 @@ class CollectionStateStore
     size_type size() const { return val_.size(); }
 
     // Get a reference to the mutable state data
-    inline const Ref& ref() const;
+    inline Ref const& ref() const;
 
   private:
     Value val_;
-    Ref   ref_;
+    Ref ref_;
 
     template<template<Ownership, MemSpace> class S2, MemSpace M2>
     friend class CollectionStateStore;
@@ -100,8 +100,8 @@ class CollectionStateStore
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<template<Ownership, MemSpace> class P>
-CollectionStateStore<S, M>::CollectionStateStore(const HostCRef<P>& p,
-                                                 size_type          size)
+CollectionStateStore<S, M>::CollectionStateStore(HostCRef<P> const& p,
+                                                 size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&val_, p, size);
@@ -146,7 +146,7 @@ CollectionStateStore<S, M>::CollectionStateStore(S<Ownership::value, M>&& other)
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<Ownership W2, MemSpace M2>
-CollectionStateStore<S, M>::CollectionStateStore(const S<W2, M2>& other)
+CollectionStateStore<S, M>::CollectionStateStore(S<W2, M2> const& other)
 {
     CELER_EXPECT(other);
     // Assign using const-cast because state copy operators have to be mutable
@@ -162,7 +162,7 @@ CollectionStateStore<S, M>::CollectionStateStore(const S<W2, M2>& other)
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<Ownership W2, MemSpace M2>
-auto CollectionStateStore<S, M>::operator=(const S<W2, M2>& other)
+auto CollectionStateStore<S, M>::operator=(S<W2, M2> const& other)
     -> CollectionStateStore<S, M>&
 {
     CELER_EXPECT(other);
@@ -178,11 +178,11 @@ auto CollectionStateStore<S, M>::operator=(const S<W2, M2>& other)
  * Get a reference to the mutable state data.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
-auto CollectionStateStore<S, M>::ref() const -> const Ref&
+auto CollectionStateStore<S, M>::ref() const -> Ref const&
 {
     CELER_EXPECT(*this);
     return ref_;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

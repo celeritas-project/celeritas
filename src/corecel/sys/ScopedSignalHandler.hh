@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -88,19 +88,19 @@ class ScopedSignalHandler
     explicit operator bool() const { return mask_ != 0; }
 
     // Move construct and assign to capture/release signal handling
-    ScopedSignalHandler(const ScopedSignalHandler&)            = delete;
-    ScopedSignalHandler& operator=(const ScopedSignalHandler&) = delete;
+    ScopedSignalHandler(ScopedSignalHandler const&) = delete;
+    ScopedSignalHandler& operator=(ScopedSignalHandler const&) = delete;
     ScopedSignalHandler(ScopedSignalHandler&&) noexcept;
     ScopedSignalHandler& operator=(ScopedSignalHandler&&) noexcept;
-    void                 swap(ScopedSignalHandler& other) noexcept;
+    void swap(ScopedSignalHandler& other) noexcept;
 
   private:
-    using HandlerPtr    = void (*)(int);
+    using HandlerPtr = void (*)(int);
     using PairSigHandle = std::pair<signal_type, HandlerPtr>;
-    using VecSH         = std::vector<PairSigHandle>;
+    using VecSH = std::vector<PairSigHandle>;
 
     signal_type mask_{0};
-    VecSH       handles_;
+    VecSH handles_;
 
     bool check_signal() const;
 };
@@ -117,4 +117,4 @@ bool ScopedSignalHandler::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

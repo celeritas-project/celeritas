@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,16 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "SharedParams.hh"
 
+#include <fstream>
+#include <memory>
+#include <set>
+#include <type_traits>
+#include <utility>
+#include <vector>
 #include <CLHEP/Random/Random.h>
-#include <G4TransportationManager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputManager.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -27,6 +34,7 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -49,6 +57,63 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+std::vector<std::shared_ptr<Process const>>
+build_processes(ImportData const& imported,
+                SetupOptions const& options,
+                std::shared_ptr<ParticleParams const> const& particle,
+                std::shared_ptr<MaterialParams const> const& material)
+{
+    // Build a list of processes to ignore
+    ProcessBuilder::UserBuildMap ignore;
+    for (std::string const& process_name : options.ignore_processes)
+    {
+        ImportProcessClass ipc;
+        try
+        {
+            ipc = geant_name_to_import_process_class(process_name);
+        }
+        catch (RuntimeError const&)
+        {
+            CELER_LOG(warning) << "User-ignored process '" << process_name
+                               << "' is unknown to Celeritas";
+            continue;
+        }
+        ignore.emplace(ipc, WarnAndIgnoreProcess{ipc});
+    }
+    ProcessBuilder::Options opts;
+    ProcessBuilder build_process(imported, particle, material, ignore, opts);
+
+    // Get the set of all user-input processes
+    std::set<ImportProcessClass> all_process_classes;
+    for (auto const& p : imported.processes)
+    {
+        all_process_classes.insert(p.process_class);
+    }
+
+    // Build proceses
+    std::vector<std::shared_ptr<Process const>> result;
+    for (auto p : all_process_classes)
+    {
+        result.push_back(build_process(p));
+        if (!result.back())
+        {
+            // Deliberately ignored process
+            CELER_LOG(debug) << "Ignored process class " << to_cstring(p);
+            result.pop_back();
+        }
+    }
+
+    CELER_VALIDATE(!result.empty(),
+                   << "no supported physics processes were found");
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 //! Default destructor
 SharedParams::~SharedParams() = default;
@@ -63,7 +128,7 @@ SharedParams::~SharedParams() = default;
  * and it must complete before any worker thread tries to access the shared
  * data.
  */
-SharedParams::SharedParams(const SetupOptions& options)
+SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
 
@@ -87,7 +152,7 @@ SharedParams::SharedParams(const SetupOptions& options)
  * properties) in single-thread mode has "thread" storage in a multithreaded
  * application. It must be initialized on all threads.
  */
-void SharedParams::InitializeWorker(const SetupOptions& options)
+void SharedParams::InitializeWorker(SetupOptions const& options)
 {
     CELER_LOG_LOCAL(status) << "Initializing worker thread";
     ScopedTimeLog scoped_time;
@@ -156,7 +221,7 @@ void SharedParams::Finalize()
  *
  * This is thread safe and must be called from every worker thread.
  */
-void SharedParams::initialize_device(const SetupOptions& options)
+void SharedParams::initialize_device(SetupOptions const& options)
 {
     if (Device::num_devices() == 0)
     {
@@ -188,7 +253,7 @@ void SharedParams::initialize_device(const SetupOptions& options)
  * that is guaranteed to complete the initialization before any other threads
  * try to access the shared data.
  */
-void SharedParams::initialize_core(const SetupOptions& options)
+void SharedParams::initialize_core(SetupOptions const& options)
 {
     CELER_VALIDATE(options.make_along_step,
                    << "along-step action factory 'make_along_step' was not "
@@ -243,28 +308,15 @@ void SharedParams::initialize_core(const SetupOptions& options)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles       = params.particle;
-        input.materials       = params.material;
+        input.particles = params.particle;
+        input.materials = params.material;
+        input.processes = build_processes(
+            *imported, options, params.particle, params.material);
+        input.relaxation = nullptr;  // TODO: add later?
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
         input.options.secondary_stack_factor = options.secondary_stack_factor;
-
-        {
-            ProcessBuilder::Options opts;
-            ProcessBuilder          build_process(
-                *imported, opts, params.particle, params.material);
-
-            std::set<ImportProcessClass> all_process_classes;
-            for (const auto& p : imported->processes)
-            {
-                all_process_classes.insert(p.process_class);
-            }
-            for (auto p : all_process_classes)
-            {
-                input.processes.push_back(build_process(p));
-            }
-        }
 
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
     }
@@ -296,9 +348,9 @@ void SharedParams::initialize_core(const SetupOptions& options)
     // Construct track initialization params
     {
         TrackInitParams::Input input;
-        input.capacity   = options.initializer_capacity;
+        input.capacity = options.initializer_capacity;
         input.max_events = options.max_num_events;
-        params.init      = std::make_shared<TrackInitParams>(input);
+        params.init = std::make_shared<TrackInitParams>(input);
     }
 
     // Construct sensitive detector callback
@@ -321,4 +373,4 @@ void SharedParams::initialize_core(const SetupOptions& options)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

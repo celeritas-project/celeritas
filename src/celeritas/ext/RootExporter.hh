@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,33 +29,33 @@ class RootExporter
 {
   public:
     // Construct with ROOT file name
-    explicit RootExporter(const char* filename);
+    explicit RootExporter(char const* filename);
 
     // Save data to the ROOT file
-    void operator()(const ImportData& data);
+    void operator()(ImportData const& data);
 
   private:
     // ROOT file
     detail::RootUniquePtr<TFile> root_output_;
 
     // ROOT TTree name
-    static const char* tree_name();
+    static char const* tree_name();
     // ROOT TBranch name
-    static const char* branch_name();
+    static char const* branch_name();
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootExporter::RootExporter(const char*)
+inline RootExporter::RootExporter(char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline void RootExporter::operator()(const ImportData&)
+inline void RootExporter::operator()(ImportData const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

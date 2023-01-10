@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4String.hh>
+#include <G4Types.hh>
 #include <G4coutDestination.hh>
 
 #include "corecel/io/LoggerTypes.hh"
@@ -27,8 +29,8 @@ class GeantLoggerAdapter : public G4coutDestination
     ~GeantLoggerAdapter();
 
     // Handle error messages
-    G4int ReceiveG4cout(const G4String& str) final;
-    G4int ReceiveG4cerr(const G4String& str) final;
+    G4int ReceiveG4cout(G4String const& str) final;
+    G4int ReceiveG4cerr(G4String const& str) final;
 
   private:
     //// DATA ////
@@ -37,9 +39,9 @@ class GeantLoggerAdapter : public G4coutDestination
     G4coutDestination* saved_cerr_;
 
     //// IMPLEMENTATION ////
-    G4int log_impl(const G4String& str, LogLevel level);
+    G4int log_impl(G4String const& str, LogLevel level);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

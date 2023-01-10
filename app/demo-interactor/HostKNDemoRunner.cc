@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,22 +7,31 @@
 //---------------------------------------------------------------------------//
 #include "HostKNDemoRunner.hh"
 
-#include <iostream>
 #include <random>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/StackAllocator.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "corecel/data/StackAllocatorData.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/interactor/KleinNishinaInteractor.hh"
+#include "celeritas/grid/UniformGridData.hh"
 #include "celeritas/grid/XsCalculator.hh"
+#include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/ParticleView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
 
 #include "Detector.hh"
+#include "DetectorData.hh"
+#include "KNDemoKernel.hh"
 #include "KernelUtils.hh"
 
 using namespace celeritas;
@@ -34,16 +43,16 @@ namespace demo_interactor
  * Construct with parameters.
  */
 HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
-                                   constSPXsGridParams   xs)
+                                   constSPXsGridParams xs)
     : pparams_(std::move(particles)), xsparams_(std::move(xs))
 {
     CELER_EXPECT(pparams_);
     CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
-    kn_data_.ids.action   = ActionId{0}; // Unused but needed for error check
+    kn_data_.ids.action = ActionId{0};  // Unused but needed for error check
     kn_data_.ids.electron = pparams_->find(pdg::electron());
-    kn_data_.ids.gamma    = pparams_->find(pdg::gamma());
+    kn_data_.ids.gamma = pparams_->find(pdg::gamma());
     kn_data_.inv_electron_mass
         = 1 / pparams_->get(kn_data_.ids.electron).mass().value();
     CELER_ENSURE(kn_data_);
@@ -67,7 +76,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Start timer for overall execution and transport-only time
     Stopwatch total_time;
-    double    transport_time = 0.0;
+    double transport_time = 0.0;
 
     // Random number generations
     std::mt19937 rng(args.seed);
@@ -88,10 +97,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
     // Construct references
     ParamsHostRef params;
-    params.particle      = pparams_->host_ref();
-    params.tables        = xsparams_->host_ref();
+    params.particle = pparams_->host_ref();
+    params.tables = xsparams_->host_ref();
     params.kn_interactor = kn_data_;
-    params.detector      = detector_params;
+    params.detector = detector_params;
 
     // Construct initialization
     InitialData initial;
@@ -99,18 +108,18 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
                                                 units::MevEnergy{args.energy}};
 
     StateHostRef state;
-    state.particle    = track_states;
+    state.particle = track_states;
     state.secondaries = secondaries;
-    state.detector    = detector_states;
+    state.detector = detector_states;
 
     // Loop over particle tracks and events per track
     for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
     {
         // Storage for track state
-        Real3     position  = {0, 0, 0};
-        Real3     direction = {0, 0, 1};
-        real_type time      = 0;
-        bool      alive     = true;
+        Real3 position = {0, 0, 0};
+        Real3 direction = {0, 0, 1};
+        real_type time = 0;
+        bool alive = true;
 
         // Create and initialize particle view
         ParticleTrackView particle(
@@ -118,7 +127,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
         // Create helper classes
         StackAllocator<Secondary> allocate_secondaries(state.secondaries);
-        Detector                  detector(params.detector, state.detector);
+        Detector detector(params.detector, state.detector);
         XsCalculator calc_xs(params.tables.xs, params.tables.reals);
 
         CELER_ASSERT(state.secondaries.capacity() == args.max_steps);
@@ -127,8 +136,8 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
         CELER_ASSERT(detector.num_hits() == 0);
 
         // Counters
-        size_type num_steps       = 0;
-        auto      remaining_steps = args.max_steps;
+        size_type num_steps = 0;
+        auto remaining_steps = args.max_steps;
         Stopwatch elapsed_time;
 
         particle = initial.particle;
@@ -146,10 +155,10 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Hit analysis
             Hit h;
-            h.pos    = position;
-            h.dir    = direction;
+            h.pos = position;
+            h.dir = direction;
             h.thread = ThreadId(0);
-            h.time   = time;
+            h.time = time;
 
             // Check for below energy cutoff
             if (particle.energy() < units::MevEnergy{0.01})
@@ -174,9 +183,9 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 
             // Deposit energy from the secondary (all local)
             {
-                const auto& secondary = interaction.secondaries.front();
-                h.dir                 = secondary.direction;
-                h.energy_deposited    = units::MevEnergy{
+                auto const& secondary = interaction.secondaries.front();
+                h.dir = secondary.direction;
+                h.energy_deposited = units::MevEnergy{
                     secondary.energy.value()
                     + interaction.energy_deposition.value()};
                 detector.buffer_hit(h);
@@ -225,4 +234,4 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

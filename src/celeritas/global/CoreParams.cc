@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,21 +7,25 @@
 //---------------------------------------------------------------------------//
 #include "CoreParams.hh"
 
+#include <string>
+#include <type_traits>
+#include <utility>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/geo/GeoMaterialParams.hh" // IWYU pragma: keep
-#include "celeritas/geo/GeoParams.hh"         // IWYU pragma: keep
+#include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/generated/BoundaryAction.hh"
-#include "celeritas/mat/MaterialParams.hh"    // IWYU pragma: keep
-#include "celeritas/phys/CutoffParams.hh"     // IWYU pragma: keep
-#include "celeritas/phys/ParticleParams.hh"   // IWYU pragma: keep
-#include "celeritas/phys/PhysicsParams.hh"    // IWYU pragma: keep
-#include "celeritas/random/RngParams.hh"      // IWYU pragma: keep
-#include "celeritas/track/TrackInitParams.hh" // IWYU pragma: keep
+#include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
+#include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
+#include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh" // IWYU pragma: keep
+#include "ActionRegistry.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -33,21 +37,21 @@ namespace
 //!@{
 template<MemSpace M>
 CoreParamsData<Ownership::const_reference, M>
-build_params_refs(const CoreParams::Input& p, CoreScalars scalars)
+build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
 {
     CELER_EXPECT(scalars);
 
     CoreParamsData<Ownership::const_reference, M> ref;
 
-    ref.scalars   = scalars;
-    ref.geometry  = get_ref<M>(*p.geometry);
-    ref.geo_mats  = get_ref<M>(*p.geomaterial);
+    ref.scalars = scalars;
+    ref.geometry = get_ref<M>(*p.geometry);
+    ref.geo_mats = get_ref<M>(*p.geomaterial);
     ref.materials = get_ref<M>(*p.material);
     ref.particles = get_ref<M>(*p.particle);
-    ref.cutoffs   = get_ref<M>(*p.cutoff);
-    ref.physics   = get_ref<M>(*p.physics);
-    ref.rng       = get_ref<M>(*p.rng);
-    ref.init      = get_ref<M>(*p.init);
+    ref.cutoffs = get_ref<M>(*p.cutoff);
+    ref.physics = get_ref<M>(*p.physics);
+    ref.rng = get_ref<M>(*p.rng);
+    ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
     return ref;
@@ -61,7 +65,7 @@ class ImplicitGeometryAction final : public ImplicitActionInterface,
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 };
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -108,4 +112,4 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

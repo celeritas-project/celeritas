@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,12 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "GCheckRunner.hh"
 
+#include <iostream>
+#include <type_traits>
+#include <utility>
+#include <vector>
+#include <math.h>
+
+#include "corecel/Types.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/Stopwatch.hh"
-#include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoTrackView.hh"
+#include "orange/OrangeData.hh"
+#include "celeritas/geo/GeoData.hh"
 
 #include "GCheckKernel.hh"
 
@@ -24,7 +29,7 @@ namespace geo_check
 /*!
  * Constructor, takes ownership of SPConstGeo object received
  */
-GCheckRunner::GCheckRunner(const SPConstGeo& geometry, int max_steps, bool cuda)
+GCheckRunner::GCheckRunner(SPConstGeo const& geometry, int max_steps, bool cuda)
     : geo_params_(std::move(geometry)), max_steps_(max_steps), use_cuda_(cuda)
 {
     CELER_EXPECT(geo_params_);
@@ -35,7 +40,7 @@ GCheckRunner::GCheckRunner(const SPConstGeo& geometry, int max_steps, bool cuda)
 /*!
  * Propagate a track for debugging purposes
  */
-void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
+void GCheckRunner::operator()(GeoTrackInitializer const* gti) const
 {
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::device>;
 
@@ -53,7 +58,7 @@ void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
     GCheckInput input;
     input.init.push_back(*gti);
     input.max_steps = this->max_steps_;
-    input.params    = this->geo_params_->device_ref();
+    input.params = this->geo_params_->device_ref();
 
     StateStore states(this->geo_params_->host_ref(), 1);
     input.state = states.ref();
@@ -85,4 +90,4 @@ void GCheckRunner::operator()(const GeoTrackInitializer* gti) const
 }
 //---------------------------------------------------------------------------//
 
-} // namespace geo_check
+}  // namespace geo_check

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,25 +19,25 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-void copy_array(double dst[3], const Real3& src)
+void copy_array(double dst[3], Real3 const& src)
 {
     std::copy(src.begin(), src.end(), dst);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 StepSelection ExampleMctruth::selection() const
 {
     StepSelection result;
-    result.event_id         = true;
+    result.event_id = true;
     result.track_step_count = true;
 
-    auto& pre     = result.points[StepPoint::pre];
+    auto& pre = result.points[StepPoint::pre];
     pre.volume_id = true;
-    pre.pos       = true;
-    pre.dir       = true;
+    pre.pos = true;
+    pre.dir = true;
 
     return result;
 }
@@ -57,10 +57,10 @@ void ExampleMctruth::execute(StateHostRef const& data)
         Step new_step;
         new_step.event = data.event_id[tid].get();
         new_step.track = track.unchecked_get();
-        new_step.step  = data.track_step_count[tid];
+        new_step.step = data.track_step_count[tid];
 
-        const auto& pre_step = data.points[StepPoint::pre];
-        new_step.volume      = pre_step.volume_id[tid].get();
+        auto const& pre_step = data.points[StepPoint::pre];
+        new_step.volume = pre_step.volume_id[tid].get();
         copy_array(new_step.pos, pre_step.pos[tid]);
         copy_array(new_step.dir, pre_step.dir[tid]);
 
@@ -72,12 +72,12 @@ void ExampleMctruth::execute(StateHostRef const& data)
 void ExampleMctruth::sort()
 {
     std::sort(
-        steps_.begin(), steps_.end(), [](const Step& lhs, const Step& rhs) {
+        steps_.begin(), steps_.end(), [](Step const& lhs, Step const& rhs) {
             return std::make_tuple(lhs.event, lhs.track, lhs.step)
                    < std::make_tuple(rhs.event, rhs.track, rhs.step);
         });
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

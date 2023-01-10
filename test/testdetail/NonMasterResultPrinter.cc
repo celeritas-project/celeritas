@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,7 +27,7 @@ NonMasterResultPrinter::NonMasterResultPrinter(int rank) : rank_(rank) {}
  * Print output.
  */
 void NonMasterResultPrinter::OnTestPartResult(
-    const ::testing::TestPartResult& result)
+    ::testing::TestPartResult const& result)
 {
     // If the test part succeeded, we don't need to do anything.
     if (result.type() == ::testing::TestPartResult::kSuccess)
@@ -52,5 +52,5 @@ void NonMasterResultPrinter::OnTestPartResult(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

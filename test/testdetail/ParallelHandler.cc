@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,13 +19,13 @@ namespace testdetail
 /*!
  * Construct with MPI communicator
  */
-ParallelHandler::ParallelHandler(const MpiCommunicator& comm) : comm_(comm) {}
+ParallelHandler::ParallelHandler(MpiCommunicator const& comm) : comm_(comm) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Print useful information at the beginning of the program
  */
-void ParallelHandler::OnTestProgramStart(const ::testing::UnitTest&)
+void ParallelHandler::OnTestProgramStart(::testing::UnitTest const&)
 {
     if (comm_.rank() == 0)
     {
@@ -44,13 +44,13 @@ void ParallelHandler::OnTestProgramStart(const ::testing::UnitTest&)
 /*!
  * Print useful information at the end of the program
  */
-void ParallelHandler::OnTestProgramEnd(const ::testing::UnitTest&) {}
+void ParallelHandler::OnTestProgramEnd(::testing::UnitTest const&) {}
 
 //---------------------------------------------------------------------------//
 /*!
  * Barrier at the beginning of each test
  */
-void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
+void ParallelHandler::OnTestStart(::testing::TestInfo const&)
 {
     barrier(comm_);
 }
@@ -59,12 +59,12 @@ void ParallelHandler::OnTestStart(const ::testing::TestInfo&)
 /*!
  * Barrier at the end of each test
  */
-void ParallelHandler::OnTestEnd(const ::testing::TestInfo&)
+void ParallelHandler::OnTestEnd(::testing::TestInfo const&)
 {
     std::cout << std::flush;
     barrier(comm_);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

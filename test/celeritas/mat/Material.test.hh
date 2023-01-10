@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,10 +21,10 @@ namespace test
 struct MTestInput
 {
     using MaterialParamsRef = DeviceCRef<MaterialParamsData>;
-    using MaterialStateRef  = DeviceRef<MaterialStateData>;
+    using MaterialStateRef = DeviceRef<MaterialStateData>;
 
-    MaterialParamsRef               params;
-    MaterialStateRef                states;
+    MaterialParamsRef params;
+    MaterialStateRef states;
     std::vector<MaterialTrackState> init;
 
     size_type size() const
@@ -45,8 +45,8 @@ struct MTestOutput
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-MTestOutput m_test(const MTestInput& inp);
+MTestOutput m_test(MTestInput const& inp);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

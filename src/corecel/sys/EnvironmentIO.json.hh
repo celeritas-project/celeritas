@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,10 +19,10 @@ namespace celeritas
 /*!
  * Read an array from a JSON file.
  */
-inline void from_json(const nlohmann::json& j, Environment& value)
+inline void from_json(nlohmann::json const& j, Environment& value)
 {
     CELER_ASSERT(j.is_object());
-    for (const auto& el : j.items())
+    for (auto const& el : j.items())
     {
         value.insert({el.key(), el.value().get<std::string>()});
     }
@@ -32,15 +32,15 @@ inline void from_json(const nlohmann::json& j, Environment& value)
 /*!
  * Write an array to a JSON file.
  */
-void to_json(nlohmann::json& j, const Environment& value)
+void to_json(nlohmann::json& j, Environment const& value)
 {
     j = nlohmann::json::object();
-    for (const auto& kvref : value.ordered_environment())
+    for (auto const& kvref : value.ordered_environment())
     {
-        const Environment::value_type& kv = kvref;
-        j[kv.first]                       = kv.second;
+        Environment::value_type const& kv = kvref;
+        j[kv.first] = kv.second;
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

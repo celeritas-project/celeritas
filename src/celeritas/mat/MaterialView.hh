@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ class MaterialView
   public:
     // Construct from params and material ID
     inline CELER_FUNCTION
-    MaterialView(const MaterialParamsRef& params, MaterialId id);
+    MaterialView(MaterialParamsRef const& params, MaterialId id);
 
     //// MATERIAL DATA ////
 
@@ -75,7 +75,7 @@ class MaterialView
     get_element_density(ElementComponentId id) const;
 
     // Advanced access to the elemental components (id/fraction)
-    inline CELER_FUNCTION Span<const MatElementComponent> elements() const;
+    inline CELER_FUNCTION Span<MatElementComponent const> elements() const;
 
     //// DERIVATIVE DATA ////
 
@@ -93,15 +93,15 @@ class MaterialView
 
     // Log mean excitation energy
     inline CELER_FUNCTION units::LogMevEnergy
-                          log_mean_excitation_energy() const;
+    log_mean_excitation_energy() const;
 
   private:
-    const MaterialParamsRef& params_;
-    MaterialId               material_;
+    MaterialParamsRef const& params_;
+    MaterialId material_;
 
     // HELPER FUNCTIONS
 
-    CELER_FORCEINLINE_FUNCTION const MaterialRecord& material_def() const;
+    CELER_FORCEINLINE_FUNCTION MaterialRecord const& material_def() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -111,7 +111,7 @@ class MaterialView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialView::MaterialView(const MaterialParamsRef& params, MaterialId id)
+MaterialView::MaterialView(MaterialParamsRef const& params, MaterialId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());
@@ -198,7 +198,7 @@ MaterialView::get_element_density(ElementComponentId id) const
 /*!
  * View the elemental components (id/fraction) of this material.
  */
-CELER_FUNCTION Span<const MatElementComponent> MaterialView::elements() const
+CELER_FUNCTION Span<MatElementComponent const> MaterialView::elements() const
 {
     return params_.elcomponents[this->material_def().elements];
 }
@@ -244,7 +244,7 @@ CELER_FUNCTION units::MevEnergy MaterialView::mean_excitation_energy() const
  * Log mean excitation energy.
  */
 CELER_FUNCTION units::LogMevEnergy
-               MaterialView::log_mean_excitation_energy() const
+MaterialView::log_mean_excitation_energy() const
 {
     return this->material_def().log_mean_exc_energy;
 }
@@ -255,10 +255,10 @@ CELER_FUNCTION units::LogMevEnergy
 /*!
  * Static material defs for the current state.
  */
-CELER_FUNCTION const MaterialRecord& MaterialView::material_def() const
+CELER_FUNCTION MaterialRecord const& MaterialView::material_def() const
 {
     return params_.materials[material_];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

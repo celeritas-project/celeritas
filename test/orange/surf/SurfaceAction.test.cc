@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -126,9 +126,9 @@ struct ToString
     }
 
     // Make sure this test class is being move-constructed
-    ToString()                = default;
-    ToString(const ToString&) = delete;
-    ToString(ToString&&)      = default;
+    ToString() = default;
+    ToString(ToString const&) = delete;
+    ToString(ToString&&) = default;
 };
 
 //---------------------------------------------------------------------------//
@@ -157,9 +157,9 @@ struct GetTypeSize
 TEST_F(SurfaceActionTest, string)
 {
     // Create functor
-    const auto& host_ref = this->params().host_ref();
+    auto const& host_ref = this->params().host_ref();
     Surfaces surfaces(host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
-    auto     surf_to_string = make_surface_action(surfaces, ToString{});
+    auto surf_to_string = make_surface_action(surfaces, ToString{});
 
     // Loop over all surfaces and apply
     std::vector<std::string> strings;
@@ -184,7 +184,7 @@ TEST_F(SurfaceActionTest, string)
 
 TEST_F(SurfaceActionTest, host_distances)
 {
-    const auto& host_ref = this->params().host_ref();
+    auto const& host_ref = this->params().host_ref();
 
     // Create states and sample uniform box, isotropic direction
     HostVal<OrangeMiniStateData> states;
@@ -204,7 +204,7 @@ TEST_F(SurfaceActionTest, host_distances)
     // PRINT_EXPECTED(senses_to_string(state_ref.sense[test_threads]));
     // PRINT_EXPECTED(state_ref.distance[test_threads]);
 
-    const double expected_distance[] = {inf,
+    double const expected_distance[] = {inf,
                                         inf,
                                         inf,
                                         inf,
@@ -243,10 +243,10 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
     {
         // Copy result back to host
         HostVal<OrangeMiniStateData> host_states;
-        host_states       = device_states;
+        host_states = device_states;
         auto test_threads = range(ThreadId{10});
 
-        const double expected_distance[] = {inf,
+        double const expected_distance[] = {inf,
                                             inf,
                                             inf,
                                             inf,
@@ -268,7 +268,7 @@ TEST_F(SurfaceActionTest, TEST_IF_CELER_DEVICE(device_distances))
 TEST_F(StaticSurfaceActionTest, check_surface_sizes)
 {
     auto get_expected_storage = make_static_surface_action<GetTypeSize>();
-    auto get_actual_storage   = make_static_surface_action<GetStorageSize>();
+    auto get_actual_storage = make_static_surface_action<GetStorageSize>();
 
     for (auto st : range(SurfaceType::size_))
     {
@@ -277,5 +277,5 @@ TEST_F(StaticSurfaceActionTest, check_surface_sizes)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

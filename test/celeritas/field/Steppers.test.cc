@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -56,19 +56,20 @@ class SteppersTest : public Test
           mom_0 = mass * sqrt(ipow<2>(gamma) - 1) * dir_0
         */
 
-        param.field_value = 1.0 * units::tesla; //! field value along z [tesla]
-        param.radius      = 3.8085386036;       //! radius of curvature [cm]
-        param.delta_z     = 6.7003310629;       //! z-change/revolution [cm]
-        param.momentum_y  = 10.9610028286;      //! initial momentum_y [MeV/c]
-        param.momentum_z  = 3.1969591583;       //! initial momentum_z [MeV/c]
-        param.nstates     = 1;                  //! number of states (tracks)
-        param.nsteps      = 100;                //! number of steps/revolution
-        param.revolutions = 10;                 //! number of revolutions
-        param.epsilon     = 1.0e-5;             //! tolerance error
+        param.field_value = 1.0 * units::tesla;  //! field value along z
+                                                 //! [tesla]
+        param.radius = 3.8085386036;  //! radius of curvature [cm]
+        param.delta_z = 6.7003310629;  //! z-change/revolution [cm]
+        param.momentum_y = 10.9610028286;  //! initial momentum_y [MeV/c]
+        param.momentum_z = 3.1969591583;  //! initial momentum_z [MeV/c]
+        param.nstates = 1;  //! number of states (tracks)
+        param.nsteps = 100;  //! number of steps/revolution
+        param.revolutions = 10;  //! number of revolutions
+        param.epsilon = 1.0e-5;  //! tolerance error
     }
 
     template<class FieldT, template<class> class StepperT>
-    void run_stepper(const FieldT& field)
+    void run_stepper(FieldT const& field)
     {
         // Construct a stepper for testing
         auto stepper = make_mag_field_stepper<StepperT>(
@@ -94,7 +95,7 @@ class SteppersTest : public Test
                 for (CELER_MAYBE_UNUSED int j : range(param.nsteps))
                 {
                     FieldStepperResult result = stepper(hstep, y);
-                    y                    = result.end_state;
+                    y = result.end_state;
 
                     total_err2 += detail::truncation_error(
                         hstep, 0.001, y, result.err_state);
@@ -107,7 +108,7 @@ class SteppersTest : public Test
         }
     }
 
-    void check_result(const StepperTestOutput& output)
+    void check_result(StepperTestOutput const& output)
     {
         // Check gpu stepper results
         real_type zstep = param.delta_z * param.revolutions;
@@ -156,6 +157,6 @@ TEST_F(SteppersTest, host_dormand_prince_547)
 
     // Test the Dormand-Prince 547(M) stepper
     this->run_stepper<UniformField, DormandPrinceStepper>(field);
-} //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  //---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace celeritas

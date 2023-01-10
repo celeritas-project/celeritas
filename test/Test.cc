@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ namespace test
  *
  * \post The given input file exists. (ifstream is used to check this)
  */
-std::string Test::test_data_path(const char* subdir, const char* filename)
+std::string Test::test_data_path(char const* subdir, char const* filename)
 {
     std::ostringstream os;
     os << testdetail::source_dir << "/test/" << subdir << "/data/" << filename;
@@ -41,12 +41,12 @@ std::string Test::test_data_path(const char* subdir, const char* filename)
 /*!
  * Generate test-unique filename.
  */
-std::string Test::make_unique_filename(const char* ext)
+std::string Test::make_unique_filename(char const* ext)
 {
     CELER_EXPECT(ext);
 
     // Get filename based on unit test name
-    const ::testing::TestInfo* const test_info
+    ::testing::TestInfo const* const test_info
         = ::testing::UnitTest::GetInstance()->current_test_info();
     CELER_ASSERT(test_info);
 
@@ -122,7 +122,7 @@ std::string Test::make_unique_filename(const char* ext)
  */
 bool Test::strict_testing()
 {
-    const std::string& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
+    std::string const& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
     if (envstr == "0")
     {
         return false;
@@ -136,5 +136,5 @@ bool Test::strict_testing()
 constexpr double Test::inf;
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,7 +16,7 @@ bool use_color();
 
 //---------------------------------------------------------------------------//
 // Get an ANSI color code: [y]ellow / [r]ed / [ ]default / ...
-const char* color_code(char abbrev);
+char const* color_code(char abbrev);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

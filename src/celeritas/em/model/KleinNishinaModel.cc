@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "KleinNishinaModel.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/em/generated/KleinNishinaInteract.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {
@@ -17,13 +18,13 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-KleinNishinaModel::KleinNishinaModel(ActionId              id,
-                                     const ParticleParams& particles)
+KleinNishinaModel::KleinNishinaModel(ActionId id,
+                                     ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.electron = particles.find(pdg::electron());
-    interface_.ids.gamma    = particles.find(pdg::gamma());
+    interface_.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
@@ -44,8 +45,8 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.ids.gamma;
-    photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = max_quantity();
+    photon_applic.lower = zero_quantity();
+    photon_applic.upper = max_quantity();
 
     return {photon_applic};
 }
@@ -86,4 +87,4 @@ ActionId KleinNishinaModel::action_id() const
 
 //!@}
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

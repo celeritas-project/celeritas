@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,18 +23,24 @@ template<class T>
 struct MpiType;
 
 #if CELERITAS_USE_MPI
-#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)              \
-        template<>                                         \
-        struct MpiType<T>                                  \
-        {                                                  \
-            static MPI_Datatype get() { return MPI_ENUM; } \
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM) \
+        template<>                            \
+        struct MpiType<T>                     \
+        {                                     \
+            static MPI_Datatype get()         \
+            {                                 \
+                return MPI_ENUM;              \
+            }                                 \
         }
 #else
-#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM)              \
-        template<>                                         \
-        struct MpiType<T>                                  \
-        {                                                  \
-            static const char* get() { return #MPI_ENUM; } \
+#    define CELER_DEFINE_MPITYPE(T, MPI_ENUM) \
+        template<>                            \
+        struct MpiType<T>                     \
+        {                                     \
+            static const char* get()          \
+            {                                 \
+                return #MPI_ENUM;             \
+            }                                 \
         }
 #endif
 
@@ -56,5 +62,5 @@ CELER_DEFINE_MPITYPE(long double, MPI_LONG_DOUBLE);
 #undef CELER_DEFINE_MPITYPE
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

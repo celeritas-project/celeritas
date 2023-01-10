@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4ExceptionSeverity.hh>
+#include <G4Types.hh>
 #include <G4VExceptionHandler.hh>
 
 namespace celeritas
@@ -28,12 +30,12 @@ class GeantExceptionHandler final : public G4VExceptionHandler
 {
   public:
     // Accept error codes from geant4
-    G4bool Notify(const char*         originOfException,
-                  const char*         exceptionCode,
+    G4bool Notify(char const* originOfException,
+                  char const* exceptionCode,
                   G4ExceptionSeverity severity,
-                  const char*         description) final;
+                  char const* description) final;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 // IWYU pragma: begin_exports
@@ -38,6 +39,7 @@ enum class ImportProcessType
     parallel,
     phonon,
     ucn,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -48,7 +50,9 @@ enum class ImportProcessType
  */
 enum class ImportProcessClass
 {
+    // User-defined
     unknown,
+    // EM
     ion_ioni,
     msc,
     h_ioni,
@@ -65,6 +69,7 @@ enum class ImportProcessClass
     mu_ioni,
     mu_brems,
     mu_pair_prod,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -131,12 +136,12 @@ struct ImportProcess
     using ModelMicroXS = std::vector<ElementPhysicsVectors>;
     //!@}
 
-    int                                      particle_pdg{0};
-    int                                      secondary_pdg{0};
-    ImportProcessType                        process_type;
-    ImportProcessClass                       process_class;
-    std::vector<ImportModelClass>            models;
-    std::vector<ImportPhysicsTable>          tables;
+    int particle_pdg{0};
+    int secondary_pdg{0};
+    ImportProcessType process_type;
+    ImportProcessClass process_class;
+    std::vector<ImportModelClass> models;
+    std::vector<ImportPhysicsTable> tables;
     std::map<ImportModelClass, ModelMicroXS> micro_xs;
 
     explicit operator bool() const
@@ -152,12 +157,17 @@ struct ImportProcess
 //---------------------------------------------------------------------------//
 
 // Get the string form of a process enumeration.
-const char* to_cstring(ImportProcessType value);
-const char* to_cstring(ImportProcessClass value);
-const char* to_cstring(ImportModelClass value);
+char const* to_cstring(ImportProcessType value);
+char const* to_cstring(ImportProcessClass value);
+char const* to_cstring(ImportModelClass value);
+
+// Get the default Geant4 process name
+char const* to_geant_name(ImportProcessClass value);
+// Convert a Geant4 process name to an IPC (throw RuntimeError if unsupported)
+ImportProcessClass geant_name_to_import_process_class(std::string const& s);
 
 // Whether Celeritas requires microscopic xs data for sampling
 bool needs_micro_xs(ImportModelClass model);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ struct HexRepr
 };
 
 template<class T>
-inline std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
+inline std::ostream& operator<<(std::ostream& os, HexRepr<T> const& h)
 {
     ScopedStreamFormat save_fmt(&os);
 
@@ -35,5 +35,5 @@ inline HexRepr<T> hex_repr(T value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

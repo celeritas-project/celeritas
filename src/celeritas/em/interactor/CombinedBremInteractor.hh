@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,22 +45,22 @@ class CombinedBremInteractor
 {
     //!@{
     //! Type aliases
-    using Energy      = units::MevEnergy;
-    using Momentum    = units::MevMomentum;
+    using Energy = units::MevEnergy;
+    using Momentum = units::MevMomentum;
     using ElementData = RelBremElementData;
-    using ItemIdT     = celeritas::ItemId<unsigned int>;
+    using ItemIdT = celeritas::ItemId<unsigned int>;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    CombinedBremInteractor(const CombinedBremRef&     shared,
-                           const ParticleTrackView&   particle,
-                           const Real3&               direction,
-                           const CutoffView&          cutoffs,
+    CombinedBremInteractor(CombinedBremRef const& shared,
+                           ParticleTrackView const& particle,
+                           Real3 const& direction,
+                           CutoffView const& cutoffs,
                            StackAllocator<Secondary>& allocate,
-                           const MaterialView&        material,
-                           const ElementComponentId&  elcomp_id);
+                           MaterialView const& material,
+                           ElementComponentId const& elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -74,7 +74,7 @@ class CombinedBremInteractor
     // Incident particle direction
     const Momentum inc_momentum_;
     // Incident particle direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
@@ -82,9 +82,9 @@ class CombinedBremInteractor
     // Element in which interaction occurs
     const ElementComponentId elcomp_id_;
     // Incident particle flag for selecting XS correction factor
-    const bool is_electron_;
+    bool const is_electron_;
     // Flag for selecting the relativistic bremsstrahlung model
-    const bool is_relativistic_;
+    bool const is_relativistic_;
 
     //// HELPER CLASSES ////
 
@@ -104,13 +104,13 @@ class CombinedBremInteractor
  */
 CELER_FUNCTION
 CombinedBremInteractor::CombinedBremInteractor(
-    const CombinedBremRef&     shared,
-    const ParticleTrackView&   particle,
-    const Real3&               direction,
-    const CutoffView&          cutoffs,
+    CombinedBremRef const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& direction,
+    CutoffView const& cutoffs,
     StackAllocator<Secondary>& allocate,
-    const MaterialView&        material,
-    const ElementComponentId&  elcomp_id)
+    MaterialView const& material,
+    ElementComponentId const& elcomp_id)
     : inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
@@ -167,4 +167,4 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

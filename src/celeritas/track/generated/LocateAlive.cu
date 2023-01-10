@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,7 +28,7 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 locate_alive_kernel(
-    const CoreDeviceRef core_data)
+    CoreDeviceRef const core_data)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
@@ -37,10 +37,10 @@ locate_alive_kernel(
     detail::LocateAliveLauncher<MemSpace::device> launch(core_data);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 void locate_alive(
-    const CoreDeviceRef& core_data)
+    CoreDeviceRef const& core_data)
 {
     CELER_LAUNCH_KERNEL(
         locate_alive,
@@ -49,5 +49,5 @@ void locate_alive(
         core_data);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

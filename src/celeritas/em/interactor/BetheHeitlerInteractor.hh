@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,19 +45,19 @@ class BetheHeitlerInteractor
   public:
     //!@{
     //! \name Type aliases
-    using Mass   = units::MevMass;
+    using Mass = units::MevMass;
     using Energy = units::MevEnergy;
     //!@}
 
   public:
     //! Construct sampler from shared and state data
     inline CELER_FUNCTION
-    BetheHeitlerInteractor(const BetheHeitlerData&    shared,
-                           const ParticleTrackView&   particle,
-                           const Real3&               inc_direction,
+    BetheHeitlerInteractor(BetheHeitlerData const& shared,
+                           ParticleTrackView const& particle,
+                           Real3 const& inc_direction,
                            StackAllocator<Secondary>& allocate,
-                           const MaterialView&        material,
-                           const ElementView&         element);
+                           MaterialView const& material,
+                           ElementView const& element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -76,17 +76,17 @@ class BetheHeitlerInteractor
     //// DATA ////
 
     // Shared model data
-    const BetheHeitlerData& shared_;
+    BetheHeitlerData const& shared_;
     // Incident gamma energy
     const real_type inc_energy_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
     // Element properties for calculating screening functions and variables
-    const ElementView& element_;
+    ElementView const& element_;
     // Whether LPM supression is applied
-    const bool enable_lpm_;
+    bool const enable_lpm_;
     // Used to calculate the LPM suppression functions
     LPMCalculator calc_lpm_functions_;
     // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
@@ -131,12 +131,12 @@ class BetheHeitlerInteractor
  * The incident gamma energy must be at least twice the electron rest mass.
  */
 CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
-    const BetheHeitlerData&    shared,
-    const ParticleTrackView&   particle,
-    const Real3&               inc_direction,
+    BetheHeitlerData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
     StackAllocator<Secondary>& allocate,
-    const MaterialView&        material,
-    const ElementView&         element)
+    MaterialView const& material,
+    ElementView const& element)
     : shared_(shared)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
@@ -187,7 +187,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
         const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
-        real_type       f_z = real_type(8) / real_type(3) * element_.log_z();
+        real_type f_z = real_type(8) / real_type(3) * element_.log_z();
         if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
         {
             f_z += 8 * element_.coulomb_correction();
@@ -210,8 +210,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        const real_type       f10 = this->screening_f1(delta_min) - f_z;
-        const real_type       f20 = this->screening_f2(delta_min) - f_z;
+        const real_type f10 = this->screening_f1(delta_min) - f_z;
+        const real_type f20 = this->screening_f2(delta_min) - f_z;
         BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
                                           real_type(1.5) * f20);
 
@@ -237,8 +237,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 if (enable_lpm_)
                 {
                     auto screening = screening_phi1_phi2(delta);
-                    auto lpm       = calc_lpm_functions_(epsilon);
-                    g              = lpm.xi
+                    auto lpm = calc_lpm_functions_(epsilon);
+                    g = lpm.xi
                         * ((2 * lpm.phi + lpm.g) * screening.phi1
                            - lpm.g * screening.phi2 - lpm.phi * f_z)
                         / f10;
@@ -265,8 +265,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 if (enable_lpm_)
                 {
                     auto screening = screening_phi1_phi2(delta);
-                    auto lpm       = calc_lpm_functions_(epsilon);
-                    g              = lpm.xi
+                    auto lpm = calc_lpm_functions_(epsilon);
+                    g = lpm.xi
                         * ((lpm.phi + half * lpm.g) * screening.phi1
                            + half * lpm.g * screening.phi2
                            - half * (lpm.g + lpm.phi) * f_z)
@@ -303,12 +303,12 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     // Sample secondary directions.
     // Note that momentum is not exactly conserved.
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    real_type                          phi = sample_phi(rng);
+    real_type phi = sample_phi(rng);
 
     // Electron
     TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
                                                 shared_.electron_mass);
-    real_type             cost = sample_electron_angle(rng);
+    real_type cost = sample_electron_angle(rng);
     secondaries[0].direction
         = rotate(from_spherical(cost, phi), inc_direction_);
     // Positron
@@ -384,4 +384,4 @@ CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f2(real_type delta) c
                           : R(41.326) - delta * (R(5.848) - R(0.902) * delta);
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

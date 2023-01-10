@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,17 +28,17 @@ class ParallelHandler : public ::testing::EmptyTestEventListener
     using Comm = MpiCommunicator;
 
     // Construct with communicator
-    explicit ParallelHandler(const Comm& comm);
+    explicit ParallelHandler(Comm const& comm);
 
-    void OnTestProgramStart(const ::testing::UnitTest&) override;
-    void OnTestProgramEnd(const ::testing::UnitTest&) override;
-    void OnTestStart(const ::testing::TestInfo&) override;
-    void OnTestEnd(const ::testing::TestInfo&) override;
+    void OnTestProgramStart(::testing::UnitTest const&) override;
+    void OnTestProgramEnd(::testing::UnitTest const&) override;
+    void OnTestStart(::testing::TestInfo const&) override;
+    void OnTestEnd(::testing::TestInfo const&) override;
 
   private:
-    const Comm& comm_;
+    Comm const& comm_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

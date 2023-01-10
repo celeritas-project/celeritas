@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #include "GeantLoggerAdapter.hh"
 
 #include <cctype>
+#include <memory>
 #include <G4strstreambuf.hh>
 
 #include "corecel/io/Logger.hh"
@@ -48,7 +49,7 @@ GeantLoggerAdapter::~GeantLoggerAdapter()
 /*!
  * Process stdout message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cout(const G4String& str)
+G4int GeantLoggerAdapter::ReceiveG4cout(G4String const& str)
 {
     return this->log_impl(str, LogLevel::diagnostic);
 }
@@ -57,7 +58,7 @@ G4int GeantLoggerAdapter::ReceiveG4cout(const G4String& str)
 /*!
  * Process stderr message.
  */
-G4int GeantLoggerAdapter::ReceiveG4cerr(const G4String& str)
+G4int GeantLoggerAdapter::ReceiveG4cerr(G4String const& str)
 {
     return this->log_impl(str, LogLevel::info);
 }
@@ -66,7 +67,7 @@ G4int GeantLoggerAdapter::ReceiveG4cerr(const G4String& str)
 /*!
  * Log the actual message.
  */
-G4int GeantLoggerAdapter::log_impl(const G4String& str, LogLevel level)
+G4int GeantLoggerAdapter::log_impl(G4String const& str, LogLevel level)
 {
     G4String temp(str);
     // Strip trailing whitespace
@@ -84,5 +85,5 @@ G4int GeantLoggerAdapter::log_impl(const G4String& str, LogLevel level)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

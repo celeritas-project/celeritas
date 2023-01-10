@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -126,8 +126,8 @@ CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
 #undef CELER_DEFINE_PDGNUMBER
 //!@}
 //---------------------------------------------------------------------------//
-} // namespace pdg
-} // namespace celeritas
+}  // namespace pdg
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 // STD::HASH SPECIALIZATION FOR HOST CODE
@@ -141,12 +141,12 @@ template<>
 struct hash<celeritas::PDGNumber>
 {
     using argument_type = celeritas::PDGNumber;
-    using result_type   = std::size_t;
-    result_type operator()(const argument_type& pdg) const noexcept
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& pdg) const noexcept
     {
         return std::hash<int>()(pdg.unchecked_get());
     }
 };
-} // namespace std
+}  // namespace std
 //! \endcond
 #endif

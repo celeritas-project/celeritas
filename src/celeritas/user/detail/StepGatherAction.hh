@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,9 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "../StepData.hh"
@@ -36,9 +42,9 @@ class StepGatherAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPStepStorage   = std::shared_ptr<StepStorage>;
+    using SPStepStorage = std::shared_ptr<StepStorage>;
     using SPStepInterface = std::shared_ptr<StepInterface>;
-    using VecInterface    = std::vector<SPStepInterface>;
+    using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
   public:
@@ -76,15 +82,15 @@ class StepGatherAction final : public ExplicitActionInterface
   private:
     //// DATA ////
 
-    ActionId      id_;
+    ActionId id_;
     SPStepStorage storage_;
-    VecInterface  callbacks_;
+    VecInterface callbacks_;
 
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
-    inline const StepStateData<Ownership::reference, M>&
-    get_state(const CoreRef<M>& core_data) const;
+    inline StepStateData<Ownership::reference, M> const&
+    get_state(CoreRef<M> const& core_data) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -95,8 +101,8 @@ class StepGatherAction final : public ExplicitActionInterface
  */
 template<StepPoint P>
 template<MemSpace M>
-const StepStateData<Ownership::reference, M>&
-StepGatherAction<P>::get_state(const CoreRef<M>& core) const
+StepStateData<Ownership::reference, M> const&
+StepGatherAction<P>::get_state(CoreRef<M> const& core) const
 {
     auto& state_store = storage_->get_state(StepStorage::MemSpaceTag<M>{});
     if (CELER_UNLIKELY(!state_store))
@@ -111,5 +117,5 @@ StepGatherAction<P>::get_state(const CoreRef<M>& core) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

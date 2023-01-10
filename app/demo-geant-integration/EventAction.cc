@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "EventAction.hh"
 
+#include <type_traits>
 #include <G4Event.hh>
 
 #include "corecel/Macros.hh"
@@ -16,32 +17,32 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas shared data.
+ * Construct with thread-local Celeritas data.
  */
 EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize Celeritas.
+ * Inform Celeritas of the new event's ID.
  */
-void EventAction::BeginOfEventAction(const G4Event* event)
+void EventAction::BeginOfEventAction(G4Event const* event)
 {
     // Set event ID in local transporter
     celeritas::ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_ELSE(transport_->SetEventId(event->GetEventID()),
-                   call_g4exception);
+    CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Finalize Celeritas.
+ * Flush all offloaded tracks before ending the event.
  */
-void EventAction::EndOfEventAction(const G4Event*)
+void EventAction::EndOfEventAction(G4Event const*)
 {
     // Transport any tracks left in the buffer
     celeritas::ExceptionConverter call_g4exception{"celer0004"};
-    CELER_TRY_ELSE(transport_->Flush(), call_g4exception);
+    CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

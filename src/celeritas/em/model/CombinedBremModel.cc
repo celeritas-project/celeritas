@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,16 +8,16 @@
 #include "CombinedBremModel.hh"
 
 #include <memory>
+#include <type_traits>
 #include <utility>
 
-#include "corecel/Assert.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/generated/CombinedBremInteract.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
-#include "celeritas/phys/Applicability.hh"
 
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"
@@ -28,12 +28,12 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-CombinedBremModel::CombinedBremModel(ActionId              id,
-                                     const ParticleParams& particles,
-                                     const MaterialParams& materials,
-                                     SPConstImported       data,
-                                     ReadData              sb_table,
-                                     bool                  enable_lpm)
+CombinedBremModel::CombinedBremModel(ActionId id,
+                                     ParticleParams const& particles,
+                                     MaterialParams const& materials,
+                                     SPConstImported data,
+                                     ReadData sb_table,
+                                     bool enable_lpm)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(sb_table);
@@ -47,9 +47,9 @@ CombinedBremModel::CombinedBremModel(ActionId              id,
         id, particles, materials, data, enable_lpm);
 
     HostVal<CombinedBremData> host_ref;
-    host_ref.ids.action         = id;
+    host_ref.ids.action = id;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
-    host_ref.rb_data            = rb_model_->host_ref();
+    host_ref.rb_data = rb_model_->host_ref();
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<CombinedBremData>{std::move(host_ref)};
@@ -64,11 +64,11 @@ auto CombinedBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().rb_data.ids.electron;
-    electron_brem.lower    = zero_quantity();
-    electron_brem.upper    = high_energy_limit();
+    electron_brem.lower = zero_quantity();
+    electron_brem.upper = high_energy_limit();
 
     Applicability positron_brem = electron_brem;
-    positron_brem.particle      = this->host_ref().rb_data.ids.positron;
+    positron_brem.particle = this->host_ref().rb_data.ids.positron;
 
     return {electron_brem, positron_brem};
 }
@@ -109,4 +109,4 @@ ActionId CombinedBremModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

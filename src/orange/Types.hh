@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,10 +35,10 @@ using Real3 = Array<real_type, 3>;
  */
 enum class Axis
 {
-    x,    //!< X axis/I index coordinate
-    y,    //!< Y axis/J index coordinate
-    z,    //!< Z axis/K index coordinate
-    size_ //!< Sentinel value for looping over axes
+    x,  //!< X axis/I index coordinate
+    y,  //!< Y axis/J index coordinate
+    z,  //!< Z axis/K index coordinate
+    size_  //!< Sentinel value for looping over axes
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ struct GeoTrackInitializer
  */
 struct Propagation
 {
-    real_type distance{0}; //!< Distance traveled
+    real_type distance{0};  //!< Distance traveled
     bool boundary{false};  //!< True if hit a boundary before given distance
 };
 
@@ -76,4 +76,4 @@ inline constexpr char to_char(Axis ax)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

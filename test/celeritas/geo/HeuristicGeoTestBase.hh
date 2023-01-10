@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,8 +40,8 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     template<MemSpace M>
     using PathLengthRef
         = Collection<real_type, Ownership::reference, M, VolumeId>;
-    using SpanConstReal = Span<const real_type>;
-    using SpanConstStr  = Span<const std::string>;
+    using SpanConstReal = Span<real_type const>;
+    using SpanConstStr = Span<const std::string>;
     //!@}
 
     //// INTERFACE ////
@@ -79,15 +79,15 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     std::vector<real_type>
     get_avg_path(PathLengthRef<M> path, size_type num_states) const;
 
-    std::vector<real_type> get_avg_path_impl(const std::vector<real_type>& path,
+    std::vector<real_type> get_avg_path_impl(std::vector<real_type> const& path,
                                              size_type num_states) const;
 };
 
 //---------------------------------------------------------------------------//
 //! Run on device
-void heuristic_test_launch(const DeviceCRef<HeuristicGeoParamsData>&,
-                           const DeviceRef<HeuristicGeoStateData>&);
+void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const&,
+                           DeviceRef<HeuristicGeoStateData> const&);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

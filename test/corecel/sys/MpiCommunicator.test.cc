@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,8 +40,8 @@ TEST(CommunicatorTest, null)
     EXPECT_EQ(123, allreduce(comm, Operation::sum, 123));
 
     // Not-in-place reduction should copy the values
-    const int src[] = {1234};
-    int       dst[] = {-1};
+    int const src[] = {1234};
+    int dst[] = {-1};
     allreduce(comm, Operation::max, make_span(src), make_span(dst));
     EXPECT_EQ(1234, dst[0]);
 }
@@ -82,5 +82,5 @@ TEST(CommunicatorTest, TEST_IF_CELERITAS_MPI(world))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

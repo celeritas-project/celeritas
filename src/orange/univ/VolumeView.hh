@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,9 +41,9 @@ class VolumeView
 
   public:
     // Construct with reference to persistent data
-    inline CELER_FUNCTION VolumeView(const ParamsRef&        params,
-                                     const SimpleUnitRecord& unit_record,
-                                     VolumeId                id);
+    inline CELER_FUNCTION VolumeView(ParamsRef const& params,
+                                     SimpleUnitRecord const& unit_record,
+                                     VolumeId id);
 
     //// ACCESSORS ////
 
@@ -57,10 +57,10 @@ class VolumeView
     inline CELER_FUNCTION FaceId find_face(SurfaceId id) const;
 
     // Get all surface IDs for the volume
-    CELER_FORCEINLINE_FUNCTION Span<const SurfaceId> faces() const;
+    CELER_FORCEINLINE_FUNCTION Span<SurfaceId const> faces() const;
 
     // Get logic definition
-    CELER_FORCEINLINE_FUNCTION Span<const logic_int> logic() const;
+    CELER_FORCEINLINE_FUNCTION Span<logic_int const> logic() const;
 
     // Get the number of total intersections
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
@@ -78,13 +78,13 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION bool simple_intersection() const;
 
   private:
-    const ParamsRef&    params_;
-    const VolumeRecord& def_;
+    ParamsRef const& params_;
+    VolumeRecord const& def_;
 
-    static inline CELER_FUNCTION const VolumeRecord&
-                                       volume_record(const ParamsRef&,
-                                                     const SimpleUnitRecord& unit_record,
-                                                     VolumeId                id);
+    static inline CELER_FUNCTION VolumeRecord const&
+    volume_record(ParamsRef const&,
+                  SimpleUnitRecord const& unit_record,
+                  VolumeId id);
 };
 
 //---------------------------------------------------------------------------//
@@ -92,9 +92,9 @@ class VolumeView
  * Construct with reference to persistent data.
  */
 CELER_FUNCTION
-VolumeView::VolumeView(const ParamsRef&        params,
-                       const SimpleUnitRecord& unit_record,
-                       VolumeId                id)
+VolumeView::VolumeView(ParamsRef const& params,
+                       SimpleUnitRecord const& unit_record,
+                       VolumeId id)
     : params_(params), def_(VolumeView::volume_record(params, unit_record, id))
 {
 }
@@ -154,7 +154,7 @@ CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
 /*!
  * Get all the surface IDs corresponding to the faces of this volume.
  */
-CELER_FUNCTION Span<const SurfaceId> VolumeView::faces() const
+CELER_FUNCTION Span<SurfaceId const> VolumeView::faces() const
 {
     return params_.surface_ids[def_.faces];
 }
@@ -163,7 +163,7 @@ CELER_FUNCTION Span<const SurfaceId> VolumeView::faces() const
 /*!
  * Get logic definition.
  */
-CELER_FUNCTION Span<const logic_int> VolumeView::logic() const
+CELER_FUNCTION Span<logic_int const> VolumeView::logic() const
 {
     return params_.logic_ints[def_.logic];
 }
@@ -220,10 +220,10 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
  *
  * This is called during construction.
  */
-inline CELER_FUNCTION const VolumeRecord&
-                            VolumeView::volume_record(const ParamsRef&        params,
-                          const SimpleUnitRecord& unit,
-                          VolumeId                local_vol_id)
+inline CELER_FUNCTION VolumeRecord const&
+VolumeView::volume_record(ParamsRef const& params,
+                          SimpleUnitRecord const& unit,
+                          VolumeId local_vol_id)
 {
     CELER_EXPECT(local_vol_id < unit.volumes.size());
 
@@ -233,4 +233,4 @@ inline CELER_FUNCTION const VolumeRecord&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

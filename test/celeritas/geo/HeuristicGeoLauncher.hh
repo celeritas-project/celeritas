@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,10 +31,10 @@ namespace test
 struct HeuristicGeoLauncher
 {
     using ParamsRef = NativeCRef<HeuristicGeoParamsData>;
-    using StateRef  = NativeRef<HeuristicGeoStateData>;
+    using StateRef = NativeRef<HeuristicGeoStateData>;
 
-    const ParamsRef& params;
-    const StateRef&  state;
+    ParamsRef const& params;
+    StateRef const& state;
 
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
@@ -48,20 +48,20 @@ struct HeuristicGeoLauncher
  */
 CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
 {
-    RngEngine    rng(state.rng, tid);
+    RngEngine rng(state.rng, tid);
     GeoTrackView geo(params.geometry, state.geometry, tid);
     if (state.status[tid] == LifeStatus::unborn)
     {
         // Initialize isotropically and uniformly in the box
         UniformBoxDistribution<> sample_pos(params.s.lower, params.s.upper);
-        IsotropicDistribution<>  sample_dir;
+        IsotropicDistribution<> sample_dir;
 
         // Note that pos/dir sampling can't be done as arguments to the same
         // function since the ordering would be unspecified
         GeoTrackView::Initializer_t init;
         init.pos = sample_pos(rng);
         init.dir = sample_dir(rng);
-        geo      = init;
+        geo = init;
         CELER_ASSERT(!geo.is_outside());
 
         state.status[tid] = LifeStatus::alive;
@@ -82,7 +82,7 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
     // Calculate latest safety and truncate estimated step length (MSC-like)
     // half the time
     {
-        real_type           safety     = geo.find_safety();
+        real_type safety = geo.find_safety();
         constexpr real_type safety_tol = 0.01;
         constexpr real_type geom_limit = 5e-8 * units::millimeter;
         CELER_ASSERT(safety >= 0);
@@ -125,12 +125,12 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
         // Forward scatter: anything up to a 90 degree angle if not on a
         // boundary, otherwise pretty close to forward peaked
         real_type min_angle = (geo.is_on_boundary() ? real_type(0.9) : 0);
-        real_type mu        = UniformRealDistribution<>{min_angle, 1}(rng);
+        real_type mu = UniformRealDistribution<>{min_angle, 1}(rng);
         real_type phi
             = UniformRealDistribution<real_type>{0, 2 * constants::pi}(rng);
 
         Real3 dir = geo.dir();
-        dir       = rotate(from_spherical(mu, phi), dir);
+        dir = rotate(from_spherical(mu, phi), dir);
         geo.set_dir(dir);
     }
 
@@ -147,5 +147,5 @@ CELER_FUNCTION void HeuristicGeoLauncher::operator()(ThreadId tid) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

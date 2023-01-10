@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -14,7 +14,7 @@ from launchbounds import make_launch_bounds
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,6 @@ HH_TEMPLATE = """\
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 {extra_includes}
 
 namespace celeritas
@@ -48,15 +47,17 @@ inline {devicefunc_decl_noargs}
 }}
 #endif
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
-#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
+#include <utility>
+
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "corecel/Types.hh"
+#include "celeritas/track/detail/{clsname}Launcher.hh" // IWYU pragma: associated
 
 namespace celeritas
 {{
@@ -69,13 +70,13 @@ namespace generated
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < {num_threads}; ++i)
     {{
-        CELER_TRY_ELSE(launch(ThreadId{{i}}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{{i}}), capture_exception);
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -100,7 +101,7 @@ namespace
     detail::{clsname}Launcher<MemSpace::device> launch({kernel_arglist});
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
 {devicefunc_decl}
 {{
@@ -111,23 +112,23 @@ namespace
         {kernel_arglist});
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 Param = namedtuple("Param", ["type", "name"])
 
 
 def make_const(type_name):
-    if type_name.startswith('const '):
-        return type_name
-    return 'const ' + type_name
+    if not type_name.endswith(' const'):
+        return type_name + ' const'
+    return type_name
 
 
 def make_const_reference(type_name):
     if type_name.startswith('Span<') or type_name == 'size_type':
-        return 'const ' + type_name
-    return f'const {type_name}&'
+        return make_const(type_name)
+    return type_name + ' const&'
 
 
 class ParamList(list):

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ class PrimaryGeneratorTest : public Test
   protected:
     void SetUp() override
     {
-        constexpr auto zero   = zero_quantity();
+        constexpr auto zero = zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs
@@ -48,7 +48,7 @@ class PrimaryGeneratorTest : public Test
     }
 
     std::shared_ptr<ParticleParams> particles_;
-    std::mt19937                    rng_;
+    std::mt19937 rng_;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,12 +58,12 @@ class PrimaryGeneratorTest : public Test
 TEST_F(PrimaryGeneratorTest, basic)
 {
     PrimaryGenerator<std::mt19937>::Input inp;
-    inp.pdg                 = {pdg::gamma(), pdg::electron()};
-    inp.num_events          = 2;
+    inp.pdg = {pdg::gamma(), pdg::electron()};
+    inp.num_events = 2;
     inp.primaries_per_event = 3;
-    inp.sample_energy       = DeltaDistribution<real_type>(10);
-    inp.sample_pos          = DeltaDistribution<Real3>(Real3{1, 2, 3});
-    inp.sample_dir          = IsotropicDistribution<real_type>();
+    inp.sample_energy = DeltaDistribution<real_type>(10);
+    inp.sample_pos = DeltaDistribution<Real3>(Real3{1, 2, 3});
+    inp.sample_dir = IsotropicDistribution<real_type>();
     PrimaryGenerator<std::mt19937> generate_primaries(particles_, inp);
 
     std::vector<int> particle_id;
@@ -75,7 +75,7 @@ TEST_F(PrimaryGeneratorTest, basic)
         auto primaries = generate_primaries(rng_);
         EXPECT_EQ(inp.primaries_per_event, primaries.size());
 
-        for (const auto& p : primaries)
+        for (auto const& p : primaries)
         {
             EXPECT_EQ(MevEnergy{10}, p.energy);
             EXPECT_DOUBLE_EQ(0.0, p.time);
@@ -89,9 +89,9 @@ TEST_F(PrimaryGeneratorTest, basic)
     auto primaries = generate_primaries(rng_);
     EXPECT_TRUE(primaries.empty());
 
-    static const int expected_particle_id[] = {0, 1, 0, 1, 0, 1};
-    static const int expected_event_id[]    = {0, 0, 0, 1, 1, 1};
-    static const int expected_track_id[]    = {0, 1, 2, 0, 1, 2};
+    static int const expected_particle_id[] = {0, 1, 0, 1, 0, 1};
+    static int const expected_event_id[] = {0, 0, 0, 1, 1, 1};
+    static int const expected_track_id[] = {0, 1, 2, 0, 1, 2};
 
     EXPECT_VEC_EQ(expected_particle_id, particle_id);
     EXPECT_VEC_EQ(expected_event_id, event_id);
@@ -103,12 +103,12 @@ TEST_F(PrimaryGeneratorTest, options)
     using DS = DistributionSelection;
 
     PrimaryGeneratorOptions opts;
-    opts.pdg                 = {pdg::gamma()};
-    opts.num_events          = 1;
+    opts.pdg = {pdg::gamma()};
+    opts.num_events = 1;
     opts.primaries_per_event = 10;
-    opts.energy              = {DS::delta, {1}};
-    opts.position            = {DS::box, {-3, -3, -3, 3, 3, 3}};
-    opts.direction           = {DS::isotropic, {}};
+    opts.energy = {DS::delta, {1}};
+    opts.position = {DS::box, {-3, -3, -3, 3, 3, 3}};
+    opts.direction = {DS::isotropic, {}};
 
     auto generate_primaries
         = PrimaryGenerator<std::mt19937>::from_options(particles_, opts);
@@ -117,7 +117,7 @@ TEST_F(PrimaryGeneratorTest, options)
 
     for (size_type i : range(primaries.size()))
     {
-        const auto& p = primaries[i];
+        auto const& p = primaries[i];
         EXPECT_EQ(ParticleId{0}, p.particle_id);
         EXPECT_EQ(TrackId{i}, p.track_id);
         EXPECT_EQ(EventId{0}, p.event_id);
@@ -134,8 +134,8 @@ TEST_F(PrimaryGeneratorTest, options)
 
 #if CELERITAS_USE_JSON
     {
-        nlohmann::json    out = opts;
-        static const char expected[]
+        nlohmann::json out = opts;
+        static char const expected[]
             = R"json({"direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10})json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
@@ -143,5 +143,5 @@ TEST_F(PrimaryGeneratorTest, options)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

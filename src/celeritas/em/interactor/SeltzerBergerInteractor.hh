@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -49,20 +49,20 @@ class SeltzerBergerInteractor
   public:
     //!@{
     //! \name Type aliases
-    using Energy   = units::MevEnergy;
+    using Energy = units::MevEnergy;
     using Momentum = units::MevMomentum;
     //!@}
 
   public:
     //! Construct sampler from device/shared and state data
     inline CELER_FUNCTION
-    SeltzerBergerInteractor(const SeltzerBergerRef&    shared,
-                            const ParticleTrackView&   particle,
-                            const Real3&               inc_direction,
-                            const CutoffView&          cutoffs,
+    SeltzerBergerInteractor(SeltzerBergerRef const& shared,
+                            ParticleTrackView const& particle,
+                            Real3 const& inc_direction,
+                            CutoffView const& cutoffs,
                             StackAllocator<Secondary>& allocate,
-                            const MaterialView&        material,
-                            const ElementComponentId&  elcomp_id);
+                            MaterialView const& material,
+                            ElementComponentId const& elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -71,15 +71,15 @@ class SeltzerBergerInteractor
   private:
     //// DATA ////
     // Device (host CPU or GPU device) references
-    const SeltzerBergerRef& shared_;
+    SeltzerBergerRef const& shared_;
     // Incident particle energy
     const Energy inc_energy_;
     // Incident particle direction
     const Momentum inc_momentum_;
     // Incident particle direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Incident particle flag for selecting XS correction factor
-    const bool inc_particle_is_electron_;
+    bool const inc_particle_is_electron_;
     // Production cutoff for gammas
     const Energy gamma_cutoff_;
     // Allocate space for a secondary particle
@@ -104,13 +104,13 @@ class SeltzerBergerInteractor
  * must be handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
-    const SeltzerBergerRef&    shared,
-    const ParticleTrackView&   particle,
-    const Real3&               inc_direction,
-    const CutoffView&          cutoffs,
+    SeltzerBergerRef const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    CutoffView const& cutoffs,
     StackAllocator<Secondary>& allocate,
-    const MaterialView&        material,
-    const ElementComponentId&  elcomp_id)
+    MaterialView const& material,
+    ElementComponentId const& elcomp_id)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
@@ -170,4 +170,4 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

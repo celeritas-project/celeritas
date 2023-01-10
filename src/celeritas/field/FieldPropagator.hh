@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -49,9 +49,9 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(DriverT&&                driver,
-                                          const ParticleTrackView& particle,
-                                          GeoTrackView*            geo);
+    inline CELER_FUNCTION FieldPropagator(DriverT&& driver,
+                                          ParticleTrackView const& particle,
+                                          GeoTrackView* geo);
 
     // Move track to next volume boundary.
     inline CELER_FUNCTION result_type operator()();
@@ -68,9 +68,9 @@ class FieldPropagator
   private:
     //// DATA ////
 
-    DriverT       driver_;
+    DriverT driver_;
     GeoTrackView& geo_;
-    OdeState      state_;
+    OdeState state_;
 };
 
 //---------------------------------------------------------------------------//
@@ -81,9 +81,9 @@ class FieldPropagator
  */
 template<class DriverT>
 CELER_FUNCTION
-FieldPropagator<DriverT>::FieldPropagator(DriverT&&                driver,
-                                          const ParticleTrackView& particle,
-                                          GeoTrackView*            geo)
+FieldPropagator<DriverT>::FieldPropagator(DriverT&& driver,
+                                          ParticleTrackView const& particle,
+                                          GeoTrackView* geo)
     : driver_(::celeritas::forward<DriverT>(driver)), geo_(*geo)
 {
     CELER_ASSERT(geo);
@@ -144,8 +144,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
     // by the proximity of geometry boundaries. Test for intersection with the
     // geometry boundary in each substep. This loop is guaranteed to converge
     // since the trial step always decreases *or* the actual position advances.
-    real_type remaining          = step;
-    auto      remaining_substeps = this->max_substeps();
+    real_type remaining = step;
+    auto remaining_substeps = this->max_substeps();
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -173,7 +173,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // caller-requested step. Reset the boundary flag to "false" only
             // in the unlikely case that we successfully shortened the substep
             // on a reentrant boundary crossing below.
-            state_          = substep.state;
+            state_ = substep.state;
             result.boundary = false;
             result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
@@ -200,7 +200,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             result.boundary = true;
             result.distance += min(linear_step.distance, remaining);
             state_.mom = substep.state.mom;
-            remaining  = 0;
+            remaining = 0;
         }
         else if (detail::is_intercept_close(state_.pos,
                                             chord.dir,
@@ -214,13 +214,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // post-boundary-crossing track position for consistency, and
             // conservatively reduce the *reported* traveled distance to avoid
             // coincident boundary crossings.
-            result.boundary         = true;
+            result.boundary = true;
             real_type miss_distance = detail::calc_miss_distance(
                 state_.pos, chord.dir, linear_step.distance, substep.state.pos);
             CELER_ASSERT(miss_distance >= 0 && miss_distance < substep.step);
             result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
-            remaining  = 0;
+            remaining = 0;
         }
         else
         {
@@ -289,4 +289,4 @@ CELER_FUNCTION real_type FieldPropagator<DriverT>::bump_distance() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

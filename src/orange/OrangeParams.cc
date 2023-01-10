@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,22 +7,23 @@
 //---------------------------------------------------------------------------//
 #include "OrangeParams.hh"
 
-#include <algorithm>
 #include <fstream>
 #include <initializer_list>
+#include <utility>
+#include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "orange/BoundingBox.hh"
 
-#include "OrangeData.hh"
+#include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeTypes.hh"
 #include "construct/OrangeInput.hh"
 #include "detail/UnitInserter.hh"
@@ -76,7 +77,7 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -85,7 +86,7 @@ OrangeInput input_from_json(std::string filename)
  * The JSON format is defined by the SCALE ORANGE exporter (not currently
  * distributed).
  */
-OrangeParams::OrangeParams(const std::string& json_filename)
+OrangeParams::OrangeParams(std::string const& json_filename)
     : OrangeParams(input_from_json(json_filename))
 {
 }
@@ -96,7 +97,7 @@ OrangeParams::OrangeParams(const std::string& json_filename)
  *
  * Perhaps someday we'll implement in-memory translation...
  */
-OrangeParams::OrangeParams(const G4VPhysicalVolume*)
+OrangeParams::OrangeParams(G4VPhysicalVolume const*)
 {
     CELER_NOT_IMPLEMENTED("Geant4->VecGeom geometry translation");
 }
@@ -115,10 +116,10 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     // Calculate offsets for UnitIndexerData
     auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
-    auto ui_vol  = make_builder(&host_data.unit_indexer_data.volumes);
+    auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
     ui_surf.push_back(0);
     ui_vol.push_back(0);
-    for (const UnitInput& u : input.units)
+    for (UnitInput const& u : input.units)
     {
         using AllVals = AllItems<size_type, MemSpace::native>;
         auto surface_offset
@@ -131,10 +132,10 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     // Insert all units
     detail::UnitInserter insert_unit(&host_data);
-    auto universe_type  = make_builder(&host_data.universe_type);
+    auto universe_type = make_builder(&host_data.universe_type);
     auto universe_index = make_builder(&host_data.universe_index);
 
-    for (const UnitInput& u : input.units)
+    for (UnitInput const& u : input.units)
     {
         CELER_VALIDATE(
             u, << "unit '" << u.label << "' is not properly constructed");
@@ -154,11 +155,11 @@ OrangeParams::OrangeParams(OrangeInput input)
     std::vector<Label> surface_labels;
     std::vector<Label> volume_labels;
 
-    for (const UnitInput& u : input.units)
+    for (UnitInput const& u : input.units)
     {
         // Capture metadata
 
-        for (const auto& s : u.surfaces.labels)
+        for (auto const& s : u.surfaces.labels)
         {
             Label surface_label = s;
             if (surface_label.ext.empty())
@@ -168,7 +169,7 @@ OrangeParams::OrangeParams(OrangeInput input)
             surface_labels.push_back(std::move(surface_label));
         }
 
-        for (const auto& v : u.volumes)
+        for (auto const& v : u.volumes)
         {
             Label volume_label = v.label;
             if (volume_label.ext.empty())
@@ -182,10 +183,10 @@ OrangeParams::OrangeParams(OrangeInput input)
     }
 
     surf_labels_ = LabelIdMultiMap<SurfaceId>{std::move(surface_labels)};
-    vol_labels_  = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
+    vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
 
     supports_safety_ = host_data.simple_unit[SimpleUnitId{0}].simple_safety;
-    bbox_            = input.units.front().bbox;
+    bbox_ = input.units.front().bbox;
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
@@ -200,7 +201,7 @@ OrangeParams::OrangeParams(OrangeInput input)
 /*!
  * Get the label of a volume.
  */
-const Label& OrangeParams::id_to_label(VolumeId vol) const
+Label const& OrangeParams::id_to_label(VolumeId vol) const
 {
     CELER_EXPECT(vol < vol_labels_.size());
     return vol_labels_.get(vol);
@@ -213,7 +214,7 @@ const Label& OrangeParams::id_to_label(VolumeId vol) const
  * If the name isn't in the geometry, a null ID will be returned. If the name
  * is not unique, a RuntimeError will be raised.
  */
-VolumeId OrangeParams::find_volume(const std::string& name) const
+VolumeId OrangeParams::find_volume(std::string const& name) const
 {
     auto result = vol_labels_.find_all(name);
     if (result.empty())
@@ -229,7 +230,7 @@ VolumeId OrangeParams::find_volume(const std::string& name) const
  *
  * If the label isn't in the geometry, a null ID will be returned.
  */
-VolumeId OrangeParams::find_volume(const Label& label) const
+VolumeId OrangeParams::find_volume(Label const& label) const
 {
     return vol_labels_.find(label);
 }
@@ -241,7 +242,7 @@ VolumeId OrangeParams::find_volume(const Label& label) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions'.
  */
-auto OrangeParams::find_volumes(const std::string& name) const
+auto OrangeParams::find_volumes(std::string const& name) const
     -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
@@ -251,7 +252,7 @@ auto OrangeParams::find_volumes(const std::string& name) const
 /*!
  * Get the label of a surface.
  */
-const Label& OrangeParams::id_to_label(SurfaceId surf) const
+Label const& OrangeParams::id_to_label(SurfaceId surf) const
 {
     CELER_EXPECT(surf < surf_labels_.size());
     return surf_labels_.get(surf);
@@ -261,7 +262,7 @@ const Label& OrangeParams::id_to_label(SurfaceId surf) const
 /*!
  * Locate the surface ID corresponding to a label name.
  */
-SurfaceId OrangeParams::find_surface(const std::string& name) const
+SurfaceId OrangeParams::find_surface(std::string const& name) const
 {
     auto result = surf_labels_.find_all(name);
     if (result.empty())
@@ -272,4 +273,4 @@ SurfaceId OrangeParams::find_surface(const std::string& name) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

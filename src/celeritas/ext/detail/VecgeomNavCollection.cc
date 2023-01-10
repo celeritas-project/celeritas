@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -84,9 +84,9 @@ void VecgeomNavCollection<Ownership::value, MemSpace::device>::resize(
     CELER_EXPECT(celeritas::device());
 
     pool.reset(new vecgeom::cxx::NavStatePool(sz, md));
-    this->ptr       = pool->GetGPUPointer();
+    this->ptr = pool->GetGPUPointer();
     this->max_depth = md;
-    this->size      = sz;
+    this->size = sz;
 }
 
 //---------------------------------------------------------------------------//
@@ -104,5 +104,5 @@ void VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

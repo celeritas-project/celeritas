@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ interact_kernel(CoreStateDeviceRef const states, ITTestInputData const input)
             Interactor interact(allocate_secondaries,
                                 input.alloc_size[thread_id.get()],
                                 input.alive[thread_id.get()]);
-            auto       result = interact();
+            auto result = interact();
 
             // Save secondaries
             states.physics.state[thread_id].secondaries = result.secondaries;
@@ -70,5 +70,5 @@ void interact(CoreStateDeviceRef states, ITTestInputData input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

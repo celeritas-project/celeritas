@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,12 +10,12 @@
 #ifdef __GNUG__
 #    include <cstdlib>
 #    include <cxxabi.h>
-#endif // __GNUG__
+#endif  // __GNUG__
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-std::string demangled_typeid_name(const char* typeid_name)
+std::string demangled_typeid_name(char const* typeid_name)
 {
 #ifdef __GNUG__
     int status = -1;
@@ -31,10 +31,10 @@ std::string demangled_typeid_name(const char* typeid_name)
     std::free(demangled);
 #else  // __GNUG__
     std::string result(typeid_name);
-#endif // __GNUG__
+#endif  // __GNUG__
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

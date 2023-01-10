@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,14 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "Stepper.hh"
 
-#include "corecel/Assert.hh"
+#include <type_traits>
+#include <utility>
+
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/phys/Primary.hh"
-#include "celeritas/track/TrackInitParams.hh"
+#include "orange/OrangeData.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/random/XorwowRngData.hh"
+#include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitUtils.hh"
 
-#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 #include "detail/ActionSequence.hh"
 
@@ -76,7 +79,7 @@ auto Stepper<M>::operator()() -> result_type
     extend_from_secondaries(core_ref_);
 
     // Get the number of track initializers and active tracks
-    result.alive  = states_.size() - core_ref_.states.init.vacancies.size();
+    result.alive = states_.size() - core_ref_.states.init.vacancies.size();
     result.queued = core_ref_.states.init.initializers.size();
 
     return result;
@@ -114,4 +117,4 @@ template class Stepper<MemSpace::host>;
 template class Stepper<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

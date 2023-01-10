@@ -1,5 +1,5 @@
 //---------------------------------*-C++-*-----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,7 +23,7 @@ namespace detail
 template<class T, class Enable = void>
 struct RangeTypeTraits
 {
-    using value_type   = T;
+    using value_type = T;
     using counter_type = T;
 
     template<class U>
@@ -39,13 +39,13 @@ struct RangeTypeTraits
     {
         return c;
     }
-    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type v,
                                                            counter_type i)
     {
         v += i;
         return v;
     }
-    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type v,
                                                            counter_type i)
     {
         v -= i;
@@ -72,13 +72,13 @@ struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
 template<class T>
 struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
 {
-    using value_type   = T;
+    using value_type = T;
     using counter_type = typename std::underlying_type<T>::type;
     template<class U>
     using common_type = value_type;
 
     static CELER_CONSTEXPR_FUNCTION value_type zero() { return {}; }
-    static CELER_CONSTEXPR_FUNCTION bool       is_valid(value_type v)
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type v)
     {
         return EnumWithSize<T>::is_valid(v);
     }
@@ -90,14 +90,14 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
     {
         return static_cast<value_type>(c);
     }
-    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type v,
                                                            counter_type i)
     {
         counter_type temp = to_counter(v);
         temp += i;
         return to_value(temp);
     }
-    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type v,
                                                            counter_type i)
     {
         counter_type temp = to_counter(v);
@@ -110,13 +110,13 @@ struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
 template<class I, class T>
 struct RangeTypeTraits<OpaqueId<I, T>, void>
 {
-    using value_type   = OpaqueId<I, T>;
+    using value_type = OpaqueId<I, T>;
     using counter_type = T;
     template<class U>
     using common_type = value_type;
 
     static CELER_CONSTEXPR_FUNCTION value_type zero() { return value_type(0); }
-    static CELER_CONSTEXPR_FUNCTION bool       is_valid(value_type v)
+    static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type v)
     {
         return static_cast<bool>(v);
     }
@@ -128,14 +128,14 @@ struct RangeTypeTraits<OpaqueId<I, T>, void>
     {
         return value_type{c};
     }
-    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type increment(value_type v,
                                                            counter_type i)
     {
         counter_type temp = to_counter(v);
         temp += i;
         return to_value(temp);
     }
-    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type   v,
+    static CELER_FORCEINLINE_FUNCTION value_type decrement(value_type v,
                                                            counter_type i)
     {
         counter_type temp = to_counter(v);
@@ -151,13 +151,13 @@ class range_iter
   public:
     //!@{
     //! Type aliases
-    using TraitsT           = RangeTypeTraits<T>;
-    using value_type        = T;
-    using counter_type      = typename TraitsT::counter_type;
+    using TraitsT = RangeTypeTraits<T>;
+    using value_type = T;
+    using counter_type = typename TraitsT::counter_type;
     using iterator_category = std::input_iterator_tag;
-    using difference_type   = value_type;
-    using pointer           = void;
-    using reference         = value_type;
+    using difference_type = value_type;
+    using pointer = void;
+    using reference = value_type;
     //!@}
 
   public:
@@ -193,7 +193,7 @@ class range_iter
     CELER_FORCEINLINE_FUNCTION range_iter operator++(int)
     {
         auto copy = *this;
-        value_    = TraitsT::increment(value_, 1);
+        value_ = TraitsT::increment(value_, 1);
         return copy;
     }
 
@@ -211,7 +211,7 @@ class range_iter
     CELER_FORCEINLINE_FUNCTION range_iter operator--(int)
     {
         auto copy = *this;
-        value_    = TraitsT::decrement(value_, 1);
+        value_ = TraitsT::decrement(value_, 1);
         return copy;
     }
 
@@ -266,7 +266,7 @@ class step_range_iter : public range_iter<T>
     using Base = range_iter<T>;
 
   public:
-    using TraitsT      = typename Base::TraitsT;
+    using TraitsT = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
 
     CELER_FORCEINLINE_FUNCTION step_range_iter(T value, counter_type step)
@@ -323,7 +323,7 @@ class inf_step_range_iter : public step_range_iter<T>
     using Base = step_range_iter<T>;
 
   public:
-    using TraitsT      = typename Base::TraitsT;
+    using TraitsT = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
 
     CELER_FUNCTION
@@ -351,7 +351,7 @@ template<class T>
 class StepRange
 {
   public:
-    using IterT        = step_range_iter<T>;
+    using IterT = step_range_iter<T>;
     using counter_type = typename RangeTypeTraits<T>::counter_type;
 
     CELER_FUNCTION StepRange(T begin, T end, counter_type step)
@@ -375,7 +375,7 @@ template<class T>
 class InfStepRange
 {
   public:
-    using IterT        = inf_step_range_iter<T>;
+    using IterT = inf_step_range_iter<T>;
     using counter_type = typename RangeTypeTraits<T>::counter_type;
 
     //! Construct from start/stop
@@ -391,5 +391,5 @@ class InfStepRange
     IterT begin_;
 };
 
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

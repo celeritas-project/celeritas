@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -75,7 +75,7 @@ class SoftZero
     //!@{
     //! Type aliases
     using argument_type = RealType;
-    using value_type    = RealType;
+    using value_type = RealType;
     //!@}
 
   public:
@@ -164,7 +164,7 @@ SoftEqual<RealType>::operator()(value_type expected, value_type actual) const
     }
 
     const value_type eps_abs = abs_;
-    const value_type abs_a   = std::fabs(actual);
+    const value_type abs_a = std::fabs(actual);
     // If one is within the absolute threshold of zero, and the other within
     // relative of zero, they're equal
     if ((abs_e < eps_abs) && (abs_a < rel_))
@@ -259,4 +259,4 @@ inline CELER_FUNCTION bool soft_mod(RealType dividend, RealType divisor)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

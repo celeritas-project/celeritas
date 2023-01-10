@@ -1,5 +1,5 @@
-//---------------------------------*-Cudac-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+//---------------------------------*-CUDA-*----------------------------------//
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,12 +26,12 @@ namespace geo_check
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
-                              const GeoStateRefDevice    state,
-                              const GeoTrackInitializer* init,
-                              int                        max_steps,
-                              int*                       ids,
-                              double*                    distances)
+__global__ void gcheck_kernel(const GeoParamsCRefDevice params,
+                              const GeoStateRefDevice state,
+                              GeoTrackInitializer const* init,
+                              int max_steps,
+                              int* ids,
+                              double* distances)
 {
     CELER_EXPECT(params && state);
     CELER_EXPECT(max_steps > 0);
@@ -40,7 +40,7 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
     if (tid.get() >= state.size())
         return;
 
-    celeritas::GeoTrackView     geo(params, state, tid);
+    celeritas::GeoTrackView geo(params, state, tid);
     celeritas::LinearPropagator propagate(&geo);
 
     // Start track at the leftmost point in the requested direction
@@ -54,7 +54,7 @@ __global__ void gcheck_kernel(const GeoParamsCRefDevice  params,
         auto step = propagate();
         if (step.boundary)
             geo.cross_boundary();
-        ids[istep]       = physid(geo);
+        ids[istep] = physid(geo);
         distances[istep] = step.distance;
         ++istep;
     } while (!geo.is_outside() && istep < max_steps);
@@ -75,7 +75,7 @@ GCheckOutput run_gpu(GCheckInput input)
     // Temporary device data for kernel
     thrust::device_vector<GeoTrackInitializer> tracks(input.init.begin(),
                                                       input.init.end());
-    thrust::device_vector<int>    ids(input.init.size() * input.max_steps, -1);
+    thrust::device_vector<int> ids(input.init.size() * input.max_steps, -1);
     thrust::device_vector<double> distances(ids.size(), -1.0);
 
     gcheck_kernel<<<1, 1>>>(input.params,
@@ -107,4 +107,4 @@ GCheckOutput run_gpu(GCheckInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geo_check
+}  // namespace geo_check

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,11 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "detail/MpiCommunicatorImpl.hh" // IWYU pragma: keep
+#include "corecel/sys/MpiCommunicator.hh"
+#include "corecel/sys/detail/MpiCommunicatorImpl.hh"
+
+#include "detail/MpiCommunicatorImpl.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
 class Device;
+
 //---------------------------------------------------------------------------//
 /*!
  * Abstraction of an MPI communicator.
@@ -59,13 +63,13 @@ class MpiCommunicator
 
   private:
     MpiComm comm_ = detail::mpi_comm_null();
-    int     rank_ = 0;
-    int     size_ = 1;
+    int rank_ = 0;
+    int size_ = 1;
 };
 
 //---------------------------------------------------------------------------//
 // Initialize a device in a round-robin fashion from a communicator.
-Device make_device(const MpiCommunicator&);
+Device make_device(MpiCommunicator const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -84,4 +88,4 @@ MpiCommunicator MpiCommunicator::comm_world()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

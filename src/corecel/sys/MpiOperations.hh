@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,26 +42,26 @@ enum class Operation
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Wait for all processes in this communicator to reach the barrier
-inline void barrier(const MpiCommunicator& comm);
+inline void barrier(MpiCommunicator const& comm);
 
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data from src to dst
 template<class T, std::size_t N>
-inline void allreduce(const MpiCommunicator& comm,
-                      Operation              op,
-                      Span<const T, N>       src,
-                      Span<T, N>             dst);
+inline void allreduce(MpiCommunicator const& comm,
+                      Operation op,
+                      Span<const T, N> src,
+                      Span<T, N> dst);
 
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data, in place
 template<class T, std::size_t N>
 inline void
-allreduce(const MpiCommunicator& comm, Operation op, Span<T, N> data);
+allreduce(MpiCommunicator const& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*> = nullptr>
-inline T allreduce(const MpiCommunicator& comm, Operation op, const T src);
+inline T allreduce(MpiCommunicator const& comm, Operation op, const T src);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -83,13 +83,13 @@ inline MPI_Op to_mpi(Operation op)
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Wait for all processes in this communicator to reach the barrier.
  */
-void barrier(const MpiCommunicator& comm)
+void barrier(MpiCommunicator const& comm)
 {
     if (!comm)
         return;
@@ -102,10 +102,10 @@ void barrier(const MpiCommunicator& comm)
  * All-to-all reduction on the data from src to dst.
  */
 template<class T, std::size_t N>
-void allreduce(const MpiCommunicator&       comm,
+void allreduce(MpiCommunicator const& comm,
                CELER_MAYBE_UNUSED Operation op,
-               Span<const T, N>             src,
-               Span<T, N>                   dst)
+               Span<const T, N> src,
+               Span<T, N> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
 
@@ -128,7 +128,7 @@ void allreduce(const MpiCommunicator&       comm,
  * All-to-all reduction on the data, in place.
  */
 template<class T, std::size_t N>
-void allreduce(const MpiCommunicator&       comm,
+void allreduce(MpiCommunicator const& comm,
                CELER_MAYBE_UNUSED Operation op,
                CELER_MAYBE_UNUSED Span<T, N> data)
 {
@@ -148,7 +148,7 @@ void allreduce(const MpiCommunicator&       comm,
  * Perform reduction on a fundamental scalar and return the result.
  */
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*>>
-T allreduce(const MpiCommunicator& comm, Operation op, const T src)
+T allreduce(MpiCommunicator const& comm, Operation op, const T src)
 {
     T dst{};
     allreduce(comm, op, Span<const T, 1>{&src, 1}, Span<T, 1>{&dst, 1});
@@ -156,4 +156,4 @@ T allreduce(const MpiCommunicator& comm, Operation op, const T src)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

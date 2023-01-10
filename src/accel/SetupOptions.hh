@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,6 +9,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace celeritas
 {
@@ -52,7 +53,7 @@ struct SDSetupOptions
  * Control options for initializing Celeritas.
  *
  * The interface for the "along-step factory" (input parameters and output) is
- * described in AlongStepFactory.hh .
+ * described in \c AlongStepFactoryInterface .
  */
 struct SetupOptions
 {
@@ -61,9 +62,10 @@ struct SetupOptions
     using size_type = unsigned int;
     using real_type = double;
 
-    using SPConstAction = std::shared_ptr<const ExplicitActionInterface>;
+    using SPConstAction = std::shared_ptr<ExplicitActionInterface const>;
     using AlongStepFactory
-        = std::function<SPConstAction(const AlongStepFactoryInput&)>;
+        = std::function<SPConstAction(AlongStepFactoryInput const&)>;
+    using VecString = std::vector<std::string>;
     //!@}
 
     //! Don't limit the number of steps
@@ -107,6 +109,12 @@ struct SetupOptions
     //!@}
 
     //!@{
+    //! \name Physics options
+    //! Ignore the following EM process names
+    VecString ignore_processes;
+    //!@}
+
+    //!@{
     //! \name CUDA options
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
@@ -114,4 +122,4 @@ struct SetupOptions
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

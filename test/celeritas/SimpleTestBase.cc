@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
     using namespace units;
 
     MaterialParams::Input inp;
-    inp.elements  = {{AtomicNumber{13}, AmuMass{27}, "Al"}};
+    inp.elements = {{AtomicNumber{13}, AmuMass{27}, "Al"}};
     inp.materials = {{2.7 * constants::na_avogadro / 27,
                       293.0,
                       MatterState::solid,
@@ -45,8 +45,8 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
 auto SimpleTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
-    input.geometry      = this->geometry();
-    input.materials     = this->material();
+    input.geometry = this->geometry();
+    input.materials = this->material();
     input.volume_to_mat = {MaterialId{0}, MaterialId{1}, MaterialId{}};
     input.volume_labels = {Label{"inner"}, Label{"world"}, Label{"[EXTERIOR]"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
@@ -77,13 +77,13 @@ auto SimpleTestBase::build_cutoff() -> SPConstCutoff
     CutoffParams::Input input;
     input.materials = this->material();
     input.particles = this->particle();
-    input.cutoffs   = {
-          {pdg::gamma(),
-           {{MevEnergy{0.01}, 0.1 * millimeter},
-            {MevEnergy{100}, 100 * centimeter}}},
-          {pdg::electron(),
-           {{MevEnergy{1000}, 1000 * centimeter},
-            {MevEnergy{1000}, 1000 * centimeter}}},
+    input.cutoffs = {
+        {pdg::gamma(),
+         {{MevEnergy{0.01}, 0.1 * millimeter},
+          {MevEnergy{100}, 100 * centimeter}}},
+        {pdg::electron(),
+         {{MevEnergy{1000}, 1000 * centimeter},
+          {MevEnergy{1000}, 1000 * centimeter}}},
     };
 
     return std::make_shared<CutoffParams>(std::move(input));
@@ -96,38 +96,38 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
     input.options.secondary_stack_factor = this->secondary_stack_factor();
 
     ImportProcess compton_data;
-    compton_data.particle_pdg  = pdg::gamma().get();
+    compton_data.particle_pdg = pdg::gamma().get();
     compton_data.secondary_pdg = pdg::electron().get();
-    compton_data.process_type  = ImportProcessType::electromagnetic;
+    compton_data.process_type = ImportProcessType::electromagnetic;
     compton_data.process_class = ImportProcessClass::compton;
-    compton_data.models        = {ImportModelClass::klein_nishina};
+    compton_data.models = {ImportModelClass::klein_nishina};
     {
         ImportPhysicsTable lambda;
-        lambda.table_type      = ImportTableType::lambda;
-        lambda.x_units         = ImportUnits::mev;
-        lambda.y_units         = ImportUnits::cm_inv;
+        lambda.table_type = ImportTableType::lambda;
+        lambda.x_units = ImportUnits::mev;
+        lambda.y_units = ImportUnits::cm_inv;
         lambda.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1e-4, 1.0}, // energy
-             {1e1, 1e0}}, // lambda (detector)
+             {1e-4, 1.0},  // energy
+             {1e1, 1e0}},  // lambda (detector)
             {ImportPhysicsVectorType::log,
-             {1e-4, 1.0},     // energy
-             {1e-10, 1e-10}}, // lambda (world)
+             {1e-4, 1.0},  // energy
+             {1e-10, 1e-10}},  // lambda (world)
         };
         compton_data.tables.push_back(std::move(lambda));
     }
     {
         ImportPhysicsTable lambdap;
-        lambdap.table_type      = ImportTableType::lambda_prim;
-        lambdap.x_units         = ImportUnits::mev;
-        lambdap.y_units         = ImportUnits::cm_mev_inv;
+        lambdap.table_type = ImportTableType::lambda_prim;
+        lambdap.x_units = ImportUnits::mev;
+        lambdap.y_units = ImportUnits::cm_mev_inv;
         lambdap.physics_vectors = {
             {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},    // energy
-             {1e0, 1e-2, 1e-4}}, // lambda * energy (detector)
+             {1.0, 1e4, 1e8},  // energy
+             {1e0, 1e-2, 1e-4}},  // lambda * energy (detector)
             {ImportPhysicsVectorType::log,
-             {1.0, 1e4, 1e8},        // energy
-             {1e-10, 1e-10, 1e-10}}, // lambda * energy (world)
+             {1.0, 1e4, 1e8},  // energy
+             {1e-10, 1e-10, 1e-10}},  // lambda * energy (world)
         };
         compton_data.tables.push_back(std::move(lambdap));
     }
@@ -148,7 +148,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
 auto SimpleTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
-    input.capacity   = 4096;
+    input.capacity = 4096;
     input.max_events = 4096;
     return std::make_shared<TrackInitParams>(input);
 }
@@ -163,5 +163,5 @@ auto SimpleTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

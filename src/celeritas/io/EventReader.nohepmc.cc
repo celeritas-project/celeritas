@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,12 +8,12 @@
 #include "EventReader.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/phys/Primary.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-EventReader::EventReader(const char*, SPConstParticles)
+EventReader::EventReader(char const*, SPConstParticles)
 {
     CELER_NOT_CONFIGURED("HepMC3");
 }
@@ -27,4 +27,4 @@ auto EventReader::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

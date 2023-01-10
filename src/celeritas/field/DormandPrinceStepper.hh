@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -74,8 +74,8 @@ class DormandPrinceStepper
     }
 
     // Adaptive step size control
-    CELER_FUNCTION result_type operator()(real_type       step,
-                                          const OdeState& beg_state) const;
+    CELER_FUNCTION result_type operator()(real_type step,
+                                          OdeState const& beg_state) const;
 
   private:
     // Functor to calculate the force applied to a particle
@@ -90,8 +90,8 @@ class DormandPrinceStepper
  */
 template<class E>
 CELER_FUNCTION auto
-DormandPrinceStepper<E>::operator()(real_type       step,
-                                    const OdeState& beg_state) const
+DormandPrinceStepper<E>::operator()(real_type step,
+                                    OdeState const& beg_state) const
     -> result_type
 {
     using celeritas::axpy;
@@ -142,26 +142,26 @@ DormandPrinceStepper<E>::operator()(real_type       step,
     result_type result;
 
     // First step
-    OdeState k1    = calc_rhs_(beg_state);
+    OdeState k1 = calc_rhs_(beg_state);
     OdeState state = beg_state;
     axpy(a11 * step, k1, &state);
 
     // Second step
     OdeState k2 = calc_rhs_(state);
-    state       = beg_state;
+    state = beg_state;
     axpy(a21 * step, k1, &state);
     axpy(a22 * step, k2, &state);
 
     // Third step
     OdeState k3 = calc_rhs_(state);
-    state       = beg_state;
+    state = beg_state;
     axpy(a31 * step, k1, &state);
     axpy(a32 * step, k2, &state);
     axpy(a33 * step, k3, &state);
 
     // Fourth step
     OdeState k4 = calc_rhs_(state);
-    state       = beg_state;
+    state = beg_state;
     axpy(a41 * step, k1, &state);
     axpy(a42 * step, k2, &state);
     axpy(a43 * step, k3, &state);
@@ -169,7 +169,7 @@ DormandPrinceStepper<E>::operator()(real_type       step,
 
     // Fifth step
     OdeState k5 = calc_rhs_(state);
-    state       = beg_state;
+    state = beg_state;
     axpy(a51 * step, k1, &state);
     axpy(a52 * step, k2, &state);
     axpy(a53 * step, k3, &state);
@@ -177,7 +177,7 @@ DormandPrinceStepper<E>::operator()(real_type       step,
     axpy(a55 * step, k5, &state);
 
     // Sixth step
-    OdeState k6      = calc_rhs_(state);
+    OdeState k6 = calc_rhs_(state);
     result.end_state = beg_state;
     axpy(a61 * step, k1, &result.end_state);
     axpy(a63 * step, k3, &result.end_state);
@@ -199,7 +199,7 @@ DormandPrinceStepper<E>::operator()(real_type       step,
 
     // The mid point
     real_type half_step = step / real_type(2);
-    result.mid_state    = beg_state;
+    result.mid_state = beg_state;
     axpy(c71 * half_step, k1, &result.mid_state);
     axpy(c73 * half_step, k3, &result.mid_state);
     axpy(c74 * half_step, k4, &result.mid_state);
@@ -211,4 +211,4 @@ DormandPrinceStepper<E>::operator()(real_type       step,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorOptionsIO.json.hh"
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
+#include "corecel/Assert.hh"
 #include "corecel/cont/Array.json.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/io/StringEnumMap.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {
@@ -19,17 +28,17 @@ namespace
 /*!
  * Get a string corresponding to the distribution type.
  */
-const char* to_cstring(DistributionSelection value)
+char const* to_cstring(DistributionSelection value)
 {
     CELER_EXPECT(value != DistributionSelection::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "delta",
         "isotropic",
         "box",
     };
     static_assert(
-        static_cast<int>(DistributionSelection::size_) * sizeof(const char*)
+        static_cast<int>(DistributionSelection::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -37,12 +46,12 @@ const char* to_cstring(DistributionSelection value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
-void from_json(const nlohmann::json& j, DistributionSelection& value)
+void from_json(nlohmann::json const& j, DistributionSelection& value)
 {
     static auto from_string
         = StringEnumMap<DistributionSelection>::from_cstring_func(
@@ -50,18 +59,18 @@ void from_json(const nlohmann::json& j, DistributionSelection& value)
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, const DistributionSelection& value)
+void to_json(nlohmann::json& j, DistributionSelection const& value)
 {
     j = std::string{to_cstring(value)};
 }
 
-void from_json(const nlohmann::json& j, DistributionOptions& opts)
+void from_json(nlohmann::json const& j, DistributionOptions& opts)
 {
     j.at("distribution").get_to(opts.distribution);
     j.at("params").get_to(opts.params);
 }
 
-void to_json(nlohmann::json& j, const DistributionOptions& opts)
+void to_json(nlohmann::json& j, DistributionOptions const& opts)
 {
     j = nlohmann::json{{"distribution", opts.distribution},
                        {"params", opts.params}};
@@ -71,10 +80,19 @@ void to_json(nlohmann::json& j, const DistributionOptions& opts)
 /*!
  * Read options from JSON.
  */
-void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
+void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
     std::vector<int> pdg;
-    j.at("pdg").get_to(pdg);
+    auto&& pdg_input = j.at("pdg");
+    if (pdg_input.is_array())
+    {
+        pdg_input.get_to(pdg);
+    }
+    else
+    {
+        // Backward compatibility: single PDG
+        pdg = {pdg_input.get<int>()};
+    }
     opts.pdg.reserve(pdg.size());
     for (int i : pdg)
     {
@@ -84,16 +102,46 @@ void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
     }
     j.at("num_events").get_to(opts.num_events);
     j.at("primaries_per_event").get_to(opts.primaries_per_event);
-    j.at("energy").get_to(opts.energy);
-    j.at("position").get_to(opts.position);
-    j.at("direction").get_to(opts.direction);
+    auto&& energy_input = j.at("energy");
+    if (energy_input.is_object())
+    {
+        energy_input.get_to(opts.energy);
+    }
+    else
+    {
+        // Backward compatibility: monoenergetic energy
+        opts.energy.distribution = DistributionSelection::delta;
+        opts.energy.params = {energy_input.get<double>()};
+    }
+    auto&& pos_input = j.at("position");
+    if (pos_input.is_object())
+    {
+        pos_input.get_to(opts.position);
+    }
+    else
+    {
+        // Backward compatibility: point source
+        opts.position.distribution = DistributionSelection::delta;
+        pos_input.get_to(opts.position.params);
+    }
+    auto&& dir_input = j.at("direction");
+    if (dir_input.is_object())
+    {
+        dir_input.get_to(opts.direction);
+    }
+    else
+    {
+        // Backward compatibility: point source
+        opts.direction.distribution = DistributionSelection::delta;
+        dir_input.get_to(opts.direction.params);
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, const PrimaryGeneratorOptions& opts)
+void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
 {
     std::vector<int> pdg(opts.pdg.size());
     std::transform(
@@ -109,4 +157,4 @@ void to_json(nlohmann::json& j, const PrimaryGeneratorOptions& opts)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

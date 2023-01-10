@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,10 +8,15 @@
 #include "EPlusAnnihilationProcess.hh"
 
 #include <memory>
+#include <type_traits>
 #include <utility>
 
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/phys/Model.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {
@@ -20,7 +25,7 @@ namespace celeritas
  * Construct from host data.
  */
 EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
-                                                   Options          options)
+                                                   Options options)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
     , options_(options)
@@ -64,4 +69,4 @@ std::string EPlusAnnihilationProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

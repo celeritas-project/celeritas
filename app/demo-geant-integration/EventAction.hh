@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <G4UserEventAction.hh>
 
 #include "accel/LocalTransporter.hh"
@@ -17,7 +18,8 @@ namespace demo_geant
 /*!
  * Manage begin- and end-of-event setup.
  *
- * This class should be local to a thread/task/stream.
+ * This class is local to a thread/task/stream, but it shares \c
+ * LocalTransporter with other user actions on the current thread.
  */
 class EventAction final : public G4UserEventAction
 {
@@ -30,12 +32,12 @@ class EventAction final : public G4UserEventAction
   public:
     explicit EventAction(SPTransporter transport);
 
-    void BeginOfEventAction(const G4Event* event) final;
-    void EndOfEventAction(const G4Event* event) final;
+    void BeginOfEventAction(G4Event const* event) final;
+    void EndOfEventAction(G4Event const* event) final;
 
   private:
     SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

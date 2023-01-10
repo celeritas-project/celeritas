@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,6 +16,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/Primary.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 #include "celeritas/track/TrackInitData.hh"
 
@@ -40,9 +41,9 @@ class ActionSequence;
  */
 struct StepperInput
 {
-    std::shared_ptr<const CoreParams> params;
-    size_type                         num_track_slots{};
-    bool                              sync{false};
+    std::shared_ptr<CoreParams const> params;
+    size_type num_track_slots{};
+    bool sync{false};
 
     //! True if defined
     explicit operator bool() const { return params && num_track_slots > 0; }
@@ -54,8 +55,8 @@ struct StepperInput
  */
 struct StepperResult
 {
-    size_type queued{}; //!< Pending track initializers at end of step
-    size_type active{}; //!< Active tracks at start of step
+    size_type queued{};  //!< Pending track initializers at end of step
+    size_type active{};  //!< Active tracks at start of step
     size_type alive{};  //!< Active and alive at end of step
 
     //! True if more steps need to be run
@@ -69,10 +70,10 @@ class StepperInterface
   public:
     //!@{
     //! \name Type aliases
-    using Input            = StepperInput;
-    using ActionSequence   = detail::ActionSequence;
-    using SpanConstPrimary = Span<const Primary>;
-    using result_type      = StepperResult;
+    using Input = StepperInput;
+    using ActionSequence = detail::ActionSequence;
+    using SpanConstPrimary = Span<Primary const>;
+    using result_type = StepperResult;
     //!@}
 
   public:
@@ -86,7 +87,7 @@ class StepperInterface
     virtual explicit operator bool() const = 0;
 
     //! Get action sequence for timing diagnostics
-    virtual const ActionSequence& actions() const = 0;
+    virtual ActionSequence const& actions() const = 0;
 
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
@@ -118,11 +119,11 @@ class Stepper final : public StepperInterface
 
     //!@{
     //! Prohibit copying but allow moving and empty construction
-    Stepper()                          = default;
-    Stepper(Stepper&&)                 = default;
-    Stepper(const Stepper&)            = delete;
-    Stepper& operator=(Stepper&&)      = default;
-    Stepper& operator=(const Stepper&) = delete;
+    Stepper() = default;
+    Stepper(Stepper&&) = default;
+    Stepper(Stepper const&) = delete;
+    Stepper& operator=(Stepper&&) = default;
+    Stepper& operator=(Stepper const&) = delete;
     //!@}
 
     // Default destructor
@@ -138,11 +139,11 @@ class Stepper final : public StepperInterface
     explicit operator bool() const final { return static_cast<bool>(states_); }
 
     //! Get action sequence for timing diagnostics
-    const ActionSequence& actions() const final { return *actions_; }
+    ActionSequence const& actions() const final { return *actions_; }
 
   private:
     // Params and call sequence
-    std::shared_ptr<const CoreParams>       params_;
+    std::shared_ptr<CoreParams const> params_;
     std::shared_ptr<detail::ActionSequence> actions_;
 
     // State data
@@ -153,4 +154,4 @@ class Stepper final : public StepperInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

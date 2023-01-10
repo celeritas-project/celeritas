@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ class LoggerMessage
     ~LoggerMessage();
 
     // Default move construct and assignment
-    LoggerMessage(LoggerMessage&&)            = default;
+    LoggerMessage(LoggerMessage&&) = default;
     LoggerMessage& operator=(LoggerMessage&&) = default;
 
     // Write the object to the stream if applicable
@@ -57,9 +57,9 @@ class LoggerMessage
     inline void setstate(std::ostream::iostate state);
 
   private:
-    LogHandler*                   handle_;
-    Provenance                    prov_;
-    LogLevel                      lev_;
+    LogHandler* handle_;
+    Provenance prov_;
+    LogLevel lev_;
     std::unique_ptr<std::ostream> os_;
 };
 
@@ -103,5 +103,5 @@ void LoggerMessage::setstate(std::ostream::iostate state)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

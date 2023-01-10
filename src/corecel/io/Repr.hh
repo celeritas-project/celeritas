@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,7 +39,7 @@ namespace celeritas
  * will be printed.
  */
 template<class T>
-detail::Repr<T> repr(const T& obj, const char* name = nullptr)
+detail::Repr<T> repr(T const& obj, char const* name = nullptr)
 {
     return {obj, name};
 }
@@ -56,18 +56,18 @@ detail::Repr<T> repr(const T& obj, const char* name = nullptr)
 template<class T>
 struct ReprTraits
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "UNKNOWN", name);
     }
     static void init(std::ostream&) {}
-    static void print_value(std::ostream& os, const T& value) { os << value; }
+    static void print_value(std::ostream& os, T const& value) { os << value; }
 };
 
 template<>
 struct ReprTraits<float>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "float", name);
     }
@@ -81,7 +81,7 @@ struct ReprTraits<float>
 template<>
 struct ReprTraits<double>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "double", name);
     }
@@ -92,7 +92,7 @@ struct ReprTraits<double>
 template<>
 struct ReprTraits<char>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "char", name);
     }
@@ -108,7 +108,7 @@ struct ReprTraits<char>
 template<>
 struct ReprTraits<unsigned char>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "unsigned char", name);
     }
@@ -122,7 +122,7 @@ struct ReprTraits<unsigned char>
 template<>
 struct ReprTraits<bool>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "bool", name);
     }
@@ -133,7 +133,7 @@ struct ReprTraits<bool>
 template<>
 struct ReprTraits<int>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "int", name);
     }
@@ -144,7 +144,7 @@ struct ReprTraits<int>
 template<>
 struct ReprTraits<unsigned int>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "unsigned int", name);
     }
@@ -158,7 +158,7 @@ struct ReprTraits<unsigned int>
 template<>
 struct ReprTraits<long>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "long", name);
     }
@@ -172,7 +172,7 @@ struct ReprTraits<long>
 template<>
 struct ReprTraits<unsigned long>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "unsigned long", name);
     }
@@ -186,7 +186,7 @@ struct ReprTraits<unsigned long>
 template<>
 struct ReprTraits<long long>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "long long", name);
     }
@@ -200,7 +200,7 @@ struct ReprTraits<long long>
 template<>
 struct ReprTraits<unsigned long long>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "unsigned long long", name);
     }
@@ -214,13 +214,13 @@ struct ReprTraits<unsigned long long>
 template<>
 struct ReprTraits<std::string>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "std::string", name);
     }
 
     static void init(std::ostream&) {}
-    static void print_value(std::ostream& os, const std::string& value)
+    static void print_value(std::ostream& os, std::string const& value)
     {
         std::streamsize width = os.width();
 
@@ -238,14 +238,14 @@ struct ReprTraits<std::string>
 template<>
 struct ReprTraits<char*>
 {
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_simple_type(os, "const char*", name);
     }
 
     static void init(std::ostream&) {}
 
-    static void print_value(std::ostream& os, const char* value)
+    static void print_value(std::ostream& os, char const* value)
     {
         if (value)
         {
@@ -264,7 +264,7 @@ struct ReprTraits<char[N]> : ReprTraits<char*>
 };
 
 template<>
-struct ReprTraits<const char*> : ReprTraits<char*>
+struct ReprTraits<char const*> : ReprTraits<char*>
 {
 };
 
@@ -275,7 +275,7 @@ struct ReprTraits<std::pair<T1, T2>>
     using RT1 = ReprTraits<T1>;
     using RT2 = ReprTraits<T2>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         os << "std::pair<";
         RT1::print_type(os);
@@ -294,7 +294,7 @@ struct ReprTraits<std::pair<T1, T2>>
         RT2::init(os);
     }
 
-    static void print_value(std::ostream& os, const std::pair<T1, T2>& value)
+    static void print_value(std::ostream& os, std::pair<T1, T2> const& value)
     {
         os << '{';
         RT1::print_value(os, value.first);
@@ -310,7 +310,7 @@ struct ReprTraits<OpaqueId<V, S>>
 {
     using RT = ReprTraits<S>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         os << "OpaqueID<?>";
         if (name)
@@ -321,7 +321,7 @@ struct ReprTraits<OpaqueId<V, S>>
 
     static void init(std::ostream& os) { RT::init(os); }
 
-    static void print_value(std::ostream& os, const OpaqueId<V, S>& value)
+    static void print_value(std::ostream& os, OpaqueId<V, S> const& value)
     {
         os << '{';
         if (value)
@@ -338,7 +338,7 @@ struct ReprTraits<Quantity<U, V>>
 {
     using RT = ReprTraits<V>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         os << "Quantity<?,?>";
         if (name)
@@ -349,7 +349,7 @@ struct ReprTraits<Quantity<U, V>>
 
     static void init(std::ostream& os) { RT::init(os); }
 
-    static void print_value(std::ostream& os, const Quantity<U, V>& q)
+    static void print_value(std::ostream& os, Quantity<U, V> const& q)
     {
         os << '{';
         RT::print_value(os, q.value());
@@ -363,14 +363,14 @@ struct ReprTraits<Quantity<U, V>>
 template<class Container>
 struct ContTraits
 {
-    using size_type  = typename Container::size_type;
+    using size_type = typename Container::size_type;
     using value_type = std::decay_t<typename Container::value_type>;
 };
 
 template<class T, std::size_t N>
 struct ContTraits<T[N]>
 {
-    using size_type  = std::size_t;
+    using size_type = std::size_t;
     using value_type = std::decay_t<T>;
 };
 
@@ -381,11 +381,11 @@ template<class Container>
 struct ContainerReprTraits
 {
     using value_type = typename ContTraits<Container>::value_type;
-    using RT         = ReprTraits<value_type>;
+    using RT = ReprTraits<value_type>;
 
     static void init(std::ostream& os) { RT::init(os); }
 
-    static void print_value(std::ostream& os, const Container& data)
+    static void print_value(std::ostream& os, Container const& data)
     {
         os << '{'
            << join_stream(
@@ -399,7 +399,7 @@ struct ReprTraits<std::vector<T>> : public ContainerReprTraits<std::vector<T>>
 {
     using value_type = std::decay_t<T>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "std::vector", name);
     }
@@ -410,7 +410,7 @@ struct ReprTraits<Array<T, N>> : public ContainerReprTraits<Array<T, N>>
 {
     using value_type = std::decay_t<T>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         os << "Array<";
         ReprTraits<value_type>::print_type(os);
@@ -427,7 +427,7 @@ struct ReprTraits<T[N]> : public ContainerReprTraits<T[N]>
 {
     using value_type = std::decay_t<T>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         os << "Array<";
         ReprTraits<value_type>::print_type(os);
@@ -444,7 +444,7 @@ struct ReprTraits<Span<T, N>> : public ContainerReprTraits<Span<T, N>>
 {
     using value_type = std::decay_t<T>;
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "Span", name);
     }
@@ -456,11 +456,11 @@ struct ReprTraits<Collection<T, W, MemSpace::host, I>>
 {
     using ContainerT = Collection<T, W, MemSpace::host, I>;
     using value_type = typename ContainerT::value_type;
-    using RT         = ReprTraits<value_type>;
+    using RT = ReprTraits<value_type>;
 
     static void init(std::ostream& os) { RT::init(os); }
 
-    static void print_value(std::ostream& os, const ContainerT& data)
+    static void print_value(std::ostream& os, ContainerT const& data)
     {
         auto view = data[typename ContainerT::AllItemsT{}];
         os << '{'
@@ -469,7 +469,7 @@ struct ReprTraits<Collection<T, W, MemSpace::host, I>>
            << '}';
     }
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "Collection", name);
     }
@@ -484,17 +484,17 @@ struct ReprTraits<Collection<T, W, MemSpace::device, I>>
 
     static void init(std::ostream&) {}
 
-    static void print_value(std::ostream& os, const ContainerT& data)
+    static void print_value(std::ostream& os, ContainerT const& data)
     {
         auto view = data[typename ContainerT::AllItemsT{}];
         os << "<device collection, size=" << data.size() << '>';
     }
 
-    static void print_type(std::ostream& os, const char* name = nullptr)
+    static void print_type(std::ostream& os, char const* name = nullptr)
     {
         detail::print_container_type<value_type>(os, "Collection", name);
     }
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

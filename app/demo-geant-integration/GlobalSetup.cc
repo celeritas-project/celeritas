@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GlobalSetup.hh"
 
+#include <utility>
 #include <G4GenericMessenger.hh>
 
 #include "corecel/Assert.hh"
@@ -30,7 +31,7 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
-    options_   = std::make_shared<SetupOptions>();
+    options_ = std::make_shared<SetupOptions>();
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");
 
@@ -109,8 +110,17 @@ void GlobalSetup::SetAlongStep(SetupOptions::AlongStepFactory asf)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Set the list of ignored EM process names.
+ */
+void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
+{
+    options_->ignore_processes = std::move(ignored);
+}
+
+//---------------------------------------------------------------------------//
 //! Default destructor
 GlobalSetup::~GlobalSetup() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

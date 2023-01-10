@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,14 +34,14 @@ using StateRef
 //---------------------------------------------------------------------------//
 struct HasDetector
 {
-    CELER_FORCEINLINE_FUNCTION bool operator()(const DetectorId& d)
+    CELER_FORCEINLINE_FUNCTION bool operator()(DetectorId const& d)
     {
         return static_cast<bool>(d);
     }
 };
 
 //---------------------------------------------------------------------------//
-size_type count_num_valid(const DVecDetector& orig_ids)
+size_type count_num_valid(DVecDetector const& orig_ids)
 {
     return thrust::count_if(
         thrust::device, orig_ids.begin(), orig_ids.end(), HasDetector{});
@@ -67,10 +67,10 @@ struct PointerTransformer<OpaqueId<V, S>>
 
 //---------------------------------------------------------------------------//
 template<class T>
-void assign_field(std::vector<T>*     dst,
-                  const StateRef<T>&  src,
-                  const DVecDetector& orig_ids,
-                  size_type           size)
+void assign_field(std::vector<T>* dst,
+                  StateRef<T> const& src,
+                  DVecDetector const& orig_ids,
+                  size_type size)
 {
     if (src.empty())
     {
@@ -97,7 +97,7 @@ void assign_field(std::vector<T>*     dst,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -108,7 +108,7 @@ void assign_field(std::vector<T>*     dst,
  */
 template<>
 void copy_steps<MemSpace::device>(
-    DetectorStepOutput*                                          output,
+    DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
     CELER_EXPECT(output);
@@ -153,4 +153,4 @@ void copy_steps<MemSpace::device>(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

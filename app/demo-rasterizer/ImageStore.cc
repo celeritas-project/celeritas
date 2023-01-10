@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     CELER_ASSERT(width_x > 0 && width_y > 0);
 
     // Set number of pixels in each direction.
-    auto num_y   = params.vertical_pixels;
+    auto num_y = params.vertical_pixels;
     pixel_width_ = width_y / num_y;
     auto num_x = std::max<unsigned int>(std::ceil(width_x / pixel_width_), 1);
 
@@ -62,7 +62,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     }
 
     // Allocate storage
-    dims_  = {num_y, num_x};
+    dims_ = {num_y, num_x};
     image_ = celeritas::DeviceVector<int>(num_y * num_x);
     CELER_ENSURE(!image_.empty());
 }
@@ -75,11 +75,11 @@ ImageData ImageStore::host_interface()
 {
     ImageData result;
 
-    result.origin      = origin_;
-    result.down_ax     = down_ax_;
-    result.right_ax    = right_ax_;
+    result.origin = origin_;
+    result.down_ax = down_ax_;
+    result.right_ax = right_ax_;
     result.pixel_width = pixel_width_;
-    result.dims        = dims_;
+    result.dims = dims_;
 
     return result;
 }
@@ -92,12 +92,12 @@ ImageData ImageStore::device_interface()
 {
     ImageData result;
 
-    result.origin      = origin_;
-    result.down_ax     = down_ax_;
-    result.right_ax    = right_ax_;
+    result.origin = origin_;
+    result.down_ax = down_ax_;
+    result.right_ax = right_ax_;
     result.pixel_width = pixel_width_;
-    result.dims        = dims_;
-    result.image       = image_.device_ref();
+    result.dims = dims_;
+    result.image = image_.device_ref();
 
     return result;
 }
@@ -114,4 +114,4 @@ auto ImageStore::data_to_host() const -> VecInt
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

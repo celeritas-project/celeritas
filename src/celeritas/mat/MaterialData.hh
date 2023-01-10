@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
@@ -30,17 +31,17 @@ namespace celeritas
  */
 struct ElementRecord
 {
-    AtomicNumber   atomic_number; //!< Z number
-    units::AmuMass atomic_mass;   //!< Isotope-weighted average atomic mass
+    AtomicNumber atomic_number;  //!< Z number
+    units::AmuMass atomic_mass;  //!< Isotope-weighted average atomic mass
 
     // COMPUTED PROPERTIES
 
-    real_type cbrt_z   = 0; //!< Z^{1/3}
-    real_type cbrt_zzp = 0; //!< (Z (Z + 1))^{1/3}
-    real_type log_z    = 0; //!< log Z
+    real_type cbrt_z = 0;  //!< Z^{1/3}
+    real_type cbrt_zzp = 0;  //!< (Z (Z + 1))^{1/3}
+    real_type log_z = 0;  //!< log Z
 
-    real_type coulomb_correction   = 0; //!< f(Z)
-    real_type mass_radiation_coeff = 0; //!< 1/X_0 (bremsstrahlung)
+    real_type coulomb_correction = 0;  //!< f(Z)
+    real_type mass_radiation_coeff = 0;  //!< 1/X_0 (bremsstrahlung)
 };
 
 //---------------------------------------------------------------------------//
@@ -52,7 +53,7 @@ struct ElementRecord
 struct MatElementComponent
 {
     ElementId element;  //!< Index in MaterialParams elements
-    real_type fraction; //!< Fraction of number density
+    real_type fraction;  //!< Fraction of number density
 };
 
 //---------------------------------------------------------------------------//
@@ -66,18 +67,18 @@ struct MatElementComponent
  */
 struct MaterialRecord
 {
-    real_type   number_density; //!< Atomic number density [1/cm^3]
-    real_type   temperature;    //!< Temperature [K]
-    MatterState matter_state;   //!< Solid, liquid, gas
-    ItemRange<MatElementComponent> elements; //!< Element components
+    real_type number_density;  //!< Atomic number density [1/cm^3]
+    real_type temperature;  //!< Temperature [K]
+    MatterState matter_state;  //!< Solid, liquid, gas
+    ItemRange<MatElementComponent> elements;  //!< Element components
 
     // COMPUTED PROPERTIES
 
-    real_type           density;          //!< Density [g/cm^3]
-    real_type           electron_density; //!< Electron number density [1/cm^3]
-    real_type           rad_length;       //!< Radiation length [cm]
-    units::MevEnergy    mean_exc_energy;  //!< Mean excitation energy [MeV]
-    units::LogMevEnergy log_mean_exc_energy; //!< Log mean excitation energy
+    real_type density;  //!< Density [g/cm^3]
+    real_type electron_density;  //!< Electron number density [1/cm^3]
+    real_type rad_length;  //!< Radiation length [cm]
+    units::MevEnergy mean_exc_energy;  //!< Mean excitation energy [MeV]
+    units::LogMevEnergy log_mean_exc_energy;  //!< Log mean excitation energy
 };
 
 //---------------------------------------------------------------------------//
@@ -96,9 +97,9 @@ struct MaterialParamsData
     template<class T>
     using Items = celeritas::Collection<T, W, M>;
 
-    Items<ElementRecord>          elements;
-    Items<MatElementComponent>    elcomponents;
-    Items<MaterialRecord>         materials;
+    Items<ElementRecord> elements;
+    Items<MatElementComponent> elcomponents;
+    Items<MaterialRecord> materials;
     ElementComponentId::size_type max_element_components{};
 
     //// MEMBER FUNCTIONS ////
@@ -111,12 +112,12 @@ struct MaterialParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    MaterialParamsData& operator=(const MaterialParamsData<W2, M2>& other)
+    MaterialParamsData& operator=(MaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        elements               = other.elements;
-        elcomponents           = other.elcomponents;
-        materials              = other.materials;
+        elements = other.elements;
+        elcomponents = other.elcomponents;
+        materials = other.materials;
         max_element_components = other.max_element_components;
         return *this;
     }
@@ -130,7 +131,7 @@ struct MaterialParamsData
  */
 struct MaterialTrackState
 {
-    MaterialId material_id; //!< Current material being tracked
+    MaterialId material_id;  //!< Current material being tracked
 };
 
 //---------------------------------------------------------------------------//
@@ -155,7 +156,8 @@ struct MaterialStateData
     using Items = celeritas::StateCollection<T, W, M>;
 
     Items<MaterialTrackState> state;
-    Items<real_type> element_scratch; // 2D array: [num states][max components]
+    Items<real_type> element_scratch;  // 2D array: [num states][max
+                                       // components]
 
     //! Whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
@@ -168,7 +170,7 @@ struct MaterialStateData
     MaterialStateData& operator=(MaterialStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state           = other.state;
+        state = other.state;
         element_scratch = other.element_scratch;
         return *this;
     }
@@ -180,8 +182,8 @@ struct MaterialStateData
  */
 template<MemSpace M>
 inline void resize(MaterialStateData<Ownership::value, M>* data,
-                   const HostCRef<MaterialParamsData>&     params,
-                   size_type                               size)
+                   HostCRef<MaterialParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&data->state, size);
@@ -189,4 +191,4 @@ inline void resize(MaterialStateData<Ownership::value, M>* data,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

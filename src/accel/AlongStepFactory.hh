@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+
 #include "celeritas/geo/GeoParamsFwd.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -35,13 +36,13 @@ struct AlongStepFactoryInput
 {
     ActionId action_id;
 
-    std::shared_ptr<const GeoParams>         geometry;
-    std::shared_ptr<const MaterialParams>    material;
-    std::shared_ptr<const GeoMaterialParams> geomaterial;
-    std::shared_ptr<const ParticleParams>    particle;
-    std::shared_ptr<const CutoffParams>      cutoff;
-    std::shared_ptr<const PhysicsParams>     physics;
-    std::shared_ptr<const ImportData>        imported;
+    std::shared_ptr<GeoParams const> geometry;
+    std::shared_ptr<MaterialParams const> material;
+    std::shared_ptr<GeoMaterialParams const> geomaterial;
+    std::shared_ptr<ParticleParams const> particle;
+    std::shared_ptr<CutoffParams const> cutoff;
+    std::shared_ptr<PhysicsParams const> physics;
+    std::shared_ptr<ImportData const> imported;
 
     //! True if all data is assigned
     explicit operator bool() const
@@ -73,8 +74,8 @@ class AlongStepFactoryInterface
   public:
     //!@{
     //! \name Type aliases
-    using argument_type = const AlongStepFactoryInput&;
-    using result_type = std::shared_ptr<const ExplicitActionInterface>;
+    using argument_type = AlongStepFactoryInput const&;
+    using result_type = std::shared_ptr<ExplicitActionInterface const>;
     //!@}
 
   public:
@@ -85,4 +86,4 @@ class AlongStepFactoryInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

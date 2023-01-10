@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,8 +15,8 @@ namespace demo_loop
 /*!
  * Count the steps per track for each particle type.
  */
-void count_steps(const CoreParamsHostRef&              params,
-                 const CoreStateHostRef&               states,
+void count_steps(CoreParamsHostRef const& params,
+                 CoreStateHostRef const& states,
                  StepDiagnosticDataRef<MemSpace::host> data)
 {
     StepLauncher<MemSpace::host> launch(params, states, data);
@@ -25,4 +25,4 @@ void count_steps(const CoreParamsHostRef&              params,
         launch(tid);
     }
 }
-} // namespace demo_loop
+}  // namespace demo_loop

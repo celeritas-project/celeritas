@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,7 +27,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
+auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 {
     CELER_EXPECT(inp);
     CELER_EXPECT(num_tracks > 0);
@@ -44,10 +44,10 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
         // Create primary from input (separate event IDs)
         Primary p;
         p.particle_id = inp.particle_id;
-        p.energy      = inp.energy;
-        p.position    = inp.position;
-        p.direction   = inp.direction;
-        p.time        = inp.time;
+        p.energy = inp.energy;
+        p.position = inp.position;
+        p.direction = inp.direction;
+        p.time = inp.time;
 
         std::vector<Primary> primaries(num_tracks, p);
         for (auto i : range(num_tracks))
@@ -65,34 +65,34 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
-        auto          phys = track.make_physics_view();
+        auto phys = track.make_physics_view();
         phys.interaction_mfp(inp.phys_mfp);
     }
 
-    const auto& am = *this->action_reg();
+    auto const& am = *this->action_reg();
     {
         // Call pre-step action to set range, physics step
         auto prestep_action_id = am.find_action("pre-step");
         CELER_ASSERT(prestep_action_id);
-        const auto& prestep_action
-            = dynamic_cast<const ExplicitActionInterface&>(
+        auto const& prestep_action
+            = dynamic_cast<ExplicitActionInterface const&>(
                 *am.action(prestep_action_id));
         prestep_action.execute(core_ref);
 
         // Call along-step action
-        const auto& along_step = *this->along_step();
+        auto const& along_step = *this->along_step();
         along_step.execute(core_ref);
     }
 
     // Process output
-    RunResult               result;
+    RunResult result;
     std::map<ActionId, int> actions;
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
-        auto          sim      = track.make_sim_view();
-        auto          particle = track.make_particle_view();
-        auto          geo      = track.make_geo_view();
+        auto sim = track.make_sim_view();
+        auto particle = track.make_particle_view();
+        auto geo = track.make_geo_view();
 
         result.eloss += value_as<MevEnergy>(inp.energy)
                         - value_as<MevEnergy>(particle.energy());
@@ -122,7 +122,7 @@ auto AlongStepTestBase::run(const Input& inp, size_type num_tracks) -> RunResult
            << join_stream(actions.begin(),
                           actions.end(),
                           ", ",
-                          [&am, norm](std::ostream& os, const auto& kv) {
+                          [&am, norm](std::ostream& os, auto const& kv) {
                               os << '"' << am.id_to_label(kv.first)
                                  << "\": " << kv.second * norm;
                           })
@@ -159,5 +159,5 @@ void AlongStepTestBase::RunResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

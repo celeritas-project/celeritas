@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,28 +23,28 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Perform y <- ax + y
 template<class T, size_type N>
-inline CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y);
+inline CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<class T, size_type N>
-inline CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y);
+inline CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<class T>
 inline CELER_FUNCTION Array<T, 3>
-cross_product(const Array<T, 3>& x, const Array<T, 3>& y);
+cross_product(Array<T, 3> const& x, Array<T, 3> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
 template<class T, size_type N>
-inline CELER_FUNCTION T norm(const Array<T, N>& vec);
+inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
-inline CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y);
+inline CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
@@ -60,12 +60,12 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi);
 // Rotate the direction 'dir' according to the reference rotation axis 'rot'
 template<class T>
 inline CELER_FUNCTION Array<T, 3>
-                      rotate(const Array<T, 3>& dir, const Array<T, 3>& rot);
+rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
 
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector
 template<class T, size_type N>
-inline CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v);
+inline CELER_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -74,7 +74,7 @@ inline CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v);
  * Increment a vector by another vector multiplied by a scalar.
  */
 template<class T, size_type N>
-CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
+CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
 {
     CELER_EXPECT(y);
     for (size_type i = 0; i != N; ++i)
@@ -88,7 +88,7 @@ CELER_FUNCTION void axpy(T a, const Array<T, N>& x, Array<T, N>* y)
  * Dot product of two vectors.
  */
 template<class T, size_type N>
-CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
+CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
 {
     T result{};
     for (size_type i = 0; i != N; ++i)
@@ -104,7 +104,7 @@ CELER_FUNCTION T dot_product(const Array<T, N>& x, const Array<T, N>& y)
  */
 template<class T>
 CELER_FUNCTION Array<T, 3>
-               cross_product(const Array<T, 3>& A, const Array<T, 3>& B)
+cross_product(Array<T, 3> const& A, Array<T, 3> const& B)
 {
     return {A[1] * B[2] - A[2] * B[1],
             A[2] * B[0] - A[0] * B[2],
@@ -116,7 +116,7 @@ CELER_FUNCTION Array<T, 3>
  * Calculate the Euclidian (2) norm of a vector.
  */
 template<class T, size_type N>
-CELER_FUNCTION T norm(const Array<T, N>& v)
+CELER_FUNCTION T norm(Array<T, N> const& v)
 {
     return std::sqrt(dot_product(v, v));
 }
@@ -126,7 +126,7 @@ CELER_FUNCTION T norm(const Array<T, N>& v)
  * Calculate the Euclidian (2) distance between two points.
  */
 template<class T, size_type N>
-CELER_FUNCTION T distance(const Array<T, N>& x, const Array<T, N>& y)
+CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 {
     T dist_sq = 0;
     for (size_type i = 0; i != N; ++i)
@@ -207,7 +207,7 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  */
 template<class T>
 inline CELER_FUNCTION Array<T, 3>
-                      rotate(const Array<T, 3>& dir, const Array<T, 3>& rot)
+rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     CELER_EXPECT(is_soft_unit_vector(rot));
@@ -231,8 +231,8 @@ inline CELER_FUNCTION Array<T, 3>
         // Typical case: far enough from z axis to assume the X and Y
         // components have a hypotenuse of 1 within epsilon tolerance
         const T inv_sintheta = 1 / (sintheta);
-        cosphi               = rot[X] * inv_sintheta;
-        sinphi               = rot[Y] * inv_sintheta;
+        cosphi = rot[X] * inv_sintheta;
+        sinphi = rot[Y] * inv_sintheta;
     }
     else if (sintheta > 0)
     {
@@ -267,7 +267,7 @@ inline CELER_FUNCTION Array<T, 3>
  * \endcode
  */
 template<class T, size_type N>
-CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v)
+CELER_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v)
 {
     // (1 + eps, 0, 0) is not quite allowed for 2*eps precision; increase
     SoftEqual<T> cmp{10 * detail::SoftEqualTraits<T>::rel_prec()};
@@ -275,4 +275,4 @@ CELER_FUNCTION bool is_soft_unit_vector(const Array<T, N>& v)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

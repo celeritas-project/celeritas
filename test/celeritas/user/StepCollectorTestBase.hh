@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ class StepCollectorTestBase : virtual public GlobalTestBase
     //!@{
     //! \name Type aliases
     using VecPrimary = std::vector<Primary>;
-    using VecString  = std::vector<std::string>;
+    using VecString = std::vector<std::string>;
     //!@}
 
   public:
@@ -28,5 +28,5 @@ class StepCollectorTestBase : virtual public GlobalTestBase
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

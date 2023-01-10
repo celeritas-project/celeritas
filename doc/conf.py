@@ -1,4 +1,4 @@
-# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -72,9 +72,9 @@ extensions = [
 
 if celer_config['options']['breathe']:
     extensions.append('breathe')
-    breathe_default_project = project
+    breathe_default_project = 'celeritas'
     breathe_projects = {
-        project: build_dir / 'xml'
+        breathe_default_project: build_dir / 'xml'
     }
     breathe_default_members = ('members',)
 

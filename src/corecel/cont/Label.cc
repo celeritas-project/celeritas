@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,13 +16,13 @@ namespace celeritas
 /*!
  * Construct a label from a Geant4 pointer-appended name.
  */
-Label Label::from_geant(const std::string& name)
+Label Label::from_geant(std::string const& name)
 {
     static const std::regex final_ptr_regex{"0x[0-9a-f]{4,16}$"};
 
     // Remove possible Geant uniquifying pointer-address suffix
     // (Geant4 does this automatically, but VGDML does not)
-    auto        split_point = name.end();
+    auto split_point = name.end();
     std::smatch ptr_match;
     if (std::regex_search(name, ptr_match, final_ptr_regex))
     {
@@ -40,7 +40,7 @@ Label Label::from_geant(const std::string& name)
 /*!
  * Construct a label from by splitting on a separator.
  */
-Label Label::from_separator(const std::string& name, char sep)
+Label Label::from_separator(std::string const& name, char sep)
 {
     auto pos = name.rfind(sep);
     if (pos == std::string::npos)
@@ -59,7 +59,7 @@ Label Label::from_separator(const std::string& name, char sep)
  *
  * \todo account for \c os.width .
  */
-std::ostream& operator<<(std::ostream& os, const Label& lab)
+std::ostream& operator<<(std::ostream& os, Label const& lab)
 {
     os << lab.name;
 
@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const Label& lab)
 /*!
  * Get the label as a string.
  */
-std::string to_string(const Label& lab)
+std::string to_string(Label const& lab)
 {
     std::ostringstream os;
     os << lab;
@@ -85,4 +85,4 @@ std::string to_string(const Label& lab)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

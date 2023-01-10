@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,11 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceInputBuilder.hh"
 
+#include <vector>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Label.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "orange/surf/SurfaceAction.hh"
 
 #include "OrangeInput.hh"
 
@@ -32,7 +31,7 @@ struct SurfaceDataSize
 };
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,7 +48,7 @@ SurfaceInputBuilder::SurfaceInputBuilder(SurfaceInput* input) : input_(input)
  * Insert a generic surface.
  */
 SurfaceId SurfaceInputBuilder::operator()(GenericSurfaceRef generic_surf,
-                                          const Label&      label)
+                                          Label const& label)
 {
     CELER_EXPECT(generic_surf);
 
@@ -66,4 +65,4 @@ SurfaceId SurfaceInputBuilder::operator()(GenericSurfaceRef generic_surf,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

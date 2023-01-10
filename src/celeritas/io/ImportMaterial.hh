@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,7 +36,7 @@ enum class ImportMaterialState
  */
 struct ImportProductionCut
 {
-    double energy; //!< [MeV]
+    double energy;  //!< [MeV]
     double range;  //!< [cm]
 };
 
@@ -46,9 +46,9 @@ struct ImportProductionCut
  */
 struct ImportMatElemComponent
 {
-    unsigned int element_id;    //!< Index of element in ImportElement
-    double       mass_fraction; //!< [g/cm^3]
-    double       number_fraction;
+    unsigned int element_id;  //!< Index of element in ImportElement
+    double mass_fraction;  //!< [g/cm^3]
+    double number_fraction;
 };
 
 //---------------------------------------------------------------------------//
@@ -65,17 +65,17 @@ struct ImportMaterial
     using VecComponent = std::vector<ImportMatElemComponent>;
     //!@}
 
-    std::string         name;
+    std::string name;
     ImportMaterialState state;
-    double              temperature;        //!< [K]
-    double              density;            //!< [g/cm^3]
-    double              electron_density;   //!< [1/cm^3]
-    double              number_density;     //!< [1/cm^3]
-    double              radiation_length;   //!< [cm]
-    double              nuclear_int_length; //!< [cm]
-    MapIntCutoff        pdg_cutoffs;        //!< Cutoff per PDG
-    VecComponent        elements;
+    double temperature;  //!< [K]
+    double density;  //!< [g/cm^3]
+    double electron_density;  //!< [1/cm^3]
+    double number_density;  //!< [1/cm^3]
+    double radiation_length;  //!< [cm]
+    double nuclear_int_length;  //!< [cm]
+    MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
+    VecComponent elements;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/BetheHeitlerModel.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -21,8 +22,8 @@ namespace celeritas
  * Construct from particles and imported Geant data.
  */
 GammaConversionProcess::GammaConversionProcess(SPConstParticles particles,
-                                               SPConstImported  process_data,
-                                               Options          options)
+                                               SPConstImported process_data,
+                                               Options options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,
@@ -64,4 +65,4 @@ std::string GammaConversionProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

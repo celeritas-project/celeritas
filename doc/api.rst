@@ -1,4 +1,4 @@
-.. Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
@@ -23,3 +23,4 @@ configuration attributes.
    api/corecel.rst
    api/orange.rst
    api/celeritas.rst
+   api/accel.rst

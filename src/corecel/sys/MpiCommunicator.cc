@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
 /*!
  * Initialize device in a round-robin fashion from a communicator.
  */
-Device make_device(const MpiCommunicator& comm)
+Device make_device(MpiCommunicator const& comm)
 {
     int num_devices = Device::num_devices();
     if (num_devices == 0)
@@ -53,4 +53,4 @@ Device make_device(const MpiCommunicator& comm)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

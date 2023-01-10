@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ class ZHelixStepper
 
     // Adaptive step size control
     CELER_FUNCTION auto
-    operator()(real_type step, const OdeState& beg_state) const -> result_type;
+    operator()(real_type step, OdeState const& beg_state) const -> result_type;
 
   private:
     //// DATA ////
@@ -64,11 +64,11 @@ class ZHelixStepper
     //// HELPER FUNCTIONS ////
 
     // Analytical solution for a given step along a helix trajectory
-    CELER_FUNCTION OdeState move(real_type       step,
-                                 real_type       radius,
-                                 Helicity        helicity,
-                                 const OdeState& beg_state,
-                                 const OdeState& rhs) const;
+    CELER_FUNCTION OdeState move(real_type step,
+                                 real_type radius,
+                                 Helicity helicity,
+                                 OdeState const& beg_state,
+                                 OdeState const& rhs) const;
 
     //// COMMON PROPERTIES ////
 
@@ -91,7 +91,7 @@ class ZHelixStepper
  */
 template<class E>
 CELER_FUNCTION auto
-ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
+ZHelixStepper<E>::operator()(real_type step, OdeState const& beg_state) const
     -> result_type
 {
     result_type result;
@@ -149,11 +149,11 @@ ZHelixStepper<E>::operator()(real_type step, const OdeState& beg_state) const
  * The solution for the parallel direction along the field is trivial.
  */
 template<class E>
-CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
-                                               real_type       radius,
-                                               Helicity        helicity,
-                                               const OdeState& beg_state,
-                                               const OdeState& rhs) const
+CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type step,
+                                               real_type radius,
+                                               Helicity helicity,
+                                               OdeState const& beg_state,
+                                               OdeState const& rhs) const
 {
     // Solution for position and momentum after moving delta_phi on the helix
     real_type del_phi = (helicity == Helicity::positive) ? step / radius
@@ -180,4 +180,4 @@ CELER_FUNCTION OdeState ZHelixStepper<E>::move(real_type       step,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,14 +45,14 @@ class RangeCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    RangeCalculator(const XsGridData& grid, const Values& values);
+    RangeCalculator(XsGridData const& grid, Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const XsGridData& data_;
-    const Values&     reals_;
+    XsGridData const& data_;
+    Values const& reals_;
 
     CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
@@ -66,7 +66,7 @@ class RangeCalculator
  * Range tables should be uniform in energy, without extra scaling.
  */
 CELER_FUNCTION
-RangeCalculator::RangeCalculator(const XsGridData& grid, const Values& values)
+RangeCalculator::RangeCalculator(XsGridData const& grid, Values const& values)
     : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);
@@ -80,7 +80,7 @@ RangeCalculator::RangeCalculator(const XsGridData& grid, const Values& values)
 CELER_FUNCTION real_type RangeCalculator::operator()(Energy energy) const
 {
     CELER_ASSERT(energy > zero_quantity());
-    UniformGrid     loge_grid(data_.log_energy);
+    UniformGrid loge_grid(data_.log_energy);
     const real_type loge = std::log(energy.value());
 
     if (loge <= loge_grid.front())
@@ -118,4 +118,4 @@ CELER_FUNCTION real_type RangeCalculator::get(size_type index) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

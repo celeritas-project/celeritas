@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,10 +32,10 @@ class MctruthTestBase : virtual public StepCollectorTestBase
 
     struct RunResult
     {
-        std::vector<int>    event;
-        std::vector<int>    track;
-        std::vector<int>    step;
-        std::vector<int>    volume;
+        std::vector<int> event;
+        std::vector<int> track;
+        std::vector<int> step;
+        std::vector<int> volume;
         std::vector<double> pos;
         std::vector<double> dir;
 
@@ -52,9 +52,9 @@ class MctruthTestBase : virtual public StepCollectorTestBase
 
   protected:
     std::shared_ptr<ExampleMctruth> example_mctruth_;
-    std::shared_ptr<StepCollector>  collector_;
+    std::shared_ptr<StepCollector> collector_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

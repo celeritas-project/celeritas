@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,14 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "MollerBhabhaModel.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MollerBhabhaData.hh"
 #include "celeritas/em/generated/MollerBhabhaInteract.hh"
-#include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {
@@ -22,11 +20,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MollerBhabhaModel::MollerBhabhaModel(ActionId              id,
-                                     const ParticleParams& particles)
+MollerBhabhaModel::MollerBhabhaModel(ActionId id,
+                                     ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
 
@@ -53,12 +51,12 @@ auto MollerBhabhaModel::applicability() const -> SetApplicability
     Applicability electron_applic, positron_applic;
 
     electron_applic.particle = interface_.ids.electron;
-    electron_applic.lower    = zero_quantity();
-    electron_applic.upper    = units::MevEnergy{interface_.max_valid_energy()};
+    electron_applic.lower = zero_quantity();
+    electron_applic.upper = units::MevEnergy{interface_.max_valid_energy()};
 
     positron_applic.particle = interface_.ids.positron;
-    positron_applic.lower    = zero_quantity();
-    positron_applic.upper    = electron_applic.upper;
+    positron_applic.lower = zero_quantity();
+    positron_applic.upper = electron_applic.upper;
 
     return {electron_applic, positron_applic};
 }
@@ -100,4 +98,4 @@ ActionId MollerBhabhaModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

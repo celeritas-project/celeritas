@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,9 +15,9 @@ namespace celeritas
 /*!
  * Get the plain text equivalent of the LogLevel enum.
  */
-const char* to_cstring(LogLevel lev)
+char const* to_cstring(LogLevel lev)
 {
-    static const char* const levels[] = {
+    static char const* const levels[] = {
         "debug",
         "diagnostic",
         "status",
@@ -27,9 +27,9 @@ const char* to_cstring(LogLevel lev)
         "critical",
     };
     auto idx = static_cast<unsigned int>(lev);
-    CELER_ENSURE(idx * sizeof(const char*) < sizeof(levels));
+    CELER_ENSURE(idx * sizeof(char const*) < sizeof(levels));
     return levels[idx];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

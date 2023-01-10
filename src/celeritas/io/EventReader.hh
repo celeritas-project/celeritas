@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,13 +35,13 @@ class EventReader
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using result_type      = std::vector<Primary>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using result_type = std::vector<Primary>;
     //!@}
 
   public:
     // Construct from a filename
-    EventReader(const char* filename, SPConstParticles params);
+    EventReader(char const* filename, SPConstParticles params);
 
     // Default destructor in .cc
     ~EventReader();
@@ -61,4 +61,4 @@ class EventReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

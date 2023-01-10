@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,13 +8,13 @@
 #include "GeantSetup.hh"
 
 #include <memory>
-#include <G4Event.hh>
-#include <G4ParticleGun.hh>
+#include <utility>
 #include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4VUserActionInitialization.hh>
+#include <G4RunManager.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VUserDetectorConstruction.hh>
-#include <G4VUserPrimaryGeneratorAction.hh>
+
+#include "corecel/io/Logger.hh"
 
 #include "GeantConfig.hh"
 #if CELERITAS_G4_V10
@@ -59,19 +59,19 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 };
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
+GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
 
     {
         // Run manager writes output that cannot be redirected...
-        ScopedTimeAndRedirect         scoped_time("G4RunManager");
+        ScopedTimeAndRedirect scoped_time("G4RunManager");
         detail::GeantExceptionHandler scoped_exception_handler;
         // Access the particle table before creating the run manager, so that
         // missing environment variables like G4ENSDFSTATEDATA get caught
@@ -95,7 +95,7 @@ GeantSetup::GeantSetup(const std::string& gdml_filename, Options options)
         CELER_ASSERT(run_manager_);
     }
 
-    detail::GeantLoggerAdapter    scoped_logger;
+    detail::GeantLoggerAdapter scoped_logger;
     detail::GeantExceptionHandler scoped_exception_handler;
 
     {
@@ -152,4 +152,4 @@ void GeantSetup::RMDeleter::operator()(G4RunManager* rm) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

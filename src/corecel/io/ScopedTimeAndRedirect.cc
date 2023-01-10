@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,8 +8,12 @@
 #include "ScopedTimeAndRedirect.hh"
 
 #include <iostream>
+#include <utility>
 
-#include "ColorUtils.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
+
 #include "Logger.hh"
 
 namespace celeritas
@@ -51,4 +55,4 @@ ScopedTimeAndRedirect::~ScopedTimeAndRedirect()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

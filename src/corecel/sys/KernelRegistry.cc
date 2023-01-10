@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "KernelRegistry.hh"
 
-#include <iostream> // IWYU pragma: keep
+#include <iostream>  // IWYU pragma: keep
+#include <utility>
 
-#include "corecel/Macros.hh"
+#include "celeritas_config.h"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/KernelAttributes.hh"
 
 namespace celeritas
 {
@@ -28,7 +30,7 @@ bool determine_profiling()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -39,7 +41,7 @@ bool determine_profiling()
  */
 bool KernelRegistry::profiling()
 {
-    static const bool result = determine_profiling();
+    static bool const result = determine_profiling();
     return result;
 }
 
@@ -47,12 +49,12 @@ bool KernelRegistry::profiling()
 /*!
  * Add a new kernel definition to the list
  */
-auto KernelRegistry::insert(const char* name, KernelAttributes&& attrs)
+auto KernelRegistry::insert(char const* name, KernelAttributes&& attrs)
     -> KernelProfiling*
 {
     // Create metadata for this kernel
-    auto kmd        = std::make_unique<KernelMetadata>();
-    kmd->name       = name;
+    auto kmd = std::make_unique<KernelMetadata>();
+    kmd->name = name;
     kmd->attributes = std::move(attrs);
 
     // Save a pointer to the profiling data only if profiling is enabled
@@ -82,7 +84,7 @@ KernelId::size_type KernelRegistry::num_kernels() const
 /*!
  * Get the kernel metadata for a given ID.
  */
-auto KernelRegistry::kernel(KernelId k) const -> const KernelMetadata&
+auto KernelRegistry::kernel(KernelId k) const -> KernelMetadata const&
 {
     CELER_EXPECT(k < this->num_kernels());
     // Lock while accessing the vector; the reference itself is safe.
@@ -104,7 +106,7 @@ KernelRegistry& kernel_registry()
 /*!
  * Write kernel metadata to a stream.
  */
-std::ostream& operator<<(std::ostream& os, const KernelMetadata& md)
+std::ostream& operator<<(std::ostream& os, KernelMetadata const& md)
 {
     // clang-format off
     os << "{\n"
@@ -126,4 +128,4 @@ std::ostream& operator<<(std::ostream& os, const KernelMetadata& md)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

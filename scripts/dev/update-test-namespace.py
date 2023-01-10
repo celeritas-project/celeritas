@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """\
@@ -23,8 +23,8 @@ namespace test
 """
 NS_SEP = "//---------------------------------------------------------------------------//\n"
 NS_CLOSE = """\
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas
 """
 
 def update(filename):
@@ -64,7 +64,7 @@ def update(filename):
                 needs_closing = True
                 line = NS_OPEN
                 next(old) # Skip following brace
-            elif line == "} // namespace celeritas_test\n":
+            elif line == "}  // namespace celeritas_test\n":
                 needs_closing = True
                 continue
 

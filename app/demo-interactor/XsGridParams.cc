@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <type_traits>
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
@@ -28,8 +28,8 @@ namespace demo_interactor
 //---------------------------------------------------------------------------//
 namespace
 {
-bool is_same_log_grid(const celeritas::UniformGridData&        grid,
-                      const std::vector<celeritas::real_type>& energy)
+bool is_same_log_grid(celeritas::UniformGridData const& grid,
+                      std::vector<celeritas::real_type> const& energy)
 {
     celeritas::SoftEqual<> soft_eq(1e-8);
     celeritas::UniformGrid log_energy(grid);
@@ -44,13 +44,13 @@ bool is_same_log_grid(const celeritas::UniformGridData&        grid,
     }
     return true;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with input data.
  */
-XsGridParams::XsGridParams(const Input& input)
+XsGridParams::XsGridParams(Input const& input)
 {
     CELER_EXPECT(input.energy.size() >= 2);
     CELER_EXPECT(input.energy.front() > 0);
@@ -63,7 +63,7 @@ XsGridParams::XsGridParams(const Input& input)
 
     // Construct cross section
     celeritas::XsGridData& host_xs = host_data.xs;
-    host_xs.log_energy             = celeritas::UniformGridData::from_bounds(
+    host_xs.log_energy = celeritas::UniformGridData::from_bounds(
         std::log(input.energy.front()),
         std::log(input.energy.back()),
         input.energy.size());
@@ -80,4 +80,4 @@ XsGridParams::XsGridParams(const Input& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

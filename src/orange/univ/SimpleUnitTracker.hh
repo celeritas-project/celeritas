@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,16 +36,16 @@ class SimpleUnitTracker
   public:
     //!@{
     //! Type aliases
-    using ParamsRef      = NativeCRef<OrangeParamsData>;
+    using ParamsRef = NativeCRef<OrangeParamsData>;
     using Initialization = detail::Initialization;
-    using Intersection   = detail::Intersection;
-    using LocalState     = detail::LocalState;
+    using Intersection = detail::Intersection;
+    using LocalState = detail::LocalState;
     //!@}
 
   public:
     // Construct with parameters (unit definitions and this one's ID)
     inline CELER_FUNCTION
-    SimpleUnitTracker(const ParamsRef& params, SimpleUnitId id);
+    SimpleUnitTracker(ParamsRef const& params, SimpleUnitId id);
 
     //// ACCESSORS ////
 
@@ -65,47 +65,47 @@ class SimpleUnitTracker
 
     // Find the local volume from a position
     inline CELER_FUNCTION Initialization
-    initialize(const LocalState& state) const;
+    initialize(LocalState const& state) const;
 
     // Find the new volume by crossing a surface
     inline CELER_FUNCTION Initialization
-    cross_boundary(const LocalState& state) const;
+    cross_boundary(LocalState const& state) const;
 
     // Calculate the distance to an exiting face for the current volume
-    inline CELER_FUNCTION Intersection intersect(const LocalState& state) const;
+    inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
 
     // Calculate nearby distance to an exiting face for the current volume
-    inline CELER_FUNCTION Intersection intersect(const LocalState& state,
+    inline CELER_FUNCTION Intersection intersect(LocalState const& state,
                                                  real_type max_dist) const;
 
     // Calculate closest distance to a surface in any direction
-    inline CELER_FUNCTION real_type safety(const Real3& pos,
-                                           VolumeId     vol) const;
+    inline CELER_FUNCTION real_type safety(Real3 const& pos,
+                                           VolumeId vol) const;
 
     // Calculate the local surface normal
-    inline CELER_FUNCTION Real3 normal(const Real3& pos, SurfaceId surf) const;
+    inline CELER_FUNCTION Real3 normal(Real3 const& pos, SurfaceId surf) const;
 
   private:
     //// DATA ////
-    const ParamsRef& params_;
-    const SimpleUnitRecord& unit_record_;
+    ParamsRef const& params_;
+    SimpleUnitRecord const& unit_record_;
 
     //// METHODS ////
 
     // Get volumes that have the given surface as a "face" (connectivity)
-    inline CELER_FUNCTION Span<const VolumeId> get_neighbors(SurfaceId) const;
+    inline CELER_FUNCTION Span<VolumeId const> get_neighbors(SurfaceId) const;
 
     template<class F>
-    inline CELER_FUNCTION Intersection intersect_impl(const LocalState&,
+    inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
                                                       F) const;
 
-    inline CELER_FUNCTION Intersection simple_intersect(const LocalState&,
-                                                        const VolumeView&,
+    inline CELER_FUNCTION Intersection simple_intersect(LocalState const&,
+                                                        VolumeView const&,
                                                         size_type) const;
-    inline CELER_FUNCTION Intersection complex_intersect(const LocalState&,
-                                                         const VolumeView&,
+    inline CELER_FUNCTION Intersection complex_intersect(LocalState const&,
+                                                         VolumeView const&,
                                                          size_type) const;
-    inline CELER_FUNCTION Intersection background_intersect(const LocalState&,
+    inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
                                                             size_type) const;
 
     // Create a Surfaces object from the params
@@ -126,7 +126,7 @@ class SimpleUnitTracker
  * to us.
  */
 CELER_FUNCTION
-SimpleUnitTracker::SimpleUnitTracker(const ParamsRef& params, SimpleUnitId suid)
+SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
     : params_(params), unit_record_(params.simple_unit[suid])
 {
     CELER_EXPECT(params_);
@@ -140,7 +140,7 @@ SimpleUnitTracker::SimpleUnitTracker(const ParamsRef& params, SimpleUnitId suid)
  * prohibited to initialize from an arbitrary point directly onto a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
+SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
@@ -184,7 +184,7 @@ SimpleUnitTracker::initialize(const LocalState& state) const -> Initialization
  * Find the local volume on the opposite side of a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(const LocalState& state) const
+SimpleUnitTracker::cross_boundary(LocalState const& state) const
     -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
@@ -230,7 +230,7 @@ SimpleUnitTracker::cross_boundary(const LocalState& state) const
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto SimpleUnitTracker::intersect(const LocalState& state) const
+CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
     -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
@@ -242,7 +242,7 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(const LocalState& state) const
  * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
+SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
     -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
@@ -266,8 +266,8 @@ SimpleUnitTracker::intersect(const LocalState& state, real_type max_dist) const
  * represent the edge of a volume. Such distances are conservative but will
  * necessarily slow down the simulation.
  */
-CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
-                                                   VolumeId     volid) const
+CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
+                                                   VolumeId volid) const
 {
     CELER_EXPECT(volid);
 
@@ -280,8 +280,8 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
     }
 
     // Calculate minimim distance to all local faces
-    real_type result      = numeric_limits<real_type>::infinity();
-    auto      calc_safety = make_surface_action(this->make_local_surfaces(),
+    real_type result = numeric_limits<real_type>::infinity();
+    auto calc_safety = make_surface_action(this->make_local_surfaces(),
                                            detail::CalcSafetyDistance{pos});
     for (SurfaceId surface : vol.faces())
     {
@@ -297,7 +297,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(const Real3& pos,
  * Calculate the local surface normal.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
+SimpleUnitTracker::normal(Real3 const& pos, SurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
@@ -314,13 +314,13 @@ SimpleUnitTracker::normal(const Real3& pos, SurfaceId surf) const -> Real3
  * Get volumes that have the given surface as a "face" (connectivity).
  */
 CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
-    -> Span<const VolumeId>
+    -> Span<VolumeId const>
 {
     CELER_EXPECT(surf < this->num_surfaces());
 
     OpaqueId<Connectivity> conn_id
         = unit_record_.connectivity[surf.unchecked_get()];
-    const Connectivity& conn = params_.connectivities[conn_id];
+    Connectivity const& conn = params_.connectivities[conn_id];
 
     CELER_ENSURE(!conn.neighbors.empty());
     return params_.volume_ids[conn.neighbors];
@@ -350,7 +350,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
+SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
     -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
@@ -364,7 +364,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
     // algorithm requires sorting.
     auto calc_intersections = make_surface_action(
         this->make_local_surfaces(),
-        detail::CalcIntersections<const F&>{
+        detail::CalcIntersections<F const&>{
             state.pos,
             state.dir,
             is_valid,
@@ -413,7 +413,7 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
         }
     }
 
-    CELER_ASSERT_UNREACHABLE(); // Unexpected set of flags
+    CELER_ASSERT_UNREACHABLE();  // Unexpected set of flags
 }
 
 //---------------------------------------------------------------------------//
@@ -421,8 +421,8 @@ SimpleUnitTracker::intersect_impl(const LocalState& state, F is_valid) const
  * Calculate distance to the next boundary for nonreentrant volumes.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::simple_intersect(const LocalState& state,
-                                    const VolumeView& vol,
+SimpleUnitTracker::simple_intersect(LocalState const& state,
+                                    VolumeView const& vol,
                                     size_type num_isect) const -> Intersection
 {
     CELER_EXPECT(num_isect > 0);
@@ -465,7 +465,7 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
 
     // Post-surface sense will be on the other side of the surface
     Intersection result;
-    result.surface  = {surface, cur_sense};
+    result.surface = {surface, cur_sense};
     result.distance = state.temp_next.distance[distance_idx];
     return result;
 }
@@ -485,8 +485,8 @@ SimpleUnitTracker::simple_intersect(const LocalState& state,
  * ascending distance.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::complex_intersect(const LocalState& state,
-                                     const VolumeView& vol,
+SimpleUnitTracker::complex_intersect(LocalState const& state,
+                                     VolumeView const& vol,
                                      size_type num_isect) const -> Intersection
 {
     CELER_ASSERT(num_isect > 0);
@@ -520,7 +520,7 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
             // this direction do we hit a surface that actually puts us
             // outside.
             Intersection result;
-            result.surface  = {vol.get_surface(face), flip_sense(new_sense)};
+            result.surface = {vol.get_surface(face), flip_sense(new_sense)};
             result.distance = state.temp_next.distance[isect];
             CELER_ENSURE(result.distance > 0 && !std::isinf(result.distance));
             return result;
@@ -555,8 +555,8 @@ SimpleUnitTracker::complex_intersect(const LocalState& state,
  * SurfaceId).
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::background_intersect(const LocalState& state,
-                                        size_type         num_isect) const
+SimpleUnitTracker::background_intersect(LocalState const& state,
+                                        size_type num_isect) const
     -> Intersection
 {
     // Calculate bump distance
@@ -584,8 +584,8 @@ SimpleUnitTracker::background_intersect(const LocalState& state,
         for (VolumeId vid : this->get_neighbors(surface))
         {
             CELER_ASSERT(vid != state.volume);
-            VolumeView vol         = this->make_local_volume(vid);
-            auto       logic_state = detail::SenseCalculator{
+            VolumeView vol = this->make_local_volume(vid);
+            auto logic_state = detail::SenseCalculator{
                 this->make_local_surfaces(), pos, state.temp_sense}(vol);
 
             if (detail::LogicEvaluator{vol.logic()}(logic_state.senses))
@@ -597,7 +597,7 @@ SimpleUnitTracker::background_intersect(const LocalState& state,
 
                 Intersection result;
                 result.distance = state.temp_next.distance[isect];
-                result.surface  = detail::OnSurface{
+                result.surface = detail::OnSurface{
                     surface,
                     flip_sense(logic_state.senses[face.unchecked_get()])};
                 return result;
@@ -629,4 +629,4 @@ SimpleUnitTracker::make_local_volume(VolumeId vid) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

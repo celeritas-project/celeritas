@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,10 +15,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-void from_json(const nlohmann::json& j, SurfaceInput& value);
-void from_json(const nlohmann::json& j, VolumeInput& value);
-void from_json(const nlohmann::json& j, UnitInput& value);
-void from_json(const nlohmann::json& j, OrangeInput& value);
+void from_json(nlohmann::json const& j, SurfaceInput& value);
+void from_json(nlohmann::json const& j, VolumeInput& value);
+void from_json(nlohmann::json const& j, UnitInput& value);
+void from_json(nlohmann::json const& j, OrangeInput& value);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

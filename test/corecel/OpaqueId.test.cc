@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ struct TestInstantiator;
 
 TEST(OpaqueIdTest, operations)
 {
-    using Id_t             = OpaqueId<TestInstantiator, std::size_t>;
+    using Id_t = OpaqueId<TestInstantiator, std::size_t>;
     constexpr auto sizemax = static_cast<std::size_t>(-1);
 
     Id_t unassigned;
@@ -68,8 +68,8 @@ TEST(OpaqueIdTest, TEST_IF_CELERITAS_DEBUG(assertions))
 
 TEST(OpaqueIdTest, multi_int)
 {
-    using UId8     = OpaqueId<TestInstantiator, std::uint_least8_t>;
-    using Uint32   = std::uint_least32_t;
+    using UId8 = OpaqueId<TestInstantiator, std::uint_least8_t>;
+    using Uint32 = std::uint_least32_t;
     using limits_t = std::numeric_limits<Uint32>;
 
     // Unassigned is always out-of-range
@@ -86,5 +86,5 @@ TEST(OpaqueIdTest, multi_int)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,12 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/grid/UniformGridData.hh"
 
 #include "XsGridData.hh"
 
@@ -43,10 +46,10 @@ class ValueGridInserter
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using XsGridCollection
         = Collection<XsGridData, Ownership::value, MemSpace::host>;
-    using SpanConstReal    = Span<const real_type>;
+    using SpanConstReal = Span<real_type const>;
     using InterpolatedGrid = std::pair<SpanConstReal, Interp>;
-    using XsIndex          = ItemId<XsGridData>;
-    using GenericIndex     = ItemId<GenericGridData>;
+    using XsIndex = ItemId<XsGridData>;
+    using GenericIndex = ItemId<GenericGridData>;
     //!@}
 
   public:
@@ -54,20 +57,20 @@ class ValueGridInserter
     ValueGridInserter(RealCollection* real_data, XsGridCollection* xs_grid);
 
     // Add a grid of xs-like data
-    XsIndex operator()(const UniformGridData& log_grid,
-                       size_type              prime_index,
-                       SpanConstReal          values);
+    XsIndex operator()(UniformGridData const& log_grid,
+                       size_type prime_index,
+                       SpanConstReal values);
 
     // Add a grid of uniform log-grid data
-    XsIndex operator()(const UniformGridData& log_grid, SpanConstReal values);
+    XsIndex operator()(UniformGridData const& log_grid, SpanConstReal values);
 
     // Add a grid of generic data
     GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);
 
   private:
-    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>>   values_;
+    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
     CollectionBuilder<XsGridData, MemSpace::host, ItemId<XsGridData>> xs_grids_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

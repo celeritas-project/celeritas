@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,7 +21,7 @@ namespace celeritas
  * Write the elements of array \a a to stream \a os.
  */
 template<class T, size_type N>
-std::ostream& operator<<(std::ostream& os, const Array<T, N>& a)
+std::ostream& operator<<(std::ostream& os, Array<T, N> const& a)
 {
     os << make_span(a);
     return os;
@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Array<T, N>& a)
  * Convert an array to a string representation for debugging.
  */
 template<class T, size_type N>
-std::string to_string(const Array<T, N>& a)
+std::string to_string(Array<T, N> const& a)
 {
     std::ostringstream os;
     os << a;
@@ -40,4 +40,4 @@ std::string to_string(const Array<T, N>& a)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

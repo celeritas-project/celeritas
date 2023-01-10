@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,15 +31,15 @@ class ActionSequence
   public:
     //!@{
     //! \name Type aliases
-    using SPConstExplicit = std::shared_ptr<const ExplicitActionInterface>;
-    using VecAction       = std::vector<SPConstExplicit>;
-    using VecDouble       = std::vector<double>;
+    using SPConstExplicit = std::shared_ptr<ExplicitActionInterface const>;
+    using VecAction = std::vector<SPConstExplicit>;
+    using VecDouble = std::vector<double>;
     //!@}
 
     //! Construction/execution options
     struct Options
     {
-        bool sync{false}; //!< Call DeviceSynchronize and add timer
+        bool sync{false};  //!< Call DeviceSynchronize and add timer
     };
 
   public:
@@ -47,13 +47,13 @@ class ActionSequence
     ActionSequence() = default;
 
     // Construct from an action registry and sequence options
-    ActionSequence(const ActionRegistry&, Options options);
+    ActionSequence(ActionRegistry const&, Options options);
 
     //// INVOCATION ////
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void execute(const CoreRef<M>& data);
+    void execute(CoreRef<M> const& data);
 
     //// ACCESSORS ////
 
@@ -64,17 +64,17 @@ class ActionSequence
     bool sync() const { return options_.sync; }
 
     //! Get the ordered vector of actions in the sequence
-    const VecAction& actions() const { return actions_; }
+    VecAction const& actions() const { return actions_; }
 
     //! Get the corresponding accumulated time, if 'sync' or host called
-    const VecDouble& accum_time() const { return accum_time_; }
+    VecDouble const& accum_time() const { return accum_time_; }
 
   private:
-    Options   options_;
+    Options options_;
     VecAction actions_;
     VecDouble accum_time_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,13 +26,13 @@ class EnergyLossFluctApplier
   public:
     //!@{
     //! \name Type aliases
-    using Energy    = EnergyLossHelper::Energy;
+    using Energy = EnergyLossHelper::Energy;
     using ParamsRef = NativeCRef<FluctuationData>;
     //!@}
 
   public:
     //! Construct from reference to data
-    explicit CELER_FUNCTION EnergyLossFluctApplier(const ParamsRef& params)
+    explicit CELER_FUNCTION EnergyLossFluctApplier(ParamsRef const& params)
         : fluct_params_{params}
     {
     }
@@ -45,14 +45,14 @@ class EnergyLossFluctApplier
     //// DATA ////
 
     //! Reference to fluctuation data
-    const ParamsRef& fluct_params_;
+    ParamsRef const& fluct_params_;
 
     //// HELPER FUNCTIONS ////
 
     template<EnergyLossFluctuationModel M>
-    CELER_FUNCTION Energy sample_energy_loss(const EnergyLossHelper& helper,
-                                             Energy                  max_loss,
-                                             RngEngine&              rng);
+    CELER_FUNCTION Energy sample_energy_loss(EnergyLossHelper const& helper,
+                                             Energy max_loss,
+                                             RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +63,7 @@ class EnergyLossFluctApplier
  */
 CELER_FUNCTION void
 EnergyLossFluctApplier::operator()(CoreTrackView const& track,
-                                   StepLimit*           step_limit)
+                                   StepLimit* step_limit)
 {
     CELER_EXPECT(step_limit->step > 0);
 
@@ -96,7 +96,7 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
             && eloss < particle.energy())
         {
             // Apply energy loss fluctuations
-            auto cutoffs  = track.make_cutoff_view();
+            auto cutoffs = track.make_cutoff_view();
             auto material = track.make_material_view();
 
             EnergyLossHelper loss_helper(fluct_params_,
@@ -139,7 +139,7 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
             step_limit->action = phys.scalars().range_action();
             step_limit->step += backward_bump;
 
-            auto  geo = track.make_geo_view();
+            auto geo = track.make_geo_view();
             Real3 pos = geo.pos();
             axpy(backward_bump, geo.dir(), &pos);
             geo.move_internal(pos);
@@ -170,8 +170,8 @@ EnergyLossFluctApplier::operator()(CoreTrackView const& track,
 //---------------------------------------------------------------------------//
 template<EnergyLossFluctuationModel M>
 CELER_FUNCTION auto
-EnergyLossFluctApplier::sample_energy_loss(const EnergyLossHelper& helper,
-                                           Energy                  max_loss,
+EnergyLossFluctApplier::sample_energy_loss(EnergyLossHelper const& helper,
+                                           Energy max_loss,
                                            RngEngine& rng) -> Energy
 {
     CELER_EXPECT(helper.model() == M);
@@ -179,7 +179,7 @@ EnergyLossFluctApplier::sample_energy_loss(const EnergyLossHelper& helper,
     using Distribution = typename EnergyLossTraits<M>::type;
 
     Distribution sample_eloss{helper};
-    Energy       result = sample_eloss(rng);
+    Energy result = sample_eloss(rng);
 
     // TODO: investigate cases where sampled energy loss is greater than
     // the track's actual energy, i.e. the range limiter failed.
@@ -188,5 +188,5 @@ EnergyLossFluctApplier::sample_energy_loss(const EnergyLossHelper& helper,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

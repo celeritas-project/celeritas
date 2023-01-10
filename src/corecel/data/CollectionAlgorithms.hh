@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,7 +18,7 @@ namespace celeritas
  * Fill the collection with the given value.
  */
 template<class T, MemSpace M, class I>
-void fill(const T& value, Collection<T, Ownership::value, M, I>* col)
+void fill(T const& value, Collection<T, Ownership::value, M, I>* col)
 {
     CELER_EXPECT(col);
     detail::Filler<T, M> fill_impl{value};
@@ -30,7 +30,7 @@ void fill(const T& value, Collection<T, Ownership::value, M, I>* col)
  * Copy from the given collection to host.
  */
 template<class T, Ownership W, MemSpace M, class I, std::size_t E>
-void copy_to_host(const Collection<T, W, M, I>& src, Span<T, E> dst)
+void copy_to_host(Collection<T, W, M, I> const& src, Span<T, E> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
     Copier<T, M> copy_impl{src[AllItems<T, M>{}]};
@@ -38,4 +38,4 @@ void copy_to_host(const Collection<T, W, M, I>& src, Span<T, E> dst)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

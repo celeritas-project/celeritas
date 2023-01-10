@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -78,14 +78,14 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
     StepperInput step_inp;
-    step_inp.params          = this->core();
+    step_inp.params = this->core();
     step_inp.num_track_slots = num_tracks;
 
     Stepper<MemSpace::host> step(step_inp);
 
     // Initial step
     auto primaries = this->make_primaries(num_tracks);
-    auto count     = step(make_span(primaries));
+    auto count = step(make_span(primaries));
 
     while (count && --num_steps > 0)
     {
@@ -95,7 +95,7 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
     example_mctruth_->sort();
 
     RunResult result;
-    for (const ExampleMctruth::Step& s : example_mctruth_->steps())
+    for (ExampleMctruth::Step const& s : example_mctruth_->steps())
     {
         result.event.push_back(s.event);
         result.track.push_back(s.track);
@@ -108,5 +108,5 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

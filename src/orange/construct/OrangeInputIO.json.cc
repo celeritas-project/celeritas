@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,11 +8,22 @@
 #include "OrangeInputIO.json.hh"
 
 #include <algorithm>
+#include <stdexcept>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Array.json.hh"
+#include "corecel/cont/Label.hh"
 #include "corecel/cont/Label.json.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/StringEnumMap.hh"
+#include "orange/BoundingBox.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/construct/OrangeInput.hh"
 
 namespace celeritas
 {
@@ -20,38 +31,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build a vector of strings for each surface type.
- */
-std::vector<std::string> make_surface_strings()
-{
-    std::vector<std::string> result(static_cast<size_type>(SurfaceType::size_));
-    for (auto surf_type : range(SurfaceType::size_))
-    {
-        result[static_cast<size_type>(surf_type)] = to_cstring(surf_type);
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a surface type string to an enum for I/O.
  */
-SurfaceType to_surface_type(const std::string& s)
+SurfaceType to_surface_type(std::string const& s)
 {
-    // The number of surface types will be short, and presumably each string is
-    // small enough to fit inside string's static allocation. Therefore the
-    // string search will be on a small-ish, nearly contiguous block of memory,
-    // so it's preferable than using unordered_map or a more heavyweight
-    // container.
-    static const auto surface_string = make_surface_strings();
-
-    auto iter = std::find(surface_string.begin(), surface_string.end(), s);
-    CELER_VALIDATE(iter != surface_string.end(),
-                   << "invalid surface string '" << s << "'");
-
-    unsigned int result_int = iter - surface_string.begin();
-    CELER_EXPECT(result_int < static_cast<size_type>(SurfaceType::size_));
-    return static_cast<SurfaceType>(result_int);
+    static auto const from_string
+        = StringEnumMap<SurfaceType>::from_cstring_func(to_cstring,
+                                                        "surface type");
+    return from_string(s);
 }
 
 //---------------------------------------------------------------------------//
@@ -69,10 +56,10 @@ SurfaceType to_surface_type(const std::string& s)
 
    \endcode
  */
-std::vector<logic_int> parse_logic(const char* c)
+std::vector<logic_int> parse_logic(char const* c)
 {
     std::vector<logic_int> result;
-    logic_int              s = 0;
+    logic_int s = 0;
     while (char v = *c++)
     {
         if (v >= '0' && v <= '9')
@@ -81,7 +68,7 @@ std::vector<logic_int> parse_logic(const char* c)
             // multiplying the existing ID by 10.
             s = 10 * s + (v - '0');
 
-            const char next = *c;
+            char const next = *c;
             if (next == ' ' || next == '\0')
             {
                 // Next char is end of word or end of string
@@ -108,16 +95,16 @@ std::vector<logic_int> parse_logic(const char* c)
     return result;
 }
 
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Read surface data from an ORANGE JSON file.
  */
-void from_json(const nlohmann::json& j, SurfaceInput& value)
+void from_json(nlohmann::json const& j, SurfaceInput& value)
 {
     // Read and convert types
-    const auto& type_labels = j.at("types").get<std::vector<std::string>>();
+    auto const& type_labels = j.at("types").get<std::vector<std::string>>();
     value.types.resize(type_labels.size());
     std::transform(type_labels.begin(),
                    type_labels.end(),
@@ -132,7 +119,7 @@ void from_json(const nlohmann::json& j, SurfaceInput& value)
 /*!
  * Read cell/volume data from an ORANGE JSON file.
  */
-void from_json(const nlohmann::json& j, VolumeInput& value)
+void from_json(nlohmann::json const& j, VolumeInput& value)
 {
     // Convert faces to OpaqueId
     std::vector<SurfaceId::size_type> temp_faces;
@@ -145,19 +132,19 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
     }
 
     // Convert logic string to vector
-    const auto& temp_logic = j.at("logic").get<std::string>();
-    value.logic            = parse_logic(temp_logic.c_str());
+    auto const& temp_logic = j.at("logic").get<std::string>();
+    value.logic = parse_logic(temp_logic.c_str());
 
     // Parse bbox
     if (j.contains("bbox"))
     {
-        auto bbox  = j.at("bbox").get<Array<Real3, 2>>();
+        auto bbox = j.at("bbox").get<Array<Real3, 2>>();
         value.bbox = {bbox[0], bbox[1]};
     }
 
     // Read scalars, including optional flags
     auto flag_iter = j.find("flags");
-    value.flags    = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
+    value.flags = (flag_iter == j.end() ? 0 : flag_iter->get<int>());
     j.at("zorder").get_to(value.zorder);
 }
 
@@ -165,7 +152,7 @@ void from_json(const nlohmann::json& j, VolumeInput& value)
 /*!
  * Read a unit definition from an ORANGE input file.
  */
-void from_json(const nlohmann::json& j, UnitInput& value)
+void from_json(nlohmann::json const& j, UnitInput& value)
 {
     using VecLabel = std::vector<Label>;
     j.at("surfaces").get_to(value.surfaces);
@@ -185,15 +172,15 @@ void from_json(const nlohmann::json& j, UnitInput& value)
         j.at("surface_names").get_to(value.surfaces.labels);
     }
     {
-        const auto& bbox = j.at("bbox");
-        value.bbox       = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
+        auto const& bbox = j.at("bbox");
+        value.bbox = {bbox.at(0).get<Real3>(), bbox.at(1).get<Real3>()};
     }
 
     if (j.contains("parent_cells"))
     {
-        const auto& parent_cells
+        auto const& parent_cells
             = j.at("parent_cells").get<std::vector<size_type>>();
-        const auto& daughters = j.at("daughters").get<std::vector<size_type>>();
+        auto const& daughters = j.at("daughters").get<std::vector<size_type>>();
         CELER_VALIDATE(parent_cells.size() == daughters.size(),
                        << "fields 'parent_cells' and 'daughters' have "
                           "different lengths");
@@ -213,12 +200,12 @@ void from_json(const nlohmann::json& j, UnitInput& value)
 /*!
  * Read a partially preprocessed geometry definition from an ORANGE JSON file.
  */
-void from_json(const nlohmann::json& j, OrangeInput& value)
+void from_json(nlohmann::json const& j, OrangeInput& value)
 {
-    const auto& universes = j.at("universes");
+    auto const& universes = j.at("universes");
 
     value.units.reserve(universes.size());
-    for (const auto& uni : universes)
+    for (auto const& uni : universes)
     {
         CELER_VALIDATE(uni.at("_type").get<std::string>() == "simple unit",
                        << "unsupported universe type '" << uni["_type"] << "'");
@@ -227,4 +214,4 @@ void from_json(const nlohmann::json& j, OrangeInput& value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

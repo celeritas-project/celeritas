@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,14 +27,14 @@ namespace celeritas
  */
 struct SimTrackState
 {
-    TrackId   track_id;     //!< Unique ID for this track
-    TrackId   parent_id;    //!< ID of parent that created it
-    EventId   event_id;     //!< ID of originating event
-    size_type num_steps{0}; //!< Total number of steps taken
-    real_type time{0}; //!< Time elapsed in lab frame since start of event [s]
+    TrackId track_id;  //!< Unique ID for this track
+    TrackId parent_id;  //!< ID of parent that created it
+    EventId event_id;  //!< ID of originating event
+    size_type num_steps{0};  //!< Total number of steps taken
+    real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};
-    StepLimit   step_limit;
+    StepLimit step_limit;
 };
 
 using SimTrackInitializer = SimTrackState;
@@ -92,4 +92,4 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

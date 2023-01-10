@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,11 +45,11 @@ struct IsInRange
 
 TEST(UtilityTest, forward)
 {
-    Foo       foo;
+    Foo foo;
     const Foo cfoo;
 
     test_forward_impl<Foo&>(foo);
-    test_forward_impl<const Foo&>(cfoo);
+    test_forward_impl<Foo const&>(cfoo);
     test_forward_impl<Foo&&>(Foo{});
 }
 
@@ -145,7 +145,7 @@ TEST(AlgorithmsTest, partition)
     std::vector<int> values{-1, 2, 3, 4, 2, 6, 9, 4};
     celeritas::partition(values.begin(), values.end(), IsInRange{2, 4});
 
-    static const int expected_values[] = {2, 2, 3, 4, -1, 6, 9, 4};
+    static int const expected_values[] = {2, 2, 3, 4, -1, 6, 9, 4};
     EXPECT_VEC_EQ(expected_values, values);
 }
 
@@ -164,13 +164,13 @@ TEST(AlgorithmsTest, sort)
     {
         data = {1, 2, 4, 3, -1, 123, 2};
         celeritas::sort(data.begin(), data.end());
-        static const int expected_data[] = {-1, 1, 2, 2, 3, 4, 123};
+        static int const expected_data[] = {-1, 1, 2, 2, 3, 4, 123};
         EXPECT_VEC_EQ(expected_data, data);
     }
     {
         data = {1, 2, 4, 3, -1, 123, 2};
         celeritas::sort(data.begin(), data.end(), std::greater<>{});
-        static const int expected_data[] = {123, 4, 3, 2, 2, 1, -1};
+        static int const expected_data[] = {123, 4, 3, 2, 2, 1, -1};
         EXPECT_VEC_EQ(expected_data, data);
     }
 }
@@ -266,5 +266,5 @@ TEST(MathTest, ceil_div)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

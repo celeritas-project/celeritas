@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -55,10 +55,10 @@ make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
  */
 template<class StepperT>
 CELER_FUNCTION decltype(auto)
-make_field_propagator(StepperT&&                stepper,
-                      const FieldDriverOptions& options,
-                      const ParticleTrackView&  particle,
-                      GeoTrackView*             geometry)
+make_field_propagator(StepperT&& stepper,
+                      FieldDriverOptions const& options,
+                      ParticleTrackView const& particle,
+                      GeoTrackView* geometry)
 {
     CELER_ASSERT(geometry);
     using Driver_t = FieldDriver<StepperT>;
@@ -85,10 +85,10 @@ make_field_propagator(StepperT&&                stepper,
  */
 template<template<class EquationT> class StepperT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_propagator(FieldT&&                  field,
-                          const FieldDriverOptions& options,
-                          const ParticleTrackView&  particle,
-                          GeoTrackView*             geometry)
+make_mag_field_propagator(FieldT&& field,
+                          FieldDriverOptions const& options,
+                          ParticleTrackView const& particle,
+                          GeoTrackView* geometry)
 {
     return make_field_propagator(
         make_mag_field_stepper<StepperT>(::celeritas::forward<FieldT>(field),
@@ -99,4 +99,4 @@ make_mag_field_propagator(FieldT&&                  field,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas
