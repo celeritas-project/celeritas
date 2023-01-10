@@ -174,6 +174,7 @@ Releases can be created from the main branch (major, minor, patch) or a
 "backport" branch (minor, patch). The following process must be followed (and
 may need iteration to converge) for each release.
 
+- Create a ``release-vX.Y.Z`` branch.
 - Ensure all CI jobs passed for the release in question. This is automatic for
   releases from the main branch (since every pull request must pass) but should
   be checked manually for backports.
@@ -192,10 +193,11 @@ may need iteration to converge) for each release.
 - Update documentation with release notes from all pull requests newly included
   in the release. Follow the format for previous releases: add a summary of
   highlights, and enumerate the pull requests (with PR numbers and
-  authorship attribution) separated by features and bug requests. [TODO:
-  automate this using pull request tags and the GitHub API]
+  authorship attribution) separated by features and bug requests. Use the
+  `helper notebook`_ in the Celeritas documents repository to automate this.
 - Ensure the code documentation builds, preferably without warnings, on a
-  configuration that has Sphinx, Doxygen, and Breathe active.
+  configuration that has Sphinx, Doxygen, and Breathe active. [TODO: automate
+  this with CI for doc publishing]
 - Submit a pull request with the newly added documentation and any
   release-related tweaks, and wait until it's reviewed and merged.
 - If releasing a backported version branch, cherry-pick this documentation
@@ -224,4 +226,5 @@ first new feature) should be tagged with ``v1.1.0-dev``, so that
 ``git describe --tags --match 'v*'`` shows the new features as being part of the
 ``v1.1.0`` series.
 
+.. _helper notebook: https://github.com/celeritas-project/celeritas-docs/blob/master/nb/admin/github-stats.ipynb
 .. _geant-val: https://geant-val.cern.ch
