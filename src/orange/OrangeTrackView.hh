@@ -12,6 +12,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "LevelStateAccessor.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
 #include "detail/UnitIndexer.hh"
@@ -210,6 +211,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
     VolumeId            global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 
+    size_type level = 0;
+
     // Recurse into daughter universes starting with the outermost universe
     do
     {
@@ -218,16 +221,18 @@ OrangeTrackView::operator=(Initializer_t const& init)
         auto tinit = tracker.initialize(local);
         // TODO: error correction/graceful failure if initialiation failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
+
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
+        states_.vol[thread_] = global_vol_id;
+        // states_.universe[offset + level] = uid;
+
         next_uid = params_.volume_records[global_vol_id].daughter;
+        level++;
 
     } while (next_uid);
 
-    states_.vol[thread_] = global_vol_id;
-
-    // states_.universe[thread_] = UniverseId{0};
-    states_.universe[thread_] = UniverseId{0};
+    // states_.level[thread_] = LevelId{level - 1};
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
