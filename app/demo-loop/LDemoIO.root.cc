@@ -13,9 +13,7 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/CoreParams.hh"
 
 namespace demo_loop
 {
@@ -26,8 +24,8 @@ namespace demo_loop
  *
  * \note
  * Currently only storing the action labels so their IDs can be
- * identified. If other parameters are needed for future debugging/analyses,
- * this function can easily be expanded.
+ * identified. If other parameters are needed for future
+ * debugging/analyses, this function can easily be expanded.
  */
 void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
                        celeritas::CoreParams core_params)
@@ -48,8 +46,8 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
 
     // Set up action labels branch, fill the TTree and write it
     /*
-     * The decision to store a vector instead of making a tree entry for each
-     * label is to simplify the reading of the information. Calling
+     * The decision to store a vector instead of making a tree entry for
+     * each label is to simplify the reading of the information. Calling
      * action_labels->at(action_id) after loading the first (and only) tree
      * entry is much simpler than:
      * tree->GetEntry(action_id);
