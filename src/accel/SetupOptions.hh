@@ -53,7 +53,7 @@ struct SDSetupOptions
  * Control options for initializing Celeritas.
  *
  * The interface for the "along-step factory" (input parameters and output) is
- * described in AlongStepFactory.hh .
+ * described in \c AlongStepFactoryInterface .
  */
 struct SetupOptions
 {

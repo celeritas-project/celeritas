@@ -24,7 +24,7 @@ requirements of LHC-HL upgrade.
 
 .. only:: html
 
-   :Release: |version|
+   :Release: |release|
    :Date: |today|
 
 .. toctree::

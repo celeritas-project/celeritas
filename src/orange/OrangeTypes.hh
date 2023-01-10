@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeTypes.hh
-//! Type definitions for ORANGE geometry.
+//! \brief Type definitions for ORANGE geometry.
 //---------------------------------------------------------------------------//
 #pragma once
 

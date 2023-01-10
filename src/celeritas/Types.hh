@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/Types.hh
-//! Type definitions for simulation management
+//! \brief Type definitions for simulation management
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -23,3 +23,4 @@ configuration attributes.
    api/corecel.rst
    api/orange.rst
    api/celeritas.rst
+   api/accel.rst

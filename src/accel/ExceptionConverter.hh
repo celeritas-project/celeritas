@@ -24,9 +24,7 @@ namespace celeritas
    void EventAction::EndOfEventAction(const G4Event*)
    {
        // Transport any tracks left in the buffer
-
        celeritas::ExceptionConverter call_g4exception{"celer0003"};
-
        CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
    }
  * \endcode

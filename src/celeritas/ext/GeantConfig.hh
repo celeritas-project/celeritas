@@ -15,7 +15,7 @@
  *
  * Macro constant for differentiating between Geant4 v10 and v11.
  */
-#if CELERITAS_USE_GEANT4
+#if CELERITAS_USE_GEANT4 || defined(__DOXYGEN__)
 
 #    include <G4Version.hh>
 #    if defined(G4VERSION_NUMBER) && G4VERSION_NUMBER < 1100

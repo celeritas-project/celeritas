@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootErrorHandler.hh
+//! \file celeritas/ext/ScopedRootErrorHandler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,7 +16,6 @@ namespace celeritas
  * Install a ROOT Error Handler to redirect the message toward the
  * Celeritas Logger.
  */
-
 class ScopedRootErrorHandler
 {
   public:
@@ -28,6 +27,7 @@ class ScopedRootErrorHandler
 
   private:
     using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
+
     ErrorHandlerFuncPtr previous_;
 };
 

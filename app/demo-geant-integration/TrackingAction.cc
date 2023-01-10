@@ -25,7 +25,7 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas shared data.
+ * Construct with Celeritas shared and thread-local data.
  */
 TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
     : params_(params), transport_(transport)
@@ -37,6 +37,10 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
 //---------------------------------------------------------------------------//
 /*!
  * At the start of a track, determine whether to use Celeritas to transport it.
+ *
+ * If the track is one of a few predetermined EM particles, we pass it to
+ * Celeritas (which queues the track on its buffer and potentially flushes it)
+ * and kill the Geant4 track.
  */
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {

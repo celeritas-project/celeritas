@@ -93,6 +93,20 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 //---------------------------------------------------------------------------//
 } // namespace
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a logger that will redirect Celeritas messages through Geant4.
+ *
+ * This logger writes the current thread (and maximum number of threads) in
+ * each output message, and sends each message through the thread-local \c
+ * G4cerr.
+ *
+ * In the \c main of your application's exectuable, set the "process-local"
+ * (MPI-aware) logger:
+ * \code
+    celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
+   \endcode
+ */
 Logger make_mt_logger(const G4RunManager& runman)
 {
     return Logger(MpiCommunicator{},

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/Ref.hh
-//! Helper functions for memspace-specific references.
+//! \brief Helper functions for memspace-specific references
 //---------------------------------------------------------------------------//
 #pragma once
 

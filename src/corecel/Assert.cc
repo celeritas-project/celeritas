@@ -223,8 +223,7 @@ RuntimeError RuntimeError::from_geant_exception(const char* origin,
  * Construct an error message from a Geant4 exception.
  *
  * \param origin Usually the function that throws
- * \param code A computery error code
- * \param desc Description of the failure
+ * \param msg Description of the failure
  */
 RuntimeError RuntimeError::from_root_error(const char* origin, const char* msg)
 {

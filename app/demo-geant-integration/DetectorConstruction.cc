@@ -56,11 +56,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
-    // Create parser; do *not* strip `0x` extensions since those are needed to
-    // deduplicate complex geometries (e.g. CMS) and are handled by the Label
-    // and LabelIdMultiMap. Note that material and element names (at least as
-    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
-    // their extension.
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
