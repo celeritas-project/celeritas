@@ -18,26 +18,23 @@
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-
-namespace
-{
-//---------------------------------------------------------------------------//
 /*!
  * Store CoreParams data to the ROOT MC truth output file.
- * Called by `to_root(...)`.
  *
  * \note
- * Currently only storing the action labels so their IDs can be
- * identified. If other parameters are needed for future
- * debugging/analyses, this function can easily be expanded.
+ * Currently only storing the action labels so their IDs can be identified. If
+ * other parameters are needed for future debugging/analyses, this function can
+ * easily be expanded.
  */
-void store_core_params(celeritas::RootFileManager& root_manager,
-                       celeritas::CoreParams const& core_params)
+void to_root_core_params(
+    std::shared_ptr<celeritas::RootFileManager>& root_manager,
+    celeritas::CoreParams const& core_params)
 {
+    CELER_EXPECT(root_manager);
     auto const& action_reg = *core_params.action_reg();
 
     // Initialize CoreParams TTree
-    auto tree_params = root_manager.make_tree("core_params", "core_params");
+    auto tree_params = root_manager->make_tree("core_params", "core_params");
 
     // Store labels
     std::vector<std::string> action_labels;
@@ -60,16 +57,13 @@ void store_core_params(celeritas::RootFileManager& root_manager,
     tree_params->Fill();
     tree_params->Write();
 }
-//---------------------------------------------------------------------------//
-}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Store input information to the ROOT MC truth output file.
  */
-void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-             LDemoArgs& args,
-             celeritas::CoreParams const& core_params)
+void to_root_input(std::shared_ptr<celeritas::RootFileManager>& root_manager,
+                   LDemoArgs& args)
 {
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);
@@ -101,9 +95,6 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
     // Fill tree and write it to file
     tree_input->Fill();
     tree_input->Write();
-
-    // Store CoreParams data in a new TTree
-    store_core_params(*root_manager, core_params);
 }
 
 //---------------------------------------------------------------------------//
