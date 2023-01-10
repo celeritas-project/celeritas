@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -72,7 +72,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get material properties
     void set_material_params(MaterialParams::Input inp);
-    std::shared_ptr<const MaterialParams> const& material_params() const
+    std::shared_ptr<MaterialParams const> const& material_params() const
     {
         CELER_EXPECT(material_params_);
         return material_params_;
@@ -82,7 +82,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get particle params
     void set_particle_params(ParticleParams::Input inp);
-    std::shared_ptr<const ParticleParams> const& particle_params() const
+    std::shared_ptr<ParticleParams const> const& particle_params() const
     {
         CELER_EXPECT(particle_params_);
         return particle_params_;
@@ -92,7 +92,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get cutoff params
     void set_cutoff_params(CutoffParams::Input inp);
-    std::shared_ptr<const CutoffParams> const& cutoff_params() const
+    std::shared_ptr<CutoffParams const> const& cutoff_params() const
     {
         CELER_EXPECT(cutoff_params_);
         return cutoff_params_;
@@ -102,7 +102,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get imported processes
     void set_imported_processes(std::vector<ImportProcess> inp);
-    std::shared_ptr<const ImportedProcesses> const& imported_processes() const
+    std::shared_ptr<ImportedProcesses const> const& imported_processes() const
     {
         CELER_EXPECT(imported_processes_);
         return imported_processes_;
