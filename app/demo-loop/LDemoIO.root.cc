@@ -21,10 +21,11 @@ namespace demo_loop
 /*!
  * Store input information to the ROOT MC truth output file.
  */
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs& args)
+void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs)
 {
-    CELER_EXPECT(args);
+    CELER_EXPECT(cargs);
 
+    auto& args = const_cast<LDemoArgs&>(cargs);
     auto tree_input = root_manager.make_tree("input", "input");
 
     // Problem definition

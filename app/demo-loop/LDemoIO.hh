@@ -102,14 +102,14 @@ void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);
 
 // Store LDemoArgs to ROOT file when ROOT is available
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs& args);
+void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& args);
 
 // Store CoreParams to ROOT file when ROOT is available
 void to_root(celeritas::RootFileManager& root_manager,
              celeritas::CoreParams const& core_params);
 
 #if !CELERITAS_USE_ROOT
-inline void to_root(celeritas::RootFileManager&, LDemoArgs&)
+inline void to_root(celeritas::RootFileManager&, LDemoArgs const&)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
