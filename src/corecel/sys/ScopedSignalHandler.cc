@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ bool celer_chk_signal(int mask)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 namespace celeritas
 {
@@ -142,7 +142,7 @@ ScopedSignalHandler::ScopedSignalHandler(
  */
 ScopedSignalHandler::~ScopedSignalHandler()
 {
-    for (const auto& sig_handle : handles_)
+    for (auto const& sig_handle : handles_)
     {
         // Restore signal handler
         std::signal(sig_handle.first, sig_handle.second);
@@ -193,4 +193,4 @@ bool ScopedSignalHandler::check_signal() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

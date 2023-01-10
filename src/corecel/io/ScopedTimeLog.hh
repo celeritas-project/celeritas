@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ class ScopedTimeLog
     inline ~ScopedTimeLog();
 
   private:
-    double    min_print_sec_{0.01};
+    double min_print_sec_{0.01};
     Stopwatch get_time_;
 };
 
@@ -72,4 +72,4 @@ ScopedTimeLog::~ScopedTimeLog()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct MuBremsstrahlungIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId gamma;
     ParticleId mu_minus;
     ParticleId mu_plus;
@@ -62,8 +62,8 @@ struct MuBremsstrahlungData
     }
 };
 
-using MuBremsstrahlungHostRef   = MuBremsstrahlungData;
+using MuBremsstrahlungHostRef = MuBremsstrahlungData;
 using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

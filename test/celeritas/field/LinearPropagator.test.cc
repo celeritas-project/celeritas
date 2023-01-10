@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,15 +43,15 @@ class LinearPropagatorTestBase : public GlobalGeoTestBase,
             this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
     }
 
-    GeoTrackView init_geo(const Real3& pos, Real3 dir)
+    GeoTrackView init_geo(Real3 const& pos, Real3 dir)
     {
         normalize_direction(&dir);
         GeoTrackView view = this->make_geo_view();
-        view              = {pos, dir};
+        view = {pos, dir};
         return view;
     }
 
-    std::string volume_name(const GeoTrackView& geo)
+    std::string volume_name(GeoTrackView const& geo)
     {
         if (geo.is_outside())
         {
@@ -66,7 +66,7 @@ class LinearPropagatorTestBase : public GlobalGeoTestBase,
 
 class SimpleCmsTest : public LinearPropagatorTestBase
 {
-    const char* geometry_basename() const override { return "simple-cms"; }
+    char const* geometry_basename() const override { return "simple-cms"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -165,5 +165,5 @@ TEST_F(SimpleCmsTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,8 +28,8 @@ namespace test
 struct Interactor
 {
     CELER_FUNCTION Interactor(StackAllocator<Secondary>& allocate_secondaries,
-                              size_type                  alloc_size,
-                              char                       alive)
+                              size_type alloc_size,
+                              char alive)
         : allocate_secondaries(allocate_secondaries)
         , alloc_size(alloc_size)
         , alive(alive)
@@ -39,7 +39,7 @@ struct Interactor
     CELER_FUNCTION Interaction operator()()
     {
         Interaction result;
-        result.action    = Interaction::Action::unchanged;
+        result.action = Interaction::Action::unchanged;
         result.direction = {0, 0, 1};
 
         // Kill the particle
@@ -61,8 +61,8 @@ struct Interactor
             for (auto& secondary : result.secondaries)
             {
                 secondary.particle_id = ParticleId(0);
-                secondary.energy      = units::MevEnergy(5.);
-                secondary.direction   = {1., 0., 0.};
+                secondary.energy = units::MevEnergy(5.);
+                secondary.direction = {1., 0., 0.};
             }
         }
 
@@ -70,21 +70,21 @@ struct Interactor
     }
 
     StackAllocator<Secondary>& allocate_secondaries;
-    size_type                  alloc_size;
-    char                       alive;
+    size_type alloc_size;
+    char alive;
 };
 
 //! Input data
 struct ITTestInputData
 {
-    Span<const size_type> alloc_size;
-    Span<const char>      alive;
+    Span<size_type const> alloc_size;
+    Span<char const> alive;
 };
 
 struct ITTestInput
 {
     ITTestInput(std::vector<size_type>& host_alloc_size,
-                std::vector<char>&      host_alive);
+                std::vector<char>& host_alive);
 
     ITTestInputData device_ref();
 
@@ -98,9 +98,9 @@ struct ITTestInput
 struct ITTestOutput
 {
     std::vector<unsigned int> track_ids;
-    std::vector<int>          parent_ids;
+    std::vector<int> parent_ids;
     std::vector<unsigned int> init_ids;
-    std::vector<size_type>    vacancies;
+    std::vector<size_type> vacancies;
 };
 
 using SecondaryAllocatorData
@@ -118,5 +118,5 @@ inline void interact(CoreStateDeviceRef, ITTestInputData)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

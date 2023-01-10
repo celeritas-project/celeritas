@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,8 +27,8 @@ namespace celeritas
 /*!
  * Construct with particle and material data.
  */
-FluctuationParams::FluctuationParams(const ParticleParams& particles,
-                                     const MaterialParams& materials)
+FluctuationParams::FluctuationParams(ParticleParams const& particles,
+                                     MaterialParams const& materials)
 {
     celeritas::HostVal<FluctuationData> data;
 
@@ -43,7 +43,7 @@ FluctuationParams::FluctuationParams(const ParticleParams& particles,
     auto urban = make_builder(&data.urban);
     for (auto mat_id : range(MaterialId{materials.size()}))
     {
-        const auto mat = materials.get(mat_id);
+        auto const&& mat = materials.get(mat_id);
 
         // Calculate the parameters for the energy loss fluctuation model (see
         // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)
@@ -51,7 +51,7 @@ FluctuationParams::FluctuationParams(const ParticleParams& particles,
         const real_type avg_z = mat.electron_density() / mat.number_density();
         params.oscillator_strength[1] = avg_z > 2 ? 2 / avg_z : 0;
         params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
-        params.binding_energy[1]      = 1e-5 * ipow<2>(avg_z);
+        params.binding_energy[1] = 1e-5 * ipow<2>(avg_z);
         params.binding_energy[0]
             = std::pow(value_as<units::MevEnergy>(mat.mean_excitation_energy())
                            / std::pow(params.binding_energy[1],
@@ -67,4 +67,4 @@ FluctuationParams::FluctuationParams(const ParticleParams& particles,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

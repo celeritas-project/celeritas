@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,7 +19,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "orange/Types.hh"
 
-#include "Types.hh" // IWYU pragma: export
+#include "Types.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -62,7 +62,7 @@ using SimpleUnitId = OpaqueId<struct SimpleUnitRecord>;
 enum class Sense : bool
 {
     inside,  //!< Quadric expression is less than zero
-    outside, //!< Expression is greater than zero
+    outside,  //!< Expression is greater than zero
 };
 
 //---------------------------------------------------------------------------//
@@ -79,9 +79,9 @@ enum class SurfaceType : unsigned char
     px,  //!< Plane aligned with X axis
     py,  //!< Plane aligned with Y axis
     pz,  //!< Plane aligned with Z axis
-    cxc, //!< Cylinder centered on X axis
-    cyc, //!< Cylinder centered on Y axis
-    czc, //!< Cylinder centered on Z axis
+    cxc,  //!< Cylinder centered on X axis
+    cyc,  //!< Cylinder centered on Y axis
+    czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
 #if 0
     cx,  //!< Cylinder parallel to X axis
@@ -89,15 +89,15 @@ enum class SurfaceType : unsigned char
     cz,  //!< Cylinder parallel to Z axis
     p,   //!< General plane
 #endif
-    s, //!< Sphere
+    s,  //!< Sphere
 #if 0
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
 #endif
-    gq,   //!< General quadric
-    size_ //!< Sentinel value for number of surface types
+    gq,  //!< General quadric
+    size_  //!< Sentinel value for number of surface types
 };
 
 //---------------------------------------------------------------------------//
@@ -137,8 +137,8 @@ enum class UniverseType : unsigned char
  */
 enum class SignedSense
 {
-    inside  = -1,
-    on      = 0,
+    inside = -1,
+    on = 0,
     outside = 1
 };
 
@@ -151,7 +151,7 @@ enum class SignedSense
 enum class SurfaceState : bool
 {
     off = false,
-    on  = true
+    on = true
 };
 
 //---------------------------------------------------------------------------//
@@ -166,7 +166,7 @@ enum class SurfaceState : bool
 enum class BoundaryResult : bool
 {
     reentrant = false,
-    exiting   = true
+    exiting = true
 };
 
 //---------------------------------------------------------------------------//
@@ -183,13 +183,13 @@ namespace logic
 enum OperatorToken : logic_int
 {
     lbegin = logic_int(~logic_int(4)),
-    ltrue  = lbegin, //!< Push 'true'
-    lor,             //!< Binary logical OR
-    land,            //!< Binary logical AND
-    lnot,            //!< Unary negation
+    ltrue = lbegin,  //!< Push 'true'
+    lor,  //!< Binary logical OR
+    land,  //!< Binary logical AND
+    lnot,  //!< Unary negation
     lend
 };
-} // namespace logic
+}  // namespace logic
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
@@ -293,7 +293,7 @@ CELER_CONSTEXPR_FUNCTION bool is_operator_token(logic_int lv)
 {
     return (lv >= lbegin);
 }
-} // namespace logic
+}  // namespace logic
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
@@ -305,7 +305,7 @@ inline static constexpr char to_char(Sense s)
 }
 
 // Get a string corresponding to a surface type
-const char* to_cstring(SurfaceType);
+char const* to_cstring(SurfaceType);
 
 //! Get a printable character corresponding to an operator.
 namespace logic
@@ -314,10 +314,10 @@ inline static constexpr char to_char(OperatorToken tok)
 {
     return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
 }
-} // namespace logic
+}  // namespace logic
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 // STD::HASH SPECIALIZATION FOR HOST CODE
@@ -330,11 +330,11 @@ template<>
 struct hash<celeritas::Sense>
 {
     using argument_type = celeritas::Sense;
-    using result_type   = std::size_t;
-    result_type operator()(const argument_type& sense) const noexcept
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& sense) const noexcept
     {
         return std::hash<bool>()(static_cast<bool>(sense));
     }
 };
-} // namespace std
+}  // namespace std
 //! \endcond

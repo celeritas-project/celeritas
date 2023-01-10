@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ namespace test
 class ValueGridInserterTest : public Test
 {
   protected:
-    Collection<real_type, Ownership::value, MemSpace::host>  real_storage;
+    Collection<real_type, Ownership::value, MemSpace::host> real_storage;
     Collection<XsGridData, Ownership::value, MemSpace::host> grid_storage;
 };
 
@@ -42,7 +42,7 @@ TEST_F(ValueGridInserterTest, all)
         auto idx = insert(
             UniformGridData::from_bounds(0.0, 1.0, 3), 1, make_span(values));
         EXPECT_EQ(0, idx.unchecked_get());
-        const XsGridData& inserted = grid_storage[idx];
+        XsGridData const& inserted = grid_storage[idx];
 
         EXPECT_EQ(3, inserted.log_energy.size);
         EXPECT_EQ(1, inserted.prime_index);
@@ -54,7 +54,7 @@ TEST_F(ValueGridInserterTest, all)
         auto idx = insert(UniformGridData::from_bounds(0.0, 10.0, 5),
                           make_span(values));
         EXPECT_EQ(1, idx.unchecked_get());
-        const XsGridData& inserted = grid_storage[idx];
+        XsGridData const& inserted = grid_storage[idx];
 
         EXPECT_EQ(5, inserted.log_energy.size);
         EXPECT_EQ(XsGridData::no_scaling(), inserted.prime_index);
@@ -63,5 +63,5 @@ TEST_F(ValueGridInserterTest, all)
     EXPECT_EQ(2, grid_storage.size());
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

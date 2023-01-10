@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
         return;
     }
 
-    auto   particle = track.make_particle_view();
+    auto particle = track.make_particle_view();
     Energy eloss;
     if (particle.energy() < phys.scalars().eloss_calc_limit
         && step_limit->action != track.boundary_action())
@@ -99,5 +99,5 @@ CELER_FUNCTION void EnergyLossApplier::operator()(CoreTrackView const& track,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

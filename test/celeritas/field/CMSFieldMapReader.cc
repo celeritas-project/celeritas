@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,8 +24,8 @@ namespace test
  * Construct the reader using an environment variable to get the volume-based
  * CMS magnetic field map data.
  */
-CMSFieldMapReader::CMSFieldMapReader(const FieldMapParameters& params,
-                                     std::string               file_name)
+CMSFieldMapReader::CMSFieldMapReader(FieldMapParameters const& params,
+                                     std::string file_name)
     : params_(params)
 {
     file_name_ = file_name;
@@ -50,9 +50,9 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
                    << "failed to open '" << file_name_
                    << "' (should contain cross section data)");
 
-    CMSFieldMapInput        fd;
+    CMSFieldMapInput fd;
     std::ifstream::pos_type fsize = ifile_.tellg();
-    size_type               ngrid = fsize / sizeof(CMSFieldMapInput);
+    size_type ngrid = fsize / sizeof(CMSFieldMapInput);
     ifile_.seekg(0, std::ios::beg);
 
     result.data.reserve(ngrid);
@@ -68,5 +68,5 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

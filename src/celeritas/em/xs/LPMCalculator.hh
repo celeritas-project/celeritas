@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,8 +48,8 @@ class LPMCalculator
 
   public:
     // Construct with material data and photon energy
-    inline CELER_FUNCTION LPMCalculator(const MaterialView& material,
-                                        const ElementView&  element,
+    inline CELER_FUNCTION LPMCalculator(MaterialView const& material,
+                                        ElementView const& element,
                                         bool dielectric_suppression,
                                         units::MevEnergy gamma_energy);
 
@@ -60,13 +60,13 @@ class LPMCalculator
     //// DATA ////
 
     // Current element
-    const ElementView& element_;
+    ElementView const& element_;
     // Electron density of the current material [1/cm^3]
     const real_type electron_density_;
     // Characteristic energy for the LPM effect for this material [MeV]
     const real_type lpm_energy_;
     // Include a dielectric suppression effect
-    const bool dielectric_suppression_;
+    bool const dielectric_suppression_;
     // Photon energy [MeV]
     const real_type gamma_energy_;
 
@@ -83,10 +83,10 @@ class LPMCalculator
  * Construct with LPM data, material data, and photon energy.
  */
 CELER_FUNCTION
-LPMCalculator::LPMCalculator(const MaterialView& material,
-                             const ElementView&  element,
-                             bool                dielectric_suppression,
-                             units::MevEnergy    gamma_energy)
+LPMCalculator::LPMCalculator(MaterialView const& material,
+                             ElementView const& element,
+                             bool dielectric_suppression,
+                             units::MevEnergy gamma_energy)
     : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()
@@ -131,7 +131,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     else if (s_prime > constants::sqrt_two * s1)
     {
         const real_type log_s1 = std::log(constants::sqrt_two * s1);
-        const real_type h      = std::log(s_prime) / log_s1;
+        const real_type h = std::log(s_prime) / log_s1;
         xi = 1 + h - real_type(0.08) * (1 - h) * h * (2 - h) / log_s1;
     }
     real_type s = s_prime / std::sqrt(xi);
@@ -169,8 +169,8 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     }
     LPMFunctions result;
     result.phi = phi;
-    result.xi  = xi;
-    result.g   = this->calc_g(s, phi);
+    result.xi = xi;
+    result.g = this->calc_g(s, phi);
 
     return result;
 }
@@ -188,7 +188,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
  */
 CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
 {
-    using PolyLin  = PolyEvaluator<real_type, 1>;
+    using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     if (s < real_type(0.01))
@@ -213,7 +213,7 @@ CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
  */
 CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
 {
-    using PolyLin   = PolyEvaluator<real_type, 1>;
+    using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuart = PolyEvaluator<real_type, 4>;
 
     if (s < real_type(0.01))
@@ -222,8 +222,8 @@ CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
     }
     else if (s < real_type(0.415827))
     {
-        real_type a   = PolyQuart{1, 3.936, 4.97, -0.05, 7.5}(s);
-        real_type b   = PolyLin{-4, -8 / a}(s);
+        real_type a = PolyQuart{1, 3.936, 4.97, -0.05, 7.5}(s);
+        real_type b = PolyLin{-4, -8 / a}(s);
         real_type psi = 1 - std::exp(s * b);
         return 3 * psi - 2 * phi;
     }
@@ -239,4 +239,4 @@ CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

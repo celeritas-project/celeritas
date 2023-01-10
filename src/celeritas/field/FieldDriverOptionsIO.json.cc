@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,7 +18,7 @@ namespace celeritas
 /*!
  * Read options from JSON.
  */
-void from_json(const nlohmann::json& j, FieldDriverOptions& opts)
+void from_json(nlohmann::json const& j, FieldDriverOptions& opts)
 {
 #define FDO_INPUT(FIELD) j.at(#FIELD).get_to(opts.FIELD)
 
@@ -42,7 +42,7 @@ void from_json(const nlohmann::json& j, FieldDriverOptions& opts)
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, const FieldDriverOptions& opts)
+void to_json(nlohmann::json& j, FieldDriverOptions const& opts)
 {
 #define FDO_PAIR(FIELD) {#FIELD, opts.FIELD}
     j = nlohmann::json{
@@ -63,4 +63,4 @@ void to_json(nlohmann::json& j, const FieldDriverOptions& opts)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

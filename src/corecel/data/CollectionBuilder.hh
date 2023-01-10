@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,10 +48,10 @@ class CollectionBuilder
     //!@{
     //! Type aliases
     using CollectionT = Collection<T, Ownership::value, M, I>;
-    using value_type  = T;
-    using size_type   = typename CollectionT::size_type;
-    using ItemIdT     = typename CollectionT::ItemIdT;
-    using ItemRangeT  = typename CollectionT::ItemRangeT;
+    using value_type = T;
+    using size_type = typename CollectionT::size_type;
+    using ItemIdT = typename CollectionT::ItemIdT;
+    using ItemRangeT = typename CollectionT::ItemRangeT;
     //!@}
 
   public:
@@ -72,7 +72,7 @@ class CollectionBuilder
     inline ItemRangeT insert_back(std::initializer_list<value_type> init);
 
     // Append a single element
-    inline ItemIdT push_back(const value_type& element);
+    inline ItemIdT push_back(value_type const& element);
     inline ItemIdT push_back(value_type&& element);
 
     //! Number of elements in the collection
@@ -82,8 +82,8 @@ class CollectionBuilder
     CollectionT& col_;
 
     using StorageT = typename CollectionT::StorageT;
-    StorageT&       storage() { return col_.storage(); }
-    const StorageT& storage() const { return col_.storage(); }
+    StorageT& storage() { return col_.storage(); }
+    StorageT const& storage() const { return col_.storage(); }
 
     //! Maximum elements in a Collection, in underlying storage size
     static constexpr size_type max_size()
@@ -141,7 +141,7 @@ auto CollectionBuilder<T, M, I>::insert_back(std::initializer_list<T> init)
  * Add a new element to the end of the allocation.
  */
 template<class T, MemSpace M, class I>
-auto CollectionBuilder<T, M, I>::push_back(const T& el) -> ItemIdT
+auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
 {
     CELER_EXPECT(this->storage().size() + 1 <= this->max_size());
     static_assert(M == MemSpace::host,
@@ -200,11 +200,11 @@ make_builder(Collection<T, Ownership::value, M, I>* collection)
  */
 template<class T, MemSpace M, class I>
 void resize(Collection<T, Ownership::value, M, I>* collection,
-            typename I::size_type                  size)
+            typename I::size_type size)
 {
     CELER_EXPECT(collection);
     CollectionBuilder<T, M, I>(collection).resize(size);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

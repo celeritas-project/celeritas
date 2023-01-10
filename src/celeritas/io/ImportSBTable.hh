@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -17,10 +17,10 @@ namespace celeritas
  */
 struct ImportSBTable
 {
-    std::vector<double> x;     //!< Log energy of incident particle / MeV
-    std::vector<double> y;     //!< Ratio of gamma energy to incident energy
-    std::vector<double> value; //!< Scaled DCS [mb] [ny * x + y]
+    std::vector<double> x;  //!< Log energy of incident particle / MeV
+    std::vector<double> y;  //!< Ratio of gamma energy to incident energy
+    std::vector<double> value;  //!< Scaled DCS [mb] [ny * x + y]
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

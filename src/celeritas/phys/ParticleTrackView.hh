@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,20 +38,20 @@ class ParticleTrackView
     //!@{
     //! \name Type aliases
     using ParticleParamsRef = celeritas::NativeCRef<ParticleParamsData>;
-    using ParticleStateRef  = celeritas::NativeRef<ParticleStateData>;
-    using Energy            = units::MevEnergy;
-    using Initializer_t     = ParticleTrackInitializer;
+    using ParticleStateRef = celeritas::NativeRef<ParticleStateData>;
+    using Energy = units::MevEnergy;
+    using Initializer_t = ParticleTrackInitializer;
     //!@}
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
-    inline CELER_FUNCTION ParticleTrackView(const ParticleParamsRef& params,
-                                            const ParticleStateRef&  states,
-                                            ThreadId                 id);
+    inline CELER_FUNCTION ParticleTrackView(ParticleParamsRef const& params,
+                                            ParticleStateRef const& states,
+                                            ThreadId id);
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
-    operator=(const Initializer_t& other);
+    operator=(Initializer_t const& other);
 
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
@@ -101,9 +101,9 @@ class ParticleTrackView
     inline CELER_FUNCTION units::MevMomentumSq momentum_sq() const;
 
   private:
-    const ParticleParamsRef& params_;
-    const ParticleStateRef&  states_;
-    const ThreadId           thread_;
+    ParticleParamsRef const& params_;
+    ParticleStateRef const& states_;
+    const ThreadId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -113,9 +113,9 @@ class ParticleTrackView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(const ParticleParamsRef& params,
-                                     const ParticleStateRef&  states,
-                                     ThreadId                 thread)
+ParticleTrackView::ParticleTrackView(ParticleParamsRef const& params,
+                                     ParticleStateRef const& states,
+                                     ThreadId thread)
     : params_(params), states_(states), thread_(thread)
 {
     CELER_EXPECT(thread_ < states_.size());
@@ -126,12 +126,12 @@ ParticleTrackView::ParticleTrackView(const ParticleParamsRef& params,
  * Initialize the particle.
  */
 CELER_FUNCTION ParticleTrackView&
-ParticleTrackView::operator=(const Initializer_t& other)
+ParticleTrackView::operator=(Initializer_t const& other)
 {
     CELER_EXPECT(other.particle_id < params_.particles.size());
     CELER_EXPECT(other.energy >= zero_quantity());
     states_.state[thread_].particle_id = other.particle_id;
-    states_.state[thread_].energy      = other.energy.value();
+    states_.state[thread_].energy = other.energy.value();
     return *this;
 }
 
@@ -357,4 +357,4 @@ CELER_FUNCTION units::MevMomentum ParticleTrackView::momentum() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

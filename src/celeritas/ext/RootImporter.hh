@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,7 +41,7 @@ class RootImporter
 {
   public:
     // Construct with ROOT file name
-    explicit RootImporter(const char* filename);
+    explicit RootImporter(char const* filename);
 
     // Load data from the ROOT files
     ImportData operator()();
@@ -51,14 +51,14 @@ class RootImporter
     detail::RootUniquePtr<TFile> root_input_;
 
     // ROOT TTree name
-    static const char* tree_name();
+    static char const* tree_name();
     // ROOT TBranch name
-    static const char* branch_name();
+    static char const* branch_name();
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootImporter::RootImporter(const char*)
+inline RootImporter::RootImporter(char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
@@ -70,4 +70,4 @@ inline auto RootImporter::operator()() -> ImportData
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

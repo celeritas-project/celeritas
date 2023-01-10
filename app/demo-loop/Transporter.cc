@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,7 +19,7 @@
 #include "corecel/math/VectorUtils.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/global/ActionRegistry.hh" // IWYU pragma: keep
+#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/Model.hh"
@@ -82,7 +82,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
 
     //!@{
     //! Action interface
-    ActionId    action_id() const final { return id_; }
+    ActionId action_id() const final { return id_; }
     std::string label() const final { return "diagnostics"; }
     std::string description() const final
     {
@@ -92,7 +92,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     //!@}
 
   private:
-    ActionId      id_;
+    ActionId id_;
     SPDiagnostics diagnostics_;
 
     template<MemSpace M>
@@ -102,7 +102,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     void execute_impl(CoreStateData<Ownership::reference, M> const& states,
                       VecUPDiag<M> const& diagnostics) const
     {
-        for (const auto& diag_ptr : diagnostics)
+        for (auto const& diag_ptr : diagnostics)
         {
             diag_ptr->mid_step(states);
         }
@@ -110,7 +110,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 //! Default virtual destructor
@@ -126,19 +126,19 @@ Transporter<M>::Transporter(TransporterInput inp)
     TransporterBase::input_ = std::move(inp);
     CELER_EXPECT(input_);
 
-    const CoreParams& params = *input_.params;
+    CoreParams const& params = *input_.params;
 
     // Create diagnostics
     if (input_.enable_diagnostics)
     {
         diagnostics_ = std::make_shared<DiagnosticStore>();
-        auto& diag   = get_diag_ref(*diagnostics_, MemTag<M>{});
+        auto& diag = get_diag_ref(*diagnostics_, MemTag<M>{});
         diag.push_back(std::make_unique<StepDiagnostic<M>>(
             get_ref<M>(params), params.particle(), input_.num_track_slots, 200));
         diag.push_back(std::make_unique<ParticleProcessDiagnostic<M>>(
             get_ref<M>(params), params.particle(), params.physics()));
         {
-            const auto& ediag = input_.energy_diag;
+            auto const& ediag = input_.energy_diag;
             CELER_VALIDATE(ediag.axis >= 'x' && ediag.axis <= 'z',
                            << "Invalid axis '" << ediag.axis
                            << "' (must be x, y, or z)");
@@ -172,7 +172,7 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
         result.active.reserve(input_.max_steps);
         result.alive.reserve(input_.max_steps);
     }
-    auto append_track_counts = [&result](const StepperResult& track_counts) {
+    auto append_track_counts = [&result](StepperResult const& track_counts) {
         result.initializers.push_back(track_counts.queued);
         result.active.push_back(track_counts.active);
         result.alive.push_back(track_counts.alive);
@@ -183,9 +183,9 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     CELER_LOG(status) << "Transporting";
 
     StepperInput input;
-    input.params          = input_.params;
+    input.params = input_.params;
     input.num_track_slots = input_.num_track_slots;
-    input.sync            = input_.sync;
+    input.sync = input_.sync;
     Stepper<M> step(std::move(input));
 
     Stopwatch get_step_time;
@@ -213,7 +213,7 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
         }
 
         get_step_time = {};
-        track_counts  = step();
+        track_counts = step();
         append_track_counts(track_counts);
         result.time.steps.push_back(get_step_time());
     }
@@ -221,14 +221,14 @@ TransporterResult Transporter<M>::operator()(SpanConstPrimary primaries)
     // Save kernel timing if host or synchronization is enabled
     if (M == MemSpace::host || input_.sync)
     {
-        const auto& action_seq  = step.actions();
-        const auto& action_ptrs = action_seq.actions();
-        const auto& times       = action_seq.accum_time();
+        auto const& action_seq = step.actions();
+        auto const& action_ptrs = action_seq.actions();
+        auto const& times = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == times.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label               = action_ptrs[i]->label();
+            auto&& label = action_ptrs[i]->label();
             result.time.actions[label] = times[i];
         }
     }
@@ -254,4 +254,4 @@ template class Transporter<MemSpace::host>;
 template class Transporter<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

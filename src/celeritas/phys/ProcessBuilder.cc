@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,11 +36,11 @@ namespace celeritas
  * \warning If Livermore and SB data is present in the import data, their
  * lifetime must extend beyond the \c ProcessBuilder instance.
  */
-ProcessBuilder::ProcessBuilder(const ImportData& data,
-                               SPConstParticle   particle,
-                               SPConstMaterial   material,
-                               UserBuildMap      user_build,
-                               Options           options)
+ProcessBuilder::ProcessBuilder(ImportData const& data,
+                               SPConstParticle particle,
+                               SPConstMaterial material,
+                               UserBuildMap user_build,
+                               Options options)
     : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
     , brem_combined_(options.brem_combined)
@@ -66,10 +66,10 @@ ProcessBuilder::ProcessBuilder(const ImportData& data,
 /*!
  * Construct without custom user builders.
  */
-ProcessBuilder::ProcessBuilder(const ImportData& data,
-                               SPConstParticle   particle,
-                               SPConstMaterial   material,
-                               Options           options)
+ProcessBuilder::ProcessBuilder(ImportData const& data,
+                               SPConstParticle particle,
+                               SPConstMaterial material,
+                               Options options)
     : ProcessBuilder(
         data, std::move(particle), std::move(material), UserBuildMap{}, options)
 {
@@ -116,7 +116,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
                        << to_cstring(ipc) << "'");
 
         BuilderMemFn build_impl{iter->second};
-        auto         result = (this->*build_impl)();
+        auto result = (this->*build_impl)();
         CELER_ENSURE(result);
         return result;
     }
@@ -143,8 +143,8 @@ auto ProcessBuilder::build_eioni() -> SPProcess
 auto ProcessBuilder::build_ebrems() -> SPProcess
 {
     BremsstrahlungProcess::Options options;
-    options.combined_model  = brem_combined_;
-    options.enable_lpm      = enable_lpm_;
+    options.combined_model = brem_combined_;
+    options.enable_lpm = enable_lpm_;
     options.use_integral_xs = use_integral_xs_;
 
     if (!read_sb_)
@@ -212,4 +212,4 @@ auto WarnAndIgnoreProcess::operator()(argument_type) const -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

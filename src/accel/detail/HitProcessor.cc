@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -37,34 +37,34 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class T>
-inline T convert_to_geant(const T& val, T units)
+inline T convert_to_geant(T const& val, T units)
 {
     return val * units;
 }
 
 //---------------------------------------------------------------------------//
-inline G4ThreeVector convert_to_geant(const Real3& arr, double units)
+inline G4ThreeVector convert_to_geant(Real3 const& arr, double units)
 {
     return {arr[0] * units, arr[1] * units, arr[2] * units};
 }
 
 //---------------------------------------------------------------------------//
-inline double convert_to_geant(const units::MevEnergy& energy, double units)
+inline double convert_to_geant(units::MevEnergy const& energy, double units)
 {
     CELER_EXPECT(units == CLHEP::MeV);
     return energy.value() * CLHEP::MeV;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct local navigator and step data.
  */
-HitProcessor::HitProcessor(VecLV                detector_volumes,
-                           const StepSelection& selection,
-                           bool                 locate_touchable)
+HitProcessor::HitProcessor(VecLV detector_volumes,
+                           StepSelection const& selection,
+                           bool locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
 {
     CELER_EXPECT(!detector_volumes_.empty());
@@ -122,7 +122,7 @@ HitProcessor::~HitProcessor() = default;
 /*!
  * Generate and call hits from a detector output.
  */
-void HitProcessor::operator()(const DetectorStepOutput& out) const
+void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
     CELER_EXPECT(!out.detector.empty());
 
@@ -194,5 +194,5 @@ void HitProcessor::operator()(const DetectorStepOutput& out) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

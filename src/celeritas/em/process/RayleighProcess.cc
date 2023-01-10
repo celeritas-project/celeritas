@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,7 +23,7 @@ namespace celeritas
  */
 RayleighProcess::RayleighProcess(SPConstParticles particles,
                                  SPConstMaterials materials,
-                                 SPConstImported  process_data)
+                                 SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(
@@ -63,4 +63,4 @@ std::string RayleighProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

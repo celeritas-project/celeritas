@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ class HitManager final : public StepInterface
 {
   public:
     // Construct with VecGeom for mapping volume IDs
-    HitManager(const GeoParams& geo, const SDSetupOptions& setup);
+    HitManager(GeoParams const& geo, SDSetupOptions const& setup);
 
     // Default destructor
     ~HitManager();
@@ -62,15 +62,15 @@ class HitManager final : public StepInterface
     void execute(StateDeviceRef const&) final;
 
   private:
-    bool                          nonzero_energy_deposition_{};
-    StepSelection                 selection_;
-    DetectorStepOutput            steps_;
-    std::vector<VolumeId>         vecgeom_vols_;
+    bool nonzero_energy_deposition_{};
+    StepSelection selection_;
+    DetectorStepOutput steps_;
+    std::vector<VolumeId> vecgeom_vols_;
     std::unique_ptr<HitProcessor> process_hits_;
 
     void call_local_processor() const;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

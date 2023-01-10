@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,10 +39,10 @@ class GridIdFinder
     //!@{
     //! Type aliases
     using argument_type = KeyQuantity;
-    using result_type   = ValueId;
+    using result_type = ValueId;
 
-    using SpanConstGrid  = Span<const typename KeyQuantity::value_type>;
-    using SpanConstValue = Span<const result_type>;
+    using SpanConstGrid = Span<const typename KeyQuantity::value_type>;
+    using SpanConstValue = Span<result_type const>;
     //!@}
 
   public:
@@ -53,7 +53,7 @@ class GridIdFinder
     inline CELER_FUNCTION result_type operator()(argument_type arg) const;
 
   private:
-    SpanConstGrid  grid_;
+    SpanConstGrid grid_;
     SpanConstValue value_;
 };
 
@@ -105,4 +105,4 @@ CELER_FUNCTION auto GridIdFinder<K, V>::operator()(argument_type quant) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    const std::string& filename = GlobalSetup::Instance()->GetGeometryFile();
+    std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
     {
         G4Exception("DetectorConstruction::Construct()",
@@ -71,9 +71,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     gdml_parser.Read(filename, validate_gdml_schema);
 
     // Find sensitive detectors
-    for (const auto& lv_vecaux : *gdml_parser.GetAuxMap())
+    for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
     {
-        for (const G4GDMLAuxStructType& aux : lv_vecaux.second)
+        for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
         {
             if (aux.type == "SensDet")
             {
@@ -102,4 +102,4 @@ void DetectorConstruction::ConstructSDandField()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

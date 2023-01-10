@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,9 +32,9 @@ class ActionInitialization final : public G4VUserActionInitialization
     void Build() const final;
 
   private:
-    SPParams     params_;
+    SPParams params_;
     mutable bool init_celeritas_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

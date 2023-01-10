@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,7 +19,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "CutoffData.hh" // IWYU pragma: associated
+#include "CutoffData.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -28,9 +28,9 @@ namespace celeritas
  * Construct with imported data.
  */
 std::shared_ptr<CutoffParams>
-CutoffParams::from_import(const ImportData& data,
-                          SPConstParticles  particle_params,
-                          SPConstMaterials  material_params)
+CutoffParams::from_import(ImportData const& data,
+                          SPConstParticles particle_params,
+                          SPConstMaterials material_params)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(particle_params);
@@ -40,10 +40,10 @@ CutoffParams::from_import(const ImportData& data,
     input.particles = std::move(particle_params);
     input.materials = std::move(material_params);
 
-    for (const auto& pdg : CutoffParams::pdg_numbers())
+    for (auto const& pdg : CutoffParams::pdg_numbers())
     {
         CutoffParams::MaterialCutoffs mat_cutoffs;
-        for (const auto& material : data.materials)
+        for (auto const& material : data.materials)
         {
             auto iter = material.pdg_cutoffs.find(pdg.get());
             if (iter != material.pdg_cutoffs.end())
@@ -67,7 +67,7 @@ CutoffParams::from_import(const ImportData& data,
 /*!
  * Construct on both host and device.
  */
-CutoffParams::CutoffParams(const Input& input)
+CutoffParams::CutoffParams(Input const& input)
 {
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.particles);
@@ -79,9 +79,9 @@ CutoffParams::CutoffParams(const Input& input)
 
     // Initialize mapping of particle ID to index with invalid indices
     std::vector<size_type> id_to_index(input.particles->size(), size_type(-1));
-    size_type              current_index = 0;
+    size_type current_index = 0;
 
-    for (const auto& pdg : CutoffParams::pdg_numbers())
+    for (auto const& pdg : CutoffParams::pdg_numbers())
     {
         if (auto pid = input.particles->find(pdg))
         {
@@ -91,7 +91,7 @@ CutoffParams::CutoffParams(const Input& input)
             if (iter != input.cutoffs.end())
             {
                 // Found valid PDG and cutoff values
-                const auto& mat_cutoffs = iter->second;
+                auto const& mat_cutoffs = iter->second;
                 CELER_ASSERT(mat_cutoffs.size() == host_data.num_materials);
                 cutoffs.insert(
                     cutoffs.end(), mat_cutoffs.begin(), mat_cutoffs.end());
@@ -125,7 +125,7 @@ CutoffParams::CutoffParams(const Input& input)
  * Only electrons and photons have secondary production cuts -- protons are not
  * currently used, and positrons cannot have production cuts.
  */
-const std::vector<PDGNumber>& CutoffParams::pdg_numbers()
+std::vector<PDGNumber> const& CutoffParams::pdg_numbers()
 {
     static const std::vector<PDGNumber> pdg_numbers{pdg::electron(),
                                                     pdg::gamma()};
@@ -133,4 +133,4 @@ const std::vector<PDGNumber>& CutoffParams::pdg_numbers()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

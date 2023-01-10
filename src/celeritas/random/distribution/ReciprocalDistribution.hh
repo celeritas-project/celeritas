@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,7 +38,7 @@ class ReciprocalDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -108,4 +108,4 @@ ReciprocalDistribution<RealType>::operator()(Generator& rng) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

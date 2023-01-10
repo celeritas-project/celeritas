@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Write device diagnostics out to JSON.
  */
-void to_json(nlohmann::json& j, const Device& d)
+void to_json(nlohmann::json& j, Device const& d)
 {
     if (d)
     {
@@ -41,7 +41,7 @@ void to_json(nlohmann::json& j, const Device& d)
         j["platform"] = "hip";
 #endif
 
-        for (const auto& kv : d.extra())
+        for (auto const& kv : d.extra())
         {
             j[kv.first] = kv.second;
         }
@@ -53,4 +53,4 @@ void to_json(nlohmann::json& j, const Device& d)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

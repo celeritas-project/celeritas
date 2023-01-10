@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ std::shared_ptr<XsGridParams> load_xs()
            3.72759372e+07, 5.17947468e+07, 7.19685673e+07, 1.00000000e+08};
 
     // Cross sections from geant (1/mm)
-    static const double lambda[]
+    static double const lambda[]
         = {7.67362267e-05, 1.64899126e-04, 3.36973428e-04, 6.54835694e-04,
            1.21011994e-03, 2.12659055e-03, 3.55384702e-03, 5.64771749e-03,
            8.53506016e-03, 1.22659050e-02, 1.67630095e-02, 2.17853115e-02,
@@ -78,10 +78,10 @@ std::shared_ptr<XsGridParams> load_xs()
         input.xs[i] = lambda[i] * (1 / celeritas::units::millimeter);
     }
 
-    input.prime_energy = 1.0; // XS are scaled by a factor of E above 1 MeV
+    input.prime_energy = 1.0;  // XS are scaled by a factor of E above 1 MeV
 
     return std::make_shared<XsGridParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,10 +31,10 @@ namespace celeritas
  * Construct the along-step action from input parameters.
  */
 std::shared_ptr<AlongStepGeneralLinearAction>
-AlongStepGeneralLinearAction::from_params(ActionId              id,
-                                          const MaterialParams& materials,
-                                          const ParticleParams& particles,
-                                          const PhysicsParams&  physics,
+AlongStepGeneralLinearAction::from_params(ActionId id,
+                                          MaterialParams const& materials,
+                                          ParticleParams const& particles,
+                                          PhysicsParams const& physics,
                                           bool eloss_fluctuation)
 {
     SPConstFluctuations fluct;
@@ -47,7 +47,7 @@ AlongStepGeneralLinearAction::from_params(ActionId              id,
     SPConstMsc msc;
     for (auto mid : range(ModelId{physics.num_models()}))
     {
-        msc = std::dynamic_pointer_cast<const UrbanMscModel>(
+        msc = std::dynamic_pointer_cast<UrbanMscModel const>(
             physics.model(mid));
         if (msc)
         {
@@ -108,7 +108,7 @@ void AlongStepGeneralLinearAction::execute(CoreHostRef const& data) const
  */
 template<MemSpace M>
 AlongStepGeneralLinearAction::ExternalRefs<M>::ExternalRefs(
-    const SPConstFluctuations& fluct_params, const SPConstMsc& msc_params)
+    SPConstFluctuations const& fluct_params, SPConstMsc const& msc_params)
 {
     if (M == MemSpace::device && !celeritas::device())
     {
@@ -127,4 +127,4 @@ AlongStepGeneralLinearAction::ExternalRefs<M>::ExternalRefs(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

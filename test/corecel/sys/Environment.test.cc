@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -67,8 +67,8 @@ TEST(EnvironmentTest, json)
     }
     {
         // Save environment
-        nlohmann::json    out{env};
-        static const char expected[]
+        nlohmann::json out{env};
+        static char const expected[]
             = R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"0"}])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
@@ -78,5 +78,5 @@ TEST(EnvironmentTest, json)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

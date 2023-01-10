@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,7 +39,7 @@
 namespace
 {
 //---------------------------------------------------------------------------//
-void run(const std::string& macro_filename)
+void run(std::string const& macro_filename)
 {
     // Set the random seed *before* the run manager is instantiated
     // (G4MTRunManager constructor uses the RNG)
@@ -91,7 +91,7 @@ void run(const std::string& macro_filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

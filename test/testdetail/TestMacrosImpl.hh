@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,8 +28,8 @@ namespace testdetail
 int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
-const char*
-trunc_string(unsigned int digits, const char* str, const char* trunc);
+char const*
+trunc_string(unsigned int digits, char const* str, char const* trunc);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -72,10 +72,10 @@ struct SoftPrecisionType<float, double>
 template<class BinaryOp>
 ::testing::AssertionResult
 IsSoftEquivImpl(typename BinaryOp::value_type expected,
-                const char*                   expected_expr,
+                char const* expected_expr,
                 typename BinaryOp::value_type actual,
-                const char*                   actual_expr,
-                BinaryOp                      comp)
+                char const* actual_expr,
+                BinaryOp comp)
 {
     using value_type = typename BinaryOp::value_type;
 
@@ -111,16 +111,16 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
  * Predicate for relative error soft equivalence.
  */
 template<class Value_E, class Value_A>
-::testing::AssertionResult IsSoftEquiv(const char* expected_expr,
-                                       const char* actual_expr,
-                                       Value_E     expected,
-                                       Value_A     actual)
+::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
+                                       char const* actual_expr,
+                                       Value_E expected,
+                                       Value_A actual)
 {
     static_assert(can_soft_equiv<Value_E, Value_A>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
     using BinaryOp = SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
@@ -132,18 +132,18 @@ template<class Value_E, class Value_A>
  * Predicate for relative error soft equivalence.
  */
 template<class Value_E, class Value_A>
-::testing::AssertionResult IsSoftEquiv(const char* expected_expr,
-                                       const char* actual_expr,
-                                       const char*,
+::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
+                                       char const* actual_expr,
+                                       char const*,
                                        Value_E expected,
                                        Value_A actual,
-                                       double  rel)
+                                       double rel)
 {
     static_assert(can_soft_equiv<Value_E, Value_A>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT   = typename SoftPrecisionType<Value_E, Value_A>::type;
+    using ValueT = typename SoftPrecisionType<Value_E, Value_A>::type;
     using BinaryOp = SoftEqual<ValueT>;
 
     return IsSoftEquivImpl(
@@ -157,12 +157,12 @@ template<class Value_E, class Value_A>
 template<class T1, class T2>
 struct FailedValue
 {
-    using size_type   = std::size_t;
-    using first_type  = T1;
+    using size_type = std::size_t;
+    using first_type = T1;
     using second_type = T2;
 
-    size_type   index;
-    first_type  expected;
+    size_type index;
+    first_type expected;
     second_type actual;
 };
 
@@ -175,14 +175,14 @@ struct TCT
     template<class C>
     using nc_value_type_ = typename std::remove_const<value_type_<C>>::type;
 
-    using first_type  = nc_value_type_<C1>;
+    using first_type = nc_value_type_<C1>;
     using second_type = nc_value_type_<C2>;
 
     using common_type =
         typename std::common_type<first_type, second_type>::type;
 
     using Failed_Value_t = FailedValue<first_type, second_type>;
-    using Failed_Vec_t   = std::vector<Failed_Value_t>;
+    using Failed_Vec_t = std::vector<Failed_Value_t>;
 };
 
 // Failed value iterator traits
@@ -194,10 +194,10 @@ struct FVIT
     template<class I>
     using nc_value_type_ = typename std::remove_const<value_type_<I>>::type;
 
-    using first_type  = nc_value_type_<Iter1>;
+    using first_type = nc_value_type_<Iter1>;
     using second_type = nc_value_type_<Iter2>;
 
-    using type  = FailedValue<first_type, second_type>;
+    using type = FailedValue<first_type, second_type>;
     using Vec_t = std::vector<type>;
 };
 
@@ -207,18 +207,18 @@ struct FVIT
  */
 template<class Iter1, class Iter2, class BinaryOp>
 ::testing::AssertionResult
-IsRangeEqImpl(Iter1                               e_iter,
-              Iter1                               e_end,
-              const char*                         expected_expr,
-              Iter2                               a_iter,
-              Iter2                               a_end,
-              const char*                         actual_expr,
+IsRangeEqImpl(Iter1 e_iter,
+              Iter1 e_end,
+              char const* expected_expr,
+              Iter2 a_iter,
+              Iter2 a_end,
+              char const* actual_expr,
               typename FVIT<Iter1, Iter2>::Vec_t& failures,
-              BinaryOp                            comp)
+              BinaryOp comp)
 {
-    using size_type         = std::size_t;
+    using size_type = std::size_t;
     size_type expected_size = std::distance(e_iter, e_end);
-    size_type actual_size   = std::distance(a_iter, a_end);
+    size_type actual_size = std::distance(a_iter, a_end);
 
     // First, check that the sizes are equal
     if (expected_size != actual_size)
@@ -269,16 +269,16 @@ IsRangeEqImpl(Iter1                               e_iter,
  * operations.
  */
 template<class ContainerE, class ContainerA, class BinaryOp>
-::testing::AssertionResult IsVecSoftEquivImpl(const ContainerE& expected,
-                                              const char*       expected_expr,
-                                              const ContainerA& actual,
-                                              const char*       actual_expr,
-                                              BinaryOp          comp)
+::testing::AssertionResult IsVecSoftEquivImpl(ContainerE const& expected,
+                                              char const* expected_expr,
+                                              ContainerA const& actual,
+                                              char const* actual_expr,
+                                              BinaryOp comp)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
     using Failed_t = FailedValue<typename Traits_t::first_type,
                                  typename Traits_t::second_type>;
-    std::vector<Failed_t>      failures;
+    std::vector<Failed_t> failures;
     ::testing::AssertionResult result = IsRangeEqImpl(std::begin(expected),
                                                       std::end(expected),
                                                       expected_expr,
@@ -313,9 +313,9 @@ template<class ContainerE, class ContainerA, class BinaryOp>
  * Print failure results.
  */
 template<class T1, class T2>
-std::string failure_msg(const char*                             expected_expr,
-                        const char*                             actual_expr,
-                        const std::vector<FailedValue<T1, T2>>& failures)
+std::string failure_msg(char const* expected_expr,
+                        char const* actual_expr,
+                        std::vector<FailedValue<T1, T2>> const& failures)
 {
     using RT1 = ReprTraits<T1>;
     using RT2 = ReprTraits<T2>;
@@ -336,7 +336,7 @@ std::string failure_msg(const char*                             expected_expr,
        << trunc_string(vdig, actual_expr, "ACTUAL") << '\n';
 
     // Loop through failed indices and print values
-    for (const auto& f : failures)
+    for (auto const& f : failures)
     {
         os << setw(idig) << f.index << ' ' << setw(vdig);
         RT1::print_value(os, f.expected);
@@ -352,9 +352,9 @@ std::string failure_msg(const char*                             expected_expr,
  * Print failure results for floating point comparisons.
  */
 template<class T1, class T2>
-std::string float_failure_msg(const char* expected_expr,
-                              const char* actual_expr,
-                              const std::vector<FailedValue<T1, T2>>& failures,
+std::string float_failure_msg(char const* expected_expr,
+                              char const* actual_expr,
+                              std::vector<FailedValue<T1, T2>> const& failures,
                               double abs_thresh)
 {
     using std::setprecision;
@@ -381,7 +381,7 @@ std::string float_failure_msg(const char* expected_expr,
        << "Difference" << '\n';
 
     // Loop through failed indices and print values
-    for (const auto& f : failures)
+    for (auto const& f : failures)
     {
         os << setw(idig) << f.index << ' ' << setw(vdig) << f.expected << ' '
            << setw(vdig) << f.actual << ' ' << setw(vdig);
@@ -408,9 +408,9 @@ std::string float_failure_msg(const char* expected_expr,
  * Print expected values.
  */
 template<class Container>
-void print_expected(const Container& data, std::string label)
+void print_expected(Container const& data, std::string label)
 {
-    using RT  = ReprTraits<Container>;
+    using RT = ReprTraits<Container>;
     using VRT = ReprTraits<typename RT::value_type>;
 
     std::cout << "static const ";
@@ -432,10 +432,10 @@ void print_expected(const Container& data, std::string label)
  * Compare two containers.
  */
 template<class ContainerE, class ContainerA>
-::testing::AssertionResult IsVecEq(const char*       expected_expr,
-                                   const char*       actual_expr,
-                                   const ContainerE& expected,
-                                   const ContainerA& actual)
+::testing::AssertionResult IsVecEq(char const* expected_expr,
+                                   char const* actual_expr,
+                                   ContainerE const& expected,
+                                   ContainerA const& actual)
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
 
@@ -473,12 +473,12 @@ template<class ContainerE, class ContainerA>
  * Compare two containers using soft equivalence.
  */
 template<class ContainerE, class ContainerA>
-::testing::AssertionResult IsVecSoftEquiv(const char*       expected_expr,
-                                          const char*       actual_expr,
-                                          const ContainerE& expected,
-                                          const ContainerA& actual)
+::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
+                                          char const* actual_expr,
+                                          ContainerE const& expected,
+                                          ContainerA const& actual)
 {
-    using Traits_t     = TCT<ContainerE, ContainerA>;
+    using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
     using value_type_A = typename Traits_t::second_type;
 
@@ -503,14 +503,14 @@ template<class ContainerE, class ContainerA>
  * operations.
  */
 template<class ContainerE, class ContainerA>
-::testing::AssertionResult IsVecSoftEquiv(const char* expected_expr,
-                                          const char* actual_expr,
-                                          const char*,
-                                          const ContainerE& expected,
-                                          const ContainerA& actual,
-                                          double            rel)
+::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
+                                          char const* actual_expr,
+                                          char const*,
+                                          ContainerE const& expected,
+                                          ContainerA const& actual,
+                                          double rel)
 {
-    using Traits_t     = TCT<ContainerE, ContainerA>;
+    using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
     using value_type_A = typename Traits_t::second_type;
 
@@ -532,16 +532,16 @@ template<class ContainerE, class ContainerA>
  * Used by \c EXPECT_VEC_CLOSE.
  */
 template<class ContainerE, class ContainerA>
-::testing::AssertionResult IsVecSoftEquiv(const char* expected_expr,
-                                          const char* actual_expr,
-                                          const char*,
-                                          const char*,
-                                          const ContainerE& expected,
-                                          const ContainerA& actual,
-                                          double            rel,
-                                          double            abs)
+::testing::AssertionResult IsVecSoftEquiv(char const* expected_expr,
+                                          char const* actual_expr,
+                                          char const*,
+                                          char const*,
+                                          ContainerE const& expected,
+                                          ContainerA const& actual,
+                                          double rel,
+                                          double abs)
 {
-    using Traits_t     = TCT<ContainerE, ContainerA>;
+    using Traits_t = TCT<ContainerE, ContainerA>;
     using value_type_E = typename Traits_t::first_type;
     using value_type_A = typename Traits_t::second_type;
 
@@ -557,5 +557,5 @@ template<class ContainerE, class ContainerA>
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,8 +34,9 @@ namespace celeritas
  */
 struct Label
 {
-    std::string name; //!< Primary readable label component
-    std::string ext; //!< Uniquifying component such as a pointer address or ID
+    std::string name;  //!< Primary readable label component
+    std::string ext;  //!< Uniquifying component such as a pointer address or
+                      //!< ID
 
     //// STATIC DATA ////
 
@@ -48,13 +49,13 @@ struct Label
     Label() = default;
 
     //! Create *implicitly* from a C string (mostly for testing)
-    Label(const char* cstr) : name{cstr} {}
+    Label(char const* cstr) : name{cstr} {}
 
     //! Create *implicitly* from just a string name (capture)
     Label(std::string&& n) : name{std::move(n)} {}
 
     //! Create *implicitly* from just a string name (copy)
-    Label(const std::string& n) : name{n} {}
+    Label(std::string const& n) : name{n} {}
 
     //! Create from a name and label
     Label(std::string n, std::string e) : name{std::move(n)}, ext{std::move(e)}
@@ -64,28 +65,28 @@ struct Label
     //// STATIC METHODS ////
 
     // Construct a label from a Geant4 pointer-appended name
-    static Label from_geant(const std::string& name);
+    static Label from_geant(std::string const& name);
 
     // Construct a label from by splitting on a separator
     static Label
-    from_separator(const std::string& name, char sep = default_sep);
+    from_separator(std::string const& name, char sep = default_sep);
 };
 
 //---------------------------------------------------------------------------//
 //! Test equality
-inline bool operator==(const Label& lhs, const Label& rhs)
+inline bool operator==(Label const& lhs, Label const& rhs)
 {
     return lhs.name == rhs.name && lhs.ext == rhs.ext;
 }
 
 //! Test inequality
-inline bool operator!=(const Label& lhs, const Label& rhs)
+inline bool operator!=(Label const& lhs, Label const& rhs)
 {
     return !(lhs == rhs);
 }
 
 //! Less-than comparison for sorting
-inline bool operator<(const Label& lhs, const Label& rhs)
+inline bool operator<(Label const& lhs, Label const& rhs)
 {
     if (lhs.name < rhs.name)
         return true;
@@ -98,14 +99,14 @@ inline bool operator<(const Label& lhs, const Label& rhs)
 
 //---------------------------------------------------------------------------//
 // Write a label to a stream
-std::ostream& operator<<(std::ostream&, const Label&);
+std::ostream& operator<<(std::ostream&, Label const&);
 
 //---------------------------------------------------------------------------//
 // Get the label as a string
-std::string to_string(const Label&);
+std::string to_string(Label const&);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas
 
 //---------------------------------------------------------------------------//
 //! \cond
@@ -116,11 +117,11 @@ template<>
 struct hash<celeritas::Label>
 {
     using argument_type = celeritas::Label;
-    using result_type   = std::size_t;
-    result_type operator()(const argument_type& label) const noexcept
+    using result_type = std::size_t;
+    result_type operator()(argument_type const& label) const noexcept
     {
         return celeritas::hash_combine(label.name, label.ext);
     }
 };
-} // namespace std
+}  // namespace std
 //! \endcond

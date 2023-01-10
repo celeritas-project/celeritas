@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,10 +23,10 @@ namespace detail
  * Implementation of the "along step" action with MSC and eloss fluctuation.
  */
 inline CELER_FUNCTION void
-along_step_general_linear(const NativeCRef<UrbanMscData>& msc,
+along_step_general_linear(NativeCRef<UrbanMscData> const& msc,
                           NoData,
-                          const NativeCRef<FluctuationData>& fluct,
-                          CoreTrackView const&               track)
+                          NativeCRef<FluctuationData> const& fluct,
+                          CoreTrackView const& track)
 {
     return along_step(UrbanMsc{msc},
                       LinearPropagatorFactory{},
@@ -35,5 +35,5 @@ along_step_general_linear(const NativeCRef<UrbanMscData>& msc,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

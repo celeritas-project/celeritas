@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -17,7 +17,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-Real3 dummy_field(const Real3& pos)
+Real3 dummy_field(Real3 const& pos)
 {
     // Rotate and scale
     Real3 result;
@@ -35,7 +35,7 @@ make_equation(FieldT&& field, ElementaryCharge charge)
     return Equation_t{::celeritas::forward<FieldT>(field), charge};
 }
 
-void print_expected(const OdeState& s)
+void print_expected(OdeState const& s)
 {
     cout << "/*** BEGIN CODE ***/\n"
          << "EXPECT_VEC_SOFT_EQ(Real3(" << repr(s.pos) << "), result.pos);\n"
@@ -82,5 +82,5 @@ TEST(MagFieldEquationTest, neutral)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

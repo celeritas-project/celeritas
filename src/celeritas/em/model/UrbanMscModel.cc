@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,14 +30,14 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-UrbanMscModel::UrbanMscModel(ActionId              id,
-                             const ParticleParams& particles,
-                             const MaterialParams& materials)
+UrbanMscModel::UrbanMscModel(ActionId id,
+                             ParticleParams const& particles,
+                             MaterialParams const& materials)
 {
     CELER_EXPECT(id);
     HostValue host_ref;
 
-    host_ref.ids.action   = id;
+    host_ref.ids.action = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     CELER_VALIDATE(host_ref.ids.electron && host_ref.ids.positron,
@@ -64,11 +64,11 @@ auto UrbanMscModel::applicability() const -> SetApplicability
 {
     Applicability electron_msc;
     electron_msc.particle = this->host_ref().ids.electron;
-    electron_msc.lower    = zero_quantity();
-    electron_msc.upper    = units::MevEnergy{1e+8};
+    electron_msc.lower = zero_quantity();
+    electron_msc.upper = units::MevEnergy{1e+8};
 
     Applicability positron_msc = electron_msc;
-    positron_msc.particle      = this->host_ref().ids.positron;
+    positron_msc.particle = this->host_ref().ids.positron;
 
     return {electron_msc, positron_msc};
 }
@@ -105,7 +105,7 @@ ActionId UrbanMscModel::action_id() const
 /*!
  * Construct UrbanMsc material data for all the materials in the problem.
  */
-void UrbanMscModel::build_data(HostValue* data, const MaterialParams& materials)
+void UrbanMscModel::build_data(HostValue* data, MaterialParams const& materials)
 {
     // Number of materials
     unsigned int num_materials = materials.num_materials();
@@ -128,7 +128,7 @@ void UrbanMscModel::build_data(HostValue* data, const MaterialParams& materials)
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
-auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
+auto UrbanMscModel::calc_material_data(MaterialView const& material_view)
     -> MaterialData
 {
     using PolyQuad = PolyEvaluator<double, 2>;
@@ -155,21 +155,21 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 
     MaterialData data;
 
-    data.zeff        = zeff;
+    data.zeff = zeff;
     data.scaled_zeff = 0.70 * std::sqrt(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
-    const double z16 = fastpow(zeff, 1.0 / 6.0);
-    double       fz  = PolyQuad(0.990395, -0.168386, 0.093286)(z16);
-    data.coeffth1    = fz * (1 - 8.7780e-2 / zeff);
-    data.coeffth2    = fz * (4.0780e-2 + 1.7315e-4 * zeff);
+    double const z16 = fastpow(zeff, 1.0 / 6.0);
+    double fz = PolyQuad(0.990395, -0.168386, 0.093286)(z16);
+    data.coeffth1 = fz * (1 - 8.7780e-2 / zeff);
+    data.coeffth2 = fz * (4.0780e-2 + 1.7315e-4 * zeff);
 
     // Tail parameters
     double z13 = ipow<2>(z16);
-    data.d[0]  = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
-    data.d[1]  = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
-    data.d[2]  = PolyQuad(2.3683e-1, -1.8111, 3.2774e-1)(z13);
-    data.d[3]  = PolyQuad(1.7888e-2, 1.9659e-2, -2.6664e-3)(z13);
+    data.d[0] = PolyQuad(2.3785, -4.1981e-1, 6.3100e-2)(z13);
+    data.d[1] = PolyQuad(4.7526e-1, 1.7694, -3.3885e-1)(z13);
+    data.d[2] = PolyQuad(2.3683e-1, -1.8111, 3.2774e-1)(z13);
+    data.d[3] = PolyQuad(1.7888e-2, 1.9659e-2, -2.6664e-3)(z13);
 
     data.z23 = ipow<2>(z13);
 
@@ -186,4 +186,4 @@ auto UrbanMscModel::calc_material_data(const MaterialView& material_view)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

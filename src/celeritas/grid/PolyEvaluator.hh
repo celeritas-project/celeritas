@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ class PolyEvaluator
   public:
     //!@{
     //! Type aliases
-    using result_type   = T;
+    using result_type = T;
     using argument_type = T;
     //!@}
 
@@ -95,4 +95,4 @@ constexpr auto make_poly_evaluator(Ts... args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -70,20 +70,20 @@ struct PhysicsParamsOptions
 
     //!@{
     //! \name Range calculation
-    real_type min_range           = 1 * units::millimeter;
+    real_type min_range = 1 * units::millimeter;
     real_type max_step_over_range = 0.2;
-    real_type fixed_step_limiter  = 0;
+    real_type fixed_step_limiter = 0;
     //!@}
 
     //!@{
     //! \name Energy loss
     real_type min_eprime_over_e = 0.8;
     real_type linear_loss_limit = 0.01;
-    Energy    eloss_calc_limit  = Energy{0.001};
+    Energy eloss_calc_limit = Energy{0.001};
     //!@}
 
     real_type secondary_stack_factor = 3;
-    bool      disable_integral_xs    = false;
+    bool disable_integral_xs = false;
 };
 
 //---------------------------------------------------------------------------//
@@ -112,29 +112,29 @@ class PhysicsParams
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles  = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials  = std::shared_ptr<const MaterialParams>;
-    using SPConstProcess    = std::shared_ptr<const Process>;
-    using SPConstModel      = std::shared_ptr<const Model>;
-    using SPConstRelaxation = std::shared_ptr<const AtomicRelaxationParams>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstProcess = std::shared_ptr<Process const>;
+    using SPConstModel = std::shared_ptr<Model const>;
+    using SPConstRelaxation = std::shared_ptr<AtomicRelaxationParams const>;
 
-    using VecProcess         = std::vector<SPConstProcess>;
-    using SpanConstProcessId = Span<const ProcessId>;
-    using ActionIdRange      = Range<ActionId>;
-    using Options            = PhysicsParamsOptions;
+    using VecProcess = std::vector<SPConstProcess>;
+    using SpanConstProcessId = Span<ProcessId const>;
+    using ActionIdRange = Range<ActionId>;
+    using Options = PhysicsParamsOptions;
 
-    using HostRef   = celeritas::HostCRef<PhysicsParamsData>;
+    using HostRef = celeritas::HostCRef<PhysicsParamsData>;
     using DeviceRef = celeritas::DeviceCRef<PhysicsParamsData>;
     //!@}
 
     //! Physics parameter construction arguments
     struct Input
     {
-        SPConstParticles  particles;
-        SPConstMaterials  materials;
-        VecProcess        processes;
-        SPConstRelaxation relaxation; //!< Optional atomic relaxation
-        ActionRegistry*   action_registry = nullptr;
+        SPConstParticles particles;
+        SPConstMaterials materials;
+        VecProcess processes;
+        SPConstRelaxation relaxation;  //!< Optional atomic relaxation
+        ActionRegistry* action_registry = nullptr;
 
         Options options;
     };
@@ -158,10 +158,10 @@ class PhysicsParams
     inline ProcessId::size_type max_particle_processes() const;
 
     // Get a model
-    inline const SPConstModel& model(ModelId) const;
+    inline SPConstModel const& model(ModelId) const;
 
     // Get a process
-    inline const SPConstProcess& process(ProcessId) const;
+    inline SPConstProcess const& process(ProcessId) const;
 
     // Get the process for the given model
     inline ProcessId process_id(ModelId id) const;
@@ -173,14 +173,14 @@ class PhysicsParams
     SpanConstProcessId processes(ParticleId) const;
 
     //! Access physics properties on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access physics properties on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
-    using SPAction  = std::shared_ptr<ConcreteAction>;
-    using VecModel  = std::vector<std::pair<SPConstModel, ProcessId>>;
+    using SPAction = std::shared_ptr<ConcreteAction>;
+    using VecModel = std::vector<std::pair<SPConstModel, ProcessId>>;
     using HostValue = celeritas::HostVal<PhysicsParamsData>;
 
     // Kernels/actions
@@ -192,8 +192,8 @@ class PhysicsParams
     SPAction fixed_step_action_;
 
     // Host metadata/access
-    VecProcess        processes_;
-    VecModel          models_;
+    VecProcess processes_;
+    VecModel models_;
     SPConstRelaxation relaxation_;
 
     // Host/device storage and reference
@@ -201,12 +201,12 @@ class PhysicsParams
 
   private:
     VecModel build_models(ActionRegistry*) const;
-    void     build_options(const Options& opts, HostValue* data) const;
-    void     build_ids(const ParticleParams& particles, HostValue* data) const;
-    void     build_xs(const Options&        opts,
-                      const MaterialParams& mats,
-                      HostValue*            data) const;
-    void     build_model_xs(const MaterialParams& mats, HostValue* data) const;
+    void build_options(Options const& opts, HostValue* data) const;
+    void build_ids(ParticleParams const& particles, HostValue* data) const;
+    void build_xs(Options const& opts,
+                  MaterialParams const& mats,
+                  HostValue* data) const;
+    void build_model_xs(MaterialParams const& mats, HostValue* data) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -233,7 +233,7 @@ auto PhysicsParams::max_particle_processes() const -> ProcessId::size_type
 /*!
  * Get a model.
  */
-auto PhysicsParams::model(ModelId id) const -> const SPConstModel&
+auto PhysicsParams::model(ModelId id) const -> SPConstModel const&
 {
     CELER_EXPECT(id < this->num_models());
     return models_[id.get()].first;
@@ -243,7 +243,7 @@ auto PhysicsParams::model(ModelId id) const -> const SPConstModel&
 /*!
  * Get a process.
  */
-auto PhysicsParams::process(ProcessId id) const -> const SPConstProcess&
+auto PhysicsParams::process(ProcessId id) const -> SPConstProcess const&
 {
     CELER_EXPECT(id < this->num_processes());
     return processes_[id.get()];
@@ -270,4 +270,4 @@ auto PhysicsParams::model_actions() const -> ActionIdRange
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

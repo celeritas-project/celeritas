@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ namespace celeritas
  * Construct from particles and imported Geant data.
  */
 ComptonProcess::ComptonProcess(SPConstParticles particles,
-                               SPConstImported  process_data)
+                               SPConstImported process_data)
     : particles_(std::move(particles))
     , imported_(
           process_data, particles_, ImportProcessClass::compton, {pdg::gamma()})
@@ -59,4 +59,4 @@ std::string ComptonProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

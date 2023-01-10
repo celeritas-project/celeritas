@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,37 +41,37 @@ class GeoMaterialParams
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo      = std::shared_ptr<const GeoParams>;
-    using SPConstMaterial = std::shared_ptr<const MaterialParams>;
+    using SPConstGeo = std::shared_ptr<GeoParams const>;
+    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
 
-    using HostRef   = HostCRef<GeoMaterialParamsData>;
+    using HostRef = HostCRef<GeoMaterialParamsData>;
     using DeviceRef = DeviceCRef<GeoMaterialParamsData>;
     //!@}
 
     //! Input parameters
     struct Input
     {
-        SPConstGeo              geometry;
-        SPConstMaterial         materials;
+        SPConstGeo geometry;
+        SPConstMaterial materials;
         std::vector<MaterialId> volume_to_mat;
-        std::vector<Label>      volume_labels; // Optional
+        std::vector<Label> volume_labels;  // Optional
     };
 
   public:
     // Construct with imported data
     static std::shared_ptr<GeoMaterialParams>
-    from_import(const ImportData& data,
-                SPConstGeo        geo_params,
-                SPConstMaterial   material_params);
+    from_import(ImportData const& data,
+                SPConstGeo geo_params,
+                SPConstMaterial material_params);
 
     // Construct from geometry and material params
     explicit GeoMaterialParams(Input);
 
     //! Access material properties on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
@@ -80,4 +80,4 @@ class GeoMaterialParams
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

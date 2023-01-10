@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -47,10 +47,10 @@ class ValueGridBuilder
 
     //!@{
     //! Prevent copy/move except by daughters that know what they're doing
-    ValueGridBuilder(const ValueGridBuilder&)            = default;
-    ValueGridBuilder& operator=(const ValueGridBuilder&) = default;
-    ValueGridBuilder(ValueGridBuilder&&)                 = default;
-    ValueGridBuilder& operator=(ValueGridBuilder&&)      = default;
+    ValueGridBuilder(ValueGridBuilder const&) = default;
+    ValueGridBuilder& operator=(ValueGridBuilder const&) = default;
+    ValueGridBuilder(ValueGridBuilder&&) = default;
+    ValueGridBuilder& operator=(ValueGridBuilder&&) = default;
     //!@}
 };
 
@@ -66,8 +66,8 @@ class ValueGridXsBuilder final : public ValueGridBuilder
   public:
     //!@{
     //! Type aliases
-    using SpanConstReal = Span<const real_type>;
-    using VecReal       = std::vector<real_type>;
+    using SpanConstReal = Span<real_type const>;
+    using VecReal = std::vector<real_type>;
     //!@}
 
   public:
@@ -86,7 +86,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     ValueGridXsBuilder(real_type emin,
                        real_type eprime,
                        real_type emax,
-                       VecReal   xs);
+                       VecReal xs);
 
     // Construct in the given store
     ValueGridId build(ValueGridInserter) const final;
@@ -95,7 +95,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     real_type log_emin_;
     real_type log_eprime_;
     real_type log_emax_;
-    VecReal   xs_;
+    VecReal xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -109,10 +109,10 @@ class ValueGridLogBuilder : public ValueGridBuilder
   public:
     //!@{
     //! Type aliases
-    using VecReal       = std::vector<real_type>;
-    using SpanConstReal = Span<const real_type>;
-    using Id            = ItemId<XsGridData>;
-    using UPLogBuilder  = std::unique_ptr<ValueGridLogBuilder>;
+    using VecReal = std::vector<real_type>;
+    using SpanConstReal = Span<real_type const>;
+    using Id = ItemId<XsGridData>;
+    using UPLogBuilder = std::unique_ptr<ValueGridLogBuilder>;
     //!@}
 
   public:
@@ -134,7 +134,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
   private:
     real_type log_emin_;
     real_type log_emax_;
-    VecReal   value_;
+    VecReal value_;
 };
 
 //---------------------------------------------------------------------------//
@@ -147,15 +147,15 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     //!@{
     //! Type aliases
     using VecReal = std::vector<real_type>;
-    using Id      = ItemId<XsGridData>;
+    using Id = ItemId<XsGridData>;
     //!@}
 
   public:
     // Construct
     ValueGridGenericBuilder(VecReal grid,
                             VecReal value,
-                            Interp  grid_interp,
-                            Interp  value_interp);
+                            Interp grid_interp,
+                            Interp value_interp);
 
     // Construct with linear interpolation
     ValueGridGenericBuilder(VecReal grid, VecReal value);
@@ -166,8 +166,8 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
   private:
     VecReal grid_;
     VecReal value_;
-    Interp  grid_interp_;
-    Interp  value_interp_;
+    Interp grid_interp_;
+    Interp value_interp_;
 };
 
 //---------------------------------------------------------------------------//
@@ -189,4 +189,4 @@ class ValueGridOTFBuilder final : public ValueGridBuilder
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

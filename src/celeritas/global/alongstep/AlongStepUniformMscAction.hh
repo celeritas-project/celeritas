@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,19 +32,19 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstMsc = std::shared_ptr<const UrbanMscModel>;
+    using SPConstMsc = std::shared_ptr<UrbanMscModel const>;
     //!@}
 
   public:
     static std::shared_ptr<AlongStepUniformMscAction>
-    from_params(ActionId                  id,
-                const PhysicsParams&      physics,
-                const UniformFieldParams& field_params);
+    from_params(ActionId id,
+                PhysicsParams const& physics,
+                UniformFieldParams const& field_params);
 
     // Construct with next action ID, optional MSC, magnetic field
-    AlongStepUniformMscAction(ActionId                  id,
-                              const UniformFieldParams& field_params,
-                              SPConstMsc                msc);
+    AlongStepUniformMscAction(ActionId id,
+                              UniformFieldParams const& field_params,
+                              SPConstMsc msc);
 
     // Default destructor
     ~AlongStepUniformMscAction();
@@ -76,11 +76,11 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     bool has_msc() const { return static_cast<bool>(msc_); }
 
     //! Field strength
-    const Real3& field() const { return field_params_.field; }
+    Real3 const& field() const { return field_params_.field; }
 
   private:
-    ActionId           id_;
-    SPConstMsc         msc_;
+    ActionId id_;
+    SPConstMsc msc_;
     UniformFieldParams field_params_;
 
     // TODO: kind of hacky way to support msc being optional
@@ -90,10 +90,10 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
     {
         UrbanMscData<Ownership::const_reference, M> msc;
 
-        ExternalRefs(const SPConstMsc& msc_params);
+        ExternalRefs(SPConstMsc const& msc_params);
     };
 
-    ExternalRefs<MemSpace::host>   host_data_;
+    ExternalRefs<MemSpace::host> host_data_;
     ExternalRefs<MemSpace::device> device_data_;
 };
 
@@ -109,4 +109,4 @@ inline void AlongStepUniformMscAction::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

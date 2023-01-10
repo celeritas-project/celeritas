@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,16 +52,16 @@ class GlobalTestBase : public Test
     template<class T>
     using SP = std::shared_ptr<T>;
 
-    using SPConstGeo         = SP<const GeoParams>;
-    using SPConstMaterial    = SP<const MaterialParams>;
-    using SPConstGeoMaterial = SP<const GeoMaterialParams>;
-    using SPConstParticle    = SP<const ParticleParams>;
-    using SPConstCutoff      = SP<const CutoffParams>;
-    using SPConstPhysics     = SP<const PhysicsParams>;
-    using SPConstAction      = SP<const ExplicitActionInterface>;
-    using SPConstRng         = SP<const RngParams>;
-    using SPConstTrackInit   = SP<const TrackInitParams>;
-    using SPConstCore        = SP<const CoreParams>;
+    using SPConstGeo = SP<GeoParams const>;
+    using SPConstMaterial = SP<MaterialParams const>;
+    using SPConstGeoMaterial = SP<GeoMaterialParams const>;
+    using SPConstParticle = SP<ParticleParams const>;
+    using SPConstCutoff = SP<CutoffParams const>;
+    using SPConstPhysics = SP<PhysicsParams const>;
+    using SPConstAction = SP<ExplicitActionInterface const>;
+    using SPConstRng = SP<RngParams const>;
+    using SPConstTrackInit = SP<TrackInitParams const>;
+    using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPOutputManager = SP<OutputManager>;
@@ -77,29 +77,29 @@ class GlobalTestBase : public Test
 
     //!@{
     //! Access lazily constructed objects.
-    inline SPConstGeo const&         geometry();
-    inline SPConstMaterial const&    material();
+    inline SPConstGeo const& geometry();
+    inline SPConstMaterial const& material();
     inline SPConstGeoMaterial const& geomaterial();
-    inline SPConstParticle const&    particle();
-    inline SPConstCutoff const&      cutoff();
-    inline SPConstPhysics const&     physics();
-    inline SPConstAction const&      along_step();
-    inline SPConstRng const&         rng();
-    inline SPConstTrackInit const&   init();
-    inline SPActionRegistry const&   action_reg();
-    inline SPConstCore const&        core();
+    inline SPConstParticle const& particle();
+    inline SPConstCutoff const& cutoff();
+    inline SPConstPhysics const& physics();
+    inline SPConstAction const& along_step();
+    inline SPConstRng const& rng();
+    inline SPConstTrackInit const& init();
+    inline SPActionRegistry const& action_reg();
+    inline SPConstCore const& core();
 
-    inline SPConstGeo const&         geometry() const;
-    inline SPConstMaterial const&    material() const;
+    inline SPConstGeo const& geometry() const;
+    inline SPConstMaterial const& material() const;
     inline SPConstGeoMaterial const& geomaterial() const;
-    inline SPConstParticle const&    particle() const;
-    inline SPConstCutoff const&      cutoff() const;
-    inline SPConstPhysics const&     physics() const;
-    inline SPConstAction const&      along_step() const;
-    inline SPConstRng const&         rng() const;
-    inline SPConstTrackInit const&   init() const;
-    inline SPActionRegistry const&   action_reg() const;
-    inline SPConstCore const&        core() const;
+    inline SPConstParticle const& particle() const;
+    inline SPConstCutoff const& cutoff() const;
+    inline SPConstPhysics const& physics() const;
+    inline SPConstAction const& along_step() const;
+    inline SPConstRng const& rng() const;
+    inline SPConstTrackInit const& init() const;
+    inline SPActionRegistry const& action_reg() const;
+    inline SPConstCore const& core() const;
     //!@}
 
     //// OUTPUT ////
@@ -112,19 +112,19 @@ class GlobalTestBase : public Test
     void write_output(std::ostream& os) const;
 
   protected:
-    virtual SPConstGeo         build_geometry()    = 0;
-    virtual SPConstMaterial    build_material()    = 0;
+    virtual SPConstGeo build_geometry() = 0;
+    virtual SPConstMaterial build_material() = 0;
     virtual SPConstGeoMaterial build_geomaterial() = 0;
-    virtual SPConstParticle    build_particle()    = 0;
-    virtual SPConstCutoff      build_cutoff()      = 0;
-    virtual SPConstPhysics     build_physics()     = 0;
-    virtual SPConstTrackInit   build_init()        = 0;
-    virtual SPConstAction      build_along_step()  = 0;
+    virtual SPConstParticle build_particle() = 0;
+    virtual SPConstCutoff build_cutoff() = 0;
+    virtual SPConstPhysics build_physics() = 0;
+    virtual SPConstTrackInit build_init() = 0;
+    virtual SPConstAction build_along_step() = 0;
 
   private:
-    SPConstRng       build_rng() const;
+    SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
-    SPConstCore      build_core();
+    SPConstCore build_core();
 
     void register_geometry_output() {}
     void register_material_output() {}
@@ -139,18 +139,18 @@ class GlobalTestBase : public Test
     void register_core_output() {}
 
   private:
-    SPConstGeo         geometry_;
-    SPConstMaterial    material_;
+    SPConstGeo geometry_;
+    SPConstMaterial material_;
     SPConstGeoMaterial geomaterial_;
-    SPConstParticle    particle_;
-    SPConstCutoff      cutoff_;
-    SPConstPhysics     physics_;
-    SPActionRegistry   action_reg_;
-    SPConstAction      along_step_;
-    SPConstRng         rng_;
-    SPConstTrackInit   init_;
-    SPConstCore        core_;
-    SPOutputManager    output_;
+    SPConstParticle particle_;
+    SPConstCutoff cutoff_;
+    SPConstPhysics physics_;
+    SPActionRegistry action_reg_;
+    SPConstAction along_step_;
+    SPConstRng rng_;
+    SPConstTrackInit init_;
+    SPConstCore core_;
+    SPOutputManager output_;
 };
 
 //---------------------------------------------------------------------------//
@@ -189,5 +189,5 @@ DEF_GTB_ACCESSORS(SPConstCore, core)
 #undef DEF_GTB_ACCESSORS
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

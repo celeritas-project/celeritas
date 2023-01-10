@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,7 +18,7 @@ namespace celeritas
 namespace generated
 {
 void process_secondaries(
-    const CoreHostRef& core_data)
+    CoreHostRef const& core_data)
 {
     MultiExceptionHandler capture_exception;
     detail::ProcessSecondariesLauncher<MemSpace::host> launch(core_data);
@@ -30,5 +30,5 @@ void process_secondaries(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

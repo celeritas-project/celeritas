@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,8 +43,8 @@ class GenericXsCalculatorTest : public CalculatorTestBase
     }
 
     GenericGridData data_;
-    Values          storage_;
-    Data            ref_;
+    Values storage_;
+    Data ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,5 +70,5 @@ TEST_F(GenericXsCalculatorTest, all)
     EXPECT_SOFT_EQ(2.0, calc(1e7));
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

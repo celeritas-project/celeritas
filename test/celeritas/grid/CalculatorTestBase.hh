@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,19 +33,19 @@ class CalculatorTestBase : public Test
 
   public:
     // Construct linear cross sections
-    void     build(real_type emin, real_type emax, size_type count);
-    void     set_prime_index(size_type i);
+    void build(real_type emin, real_type emax, size_type count);
+    void set_prime_index(size_type i);
     SpanReal mutable_values();
 
-    const XsGridData& data() const { return data_; }
-    const Data&       values() const { return value_ref_; }
+    XsGridData const& data() const { return data_; }
+    Data const& values() const { return value_ref_; }
 
   private:
     XsGridData data_;
-    Values     value_storage_;
-    Data       value_ref_;
+    Values value_storage_;
+    Data value_ref_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,8 +48,8 @@ class DeviceVector
     //!@{
     //! Type aliases
     using value_type = T;
-    using SpanT      = Span<T>;
-    using SpanConstT = Span<const T>;
+    using SpanT = Span<T>;
+    using SpanConstT = Span<T const>;
     //!@}
 
   public:
@@ -65,16 +65,10 @@ class DeviceVector
     //// ACCESSORS ////
 
     //! Get the number of elements
-    size_type size() const
-    {
-        return size_;
-    }
+    size_type size() const { return size_; }
 
     //! Whether any elements are stored
-    bool empty() const
-    {
-        return size_ == 0;
-    }
+    bool empty() const { return size_ == 0; }
 
     //// DEVICE ACCESSORS ////
 
@@ -85,25 +79,19 @@ class DeviceVector
     inline void copy_to_host(SpanT host_data) const;
 
     // Get a mutable view to device data
-    SpanT device_ref()
-    {
-        return {this->data(), this->size()};
-    }
+    SpanT device_ref() { return {this->data(), this->size()}; }
 
     // Get a const view to device data
-    SpanConstT device_ref() const
-    {
-        return {this->data(), this->size()};
-    }
+    SpanConstT device_ref() const { return {this->data(), this->size()}; }
 
     // Raw pointer to device data (dangerous!)
     inline T* data();
 
     // Raw pointer to device data (dangerous!)
-    inline const T* data() const;
+    inline T const* data() const;
 
   private:
-    DeviceAllocation                    allocation_;
+    DeviceAllocation allocation_;
     detail::InitializedValue<size_type> size_;
 };
 
@@ -144,7 +132,7 @@ void DeviceVector<T>::copy_to_device(SpanConstT data)
 {
     CELER_EXPECT(data.size() == this->size());
     allocation_.copy_to_device(
-        {reinterpret_cast<const Byte*>(data.data()), data.size() * sizeof(T)});
+        {reinterpret_cast<Byte const*>(data.data()), data.size() * sizeof(T)});
 }
 
 //---------------------------------------------------------------------------//
@@ -174,9 +162,9 @@ T* DeviceVector<T>::data()
  * Get a device data pointer.
  */
 template<class T>
-const T* DeviceVector<T>::data() const
+T const* DeviceVector<T>::data() const
 {
-    return reinterpret_cast<const T*>(allocation_.device_ref().data());
+    return reinterpret_cast<T const*>(allocation_.device_ref().data());
 }
 
 //---------------------------------------------------------------------------//
@@ -196,7 +184,7 @@ void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept
  * Use \c dv.device_ref() to get a span.
  */
 template<class T>
-CELER_FUNCTION Span<const T> make_span(const DeviceVector<T>& dv)
+CELER_FUNCTION Span<T const> make_span(DeviceVector<T> const& dv)
 {
     static_assert(sizeof(T) == 0, "Cannot 'make_span' from a device vector");
     return {dv.data(), dv.size()};
@@ -212,4 +200,4 @@ CELER_FUNCTION Span<T> make_span(DeviceVector<T>& dv)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

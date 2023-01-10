@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,7 +8,7 @@
 #pragma once
 
 #include <memory>
-#include <string> // IWYU pragma: export
+#include <string>  // IWYU pragma: export
 #include <vector>
 
 #include "corecel/cont/Range.hh"
@@ -46,11 +46,11 @@ class Process
   public:
     //!@{
     //! Type aliases
-    using SPConstModel       = std::shared_ptr<const Model>;
-    using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
-    using VecModel           = std::vector<SPConstModel>;
-    using StepLimitBuilders  = ValueGridArray<UPConstGridBuilder>;
-    using ActionIdIter       = RangeIter<ActionId>;
+    using SPConstModel = std::shared_ptr<Model const>;
+    using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
+    using VecModel = std::vector<SPConstModel>;
+    using StepLimitBuilders = ValueGridArray<UPConstGridBuilder>;
+    using ActionIdIter = RangeIter<ActionId>;
     //!@}
 
   public:
@@ -71,4 +71,4 @@ class Process
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

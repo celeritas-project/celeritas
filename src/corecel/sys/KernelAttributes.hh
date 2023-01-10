@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,16 +32,16 @@ struct KernelAttributes
 {
     unsigned int threads_per_block{0};
 
-    int         num_regs{0};  //!< Number of 32-bit registers per thread
-    std::size_t const_mem{0}; //!< Amount of constant memory (per thread) [b]
-    std::size_t local_mem{0}; //!< Amount of local memory (per thread) [b]
+    int num_regs{0};  //!< Number of 32-bit registers per thread
+    std::size_t const_mem{0};  //!< Amount of constant memory (per thread) [b]
+    std::size_t local_mem{0};  //!< Amount of local memory (per thread) [b]
 
-    unsigned int max_threads_per_block{0}; //!< Max allowed threads per block
-    unsigned int max_blocks_per_cu{0};     //!< Occupancy (compute unit)
+    unsigned int max_threads_per_block{0};  //!< Max allowed threads per block
+    unsigned int max_blocks_per_cu{0};  //!< Occupancy (compute unit)
 
     // Derivative but useful occupancy information
-    unsigned int max_warps_per_eu{0}; //!< Occupancy (execution unit)
-    double       occupancy{0};        //!< Fractional occupancy (CU)
+    unsigned int max_warps_per_eu{0};  //!< Occupancy (execution unit)
+    double occupancy{0};  //!< Fractional occupancy (CU)
 };
 
 //---------------------------------------------------------------------------//
@@ -62,23 +62,23 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
     {
         CELER_DEVICE_PREFIX(FuncAttributes) attr;
         CELER_DEVICE_CALL_PREFIX(
-            FuncGetAttributes(&attr, reinterpret_cast<const void*>(func)));
-        result.num_regs              = attr.numRegs;
-        result.const_mem             = attr.constSizeBytes;
-        result.local_mem             = attr.localSizeBytes;
+            FuncGetAttributes(&attr, reinterpret_cast<void const*>(func)));
+        result.num_regs = attr.numRegs;
+        result.const_mem = attr.constSizeBytes;
+        result.local_mem = attr.localSizeBytes;
         result.max_threads_per_block = attr.maxThreadsPerBlock;
     }
 
     // Get maximum number of active blocks per SM
     std::size_t dynamic_smem_size = 0;
-    int         num_blocks        = 0;
+    int num_blocks = 0;
     CELER_DEVICE_CALL_PREFIX(OccupancyMaxActiveBlocksPerMultiprocessor(
         &num_blocks, func, result.threads_per_block, dynamic_smem_size));
     result.max_blocks_per_cu = num_blocks;
 
     // Calculate occupancy statistics used for launch bounds
     // (threads / block) * (blocks / cu) * (cu / eu) * (warp / thread)
-    const Device& d = celeritas::device();
+    Device const& d = celeritas::device();
 
     result.max_warps_per_eu = (threads_per_block * num_blocks)
                               / (d.eu_per_cu() * d.threads_per_warp());
@@ -93,4 +93,4 @@ KernelAttributes make_kernel_attributes(F* func, unsigned int threads_per_block)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

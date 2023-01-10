@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ __global__ void sa_test_kernel(SATestInput input)
     CalcSenseDistanceLauncher<> calc_thread{input.params, input.states};
     calc_thread(tid);
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -45,5 +45,5 @@ void sa_test(SATestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ class TestEm3Test : public TestEm3Base, public StepperTestBase
 
     size_type max_average_steps() const override
     {
-        return 100000; // 8 primaries -> ~500k steps, be conservative
+        return 100000;  // 8 primaries -> ~500k steps, be conservative
     }
 
     std::vector<Primary>
@@ -59,11 +59,11 @@ class TestEm3Test : public TestEm3Base, public StepperTestBase
         Primary p;
         p.particle_id = this->particle()->find(pdg::electron());
         CELER_ASSERT(p.particle_id);
-        p.energy    = energy;
-        p.track_id  = TrackId{0};
-        p.position  = {-22, 0, 0};
+        p.energy = energy;
+        p.track_id = TrackId{0};
+        p.position = {-22, 0, 0};
         p.direction = {1, 0, 0};
-        p.time      = 0;
+        p.time = 0;
 
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
@@ -120,10 +120,10 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
     {
         CELER_EXPECT(!this->enable_fluctuation());
 
-        auto&              action_reg = *this->action_reg();
+        auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1e-3 * units::tesla};
-        auto result        = AlongStepUniformMscAction::from_params(
+        auto result = AlongStepUniformMscAction::from_params(
             action_reg.next_id(), *this->physics(), field_params);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc() == this->enable_msc());
@@ -135,25 +135,25 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
     std::vector<Primary> make_primaries(size_type count) const override
     {
         Primary p;
-        p.energy   = MevEnergy{10};
+        p.energy = MevEnergy{10};
         p.position = {0, 0, 0};
-        p.time     = 0;
+        p.time = 0;
         p.track_id = TrackId{0};
 
-        const Array<ParticleId, 2> particles = {
+        Array<ParticleId, 2> const particles = {
             this->particle()->find(pdg::electron()),
             this->particle()->find(pdg::positron()),
         };
         CELER_ASSERT(particles[0] && particles[1]);
 
-        std::vector<Primary>    result(count, p);
+        std::vector<Primary> result(count, p);
         IsotropicDistribution<> sample_dir;
-        std::mt19937            rng;
+        std::mt19937 rng;
 
         for (auto i : range(count))
         {
-            result[i].event_id    = EventId{i};
-            result[i].direction   = sample_dir(rng);
+            result[i].event_id = EventId{i};
+            result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;
@@ -170,7 +170,7 @@ TEST_F(TestEm3Test, setup)
 {
     auto result = this->check_setup();
 
-    static const char* const expected_processes[] = {
+    static char const* const expected_processes[] = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -179,7 +179,7 @@ TEST_F(TestEm3Test, setup)
         "Bremsstrahlung",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
-    static const char* const expected_actions[] = {
+    static char const* const expected_actions[] = {
         "pre-step",
         "along-step-general-linear",
         "physics-discrete-select",
@@ -198,10 +198,10 @@ TEST_F(TestEm3Test, setup)
 TEST_F(TestEm3Test, host)
 {
     size_type num_primaries = 1;
-    size_type num_tracks    = 256;
+    size_type num_tracks = 256;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -240,13 +240,13 @@ TEST_F(TestEm3Test, host_multi)
     // Run and inject multiple sets of primaries during transport
 
     size_type num_primaries = 8;
-    size_type num_tracks    = 128;
+    size_type num_tracks = 128;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
 
     // Initialize some primaries and take a step
     auto primaries = this->make_primaries(num_primaries);
-    auto counts    = step(make_span(primaries));
+    auto counts = step(make_span(primaries));
     EXPECT_EQ(num_primaries, counts.active);
     EXPECT_EQ(num_primaries, counts.alive);
 
@@ -257,7 +257,7 @@ TEST_F(TestEm3Test, host_multi)
 
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
-    counts    = step(make_span(primaries));
+    counts = step(make_span(primaries));
     EXPECT_EQ(24, counts.active);
     EXPECT_EQ(24, counts.alive);
 
@@ -274,7 +274,7 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
     size_type num_tracks = num_primaries * 800;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto                      result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -309,7 +309,7 @@ TEST_F(TestEm3MscTest, setup)
 {
     auto result = this->check_setup();
 
-    static const char* const expected_processes[] = {
+    static char const* const expected_processes[] = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -319,7 +319,7 @@ TEST_F(TestEm3MscTest, setup)
         "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
-    static const char* const expected_actions[] = {
+    static char const* const expected_actions[] = {
         "pre-step",
         "along-step-general-linear",
         "physics-discrete-select",
@@ -339,10 +339,10 @@ TEST_F(TestEm3MscTest, setup)
 TEST_F(TestEm3MscTest, host)
 {
     size_type num_primaries = 8;
-    size_type num_tracks    = 2048;
+    size_type num_tracks = 2048;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -368,10 +368,10 @@ TEST_F(TestEm3MscTest, host)
 TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
-    size_type num_tracks    = 1024;
+    size_type num_tracks = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto                      result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
@@ -400,10 +400,10 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 TEST_F(TestEm3MscNofluctTest, host)
 {
     size_type num_primaries = 8;
-    size_type num_tracks    = 2048;
+    size_type num_tracks = 2048;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(58, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
@@ -436,10 +436,10 @@ TEST_F(TestEm3MscNofluctTest, host)
 TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
-    size_type num_tracks    = 1024;
+    size_type num_tracks = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto                      result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_wildstyle_build())
     {
@@ -478,7 +478,7 @@ TEST_F(TestEm15FieldTest, setup)
 {
     auto result = this->check_setup();
 
-    static const char* const expected_processes[] = {
+    static char const* const expected_processes[] = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -488,7 +488,7 @@ TEST_F(TestEm15FieldTest, setup)
         "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
-    static const char* const expected_actions[] = {
+    static char const* const expected_actions[] = {
         "pre-step",
         "along-step-uniform-msc",
         "physics-discrete-select",
@@ -509,10 +509,10 @@ TEST_F(TestEm15FieldTest, setup)
 TEST_F(TestEm15FieldTest, host)
 {
     size_type num_primaries = 4;
-    size_type num_tracks    = 1024;
+    size_type num_tracks = 1024;
 
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
-    auto                    result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.10);
 
     if (this->is_ci_build() || this->is_summit_build()
@@ -539,10 +539,10 @@ TEST_F(TestEm15FieldTest, host)
 TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
-    size_type num_tracks    = 1024;
+    size_type num_tracks = 1024;
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
-    auto                      result = this->run(step, num_primaries);
+    auto result = this->run(step, num_primaries);
 
     if (this->is_ci_build() || this->is_summit_build()
         || this->is_wildstyle_build())
@@ -566,5 +566,5 @@ TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

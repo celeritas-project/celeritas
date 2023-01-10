@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map> // IWYU pragma: export
+#include <unordered_map>  // IWYU pragma: export
 #include <vector>
 
 #include "corecel/cont/Label.hh"
@@ -27,9 +27,9 @@ namespace celeritas
 struct SurfaceInput
 {
     std::vector<SurfaceType> types;  //!< Surface type enums
-    std::vector<real_type>   data;   //!< Compressed surface data
-    std::vector<size_type>   sizes;  //!< Size of each surface's data
-    std::vector<Label>       labels; //!< Surface labels
+    std::vector<real_type> data;  //!< Compressed surface data
+    std::vector<size_type> sizes;  //!< Size of each surface's data
+    std::vector<Label> labels;  //!< Surface labels
 
     //! Number of surfaces
     size_type size() const { return types.size(); }
@@ -80,15 +80,15 @@ struct UnitInput
 {
     struct Daughter
     {
-        UniverseId  universe_id;
+        UniverseId universe_id;
         Translation translation;
     };
     using MapVolumeDaughter = std::unordered_map<VolumeId, Daughter>;
 
-    SurfaceInput             surfaces;
+    SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;
-    BoundingBox              bbox; //!< Outer bounding box
-    MapVolumeDaughter        daughter_map;
+    BoundingBox bbox;  //!< Outer bounding box
+    MapVolumeDaughter daughter_map;
 
     // Unit metadata
     Label label;
@@ -113,4 +113,4 @@ struct OrangeInput
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

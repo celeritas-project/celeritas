@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,9 +20,9 @@ namespace
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
-__global__ void col_cuda_test_kernel(const DeviceCRef<MockParamsData> params,
-                                     const DeviceRef<MockStateData>   states,
-                                     const Span<double>               results)
+__global__ void col_cuda_test_kernel(DeviceCRef<MockParamsData> const params,
+                                     DeviceRef<MockStateData> const states,
+                                     Span<double> const results)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
@@ -40,11 +40,11 @@ __global__ void col_cuda_test_kernel(const DeviceCRef<MockParamsData> params,
     double nd = mock.number_density();
     CELER_ASSERT(nd >= 0);
 
-    double result   = 0;
-    auto   elements = mock.elements();
+    double result = 0;
+    auto elements = mock.elements();
     if (!elements.empty())
     {
-        const MockElement& el = elements[(tid.get() / 2) % elements.size()];
+        MockElement const& el = elements[(tid.get() / 2) % elements.size()];
         result = matid.get() + nd * el.atomic_mass / el.atomic_number;
     }
 
@@ -59,7 +59,7 @@ __global__ void col_cuda_test_kernel(const DeviceCRef<MockParamsData> params,
 
     results[tid.get()] = result;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -77,5 +77,5 @@ void col_cuda_test(CTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

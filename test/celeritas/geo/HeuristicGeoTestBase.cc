@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ namespace test
 void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
 {
     const size_type num_steps = this->num_steps();
-    auto            params    = this->build_test_params<MemSpace::host>();
+    auto params = this->build_test_params<MemSpace::host>();
     StateStore<MemSpace::host> state{params, num_states};
 
     HeuristicGeoLauncher launch{params, state.ref()};
@@ -97,11 +97,11 @@ void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
 
 auto HeuristicGeoTestBase::reference_volumes() const -> SpanConstStr
 {
-    const GeoParams& geo = *this->geometry();
+    GeoParams const& geo = *this->geometry();
     temp_str_.reserve(geo.num_volumes());
     for (auto vid : range(VolumeId{geo.num_volumes()}))
     {
-        const std::string& vol_name = geo.id_to_label(vid).name;
+        std::string const& vol_name = geo.id_to_label(vid).name;
         if (vol_name != "[EXTERIOR]")
         {
             temp_str_.push_back(vol_name);
@@ -131,16 +131,16 @@ template<MemSpace M>
 auto HeuristicGeoTestBase::build_test_params()
     -> HeuristicGeoParamsData<Ownership::const_reference, M>
 {
-    const auto& geo = *this->geometry();
+    auto const& geo = *this->geometry();
 
     HeuristicGeoParamsData<Ownership::const_reference, M> result;
-    result.s                    = this->build_scalars();
-    result.s.num_volumes        = geo.num_volumes();
+    result.s = this->build_scalars();
+    result.s.num_volumes = geo.num_volumes();
     result.s.ignore_zero_safety = geo.supports_safety();
     CELER_ASSERT(result.s);
 
     result.geometry = get_ref<M>(geo);
-    result.rng      = get_ref<M>(*this->rng());
+    result.rng = get_ref<M>(*this->rng());
     return result;
 }
 
@@ -148,11 +148,11 @@ auto HeuristicGeoTestBase::build_test_params()
 
 template<MemSpace M>
 auto HeuristicGeoTestBase::get_avg_path(PathLengthRef<M> path,
-                                        size_type        num_states) const
+                                        size_type num_states) const
     -> std::vector<real_type>
 {
     std::vector<real_type> result(path.size());
-    Copier<real_type, M>   copy_to{path[AllItems<real_type, M>{}]};
+    Copier<real_type, M> copy_to{path[AllItems<real_type, M>{}]};
     copy_to(MemSpace::host, make_span(result));
 
     return this->get_avg_path_impl(result, num_states);
@@ -160,16 +160,16 @@ auto HeuristicGeoTestBase::get_avg_path(PathLengthRef<M> path,
 
 //---------------------------------------------------------------------------//
 
-auto HeuristicGeoTestBase::get_avg_path_impl(const std::vector<real_type>& path,
+auto HeuristicGeoTestBase::get_avg_path_impl(std::vector<real_type> const& path,
                                              size_type num_states) const
     -> std::vector<real_type>
 {
     CELER_EXPECT(path.size() == this->geometry()->num_volumes());
 
-    SpanConstStr           ref_vol_labels = this->reference_volumes();
+    SpanConstStr ref_vol_labels = this->reference_volumes();
     std::vector<real_type> result(ref_vol_labels.size());
 
-    const auto&     geo  = *this->geometry();
+    auto const& geo = *this->geometry();
     const real_type norm = 1 / real_type(num_states);
     for (auto i : range(ref_vol_labels.size()))
     {
@@ -186,13 +186,13 @@ auto HeuristicGeoTestBase::get_avg_path_impl(const std::vector<real_type>& path,
 // DEVICE KERNEL EXECUTION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void heuristic_test_launch(const DeviceCRef<HeuristicGeoParamsData>&,
-                           const DeviceRef<HeuristicGeoStateData>&)
+void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const&,
+                           DeviceRef<HeuristicGeoStateData> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

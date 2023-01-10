@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -76,7 +76,7 @@ ScopedMpiInit::~ScopedMpiInit()
         {
             CELER_MPI_CALL(MPI_Finalize());
         }
-        catch (const RuntimeError& e)
+        catch (RuntimeError const& e)
         {
             std::cerr << "During destruction of scoped MPI initialization: "
                       << e.what() << std::endl;
@@ -122,4 +122,4 @@ auto ScopedMpiInit::status() -> Status
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

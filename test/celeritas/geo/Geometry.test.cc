@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ namespace test
 class TestEm3Test : public HeuristicGeoTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "testem3-flat"; }
+    char const* geometry_basename() const override { return "testem3-flat"; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -30,8 +30,8 @@ class TestEm3Test : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type     num_steps() const final { return 1024; }
-    SpanConstStr  reference_volumes() const final;
+    size_type num_steps() const final { return 1024; }
+    SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
 
@@ -106,20 +106,20 @@ auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 class SimpleCmsTest : public HeuristicGeoTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "simple-cms"; }
+    char const* geometry_basename() const override { return "simple-cms"; }
 
     HeuristicGeoScalars build_scalars() const final
     {
         HeuristicGeoScalars result;
-        result.lower        = {-30, -30, -700};
-        result.upper        = {30, 30, 700};
+        result.lower = {-30, -30, -700};
+        result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
         return result;
     }
 
-    size_type     num_steps() const final { return 1024; }
-    SpanConstStr  reference_volumes() const final;
+    size_type num_steps() const final { return 1024; }
+    SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
 
@@ -147,7 +147,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 class ThreeSpheresTest : public HeuristicGeoTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "three-spheres"; }
+    char const* geometry_basename() const override { return "three-spheres"; }
 
     HeuristicGeoScalars build_scalars() const final
     {
@@ -157,8 +157,8 @@ class ThreeSpheresTest : public HeuristicGeoTestBase
         return result;
     }
 
-    size_type     num_steps() const final { return 1024; }
-    SpanConstStr  reference_volumes() const final;
+    size_type num_steps() const final { return 1024; }
+    SpanConstStr reference_volumes() const final;
     SpanConstReal reference_avg_path() const final;
 };
 
@@ -236,5 +236,5 @@ TEST_F(ThreeSpheresTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,4 +1,4 @@
-.. Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
@@ -180,7 +180,9 @@ columns should be broken into sub-expressions for improved readability anyway
 -- the ``auto`` keyword can help a lot with this. The post-commit formatting
 hook in :file:`scripts/dev` (execute
 :file:`scripts/dev/install-commit-hooks.sh` to set up this script) can take
-care of clang formatting automatically.
+care of clang formatting automatically. The clang-format script will also
+enforce the use of "`East const`_", where the ``const`` keyword is always to
+the right of the type that it modifies.
 
 Certain decorations (separators, Doxygen comment structure,
 etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
@@ -188,6 +190,8 @@ etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
 use existing source code as a guide to how to structure the decorations.
 Doxygen comments should be provided next to the *definition* of functions (both
 member and free) and classes.
+
+.. _East const: https://hackingcpp.com/cpp/design/east_vs_west_const.html
 
 Symbol names
 ------------

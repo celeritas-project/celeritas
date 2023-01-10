@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ class MyExplicitAction final : public ExplicitActionInterface
     {
     }
 
-    ActionId    action_id() const final { return action_id_; }
+    ActionId action_id() const final { return action_id_; }
     std::string label() const final { return "explicit"; }
     std::string description() const final { return "explicit action test"; }
 
@@ -44,7 +44,7 @@ class MyExplicitAction final : public ExplicitActionInterface
     ActionOrder order() const final { return order_; }
 
   private:
-    ActionId    action_id_;
+    ActionId action_id_;
     ActionOrder order_;
     mutable int host_count_{0};
     mutable int device_count_{0};
@@ -83,7 +83,7 @@ class ActionRegistryTest : public Test
         mgr.insert(impl2);
     }
 
-    ActionRegistry                    mgr;
+    ActionRegistry mgr;
     std::shared_ptr<MyExplicitAction> expl_action;
 };
 
@@ -111,8 +111,8 @@ TEST_F(ActionRegistryTest, accessors)
 TEST_F(ActionRegistryTest, output)
 {
     // Create output handler from a shared pointer (with a null deleter)
-    ActionRegistryOutput out(std::shared_ptr<const ActionRegistry>(
-        &mgr, [](const ActionRegistry*) {}));
+    ActionRegistryOutput out(std::shared_ptr<ActionRegistry const>(
+        &mgr, [](ActionRegistry const*) {}));
     EXPECT_EQ("actions", out.label());
 
     if (CELERITAS_USE_JSON)
@@ -137,5 +137,5 @@ TEST_F(ActionRegistryTest, errors)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

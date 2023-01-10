@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ namespace demo_loop
  * Count the steps per track for each particle type.
  */
 __global__ void count_steps_kernel(CoreParamsDeviceRef const params,
-                                   CoreStateDeviceRef const  states,
+                                   CoreStateDeviceRef const states,
                                    StepDiagnosticDataRef<MemSpace::device> data)
 {
     auto tid = KernelParamCalculator::thread_id();
@@ -37,8 +37,8 @@ __global__ void count_steps_kernel(CoreParamsDeviceRef const params,
 /*!
  * Launch kernel to tally the steps per track.
  */
-void count_steps(const CoreParamsDeviceRef&              params,
-                 const CoreStateDeviceRef&               states,
+void count_steps(CoreParamsDeviceRef const& params,
+                 CoreStateDeviceRef const& states,
                  StepDiagnosticDataRef<MemSpace::device> data)
 {
     CELER_LAUNCH_KERNEL(count_steps,
@@ -49,4 +49,4 @@ void count_steps(const CoreParamsDeviceRef&              params,
                         data);
 }
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

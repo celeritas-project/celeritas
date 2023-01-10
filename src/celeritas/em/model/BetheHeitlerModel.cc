@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,10 +21,10 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
-                                     const ParticleParams& particles,
-                                     SPConstImported       data,
-                                     bool                  enable_lpm)
+BetheHeitlerModel::BetheHeitlerModel(ActionId id,
+                                     ParticleParams const& particles,
+                                     SPConstImported data,
+                                     bool enable_lpm)
     : imported_(data,
                 particles,
                 ImportProcessClass::conversion,
@@ -32,11 +32,11 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId              id,
                 {pdg::gamma()})
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.electron = particles.find(pdg::electron());
     interface_.ids.positron = particles.find(pdg::positron());
-    interface_.ids.gamma    = particles.find(pdg::gamma());
-    interface_.enable_lpm   = enable_lpm;
+    interface_.ids.gamma = particles.find(pdg::gamma());
+    interface_.enable_lpm = enable_lpm;
 
     CELER_VALIDATE(interface_.ids,
                    << "missing electron, positron and/or gamma particles "
@@ -54,8 +54,8 @@ auto BetheHeitlerModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.ids.gamma;
-    photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = units::MevEnergy{1e8};
+    photon_applic.lower = zero_quantity();
+    photon_applic.upper = units::MevEnergy{1e8};
 
     return {photon_applic};
 }
@@ -94,4 +94,4 @@ ActionId BetheHeitlerModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,13 +41,13 @@ class ProcessSecondariesLauncher
     //!@{
     //! Type aliases
     using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
-    using StateRef  = CoreStateData<Ownership::reference, M>;
+    using StateRef = CoreStateData<Ownership::reference, M>;
     //!@}
 
   public:
     // Construct with shared and state data
     CELER_FUNCTION
-    ProcessSecondariesLauncher(const CoreRef<M>& core_data)
+    ProcessSecondariesLauncher(CoreRef<M> const& core_data)
         : params_(core_data.params), states_(core_data.states)
     {
         CELER_EXPECT(params_);
@@ -58,8 +58,8 @@ class ProcessSecondariesLauncher
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
 
   private:
-    const ParamsRef& params_;
-    const StateRef&  states_;
+    ParamsRef const& params_;
+    StateRef const& states_;
 };
 
 //---------------------------------------------------------------------------//
@@ -78,7 +78,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
     }
 
     // Offset in the vector of track initializers
-    const auto& data = states_.init;
+    auto const& data = states_.init;
     CELER_ASSERT(data.secondary_counts[tid] <= data.num_secondaries);
     size_type offset = data.num_secondaries - data.secondary_counts[tid];
 
@@ -90,7 +90,7 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
     const TrackId parent_id{sim.track_id()};
 
     PhysicsStepView phys(params_.physics, states_.physics, tid);
-    for (const auto& secondary : phys.secondaries())
+    for (auto const& secondary : phys.secondaries())
     {
         if (secondary)
         {
@@ -109,16 +109,16 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 
             // Create a track initializer from the secondary
             TrackInitializer ti;
-            ti.sim.track_id         = TrackId{track_id};
-            ti.sim.parent_id        = parent_id;
-            ti.sim.event_id         = sim.event_id();
-            ti.sim.num_steps        = 0;
-            ti.sim.time             = sim.time();
-            ti.sim.status           = TrackStatus::alive;
-            ti.geo.pos              = geo.pos();
-            ti.geo.dir              = secondary.direction;
+            ti.sim.track_id = TrackId{track_id};
+            ti.sim.parent_id = parent_id;
+            ti.sim.event_id = sim.event_id();
+            ti.sim.num_steps = 0;
+            ti.sim.time = sim.time();
+            ti.sim.status = TrackStatus::alive;
+            ti.geo.pos = geo.pos();
+            ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
-            ti.particle.energy      = secondary.energy;
+            ti.particle.energy = secondary.energy;
 
             if (!initialized && sim.status() != TrackStatus::alive)
             {
@@ -133,10 +133,10 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
                 // state so the multiple scattering range properties are
                 // cleared. The material state will be the same as the
                 // parent's.
-                sim      = ti.sim;
-                geo      = GeoTrackView::DetailedInitializer{geo, ti.geo.dir};
+                sim = ti.sim;
+                geo = GeoTrackView::DetailedInitializer{geo, ti.geo.dir};
                 particle = ti.particle;
-                phys        = {};
+                phys = {};
                 initialized = true;
 
                 // TODO: make it easier to determine what states need to be
@@ -169,5 +169,5 @@ ProcessSecondariesLauncher<M>::operator()(ThreadId tid) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

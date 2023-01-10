@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,9 +34,9 @@ bool determine_strip()
 
 //---------------------------------------------------------------------------//
 //! Try removing up to and including the filename from the reported path.
-std::string strip_source_dir(const std::string& filename)
+std::string strip_source_dir(std::string const& filename)
 {
-    static const bool do_strip = determine_strip();
+    static bool const do_strip = determine_strip();
     if (!do_strip)
     {
         // Don't strip in debug mode
@@ -64,7 +64,7 @@ std::string strip_source_dir(const std::string& filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -76,7 +76,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     {
         std::rethrow_exception(eptr);
     }
-    catch (const RuntimeError& e)
+    catch (RuntimeError const& e)
     {
         // Translate a runtime error into a G4Exception call
         std::ostringstream where;
@@ -93,7 +93,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
                     FatalException,
                     e.details().what.c_str());
     }
-    catch (const DebugError& e)
+    catch (DebugError const& e)
     {
         // Translate a *debug* error
         std::ostringstream where;
@@ -103,7 +103,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
         G4Exception(
             where.str().c_str(), err_code_, FatalException, what.str().c_str());
     }
-    catch (const std::runtime_error& e)
+    catch (std::runtime_error const& e)
     {
         this->convert_device_exceptions(std::current_exception());
     }
@@ -125,4 +125,4 @@ ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) const
 
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

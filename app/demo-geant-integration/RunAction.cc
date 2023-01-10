@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,9 +28,9 @@ namespace demo_geant
  * Construct with Celeritas setup options and shared data.
  */
 RunAction::RunAction(SPConstOptions options,
-                     SPParams       params,
-                     SPTransporter  transport,
-                     bool           init_celeritas)
+                     SPParams params,
+                     SPTransporter transport,
+                     bool init_celeritas)
     : options_{std::move(options)}
     , params_{std::move(params)}
     , transport_{std::move(transport)}
@@ -44,7 +44,7 @@ RunAction::RunAction(SPConstOptions options,
 /*!
  * Initialize Celeritas.
  */
-void RunAction::BeginOfRunAction(const G4Run* run)
+void RunAction::BeginOfRunAction(G4Run const* run)
 {
     CELER_EXPECT(run);
 
@@ -87,7 +87,7 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 /*!
  * Finalize Celeritas.
  */
-void RunAction::EndOfRunAction(const G4Run*)
+void RunAction::EndOfRunAction(G4Run const*)
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
     celeritas::ExceptionConverter call_g4exception{"celer0005"};
@@ -108,4 +108,4 @@ void RunAction::EndOfRunAction(const G4Run*)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

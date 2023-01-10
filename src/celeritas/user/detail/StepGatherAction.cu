@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,9 +19,9 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<StepPoint P>
-__global__ void step_gather_kernel(CoreDeviceRef const              core,
+__global__ void step_gather_kernel(CoreDeviceRef const core,
                                    DeviceCRef<StepParamsData> const step_params,
-                                   DeviceRef<StepStateData> const   step_state)
+                                   DeviceRef<StepStateData> const step_state)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < step_state.size()))
@@ -31,16 +31,16 @@ __global__ void step_gather_kernel(CoreDeviceRef const              core,
     launch(tid);
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the action on device.
  */
 template<StepPoint P>
-void step_gather_device(CoreRef<MemSpace::device> const&  core,
+void step_gather_device(CoreRef<MemSpace::device> const& core,
                         DeviceCRef<StepParamsData> const& step_params,
-                        DeviceRef<StepStateData> const&   step_state)
+                        DeviceRef<StepStateData> const& step_state)
 {
     CELER_EXPECT(core);
     CELER_EXPECT(step_state.size() == core.states.size());
@@ -73,5 +73,5 @@ step_gather_device<StepPoint::post>(CoreRef<MemSpace::device> const&,
                                     DeviceRef<StepStateData> const&);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

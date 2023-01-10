@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,8 +34,8 @@ __launch_bounds__(1024, 7)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 livermore_pe_interact_kernel(
-    const celeritas::LivermorePEDeviceRef model_data,
-    const celeritas::CoreRef<MemSpace::device> core_data)
+    celeritas::LivermorePEDeviceRef const model_data,
+    celeritas::CoreRef<MemSpace::device> const core_data)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < core_data.states.size()))
@@ -47,11 +47,11 @@ livermore_pe_interact_kernel(
         celeritas::livermore_pe_interact_track);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 void livermore_pe_interact(
-    const celeritas::LivermorePEDeviceRef& model_data,
-    const celeritas::CoreRef<MemSpace::device>& core_data)
+    celeritas::LivermorePEDeviceRef const& model_data,
+    celeritas::CoreRef<MemSpace::device> const& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -62,5 +62,5 @@ void livermore_pe_interact(
                         model_data, core_data);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

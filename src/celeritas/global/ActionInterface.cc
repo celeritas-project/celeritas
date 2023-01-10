@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ ConcreteAction::ConcreteAction(ActionId id, std::string label)
 /*!
  * Construct a concrete action from an ID, a unique label, and a description.
  */
-ConcreteAction::ConcreteAction(ActionId    id,
+ConcreteAction::ConcreteAction(ActionId id,
                                std::string label,
                                std::string description)
     : id_{std::move(id)}
@@ -44,4 +44,4 @@ ConcreteAction::ConcreteAction(ActionId    id,
 ConcreteAction::~ConcreteAction() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,7 +30,7 @@ namespace celeritas
 /*!
  * Construct from path to ROOT file.
  */
-RootImporter::RootImporter(const char* filename)
+RootImporter::RootImporter(char const* filename)
 {
     TriggerDictionaryInitialization_libceleritas();
 
@@ -55,7 +55,7 @@ ImportData RootImporter::operator()()
     CELER_ASSERT(tree_data);
     CELER_ASSERT(tree_data->GetEntries() == 1);
 
-    ImportData  import_data;
+    ImportData import_data;
     ImportData* import_data_ptr = &import_data;
     int err_code = tree_data->SetBranchAddress(branch_name(), &import_data_ptr);
     CELER_ASSERT(err_code >= 0);
@@ -68,7 +68,7 @@ ImportData RootImporter::operator()()
 /*!
  * Hardcoded ROOT TTree name, consistent with \e app/celer-export-geant.
  */
-const char* RootImporter::tree_name()
+char const* RootImporter::tree_name()
 {
     return "geant4_data";
 }
@@ -77,10 +77,10 @@ const char* RootImporter::tree_name()
 /*!
  * Hardcoded ROOT TBranch name, consistent with \e app/celer-export-geant.
  */
-const char* RootImporter::branch_name()
+char const* RootImporter::branch_name()
 {
     return "ImportData";
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

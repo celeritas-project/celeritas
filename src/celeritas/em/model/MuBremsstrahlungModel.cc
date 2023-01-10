@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,9 +21,9 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
-                                             const ParticleParams& particles,
-                                             SPConstImported       data)
+MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId id,
+                                             ParticleParams const& particles,
+                                             SPConstImported data)
     : imported_(data,
                 particles,
                 ImportProcessClass::mu_brems,
@@ -31,10 +31,10 @@ MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId              id,
                 {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
-    interface_.ids.gamma    = particles.find(pdg::gamma());
+    interface_.ids.action = id;
+    interface_.ids.gamma = particles.find(pdg::gamma());
     interface_.ids.mu_minus = particles.find(pdg::mu_minus());
-    interface_.ids.mu_plus  = particles.find(pdg::mu_plus());
+    interface_.ids.mu_plus = particles.find(pdg::mu_plus());
 
     CELER_VALIDATE(interface_.ids.gamma && interface_.ids.mu_minus
                        && interface_.ids.mu_plus,
@@ -55,12 +55,12 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
     Applicability mu_minus_applic, mu_plus_applic;
 
     mu_minus_applic.particle = interface_.ids.mu_minus;
-    mu_minus_applic.lower    = zero_quantity();
-    mu_minus_applic.upper    = interface_.max_incident_energy();
+    mu_minus_applic.lower = zero_quantity();
+    mu_minus_applic.upper = interface_.max_incident_energy();
 
     mu_plus_applic.particle = interface_.ids.mu_plus;
-    mu_plus_applic.lower    = mu_minus_applic.lower;
-    mu_plus_applic.upper    = mu_minus_applic.upper;
+    mu_plus_applic.lower = mu_minus_applic.lower;
+    mu_plus_applic.upper = mu_minus_applic.upper;
 
     return {mu_minus_applic, mu_plus_applic};
 }
@@ -101,4 +101,4 @@ ActionId MuBremsstrahlungModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

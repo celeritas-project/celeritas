@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,15 +26,15 @@ class GeantGeoExporter
     static std::string make_tmpfile_name();
 
     // Construct from the world geometry pointer
-    explicit GeantGeoExporter(const G4VPhysicalVolume* world);
+    explicit GeantGeoExporter(G4VPhysicalVolume const* world);
 
     // Save to a file and return properties
-    void operator()(const std::string& filename) const;
+    void operator()(std::string const& filename) const;
 
   private:
-    const G4VPhysicalVolume* world_;
+    G4VPhysicalVolume const* world_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

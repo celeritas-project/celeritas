@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,20 +41,20 @@ class MuBremsstrahlungInteractor
 {
     //!@{
     //! \name Type aliases
-    using Energy   = units::MevEnergy;
-    using Mass     = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     using Momentum = units::MevMomentum;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    MuBremsstrahlungInteractor(const MuBremsstrahlungData& shared,
-                               const ParticleTrackView&    particle,
-                               const Real3&                inc_direction,
-                               StackAllocator<Secondary>&  allocate,
-                               const MaterialView&         material,
-                               ElementComponentId          elcomp_id);
+    MuBremsstrahlungInteractor(MuBremsstrahlungData const& shared,
+                               ParticleTrackView const& particle,
+                               Real3 const& inc_direction,
+                               StackAllocator<Secondary>& allocate,
+                               MaterialView const& material,
+                               ElementComponentId elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -63,21 +63,21 @@ class MuBremsstrahlungInteractor
   private:
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy,
-                                                     Engine&   rng) const;
+                                                     Engine& rng) const;
 
     inline CELER_FUNCTION real_type
     differential_cross_section(real_type gamma_energy) const;
 
     // Shared constant physics properties
-    const MuBremsstrahlungData& shared_;
+    MuBremsstrahlungData const& shared_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Element properties
     const ElementView element_;
     // Incident particle
-    const ParticleTrackView& particle_;
+    ParticleTrackView const& particle_;
 };
 
 //---------------------------------------------------------------------------//
@@ -87,12 +87,12 @@ class MuBremsstrahlungInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
-    const MuBremsstrahlungData& shared,
-    const ParticleTrackView&    particle,
-    const Real3&                inc_direction,
-    StackAllocator<Secondary>&  allocate,
-    const MaterialView&         material,
-    ElementComponentId          elcomp_id)
+    MuBremsstrahlungData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate,
+    MaterialView const& material,
+    ElementComponentId elcomp_id)
     : shared_(shared)
     , inc_direction_(inc_direction)
     , allocate_(allocate)
@@ -140,7 +140,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     // Sample secondary direction.
     UniformRealDistribution<real_type> phi(0, 2 * constants::pi);
 
-    real_type cost  = this->sample_cos_theta(epsilon, rng);
+    real_type cost = this->sample_cos_theta(epsilon, rng);
     Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
 
     Real3 inc_direction;
@@ -156,13 +156,13 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     Interaction result;
     result.energy
         = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
-    result.direction   = inc_direction;
+    result.direction = inc_direction;
     result.secondaries = {secondaries, 1};
 
     // Save outgoing secondary data
     secondaries[0].particle_id = shared_.ids.gamma;
-    secondaries[0].energy      = units::MevEnergy{epsilon};
-    secondaries[0].direction   = gamma_dir;
+    secondaries[0].energy = units::MevEnergy{epsilon};
+    secondaries[0].direction = gamma_dir;
 
     return result;
 }
@@ -199,10 +199,10 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
         return dxsection;
     }
 
-    const int       atomic_number = element_.atomic_number().unchecked_get();
+    int const atomic_number = element_.atomic_number().unchecked_get();
     const real_type atomic_mass
         = value_as<units::AmuMass>(element_.atomic_mass());
-    const real_type sqrt_e           = std::sqrt(constants::euler);
+    const real_type sqrt_e = std::sqrt(constants::euler);
     const real_type inc_total_energy = value_as<Mass>(particle_.mass())
                                        + value_as<Energy>(particle_.energy());
     const real_type rel_energy_transfer = gamma_energy / inc_total_energy;
@@ -211,21 +211,21 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
                             / (inc_total_energy - gamma_energy);
 
     // TODO: precalculate these data per element
-    real_type       d_n_prime, b, b1;
+    real_type d_n_prime, b, b1;
     const real_type d_n = real_type(1.54)
                           * std::pow(atomic_mass, real_type(0.27));
 
     if (atomic_number == 1)
     {
         d_n_prime = d_n;
-        b         = real_type(202.4);
-        b1        = 446;
+        b = real_type(202.4);
+        b1 = 446;
     }
     else
     {
         d_n_prime = std::pow(d_n, 1 - real_type(1) / atomic_number);
-        b         = 183;
-        b1        = 1429;
+        b = 183;
+        b1 = 1429;
     }
 
     const real_type inv_cbrt_z = 1 / element_.cbrt_z();
@@ -236,7 +236,7 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
         * (value_as<Mass>(particle_.mass()) + delta * (d_n_prime * sqrt_e - 2))
         / (d_n_prime * (electron_m + delta * sqrt_e * b * inv_cbrt_z))));
 
-    real_type       phi_e = 0;
+    real_type phi_e = 0;
     const real_type epsilon_max_prime
         = inc_total_energy
           / (1
@@ -245,7 +245,7 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
     if (gamma_energy < epsilon_max_prime)
     {
         const real_type inv_cbrt_z_sq = ipow<2>(inv_cbrt_z);
-        phi_e                         = clamp_to_nonneg(std::log(
+        phi_e = clamp_to_nonneg(std::log(
             b1 * inv_cbrt_z_sq * value_as<Mass>(particle_.mass())
             / ((1
                 + delta * value_as<Mass>(particle_.mass())
@@ -264,4 +264,4 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

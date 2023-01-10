@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using Energy   = units::MevEnergy;
+using Energy = units::MevEnergy;
 using EnergySq = SBEnergyDistHelper::EnergySq;
 
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ class CombinedBremTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements  = {{AtomicNumber{29}, units::AmuMass{63.546}, "Cu"}};
+        mat_inp.elements = {{AtomicNumber{29}, units::AmuMass{63.546}, "Cu"}};
         mat_inp.materials = {
             {0.141 * na_avogadro,
              293.0,
@@ -55,7 +55,7 @@ class CombinedBremTest : public InteractorHostTestBase
         this->set_material_params(mat_inp);
 
         // Set up Seltzer-Berger cross section data
-        std::string         data_path = this->test_data_path("celeritas", "");
+        std::string data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
         // Imported process data needed to construct the model (with empty
@@ -86,7 +86,7 @@ class CombinedBremTest : public InteractorHostTestBase
                                                      true);
 
         // Set cutoffs
-        CutoffParams::Input           input;
+        CutoffParams::Input input;
         CutoffParams::MaterialCutoffs material_cutoffs;
         material_cutoffs.push_back({MevEnergy{0.02064384}, 0.07});
         input.materials = this->material_params();
@@ -106,7 +106,7 @@ class CombinedBremTest : public InteractorHostTestBase
         CELER_EXPECT(e > zero_quantity());
         using namespace constants;
 
-        auto           mat    = this->material_params()->get(matid);
+        auto mat = this->material_params()->get(matid);
         constexpr auto migdal = 4 * pi * r_electron
                                 * ipow<2>(lambdabar_electron);
 
@@ -114,7 +114,7 @@ class CombinedBremTest : public InteractorHostTestBase
         return EnergySq{density_factor * ipow<2>(e.value())};
     }
 
-    void sanity_check(const Interaction& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         EXPECT_EQ(Action::scattered, interaction.action);
     }
@@ -130,12 +130,12 @@ class CombinedBremTest : public InteractorHostTestBase
 TEST_F(CombinedBremTest, basic_seltzer_berger)
 {
     // Reserve 4 secondaries, one for each sample
-    const int num_samples = 4;
+    int const num_samples = 4;
     this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
     CombinedBremInteractor interact(model_->host_ref(),
@@ -145,7 +145,7 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
                                     this->secondary_allocator(),
                                     material_view,
                                     ElementComponentId{0});
-    RandomEngine&          rng_engine = this->rng();
+    RandomEngine& rng_engine = this->rng();
 
     // Produce two samples from the original/incident photon
     std::vector<double> angle;
@@ -170,12 +170,12 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_angle[] = {0.959441513277674,
+    double const expected_angle[] = {0.959441513277674,
                                      0.994350429950924,
                                      0.968866136008621,
                                      0.961582855967571};
 
-    const double expected_energy[] = {0.0349225070114679,
+    double const expected_energy[] = {0.0349225070114679,
                                       0.0316182310804369,
                                       0.0838794010486177,
                                       0.106195186929141};
@@ -192,14 +192,14 @@ TEST_F(CombinedBremTest, basic_seltzer_berger)
 
 TEST_F(CombinedBremTest, basic_relativistic_brem)
 {
-    const int num_samples = 4;
+    int const num_samples = 4;
 
     // Reserve  num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Set the incident particle energy
     this->set_inc_particle(pdg::electron(), MevEnergy{25000});
@@ -238,10 +238,10 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
     // Note: these are "gold" values based on the host RNG.
 
-    const double expected_energy[] = {
+    double const expected_energy[] = {
         18844.5999305425, 42.185863858534, 3991.9107959354, 212.273682952066};
 
-    const double expected_angle[] = {0.999999972054405,
+    double const expected_angle[] = {0.999999972054405,
                                      0.999999999587026,
                                      0.999999999684891,
                                      0.999999999474844};
@@ -259,12 +259,12 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
 TEST_F(CombinedBremTest, stress_test_combined)
 {
-    const int           num_samples = 1e4;
+    int const num_samples = 1e4;
     std::vector<double> avg_engine_samples;
     std::vector<double> avg_energy_samples;
 
     // Views
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
     auto material_view = this->material_track().make_material_view();
 
     // Loop over a set of incident gamma energies
@@ -278,12 +278,12 @@ TEST_F(CombinedBremTest, stress_test_combined)
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
             //            this->set_inc_particle(particle, MevEnergy{inc_e});
 
-            RandomEngine&           rng_engine            = this->rng();
+            RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
-            double                  tot_energy_sampled    = 0;
+            double tot_energy_sampled = 0;
 
             // Loop over several incident directions
-            for (const Real3& inc_dir : {Real3{0, 0, 1},
+            for (Real3 const& inc_dir : {Real3{0, 0, 1},
                                          Real3{1, 0, 0},
                                          Real3{1e-9, 0, 1},
                                          Real3{1, 1, 1}})
@@ -320,7 +320,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
     }
 
     // Gold values for average number of calls to RNG
-    static const double expected_avg_engine_samples[] = {14.088,
+    static double const expected_avg_engine_samples[] = {14.088,
                                                          13.2402,
                                                          12.9641,
                                                          12.5832,
@@ -338,7 +338,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
                                                          12.4193,
                                                          13.293,
                                                          15.3784};
-    static const double expected_avg_energy_samples[] = {0.20338654094171,
+    static double const expected_avg_energy_samples[] = {0.20338654094171,
                                                          0.53173619503507,
                                                          0.99638562846318,
                                                          4.4359411867158,
@@ -362,5 +362,5 @@ TEST_F(CombinedBremTest, stress_test_combined)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

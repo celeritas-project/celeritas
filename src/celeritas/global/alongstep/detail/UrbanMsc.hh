@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ class UrbanMsc
 
   public:
     // Construct from MSC params
-    explicit inline CELER_FUNCTION UrbanMsc(const ParamsRef& params);
+    explicit inline CELER_FUNCTION UrbanMsc(ParamsRef const& params);
 
     // Whether MSC applies to the current track
     inline CELER_FUNCTION bool
@@ -49,11 +49,11 @@ class UrbanMsc
     apply_step(CoreTrackView const&, AlongStepLocalState*) const;
 
   private:
-    const ParamsRef& msc_params_;
+    ParamsRef const& msc_params_;
 
     // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool
-    is_geo_limited(CoreTrackView const&, const StepLimit&);
+    is_geo_limited(CoreTrackView const&, StepLimit const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ class UrbanMsc
 /*!
  * Construct with defaults.
  */
-CELER_FUNCTION UrbanMsc::UrbanMsc(const ParamsRef& params)
+CELER_FUNCTION UrbanMsc::UrbanMsc(ParamsRef const& params)
     : msc_params_(params)
 {
 }
@@ -99,8 +99,8 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
     CELER_EXPECT(msc_params_);
 
     auto particle = track.make_particle_view();
-    auto geo      = track.make_geo_view();
-    auto phys     = track.make_physics_view();
+    auto geo = track.make_geo_view();
+    auto phys = track.make_physics_view();
 
     // Sample multiple scattering step length
     UrbanMscStepLimit msc_step_limit(msc_params_,
@@ -111,7 +111,7 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
                                      geo.find_safety(),
                                      local->step_limit.step);
 
-    auto rng             = track.make_rng_engine();
+    auto rng = track.make_rng_engine();
     auto msc_step_result = msc_step_limit(rng);
     track.make_physics_step_view().msc_step(msc_step_result);
 
@@ -123,7 +123,7 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
         // True/physical step might be further limited by MSC
         // TODO: this is already kinda sorta determined inside the
         // UrbanMscStepLimit calculation
-        local->step_limit.step   = msc_step_result.true_path;
+        local->step_limit.step = msc_step_result.true_path;
         local->step_limit.action = msc_params_.ids.action;
     }
 }
@@ -137,13 +137,13 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
 {
     CELER_EXPECT(msc_params_);
 
-    auto par  = track.make_particle_view();
-    auto geo  = track.make_geo_view();
+    auto par = track.make_particle_view();
+    auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
-    auto mat  = track.make_material_view();
+    auto mat = track.make_material_view();
 
     // Replace step with actual geometry distance traveled
-    auto msc_step_result      = track.make_physics_step_view().msc_step();
+    auto msc_step_result = track.make_physics_step_view().msc_step();
     msc_step_result.geom_path = local->geo_step;
 
     UrbanMscScatter msc_scatter(msc_params_,
@@ -154,7 +154,7 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
                                 msc_step_result,
                                 is_geo_limited(track, local->step_limit));
 
-    auto rng        = track.make_rng_engine();
+    auto rng = track.make_rng_engine();
     auto msc_result = msc_scatter(rng);
 
     // Update full path length traveled along the step based on MSC to
@@ -191,12 +191,12 @@ CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track,
  * has to pause before the end of the step is reached.
  */
 CELER_FUNCTION bool
-UrbanMsc::is_geo_limited(CoreTrackView const& track, const StepLimit& limit)
+UrbanMsc::is_geo_limited(CoreTrackView const& track, StepLimit const& limit)
 {
     return (limit.action == track.boundary_action()
             || limit.action == track.propagation_limit_action());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,18 +22,18 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class V, class S>
-std::vector<int> extract_ids(const std::vector<OpaqueId<V, S>>& ids)
+std::vector<int> extract_ids(std::vector<OpaqueId<V, S>> const& ids)
 {
     std::vector<int> result(ids.size());
     std::transform(
-        ids.begin(), ids.end(), result.begin(), [](const OpaqueId<V, S>& v) {
+        ids.begin(), ids.end(), result.begin(), [](OpaqueId<V, S> const& v) {
             return v ? v.unchecked_get() : -1;
         });
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 class DetectorStepsTest : public ::celeritas::test::Test
 {
@@ -63,17 +63,17 @@ class DetectorStepsTest : public ::celeritas::test::Test
         StepSelection result;
         for (auto& sp : result.points)
         {
-            sp.time      = true;
-            sp.pos       = true;
-            sp.dir       = true;
+            sp.time = true;
+            sp.pos = true;
+            sp.dir = true;
             sp.volume_id = true;
-            sp.energy    = true;
+            sp.energy = true;
         }
-        result.event_id          = true;
-        result.track_step_count  = true;
-        result.action_id         = true;
-        result.step_length       = true;
-        result.particle          = true;
+        result.event_id = true;
+        result.track_step_count = true;
+        result.action_id = true;
+        result.step_length = true;
+        result.particle = true;
         result.energy_deposition = true;
         return result;
     }
@@ -140,9 +140,9 @@ class SmallDetectorStepsTest : public DetectorStepsTest
     StepSelection selection() const override
     {
         StepSelection result;
-        result.points[StepPoint::pre].pos  = true;
+        result.points[StepPoint::pre].pos = true;
         result.points[StepPoint::post].pos = true;
-        result.energy_deposition           = true;
+        result.energy_deposition = true;
         return result;
     }
 };
@@ -157,7 +157,7 @@ TEST_F(DetectorStepsTest, host)
     DetectorStepOutput output;
     copy_steps(&output, make_ref(states));
 
-    static const int expected_detector[]
+    static int const expected_detector[]
         = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector));
 
@@ -169,13 +169,13 @@ TEST_F(DetectorStepsTest, host)
     EXPECT_EQ(num_tracks, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
-    const auto& pre = output.points[StepPoint::pre];
+    auto const& pre = output.points[StepPoint::pre];
     EXPECT_EQ(num_tracks, pre.time.size());
     EXPECT_EQ(num_tracks, pre.pos.size());
     EXPECT_EQ(num_tracks, pre.dir.size());
     EXPECT_EQ(num_tracks, pre.energy.size());
 
-    const auto& post = output.points[StepPoint::post];
+    auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(num_tracks, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(num_tracks, post.dir.size());
@@ -204,15 +204,15 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_output.particle, output.particle);
     EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
 
-    const auto& host_pre = host_output.points[StepPoint::pre];
-    const auto& pre      = output.points[StepPoint::pre];
+    auto const& host_pre = host_output.points[StepPoint::pre];
+    auto const& pre = output.points[StepPoint::pre];
     EXPECT_VEC_EQ(host_pre.time, pre.time);
     EXPECT_VEC_EQ(host_pre.pos, pre.pos);
     EXPECT_VEC_EQ(host_pre.dir, pre.dir);
     EXPECT_VEC_EQ(host_pre.energy, pre.energy);
 
-    const auto& host_post = host_output.points[StepPoint::post];
-    const auto& post      = output.points[StepPoint::post];
+    auto const& host_post = host_output.points[StepPoint::post];
+    auto const& post = output.points[StepPoint::post];
     EXPECT_VEC_EQ(host_post.time, post.time);
     EXPECT_VEC_EQ(host_post.pos, post.pos);
     EXPECT_VEC_EQ(host_post.dir, post.dir);
@@ -227,7 +227,7 @@ TEST_F(SmallDetectorStepsTest, host)
     DetectorStepOutput output;
     copy_steps(&output, make_ref(states));
 
-    static const int expected_detector[]
+    static int const expected_detector[]
         = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector));
 
@@ -239,13 +239,13 @@ TEST_F(SmallDetectorStepsTest, host)
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
-    const auto& pre = output.points[StepPoint::pre];
+    auto const& pre = output.points[StepPoint::pre];
     EXPECT_EQ(0, pre.time.size());
     EXPECT_EQ(num_tracks, pre.pos.size());
     EXPECT_EQ(0, pre.dir.size());
     EXPECT_EQ(0, pre.energy.size());
 
-    const auto& post = output.points[StepPoint::post];
+    auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(0, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(0, post.dir.size());
@@ -258,7 +258,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     {
         // Create states on host and copy to device
         auto host_states = this->build_states(1024);
-        device_states    = host_states;
+        device_states = host_states;
     }
 
     // Perform reduction on device and copy back to host
@@ -273,13 +273,13 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(0, output.particle.size());
     EXPECT_EQ(num_tracks, output.energy_deposition.size());
 
-    const auto& pre = output.points[StepPoint::pre];
+    auto const& pre = output.points[StepPoint::pre];
     EXPECT_EQ(0, pre.time.size());
     EXPECT_EQ(num_tracks, pre.pos.size());
     EXPECT_EQ(0, pre.dir.size());
     EXPECT_EQ(0, pre.energy.size());
 
-    const auto& post = output.points[StepPoint::post];
+    auto const& post = output.points[StepPoint::post];
     EXPECT_EQ(0, post.time.size());
     EXPECT_EQ(num_tracks, post.pos.size());
     EXPECT_EQ(0, post.dir.size());
@@ -287,5 +287,5 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

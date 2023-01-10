@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,23 +36,23 @@ class PhysicsTrackView
   public:
     //!@{
     //! Type aliases
-    using Initializer_t    = PhysicsTrackInitializer;
+    using Initializer_t = PhysicsTrackInitializer;
     using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
-    using PhysicsStateRef  = NativeRef<PhysicsStateData>;
-    using Energy           = units::MevEnergy;
-    using ModelFinder      = GridIdFinder<Energy, ParticleModelId>;
+    using PhysicsStateRef = NativeRef<PhysicsStateData>;
+    using Energy = units::MevEnergy;
+    using ModelFinder = GridIdFinder<Energy, ParticleModelId>;
     //!@}
 
   public:
     // Construct from params, states, and per-state IDs
-    inline CELER_FUNCTION PhysicsTrackView(const PhysicsParamsRef& params,
-                                           const PhysicsStateRef&  states,
-                                           ParticleId              particle,
-                                           MaterialId              material,
-                                           ThreadId                id);
+    inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
+                                           PhysicsStateRef const& states,
+                                           ParticleId particle,
+                                           MaterialId material,
+                                           ThreadId id);
 
     // Initialize the track view
-    inline CELER_FUNCTION PhysicsTrackView& operator=(const Initializer_t&);
+    inline CELER_FUNCTION PhysicsTrackView& operator=(Initializer_t const&);
 
     // Set the remaining MFP to interaction
     inline CELER_FUNCTION void interaction_mfp(real_type);
@@ -64,7 +64,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION void dedx_range(real_type);
 
     // Set the range properties for multiple scattering
-    inline CELER_FUNCTION void msc_range(const MscRange&);
+    inline CELER_FUNCTION void msc_range(MscRange const&);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -78,13 +78,13 @@ class PhysicsTrackView
     CELER_FORCEINLINE_FUNCTION real_type dedx_range() const;
 
     // Range properties for multiple scattering
-    CELER_FORCEINLINE_FUNCTION const MscRange& msc_range() const;
+    CELER_FORCEINLINE_FUNCTION MscRange const& msc_range() const;
 
     //// PROCESSES (depend on particle type and possibly material) ////
 
     // Number of processes that apply to this track
     inline CELER_FUNCTION ParticleProcessId::size_type
-                          num_particle_processes() const;
+    num_particle_processes() const;
 
     // Process ID for the given within-particle process index
     inline CELER_FUNCTION ProcessId process(ParticleProcessId) const;
@@ -94,18 +94,18 @@ class PhysicsTrackView
                                                  ParticleProcessId) const;
 
     // Get data for processes that use the integral approach
-    inline CELER_FUNCTION const IntegralXsProcess&
+    inline CELER_FUNCTION IntegralXsProcess const&
     integral_xs_process(ParticleProcessId ppid) const;
 
     // Calculate macroscopic cross section for the process
-    inline CELER_FUNCTION real_type calc_xs(ParticleProcessId   ppid,
-                                            const MaterialView& material,
-                                            Energy              energy) const;
+    inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
+                                            MaterialView const& material,
+                                            Energy energy) const;
 
     // Estimate maximum macroscopic cross section for the process over the step
-    inline CELER_FUNCTION real_type calc_max_xs(const IntegralXsProcess& process,
-                                                ParticleProcessId        ppid,
-                                                const MaterialView& material,
+    inline CELER_FUNCTION real_type calc_max_xs(IntegralXsProcess const& process,
+                                                ParticleProcessId ppid,
+                                                MaterialView const& material,
                                                 Energy energy) const;
 
     // Models that apply to the given process ID
@@ -138,7 +138,7 @@ class PhysicsTrackView
     inline CELER_FUNCTION real_type range_to_step(real_type range) const;
 
     // Access scalar properties
-    CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars& scalars() const;
+    CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const& scalars() const;
 
     // Number of particle types
     inline CELER_FUNCTION size_type num_particles() const;
@@ -160,17 +160,17 @@ class PhysicsTrackView
     inline CELER_FUNCTION ParticleProcessId msc_ppid() const;
 
   private:
-    const PhysicsParamsRef& params_;
-    const PhysicsStateRef&  states_;
-    const ParticleId        particle_;
-    const MaterialId        material_;
-    const ThreadId          thread_;
+    PhysicsParamsRef const& params_;
+    PhysicsStateRef const& states_;
+    const ParticleId particle_;
+    const MaterialId material_;
+    const ThreadId thread_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
-    CELER_FORCEINLINE_FUNCTION PhysicsTrackState&       state();
-    CELER_FORCEINLINE_FUNCTION const PhysicsTrackState& state() const;
-    CELER_FORCEINLINE_FUNCTION const ProcessGroup&      process_group() const;
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
+    CELER_FORCEINLINE_FUNCTION ProcessGroup const& process_group() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -182,11 +182,11 @@ class PhysicsTrackView
  * Particle and material IDs are derived from other class states.
  */
 CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
-                                   const PhysicsStateRef&  states,
-                                   ParticleId              pid,
-                                   MaterialId              mid,
-                                   ThreadId                tid)
+PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
+                                   PhysicsStateRef const& states,
+                                   ParticleId pid,
+                                   MaterialId mid,
+                                   ThreadId tid)
     : params_(params)
     , states_(states)
     , particle_(pid)
@@ -201,10 +201,10 @@ PhysicsTrackView::PhysicsTrackView(const PhysicsParamsRef& params,
  * Initialize the track view.
  */
 CELER_FUNCTION PhysicsTrackView&
-PhysicsTrackView::operator=(const Initializer_t&)
+PhysicsTrackView::operator=(Initializer_t const&)
 {
     this->state().interaction_mfp = 0;
-    this->state().msc_range       = {};
+    this->state().msc_range = {};
     return *this;
 }
 
@@ -249,7 +249,7 @@ CELER_FUNCTION void PhysicsTrackView::dedx_range(real_type range)
  *
  * These values will be calculated at the first step in every tracking volume.
  */
-CELER_FUNCTION void PhysicsTrackView::msc_range(const MscRange& msc_range)
+CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange const& msc_range)
 {
     this->state().msc_range = msc_range;
 }
@@ -289,7 +289,7 @@ CELER_FUNCTION real_type PhysicsTrackView::dedx_range() const
 /*!
  * Persistent range properties for multiple scattering within a same volume.
  */
-CELER_FUNCTION const MscRange& PhysicsTrackView::msc_range() const
+CELER_FUNCTION MscRange const& PhysicsTrackView::msc_range() const
 {
     return this->state().msc_range;
 }
@@ -299,7 +299,7 @@ CELER_FUNCTION const MscRange& PhysicsTrackView::msc_range() const
  * Number of processes that apply to this track.
  */
 CELER_FUNCTION ParticleProcessId::size_type
-               PhysicsTrackView::num_particle_processes() const
+PhysicsTrackView::num_particle_processes() const
 {
     return this->process_group().size();
 }
@@ -325,7 +325,7 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
+CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType table_type,
                                                  ParticleProcessId ppid) const
     -> ValueGridId
 {
@@ -335,14 +335,14 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
         = this->process_group().tables[table_type][ppid.get()];
 
     CELER_ASSERT(table_id);
-    const ValueTable& table = params_.value_tables[table_id];
+    ValueTable const& table = params_.value_tables[table_id];
     if (!table)
-        return {}; // No table for this process
+        return {};  // No table for this process
 
     CELER_EXPECT(material_ < table.grids.size());
     auto grid_id_ref = table.grids[material_.get()];
     if (!grid_id_ref)
-        return {}; // No table for this particular material
+        return {};  // No table for this particular material
 
     return params_.value_grid_ids[grid_id_ref];
 }
@@ -375,7 +375,7 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType     table_type,
  */
 CELER_FUNCTION auto
 PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
-    -> const IntegralXsProcess&
+    -> IntegralXsProcess const&
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     return params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
@@ -385,8 +385,8 @@ PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
 /*!
  * Calculate macroscopic cross section for the process.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
-                                                   const MaterialView& material,
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
+                                                   MaterialView const& material,
                                                    Energy energy) const
 {
     real_type result = 0;
@@ -412,7 +412,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
     {
         // Calculate cross section from the tabulated data
         auto calc_xs = this->make_calculator<XsCalculator>(grid_id);
-        result       = calc_xs(energy);
+        result = calc_xs(energy);
     }
 
     CELER_ENSURE(result >= 0);
@@ -436,10 +436,10 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId   ppid,
  * \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
 CELER_FUNCTION real_type
-PhysicsTrackView::calc_max_xs(const IntegralXsProcess& process,
-                              ParticleProcessId        ppid,
-                              const MaterialView&      material,
-                              Energy                   energy) const
+PhysicsTrackView::calc_max_xs(IntegralXsProcess const& process,
+                              ParticleProcessId ppid,
+                              MaterialView const& material,
+                              Energy energy) const
 {
     CELER_EXPECT(process);
     CELER_EXPECT(material_ < process.energy_max_xs.size());
@@ -503,7 +503,7 @@ PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
     -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
-    const ModelGroup& md
+    ModelGroup const& md
         = params_.model_groups[this->process_group().models[ppid.get()]];
     return ModelFinder(params_.reals[md.energy], params_.pmodel_ids[md.model]);
 }
@@ -521,15 +521,15 @@ ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
     CELER_EXPECT(pmid < params_.model_xs.size());
 
     // Get the model xs table for the given particle/model
-    const ModelXsTable& model_xs = params_.model_xs[pmid];
+    ModelXsTable const& model_xs = params_.model_xs[pmid];
     if (!model_xs)
-        return {}; // No tables stored for this model
+        return {};  // No tables stored for this model
 
     // Get the value table for the current material
     CELER_ASSERT(material_ < model_xs.material.size());
-    const auto& table_id_ref = model_xs.material[material_.get()];
+    auto const& table_id_ref = model_xs.material[material_.get()];
     if (!table_id_ref)
-        return {}; // Only one element in this material
+        return {};  // Only one element in this material
 
     CELER_ASSERT(table_id_ref < params_.value_table_ids.size());
     return params_.value_table_ids[table_id_ref];
@@ -542,10 +542,10 @@ ValueTableId PhysicsTrackView::value_table(ParticleModelId pmid) const
 CELER_FUNCTION
 TabulatedElementSelector
 PhysicsTrackView::make_element_selector(ValueTableId table_id,
-                                        Energy       energy) const
+                                        Energy energy) const
 {
     CELER_EXPECT(table_id < params_.value_tables.size());
-    const ValueTable& table = params_.value_tables[table_id];
+    ValueTable const& table = params_.value_tables[table_id];
     return TabulatedElementSelector{table,
                                     params_.value_grids,
                                     params_.value_grid_ids,
@@ -635,7 +635,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 /*!
  * Access scalar properties (options, IDs).
  */
-CELER_FORCEINLINE_FUNCTION const PhysicsParamsScalars&
+CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const&
 PhysicsTrackView::scalars() const
 {
     return params_.scalars;
@@ -674,17 +674,17 @@ CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
 }
 
 //! Get the thread-local state (const)
-CELER_FUNCTION const PhysicsTrackState& PhysicsTrackView::state() const
+CELER_FUNCTION PhysicsTrackState const& PhysicsTrackView::state() const
 {
     return states_.state[thread_];
 }
 
 //! Get the group of processes that apply to the particle
-CELER_FUNCTION const ProcessGroup& PhysicsTrackView::process_group() const
+CELER_FUNCTION ProcessGroup const& PhysicsTrackView::process_group() const
 {
     CELER_EXPECT(particle_ < params_.process_groups.size());
     return params_.process_groups[particle_];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

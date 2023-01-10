@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,16 +9,16 @@
 
 #include <memory>
 #include <set>
-#include <string> // IWYU pragma: export
+#include <string>  // IWYU pragma: export
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/ActionInterface.hh" // IWYU pragma: export
+#include "celeritas/global/ActionInterface.hh"  // IWYU pragma: export
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridData.hh"
 
-#include "Applicability.hh" // IWYU pragma: export
+#include "Applicability.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -52,9 +52,9 @@ class Model : public ExplicitActionInterface
   public:
     //@{
     //! Type aliases
-    using UPConstGridBuilder = std::unique_ptr<const ValueGridBuilder>;
-    using MicroXsBuilders    = std::vector<UPConstGridBuilder>;
-    using SetApplicability   = std::set<Applicability>;
+    using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
+    using MicroXsBuilders = std::vector<UPConstGridBuilder>;
+    using SetApplicability = std::set<Applicability>;
     //@}
 
   public:
@@ -69,4 +69,4 @@ class Model : public ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

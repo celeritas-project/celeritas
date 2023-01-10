@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,17 +25,17 @@ namespace
 /*!
  * Get a string corresponding to the Bremsstrahlung model selection.
  */
-const char* to_cstring(BremsModelSelection value)
+char const* to_cstring(BremsModelSelection value)
 {
     CELER_EXPECT(value != BremsModelSelection::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "seltzer_berger",
         "relativistic",
         "all",
     };
     static_assert(
-        static_cast<int>(BremsModelSelection::size_) * sizeof(const char*)
+        static_cast<int>(BremsModelSelection::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -46,17 +46,17 @@ const char* to_cstring(BremsModelSelection value)
 /*!
  * Get a string corresponding to the multiple scattering model selection.
  */
-const char* to_cstring(MscModelSelection value)
+char const* to_cstring(MscModelSelection value)
 {
     CELER_EXPECT(value != MscModelSelection::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "none",
         "urban",
         "wentzel_vi",
     };
     static_assert(
-        static_cast<int>(MscModelSelection::size_) * sizeof(const char*)
+        static_cast<int>(MscModelSelection::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -67,17 +67,17 @@ const char* to_cstring(MscModelSelection value)
 /*!
  * Get a string corresponding to the atomic relaxation option.
  */
-const char* to_cstring(RelaxationSelection value)
+char const* to_cstring(RelaxationSelection value)
 {
     CELER_EXPECT(value != RelaxationSelection::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "none",
         "radiative",
         "all",
     };
     static_assert(
-        static_cast<int>(RelaxationSelection::size_) * sizeof(const char*)
+        static_cast<int>(RelaxationSelection::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -85,46 +85,46 @@ const char* to_cstring(RelaxationSelection value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
-void from_json(const nlohmann::json& j, MscModelSelection& value)
+void from_json(nlohmann::json const& j, MscModelSelection& value)
 {
-    static const auto from_string
+    static auto const from_string
         = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
                                                               "msc model");
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, const MscModelSelection& value)
+void to_json(nlohmann::json& j, MscModelSelection const& value)
 {
     j = std::string{to_cstring(value)};
 }
 
-void from_json(const nlohmann::json& j, BremsModelSelection& value)
+void from_json(nlohmann::json const& j, BremsModelSelection& value)
 {
-    static const auto from_string
+    static auto const from_string
         = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
                                                                 "brems model");
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, const BremsModelSelection& value)
+void to_json(nlohmann::json& j, BremsModelSelection const& value)
 {
     j = std::string{to_cstring(value)};
 }
 
-void from_json(const nlohmann::json& j, RelaxationSelection& value)
+void from_json(nlohmann::json const& j, RelaxationSelection& value)
 {
-    static const auto from_string
+    static auto const from_string
         = StringEnumMap<RelaxationSelection>::from_cstring_func(
             to_cstring, "atomic relaxation");
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, const RelaxationSelection& value)
+void to_json(nlohmann::json& j, RelaxationSelection const& value)
 {
     j = std::string{to_cstring(value)};
 }
@@ -133,7 +133,7 @@ void to_json(nlohmann::json& j, const RelaxationSelection& value)
 /*!
  * Read options from JSON.
  */
-void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
+void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 {
     options = {};
 #define GPO_LOAD_OPTION(NAME)                 \
@@ -161,7 +161,7 @@ void from_json(const nlohmann::json& j, GeantPhysicsOptions& options)
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
+void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
 {
     j = nlohmann::json::object();
 #define GPO_SAVE_OPTION(NAME) j[#NAME] = options.NAME
@@ -181,4 +181,4 @@ void to_json(nlohmann::json& j, const GeantPhysicsOptions& options)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

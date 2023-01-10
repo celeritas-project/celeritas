@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ class StackAllocatorTest : public Test
     using Allocator = StackAllocator<MockSecondary>;
 
     // Get the actual number of allocated secondaries
-    int actual_allocations(const SATestInput& in, const SATestOutput& out) const
+    int actual_allocations(SATestInput const& in, SATestOutput const& out) const
     {
         using std::uintptr_t;
 
@@ -56,7 +56,7 @@ TEST_F(StackAllocatorTest, host)
 {
     using StateStore = CollectionStateStore<MockAllocatorData, MemSpace::host>;
     StateStore data(16);
-    Allocator  alloc(data.ref());
+    Allocator alloc(data.ref());
     EXPECT_EQ(16, alloc.capacity());
 
     // Allocate 8 of the 16 slots
@@ -80,7 +80,7 @@ TEST_F(StackAllocatorTest, host)
     ptr = alloc(8);
     ASSERT_NE(nullptr, ptr);
     EXPECT_EQ(16, alloc.get().size());
-    EXPECT_EQ(16, const_cast<const Allocator&>(alloc).get().size());
+    EXPECT_EQ(16, const_cast<Allocator const&>(alloc).get().size());
 }
 
 //---------------------------------------------------------------------------//
@@ -97,11 +97,11 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
 
     // Allocate a subset of the stack
     SATestInput input;
-    input.sa_data     = data.ref();
+    input.sa_data = data.ref();
     input.num_threads = 64;
-    input.num_iters   = 1;
-    input.alloc_size  = 2;
-    auto result       = sa_test(input);
+    input.num_iters = 1;
+    input.alloc_size = 2;
+    auto result = sa_test(input);
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(input.num_threads * input.num_iters * input.alloc_size,
               result.num_allocations);
@@ -110,9 +110,9 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(accum_expected_alloc, result.view_size);
 
     // Run again, two iterations per thread
-    input.num_iters  = 2;
+    input.num_iters = 2;
     input.alloc_size = 4;
-    result           = sa_test(input);
+    result = sa_test(input);
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(input.num_threads * input.num_iters * input.alloc_size,
               result.num_allocations);
@@ -121,10 +121,10 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(accum_expected_alloc, result.view_size);
 
     // Run again, too many iterations (so storage gets filled up)
-    input.num_iters   = 128;
+    input.num_iters = 128;
     input.num_threads = 1024;
-    input.alloc_size  = 1;
-    result            = sa_test(input);
+    input.alloc_size = 1;
+    result = sa_test(input);
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(1024 - accum_expected_alloc, result.num_allocations);
     EXPECT_EQ(1024, actual_allocations(input, result));
@@ -136,14 +136,14 @@ TEST_F(StackAllocatorTest, TEST_IF_CELER_DEVICE(device))
 
     // Run again until full
     input.num_threads = 512;
-    input.num_iters   = 3;
-    input.alloc_size  = 4;
-    result            = sa_test(input);
+    input.num_iters = 3;
+    input.alloc_size = 4;
+    result = sa_test(input);
     EXPECT_EQ(0, result.num_errors);
     EXPECT_EQ(1024, result.num_allocations);
     EXPECT_EQ(1024, actual_allocations(input, result));
     EXPECT_EQ(1024, result.view_size);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

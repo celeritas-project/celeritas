@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,9 +35,9 @@ __global__ void curand_setup_kernel(T* devStates, unsigned long seed)
 
 template<class T>
 __global__ void curand_test_kernel(unsigned int nsamples,
-                                   T*           devStates,
-                                   double*      sum,
-                                   double*      sum2)
+                                   T* devStates,
+                                   double* sum,
+                                   double* sum2)
 {
     unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int sid = tid;
@@ -55,10 +55,10 @@ __global__ void curand_test_kernel(unsigned int nsamples,
     devStates[sid] = localState;
 }
 
-__global__ void curand_test_mtgp32_kernel(unsigned int       nsamples,
+__global__ void curand_test_mtgp32_kernel(unsigned int nsamples,
                                           curandStateMtgp32* devStates,
-                                          double*            sum,
-                                          double*            sum2)
+                                          double* sum,
+                                          double* sum2)
 {
     unsigned int tid = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int sid = tid;
@@ -72,7 +72,7 @@ __global__ void curand_test_mtgp32_kernel(unsigned int       nsamples,
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //! Run on device and return results
 template<class T>
@@ -117,8 +117,8 @@ template<>
 TestOutput curand_test<curandStateMtgp32>(TestParams params)
 {
     // Initialize curand states
-    curandStateMtgp32*    devStates = nullptr;
-    mtgp32_kernel_params* kp        = nullptr;
+    curandStateMtgp32* devStates = nullptr;
+    mtgp32_kernel_params* kp = nullptr;
 
     CELER_CUDA_CALL(cudaMalloc((void**)&devStates,
                                params.nblocks * sizeof(curandStateMtgp32)));
@@ -163,5 +163,5 @@ template TestOutput curand_test<curandStatePhilox4_32_10_t>(TestParams);
 template TestOutput curand_test<curandStateMtgp32>(TestParams);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

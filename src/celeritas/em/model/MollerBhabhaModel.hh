@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ class MollerBhabhaModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    MollerBhabhaModel(ActionId id, const ParticleParams& particles);
+    MollerBhabhaModel(ActionId id, ParticleParams const& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -53,4 +53,4 @@ class MollerBhabhaModel final : public Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

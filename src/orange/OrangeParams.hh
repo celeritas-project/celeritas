@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,17 +40,17 @@ class OrangeParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef           = HostCRef<OrangeParamsData>;
-    using DeviceRef         = DeviceCRef<OrangeParamsData>;
-    using SpanConstVolumeId = Span<const VolumeId>;
+    using HostRef = HostCRef<OrangeParamsData>;
+    using DeviceRef = DeviceCRef<OrangeParamsData>;
+    using SpanConstVolumeId = Span<VolumeId const>;
     //!@}
 
   public:
     // Construct from a JSON file (if JSON is enabled)
-    explicit OrangeParams(const std::string& json_filename);
+    explicit OrangeParams(std::string const& json_filename);
 
     // Construct in-memory from Geant4 (not implemented)
-    explicit OrangeParams(const G4VPhysicalVolume*);
+    explicit OrangeParams(G4VPhysicalVolume const*);
 
     // ADVANCED usage: construct from explicit host data
     explicit OrangeParams(OrangeInput input);
@@ -64,30 +64,30 @@ class OrangeParams
     VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
 
     // Get the label for a placed volume ID
-    const Label& id_to_label(VolumeId vol_id) const;
+    Label const& id_to_label(VolumeId vol_id) const;
 
     // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(const char* name) const;
+    inline VolumeId find_volume(char const* name) const;
 
     // Get the volume ID corresponding to a unique name
-    VolumeId find_volume(const std::string& name) const;
+    VolumeId find_volume(std::string const& name) const;
 
     // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(const Label& label) const;
+    VolumeId find_volume(Label const& label) const;
 
     // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(const std::string& name) const;
+    SpanConstVolumeId find_volumes(std::string const& name) const;
 
     //! Outer bounding box of geometry
-    const BoundingBox& bbox() const { return bbox_; }
+    BoundingBox const& bbox() const { return bbox_; }
 
     //// SURFACES ////
 
     // Get the label for a placed volume ID
-    const Label& id_to_label(SurfaceId surf_id) const;
+    Label const& id_to_label(SurfaceId surf_id) const;
 
     // Get the surface ID corresponding to a unique label name
-    SurfaceId find_surface(const std::string& name) const;
+    SurfaceId find_surface(std::string const& name) const;
 
     //! Number of distinct surfaces
     SurfaceId::size_type num_surfaces() const { return surf_labels_.size(); }
@@ -95,17 +95,17 @@ class OrangeParams
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Reference to managed GPU geometry data
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Host metadata/access
     LabelIdMultiMap<SurfaceId> surf_labels_;
-    LabelIdMultiMap<VolumeId>  vol_labels_;
-    BoundingBox                bbox_;
-    bool                       supports_safety_{};
+    LabelIdMultiMap<VolumeId> vol_labels_;
+    BoundingBox bbox_;
+    bool supports_safety_{};
 
     // Host/device storage and reference
     CollectionMirror<OrangeParamsData> data_;
@@ -120,10 +120,10 @@ class OrangeParams
  * This method is here to disambiguate the implicit std::string and Label
  * constructors.
  */
-VolumeId OrangeParams::find_volume(const char* name) const
+VolumeId OrangeParams::find_volume(char const* name) const
 {
     return this->find_volume(std::string{name});
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

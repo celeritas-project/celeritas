@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,8 +18,8 @@ namespace celeritas
 namespace generated
 {
 void process_primaries(
-    const CoreHostRef& core_data,
-    const Span<const Primary> primaries)
+    CoreHostRef const& core_data,
+    Span<const Primary> const primaries)
 {
     MultiExceptionHandler capture_exception;
     detail::ProcessPrimariesLauncher<MemSpace::host> launch(core_data, primaries);
@@ -31,5 +31,5 @@ void process_primaries(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

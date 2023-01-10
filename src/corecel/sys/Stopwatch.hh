@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,9 +38,9 @@ class Stopwatch
     inline double operator()() const;
 
   private:
-    using Clock     = std::chrono::high_resolution_clock;
+    using Clock = std::chrono::high_resolution_clock;
     using TimePoint = Clock::time_point;
-    using Duration  = Clock::duration;
+    using Duration = Clock::duration;
 
     TimePoint start_;
 };
@@ -66,4 +66,4 @@ double Stopwatch::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

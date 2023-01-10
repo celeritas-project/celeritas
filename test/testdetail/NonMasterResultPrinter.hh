@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,12 +23,12 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
     // Construct with MPI rank
     explicit NonMasterResultPrinter(int rank);
 
-    void OnTestPartResult(const ::testing::TestPartResult& result) override;
+    void OnTestPartResult(::testing::TestPartResult const& result) override;
 
   private:
     int rank_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

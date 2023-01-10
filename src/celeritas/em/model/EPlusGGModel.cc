@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,12 +19,12 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-EPlusGGModel::EPlusGGModel(ActionId id, const ParticleParams& particles)
+EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.positron = particles.find(pdg::positron());
-    interface_.ids.gamma    = particles.find(pdg::gamma());
+    interface_.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(interface_.ids.positron && interface_.ids.gamma,
                    << "missing positron and/or gamma particles (required for "
@@ -41,8 +41,8 @@ auto EPlusGGModel::applicability() const -> SetApplicability
 {
     Applicability applic;
     applic.particle = interface_.ids.positron;
-    applic.lower    = neg_max_quantity();    // Valid at rest
-    applic.upper    = units::MevEnergy{1e8}; // 100 TeV
+    applic.lower = neg_max_quantity();  // Valid at rest
+    applic.upper = units::MevEnergy{1e8};  // 100 TeV
 
     return {applic};
 }
@@ -83,4 +83,4 @@ ActionId EPlusGGModel::action_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

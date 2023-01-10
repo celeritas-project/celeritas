@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,10 +24,10 @@ struct UniformGridData
 {
     using value_type = ::celeritas::real_type;
 
-    size_type  size{};  //!< Number of grid edges/points
-    value_type front{}; //!< Value of first grid point
+    size_type size{};  //!< Number of grid edges/points
+    value_type front{};  //!< Value of first grid point
     value_type back{};  //!< Value of last grid point
-    value_type delta{}; //!< Grid cell width
+    value_type delta{};  //!< Grid cell width
 
     //! True if assigned and valid
     CELER_FUNCTION operator bool() const
@@ -52,13 +52,13 @@ UniformGridData::from_bounds(value_type front, value_type back, size_type size)
     CELER_EXPECT(size >= 2);
     CELER_EXPECT(front < back);
     UniformGridData result;
-    result.size  = size;
+    result.size = size;
     result.front = front;
-    result.back  = back;
+    result.back = back;
     result.delta = (back - front) / (size - 1);
     CELER_ENSURE(result);
     return result;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

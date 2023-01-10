@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ namespace celeritas
 {
 class ParticleTrackView;
 class MaterialTrackView;
-} // namespace celeritas
+}  // namespace celeritas
 
 namespace celeritas
 {
@@ -55,11 +55,11 @@ class InteractorHostTestBase : public Test
   public:
     //!@{
     //! Type aliases
-    using RandomEngine         = DiagnosticRngEngine<std::mt19937>;
-    using MevEnergy            = units::MevEnergy;
-    using Action               = Interaction::Action;
-    using SecondaryAllocator   = StackAllocator<Secondary>;
-    using constSpanSecondaries = Span<const Secondary>;
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using MevEnergy = units::MevEnergy;
+    using Action = Interaction::Action;
+    using SecondaryAllocator = StackAllocator<Secondary>;
+    using constSpanSecondaries = Span<Secondary const>;
     //!@}
 
   public:
@@ -72,7 +72,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get material properties
     void set_material_params(MaterialParams::Input inp);
-    const std::shared_ptr<const MaterialParams>& material_params() const
+    std::shared_ptr<MaterialParams const> const& material_params() const
     {
         CELER_EXPECT(material_params_);
         return material_params_;
@@ -82,7 +82,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get particle params
     void set_particle_params(ParticleParams::Input inp);
-    const std::shared_ptr<const ParticleParams>& particle_params() const
+    std::shared_ptr<ParticleParams const> const& particle_params() const
     {
         CELER_EXPECT(particle_params_);
         return particle_params_;
@@ -92,7 +92,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get cutoff params
     void set_cutoff_params(CutoffParams::Input inp);
-    const std::shared_ptr<const CutoffParams>& cutoff_params() const
+    std::shared_ptr<CutoffParams const> const& cutoff_params() const
     {
         CELER_EXPECT(cutoff_params_);
         return cutoff_params_;
@@ -102,7 +102,7 @@ class InteractorHostTestBase : public Test
     //!@{
     //! Set and get imported processes
     void set_imported_processes(std::vector<ImportProcess> inp);
-    const std::shared_ptr<const ImportedProcesses>& imported_processes() const
+    std::shared_ptr<ImportedProcesses const> const& imported_processes() const
     {
         CELER_EXPECT(imported_processes_);
         return imported_processes_;
@@ -111,7 +111,7 @@ class InteractorHostTestBase : public Test
 
     //!@{
     //! Material properties
-    void               set_material(const std::string& name);
+    void set_material(std::string const& name);
     MaterialTrackView& material_track()
     {
         CELER_EXPECT(mt_view_);
@@ -121,10 +121,10 @@ class InteractorHostTestBase : public Test
 
     //!@{
     //! Incident particle properties and access
-    void                     set_inc_particle(PDGNumber n, MevEnergy energy);
-    void                     set_inc_direction(const Real3& dir);
-    const Real3&             direction() const { return inc_direction_; }
-    const ParticleTrackView& particle_track() const
+    void set_inc_particle(PDGNumber n, MevEnergy energy);
+    void set_inc_direction(Real3 const& dir);
+    Real3 const& direction() const { return inc_direction_; }
+    ParticleTrackView const& particle_track() const
     {
         CELER_EXPECT(pt_view_);
         return *pt_view_;
@@ -133,7 +133,7 @@ class InteractorHostTestBase : public Test
 
     //!@{
     //! Secondary stack storage and access
-    void                resize_secondaries(int count);
+    void resize_secondaries(int count);
     SecondaryAllocator& secondary_allocator()
     {
         CELER_EXPECT(sa_view_);
@@ -151,13 +151,13 @@ class InteractorHostTestBase : public Test
     //!@}
 
     // Check for energy and momentum conservation
-    void check_conservation(const Interaction& interaction) const;
+    void check_conservation(Interaction const& interaction) const;
 
     // Check for energy conservation
-    void check_energy_conservation(const Interaction& interaction) const;
+    void check_energy_conservation(Interaction const& interaction) const;
 
     // Check for momentum conservation
-    void check_momentum_conservation(const Interaction& interaction) const;
+    void check_momentum_conservation(Interaction const& interaction) const;
 
   private:
     template<template<Ownership, MemSpace> class S>
@@ -165,24 +165,24 @@ class InteractorHostTestBase : public Test
     template<Ownership W, MemSpace M>
     using SecondaryStackData = StackAllocatorData<Secondary, W, M>;
 
-    std::shared_ptr<const MaterialParams>    material_params_;
-    std::shared_ptr<const ParticleParams>    particle_params_;
-    std::shared_ptr<const CutoffParams>      cutoff_params_;
-    std::shared_ptr<const ImportedProcesses> imported_processes_;
-    RandomEngine                             rng_;
+    std::shared_ptr<MaterialParams const> material_params_;
+    std::shared_ptr<ParticleParams const> particle_params_;
+    std::shared_ptr<CutoffParams const> cutoff_params_;
+    std::shared_ptr<ImportedProcesses const> imported_processes_;
+    RandomEngine rng_;
 
     StateStore<MaterialStateData> ms_;
     StateStore<ParticleStateData> ps_;
 
-    Real3                          inc_direction_ = {0, 0, 1};
+    Real3 inc_direction_ = {0, 0, 1};
     StateStore<SecondaryStackData> secondaries_;
 
     // Views
-    std::shared_ptr<MaterialTrackView>  mt_view_;
-    std::shared_ptr<ParticleTrackView>  pt_view_;
+    std::shared_ptr<MaterialTrackView> mt_view_;
+    std::shared_ptr<ParticleTrackView> pt_view_;
     std::shared_ptr<SecondaryAllocator> sa_view_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

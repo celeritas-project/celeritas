@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ class LivermorePEReader
   public:
     //!@{
     //! Type aliases
-    using result_type  = ImportLivermorePE;
+    using result_type = ImportLivermorePE;
     //!@}
 
   public:
@@ -32,7 +32,7 @@ class LivermorePEReader
     LivermorePEReader();
 
     // Construct the reader from the path to the data directory
-    explicit LivermorePEReader(const char* path);
+    explicit LivermorePEReader(char const* path);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -43,4 +43,4 @@ class LivermorePEReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

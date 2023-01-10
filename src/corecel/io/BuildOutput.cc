@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ void BuildOutput::output(JsonPimpl* j) const
 
     {
         auto cfg = nlohmann::json::object();
-#    define CO_SAVE_CFG(NAME) cfg[#    NAME] = bool(NAME)
+#    define CO_SAVE_CFG(NAME) cfg[#NAME] = bool(NAME)
         CO_SAVE_CFG(CELERITAS_USE_CUDA);
         CO_SAVE_CFG(CELERITAS_USE_GEANT4);
         CO_SAVE_CFG(CELERITAS_USE_HEPMC3);
@@ -48,11 +48,11 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_LAUNCH_BOUNDS);
 #    undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
-        cfg["CELERITAS_HOSTNAME"]   = celeritas_hostname;
-        cfg["CELERITAS_RNG"]        = celeritas_rng;
+        cfg["CELERITAS_HOSTNAME"] = celeritas_hostname;
+        cfg["CELERITAS_RNG"] = celeritas_rng;
         if (CELERITAS_USE_GEANT4)
         {
-            cfg["CLHEP_VERSION"]  = celeritas_clhep_version;
+            cfg["CLHEP_VERSION"] = celeritas_clhep_version;
             cfg["Geant4_VERSION"] = celeritas_geant4_version;
         }
         if (CELERITAS_USE_VECGEOM)
@@ -70,4 +70,4 @@ void BuildOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

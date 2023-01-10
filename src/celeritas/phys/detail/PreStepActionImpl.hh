@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -65,18 +65,18 @@ inline CELER_FUNCTION void pre_step_track(celeritas::CoreTrackView const& track)
     auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())
     {
-        auto                               rng = track.make_rng_engine();
+        auto rng = track.make_rng_engine();
         ExponentialDistribution<real_type> sample_exponential;
         phys.interaction_mfp(sample_exponential(rng));
     }
 
     // Calculate physics step limits and total macro xs
-    auto      mat      = track.make_material_view();
-    auto      particle = track.make_particle_view();
-    StepLimit limit    = calc_physics_step_limit(mat, particle, phys, step);
+    auto mat = track.make_material_view();
+    auto particle = track.make_particle_view();
+    StepLimit limit = calc_physics_step_limit(mat, particle, phys, step);
     sim.reset_step_limit(limit);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

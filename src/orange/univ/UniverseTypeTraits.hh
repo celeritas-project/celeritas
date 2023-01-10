@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ struct UniverseTypeTraits;
     template<>                                          \
     struct UniverseTypeTraits<UniverseType::ENUM_VALUE> \
     {                                                   \
-        using record_type  = CLS##Record;               \
+        using record_type = CLS##Record;                \
         using tracker_type = CLS##Tracker;              \
     }
 
@@ -35,4 +35,4 @@ ORANGE_UNIV_TRAITS(simple, SimpleUnit);
 #undef ORANGE_UNIV_TRAITS
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

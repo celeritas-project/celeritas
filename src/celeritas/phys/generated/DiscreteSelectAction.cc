@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,5 +35,5 @@ void DiscreteSelectAction::execute(CoreHostRef const& data) const
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

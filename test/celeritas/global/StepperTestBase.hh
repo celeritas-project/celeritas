@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -100,12 +100,12 @@ class StepperTestBase : virtual public GlobalTestBase
     RunResult run(StepperInterface& step, size_type num_primaries) const;
 
     //! Access the dummy action
-    const DummyAction& dummy_action() const { return *dummy_action_; }
+    DummyAction const& dummy_action() const { return *dummy_action_; }
 
   protected:
     std::shared_ptr<DummyAction> dummy_action_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

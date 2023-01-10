@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,7 +27,7 @@ namespace celeritas
 inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
     SeltzerBergerRef const& model, CoreTrackView const& track)
 {
-    auto cutoff   = track.make_cutoff_view();
+    auto cutoff = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
     auto particle = track.make_particle_view();
 
@@ -35,7 +35,7 @@ inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
     CELER_ASSERT(elcomp_id);
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    const auto& dir = track.make_geo_view().dir();
+    auto const& dir = track.make_geo_view().dir();
 
     SeltzerBergerInteractor interact(
         model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
@@ -45,4 +45,4 @@ inline CELER_FUNCTION Interaction seltzer_berger_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

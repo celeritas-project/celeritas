@@ -62,8 +62,8 @@ CELER_CONSTEXPR_FUNCTION
 template<class Compare, class ForwardIterator, class T>
 CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
                                                 ForwardIterator last,
-                                                const T&        value_,
-                                                Compare         comp)
+                                                T const& value_,
+                                                Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -71,7 +71,7 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
     while (len != 0)
     {
         difference_type half_len = ::celeritas::detail::half_positive(len);
-        ForwardIterator m        = first + half_len;
+        ForwardIterator m = first + half_len;
         if (comp(*m, value_))
         {
             first = ++m;
@@ -90,8 +90,8 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
 template<class Compare, class ForwardIterator, class T>
 CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
                                                 ForwardIterator last,
-                                                const T&        value_,
-                                                Compare         comp)
+                                                T const& value_,
+                                                Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -99,7 +99,7 @@ CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
     while (len != 0)
     {
         difference_type half_len = ::celeritas::detail::half_positive(len);
-        ForwardIterator m        = first + half_len;
+        ForwardIterator m = first + half_len;
         if (comp(value_, *m))
         {
             len = half_len;
@@ -125,7 +125,7 @@ CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
 template<class Predicate, class BidirectionalIterator>
 CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
                                                     BidirectionalIterator last,
-                                                    Predicate             pred)
+                                                    Predicate pred)
 {
     while (true)
     {
@@ -171,9 +171,9 @@ CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept ->
 template<class Compare, class RandomAccessIt>
 CELER_FUNCTION void sift_down(RandomAccessIt first,
                               RandomAccessIt,
-                              Compare                           comp,
+                              Compare comp,
                               difference_type_t<RandomAccessIt> len,
-                              RandomAccessIt                    start)
+                              RandomAccessIt start)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
     using value_type =
@@ -188,7 +188,7 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
         return;
     }
 
-    child                  = 2 * child + 1;
+    child = 2 * child + 1;
     RandomAccessIt child_i = first + child;
 
     if ((child + 1) < len && comp(*child_i, *(child_i + difference_type(1))))
@@ -209,13 +209,13 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
     {
         // We are not in heap order: swap the parent with its largest child
         *start = trivial_move(*child_i);
-        start  = child_i;
+        start = child_i;
 
         if ((len - 2) / 2 < child)
             break;
 
         // Recompute the child based off of the updated parent
-        child   = 2 * child + 1;
+        child = 2 * child + 1;
         child_i = first + child;
 
         if ((child + 1) < len
@@ -236,7 +236,7 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
 template<class Compare, class RandomAccessIt>
 CELER_FORCEINLINE_FUNCTION void pop_heap(RandomAccessIt first,
                                          RandomAccessIt last,
-                                         Compare        comp,
+                                         Compare comp,
                                          difference_type_t<RandomAccessIt> len)
 {
     if (len > 1)
@@ -298,7 +298,7 @@ template<class Compare, class RandomAccessIt>
 CELER_FUNCTION void partial_sort(RandomAccessIt first,
                                  RandomAccessIt middle,
                                  RandomAccessIt last,
-                                 Compare        comp)
+                                 Compare comp)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
 
@@ -337,5 +337,5 @@ heapsort_impl(RandomAccessIt first, RandomAccessIt last, Compare comp)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,7 +16,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Create a multithread-friendly logger
-Logger make_mt_logger(const G4RunManager&);
+Logger make_mt_logger(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

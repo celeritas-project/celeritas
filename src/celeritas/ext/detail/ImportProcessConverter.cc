@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -94,15 +94,15 @@ ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
 /*!
  * Safely retrieve the correct process enum from a given string.
  */
-ImportProcessClass to_import_process_class(const G4VProcess& process)
+ImportProcessClass to_import_process_class(G4VProcess const& process)
 {
-    auto&&             name = process.GetProcessName();
+    auto&& name = process.GetProcessName();
     ImportProcessClass result;
     try
     {
         result = geant_name_to_import_process_class(name);
     }
-    catch (const celeritas::RuntimeError&)
+    catch (celeritas::RuntimeError const&)
     {
         CELER_LOG(warning) << "Encountered unknown process '" << name << "'";
         result = ImportProcessClass::unknown;
@@ -114,7 +114,7 @@ ImportProcessClass to_import_process_class(const G4VProcess& process)
 /*!
  * Safely retrieve the correct model enum from a given string.
  */
-ImportModelClass to_import_model(const G4VEmModel& model)
+ImportModelClass to_import_model(G4VEmModel const& model)
 {
     static const std::unordered_map<std::string, ImportModelClass> model_map = {
         // clang-format off
@@ -141,8 +141,8 @@ ImportModelClass to_import_model(const G4VEmModel& model)
         {"muPairProd",          ImportModelClass::mu_pair_prod},
         // clang-format on
     };
-    const std::string& name = model.GetName();
-    auto               iter = model_map.find(name);
+    std::string const& name = model.GetName();
+    auto iter = model_map.find(name);
     if (iter == model_map.end())
     {
         static celeritas::TypeDemangler<G4VEmModel> demangle_model;
@@ -214,7 +214,7 @@ double units_to_scaling(ImportUnits units)
 /*!
  * Get the energy cutoff for secondary production (in ImportMaterial units!).
  */
-double get_cutoff(PDGNumber pdg, const ImportMaterial& mat)
+double get_cutoff(PDGNumber pdg, ImportMaterial const& mat)
 {
     if (!pdg)
     {
@@ -234,11 +234,11 @@ double get_cutoff(PDGNumber pdg, const ImportMaterial& mat)
 /*!
  * Get a G4Material from a material index.
  */
-const G4Material& get_g4material(unsigned int mat_idx)
+G4Material const& get_g4material(unsigned int mat_idx)
 {
-    const auto* g4_cuts_table = G4ProductionCutsTable::GetProductionCutsTable();
+    auto const* g4_cuts_table = G4ProductionCutsTable::GetProductionCutsTable();
     CELER_EXPECT(mat_idx < g4_cuts_table->GetTableSize());
-    const auto* g4_material
+    auto const* g4_material
         = g4_cuts_table->GetMaterialCutsCouple(mat_idx)->GetMaterial();
     CELER_ENSURE(g4_material);
     return *g4_material;
@@ -248,7 +248,7 @@ const G4Material& get_g4material(unsigned int mat_idx)
 /*!
  * Get a G4Material from a material index.
  */
-const G4ParticleDefinition& get_g4particle(PDGNumber pdg)
+G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
 {
     CELER_EXPECT(pdg);
     auto* particle
@@ -258,16 +258,16 @@ const G4ParticleDefinition& get_g4particle(PDGNumber pdg)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a selected list of tables.
  */
 ImportProcessConverter::ImportProcessConverter(
-    TableSelection                     which_tables,
-    const std::vector<ImportMaterial>& materials,
-    const std::vector<ImportElement>&  elements)
+    TableSelection which_tables,
+    std::vector<ImportMaterial> const& materials,
+    std::vector<ImportElement> const& elements)
     : materials_(materials), elements_(elements), which_tables_(which_tables)
 {
     CELER_ENSURE(!materials_.empty());
@@ -287,8 +287,8 @@ ImportProcessConverter::~ImportProcessConverter() = default;
  * empty object.
  */
 ImportProcess
-ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
-                                   const G4VProcess&           process)
+ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
+                                   G4VProcess const& process)
 {
     // Check for duplicate processes
     auto iter_inserted = written_processes_.insert({&process, {&particle}});
@@ -296,7 +296,7 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
     if (!iter_inserted.second)
     {
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
-        const PrevProcess& prev = iter_inserted.first->second;
+        PrevProcess const& prev = iter_inserted.first->second;
         CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
                          << "' (RTTI: " << demangle_process(process)
                          << ") for particle " << particle.GetParticleName()
@@ -309,22 +309,22 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                      << particle.GetPDGEncoding() << ')';
 
     // Save process and particle info
-    process_               = ImportProcess();
-    process_.process_type  = to_import_process_type(process.GetProcessType());
+    process_ = ImportProcess();
+    process_.process_type = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
-    process_.particle_pdg  = particle.GetPDGEncoding();
+    process_.particle_pdg = particle.GetPDGEncoding();
 
-    if (const auto* em_process = dynamic_cast<const G4VEmProcess*>(&process))
+    if (auto const* em_process = dynamic_cast<G4VEmProcess const*>(&process))
     {
         this->store_em_process(*em_process);
     }
-    else if (const auto* energy_loss
-             = dynamic_cast<const G4VEnergyLossProcess*>(&process))
+    else if (auto const* energy_loss
+             = dynamic_cast<G4VEnergyLossProcess const*>(&process))
     {
         this->store_eloss_process(*energy_loss);
     }
-    else if (const auto* multiple_scattering
-             = dynamic_cast<const G4VMultipleScattering*>(&process))
+    else if (auto const* multiple_scattering
+             = dynamic_cast<G4VMultipleScattering const*>(&process))
     {
         this->store_msc_process(*multiple_scattering);
     }
@@ -349,13 +349,13 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
  * classes that have the same interface.
  */
 template<class T>
-void ImportProcessConverter::store_common_process(const T& process)
+void ImportProcessConverter::store_common_process(T const& process)
 {
     static_assert(std::is_base_of<G4VProcess, T>::value,
                   "process must be a G4VProcess");
 
     // Save secondaries
-    if (const auto* secondary = process.SecondaryParticle())
+    if (auto const* secondary = process.SecondaryParticle())
     {
         process_.secondary_pdg = secondary->GetPDGEncoding();
     }
@@ -365,7 +365,7 @@ void ImportProcessConverter::store_common_process(const T& process)
 /*!
  * Store EM cross section tables for the current process.
  */
-void ImportProcessConverter::store_em_process(const G4VEmProcess& process)
+void ImportProcessConverter::store_em_process(G4VEmProcess const& process)
 {
     this->store_common_process(process);
 
@@ -375,8 +375,8 @@ void ImportProcessConverter::store_em_process(const G4VEmProcess& process)
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        G4VEmModel& model          = *process.GetModelByIndex(i);
-        auto        model_class_id = to_import_model(model);
+        G4VEmModel& model = *process.GetModelByIndex(i);
+        auto model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
@@ -405,7 +405,7 @@ void ImportProcessConverter::store_em_process(const G4VEmProcess& process)
  * - SubLambdaTable()
  */
 void ImportProcessConverter::store_eloss_process(
-    const G4VEnergyLossProcess& process)
+    G4VEnergyLossProcess const& process)
 {
     this->store_common_process(process);
 
@@ -416,8 +416,8 @@ void ImportProcessConverter::store_eloss_process(
     // move this into store_common_process...
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        G4VEmModel& model          = *process.GetModelByIndex(i);
-        auto        model_class_id = to_import_model(model);
+        G4VEmModel& model = *process.GetModelByIndex(i);
+        auto model_class_id = to_import_model(model);
 
         // Save model list
         process_.models.push_back(model_class_id);
@@ -490,7 +490,7 @@ void ImportProcessConverter::store_eloss_process(
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
  */
 void ImportProcessConverter::store_msc_process(
-    const G4VMultipleScattering& process)
+    G4VMultipleScattering const& process)
 {
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
@@ -522,8 +522,8 @@ void ImportProcessConverter::store_msc_process(
 /*!
  * Write data from a Geant4 physics table if available.
  */
-void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
-                                       ImportTableType       table_type)
+void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
+                                       ImportTableType table_type)
 {
     if (!g4table)
     {
@@ -585,7 +585,7 @@ void ImportProcessConverter::add_table(const G4PhysicsTable* g4table,
     double y_scaling = units_to_scaling(table.y_units);
 
     // Save physics vectors
-    for (const auto* g4vector : *g4table)
+    for (auto const* g4vector : *g4table)
     {
         ImportPhysicsVector import_vec;
 
@@ -620,14 +620,14 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
     CELER_ASSERT(!materials_.empty());
 
     // G4 particle def is needed for model.ComputeCrossSectionPerAtom(...)
-    const G4ParticleDefinition& g4_particle
+    G4ParticleDefinition const& g4_particle
         = get_g4particle(PDGNumber{process_.particle_pdg});
     ImportProcess::ModelMicroXS model_micro_xs;
 
     for (auto mat_idx : celeritas::range(materials_.size()))
     {
-        const ImportMaterial& material    = materials_[mat_idx];
-        const G4Material&     g4_material = get_g4material(mat_idx);
+        ImportMaterial const& material = materials_[mat_idx];
+        G4Material const& g4_material = get_g4material(mat_idx);
 
         ImportProcess::ElementPhysicsVectors elem_phys_vectors;
         elem_phys_vectors.resize(material.elements.size());
@@ -639,15 +639,15 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
                 = this->initialize_micro_xs_physics_vector(model, mat_idx);
         }
 
-        const auto& g4_nist_manager = *G4NistManager::Instance();
+        auto const& g4_nist_manager = *G4NistManager::Instance();
 
         // All physics vectors have the same energy grid for the same material
-        const auto& energy_grid = elem_phys_vectors.front().x;
+        auto const& energy_grid = elem_phys_vectors.front().x;
 
         for (auto elem_comp_idx : celeritas::range(material.elements.size()))
         {
-            const auto&      elem_comp = material.elements.at(elem_comp_idx);
-            const G4Element* g4_element
+            auto const& elem_comp = material.elements.at(elem_comp_idx);
+            G4Element const* g4_element
                 = g4_nist_manager.GetElement(elem_comp.element_id);
             CELER_ASSERT(g4_element);
             auto& physics_vector = elem_phys_vectors.at(elem_comp_idx);
@@ -658,14 +658,14 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
 
             for (auto bin_idx : celeritas::range(energy_grid.size()))
             {
-                const double energy_bin_value = energy_grid[bin_idx];
+                double const energy_bin_value = energy_grid[bin_idx];
 
                 // Set kinematic and material-dependent quantities
                 model.SetupForMaterial(
                     &g4_particle, &g4_material, energy_bin_value);
 
                 // Calculate microscopic cross-section
-                const double xs_per_atom
+                double const xs_per_atom
                     = std::max(
                           0.0,
                           model.ComputeCrossSectionPerAtom(&g4_particle,
@@ -691,7 +691,7 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
                 physics_vector.y.front() = physics_vector.y[1];
             }
 
-            const unsigned int last_bin = physics_vector.y.size() - 1;
+            unsigned int const last_bin = physics_vector.y.size() - 1;
             if (physics_vector.y.back() == 0.0)
             {
                 // Cross-section ends with zero, use previous bin value
@@ -716,10 +716,10 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
 ImportPhysicsVector
-ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
+ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel& model,
                                                            unsigned int mat_idx)
 {
-    const auto& material = materials_[mat_idx];
+    auto const& material = materials_[mat_idx];
     CELER_ASSERT(!material.elements.empty());
 
     ImportPhysicsVector physics_vector;
@@ -737,17 +737,17 @@ ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
               / MeV;
         min_energy = std::max(min_primary_energy, min_energy);
     }
-    const double max_energy = model.HighEnergyLimit() / MeV;
+    double const max_energy = model.HighEnergyLimit() / MeV;
 
-    const int bins_per_decade
+    int const bins_per_decade
         = G4EmParameters::Instance()->NumberOfBinsPerDecade();
 
-    const double inv_log_10_6    = 1.0 / (6.0 * std::log(10.0));
-    const int    num_energy_bins = std::max<int>(
+    double const inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
+    int const num_energy_bins = std::max<int>(
         3, bins_per_decade * std::log(max_energy / min_energy) * inv_log_10_6);
-    const double delta = std::log(max_energy / min_energy)
+    double const delta = std::log(max_energy / min_energy)
                          / (num_energy_bins - 1.0);
-    const double log_min_e = std::log(min_energy);
+    double const log_min_e = std::log(min_energy);
 
     // Fill energy bins
     physics_vector.x.push_back(min_energy);
@@ -766,5 +766,5 @@ ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel&  model,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

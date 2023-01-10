@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -58,8 +58,8 @@ namespace celeritas
  * At each evaluation of the instantiated Interpolator, only the
  * inverse-transform and add-transformed operation need be applied.
  */
-template<Interp XI  = Interp::linear,
-         Interp YI  = Interp::linear,
+template<Interp XI = Interp::linear,
+         Interp YI = Interp::linear,
          typename T = ::celeritas::real_type>
 class Interpolator
 {
@@ -67,7 +67,7 @@ class Interpolator
     //!@{
     //! Public type aliases
     using real_type = T;
-    using Point     = Array<T, 2>;
+    using Point = Array<T, 2>;
     //!@}
 
   public:
@@ -78,9 +78,9 @@ class Interpolator
     inline CELER_FUNCTION real_type operator()(real_type x) const;
 
   private:
-    real_type intercept_; //!> f_y(y_l)
-    real_type slope_;     //!> ratio of g(y) to g(x)
-    real_type offset_;    //!> n_x(x_l)
+    real_type intercept_;  //!> f_y(y_l)
+    real_type slope_;  //!> ratio of g(y) to g(x)
+    real_type offset_;  //!> n_x(x_l)
 
     using XTraits_t = detail::InterpolatorTraits<XI, real_type>;
     using YTraits_t = detail::InterpolatorTraits<YI, real_type>;
@@ -112,11 +112,11 @@ CELER_FUNCTION Interpolator<XI, YI, T>::Interpolator(Point left, Point right)
     CELER_EXPECT(YTraits_t::valid_domain(right[Y]));
 
     intercept_ = YTraits_t::transform(left[Y]);
-    slope_     = (YTraits_t::add_transformed(
+    slope_ = (YTraits_t::add_transformed(
                   YTraits_t::negate_transformed(left[Y]), right[Y])
               / XTraits_t::add_transformed(
                   XTraits_t::negate_transformed(left[X]), right[X]));
-    offset_    = XTraits_t::negate_transformed(left[X]);
+    offset_ = XTraits_t::negate_transformed(left[X]);
     CELER_ENSURE(!std::isnan(intercept_) && !std::isnan(slope_)
                  && !std::isnan(offset_));
 }
@@ -138,4 +138,4 @@ CELER_FUNCTION auto Interpolator<XI, YI, T>::operator()(real_type x) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

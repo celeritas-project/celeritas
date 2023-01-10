@@ -32,4 +32,4 @@ auto NoFieldAlongStepFactory::operator()(argument_type input) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

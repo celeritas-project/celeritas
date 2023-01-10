@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,33 +33,33 @@ class AtomicRelaxationParams
   public:
     //@{
     //! Type aliases
-    using HostRef        = HostCRef<AtomicRelaxParamsData>;
-    using DeviceRef      = DeviceCRef<AtomicRelaxParamsData>;
-    using MevEnergy      = units::MevEnergy;
-    using ReadData       = std::function<ImportAtomicRelaxation(AtomicNumber)>;
-    using SPConstCutoffs = std::shared_ptr<const CutoffParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using HostRef = HostCRef<AtomicRelaxParamsData>;
+    using DeviceRef = DeviceCRef<AtomicRelaxParamsData>;
+    using MevEnergy = units::MevEnergy;
+    using ReadData = std::function<ImportAtomicRelaxation(AtomicNumber)>;
+    using SPConstCutoffs = std::shared_ptr<CutoffParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //@}
 
     struct Input
     {
-        SPConstCutoffs   cutoffs;
+        SPConstCutoffs cutoffs;
         SPConstMaterials materials;
         SPConstParticles particles;
-        ReadData         load_data;
-        bool is_auger_enabled{false}; //!< Whether to produce Auger electrons
+        ReadData load_data;
+        bool is_auger_enabled{false};  //!< Whether to produce Auger electrons
     };
 
   public:
     // Construct with a vector of element identifiers
-    explicit AtomicRelaxationParams(const Input& inp);
+    explicit AtomicRelaxationParams(Input const& inp);
 
     // Access EADL data on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     // Access EADL data on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Whether to simulate non-radiative transitions
@@ -70,11 +70,11 @@ class AtomicRelaxationParams
 
     // HELPER FUNCTIONS
     using HostData = HostVal<AtomicRelaxParamsData>;
-    void append_element(const ImportAtomicRelaxation& inp,
-                        HostData*                     data,
-                        MevEnergy                     electron_cutoff,
-                        MevEnergy                     gamma_cutoff);
+    void append_element(ImportAtomicRelaxation const& inp,
+                        HostData* data,
+                        MevEnergy electron_cutoff,
+                        MevEnergy gamma_cutoff);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

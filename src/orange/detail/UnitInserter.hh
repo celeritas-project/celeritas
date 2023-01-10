@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -37,7 +37,7 @@ class UnitInserter
     UnitInserter(Data* orange_data);
 
     // Create a simple unit and return its ID
-    SimpleUnitId operator()(const UnitInput& inp);
+    SimpleUnitId operator()(UnitInput const& inp);
 
   private:
     Data* orange_data_{nullptr};
@@ -46,15 +46,15 @@ class UnitInserter
 
     //// HELPER METHODS ////
 
-    SurfacesRecord insert_surfaces(const SurfaceInput& s);
+    SurfacesRecord insert_surfaces(SurfaceInput const& s);
     VolumeRecord
-    insert_volume(const SurfacesRecord& unit, const VolumeInput& v);
+    insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
 
-    void process_daughter(VolumeRecord*              vol_record,
-                          std::vector<Translation>*  translations,
-                          const UnitInput::Daughter& daughter);
+    void process_daughter(VolumeRecord* vol_record,
+                          std::vector<Translation>* translations,
+                          UnitInput::Daughter const& daughter);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

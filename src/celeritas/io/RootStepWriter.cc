@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,13 +27,13 @@ void copy_if_selected(const T1& src, T2& dst)
 /*!
  * Copy StepPointStateData Real3 position and direction to TStepPoint arrays.
  */
-void copy_if_selected(const celeritas::Real3& src, std::array<double, 3>& dst)
+void copy_if_selected(celeritas::Real3 const& src, std::array<double, 3>& dst)
 {
     std::memcpy(&dst, &src, sizeof(src));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 namespace celeritas
 {
@@ -43,8 +43,8 @@ namespace celeritas
  * id to pdg), and the selection of data to be tallied.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
-                               SPParticleParams  particle_params,
-                               StepSelection     selection)
+                               SPParticleParams particle_params,
+                               StepSelection selection)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
@@ -88,7 +88,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
     tstep_ = TStepData();
 
     // Loop over thread ids and fill TTree
-    for (const auto tid : range(ThreadId{steps.size()}))
+    for (auto const tid : range(ThreadId{steps.size()}))
     {
         if (!steps.track_id[tid])
         {
@@ -111,7 +111,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
                              tstep_.particle);
         }
 
-        for (const auto sp : range(StepPoint::size_))
+        for (auto const sp : range(StepPoint::size_))
         {
             RSW_STORE(points[sp].volume_id, .get());
             RSW_STORE(points[sp].energy, .value());
@@ -148,7 +148,7 @@ void RootStepWriter::make_tree()
 
     tstep_tree_ = root_manager_->make_tree("steps", "steps");
 
-    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
+    tstep_tree_->Branch("track_id", &tstep_.track_id);  // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
     RSW_CREATE_BRANCH(parent_id, "parent_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
@@ -173,4 +173,4 @@ void RootStepWriter::make_tree()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

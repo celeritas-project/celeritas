@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -37,10 +37,10 @@ class RayleighInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION RayleighInteractor(const RayleighRef&       shared,
-                                             const ParticleTrackView& particle,
-                                             const Real3& inc_direction,
-                                             ElementId    element_id);
+    inline CELER_FUNCTION RayleighInteractor(RayleighRef const& shared,
+                                             ParticleTrackView const& particle,
+                                             Real3 const& inc_direction,
+                                             ElementId element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -50,11 +50,11 @@ class RayleighInteractor
     //// DATA ////
 
     // Shared constant physics properties
-    const RayleighRef& shared_;
+    RayleighRef const& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Id of element
     ElementId element_id_;
 
@@ -76,8 +76,8 @@ class RayleighInteractor
     struct SampleInput
     {
         real_type factor{0};
-        Real3     weight{0, 0, 0};
-        Real3     prob{0, 0, 0};
+        Real3 weight{0, 0, 0};
+        Real3 prob{0, 0, 0};
     };
 
     //// HELPER FUNCTIONS ////
@@ -93,10 +93,10 @@ class RayleighInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(const RayleighRef&       shared,
-                                       const ParticleTrackView& particle,
-                                       const Real3&             direction,
-                                       ElementId                el_id)
+RayleighInteractor::RayleighInteractor(RayleighRef const& shared,
+                                       ParticleTrackView const& particle,
+                                       Real3 const& direction,
+                                       ElementId el_id)
 
     : shared_(shared)
     , inc_energy_(particle.energy())
@@ -121,22 +121,22 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
     SampleInput input = this->evaluate_weight_and_prob();
 
-    const Real3& pb = shared_.params[element_id_].b;
-    const Real3& pn = shared_.params[element_id_].n;
+    Real3 const& pb = shared_.params[element_id_].b;
+    Real3 const& pn = shared_.params[element_id_].n;
 
     constexpr real_type half = 0.5;
-    real_type           cost;
+    real_type cost;
 
     do
     {
         // Sample index from input.prob
-        const unsigned int index = celeritas::make_selector(
+        unsigned int const index = celeritas::make_selector(
             [&input](unsigned int i) { return input.prob[i]; },
             input.prob.size())(rng);
 
-        const real_type w    = input.weight[index];
+        const real_type w = input.weight[index];
         const real_type ninv = 1 / pn[index];
-        const real_type b    = pb[index];
+        const real_type b = pb[index];
 
         // Sampling of scattering angle
         real_type x;
@@ -169,9 +169,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 CELER_FUNCTION
 auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
 {
-    const Real3& a = shared_.params[element_id_].a;
-    const Real3& b = shared_.params[element_id_].b;
-    const Real3& n = shared_.params[element_id_].n;
+    Real3 const& a = shared_.params[element_id_].a;
+    Real3 const& b = shared_.params[element_id_].b;
+    Real3 const& n = shared_.params[element_id_].n;
 
     SampleInput input;
     input.factor = ipow<2>(units::centimeter
@@ -201,4 +201,4 @@ auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

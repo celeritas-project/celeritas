@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -93,23 +93,23 @@ enum class MatterState
 //! Whether a track slot is alive, inactive, or dying
 enum class TrackStatus : std::int_least8_t
 {
-    killed   = -1, //!< Killed inside the step, awaiting replacement
+    killed = -1,  //!< Killed inside the step, awaiting replacement
     inactive = 0,  //!< No tracking in this thread slot
     // TODO: add 'initial' enum here, change "alive" to helper function
-    alive = 1 //!< Track is active and alive
+    alive = 1  //!< Track is active and alive
 };
 
 //---------------------------------------------------------------------------//
 //! Within-step ordering of explicit actions
 enum class ActionOrder
 {
-    start,     //!< Initialize tracks
-    pre,       //!< Pre-step physics and setup
-    along,     //!< Along-step
+    start,  //!< Initialize tracks
+    pre,  //!< Pre-step physics and setup
+    along,  //!< Along-step
     pre_post,  //!< Discrete selection kernel
-    post,      //!< After step
-    post_post, //!< User actions after boundary crossing, collision
-    end,       //!< Processing secondaries, including replacing primaries
+    post,  //!< After step
+    post_post,  //!< User actions after boundary crossing, collision
+    end,  //!< Processing secondaries, including replacing primaries
     size_
 };
 
@@ -129,7 +129,7 @@ enum class StepPoint
 struct StepLimit
 {
     real_type step{};
-    ActionId  action{};
+    ActionId action{};
 
     //! Whether a step limit has been determined
     explicit CELER_FUNCTION operator bool() const
@@ -149,7 +149,7 @@ struct NoData
 //---------------------------------------------------------------------------//
 
 // Get a string corresponding to a surface type
-const char* to_cstring(ActionOrder);
+char const* to_cstring(ActionOrder);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

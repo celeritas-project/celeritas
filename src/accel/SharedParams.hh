@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,26 +40,26 @@ class SharedParams
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParams = std::shared_ptr<const CoreParams>;
+    using SPConstParams = std::shared_ptr<CoreParams const>;
     //!@}
 
   public:
     // Default constructors, assignment, destructor
     SharedParams() = default;
-    SharedParams(SharedParams&&)                 = default;
-    SharedParams(const SharedParams&)            = default;
-    SharedParams& operator=(SharedParams&&)      = default;
-    SharedParams& operator=(const SharedParams&) = default;
+    SharedParams(SharedParams&&) = default;
+    SharedParams(SharedParams const&) = default;
+    SharedParams& operator=(SharedParams&&) = default;
+    SharedParams& operator=(SharedParams const&) = default;
     ~SharedParams();
 
     // Construct Celeritas using Geant4 data on the master thread.
-    explicit SharedParams(const SetupOptions& options);
+    explicit SharedParams(SetupOptions const& options);
 
     // Initialize shared data on the "master" thread
-    inline void Initialize(const SetupOptions& options);
+    inline void Initialize(SetupOptions const& options);
 
     // On worker threads, set up data with thread storage duration
-    static void InitializeWorker(const SetupOptions& options);
+    static void InitializeWorker(SetupOptions const& options);
 
     // Write (shared) diagnostic output and clear shared data on master.
     void Finalize();
@@ -73,22 +73,22 @@ class SharedParams
   private:
     //// DATA ////
 
-    std::shared_ptr<CoreParams>         params_;
+    std::shared_ptr<CoreParams> params_;
     std::shared_ptr<detail::HitManager> hit_manager_;
-    std::shared_ptr<StepCollector>      step_collector_;
-    std::string                         output_filename_;
+    std::shared_ptr<StepCollector> step_collector_;
+    std::string output_filename_;
 
     //// HELPER FUNCTIONS ////
 
-    static void initialize_device(const SetupOptions& options);
-    void        initialize_core(const SetupOptions& options);
+    static void initialize_device(SetupOptions const& options);
+    void initialize_core(SetupOptions const& options);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Helper for making initialization more obvious from user code.
  */
-void SharedParams::Initialize(const SetupOptions& options)
+void SharedParams::Initialize(SetupOptions const& options)
 {
     *this = SharedParams(options);
 }
@@ -106,4 +106,4 @@ auto SharedParams::Params() const -> SPConstParams
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

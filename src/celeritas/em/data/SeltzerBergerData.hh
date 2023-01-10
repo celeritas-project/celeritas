@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,10 +36,11 @@ namespace celeritas
 struct SBElementTableData
 {
     using EnergyUnits = units::LogMev;
-    using XsUnits     = units::Millibarn;
+    using XsUnits = units::Millibarn;
 
-    TwodGridData         grid;   //!< Cross section grid and data
-    ItemRange<size_type> argmax; //!< Y index of the largest XS for each energy
+    TwodGridData grid;  //!< Cross section grid and data
+    ItemRange<size_type> argmax;  //!< Y index of the largest XS for each
+                                  //!< energy
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -68,8 +69,8 @@ struct SeltzerBergerTableData
 
     //// MEMBER DATA ////
 
-    Items<real_type>                 reals;
-    Items<size_type>                 sizes;
+    Items<real_type> reals;
+    Items<size_type> sizes;
     ElementItems<SBElementTableData> elements;
 
     //// MEMBER FUNCTIONS ////
@@ -83,11 +84,11 @@ struct SeltzerBergerTableData
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     SeltzerBergerTableData&
-    operator=(const SeltzerBergerTableData<W2, M2>& other)
+    operator=(SeltzerBergerTableData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        reals    = other.reals;
-        sizes    = other.sizes;
+        reals = other.reals;
+        sizes = other.sizes;
         elements = other.elements;
         return *this;
     }
@@ -123,19 +124,19 @@ struct SeltzerBergerData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SeltzerBergerData& operator=(const SeltzerBergerData<W2, M2>& other)
+    SeltzerBergerData& operator=(SeltzerBergerData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids             = other.ids;
-        electron_mass   = other.electron_mass;
+        ids = other.ids;
+        electron_mass = other.electron_mass;
         differential_xs = other.differential_xs;
         return *this;
     }
 };
 
 using SeltzerBergerDeviceRef = DeviceCRef<SeltzerBergerData>;
-using SeltzerBergerHostRef   = HostCRef<SeltzerBergerData>;
-using SeltzerBergerRef       = NativeCRef<SeltzerBergerData>;
+using SeltzerBergerHostRef = HostCRef<SeltzerBergerData>;
+using SeltzerBergerRef = NativeCRef<SeltzerBergerData>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

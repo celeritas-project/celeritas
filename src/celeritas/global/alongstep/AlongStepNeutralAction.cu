@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,13 +32,13 @@ __global__ void along_step_neutral_kernel(CoreDeviceRef const data)
     launch(tid);
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepNeutralAction::execute(const CoreDeviceRef& data) const
+void AlongStepNeutralAction::execute(CoreDeviceRef const& data) const
 {
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL(along_step_neutral,
@@ -48,4 +48,4 @@ void AlongStepNeutralAction::execute(const CoreDeviceRef& data) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

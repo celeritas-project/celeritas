@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,7 +28,7 @@ class NonuniformGrid
   public:
     //!@{
     //! Type aliases
-    using size_type  = ::celeritas::size_type;
+    using size_type = ::celeritas::size_type;
     using value_type = T;
     using Values
         = Collection<value_type, Ownership::const_reference, MemSpace::native>;
@@ -37,10 +37,10 @@ class NonuniformGrid
   public:
     // Construct with data
     inline CELER_FUNCTION
-    NonuniformGrid(const ItemRange<value_type>& values, const Values& data);
+    NonuniformGrid(ItemRange<value_type> const& values, Values const& data);
 
     // Construct with data (all values)
-    explicit inline CELER_FUNCTION NonuniformGrid(const Values& data);
+    explicit inline CELER_FUNCTION NonuniformGrid(Values const& data);
 
     //! Number of grid points
     CELER_FORCEINLINE_FUNCTION size_type size() const { return data_.size(); }
@@ -62,7 +62,7 @@ class NonuniformGrid
 
   private:
     // TODO: change backend for effiency if needeed
-    Span<const value_type> data_;
+    Span<value_type const> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -73,12 +73,12 @@ class NonuniformGrid
  */
 template<class T>
 CELER_FUNCTION
-NonuniformGrid<T>::NonuniformGrid(const ItemRange<value_type>& values,
-                                  const Values&                data)
+NonuniformGrid<T>::NonuniformGrid(ItemRange<value_type> const& values,
+                                  Values const& data)
     : data_(data[values])
 {
     CELER_EXPECT(data_.size() >= 2);
-    CELER_EXPECT(data_.front() <= data_.back()); // Approximation for "sorted"
+    CELER_EXPECT(data_.front() <= data_.back());  // Approximation for "sorted"
 }
 
 //---------------------------------------------------------------------------//
@@ -86,11 +86,11 @@ NonuniformGrid<T>::NonuniformGrid(const ItemRange<value_type>& values,
  * Construct with data (all values).
  */
 template<class T>
-CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(const Values& data)
+CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(Values const& data)
     : data_(data[AllItems<value_type>{}])
 {
     CELER_EXPECT(data_.size() >= 2);
-    CELER_EXPECT(data_.front() <= data_.back()); // Approximation for "sorted"
+    CELER_EXPECT(data_.front() <= data_.back());  // Approximation for "sorted"
 }
 
 //---------------------------------------------------------------------------//
@@ -133,4 +133,4 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

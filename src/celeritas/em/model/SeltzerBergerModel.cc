@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,11 +35,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
-                                       const ParticleParams& particles,
-                                       const MaterialParams& materials,
-                                       SPConstImported       data,
-                                       ReadData              load_sb_table)
+SeltzerBergerModel::SeltzerBergerModel(ActionId id,
+                                       ParticleParams const& particles,
+                                       MaterialParams const& materials,
+                                       SPConstImported data,
+                                       ReadData load_sb_table)
     : imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
@@ -52,10 +52,10 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId              id,
     HostVal<SeltzerBergerData> host_data;
 
     // Save IDs
-    host_data.ids.action   = id;
+    host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
-    host_data.ids.gamma    = particles.find(pdg::gamma());
+    host_data.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
                    << "missing electron, positron, and/or gamma particles "
                       "(required for "
@@ -98,11 +98,11 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
 
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
-    electron_applic.lower    = zero_quantity();
-    electron_applic.upper    = seltzer_berger_limit();
+    electron_applic.lower = zero_quantity();
+    electron_applic.upper = seltzer_berger_limit();
 
     Applicability positron_applic = electron_applic;
-    positron_applic.particle      = this->host_ref().ids.positron;
+    positron_applic.particle = this->host_ref().ids.positron;
 
     return {electron_applic, positron_applic};
 }
@@ -148,10 +148,10 @@ ActionId SeltzerBergerModel::action_id() const
  * and y = scaled exiting energy (E_gamma / E_inc)
  * and values are the cross sections.
  */
-void SeltzerBergerModel::append_table(const ElementView&   element,
-                                      const ImportSBTable& imported,
-                                      HostXsTables*        tables,
-                                      Mass                 electron_mass) const
+void SeltzerBergerModel::append_table(ElementView const& element,
+                                      ImportSBTable const& imported,
+                                      HostXsTables* tables,
+                                      Mass electron_mass) const
 {
     auto reals = make_builder(&tables->reals);
 
@@ -181,7 +181,7 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
     for (size_type i : range(num_x))
     {
         // Get the xs data for the given incident energy coordinate
-        const real_type* iter = &tables->reals[table.grid.at(i, 0)];
+        real_type const* iter = &tables->reals[table.grid.at(i, 0)];
 
         // Search for the highest cross section value
         size_type max_el = std::max_element(iter, iter + num_y) - iter;
@@ -195,7 +195,7 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
 
             // Check that the maximum scaled positron cross section is always
             // at the first reduced photon energy grid point
-            real_type             inc_energy = std::exp(imported.x[i]);
+            real_type inc_energy = std::exp(imported.x[i]);
             SBPositronXsCorrector scale_xs(electron_mass,
                                            element,
                                            Energy{imported.y[0] * inc_energy},
@@ -228,4 +228,4 @@ void SeltzerBergerModel::append_table(const ElementView&   element,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

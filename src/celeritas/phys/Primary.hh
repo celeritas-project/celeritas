@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,14 +22,14 @@ namespace celeritas
  */
 struct Primary
 {
-    ParticleId       particle_id;
+    ParticleId particle_id;
     units::MevEnergy energy;
-    Real3            position{0, 0, 0};
-    Real3            direction{0, 0, 0};
-    real_type        time{};
-    EventId          event_id;
-    TrackId          track_id;
+    Real3 position{0, 0, 0};
+    Real3 direction{0, 0, 0};
+    real_type time{};
+    EventId event_id;
+    TrackId track_id;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

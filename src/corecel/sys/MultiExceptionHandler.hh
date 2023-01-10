@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,11 +43,11 @@ class MultiExceptionHandler
 
   public:
     // Default all construct/copy/move
-    MultiExceptionHandler()                                        = default;
-    MultiExceptionHandler(MultiExceptionHandler&&)                 = default;
-    MultiExceptionHandler& operator=(MultiExceptionHandler&&)      = default;
-    MultiExceptionHandler(const MultiExceptionHandler&)            = default;
-    MultiExceptionHandler& operator=(const MultiExceptionHandler&) = default;
+    MultiExceptionHandler() = default;
+    MultiExceptionHandler(MultiExceptionHandler&&) = default;
+    MultiExceptionHandler& operator=(MultiExceptionHandler&&) = default;
+    MultiExceptionHandler(MultiExceptionHandler const&) = default;
+    MultiExceptionHandler& operator=(MultiExceptionHandler const&) = default;
 
     // Terminate if destroyed without handling exceptions
     ~MultiExceptionHandler();
@@ -72,7 +72,7 @@ namespace detail
 {
 // Private implementation function for throwing exceptions
 [[noreturn]] void log_and_rethrow_impl(MultiExceptionHandler&& exceptions);
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -89,4 +89,4 @@ inline void log_and_rethrow(MultiExceptionHandler&& exceptions)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-std::string gdml_filename(const char* basename)
+std::string gdml_filename(char const* basename)
 {
     return std::string(basename) + std::string(".gdml");
 }
@@ -62,13 +62,13 @@ ImportData load_import_data(std::string filename)
 
 //---------------------------------------------------------------------------//
 //! Test for equality of two C strings
-bool cstring_equal(const char* lhs, const char* rhs)
+bool cstring_equal(char const* lhs, char const* rhs)
 {
     return std::strcmp(lhs, rhs) == 0;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 //! Whether Geant4 dependencies match those on the CI build
@@ -99,18 +99,18 @@ bool GeantTestBase::is_summit_build()
 
 //---------------------------------------------------------------------------//
 //! Get the Geant4 top-level geometry element (immutable)
-const G4VPhysicalVolume* GeantTestBase::get_world_volume() const
+G4VPhysicalVolume const* GeantTestBase::get_world_volume() const
 {
     return GeantImporter::get_world_volume();
 }
 
 //---------------------------------------------------------------------------//
 //! Get the Geant4 top-level geometry element
-const G4VPhysicalVolume* GeantTestBase::get_world_volume()
+G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 {
     // Load geometry
     this->imported_data();
-    return const_cast<const GeantTestBase*>(this)->get_world_volume();
+    return const_cast<GeantTestBase const*>(this)->get_world_volume();
 }
 
 //---------------------------------------------------------------------------//
@@ -145,14 +145,14 @@ auto GeantTestBase::build_cutoff() -> SPConstCutoff
 auto GeantTestBase::build_physics() -> SPConstPhysics
 {
     PhysicsParams::Input input;
-    input.materials      = this->material();
-    input.particles      = this->particle();
-    input.options        = this->build_physics_options();
+    input.materials = this->material();
+    input.particles = this->particle();
+    input.options = this->build_physics_options();
     input.action_registry = this->action_reg().get();
 
     BremsstrahlungProcess::Options brem_options;
-    brem_options.combined_model  = this->combined_brems();
-    brem_options.enable_lpm      = true;
+    brem_options.combined_model = this->combined_brems();
+    brem_options.enable_lpm = true;
     brem_options.use_integral_xs = true;
 
     GammaConversionProcess::Options conv_options;
@@ -197,7 +197,7 @@ auto GeantTestBase::build_physics() -> SPConstPhysics
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
-    input.capacity   = 4096;
+    input.capacity = 4096;
     input.max_events = 4096;
     return std::make_shared<TrackInitParams>(input);
 }
@@ -206,7 +206,7 @@ auto GeantTestBase::build_init() -> SPConstTrackInit
 auto GeantTestBase::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
-    auto  result     = AlongStepGeneralLinearAction::from_params(
+    auto result = AlongStepGeneralLinearAction::from_params(
         action_reg.next_id(),
         *this->material(),
         *this->particle(),
@@ -229,11 +229,11 @@ auto GeantTestBase::build_physics_options() const -> PhysicsOptions
 
 //---------------------------------------------------------------------------//
 // Lazily set up and load geant4
-auto GeantTestBase::imported_data() const -> const ImportData&
+auto GeantTestBase::imported_data() const -> ImportData const&
 {
     static struct
     {
-        ImportData  imported;
+        ImportData imported;
         std::string geometry_basename;
     } i;
     std::string cur_basename = this->geometry_basename();
@@ -243,7 +243,7 @@ auto GeantTestBase::imported_data() const -> const ImportData&
                        << "Geant4 currently crashes on second G4RunManager "
                           "instantiation (see issue #462)");
         // Note: importing may crash if Geant4 has an error
-        i.imported          = load_import_data(this->test_data_path(
+        i.imported = load_import_data(this->test_data_path(
             "celeritas", gdml_filename(cur_basename.c_str()).c_str()));
         // Save basename *after* load
         i.geometry_basename = cur_basename;
@@ -253,7 +253,7 @@ auto GeantTestBase::imported_data() const -> const ImportData&
 }
 
 //---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
+std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&)
 {
     os << "RNG=\"" << celeritas_rng << "\", CLHEP=\""
        << celeritas_clhep_version << "\", Geant4=\""
@@ -262,5 +262,5 @@ std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

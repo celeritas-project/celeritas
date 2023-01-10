@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,7 +35,7 @@ class TrackingAction final : public G4UserTrackingAction
   public:
     TrackingAction(SPConstParams params, SPTransporter transport);
 
-    void PreUserTrackingAction(const G4Track* track) final;
+    void PreUserTrackingAction(G4Track const* track) final;
 
   private:
     SPConstParams params_;
@@ -43,4 +43,4 @@ class TrackingAction final : public G4UserTrackingAction
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ LoggerMessage::~LoggerMessage()
             // Write to the handler
             (*handle_)(prov_, lev_, os.str());
         }
-        catch (const std::exception& e)
+        catch (std::exception const& e)
         {
             std::cerr
                 << "An error occurred writing a log message: " << e.what()
@@ -63,5 +63,5 @@ LoggerMessage::~LoggerMessage()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

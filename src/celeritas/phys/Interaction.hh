@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,17 +32,18 @@ struct Interaction
     //! Interaction result category
     enum class Action
     {
-        scattered, //!< Still alive, state has changed
+        scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed or transformed to another particle type
-        unchanged, //!< No state change, no secondaries
-        failed,    //!< Ran out of memory during sampling
+        unchanged,  //!< No state change, no secondaries
+        failed,  //!< Ran out of memory during sampling
     };
 
-    units::MevEnergy energy;               //!< Post-interaction energy
-    Real3            direction;            //!< Post-interaction direction
-    Span<Secondary>  secondaries;          //!< Emitted secondaries
-    units::MevEnergy energy_deposition{0}; //!< Energy loss locally to material
-    Action action{Action::scattered};      //!< Flags for interaction result
+    units::MevEnergy energy;  //!< Post-interaction energy
+    Real3 direction;  //!< Post-interaction direction
+    Span<Secondary> secondaries;  //!< Emitted secondaries
+    units::MevEnergy energy_deposition{0};  //!< Energy loss locally to
+                                            //!< material
+    Action action{Action::scattered};  //!< Flags for interaction result
 
     // Return an interaction representing a recoverable error
     static inline CELER_FUNCTION Interaction from_failure();
@@ -52,7 +53,7 @@ struct Interaction
 
     // Return an interaction with no change in the track state
     static inline CELER_FUNCTION Interaction
-    from_unchanged(units::MevEnergy energy, const Real3& direction);
+    from_unchanged(units::MevEnergy energy, Real3 const& direction);
 
     //! Whether the state changed but did not fail
     CELER_FUNCTION bool changed() const
@@ -72,11 +73,11 @@ struct Interaction
  */
 struct MscStep
 {
-    bool      is_displaced{true}; //!< Flag for the lateral displacement
-    real_type phys_step{};        //!< Step length from physics processes
-    real_type true_path{};        //!< True path length due to the msc
-    real_type geom_path{};        //!< Geometrical path length
-    real_type alpha{-1};          //!< An effecive mfp rate by distance
+    bool is_displaced{true};  //!< Flag for the lateral displacement
+    real_type phys_step{};  //!< Step length from physics processes
+    real_type true_path{};  //!< True path length due to the msc
+    real_type geom_path{};  //!< Geometrical path length
+    real_type alpha{-1};  //!< An effecive mfp rate by distance
 };
 
 //---------------------------------------------------------------------------//
@@ -88,8 +89,8 @@ struct MscStep
  */
 struct MscRange
 {
-    real_type range_init{}; //!< Initial msc range
-    real_type range_fact{}; //!< Scale factor for the msc range
+    real_type range_init{};  //!< Initial msc range
+    real_type range_fact{};  //!< Scale factor for the msc range
     real_type limit_min{};  //!< Minimum of the true path limit
 
     explicit CELER_FUNCTION operator bool() const
@@ -111,15 +112,15 @@ struct MscInteraction
     //! Interaction result category
     enum class Action
     {
-        displaced, //!< Direction and position changed
-        scattered, //!< Only direction changed
+        displaced,  //!< Direction and position changed
+        scattered,  //!< Only direction changed
         unchanged  //!< No state change
     };
 
-    real_type step_length;               //!< True step length
-    Real3     direction;                 //!< Post-step direction
-    Real3     displacement;              //!< Lateral displacement
-    Action    action{Action::unchanged}; //!< Flags for interaction result
+    real_type step_length;  //!< True step length
+    Real3 direction;  //!< Post-step direction
+    Real3 displacement;  //!< Lateral displacement
+    Action action{Action::unchanged};  //!< Flags for interaction result
 };
 
 //---------------------------------------------------------------------------//
@@ -146,7 +147,7 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 #if CELERITAS_DEBUG
     // Direction should *not* be accessed if incident particle is absorbed.
     constexpr auto nan = numeric_limits<real_type>::quiet_NaN();
-    result.direction   = {nan, nan, nan};
+    result.direction = {nan, nan, nan};
 #endif
     result.action = Action::absorbed;
     return result;
@@ -157,7 +158,7 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
  * Construct an interaction for edge cases where there is no state change.
  */
 CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy,
-                                                       const Real3&)
+                                                       Real3 const&)
 {
     Interaction result;
     result.action = Action::unchanged;
@@ -165,4 +166,4 @@ CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

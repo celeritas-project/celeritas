@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -57,7 +57,7 @@ class BhabhaEnergyDistribution
         return 1;
     }
 
-}; // namespace BhabhaEnergyDistribution
+};  // namespace BhabhaEnergyDistribution
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -95,7 +95,7 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
     real_type epsilon;
     do
     {
-        epsilon     = 1 / sample_inverse_epsilon(rng);
+        epsilon = 1 / sample_inverse_epsilon(rng);
         g_numerator = this->calc_g_fraction(epsilon, epsilon);
 
     } while (BernoulliDistribution(g_numerator / g_denominator)(rng));
@@ -110,14 +110,14 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_g_fraction(
     real_type epsilon_min, real_type epsilon_max)
 {
-    const real_type y            = 1.0 / (1.0 + gamma_);
-    const real_type y_sq         = ipow<2>(y);
+    const real_type y = 1.0 / (1.0 + gamma_);
+    const real_type y_sq = ipow<2>(y);
     const real_type one_minus_2y = 1.0 - 2.0 * y;
 
-    const real_type b1      = 2.0 - y_sq;
-    const real_type b2      = one_minus_2y * (3.0 + y_sq);
-    const real_type b4      = ipow<3>(one_minus_2y);
-    const real_type b3      = ipow<2>(one_minus_2y) + b4;
+    const real_type b1 = 2.0 - y_sq;
+    const real_type b2 = one_minus_2y * (3.0 + y_sq);
+    const real_type b4 = ipow<3>(one_minus_2y);
+    const real_type b3 = ipow<2>(one_minus_2y) + b4;
     const real_type beta_sq = 1.0 - (1.0 / ipow<2>(gamma_));
 
     return 1.0
@@ -127,4 +127,4 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_g_fraction(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

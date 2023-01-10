@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,22 +38,22 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstFluctuations = std::shared_ptr<const FluctuationParams>;
-    using SPConstMsc          = std::shared_ptr<const UrbanMscModel>;
+    using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
+    using SPConstMsc = std::shared_ptr<UrbanMscModel const>;
     //!@}
 
   public:
     static std::shared_ptr<AlongStepGeneralLinearAction>
-    from_params(ActionId              id,
-                const MaterialParams& materials,
-                const ParticleParams& particles,
-                const PhysicsParams&  physics,
-                bool                  eloss_fluctuation);
+    from_params(ActionId id,
+                MaterialParams const& materials,
+                ParticleParams const& particles,
+                PhysicsParams const& physics,
+                bool eloss_fluctuation);
 
     // Construct with next action ID, and optional EM energy fluctuation
-    AlongStepGeneralLinearAction(ActionId            id,
+    AlongStepGeneralLinearAction(ActionId id,
                                  SPConstFluctuations fluct,
-                                 SPConstMsc          msc);
+                                 SPConstMsc msc);
 
     // Default destructor
     ~AlongStepGeneralLinearAction();
@@ -88,9 +88,9 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     bool has_msc() const { return static_cast<bool>(msc_); }
 
   private:
-    ActionId            id_;
+    ActionId id_;
     SPConstFluctuations fluct_;
-    SPConstMsc          msc_;
+    SPConstMsc msc_;
 
     // TODO: kind of hacky way to support fluct/msc being optional
     // (required because we have to pass "empty" refs if they're missing)
@@ -98,13 +98,13 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     struct ExternalRefs
     {
         FluctuationData<Ownership::const_reference, M> fluct;
-        UrbanMscData<Ownership::const_reference, M>    msc;
+        UrbanMscData<Ownership::const_reference, M> msc;
 
-        ExternalRefs(const SPConstFluctuations& fluct_params,
-                     const SPConstMsc&          msc_params);
+        ExternalRefs(SPConstFluctuations const& fluct_params,
+                     SPConstMsc const& msc_params);
     };
 
-    ExternalRefs<MemSpace::host>   host_data_;
+    ExternalRefs<MemSpace::host> host_data_;
     ExternalRefs<MemSpace::device> device_data_;
 };
 
@@ -120,4 +120,4 @@ inline void AlongStepGeneralLinearAction::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

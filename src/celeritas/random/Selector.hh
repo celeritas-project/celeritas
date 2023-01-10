@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -70,8 +70,8 @@ class Selector
   private:
     using IterT = RangeIter<T>;
 
-    F         eval_;
-    IterT     last_;
+    F eval_;
+    IterT last_;
     real_type total_;
 
     // Total value, for debug checking
@@ -84,7 +84,7 @@ class Selector
  */
 template<class F, class T>
 CELER_FUNCTION Selector<F, T>
-               make_selector(F&& func, T size, decltype(func(size)) total = 1)
+make_selector(F&& func, T size, decltype(func(size)) total = 1)
 {
     return {celeritas::forward<F>(func), size, total};
 }
@@ -148,4 +148,4 @@ CELER_FUNCTION auto Selector<F, T>::debug_accumulated_total() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

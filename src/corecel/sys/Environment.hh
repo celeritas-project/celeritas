@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,11 +41,11 @@ class Environment
   public:
     //!@{
     //! Type aliases
-    using key_type       = Container::key_type;
-    using mapped_type    = Container::mapped_type;
-    using value_type     = Container::value_type;
+    using key_type = Container::key_type;
+    using mapped_type = Container::mapped_type;
+    using value_type = Container::value_type;
     using const_iterator = Container::const_iterator;
-    using VecKVRef       = std::vector<std::reference_wrapper<value_type>>;
+    using VecKVRef = std::vector<std::reference_wrapper<value_type>>;
     //!@}
 
   public:
@@ -53,19 +53,19 @@ class Environment
     Environment() = default;
 
     // Get an environment variable from current or system environments
-    inline const mapped_type& operator[](const key_type&);
+    inline mapped_type const& operator[](key_type const&);
 
     // Insert possibly new environment variables (not thread-safe)
-    void insert(const value_type& value);
+    void insert(value_type const& value);
 
     //! Get an ordered (by access) vector of key/value pairs
-    const VecKVRef& ordered_environment() const { return ordered_; }
+    VecKVRef const& ordered_environment() const { return ordered_; }
 
   private:
     std::unordered_map<key_type, mapped_type> vars_;
-    VecKVRef                                  ordered_;
+    VecKVRef ordered_;
 
-    const mapped_type& load_from_getenv(const key_type&);
+    mapped_type const& load_from_getenv(key_type const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -76,10 +76,10 @@ class Environment
 Environment& environment();
 
 // Thread-safe access to environment variables
-const std::string& getenv(const std::string& key);
+std::string const& getenv(std::string const& key);
 
 // Write the accessed environment variables to a stream
-std::ostream& operator<<(std::ostream&, const Environment&);
+std::ostream& operator<<(std::ostream&, Environment const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -87,7 +87,7 @@ std::ostream& operator<<(std::ostream&, const Environment&);
 /*!
  * Get an environment variable from current or system enviroments.
  */
-auto Environment::operator[](const key_type& env_var) -> const mapped_type&
+auto Environment::operator[](key_type const& env_var) -> mapped_type const&
 {
     auto iter = vars_.find(env_var);
     if (iter == vars_.end())
@@ -98,4 +98,4 @@ auto Environment::operator[](const key_type& env_var) -> const mapped_type&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

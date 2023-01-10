@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,13 +33,13 @@ class ExceptionConverter
 {
   public:
     // Construct with "error code"
-    inline explicit ExceptionConverter(const char* err_code);
+    inline explicit ExceptionConverter(char const* err_code);
 
     // Capture the current exception and convert it to a G4Exception call
     void operator()(std::exception_ptr p) const;
 
   private:
-    const char* err_code_;
+    char const* err_code_;
 
     void convert_device_exceptions(std::exception_ptr p) const;
 };
@@ -50,10 +50,10 @@ class ExceptionConverter
 /*!
  * Construct with an error code for dispatching to Geant4.
  */
-ExceptionConverter::ExceptionConverter(const char* err_code)
+ExceptionConverter::ExceptionConverter(char const* err_code)
     : err_code_{err_code}
 {
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

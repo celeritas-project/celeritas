@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -91,7 +91,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
          << std::endl;
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -107,7 +107,7 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
    \endcode
  */
-Logger make_mt_logger(const G4RunManager& runman)
+Logger make_mt_logger(G4RunManager const& runman)
 {
     return Logger(MpiCommunicator{},
                   MtLogger{runman.GetNumberOfThreads()},
@@ -115,4 +115,4 @@ Logger make_mt_logger(const G4RunManager& runman)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

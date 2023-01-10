@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,12 +50,12 @@ inline __device__ double atomic_add(double* address, double val)
 {
     CELER_EXPECT(address);
     ull_int* address_as_ull = reinterpret_cast<ull_int*>(address);
-    ull_int  old            = *address_as_ull;
-    ull_int  assumed;
+    ull_int old = *address_as_ull;
+    ull_int assumed;
     do
     {
         assumed = old;
-        old     = atomicCAS(
+        old = atomicCAS(
             address_as_ull,
             assumed,
             __double_as_longlong(val + __longlong_as_double(assumed)));
@@ -82,7 +82,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 #        pragma omp atomic capture
 #    endif
     {
-        initial  = *address;
+        initial = *address;
         *address = celeritas::min(initial, value);
     }
     return initial;
@@ -105,7 +105,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
 #        pragma omp atomic capture
 #    endif
     {
-        initial  = *address;
+        initial = *address;
         *address = celeritas::max(initial, value);
     }
     return initial;
@@ -129,11 +129,11 @@ inline __device__ ull_int atomic_max(ull_int* address, ull_int val)
     do
     {
         assumed = old;
-        old     = atomicCAS(address, assumed, celeritas::max(val, assumed));
+        old = atomicCAS(address, assumed, celeritas::max(val, assumed));
     } while (assumed != old);
     return old;
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

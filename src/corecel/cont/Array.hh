@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,38 +28,38 @@ struct Array
 {
     //!@{
     //! \name Type aliases
-    using value_type      = T;
-    using size_type       = ::celeritas::size_type;
-    using pointer         = value_type*;
-    using const_pointer   = const value_type*;
-    using reference       = value_type&;
-    using const_reference = const value_type&;
-    using iterator        = pointer;
-    using const_iterator  = const_pointer;
+    using value_type = T;
+    using size_type = ::celeritas::size_type;
+    using pointer = value_type*;
+    using const_pointer = value_type const*;
+    using reference = value_type&;
+    using const_reference = value_type const&;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
     //!@}
 
     //// DATA ////
 
-    T data_[N]; //!< Storage
+    T data_[N];  //!< Storage
 
     //// ACCESSORS ////
 
     //!@{
     //! \name Element access
     CFIF_ const_reference operator[](size_type i) const { return data_[i]; }
-    CFIF_ reference       operator[](size_type i) { return data_[i]; }
+    CFIF_ reference operator[](size_type i) { return data_[i]; }
     CFIF_ const_reference front() const { return data_[0]; }
-    CFIF_ reference       front() { return data_[0]; }
+    CFIF_ reference front() { return data_[0]; }
     CFIF_ const_reference back() const { return data_[N - 1]; }
-    CFIF_ reference       back() { return data_[N - 1]; }
-    CFIF_ const_pointer   data() const { return data_; }
-    CFIF_ pointer         data() { return data_; }
+    CFIF_ reference back() { return data_[N - 1]; }
+    CFIF_ const_pointer data() const { return data_; }
+    CFIF_ pointer data() { return data_; }
     //!@}
 
     //!@{
     //! \name Iterators
-    CFIF_ iterator       begin() { return data_; }
-    CFIF_ iterator       end() { return data_ + N; }
+    CFIF_ iterator begin() { return data_; }
+    CFIF_ iterator end() { return data_ + N; }
     CFIF_ const_iterator begin() const { return data_; }
     CFIF_ const_iterator end() const { return data_ + N; }
     CFIF_ const_iterator cbegin() const { return data_; }
@@ -68,7 +68,7 @@ struct Array
 
     //!@{
     //! \name Capacity
-    CELER_CONSTEXPR_FUNCTION bool      empty() const { return N == 0; }
+    CELER_CONSTEXPR_FUNCTION bool empty() const { return N == 0; }
     CELER_CONSTEXPR_FUNCTION size_type size() const { return N; }
     //!@}
 
@@ -91,7 +91,7 @@ struct Array
  */
 template<class T, size_type N>
 inline CELER_FUNCTION bool
-operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
+operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     for (size_type i = 0; i != N; ++i)
     {
@@ -106,7 +106,7 @@ operator==(const Array<T, N>& lhs, const Array<T, N>& rhs)
  * Test inequality of two arrays.
  */
 template<class T, size_type N>
-CFIF_ bool operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
+CFIF_ bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }
@@ -114,4 +114,4 @@ CFIF_ bool operator!=(const Array<T, N>& lhs, const Array<T, N>& rhs)
 #undef CFIF_
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

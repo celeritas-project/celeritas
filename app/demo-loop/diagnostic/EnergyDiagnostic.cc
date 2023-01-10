@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,7 +16,7 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(const CoreStateHostRef& states, PointersHost& pointers)
+void bin_energy(CoreStateHostRef const& states, PointersHost& pointers)
 {
     EnergyDiagnosticLauncher<MemSpace::host> launch(states, pointers);
     for (auto tid : range(ThreadId{states.size()}))
@@ -25,4 +25,4 @@ void bin_energy(const CoreStateHostRef& states, PointersHost& pointers)
     }
 }
 
-} // namespace demo_loop
+}  // namespace demo_loop

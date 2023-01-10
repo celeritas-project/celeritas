@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ class ScopedRootErrorHandler
     ~ScopedRootErrorHandler();
 
   private:
-    using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
+    using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);
 
     ErrorHandlerFuncPtr previous_;
 };
@@ -43,4 +43,4 @@ inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,7 +21,7 @@ namespace test
 
 TEST(BernoulliDistributionTest, single_constructor)
 {
-    std::mt19937          rng;
+    std::mt19937 rng;
     BernoulliDistribution quarter_true(0.25);
     EXPECT_SOFT_EQ(0.25, quarter_true.p());
 
@@ -43,5 +43,5 @@ TEST(BernoulliDistributionTest, normalizing_constructor)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,9 +34,9 @@ class TwodSubgridCalculator
 
   public:
     // Construct with grid data, backend values, and lower X data.
-    inline CELER_FUNCTION TwodSubgridCalculator(const TwodGridData& grid,
-                                                const Values&       storage,
-                                                InterpT             x_loc);
+    inline CELER_FUNCTION TwodSubgridCalculator(TwodGridData const& grid,
+                                                Values const& storage,
+                                                InterpT x_loc);
 
     // Calculate the value at the given y coordinate
     inline CELER_FUNCTION real_type operator()(real_type y) const;
@@ -54,9 +54,9 @@ class TwodSubgridCalculator
     }
 
   private:
-    const TwodGridData& grids_;
-    const Values&       storage_;
-    const InterpT       x_loc_;
+    TwodGridData const& grids_;
+    Values const& storage_;
+    const InterpT x_loc_;
 
     inline CELER_FUNCTION real_type at(size_type x_idx, size_type y_idx) const;
 };
@@ -72,9 +72,9 @@ class TwodSubgridCalculator
  * interpolating on the highest value of the x grid.
  */
 CELER_FUNCTION
-TwodSubgridCalculator::TwodSubgridCalculator(const TwodGridData& grids,
-                                             const Values&       storage,
-                                             InterpT             x_loc)
+TwodSubgridCalculator::TwodSubgridCalculator(TwodGridData const& grids,
+                                             Values const& storage,
+                                             InterpT x_loc)
     : grids_{grids}, storage_(storage), x_loc_(x_loc)
 {
     CELER_EXPECT(grids);
@@ -92,7 +92,7 @@ TwodSubgridCalculator::TwodSubgridCalculator(const TwodGridData& grids,
  */
 CELER_FUNCTION real_type TwodSubgridCalculator::operator()(real_type y) const
 {
-    const NonuniformGrid<real_type> y_grid{grids_.y, storage_};
+    NonuniformGrid<real_type> const y_grid{grids_.y, storage_};
     CELER_EXPECT(y >= y_grid.front() && y < y_grid.back());
 
     const InterpT y_loc = detail::find_interp(y_grid, y);
@@ -121,4 +121,4 @@ CELER_FUNCTION real_type TwodSubgridCalculator::at(size_type x_idx,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

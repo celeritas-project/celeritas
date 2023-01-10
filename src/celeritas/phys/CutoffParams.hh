@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -51,40 +51,40 @@ class CutoffParams
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using MaterialCutoffs  = std::vector<ParticleCutoff>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using MaterialCutoffs = std::vector<ParticleCutoff>;
 
-    using HostRef   = HostCRef<CutoffParamsData>;
+    using HostRef = HostCRef<CutoffParamsData>;
     using DeviceRef = DeviceCRef<CutoffParamsData>;
     //!@}
 
     //! Input data to construct this class
     struct Input
     {
-        SPConstParticles                     particles;
-        SPConstMaterials                     materials;
+        SPConstParticles particles;
+        SPConstMaterials materials;
         std::map<PDGNumber, MaterialCutoffs> cutoffs;
     };
 
   public:
     // Construct with imported data
     static std::shared_ptr<CutoffParams>
-    from_import(const ImportData& data,
-                SPConstParticles  particle_params,
-                SPConstMaterials  material_params);
+    from_import(ImportData const& data,
+                SPConstParticles particle_params,
+                SPConstMaterials material_params);
 
     // Construct with cutoff input data
-    explicit CutoffParams(const Input& input);
+    explicit CutoffParams(Input const& input);
 
     // Access cutoffs on host
     inline CutoffView get(MaterialId material) const;
 
     //! Access cutoff data on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access cutoff data on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
@@ -94,7 +94,7 @@ class CutoffParams
     //// HELPER FUNCTIONS ////
 
     // PDG numbers of particles with prodution cuts
-    static const std::vector<PDGNumber>& pdg_numbers();
+    static std::vector<PDGNumber> const& pdg_numbers();
 };
 
 //---------------------------------------------------------------------------//
@@ -110,4 +110,4 @@ CutoffView CutoffParams::get(MaterialId material) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

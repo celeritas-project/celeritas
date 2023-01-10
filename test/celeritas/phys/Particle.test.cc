@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -32,13 +32,13 @@ class ParticleTest : public Test
 {
   protected:
     using Initializer_t = ParticleTrackView::Initializer_t;
-    using MevEnergy     = units::MevEnergy;
+    using MevEnergy = units::MevEnergy;
 
     void SetUp() override
     {
         using namespace units;
 
-        constexpr auto zero   = zero_quantity();
+        constexpr auto zero = zero_quantity();
         constexpr auto stable = ParticleRecord::stable_decay_constant();
 
         // Create particle defs, initialize on device
@@ -63,7 +63,7 @@ class ParticleTest : public Test
 
 TEST_F(ParticleTest, params_accessors)
 {
-    const ParticleParams& defs = *this->particle_params;
+    ParticleParams const& defs = *this->particle_params;
 
     EXPECT_EQ(ParticleId(0), defs.find(PDGNumber(11)));
     EXPECT_EQ(ParticleId(1), defs.find(PDGNumber(22)));
@@ -92,25 +92,25 @@ class ParticleImportTest : public Test
         data_ = import_from_root();
     }
     std::string root_filename_;
-    ImportData  data_;
+    ImportData data_;
 
     ScopedRootErrorHandler scoped_root_error_;
 };
 
 TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
 {
-    const auto particles = ParticleParams::from_import(data_);
+    auto const particles = ParticleParams::from_import(data_);
 
     // Check electron data
     ParticleId electron_id = particles->find(PDGNumber(11));
     ASSERT_GE(electron_id.get(), 0);
-    const auto& electron = particles->get(electron_id);
+    auto const& electron = particles->get(electron_id);
     EXPECT_SOFT_EQ(0.510998910, electron.mass().value());
     EXPECT_EQ(-1, electron.charge().value());
     EXPECT_EQ(0, electron.decay_constant());
     // Check all names/PDG codes
     std::vector<std::string> loaded_names;
-    std::vector<int>         loaded_pdgs;
+    std::vector<int> loaded_pdgs;
     for (auto particle_id : range(ParticleId{particles->size()}))
     {
         loaded_names.push_back(particles->id_to_label(particle_id));
@@ -118,7 +118,7 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
     }
 
     const std::string expected_loaded_names[] = {"gamma", "e-", "e+"};
-    const int         expected_loaded_pdgs[]  = {22, 11, -11};
+    int const expected_loaded_pdgs[] = {22, 11, -11};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);
     EXPECT_VEC_EQ(expected_loaded_pdgs, loaded_pdgs);
@@ -222,7 +222,7 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
     result = ptv_test(input);
 
     // Check results
-    const double expected_props[] = {0.5,
+    double const expected_props[] = {0.5,
                                      0.5109989461,
                                      -1,
                                      0,
@@ -249,5 +249,5 @@ TEST_F(ParticleDeviceTest, TEST_IF_CELER_DEVICE(calc_props))
     EXPECT_VEC_SOFT_EQ(expected_props, result.props);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

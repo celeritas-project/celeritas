@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,13 +15,13 @@ namespace celeritas
 /*!
  * Get the string value for a vector type.
  */
-const char* to_cstring(ImportPhysicsVectorType value)
+char const* to_cstring(ImportPhysicsVectorType value)
 {
-    static const char* const strings[] = {"unknown", "linear", "log", "free"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    static char const* const strings[] = {"unknown", "linear", "log", "free"};
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

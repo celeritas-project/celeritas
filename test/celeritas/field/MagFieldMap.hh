@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,8 +26,8 @@ class MagFieldMap
   public:
     //@{
     //! Type aliases
-    using ReadMap   = std::function<FieldMapInput()>;
-    using HostRef   = HostCRef<FieldMapData>;
+    using ReadMap = std::function<FieldMapInput()>;
+    using HostRef = HostCRef<FieldMapData>;
     using DeviceRef = DeviceCRef<FieldMapData>;
     //@}
 
@@ -36,10 +36,10 @@ class MagFieldMap
     explicit MagFieldMap(ReadMap load_map);
 
     //! Access field map data on the host
-    const HostRef& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const { return mirror_.host(); }
 
     //! Access field map data on the device
-    const DeviceRef& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const { return mirror_.device(); }
 
   private:
     // Host/device storage and reference
@@ -47,9 +47,9 @@ class MagFieldMap
 
   private:
     using HostValue = HostVal<FieldMapData>;
-    void build_data(const ReadMap&, HostValue*);
+    void build_data(ReadMap const&, HostValue*);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

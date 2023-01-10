@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,8 +25,8 @@ class ComptonProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
@@ -46,9 +46,9 @@ class ComptonProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
+    SPConstParticles particles_;
     ImportedProcessAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

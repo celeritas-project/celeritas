@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,10 +20,10 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
 #include "orange/Types.hh"
-#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
-#include "GeoMaterialData.hh" // IWYU pragma: associated
+#include "GeoMaterialData.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -32,12 +32,12 @@ namespace celeritas
  * Construct with imported data.
  */
 std::shared_ptr<GeoMaterialParams>
-GeoMaterialParams::from_import(const ImportData& data,
-                               SPConstGeo        geo_params,
-                               SPConstMaterial   material_params)
+GeoMaterialParams::from_import(ImportData const& data,
+                               SPConstGeo geo_params,
+                               SPConstMaterial material_params)
 {
     GeoMaterialParams::Input input;
-    input.geometry  = std::move(geo_params);
+    input.geometry = std::move(geo_params);
     input.materials = std::move(material_params);
 
     input.volume_to_mat.resize(data.volumes.size());
@@ -89,7 +89,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         // Remap materials to volume IDs using given volume names:
         // build a map of volume name -> matid
         std::unordered_map<Label, MaterialId> lab_to_id;
-        std::set<Label>                       duplicates;
+        std::set<Label> duplicates;
         for (auto idx : range(input.volume_to_mat.size()))
         {
             auto iter_inserted
@@ -108,20 +108,21 @@ GeoMaterialParams::GeoMaterialParams(Input input)
 
         // Set material ids based on volume names
         std::vector<Label> missing_volumes;
-        const GeoParams&   geo = *input.geometry;
+        GeoParams const& geo = *input.geometry;
         input.volume_to_mat.assign(geo.num_volumes(), MaterialId{});
         for (auto volume_id : range(VolumeId{geo.num_volumes()}))
         {
             auto iter = lab_to_id.find(geo.id_to_label(volume_id));
             if (iter == lab_to_id.end())
             {
-                // Exact label (name + ext) not found; fall back to matching just the name
+                // Exact label (name + ext) not found; fall back to matching
+                // just the name
                 iter = lab_to_id.find(Label{geo.id_to_label(volume_id).name});
             }
 
             if (iter == lab_to_id.end())
             {
-                const Label& label = geo.id_to_label(volume_id);
+                Label const& label = geo.id_to_label(volume_id);
                 if (!label.name.empty()
                     && !(label.name.front() == '[' && label.name.back() == ']'))
                 {
@@ -144,7 +145,7 @@ GeoMaterialParams::GeoMaterialParams(Input input)
     }
 
     HostValue host_data;
-    auto      materials = make_builder(&host_data.materials);
+    auto materials = make_builder(&host_data.materials);
     materials.insert_back(input.volume_to_mat.begin(),
                           input.volume_to_mat.end());
 
@@ -154,4 +155,4 @@ GeoMaterialParams::GeoMaterialParams(Input input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

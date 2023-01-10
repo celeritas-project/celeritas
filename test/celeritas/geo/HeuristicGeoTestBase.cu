@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,8 +23,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 __global__ void
-heuristic_test_kernel(const DeviceCRef<HeuristicGeoParamsData> params,
-                      const DeviceRef<HeuristicGeoStateData>   state)
+heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
+                      DeviceRef<HeuristicGeoStateData> const state)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= state.size())
@@ -33,14 +33,14 @@ heuristic_test_kernel(const DeviceCRef<HeuristicGeoParamsData> params,
     HeuristicGeoLauncher launch{params, state};
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void heuristic_test_launch(const DeviceCRef<HeuristicGeoParamsData>& params,
-                           const DeviceRef<HeuristicGeoStateData>&   state)
+void heuristic_test_launch(DeviceCRef<HeuristicGeoParamsData> const& params,
+                           DeviceRef<HeuristicGeoStateData> const& state)
 {
     CELER_LAUNCH_KERNEL(heuristic_test,
                         device().default_block_size(),
@@ -52,10 +52,10 @@ void heuristic_test_launch(const DeviceCRef<HeuristicGeoParamsData>& params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
+}  // namespace test
 
 namespace detail
 {
 template class Filler<::celeritas::test::LifeStatus, MemSpace::device>;
 }
-} // namespace celeritas
+}  // namespace celeritas

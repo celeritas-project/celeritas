@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,8 +20,8 @@
 #elif defined(__CUDA_ARCH__)
 // No assert header needed for CUDA
 #else
-#    include <ostream> // IWYU pragma: export
-#    include <sstream> // IWYU pragma: keep
+#    include <ostream>  // IWYU pragma: export
+#    include <sstream>  // IWYU pragma: keep
 #endif
 
 #include "celeritas_config.h"
@@ -348,39 +348,39 @@ namespace celeritas
 enum class DebugErrorType
 {
     precondition,  //!< Precondition contract violation
-    internal,      //!< Internal assertion check failure
-    unreachable,   //!< Internal assertion: unreachable code path
+    internal,  //!< Internal assertion check failure
+    unreachable,  //!< Internal assertion: unreachable code path
     unconfigured,  //!< Internal assertion: required feature not enabled
-    unimplemented, //!< Internal assertion: not yet implemented
-    postcondition, //!< Postcondition contract violation
+    unimplemented,  //!< Internal assertion: not yet implemented
+    postcondition,  //!< Postcondition contract violation
 };
 
 enum class RuntimeErrorType
 {
-    validate, //!< Celeritas runtime error
-    device,   //!< CUDA or HIP
-    mpi,      //!< Coarse-grain parallelism
-    geant,    //!< Error from Geant4
-    root      //!< Error from ROOT
+    validate,  //!< Celeritas runtime error
+    device,  //!< CUDA or HIP
+    mpi,  //!< Coarse-grain parallelism
+    geant,  //!< Error from Geant4
+    root  //!< Error from ROOT
 };
 
 //! Detailed properties of a debug assertion failure
 struct DebugErrorDetails
 {
     DebugErrorType which;
-    const char*    condition;
-    const char*    file;
-    int            line;
+    char const* condition;
+    char const* file;
+    int line;
 };
 
 //! Detailed properties of a runtime error
 struct RuntimeErrorDetails
 {
     RuntimeErrorType which{RuntimeErrorType::validate};
-    std::string      what{};
-    const char*      condition{nullptr};
-    const char*      file{nullptr};
-    int              line{0};
+    std::string what{};
+    char const* condition{nullptr};
+    char const* file{nullptr};
+    int line{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -394,10 +394,10 @@ struct RuntimeErrorDetails
 }
 
 //! Get a pretty string version of a debug error
-const char* to_cstring(DebugErrorType which);
+char const* to_cstring(DebugErrorType which);
 
 //! Get a pretty string version of a runtime error
-const char* to_cstring(RuntimeErrorType which);
+char const* to_cstring(RuntimeErrorType which);
 
 //---------------------------------------------------------------------------//
 // TYPES
@@ -412,7 +412,7 @@ class DebugError : public std::logic_error
     explicit DebugError(DebugErrorDetails);
 
     //! Access the debug data
-    const DebugErrorDetails& details() const { return details_; }
+    DebugErrorDetails const& details() const { return details_; }
 
   private:
     DebugErrorDetails details_;
@@ -427,31 +427,31 @@ class RuntimeError : public std::runtime_error
   public:
     // Construct from validation failure
     static RuntimeError
-    from_validate(std::string msg, const char* code, const char* file, int line);
+    from_validate(std::string msg, char const* code, char const* file, int line);
 
     // Construct from device call
-    static RuntimeError from_device_call(const char* error_string,
-                                         const char* code,
-                                         const char* file,
-                                         int         line);
+    static RuntimeError from_device_call(char const* error_string,
+                                         char const* code,
+                                         char const* file,
+                                         int line);
 
     // Construct from MPI call
     static RuntimeError
-    from_mpi_call(int errorcode, const char* code, const char* file, int line);
+    from_mpi_call(int errorcode, char const* code, char const* file, int line);
 
     // Construct from call to Geant4
-    static RuntimeError from_geant_exception(const char* origin,
-                                             const char* code,
-                                             const char* desc);
+    static RuntimeError from_geant_exception(char const* origin,
+                                             char const* code,
+                                             char const* desc);
 
     // Construct from call to ROOT
-    static RuntimeError from_root_error(const char* origin, const char* msg);
+    static RuntimeError from_root_error(char const* origin, char const* msg);
 
     // Construct from details
     explicit RuntimeError(RuntimeErrorDetails);
 
     //! Access detailed information
-    const RuntimeErrorDetails& details() const { return details_; }
+    RuntimeErrorDetails const& details() const { return details_; }
 
   private:
     RuntimeErrorDetails details_;
@@ -464,7 +464,7 @@ class RuntimeError : public std::runtime_error
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
-    DebugErrorType, const char* condition, const char* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, unsigned int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
@@ -475,16 +475,16 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
 #elif defined(__HIP__)
 //! Host-only HIP call (whether or not NDEBUG is in use)
 inline __host__ void device_debug_error(DebugErrorType which,
-                                        const char*    condition,
-                                        const char*    file,
-                                        unsigned int   line)
+                                        char const* condition,
+                                        char const* file,
+                                        unsigned int line)
 {
     throw DebugError({which, condition, __FILE__, __LINE__});
 }
 
 //! Device-only call for HIP (must always be declared; only used if NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
-    DebugErrorType, const char* condition, const char* file, unsigned int line)
+    DebugErrorType, char const* condition, char const* file, unsigned int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
            file,
@@ -495,4 +495,4 @@ inline __attribute__((noinline)) __device__ void device_debug_error(
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

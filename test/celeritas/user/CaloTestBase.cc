@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -58,14 +58,14 @@ void CaloTestBase::RunResult::print_expected() const
 auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
-    step_inp.params          = this->core();
+    step_inp.params = this->core();
     step_inp.num_track_slots = num_tracks;
 
     Stepper<MemSpace::host> step(step_inp);
 
     // Initial step
     auto primaries = this->make_primaries(num_tracks);
-    auto count     = step(make_span(primaries));
+    auto count = step(make_span(primaries));
 
     while (count && --num_steps > 0)
     {
@@ -73,7 +73,7 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
     }
 
     RunResult result;
-    auto      edep = example_calos_->deposition();
+    auto edep = example_calos_->deposition();
     result.edep.assign(edep.begin(), edep.end());
     example_calos_->clear();
 
@@ -81,5 +81,5 @@ auto CaloTestBase::run(size_type num_tracks, size_type num_steps) -> RunResult
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

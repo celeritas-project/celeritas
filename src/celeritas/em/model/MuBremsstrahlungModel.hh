@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,14 +26,14 @@ class MuBremsstrahlungModel final : public Model
   public:
     //!@{
     //! Type aliases
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
     // Construct from model ID and other necessary data
-    MuBremsstrahlungModel(ActionId              id,
-                          const ParticleParams& particles,
-                          SPConstImported       data);
+    MuBremsstrahlungModel(ActionId id,
+                          ParticleParams const& particles,
+                          SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -62,4 +62,4 @@ class MuBremsstrahlungModel final : public Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

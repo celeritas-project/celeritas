@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,22 +25,22 @@ class EIonizationProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
     // Options for electron and positron ionization
     struct Options
     {
-        bool use_integral_xs{true}; //!> Use integral method for sampling
-                                    //! discrete interaction length
+        bool use_integral_xs{true};  //!> Use integral method for sampling
+                                     //! discrete interaction length
     };
 
   public:
     // Construct with imported data
     EIonizationProcess(SPConstParticles particles,
-                       SPConstImported  process_data,
-                       Options          options);
+                       SPConstImported process_data,
+                       Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -55,10 +55,10 @@ class EIonizationProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
+    SPConstParticles particles_;
     ImportedProcessAdapter imported_;
-    Options                options_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

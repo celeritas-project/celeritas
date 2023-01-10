@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -35,13 +35,13 @@ using namespace celeritas;
 
 namespace
 {
-void print_usage(const char* exec_name)
+void print_usage(char const* exec_name)
 {
     std::cerr << "Usage: " << exec_name
               << " {input}.gdml [{options}.json, -, ''] {output}.root"
               << std::endl;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -54,7 +54,7 @@ void print_usage(const char* exec_name)
 int main(int argc, char* argv[])
 {
     ScopedRootErrorHandler scoped_root_error;
-    ScopedMpiInit          scoped_mpi(&argc, &argv);
+    ScopedMpiInit scoped_mpi(&argc, &argv);
     if (ScopedMpiInit::status() == ScopedMpiInit::Status::initialized
         && MpiCommunicator::comm_world().size() > 1)
     {
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     {
 #if CELERITAS_USE_JSON
         GeantPhysicsOptions options;
-        constexpr int       indent = 1;
+        constexpr int indent = 1;
         std::cout << nlohmann::json{options}.dump(indent) << std::endl;
 #else
         CELER_LOG(error) << "JSON is unavailable: can't output geant options";
@@ -85,9 +85,9 @@ int main(int argc, char* argv[])
         print_usage(argv[0]);
         return 2;
     }
-    const std::string& gdml_input_filename  = args[0];
-    const std::string& option_filename      = args[1];
-    const std::string& root_output_filename = args[2];
+    std::string const& gdml_input_filename = args[0];
+    std::string const& option_filename = args[1];
+    std::string const& root_output_filename = args[2];
 
     GeantPhysicsOptions options;
     if (option_filename.empty())
@@ -130,22 +130,22 @@ int main(int argc, char* argv[])
     try
     {
         GeantImporter import(GeantSetup(gdml_input_filename, options));
-        RootExporter  export_root(root_output_filename.c_str());
+        RootExporter export_root(root_output_filename.c_str());
 
         GeantImporter::DataSelection selection;
-        selection.particles   = GeantImporter::DataSelection::em;
-        selection.processes   = GeantImporter::DataSelection::em;
+        selection.particles = GeantImporter::DataSelection::em;
+        selection.processes = GeantImporter::DataSelection::em;
         selection.reader_data = true;
 
         // Read data from geant, write to ROOT
         export_root(import(selection));
     }
-    catch (const RuntimeError& e)
+    catch (RuntimeError const& e)
     {
         CELER_LOG(critical) << "Runtime error: " << e.what();
         return EXIT_FAILURE;
     }
-    catch (const DebugError& e)
+    catch (DebugError const& e)
     {
         CELER_LOG(critical) << "Assertion failure: " << e.what();
         return EXIT_FAILURE;

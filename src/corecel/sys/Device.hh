@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,7 +8,7 @@
 #pragma once
 
 #include <cstddef>
-#include <iosfwd> // IWYU pragma: keep
+#include <iosfwd>  // IWYU pragma: keep
 #include <map>
 #include <string>
 
@@ -99,32 +99,32 @@ class Device
     unsigned int default_block_size() const { return default_block_size_; }
 
     //! Additional potentially interesting diagnostics
-    const MapStrInt& extra() const { return extra_; }
+    MapStrInt const& extra() const { return extra_; }
 
   private:
-    int          id_                    = -1;
-    std::string  name_                  = "<DISABLED>";
-    std::size_t  total_global_mem_      = 0;
-    int          max_threads_per_block_ = 0;
-    int          max_blocks_per_grid_   = 0;
-    int          max_threads_per_cu_    = 0;
-    unsigned int threads_per_warp_      = 0;
-    unsigned int eu_per_cu_             = 0;
-    unsigned int default_block_size_    = 256u;
-    MapStrInt    extra_;
+    int id_ = -1;
+    std::string name_ = "<DISABLED>";
+    std::size_t total_global_mem_ = 0;
+    int max_threads_per_block_ = 0;
+    int max_blocks_per_grid_ = 0;
+    int max_threads_per_cu_ = 0;
+    unsigned int threads_per_warp_ = 0;
+    unsigned int eu_per_cu_ = 0;
+    unsigned int default_block_size_ = 256u;
+    MapStrInt extra_;
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Global active device (default is inactive/false)
-const Device& device();
+Device const& device();
 
 // Activate the device
 void activate_device(Device&& device);
 
 // Print device info
-std::ostream& operator<<(std::ostream&, const Device&);
+std::ostream& operator<<(std::ostream&, Device const&);
 
 // Increase CUDA stack size
 void set_cuda_stack_size(int limit);
@@ -145,4 +145,4 @@ int Device::device_id() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

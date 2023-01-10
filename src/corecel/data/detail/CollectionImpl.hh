@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,23 +25,23 @@ namespace detail
 template<class T, Ownership W>
 struct CollectionTraits
 {
-    using SpanT                = Span<T>;
-    using SpanConstT           = Span<const T>;
-    using pointer              = T*;
-    using const_pointer        = const T*;
-    using reference_type       = T&;
-    using const_reference_type = const T&;
+    using SpanT = Span<T>;
+    using SpanConstT = Span<T const>;
+    using pointer = T*;
+    using const_pointer = T const*;
+    using reference_type = T&;
+    using const_reference_type = T const&;
 };
 
 //---------------------------------------------------------------------------//
 template<class T>
 struct CollectionTraits<T, Ownership::reference>
 {
-    using SpanT                = Span<T>;
-    using SpanConstT           = Span<T>;
-    using pointer              = T*;
-    using const_pointer        = T*;
-    using reference_type       = T&;
+    using SpanT = Span<T>;
+    using SpanConstT = Span<T>;
+    using pointer = T*;
+    using const_pointer = T*;
+    using reference_type = T&;
     using const_reference_type = T&;
 };
 
@@ -49,12 +49,12 @@ struct CollectionTraits<T, Ownership::reference>
 template<class T>
 struct CollectionTraits<T, Ownership::const_reference>
 {
-    using SpanT                = Span<const T>;
-    using SpanConstT           = Span<const T>;
-    using pointer              = const T*;
-    using const_pointer        = const T*;
-    using reference_type       = const T&;
-    using const_reference_type = const T&;
+    using SpanT = Span<T const>;
+    using SpanConstT = Span<T const>;
+    using pointer = T const*;
+    using const_pointer = T const*;
+    using reference_type = T const&;
+    using const_reference_type = T const&;
 };
 
 //---------------------------------------------------------------------------//
@@ -102,7 +102,7 @@ struct CollectionAssigner
 {
     template<class T, Ownership W2, MemSpace M2>
     CollectionStorage<T, W, M>
-    operator()(const CollectionStorage<T, W2, M2>& source)
+    operator()(CollectionStorage<T, W2, M2> const& source)
     {
         static_assert(W != Ownership::reference || W2 == W,
                       "Can't create a reference from a const reference");
@@ -159,14 +159,14 @@ struct CollectionAssigner<Ownership::value, MemSpace::host>
 {
     template<class T, Ownership W2>
     CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(const CollectionStorage<T, W2, MemSpace::host>& source)
+    operator()(CollectionStorage<T, W2, MemSpace::host> const& source)
     {
         return {{source.data.data(), source.data.data() + source.data.size()}};
     }
 
     template<class T, Ownership W2>
     CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(const CollectionStorage<T, W2, MemSpace::device>& source)
+    operator()(CollectionStorage<T, W2, MemSpace::device> const& source)
     {
         CollectionStorage<T, Ownership::value, MemSpace::host> result{
             std::vector<T>(source.data.size())};
@@ -184,7 +184,7 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
 {
     template<class T, Ownership W2, MemSpace M2>
     CollectionStorage<T, Ownership::value, MemSpace::device>
-    operator()(const CollectionStorage<T, W2, M2>& source)
+    operator()(CollectionStorage<T, W2, M2> const& source)
     {
         static_assert(M2 == MemSpace::host,
                       "Can only assign by value from host to device");
@@ -197,5 +197,5 @@ struct CollectionAssigner<Ownership::value, MemSpace::device>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

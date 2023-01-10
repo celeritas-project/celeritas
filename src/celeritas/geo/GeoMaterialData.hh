@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ struct GeoMaterialParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GeoMaterialParamsData& operator=(const GeoMaterialParamsData<W2, M2>& other)
+    GeoMaterialParamsData& operator=(GeoMaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         materials = other.materials;
@@ -42,4 +42,4 @@ struct GeoMaterialParamsData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

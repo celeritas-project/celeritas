@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,7 +39,7 @@ struct EnergyDiagInput
     using size_type = celeritas::size_type;
     using real_type = celeritas::real_type;
 
-    char      axis{'z'};
+    char axis{'z'};
     real_type min{-700};
     real_type max{700};
     size_type num_bins{1024};
@@ -49,7 +49,7 @@ struct EnergyDiagInput
 //! Input parameters to the transporter.
 struct TransporterInput
 {
-    using size_type  = celeritas::size_type;
+    using size_type = celeritas::size_type;
     using CoreParams = celeritas::CoreParams;
 
     //! Arbitrarily high number for not stopping the simulation short
@@ -59,15 +59,15 @@ struct TransporterInput
     }
 
     // Stepper input
-    std::shared_ptr<const CoreParams> params;
-    size_type num_track_slots{}; //!< AKA max_num_tracks
-    bool sync{false}; //!< Whether to synchronize device between actions
+    std::shared_ptr<CoreParams const> params;
+    size_type num_track_slots{};  //!< AKA max_num_tracks
+    bool sync{false};  //!< Whether to synchronize device between actions
 
     // Loop control
     size_type max_steps{};
 
     // Diagnostic setup
-    bool            enable_diagnostics{true};
+    bool enable_diagnostics{true};
     EnergyDiagInput energy_diag;
 
     //! True if all params are assigned
@@ -81,14 +81,14 @@ struct TransporterInput
 //! Simulation timing results.
 struct TransporterTiming
 {
-    using real_type  = celeritas::real_type;
-    using VecReal    = std::vector<real_type>;
+    using real_type = celeritas::real_type;
+    using VecReal = std::vector<real_type>;
     using MapStrReal = std::unordered_map<std::string, real_type>;
 
-    VecReal    steps;     //!< Real time per step
-    real_type  total{};   //!< Total simulation time
-    real_type  setup{};   //!< One-time initialization cost
-    MapStrReal actions{}; //!< Accumulated action timing
+    VecReal steps;  //!< Real time per step
+    real_type total{};  //!< Total simulation time
+    real_type setup{};  //!< One-time initialization cost
+    MapStrReal actions{};  //!< Accumulated action timing
 };
 
 //---------------------------------------------------------------------------//
@@ -97,23 +97,23 @@ struct TransporterResult
 {
     //!@{
     //! Type aliases
-    using real_type         = celeritas::real_type;
-    using size_type         = celeritas::size_type;
-    using VecCount          = std::vector<size_type>;
-    using VecReal           = std::vector<real_type>;
-    using MapStringCount    = std::unordered_map<std::string, size_type>;
+    using real_type = celeritas::real_type;
+    using size_type = celeritas::size_type;
+    using VecCount = std::vector<size_type>;
+    using VecReal = std::vector<real_type>;
+    using MapStringCount = std::unordered_map<std::string, size_type>;
     using MapStringVecCount = std::unordered_map<std::string, VecCount>;
     //!@}
 
     //// DATA ////
 
-    VecCount          initializers; //!< Num starting track initializers
-    VecCount          active;       //!< Num tracks active at beginning of step
-    VecCount          alive;        //!< Num living tracks at end of step
-    VecReal           edep;         //!< Energy deposition along the grid
-    MapStringCount    process;      //!< Count of particle/process interactions
-    MapStringVecCount steps;        //!< Distribution of steps
-    TransporterTiming time;         //!< Timing information
+    VecCount initializers;  //!< Num starting track initializers
+    VecCount active;  //!< Num tracks active at beginning of step
+    VecCount alive;  //!< Num living tracks at end of step
+    VecReal edep;  //!< Energy deposition along the grid
+    MapStringCount process;  //!< Count of particle/process interactions
+    MapStringVecCount steps;  //!< Distribution of steps
+    TransporterTiming time;  //!< Timing information
 };
 
 //---------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ struct DiagnosticStore
     template<MemSpace M>
     using VecUPDiag = std::vector<std::unique_ptr<Diagnostic<M>>>;
 
-    VecUPDiag<MemSpace::host>   host;
+    VecUPDiag<MemSpace::host> host;
     VecUPDiag<MemSpace::device> device;
 };
 
@@ -144,8 +144,8 @@ class TransporterBase
     //!@{
     //! Type aliases
     using SpanConstPrimary = celeritas::Span<const celeritas::Primary>;
-    using CoreParams       = celeritas::CoreParams;
-    using ActionId         = celeritas::ActionId;
+    using CoreParams = celeritas::CoreParams;
+    using ActionId = celeritas::ActionId;
     //!@}
 
   public:
@@ -155,7 +155,7 @@ class TransporterBase
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
 
     //! Access input parameters (TODO hacky)
-    const CoreParams& params() const { return *input_.params; }
+    CoreParams const& params() const { return *input_.params; }
 
   protected:
     // TODO: these protected data are a hack for now
@@ -178,8 +178,8 @@ class Transporter final : public TransporterBase
 
   private:
     std::shared_ptr<DiagnosticStore> diagnostics_;
-    celeritas::ActionId              diagnostic_action_;
+    celeritas::ActionId diagnostic_action_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

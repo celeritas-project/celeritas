@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     LivermorePERef const& model, CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
-    auto rng      = track.make_rng_engine();
+    auto rng = track.make_rng_engine();
 
     // Get the element ID if an element was previously sampled
     auto elcomp_id = track.make_physics_step_view().element();
@@ -33,8 +33,8 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     {
         // Sample an element (calculating microscopic cross sections on the
         // fly) and store it
-        auto            material_track = track.make_material_view();
-        auto            material       = material_track.make_material_view();
+        auto material_track = track.make_material_view();
+        auto material = material_track.make_material_view();
         ElementSelector select_el(
             material,
             LivermorePEMicroXsCalculator{model, particle.energy()},
@@ -49,9 +49,9 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
     // Set up photoelectric interactor with the selected element
     auto relaxation
         = track.make_physics_step_view().make_relaxation_helper(el_id);
-    auto        cutoffs = track.make_cutoff_view();
-    const auto& dir     = track.make_geo_view().dir();
-    auto        allocate_secondaries
+    auto cutoffs = track.make_cutoff_view();
+    auto const& dir = track.make_geo_view().dir();
+    auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
     LivermorePEInteractor interact(
         model, relaxation, el_id, particle, cutoffs, dir, allocate_secondaries);
@@ -61,4 +61,4 @@ inline CELER_FUNCTION Interaction livermore_pe_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

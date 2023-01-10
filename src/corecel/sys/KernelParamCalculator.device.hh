@@ -1,5 +1,5 @@
 //---------------------------------*-C++-*-----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,7 +18,7 @@
 
 #include "Device.hh"
 #include "KernelAttributes.hh"
-#include "ThreadId.hh" // IWYU pragma: export
+#include "ThreadId.hh"  // IWYU pragma: export
 
 /*!
  * \def CELER_LAUNCH_KERNEL
@@ -94,8 +94,8 @@ class KernelParamCalculator
     //! Parameters needed for a CUDA lauch call
     struct LaunchParams
     {
-        dim3 blocks_per_grid;   //!< Number of blocks for kernel grid
-        dim3 threads_per_block; //!< Number of threads per block
+        dim3 blocks_per_grid;  //!< Number of blocks for kernel grid
+        dim3 threads_per_block;  //!< Number of threads per block
     };
 
   public:
@@ -106,13 +106,13 @@ class KernelParamCalculator
 
     // Construct with the default block size
     template<class F>
-    inline KernelParamCalculator(const char* name, F* kernel_func_ptr);
+    inline KernelParamCalculator(char const* name, F* kernel_func_ptr);
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(const char* name,
-                                 F*          kernel_func_ptr,
-                                 dim_type    threads_per_block);
+    inline KernelParamCalculator(char const* name,
+                                 F* kernel_func_ptr,
+                                 dim_type threads_per_block);
 
     // Get launch parameters
     inline LaunchParams operator()(size_type min_num_threads) const;
@@ -125,7 +125,7 @@ class KernelParamCalculator
 
     //// HELPER FUNCTIONS ////
 
-    void register_kernel(const char* name, KernelAttributes&& attributes);
+    void register_kernel(char const* name, KernelAttributes&& attributes);
     void log_launch(size_type min_num_threads) const;
 };
 
@@ -150,8 +150,8 @@ CELER_FUNCTION auto KernelParamCalculator::thread_id() -> ThreadId
  * Construct for the given global kernel F.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(const char* name,
-                                             F*          kernel_func_ptr)
+KernelParamCalculator::KernelParamCalculator(char const* name,
+                                             F* kernel_func_ptr)
     : KernelParamCalculator(
         name, kernel_func_ptr, celeritas::device().default_block_size())
 {
@@ -165,9 +165,9 @@ KernelParamCalculator::KernelParamCalculator(const char* name,
  * pointer to the profiling data if profiling is to be used.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(const char* name,
-                                             F*          kernel_func_ptr,
-                                             dim_type    threads_per_block)
+KernelParamCalculator::KernelParamCalculator(char const* name,
+                                             F* kernel_func_ptr,
+                                             dim_type threads_per_block)
     : block_size_(threads_per_block)
 {
     CELER_EXPECT(threads_per_block <= static_cast<dim_type>(
@@ -201,7 +201,7 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
                  < dim_type(celeritas::device().max_blocks_per_grid()));
 
     LaunchParams result;
-    result.blocks_per_grid.x   = blocks_per_grid;
+    result.blocks_per_grid.x = blocks_per_grid;
     result.threads_per_block.x = this->block_size_;
     CELER_ENSURE(result.blocks_per_grid.x * result.threads_per_block.x
                  >= min_num_threads);
@@ -209,4 +209,4 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

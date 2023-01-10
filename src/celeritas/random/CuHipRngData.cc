@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,8 +23,8 @@ namespace celeritas
  */
 template<MemSpace M>
 void resize(CuHipRngStateData<Ownership::value, M>* state,
-            const HostCRef<CuHipRngParamsData>&     params,
-            size_type                               size)
+            HostCRef<CuHipRngParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
@@ -32,7 +32,7 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
     using RngInit = CuHipRngInitializer;
 
     // Host-side RNG for creating seeds
-    std::mt19937                           host_rng(params.seed);
+    std::mt19937 host_rng(params.seed);
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds for device in host memory
@@ -53,12 +53,12 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
 //---------------------------------------------------------------------------//
 // Explicit instantiations
 template void resize(HostVal<CuHipRngStateData>*,
-                     const HostCRef<CuHipRngParamsData>&,
+                     HostCRef<CuHipRngParamsData> const&,
                      size_type);
 
 template void resize(CuHipRngStateData<Ownership::value, MemSpace::device>*,
-                     const HostCRef<CuHipRngParamsData>&,
+                     HostCRef<CuHipRngParamsData> const&,
                      size_type);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

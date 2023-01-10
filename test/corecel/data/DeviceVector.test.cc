@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,8 +33,8 @@ TEST(DeviceVectorTest, all)
     EXPECT_EQ(1024, vec.size());
     {
         Vec_t other(128);
-        int*  orig_vec   = vec.device_ref().data();
-        int*  orig_other = other.device_ref().data();
+        int* orig_vec = vec.device_ref().data();
+        int* orig_other = other.device_ref().data();
         swap(vec, other);
         EXPECT_EQ(1024, other.size());
         EXPECT_EQ(orig_other, vec.device_ref().data());
@@ -44,7 +44,7 @@ TEST(DeviceVectorTest, all)
 
     std::vector<int> data(vec.size());
     data.front() = 1;
-    data.back()  = 1234567;
+    data.back() = 1234567;
 
     vec.copy_to_device(make_span(data));
 
@@ -55,7 +55,7 @@ TEST(DeviceVectorTest, all)
 
     // Test move construction/assignment
     {
-        int*  orig_vec = vec.device_ref().data();
+        int* orig_vec = vec.device_ref().data();
         Vec_t other(std::move(vec));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, vec.size());
@@ -72,15 +72,15 @@ TEST(DeviceVectorTest, all)
 TEST(DeviceVectorTest, should_not_compile)
 {
     DeviceVector<int> dv(123);
-    Span<int>         s = make_span(dv);
+    Span<int> s = make_span(dv);
     EXPECT_EQ(123, s.size());
 
-    const auto&     dv_cref = dv;
-    Span<const int> s2      = make_span(dv_cref);
+    auto const& dv_cref = dv;
+    Span<int const> s2 = make_span(dv_cref);
     EXPECT_EQ(123, s2.size());
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

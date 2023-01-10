@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,30 +19,30 @@ namespace celeritas
  */
 enum class LogLevel
 {
-    debug,      //!< Debugging messages
-    diagnostic, //!< Diagnostics about current program execution
-    status,     //!< Program execution status (what stage is beginning)
-    info,       //!< Important informational messages
-    warning,    //!< Warnings about unusual events
-    error,      //!< Something went wrong, but execution can continue
-    critical,   //!< Something went terribly wrong, should probably abort
-    size_       //!< Sentinel value for looping over log levels
+    debug,  //!< Debugging messages
+    diagnostic,  //!< Diagnostics about current program execution
+    status,  //!< Program execution status (what stage is beginning)
+    info,  //!< Important informational messages
+    warning,  //!< Warnings about unusual events
+    error,  //!< Something went wrong, but execution can continue
+    critical,  //!< Something went terribly wrong, should probably abort
+    size_  //!< Sentinel value for looping over log levels
 };
 
 //---------------------------------------------------------------------------//
 // Get the plain text equivalent of the log level above
-const char* to_cstring(LogLevel);
+char const* to_cstring(LogLevel);
 
 //---------------------------------------------------------------------------//
 //! Stand-in for a more complex class for the "provenance" of data
 struct Provenance
 {
-    std::string file;     //!< Originating file
-    int         line = 0; //!< Line number
+    std::string file;  //!< Originating file
+    int line = 0;  //!< Line number
 };
 
 //! Type for handling a log message
 using LogHandler = std::function<void(Provenance, LogLevel, std::string)>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

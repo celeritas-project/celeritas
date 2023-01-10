@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ namespace demo_interactor
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(const DeviceGridParams& grid, Span<const bool> alive)
+size_type reduce_alive(DeviceGridParams const& grid, Span<bool const> alive)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),
@@ -37,4 +37,4 @@ size_type reduce_alive(const DeviceGridParams& grid, Span<const bool> alive)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ class G4VSolid;
 namespace HepMC3
 {
 class Reader;
-} // namespace HepMC3
+}  // namespace HepMC3
 
 namespace celeritas
 {
@@ -44,7 +44,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 {
   public:
     // Construct with HepMC3 filename
-    explicit HepMC3PrimaryGenerator(const std::string& filename);
+    explicit HepMC3PrimaryGenerator(std::string const& filename);
 
     //! Add primaries to Geant4 event
     void GeneratePrimaryVertex(G4Event* g4_event) final;
@@ -55,15 +55,15 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
   private:
     using SPReader = std::shared_ptr<HepMC3::Reader>;
 
-    int        num_events_;  // Total number of events
-    G4VSolid*  world_solid_; // World volume solid
-    SPReader   reader_;      // HepMC3 input reader
+    int num_events_;  // Total number of events
+    G4VSolid* world_solid_;  // World volume solid
+    SPReader reader_;  // HepMC3 input reader
     std::mutex read_mutex_;
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_HEPMC3
-inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
+inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
 {
     CELER_NOT_CONFIGURED("HepMC3");
     (void)sizeof(world_solid_);
@@ -75,4 +75,4 @@ inline void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event*) {}
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

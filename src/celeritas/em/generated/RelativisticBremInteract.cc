@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,8 +24,8 @@ namespace celeritas
 namespace generated
 {
 void relativistic_brem_interact(
-    const celeritas::RelativisticBremHostRef& model_data,
-    const celeritas::CoreRef<MemSpace::host>& core_data)
+    celeritas::RelativisticBremHostRef const& model_data,
+    celeritas::CoreRef<MemSpace::host> const& core_data)
 {
     CELER_EXPECT(core_data);
     CELER_EXPECT(model_data);
@@ -43,5 +43,5 @@ void relativistic_brem_interact(
     log_and_rethrow(std::move(capture_exception));
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

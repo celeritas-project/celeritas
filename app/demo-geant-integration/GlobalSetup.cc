@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ GlobalSetup* GlobalSetup::Instance()
  */
 GlobalSetup::GlobalSetup()
 {
-    options_   = std::make_shared<SetupOptions>();
+    options_ = std::make_shared<SetupOptions>();
     messenger_ = std::make_unique<G4GenericMessenger>(
         this, "/setup/", "Demo geant integration setup");
 
@@ -123,4 +123,4 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
 GlobalSetup::~GlobalSetup() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

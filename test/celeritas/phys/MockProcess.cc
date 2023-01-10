@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,13 +38,13 @@ auto MockProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     MockModel::Input input;
     input.materials = data_.materials;
-    input.cb        = data_.interact;
-    input.xs        = data_.xs;
+    input.cb = data_.interact;
+    input.xs = data_.xs;
 
     VecModel result;
-    for (const Applicability& applic : data_.applic)
+    for (Applicability const& applic : data_.applic)
     {
-        input.id     = *start_id++;
+        input.id = *start_id++;
         input.applic = applic;
         result.push_back(std::make_shared<MockModel>(input));
     }
@@ -60,7 +60,7 @@ auto MockProcess::step_limits(Applicability range) const -> StepLimitBuilders
     using VecReal = std::vector<real_type>;
 
     MaterialView mat(data_.materials->host_ref(), range.material);
-    real_type    numdens = mat.number_density();
+    real_type numdens = mat.number_density();
 
     StepLimitBuilders builders;
     if (!data_.xs.empty())
@@ -104,5 +104,5 @@ std::string MockProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

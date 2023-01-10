@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,36 +40,36 @@ class MockProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using BarnMicroXs      = Quantity<units::Barn>;
+    using BarnMicroXs = Quantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
-    using VecMicroXs       = std::vector<BarnMicroXs>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using ModelCallback    = std::function<void(ActionId)>;
+    using VecMicroXs = std::vector<BarnMicroXs>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using ModelCallback = std::function<void(ActionId)>;
     //!@}
 
     struct Input
     {
         SPConstMaterials materials;
-        std::string      label;
-        bool             use_integral_xs;
-        VecApplicability applic;        //!< Applicablity per model
-        ModelCallback    interact;      //!< MockModel::interact callback
-        VecMicroXs       xs;            //!< Constant per atom [bn]
-        real_type        energy_loss{}; //!< Constant per atom [MeV/cm / cm^-3]
+        std::string label;
+        bool use_integral_xs;
+        VecApplicability applic;  //!< Applicablity per model
+        ModelCallback interact;  //!< MockModel::interact callback
+        VecMicroXs xs;  //!< Constant per atom [bn]
+        real_type energy_loss{};  //!< Constant per atom [MeV/cm / cm^-3]
     };
 
   public:
     explicit MockProcess(Input data);
 
-    VecModel          build_models(ActionIdIter start_id) const final;
+    VecModel build_models(ActionIdIter start_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
-    bool              use_integral_xs() const final;
-    std::string       label() const final;
+    bool use_integral_xs() const final;
+    std::string label() const final;
 
   private:
     Input data_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -44,15 +44,15 @@ ModelArray<bool> make_microxs_flag_array()
     return result;
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the string value for a table type.
  */
-const char* to_cstring(ImportProcessType value)
+char const* to_cstring(ImportProcessType value)
 {
-    static const char* const strings[] = {"not_defined",
+    static char const* const strings[] = {"not_defined",
                                           "transportation",
                                           "electromagnetic",
                                           "optical",
@@ -65,7 +65,7 @@ const char* to_cstring(ImportProcessType value)
                                           "parallel",
                                           "phonon",
                                           "ucn"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
@@ -76,9 +76,9 @@ const char* to_cstring(ImportProcessType value)
  *
  * This enum was created to safely access the many physics tables imported.
  */
-const char* to_cstring(ImportProcessClass value)
+char const* to_cstring(ImportProcessClass value)
 {
-    static const char* const strings[] = {"unknown",
+    static char const* const strings[] = {"unknown",
                                           "ion_ioni",
                                           "msc",
                                           "h_ioni",
@@ -96,7 +96,7 @@ const char* to_cstring(ImportProcessClass value)
                                           "mu_brems",
                                           "mu_pair_prod",
                                           "transportation"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
@@ -107,9 +107,9 @@ const char* to_cstring(ImportProcessClass value)
  *
  * This enum was created to safely access the many imported physics tables.
  */
-const char* to_cstring(ImportModelClass value)
+char const* to_cstring(ImportModelClass value)
 {
-    static const char* const strings[] = {"unknown",
+    static char const* const strings[] = {"unknown",
                                           "bragg_ion",
                                           "bethe_bloch",
                                           "urban_msc",
@@ -131,7 +131,7 @@ const char* to_cstring(ImportModelClass value)
                                           "mu_bethe_bloch",
                                           "mu_brems",
                                           "mu_pair_prod"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(const char*)
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
                  < sizeof(strings));
     return strings[static_cast<unsigned int>(value)];
 }
@@ -140,31 +140,31 @@ const char* to_cstring(ImportModelClass value)
 /*!
  * Get the default Geant4 process name for an ImportProcessClass.
  */
-const char* to_geant_name(ImportProcessClass value)
+char const* to_geant_name(ImportProcessClass value)
 {
     CELER_EXPECT(value != ImportProcessClass::size_);
 
-    static const char* const strings[] = {
-        "",            // unknown,
-        "ionIoni",     // ion_ioni,
-        "msc",         // msc,
-        "hIoni",       // h_ioni,
-        "hBrems",      // h_brems,
-        "hPairProd",   // h_pair_prod,
-        "CoulombScat", // coulomb_scat,
-        "eIoni",       // e_ioni,
-        "eBrem",       // e_brems,
-        "phot",        // photoelectric,
-        "compt",       // compton,
-        "conv",        // conversion,
-        "Rayl",        // rayleigh,
-        "annihil",     // annihilation,
-        "muIoni",      // mu_ioni,
-        "muBrems",     // mu_brems,
+    static char const* const strings[] = {
+        "",  // unknown,
+        "ionIoni",  // ion_ioni,
+        "msc",  // msc,
+        "hIoni",  // h_ioni,
+        "hBrems",  // h_brems,
+        "hPairProd",  // h_pair_prod,
+        "CoulombScat",  // coulomb_scat,
+        "eIoni",  // e_ioni,
+        "eBrem",  // e_brems,
+        "phot",  // photoelectric,
+        "compt",  // compton,
+        "conv",  // conversion,
+        "Rayl",  // rayleigh,
+        "annihil",  // annihilation,
+        "muIoni",  // mu_ioni,
+        "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
     };
     static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
-                          * sizeof(const char*)
+                          * sizeof(char const*)
                       == sizeof(strings),
                   "Enum strings are incorrect");
 
@@ -178,9 +178,9 @@ const char* to_geant_name(ImportProcessClass value)
  * This will throw a \c celeritas::RuntimeError if the string is not known to
  * us.
  */
-ImportProcessClass geant_name_to_import_process_class(const std::string& s)
+ImportProcessClass geant_name_to_import_process_class(std::string const& s)
 {
-    static const auto from_string
+    static auto const from_string
         = StringEnumMap<ImportProcessClass>::from_cstring_func(
             to_geant_name, "process class");
 
@@ -194,9 +194,9 @@ ImportProcessClass geant_name_to_import_process_class(const std::string& s)
 bool needs_micro_xs(ImportModelClass value)
 {
     CELER_EXPECT(value < ImportModelClass::size_);
-    static const ModelArray<bool> needs_xs = make_microxs_flag_array();
+    static ModelArray<bool> const needs_xs = make_microxs_flag_array();
     return needs_xs[value];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

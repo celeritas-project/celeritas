@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ namespace test
 TEST(FastHasherTest, four_byte)
 {
     std::uint32_t result{0};
-    auto          hash = make_fast_hasher(&result);
+    auto hash = make_fast_hasher(&result);
     EXPECT_NE(0, result);
     hash(static_cast<Byte>(0xab));
     hash(static_cast<Byte>(0xcd));
@@ -33,7 +33,7 @@ TEST(FastHasherTest, four_byte)
 TEST(FastHasherTest, eight_byte)
 {
     std::uint64_t result{0};
-    auto          hash = make_fast_hasher(&result);
+    auto hash = make_fast_hasher(&result);
     EXPECT_NE(0, result);
     hash(static_cast<Byte>(0xab));
     hash(static_cast<Byte>(0xcd));
@@ -42,8 +42,8 @@ TEST(FastHasherTest, eight_byte)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
+}  // namespace test
+}  // namespace detail
 
 namespace test
 {
@@ -61,5 +61,5 @@ TEST(HashUtilsTest, hash_combine)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

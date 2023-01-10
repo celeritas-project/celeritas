@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,15 +26,15 @@ class BetheHeitlerModel final : public Model
   public:
     //!@{
     //! Type aliases
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
     // Construct from model ID and other necessary data
-    BetheHeitlerModel(ActionId              id,
-                      const ParticleParams& particles,
-                      SPConstImported       data,
-                      bool                  enable_lpm);
+    BetheHeitlerModel(ActionId id,
+                      ParticleParams const& particles,
+                      SPConstImported data,
+                      bool enable_lpm);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -61,9 +61,9 @@ class BetheHeitlerModel final : public Model
     }
 
   private:
-    BetheHeitlerData     interface_;
+    BetheHeitlerData interface_;
     ImportedModelAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

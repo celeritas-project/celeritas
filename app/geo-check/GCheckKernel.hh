@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,9 +24,9 @@ namespace geo_check
 //---------------------------------------------------------------------------//
 using celeritas::GeoTrackInitializer;
 
-using GeoParamsCRefHost   = celeritas::HostCRef<celeritas::GeoParamsData>;
+using GeoParamsCRefHost = celeritas::HostCRef<celeritas::GeoParamsData>;
 using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
+using GeoStateRefDevice = celeritas::DeviceRef<celeritas::GeoStateData>;
 
 using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
 
@@ -35,20 +35,20 @@ using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
 struct GCheckInput
 {
     std::vector<celeritas::GeoTrackInitializer> init;
-    int                                         max_steps = 0;
-    GeoParamsCRefDevice                         params;
-    GeoStateRefDevice                           state;
+    int max_steps = 0;
+    GeoParamsCRefDevice params;
+    GeoStateRefDevice state;
 };
 
 //! Output results
 struct GCheckOutput
 {
-    std::vector<int>    ids;
+    std::vector<int> ids;
     std::vector<double> distances;
 };
 
 //---------------------------------------------------------------------------//
-CELER_FORCEINLINE_FUNCTION int physid(const celeritas::GeoTrackView& geo)
+CELER_FORCEINLINE_FUNCTION int physid(celeritas::GeoTrackView const& geo)
 {
     if (geo.is_outside())
         return 0;
@@ -61,9 +61,9 @@ CELER_FORCEINLINE_FUNCTION int physid(const celeritas::GeoTrackView& geo)
 
 //---------------------------------------------------------------------------//
 //! Run tracking on the CPU
-GCheckOutput run_cpu(const SPConstGeo&          geo_params,
-                     const GeoTrackInitializer* track_init,
-                     int                        max_steps);
+GCheckOutput run_cpu(SPConstGeo const& geo_params,
+                     GeoTrackInitializer const* track_init,
+                     int max_steps);
 
 //! Run tracking on the GPU
 GCheckOutput run_gpu(GCheckInput init);
@@ -76,4 +76,4 @@ inline GCheckOutput run_gpu(GCheckInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace geo_check
+}  // namespace geo_check

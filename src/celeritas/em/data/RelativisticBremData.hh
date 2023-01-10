@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,8 +26,8 @@ namespace celeritas
  */
 struct RelBremFormFactor
 {
-    real_type el;   //!< elastic component
-    real_type inel; //!< inelastic component
+    real_type el;  //!< elastic component
+    real_type inel;  //!< inelastic component
 };
 
 //---------------------------------------------------------------------------//
@@ -37,11 +37,11 @@ struct RelBremFormFactor
  */
 struct RelBremElementData
 {
-    real_type fz;             //!< \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
-    real_type factor1;        //!< \f$ ((Fel-fc)+Finel*invZ)\f$
-    real_type factor2;        //!< \f$ (1.0+invZ)/12 \f$
-    real_type gamma_factor;   //!< Constant for evaluating screening functions
-    real_type epsilon_factor; //!< Constant for evaluating screening functions
+    real_type fz;  //!< \f$ \ln(Z)/3 + f_c (Coulomb correction) \f$
+    real_type factor1;  //!< \f$ ((Fel-fc)+Finel*invZ)\f$
+    real_type factor2;  //!< \f$ (1.0+invZ)/12 \f$
+    real_type gamma_factor;  //!< Constant for evaluating screening functions
+    real_type epsilon_factor;  //!< Constant for evaluating screening functions
 };
 
 //---------------------------------------------------------------------------//
@@ -84,19 +84,19 @@ struct RelativisticBremData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RelativisticBremData& operator=(const RelativisticBremData<W2, M2>& other)
+    RelativisticBremData& operator=(RelativisticBremData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids           = other.ids;
+        ids = other.ids;
         electron_mass = other.electron_mass;
-        enable_lpm    = other.enable_lpm;
-        elem_data     = other.elem_data;
+        enable_lpm = other.enable_lpm;
+        elem_data = other.elem_data;
         return *this;
     }
 };
 
 using RelativisticBremDeviceRef = DeviceCRef<RelativisticBremData>;
-using RelativisticBremHostRef   = HostCRef<RelativisticBremData>;
-using RelativisticBremRef       = NativeCRef<RelativisticBremData>;
+using RelativisticBremHostRef = HostCRef<RelativisticBremData>;
+using RelativisticBremRef = NativeCRef<RelativisticBremData>;
 
-} // namespace celeritas
+}  // namespace celeritas

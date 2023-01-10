@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -59,15 +59,15 @@ class ElementSelector
   public:
     //!@{
     //! Type aliases
-    using SpanReal      = Span<real_type>;
-    using SpanConstReal = Span<const real_type>;
+    using SpanReal = Span<real_type>;
+    using SpanConstReal = Span<real_type const>;
     //!@}
 
   public:
     // Construct with material, xs calculator, and storage.
     template<class MicroXsCalc>
-    inline CELER_FUNCTION ElementSelector(const MaterialView& material,
-                                          MicroXsCalc&&       calc_micro_xs,
+    inline CELER_FUNCTION ElementSelector(MaterialView const& material,
+                                          MicroXsCalc&& calc_micro_xs,
                                           SpanReal micro_xs_storage);
 
     // Sample with the given RNG
@@ -81,9 +81,9 @@ class ElementSelector
     inline CELER_FUNCTION SpanConstReal elemental_micro_xs() const;
 
   private:
-    Span<const MatElementComponent> elements_;
-    real_type                       material_xs_;
-    real_type*                      elemental_xs_;
+    Span<MatElementComponent const> elements_;
+    real_type material_xs_;
+    real_type* elemental_xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,9 +93,9 @@ class ElementSelector
  * Construct with material, xs calculator, and storage.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION ElementSelector::ElementSelector(const MaterialView& material,
+CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
                                                 MicroXsCalc&& calc_micro_xs,
-                                                SpanReal      storage)
+                                                SpanReal storage)
     : elements_(material.elements())
     , material_xs_(0)
     , elemental_xs_(storage.data())
@@ -125,8 +125,8 @@ template<class Engine>
 CELER_FUNCTION ElementComponentId ElementSelector::operator()(Engine& rng) const
 {
     real_type accum_xs = -material_xs_ * generate_canonical(rng);
-    size_type i        = 0;
-    size_type imax     = elements_.size() - 1;
+    size_type i = 0;
+    size_type imax = elements_.size() - 1;
     for (; i != imax; ++i)
     {
         accum_xs += elements_[i].fraction * elemental_xs_[i];
@@ -146,4 +146,4 @@ CELER_FUNCTION auto ElementSelector::elemental_micro_xs() const -> SpanConstReal
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

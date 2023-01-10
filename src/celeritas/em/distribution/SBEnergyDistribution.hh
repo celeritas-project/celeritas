@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@ struct SBElectronXsCorrector
     CELER_FUNCTION real_type operator()(units::MevEnergy) const { return 1; }
 
     // Calculate maximum differential cross section for the incident energy
-    CELER_FUNCTION Xs max_xs(const SBEnergyDistHelper& helper) const
+    CELER_FUNCTION Xs max_xs(SBEnergyDistHelper const& helper) const
     {
         return helper.max_xs();
     }
@@ -107,14 +107,14 @@ class SBEnergyDistribution
   public:
     //!@{
     //! Type aliases
-    using SBData   = NativeCRef<SeltzerBergerData>;
-    using Energy   = units::MevEnergy;
+    using SBData = NativeCRef<SeltzerBergerData>;
+    using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistribution(const SBEnergyDistHelper& helper,
+    inline CELER_FUNCTION SBEnergyDistribution(SBEnergyDistHelper const& helper,
                                                XSCorrector scale_xs);
 
     template<class Engine>
@@ -122,9 +122,9 @@ class SBEnergyDistribution
 
   private:
     //// IMPLEMENTATION DATA ////
-    const SBEnergyDistHelper& helper_;
-    const real_type           inv_max_xs_;
-    XSCorrector               scale_xs_;
+    SBEnergyDistHelper const& helper_;
+    const real_type inv_max_xs_;
+    XSCorrector scale_xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -138,7 +138,7 @@ class SBEnergyDistribution
  */
 template<class X>
 CELER_FUNCTION
-SBEnergyDistribution<X>::SBEnergyDistribution(const SBEnergyDistHelper& helper,
+SBEnergyDistribution<X>::SBEnergyDistribution(SBEnergyDistHelper const& helper,
                                               X scale_xs)
     : helper_(helper)
     , inv_max_xs_(1 / scale_xs.max_xs(helper).value())
@@ -171,4 +171,4 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

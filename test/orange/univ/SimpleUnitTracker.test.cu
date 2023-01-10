@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,8 +19,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
-                                  const StateRef<MemSpace::device>  states)
+__global__ void initialize_kernel(ParamsRef<MemSpace::device> const params,
+                                  StateRef<MemSpace::device> const states)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= states.size())
@@ -29,14 +29,14 @@ __global__ void initialize_kernel(const ParamsRef<MemSpace::device> params,
     InitializingLauncher<> calc_thread{params, states};
     calc_thread(tid);
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-void test_initialize(const ParamsRef<MemSpace::device>& params,
-                     const StateRef<MemSpace::device>&  state)
+void test_initialize(ParamsRef<MemSpace::device> const& params,
+                     StateRef<MemSpace::device> const& state)
 {
     CELER_LAUNCH_KERNEL(
         initialize, device().default_block_size(), state.size(), params, state);
@@ -44,5 +44,5 @@ void test_initialize(const ParamsRef<MemSpace::device>& params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

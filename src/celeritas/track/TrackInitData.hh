@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,8 +33,8 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct TrackInitParamsData
 {
-    size_type capacity{0};   //!< Track initializer storage size
-    size_type max_events{0}; //!< Maximum number of events that can be run
+    size_type capacity{0};  //!< Track initializer storage size
+    size_type max_events{0};  //!< Maximum number of events that can be run
 
     //// METHODS ////
 
@@ -46,10 +46,10 @@ struct TrackInitParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    TrackInitParamsData& operator=(const TrackInitParamsData<W2, M2>& other)
+    TrackInitParamsData& operator=(TrackInitParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        capacity   = other.capacity;
+        capacity = other.capacity;
         max_events = other.max_events;
         return *this;
     }
@@ -62,8 +62,8 @@ struct TrackInitParamsData
  */
 struct TrackInitializer
 {
-    SimTrackInitializer      sim;
-    GeoTrackInitializer      geo;
+    SimTrackInitializer sim;
+    GeoTrackInitializer geo;
     ParticleTrackInitializer particle;
 };
 
@@ -76,16 +76,16 @@ struct ResizableData
 {
     //// TYPES ////
 
-    using CollectionT    = StateCollection<T, W, M>;
-    using ItemIdT        = typename CollectionT::ItemIdT;
-    using ItemRangeT     = typename CollectionT::ItemRangeT;
+    using CollectionT = StateCollection<T, W, M>;
+    using ItemIdT = typename CollectionT::ItemIdT;
+    using ItemRangeT = typename CollectionT::ItemRangeT;
     using reference_type = typename CollectionT::reference_type;
-    using SpanT          = typename CollectionT::SpanT;
+    using SpanT = typename CollectionT::SpanT;
 
     //// DATA ////
 
     CollectionT storage;
-    size_type   count{};
+    size_type count{};
 
     //// METHODS ////
 
@@ -127,7 +127,7 @@ struct ResizableData
     {
         CELER_EXPECT(other);
         storage = other.storage;
-        count   = other.count;
+        count = other.count;
         return *this;
     }
 };
@@ -164,12 +164,12 @@ struct TrackInitStateData
     //// DATA ////
 
     ResizableItems<TrackInitializer> initializers;
-    ResizableItems<size_type>        vacancies;
-    StateItems<ThreadId>             parents;
-    StateItems<size_type>            secondary_counts;
-    EventItems<TrackId::size_type>   track_counters;
+    ResizableItems<size_type> vacancies;
+    StateItems<ThreadId> parents;
+    StateItems<size_type> secondary_counts;
+    EventItems<TrackId::size_type> track_counters;
 
-    size_type num_secondaries{}; //!< Number of secondaries produced in a step
+    size_type num_secondaries{};  //!< Number of secondaries produced in a step
 
     //// METHODS ////
 
@@ -185,18 +185,18 @@ struct TrackInitStateData
     TrackInitStateData& operator=(TrackInitStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        initializers     = other.initializers;
-        parents          = other.parents;
-        vacancies        = other.vacancies;
+        initializers = other.initializers;
+        parents = other.parents;
+        vacancies = other.vacancies;
         secondary_counts = other.secondary_counts;
-        track_counters   = other.track_counters;
-        num_secondaries  = other.num_secondaries;
+        track_counters = other.track_counters;
+        num_secondaries = other.num_secondaries;
         return *this;
     }
 };
 
 using TrackInitStateDeviceRef = DeviceRef<TrackInitStateData>;
-using TrackInitStateHostRef   = HostRef<TrackInitStateData>;
+using TrackInitStateHostRef = HostRef<TrackInitStateData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -211,8 +211,8 @@ using TrackInitStateHostRef   = HostRef<TrackInitStateData>;
  */
 template<MemSpace M>
 void resize(TrackInitStateData<Ownership::value, M>* data,
-            const HostCRef<TrackInitParamsData>&     params,
-            size_type                                size)
+            HostCRef<TrackInitParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
@@ -245,4 +245,4 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
 
 //---------------------------------------------------------------------------//
 
-} // namespace celeritas
+}  // namespace celeritas

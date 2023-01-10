@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 
-#include "VecgeomData.hh" // IWYU pragma: associated
+#include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/GeantGeoExporter.hh"
 
 namespace celeritas
@@ -38,7 +38,7 @@ namespace celeritas
 /*!
  * Construct from a GDML input.
  */
-VecgeomParams::VecgeomParams(const std::string& filename)
+VecgeomParams::VecgeomParams(std::string const& filename)
 {
     CELER_LOG(info) << "Loading VecGeom geometry from GDML at " << filename;
     if (!ends_with(filename, ".gdml"))
@@ -66,7 +66,7 @@ VecgeomParams::VecgeomParams(const std::string& filename)
  * At present this just exports the geometry to GDML, then loads it through the
  * VGDML reader.
  */
-VecgeomParams::VecgeomParams(const G4VPhysicalVolume* world)
+VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 {
     CELER_EXPECT(world);
 #if CELERITAS_USE_GEANT4
@@ -115,7 +115,7 @@ VecgeomParams::~VecgeomParams()
 /*!
  * Get the label for a placed volume ID.
  */
-const Label& VecgeomParams::id_to_label(VolumeId vol) const
+Label const& VecgeomParams::id_to_label(VolumeId vol) const
 {
     CELER_EXPECT(vol < vol_labels_.size());
     return vol_labels_.get(vol);
@@ -125,7 +125,7 @@ const Label& VecgeomParams::id_to_label(VolumeId vol) const
 /*!
  * Get the ID corresponding to a label.
  */
-auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
+auto VecgeomParams::find_volume(std::string const& name) const -> VolumeId
 {
     auto result = vol_labels_.find_all(name);
     if (result.empty())
@@ -141,7 +141,7 @@ auto VecgeomParams::find_volume(const std::string& name) const -> VolumeId
  *
  * If the label isn't in the geometry, a null ID will be returned.
  */
-VolumeId VecgeomParams::find_volume(const Label& label) const
+VolumeId VecgeomParams::find_volume(Label const& label) const
 {
     return vol_labels_.find(label);
 }
@@ -153,7 +153,7 @@ VolumeId VecgeomParams::find_volume(const Label& label) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions' from Geant4.
  */
-auto VecgeomParams::find_volumes(const std::string& name) const
+auto VecgeomParams::find_volumes(std::string const& name) const
     -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
@@ -215,14 +215,14 @@ void VecgeomParams::build_tracking()
 void VecgeomParams::build_data()
 {
     // Save host data
-    auto& vg_manager       = vecgeom::GeoManager::Instance();
+    auto& vg_manager = vecgeom::GeoManager::Instance();
     host_ref_.world_volume = vg_manager.GetWorld();
-    host_ref_.max_depth    = vg_manager.getMaxDepth();
+    host_ref_.max_depth = vg_manager.getMaxDepth();
 
     if (celeritas::device())
     {
 #if CELERITAS_USE_CUDA
-        auto& cuda_manager       = vecgeom::cxx::CudaManager::Instance();
+        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
         device_ref_.world_volume = cuda_manager.world_gpu();
 #endif
         device_ref_.max_depth = host_ref_.max_depth;
@@ -245,7 +245,7 @@ void VecgeomParams::build_metadata()
     for (auto vol_idx : range<VolumeId::size_type>(labels.size()))
     {
         // Get label
-        const vecgeom::LogicalVolume* vol
+        vecgeom::LogicalVolume const* vol
             = vg_manager.FindLogicalVolume(vol_idx);
         CELER_ASSERT(vol);
 
@@ -254,7 +254,7 @@ void VecgeomParams::build_metadata()
         {
             // Many VGDML imported IDs seem to be empty for CMS
             label.name = "[unused]";
-            label.ext  = std::to_string(vol_idx);
+            label.ext = std::to_string(vol_idx);
         }
 
         labels[vol_idx] = std::move(label);
@@ -279,4 +279,4 @@ void VecgeomParams::build_metadata()
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

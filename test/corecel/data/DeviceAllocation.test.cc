@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -46,8 +46,8 @@ TEST(InitializedValue, semantics)
     EXPECT_EQ(1000, third);
 
     // Test const T& constructor
-    const int cint = 1234;
-    other          = InitValueInt(cint);
+    int const cint = 1234;
+    other = InitValueInt(cint);
     EXPECT_EQ(1234, other);
 
     // Test implicit conversion
@@ -96,8 +96,8 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 
     {
         DeviceAllocation other(128);
-        Byte*            orig_alloc = alloc.device_ref().data();
-        Byte*            orig_other = other.device_ref().data();
+        Byte* orig_alloc = alloc.device_ref().data();
+        Byte* orig_other = other.device_ref().data();
         swap(alloc, other);
         EXPECT_EQ(1024, other.size());
         EXPECT_EQ(orig_other, alloc.device_ref().data());
@@ -107,7 +107,7 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 
     std::vector<Byte> data(alloc.size());
     data.front() = Byte(1);
-    data.back()  = Byte(127);
+    data.back() = Byte(127);
 
     alloc.copy_to_device(make_span(data));
 
@@ -118,7 +118,7 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
 
     // Test move construction/assignment
     {
-        Byte*            orig_ptr = alloc.device_ref().data();
+        Byte* orig_ptr = alloc.device_ref().data();
         DeviceAllocation other(std::move(alloc));
         EXPECT_EQ(128, other.size());
         EXPECT_EQ(0, alloc.size());
@@ -139,5 +139,5 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(empty))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas
