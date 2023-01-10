@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -63,8 +63,8 @@ namespace
 std::vector<std::shared_ptr<Process const>>
 build_processes(ImportData const& imported,
                 SetupOptions const& options,
-                std::shared_ptr<const ParticleParams> const& particle,
-                std::shared_ptr<const MaterialParams> const& material)
+                std::shared_ptr<ParticleParams const> const& particle,
+                std::shared_ptr<MaterialParams const> const& material)
 {
     // Build a list of processes to ignore
     ProcessBuilder::UserBuildMap ignore;
