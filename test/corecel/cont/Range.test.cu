@@ -59,5 +59,5 @@ RangeTestOutput rangedev_test(RangeTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

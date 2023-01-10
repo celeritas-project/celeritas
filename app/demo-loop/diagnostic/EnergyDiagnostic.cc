@@ -16,7 +16,7 @@ namespace demo_loop
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void bin_energy(const CoreStateHostRef& states, PointersHost& pointers)
+void bin_energy(CoreStateHostRef const& states, PointersHost& pointers)
 {
     EnergyDiagnosticLauncher<MemSpace::host> launch(states, pointers);
     for (auto tid : range(ThreadId{states.size()}))
@@ -25,4 +25,4 @@ void bin_energy(const CoreStateHostRef& states, PointersHost& pointers)
     }
 }
 
-} // namespace demo_loop
+}  // namespace demo_loop

@@ -30,5 +30,5 @@ template struct RootDeleter<TTree>;
 template struct RootDeleter<TBranch>;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

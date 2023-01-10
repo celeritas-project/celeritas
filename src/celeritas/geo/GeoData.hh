@@ -30,4 +30,4 @@ template<Ownership W, MemSpace M>
 using GeoStateData = OrangeStateData<W, M>;
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

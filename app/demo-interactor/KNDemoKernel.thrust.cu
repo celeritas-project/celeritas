@@ -20,7 +20,7 @@ namespace demo_interactor
 /*!
  * Sum the total number of living particles.
  */
-size_type reduce_alive(const DeviceGridParams& grid, Span<const bool> alive)
+size_type reduce_alive(DeviceGridParams const& grid, Span<bool const> alive)
 {
     size_type result = thrust::reduce(
         thrust::device_pointer_cast(alive.data()),
@@ -37,4 +37,4 @@ size_type reduce_alive(const DeviceGridParams& grid, Span<const bool> alive)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

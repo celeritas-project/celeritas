@@ -21,7 +21,7 @@ namespace test
 struct PTVTestInput
 {
     DeviceCRef<ParticleParamsData> params;
-    DeviceRef<ParticleStateData>   states;
+    DeviceRef<ParticleStateData> states;
 
     std::vector<ParticleTrackInitializer> init;
 };
@@ -47,5 +47,5 @@ inline PTVTestOutput ptv_test(PTVTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

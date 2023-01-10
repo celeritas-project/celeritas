@@ -52,4 +52,4 @@ class ScopedStreamRedirect
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

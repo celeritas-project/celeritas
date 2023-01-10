@@ -60,15 +60,15 @@ class HitProcessor
 
   public:
     // Construct from volumes that have SDs and step selection
-    HitProcessor(VecLV                detector_volumes,
-                 const StepSelection& selection,
-                 bool                 locate_touchable);
+    HitProcessor(VecLV detector_volumes,
+                 StepSelection const& selection,
+                 bool locate_touchable);
 
     // Default destructor
     ~HitProcessor();
 
     // Generate and call hits from a detector output
-    void operator()(const DetectorStepOutput& out) const;
+    void operator()(DetectorStepOutput const& out) const;
 
   private:
     //! Map detector IDs to logical volumes
@@ -82,5 +82,5 @@ class HitProcessor
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

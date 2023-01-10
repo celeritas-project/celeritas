@@ -28,14 +28,14 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
     MuBremsstrahlungData const& model, CoreTrackView const& track)
 {
     auto material_track = track.make_material_view();
-    auto material       = material_track.make_material_view();
-    auto particle       = track.make_particle_view();
+    auto material = material_track.make_material_view();
+    auto particle = track.make_particle_view();
 
     auto elcomp_id = track.make_physics_step_view().element();
     CELER_ASSERT(elcomp_id);
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    const auto& dir = track.make_geo_view().dir();
+    auto const& dir = track.make_geo_view().dir();
 
     MuBremsstrahlungInteractor interact(
         model, particle, dir, allocate_secondaries, material, elcomp_id);
@@ -45,4 +45,4 @@ inline CELER_FUNCTION Interaction mu_bremsstrahlung_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

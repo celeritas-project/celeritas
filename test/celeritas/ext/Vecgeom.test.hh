@@ -22,16 +22,16 @@ namespace test
 struct VGGTestInput
 {
     std::vector<GeoTrackInitializer> init;
-    int                              max_segments = 0;
-    DeviceCRef<VecgeomParamsData>    params;
-    DeviceRef<VecgeomStateData>      state;
+    int max_segments = 0;
+    DeviceCRef<VecgeomParamsData> params;
+    DeviceRef<VecgeomStateData> state;
 };
 
 //---------------------------------------------------------------------------//
 //! Output results
 struct VGGTestOutput
 {
-    std::vector<int>    ids;
+    std::vector<int> ids;
     std::vector<double> distances;
 };
 
@@ -47,5 +47,5 @@ inline VGGTestOutput vgg_test(VGGTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

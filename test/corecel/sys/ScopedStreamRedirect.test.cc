@@ -16,7 +16,7 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(ScopedStreamRedirectTest, all)
 {
-    const auto* orig_buf = std::cout.rdbuf();
+    auto const* orig_buf = std::cout.rdbuf();
     {
         ScopedStreamRedirect redirect(&std::cout);
         EXPECT_NE(orig_buf, std::cout.rdbuf());
@@ -28,5 +28,5 @@ TEST(ScopedStreamRedirectTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

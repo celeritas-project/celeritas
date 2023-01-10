@@ -16,7 +16,7 @@
 #include "corecel/cont/Label.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/user/StepInterface.hh"
 #include "celeritas/user/detail/StepStorage.hh"
@@ -39,37 +39,37 @@ enum class HasDetectors
 /*!
  * Construct with options and register pre and/or post-step actions.
  */
-StepCollector::StepCollector(VecInterface    callbacks,
-                             SPConstGeo      geo,
+StepCollector::StepCollector(VecInterface callbacks,
+                             SPConstGeo geo,
                              ActionRegistry* action_registry)
     : storage_(std::make_shared<detail::StepStorage>())
 {
     CELER_EXPECT(!callbacks.empty());
     CELER_EXPECT(std::all_of(
-        callbacks.begin(), callbacks.end(), [](const SPStepInterface& i) {
+        callbacks.begin(), callbacks.end(), [](SPStepInterface const& i) {
             return static_cast<bool>(i);
         }));
     CELER_EXPECT(geo);
     CELER_EXPECT(action_registry);
 
     // Loop over callbacks to take union of step selections
-    StepSelection                    selection;
+    StepSelection selection;
     StepInterface::MapVolumeDetector detector_map;
-    bool                             nonzero_energy_deposition{true};
+    bool nonzero_energy_deposition{true};
     {
         CELER_ASSERT(!selection);
 
         HasDetectors has_detectors = HasDetectors::unknown;
 
-        for (const SPStepInterface& sp_interface : callbacks)
+        for (SPStepInterface const& sp_interface : callbacks)
         {
             auto this_selection = sp_interface->selection();
             CELER_VALIDATE(this_selection,
                            << "step interface doesn't collect any data");
             selection |= this_selection;
 
-            const auto&& filters = sp_interface->filters();
-            for (const auto& kv : filters.detectors)
+            auto const&& filters = sp_interface->filters();
+            for (auto const& kv : filters.detectors)
             {
                 // Map detector volumes, asserting uniqueness
                 CELER_ASSERT(kv.first);
@@ -113,7 +113,7 @@ StepCollector::StepCollector(VecInterface    callbacks,
             // Assign detector IDs for each ("logical" in Geant4) volume
             CELER_EXPECT(geo);
             std::vector<DetectorId> temp_det(geo->num_volumes(), DetectorId{});
-            for (const auto& kv : detector_map)
+            for (auto const& kv : detector_map)
             {
                 CELER_ASSERT(kv.first < temp_det.size());
                 temp_det[kv.first.unchecked_get()] = kv.second;
@@ -147,8 +147,8 @@ StepCollector::StepCollector(VecInterface    callbacks,
 //---------------------------------------------------------------------------//
 //!@{
 //! Default destructor and move
-StepCollector::~StepCollector()                          = default;
-StepCollector::StepCollector(StepCollector&&)            = default;
+StepCollector::~StepCollector() = default;
+StepCollector::StepCollector(StepCollector&&) = default;
 StepCollector& StepCollector::operator=(StepCollector&&) = default;
 //!@}
 
@@ -156,10 +156,10 @@ StepCollector& StepCollector::operator=(StepCollector&&) = default;
 /*!
  * See which data are being gathered.
  */
-const StepSelection& StepCollector::selection() const
+StepSelection const& StepCollector::selection() const
 {
     return storage_->params.host_ref().selection;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

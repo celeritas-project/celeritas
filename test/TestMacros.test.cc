@@ -36,11 +36,11 @@ TEST(PrintExpected, example)
         PRINT_EXPECTED(values);
 
         using Limits_t = std::numeric_limits<double>;
-        const double more[]
+        double const more[]
             = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
         PRINT_EXPECTED(more);
 
-        const char* const cstrings[] = {"one", "three", "five"};
+        char const* const cstrings[] = {"one", "three", "five"};
         PRINT_EXPECTED(cstrings);
 
         const std::string strings[] = {"a", "", "special\nchars\t"};
@@ -57,7 +57,7 @@ static const std::string expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
-} // namespace test
+}  // namespace test
 
 namespace testdetail
 {
@@ -130,15 +130,15 @@ TEST(IsVecSoftEquiv, successes_double)
 
     // infinity
     expected = {inf, -inf};
-    actual   = expected;
+    actual = expected;
     EXPECT_VEC_SOFT_EQ(expected, actual);
 }
 
 TEST(IsVecSoftEquiv, floats)
 {
     // Compare identical values, array vs vector
-    const float expected_array[] = {1.f, 3.f, 5.f};
-    VecFlt      actual(expected_array, expected_array + 3);
+    float const expected_array[] = {1.f, 3.f, 5.f};
+    VecFlt actual(expected_array, expected_array + 3);
     EXPECT_VEC_SOFT_EQ(expected_array, actual);
 
     // Compare vector vs array
@@ -257,8 +257,8 @@ TEST(IsVecSoftEquiv, failures)
     // A couple of wrong values in a large array
     expected.assign(200, 10.);
     actual.assign(200, 10.);
-    actual[0]   = 11.;
-    actual[5]   = 1. + 1.e-11;
+    actual[0] = 11.;
+    actual[5] = 1. + 1.e-11;
     actual[100] = 3.;
     actual[150] = 2.;
     EXPECT_FALSE(IsVecSoftEquiv(
@@ -266,7 +266,7 @@ TEST(IsVecSoftEquiv, failures)
 
     // infinity
     expected = {inf, -inf, inf, inf};
-    actual   = {-inf, inf, 0, 1};
+    actual = {-inf, inf, 0, 1};
     // EXPECT_VEC_SOFT_EQ(expected, actual);
     EXPECT_FALSE(IsVecSoftEquiv(
         "expected", "actual", "1.e-12", expected, actual, 1.e-12));
@@ -348,12 +348,12 @@ TEST(IsVecEq, failures)
     // A couple of wrong values in a large array
     expected.assign(200, 10);
     actual.assign(200, 10);
-    actual[0]   = 1;
-    actual[5]   = 1;
+    actual[0] = 1;
+    actual[5] = 1;
     actual[100] = 3;
     actual[150] = 2;
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 }
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

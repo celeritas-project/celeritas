@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct KleinNishinaIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId electron;
     ParticleId gamma;
 
@@ -53,7 +53,7 @@ struct KleinNishinaData
 };
 
 using KleinNishinaDeviceRef = KleinNishinaData;
-using KleinNishinaHostRef   = KleinNishinaData;
+using KleinNishinaHostRef = KleinNishinaData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

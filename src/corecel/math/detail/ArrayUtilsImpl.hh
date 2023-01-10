@@ -40,5 +40,5 @@ struct RealVecTraits<double>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

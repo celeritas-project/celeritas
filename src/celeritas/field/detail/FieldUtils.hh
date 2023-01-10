@@ -30,7 +30,7 @@ namespace detail
 struct Chord
 {
     real_type length;
-    Real3     dir;
+    Real3 dir;
 };
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ struct Chord
  * Return y <- ax for a real variable
  */
 template<class T>
-inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
+inline CELER_FUNCTION Array<T, 3> ax(T a, Array<T, 3> const& x)
 {
     Array<T, 3> result;
     for (int i = 0; i < 3; ++i)
@@ -54,14 +54,14 @@ inline CELER_FUNCTION Array<T, 3> ax(T a, const Array<T, 3>& x)
 /*!
  * Calculate the direction between the source and destination.
  */
-inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
+inline CELER_FUNCTION Chord make_chord(Real3 const& src, Real3 const& dst)
 {
     Chord result;
     for (int i = 0; i < 3; ++i)
     {
         result.dir[i] = dst[i] - src[i];
     }
-    result.length        = norm(result.dir);
+    result.length = norm(result.dir);
     const real_type norm = 1 / result.length;
     for (int i = 0; i < 3; ++i)
     {
@@ -82,10 +82,10 @@ inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
      return ipow<2>(distance(pos, target));
  * \endcode
  */
-inline CELER_FUNCTION real_type calc_miss_distance(const Real3& pos,
-                                                   const Real3& dir,
-                                                   real_type    distance,
-                                                   const Real3& target)
+inline CELER_FUNCTION real_type calc_miss_distance(Real3 const& pos,
+                                                   Real3 const& dir,
+                                                   real_type distance,
+                                                   Real3 const& target)
 {
     real_type delta_sq = 0;
     for (int i = 0; i < 3; ++i)
@@ -107,11 +107,11 @@ inline CELER_FUNCTION real_type calc_miss_distance(const Real3& pos,
      return distance(pos, target) <= tolerance;
  * \endcode
  */
-inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
-                                              const Real3& dir,
-                                              real_type    distance,
-                                              const Real3& target,
-                                              real_type    tolerance)
+inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
+                                              Real3 const& dir,
+                                              real_type distance,
+                                              Real3 const& target,
+                                              real_type tolerance)
 {
     return calc_miss_distance(pos, dir, distance, target) <= ipow<2>(tolerance);
 }
@@ -121,10 +121,10 @@ inline CELER_FUNCTION bool is_intercept_close(const Real3& pos,
  * Evaluate the stepper truncation error square:
  * \f$ \Delta = max (\delta_{pos}^{2}, \epsilon \delta_{mom}^{2}) \f$
  */
-inline CELER_FUNCTION real_type truncation_error(real_type       step,
-                                                 real_type       eps_rel_max,
-                                                 const OdeState& beg_state,
-                                                 const OdeState& err_state)
+inline CELER_FUNCTION real_type truncation_error(real_type step,
+                                                 real_type eps_rel_max,
+                                                 OdeState const& beg_state,
+                                                 OdeState const& err_state)
 {
     CELER_EXPECT(step > 0);
     CELER_EXPECT(eps_rel_max > 0);
@@ -154,9 +154,9 @@ inline CELER_FUNCTION real_type truncation_error(real_type       step,
  *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
  * \f]
  */
-inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
-                                               const OdeState& mid_state,
-                                               const OdeState& end_state)
+inline CELER_FUNCTION real_type distance_chord(OdeState const& beg_state,
+                                               OdeState const& mid_state,
+                                               OdeState const& end_state)
 {
     Real3 beg_mid;
     Real3 beg_end;
@@ -172,5 +172,5 @@ inline CELER_FUNCTION real_type distance_chord(const OdeState& beg_state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

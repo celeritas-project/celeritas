@@ -29,7 +29,7 @@ using units::MevEnergy;
 
 class PhysicsStepUtilsTest : public MockTestBase
 {
-    using Base         = MockTestBase;
+    using Base = MockTestBase;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   protected:
@@ -50,8 +50,8 @@ class PhysicsStepUtilsTest : public MockTestBase
         Base::SetUp();
 
         // Construct state for a single host thread
-        mat_state  = MaterialStateStore(this->material()->host_ref(), 1);
-        par_state  = ParticleStateStore(this->particle()->host_ref(), 1);
+        mat_state = MaterialStateStore(this->material()->host_ref(), 1);
+        par_state = ParticleStateStore(this->particle()->host_ref(), 1);
         phys_state = PhysicsStateStore(this->physics()->host_ref(), 1);
     }
 
@@ -61,10 +61,10 @@ class PhysicsStepUtilsTest : public MockTestBase
     //!@}
 
     PhysicsTrackView init_track(MaterialTrackView* mat,
-                                MaterialId         mid,
+                                MaterialId mid,
                                 ParticleTrackView* par,
-                                const char*        name,
-                                MevEnergy          energy)
+                                char const* name,
+                                MevEnergy energy)
     {
         CELER_EXPECT(mat && par);
         CELER_EXPECT(mid < this->material()->size());
@@ -74,7 +74,7 @@ class PhysicsStepUtilsTest : public MockTestBase
         par_init.particle_id = this->particle()->find(name);
         CELER_EXPECT(par_init.particle_id);
         par_init.energy = energy;
-        *par            = par_init;
+        *par = par_init;
 
         PhysicsTrackView phys(this->physics()->host_ref(),
                               phys_state.ref(),
@@ -92,8 +92,8 @@ class PhysicsStepUtilsTest : public MockTestBase
 
     MaterialStateStore mat_state;
     ParticleStateStore par_state;
-    PhysicsStateStore  phys_state;
-    RandomEngine       rng_;
+    PhysicsStateStore phys_state;
+    RandomEngine rng_;
 };
 
 //---------------------------------------------------------------------------//
@@ -111,9 +111,9 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     ActionId range_action;
     ActionId discrete_action;
     {
-        const auto& scalars = this->physics()->host_ref().scalars;
-        range_action        = scalars.range_action();
-        discrete_action     = scalars.discrete_action();
+        auto const& scalars = this->physics()->host_ref().scalars;
+        range_action = scalars.range_action();
+        discrete_action = scalars.discrete_action();
         EXPECT_FALSE(scalars.fixed_step_action);
     }
 
@@ -174,7 +174,7 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
                                                  &particle,
                                                  "anti-celeriton",
                                                  MevEnergy{10});
-        StepLimit        step
+        StepLimit step
             = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.014285714285714284, step.step);
@@ -190,10 +190,10 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
 
     auto calc_eloss = [&](PhysicsTrackView& phys, real_type step) -> real_type {
         // Calculate and store the energy loss range to PhysicsTrackView
-        auto      ppid       = phys.eloss_ppid();
-        auto      grid_id    = phys.value_grid(ValueGridType::range, ppid);
-        auto      calc_range = phys.make_calculator<RangeCalculator>(grid_id);
-        real_type range      = calc_range(particle.energy());
+        auto ppid = phys.eloss_ppid();
+        auto grid_id = phys.value_grid(ValueGridType::range, ppid);
+        auto calc_range = phys.make_calculator<RangeCalculator>(grid_id);
+        real_type range = calc_range(particle.energy());
         phys.dedx_range(range);
 
         MevEnergy result = calc_mean_energy_loss(particle, phys, step);
@@ -250,12 +250,12 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         this->particle()->host_ref(), par_state.ref(), ThreadId{0});
     PhysicsStepView pstep = this->step_view();
 
-    const auto model_offset
+    auto const model_offset
         = this->physics()->host_ref().scalars.model_to_action;
 
     // Test a variety of energy ranges and multiple material IDs
     {
-        MaterialView     mat_view(this->material()->host_ref(), MaterialId{0});
+        MaterialView mat_view(this->material()->host_ref(), MaterialId{0});
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
@@ -281,7 +281,7 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
     }
 
     {
-        MaterialView     mat_view(this->material()->host_ref(), MaterialId{1});
+        MaterialView mat_view(this->material()->host_ref(), MaterialId{1});
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
@@ -314,8 +314,8 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
 
     {
         // Test the integral approach
-        unsigned int           num_samples   = 10000;
-        std::vector<real_type> inc_energy    = {0.01, 0.01, 0.1, 10};
+        unsigned int num_samples = 10000;
+        std::vector<real_type> inc_energy = {0.01, 0.01, 0.1, 10};
         std::vector<real_type> scaled_energy = {0.001, 0.00999, 0.001, 8};
         std::vector<real_type> acceptance_rate;
 
@@ -325,13 +325,13 @@ TEST_F(PhysicsStepUtilsTest, select_discrete_interaction)
         for (auto i : range(inc_energy.size()))
         {
             MaterialView mat_view(this->material()->host_ref(), MaterialId{0});
-            PhysicsTrackView  phys = this->init_track(&material,
+            PhysicsTrackView phys = this->init_track(&material,
                                                      MaterialId{0},
                                                      &particle,
                                                      "electron",
                                                      MevEnergy{inc_energy[i]});
             ParticleProcessId ppid{0};
-            const auto& integral_process = phys.integral_xs_process(ppid);
+            auto const& integral_process = phys.integral_xs_process(ppid);
             EXPECT_TRUE(integral_process);
 
             // Get the estimate of the maximum cross section over the step
@@ -369,7 +369,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
     {
         PhysicsOptions opts;
 
-        opts.min_range          = inf; // Use analytic range instead of scaled
+        opts.min_range = inf;  // Use analytic range instead of scaled
         opts.fixed_step_limiter = 1e-3;
         return opts;
     }
@@ -387,10 +387,10 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
     ActionId discrete_action;
     ActionId fixed_step_action;
     {
-        const auto& scalars = this->physics()->host_ref().scalars;
-        range_action        = scalars.range_action();
-        discrete_action     = scalars.discrete_action();
-        fixed_step_action   = scalars.fixed_step_action;
+        auto const& scalars = this->physics()->host_ref().scalars;
+        range_action = scalars.range_action();
+        discrete_action = scalars.discrete_action();
+        fixed_step_action = scalars.fixed_step_action;
     }
 
     {
@@ -421,5 +421,5 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

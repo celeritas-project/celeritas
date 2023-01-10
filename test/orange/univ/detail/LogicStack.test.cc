@@ -98,6 +98,6 @@ TEST(LogicStackTest, operators)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-} // namespace celeritas
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas

@@ -41,7 +41,7 @@ constexpr int invalid_max_depth = -1;
  * Return 0 if the definition is invalid so that we can raise an assertion in
  * the caller with more context.
  */
-int calc_max_depth(Span<const logic_int> logic)
+int calc_max_depth(Span<logic_int const> logic)
 {
     CELER_EXPECT(!logic.empty());
 
@@ -90,7 +90,7 @@ bool supports_simple_safety(logic_int flags)
 template<class T>
 T inplace_max(T* target, T val)
 {
-    T orig  = *target;
+    T orig = *target;
     *target = celeritas::max(orig, val);
     return orig;
 }
@@ -111,7 +111,7 @@ struct SurfaceDataSize
 struct SimpleSafetyGetter
 {
     template<class S>
-    constexpr bool operator()(const S&) const noexcept
+    constexpr bool operator()(S const&) const noexcept
     {
         return S::simple_safety();
     }
@@ -122,7 +122,7 @@ struct SimpleSafetyGetter
 struct NumIntersectionGetter
 {
     template<class S>
-    constexpr size_type operator()(const S&) const noexcept
+    constexpr size_type operator()(S const&) const noexcept
     {
         using Intersections = typename S::Intersections;
         return Intersections{}.size();
@@ -130,7 +130,7 @@ struct NumIntersectionGetter
 };
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -141,7 +141,7 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
     CELER_EXPECT(orange_data);
 
     // Initialize scalars
-    orange_data_->scalars.max_faces         = 1;
+    orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
 }
 
@@ -149,7 +149,7 @@ UnitInserter::UnitInserter(Data* orange_data) : orange_data_(orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
+SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
 {
     SimpleUnitRecord unit;
 
@@ -157,8 +157,8 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
     unit.surfaces = this->insert_surfaces(inp.surfaces);
 
     // Define volumes
-    std::vector<VolumeRecord>       vol_records(inp.volumes.size());
-    std::vector<Translation>        translations;
+    std::vector<VolumeRecord> vol_records(inp.volumes.size());
+    std::vector<Translation> translations;
     std::vector<std::set<VolumeId>> connectivity(inp.surfaces.size());
     for (auto i : range(inp.volumes.size()))
     {
@@ -203,7 +203,7 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
             Connectivity c;
             c.neighbors = vol_ids.insert_back(connectivity[i].begin(),
                                               connectivity[i].end());
-            conn[i]     = c;
+            conn[i] = c;
         }
         unit.connectivity = make_builder(&orange_data_->connectivities)
                                 .insert_back(conn.begin(), conn.end());
@@ -215,7 +215,7 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
         unit.background = VolumeId(inp.volumes.size() - 1);
     }
     unit.simple_safety = std::all_of(
-        vol_records.begin(), vol_records.end(), [](const VolumeRecord& v) {
+        vol_records.begin(), vol_records.end(), [](VolumeRecord const& v) {
             return supports_simple_safety(v.flags);
         });
 
@@ -228,7 +228,7 @@ SimpleUnitId UnitInserter::operator()(const UnitInput& inp)
 /*!
  * Insert all surfaces at once.
  */
-SurfacesRecord UnitInserter::insert_surfaces(const SurfaceInput& s)
+SurfacesRecord UnitInserter::insert_surfaces(SurfaceInput const& s)
 {
     using RealId = SurfacesRecord::RealId;
 
@@ -262,15 +262,15 @@ SurfacesRecord UnitInserter::insert_surfaces(const SurfaceInput& s)
 
     // Insert surface types
     SurfacesRecord result;
-    auto           types = make_builder(&orange_data_->surface_types);
-    result.types         = types.insert_back(s.types.begin(), s.types.end());
+    auto types = make_builder(&orange_data_->surface_types);
+    result.types = types.insert_back(s.types.begin(), s.types.end());
 
     // Insert surface data all at once
-    auto reals      = make_builder(&orange_data_->reals);
+    auto reals = make_builder(&orange_data_->reals);
     auto real_range = reals.insert_back(s.data.begin(), s.data.end());
 
-    RealId           next_offset = real_range.front();
-    auto             offsets     = make_builder(&orange_data_->real_ids);
+    RealId next_offset = real_range.front();
+    auto offsets = make_builder(&orange_data_->real_ids);
     OpaqueId<RealId> start_offset(offsets.size());
     offsets.reserve(offsets.size() + s.sizes.size());
     for (auto single_size : s.sizes)
@@ -288,18 +288,18 @@ SurfacesRecord UnitInserter::insert_surfaces(const SurfaceInput& s)
 /*!
  * Insert data from a single volume.
  */
-VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
-                                         const VolumeInput&    v)
+VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
+                                         VolumeInput const& v)
 {
     CELER_EXPECT(v);
     CELER_EXPECT(std::is_sorted(v.faces.begin(), v.faces.end()));
     CELER_EXPECT(v.faces.empty() || v.faces.back() < surf_record.types.size());
 
-    auto     params_cref = make_const_ref(*orange_data_);
+    auto params_cref = make_const_ref(*orange_data_);
     Surfaces surfaces{params_cref, surf_record};
 
     // Mark as 'simple safety' if all the surfaces are simple
-    bool      simple_safety     = true;
+    bool simple_safety = true;
     logic_int max_intersections = 0;
 
     auto get_simple_safety
@@ -325,7 +325,7 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
         // the logic to be explicitly "not true".
         CELER_EXPECT(input_logic.empty());
         static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
-        input_logic                            = make_span(nowhere_logic);
+        input_logic = make_span(nowhere_logic);
     }
 
     auto faces = make_builder(&orange_data_->surface_ids);
@@ -335,7 +335,7 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     output.faces = faces.insert_back(v.faces.begin(), v.faces.end());
     output.logic = logic.insert_back(input_logic.begin(), input_logic.end());
     output.max_intersections = max_intersections;
-    output.flags             = v.flags;
+    output.flags = v.flags;
     if (simple_safety)
     {
         output.flags |= VolumeRecord::Flags::simple_safety;
@@ -356,9 +356,9 @@ VolumeRecord UnitInserter::insert_volume(const SurfacesRecord& surf_record,
     return output;
 }
 
-void UnitInserter::process_daughter(VolumeRecord*              vol_record,
-                                    std::vector<Translation>*  translations,
-                                    const UnitInput::Daughter& daughter)
+void UnitInserter::process_daughter(VolumeRecord* vol_record,
+                                    std::vector<Translation>* translations,
+                                    UnitInput::Daughter const& daughter)
 {
     vol_record->flags &= VolumeRecord::embedded_universe;
     vol_record->daughter = daughter.universe_id;
@@ -368,5 +368,5 @@ void UnitInserter::process_daughter(VolumeRecord*              vol_record,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

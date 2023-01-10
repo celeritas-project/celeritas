@@ -24,7 +24,7 @@ namespace
 //---------------------------------------------------------------------------//
 
 template<class T, std::size_t E>
-std::string span_to_string(const Span<T, E>& s)
+std::string span_to_string(Span<T, E> const& s)
 {
     std::ostringstream os;
     os << s;
@@ -32,7 +32,7 @@ std::string span_to_string(const Span<T, E>& s)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 TEST(SpanTest, fixed_size_zero)
 {
@@ -71,11 +71,11 @@ TEST(SpanTest, fixed_size_zero)
     EXPECT_EQ(0, dynamic.size());
 
     // Test type conversion
-    Span<const int, 0> const_span{empty_span};
+    Span<int const, 0> const_span{empty_span};
     EXPECT_EQ(0, const_span.size());
 
     // Test type conversion
-    Span<const int> const_dynamic{empty_span};
+    Span<int const> const_dynamic{empty_span};
     EXPECT_EQ(0, const_dynamic.size());
 
     // Test pointer constructor
@@ -85,7 +85,7 @@ TEST(SpanTest, fixed_size_zero)
 
 TEST(SpanTest, fixed_size)
 {
-    int          local_data[] = {123, 456};
+    int local_data[] = {123, 456};
     Span<int, 2> local_span(local_data);
     EXPECT_EQ(sizeof(int*), sizeof(local_span));
     EXPECT_EQ("{123,456}", span_to_string(local_span));
@@ -120,12 +120,12 @@ TEST(SpanTest, fixed_size)
     EXPECT_EQ(2, dynamic.size());
 
     // Test type conversion
-    Span<const int, 2> const_span{local_span};
+    Span<int const, 2> const_span{local_span};
     EXPECT_EQ(local_data, const_span.data());
     EXPECT_EQ(2, const_span.size());
 
     // Test type conversion
-    Span<const int> const_dynamic{local_span};
+    Span<int const> const_dynamic{local_span};
     EXPECT_EQ(local_data, const_dynamic.data());
     EXPECT_EQ(2, const_dynamic.size());
 
@@ -136,7 +136,7 @@ TEST(SpanTest, fixed_size)
 
 TEST(SpanTest, dynamic_size)
 {
-    int       local_data[] = {123, 456, 789};
+    int local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
     EXPECT_EQ(sizeof(int*) + sizeof(std::size_t), sizeof(local_span));
     EXPECT_EQ("{123,456,789}", span_to_string(local_span));
@@ -218,12 +218,12 @@ TEST(SpanTest, dynamic_size)
     EXPECT_EQ(3, dynamic.size());
 
     // Test type conversion
-    Span<const int> const_dynamic{local_span};
+    Span<int const> const_dynamic{local_span};
     EXPECT_EQ(local_data, const_dynamic.data());
     EXPECT_EQ(3, const_dynamic.size());
 
     // Test type and size conversion
-    Span<const int, 3> const_span{local_span};
+    Span<int const, 3> const_span{local_span};
     EXPECT_EQ(local_data, const_span.data());
     EXPECT_EQ(3, const_span.size());
 
@@ -234,7 +234,7 @@ TEST(SpanTest, dynamic_size)
 
 TEST(SpanTest, io_manip)
 {
-    int       local_data[] = {123, 456, 789};
+    int local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
 
     {
@@ -255,5 +255,5 @@ TEST(SpanTest, io_manip)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -37,8 +37,8 @@ TEST(ConstantsTest, mathematical)
 //! Test that no precision is lost for cm<->m and other integer factors.
 TEST(ConstantsTest, exact_equivalence)
 {
-    EXPECT_EQ(299792458e2, c_light);     // cm/s
-    EXPECT_EQ(6.62607015e-27, h_planck); // erg
+    EXPECT_EQ(299792458e2, c_light);  // cm/s
+    EXPECT_EQ(6.62607015e-27, h_planck);  // erg
 }
 
 TEST(ConstantsTest, formulas)
@@ -98,8 +98,8 @@ TEST(ConstantsTest, derivative)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace constants
+}  // namespace test
+}  // namespace constants
 
 namespace units
 {
@@ -123,6 +123,6 @@ TEST(UnitsTest, equivalence)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace units
-} // namespace celeritas
+}  // namespace test
+}  // namespace units
+}  // namespace celeritas

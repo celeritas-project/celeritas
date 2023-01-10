@@ -21,7 +21,7 @@ namespace detail
 //! Calculate the sense of a surface at a given position.
 struct CalcSense
 {
-    const Real3& pos;
+    Real3 const& pos;
 
     template<class S>
     CELER_FUNCTION SignedSense operator()(S&& surf)
@@ -45,7 +45,7 @@ struct NumIntersections
 //! Calculate the outward normal at a position.
 struct CalcNormal
 {
-    const Real3& pos;
+    Real3 const& pos;
 
     template<class S>
     CELER_FUNCTION Real3 operator()(S&& surf)
@@ -64,7 +64,7 @@ struct CalcNormal
  */
 struct CalcSafetyDistance
 {
-    const Real3& pos;
+    Real3 const& pos;
 
     //! Operate on a surface
     template<class S>
@@ -114,12 +114,12 @@ class CalcIntersections
 {
   public:
     //! Construct from the particle point, direction, face ID, and temp storage
-    CELER_FUNCTION CalcIntersections(const Real3&        pos,
-                                     const Real3&        dir,
-                                     IsValid             is_valid_isect,
-                                     FaceId              on_face,
-                                     bool                is_simple,
-                                     const TempNextFace& next_face)
+    CELER_FUNCTION CalcIntersections(Real3 const& pos,
+                                     Real3 const& dir,
+                                     IsValid is_valid_isect,
+                                     FaceId on_face,
+                                     bool is_simple,
+                                     TempNextFace const& next_face)
         : pos_(pos)
         , dir_(dir)
         , is_valid_isect_(is_valid_isect)
@@ -149,7 +149,7 @@ class CalcIntersections
             if (is_valid_isect_(dist))
             {
                 // Save intersection in the list
-                face_[isect_idx_]     = FaceId{face_idx_};
+                face_[isect_idx_] = FaceId{face_idx_};
                 distance_[isect_idx_] = dist;
                 if (fill_isect_)
                 {
@@ -168,18 +168,18 @@ class CalcIntersections
   private:
     //// DATA ////
 
-    const Real3&     pos_;
-    const Real3&     dir_;
-    const IsValid    is_valid_isect_;
-    const size_type  on_face_idx_;
-    const bool       fill_isect_;
-    FaceId* const    face_;
+    Real3 const& pos_;
+    Real3 const& dir_;
+    const IsValid is_valid_isect_;
+    const size_type on_face_idx_;
+    bool const fill_isect_;
+    FaceId* const face_;
     real_type* const distance_;
     size_type* const isect_;
-    size_type        face_idx_{0};
-    size_type        isect_idx_{0};
+    size_type face_idx_{0};
+    size_type isect_idx_{0};
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

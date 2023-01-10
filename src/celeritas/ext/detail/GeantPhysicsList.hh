@@ -30,7 +30,7 @@ class GeantPhysicsList : public G4VUserPhysicsList
 
   public:
     // Set up during construction
-    explicit GeantPhysicsList(const Options& options);
+    explicit GeantPhysicsList(Options const& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
@@ -47,5 +47,5 @@ class GeantPhysicsList : public G4VUserPhysicsList
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

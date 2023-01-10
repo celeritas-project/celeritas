@@ -64,4 +64,4 @@ struct numeric_limits<unsigned long long>
 };
 
 #undef SCCEF_
-} // namespace celeritas
+}  // namespace celeritas

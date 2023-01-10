@@ -35,14 +35,14 @@ class GenericXsCalculator
   public:
     // Construct from grid data and backend values
     inline CELER_FUNCTION
-    GenericXsCalculator(const GenericGridData& grid, const Values& values);
+    GenericXsCalculator(GenericGridData const& grid, Values const& values);
 
     // Find and interpolate the cross section from the given energy
     inline CELER_FUNCTION real_type operator()(const real_type energy) const;
 
   private:
-    const GenericGridData& data_;
-    const Values&          reals_;
+    GenericGridData const& data_;
+    Values const& reals_;
 
     CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
@@ -54,8 +54,8 @@ class GenericXsCalculator
  * Construct from grid data and backend values.
  */
 CELER_FUNCTION
-GenericXsCalculator::GenericXsCalculator(const GenericGridData& grid,
-                                         const Values&          values)
+GenericXsCalculator::GenericXsCalculator(GenericGridData const& grid,
+                                         Values const& values)
     : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);
@@ -68,7 +68,7 @@ GenericXsCalculator::GenericXsCalculator(const GenericGridData& grid,
 CELER_FUNCTION real_type
 GenericXsCalculator::operator()(const real_type energy) const
 {
-    const NonuniformGrid<real_type> energy_grid(data_.grid, reals_);
+    NonuniformGrid<real_type> const energy_grid(data_.grid, reals_);
 
     // Snap out-of-bounds values to closest grid points
     size_type lower_idx;
@@ -76,12 +76,12 @@ GenericXsCalculator::operator()(const real_type energy) const
     if (energy <= energy_grid.front())
     {
         lower_idx = 0;
-        result    = this->get(lower_idx);
+        result = this->get(lower_idx);
     }
     else if (energy >= energy_grid.back())
     {
         lower_idx = energy_grid.size() - 1;
-        result    = this->get(lower_idx);
+        result = this->get(lower_idx);
     }
     else
     {
@@ -110,4 +110,4 @@ CELER_FUNCTION real_type GenericXsCalculator::get(size_type index) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

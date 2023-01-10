@@ -27,7 +27,7 @@ class Sphere
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using Storage       = Span<const real_type, 4>;
+    using Storage = Span<const real_type, 4>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -45,7 +45,7 @@ class Sphere
     //// CONSTRUCTORS ////
 
     // Construct with origin and radius
-    inline CELER_FUNCTION Sphere(const Real3& origin, real_type radius);
+    inline CELER_FUNCTION Sphere(Real3 const& origin, real_type radius);
 
     // Construct from raw data
     explicit inline CELER_FUNCTION Sphere(Storage);
@@ -53,7 +53,7 @@ class Sphere
     //// ACCESSORS ////
 
     //! Center position
-    CELER_FUNCTION const Real3& origin() const { return origin_; }
+    CELER_FUNCTION Real3 const& origin() const { return origin_; }
 
     //! Square of the radius
     CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
@@ -64,14 +64,14 @@ class Sphere
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
-    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+    inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
-        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
     // Spatial position
@@ -86,7 +86,7 @@ class Sphere
 /*!
  * Construct with sphere origin and radius.
  */
-CELER_FUNCTION Sphere::Sphere(const Real3& origin, real_type radius)
+CELER_FUNCTION Sphere::Sphere(Real3 const& origin, real_type radius)
     : origin_(origin), radius_sq_(ipow<2>(radius))
 {
     CELER_EXPECT(radius > 0);
@@ -105,7 +105,7 @@ CELER_FUNCTION Sphere::Sphere(Storage data)
 /*!
  * Determine the sense of the position relative to this surface.
  */
-CELER_FUNCTION SignedSense Sphere::calc_sense(const Real3& pos) const
+CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
 {
     Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
 
@@ -116,8 +116,8 @@ CELER_FUNCTION SignedSense Sphere::calc_sense(const Real3& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto Sphere::calc_intersections(const Real3& pos,
-                                               const Real3& dir,
+CELER_FUNCTION auto Sphere::calc_intersections(Real3 const& pos,
+                                               Real3 const& dir,
                                                SurfaceState on_surface) const
     -> Intersections
 {
@@ -138,7 +138,7 @@ CELER_FUNCTION auto Sphere::calc_intersections(const Real3& pos,
 /*!
  * Calculate outward normal at a position.
  */
-CELER_FUNCTION Real3 Sphere::calc_normal(const Real3& pos) const
+CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 {
     Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
     normalize_direction(&tpos);
@@ -146,4 +146,4 @@ CELER_FUNCTION Real3 Sphere::calc_normal(const Real3& pos) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

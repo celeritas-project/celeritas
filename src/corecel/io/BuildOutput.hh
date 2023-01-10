@@ -29,4 +29,4 @@ class BuildOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

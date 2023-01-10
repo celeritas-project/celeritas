@@ -16,7 +16,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 // Write device diagnostics to JSON
-void to_json(nlohmann::json& j, const Device& value);
+void to_json(nlohmann::json& j, Device const& value);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

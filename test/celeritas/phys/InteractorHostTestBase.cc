@@ -28,8 +28,8 @@ InteractorHostTestBase::InteractorHostTestBase()
 {
     using namespace constants;
     using namespace units;
-    constexpr auto zero   = zero_quantity();
-    auto           stable = ParticleRecord::stable_decay_constant();
+    constexpr auto zero = zero_quantity();
+    auto stable = ParticleRecord::stable_decay_constant();
 
     constexpr MevMass emass{0.5109989461};
     constexpr MevMass mumass{105.6583745};
@@ -46,11 +46,11 @@ InteractorHostTestBase::InteractorHostTestBase()
 
     // Default material params
     MaterialParams::Input mat_inp;
-    mat_inp.elements  = {{AtomicNumber{29}, AmuMass{63.546}, Label{"Cu"}},
-                         {AtomicNumber{19}, AmuMass{39.0983}, Label{"K"}},
-                         {AtomicNumber{8}, AmuMass{15.999}, Label{"O"}},
-                         {AtomicNumber{74}, AmuMass{183.84}, Label{"W"}},
-                         {AtomicNumber{82}, AmuMass{207.2}, Label{"Pb"}}};
+    mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, Label{"Cu"}},
+                        {AtomicNumber{19}, AmuMass{39.0983}, Label{"K"}},
+                        {AtomicNumber{8}, AmuMass{15.999}, Label{"O"}},
+                        {AtomicNumber{74}, AmuMass{183.84}, Label{"W"}},
+                        {AtomicNumber{82}, AmuMass{207.2}, Label{"Pb"}}};
     mat_inp.materials = {
         {0.141 * na_avogadro,
          293.0,
@@ -82,12 +82,12 @@ InteractorHostTestBase::InteractorHostTestBase()
 
     // Set cutoffs
     {
-        CutoffParams::Input           input;
+        CutoffParams::Input input;
         CutoffParams::MaterialCutoffs material_cutoffs(
             material_params_->size());
         material_cutoffs[0] = {MevEnergy{0.02064384}, 0.07};
-        input.materials     = this->material_params();
-        input.particles     = this->particle_params();
+        input.materials = this->material_params();
+        input.particles = this->particle_params();
         input.cutoffs.insert({pdg::gamma(), material_cutoffs});
         this->set_cutoff_params(input);
     }
@@ -119,7 +119,7 @@ void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)
 /*!
  * Initialize the incident track's material
  */
-void InteractorHostTestBase::set_material(const std::string& name)
+void InteractorHostTestBase::set_material(std::string const& name)
 {
     CELER_EXPECT(material_params_);
 
@@ -183,15 +183,15 @@ void InteractorHostTestBase::set_inc_particle(PDGNumber pdg, MevEnergy energy)
     // Initialize
     ParticleTrackView::Initializer_t init;
     init.particle_id = particle_params_->find(pdg);
-    init.energy      = energy;
-    *pt_view_        = init;
+    init.energy = energy;
+    *pt_view_ = init;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set an incident direction (and normalize it).
  */
-void InteractorHostTestBase::set_inc_direction(const Real3& dir)
+void InteractorHostTestBase::set_inc_direction(Real3 const& dir)
 {
     CELER_EXPECT(norm(dir) > 0);
 
@@ -214,7 +214,7 @@ void InteractorHostTestBase::resize_secondaries(int count)
 /*!
  * Check for energy and momentum conservation in the interaction.
  */
-void InteractorHostTestBase::check_conservation(const Interaction& interaction) const
+void InteractorHostTestBase::check_conservation(Interaction const& interaction) const
 {
     ASSERT_NE(interaction.action, Action::failed);
 
@@ -227,7 +227,7 @@ void InteractorHostTestBase::check_conservation(const Interaction& interaction) 
  * Check for energy conservation in the interaction.
  */
 void InteractorHostTestBase::check_energy_conservation(
-    const Interaction& interaction) const
+    Interaction const& interaction) const
 {
     // Sum of exiting kinetic energy
     real_type exit_energy = interaction.energy_deposition.value();
@@ -239,7 +239,7 @@ void InteractorHostTestBase::check_energy_conservation(
     }
 
     // Subtract contributions from exiting secondaries
-    for (const Secondary& s : interaction.secondaries)
+    for (Secondary const& s : interaction.secondaries)
     {
         exit_energy += s.energy.value();
 
@@ -260,14 +260,14 @@ void InteractorHostTestBase::check_energy_conservation(
  * Check for momentum conservation in the interaction.
  */
 void InteractorHostTestBase::check_momentum_conservation(
-    const Interaction& interaction) const
+    Interaction const& interaction) const
 {
     CollectionStateStore<ParticleStateData, MemSpace::host> temp_store(
         particle_params_->host_ref(), 1);
     ParticleTrackView temp_track(
         particle_params_->host_ref(), temp_store.ref(), ThreadId{0});
 
-    const auto& parent_track = this->particle_track();
+    auto const& parent_track = this->particle_track();
 
     // Sum of exiting momentum
     Real3 exit_momentum = {0, 0, 0};
@@ -277,20 +277,20 @@ void InteractorHostTestBase::check_momentum_conservation(
     {
         ParticleTrackView::Initializer_t init;
         init.particle_id = parent_track.particle_id();
-        init.energy      = interaction.energy;
-        temp_track       = init;
+        init.energy = interaction.energy;
+        temp_track = init;
         axpy(temp_track.momentum().value(),
              interaction.direction,
              &exit_momentum);
     }
 
     // Subtract contributions from exiting secondaries
-    for (const Secondary& s : interaction.secondaries)
+    for (Secondary const& s : interaction.secondaries)
     {
         ParticleTrackView::Initializer_t init;
         init.particle_id = s.particle_id;
-        init.energy      = s.energy;
-        temp_track       = init;
+        init.energy = s.energy;
+        temp_track = init;
         axpy(temp_track.momentum().value(), s.direction, &exit_momentum);
     }
 
@@ -308,5 +308,5 @@ void InteractorHostTestBase::check_momentum_conservation(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

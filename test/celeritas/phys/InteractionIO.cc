@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Write a host-side Interaction to a stream for debugging.
  */
-std::ostream& operator<<(std::ostream& os, const Interaction& i)
+std::ostream& operator<<(std::ostream& os, Interaction const& i)
 {
     os << "Interaction{";
     os << "Action{" << static_cast<int>(i.action) << "}, " << i.energy.value()
@@ -33,4 +33,4 @@ std::ostream& operator<<(std::ostream& os, const Interaction& i)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -84,9 +84,9 @@ void VecgeomNavCollection<Ownership::value, MemSpace::device>::resize(
     CELER_EXPECT(celeritas::device());
 
     pool.reset(new vecgeom::cxx::NavStatePool(sz, md));
-    this->ptr       = pool->GetGPUPointer();
+    this->ptr = pool->GetGPUPointer();
     this->max_depth = md;
-    this->size      = sz;
+    this->size = sz;
 }
 
 //---------------------------------------------------------------------------//
@@ -104,5 +104,5 @@ void VecgeomNavCollection<Ownership::reference, MemSpace::device>::operator=(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

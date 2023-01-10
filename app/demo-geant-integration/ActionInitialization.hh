@@ -32,9 +32,9 @@ class ActionInitialization final : public G4VUserActionInitialization
     void Build() const final;
 
   private:
-    SPParams     params_;
+    SPParams params_;
     mutable bool init_celeritas_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

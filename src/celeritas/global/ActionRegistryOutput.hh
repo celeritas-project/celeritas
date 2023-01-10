@@ -23,7 +23,7 @@ class ActionRegistryOutput final : public OutputInterface
   public:
     //!@{
     //! Type aliases
-    using SPConstActionRegistry = std::shared_ptr<const ActionRegistry>;
+    using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
     //!@}
 
   public:
@@ -44,4 +44,4 @@ class ActionRegistryOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

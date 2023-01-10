@@ -35,5 +35,5 @@ struct RefGetter<T, MemSpace::device>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

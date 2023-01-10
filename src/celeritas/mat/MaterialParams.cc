@@ -22,7 +22,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 
-#include "MaterialData.hh" // IWYU pragma: associated
+#include "MaterialData.hh"  // IWYU pragma: associated
 #include "detail/Utils.hh"
 
 namespace celeritas
@@ -51,14 +51,14 @@ MatterState to_matter_state(const ImportMaterialState state)
     }
     CELER_ASSERT_UNREACHABLE();
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
  */
 std::shared_ptr<MaterialParams>
-MaterialParams::from_import(const ImportData& data)
+MaterialParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(data);
 
@@ -66,26 +66,26 @@ MaterialParams::from_import(const ImportData& data)
     MaterialParams::Input input;
 
     // Populate input.elements
-    for (const auto& element : data.elements)
+    for (auto const& element : data.elements)
     {
         MaterialParams::ElementInput element_params;
         element_params.atomic_number = AtomicNumber{element.atomic_number};
-        element_params.atomic_mass   = units::AmuMass{element.atomic_mass};
-        element_params.label         = Label::from_geant(element.name);
+        element_params.atomic_mass = units::AmuMass{element.atomic_mass};
+        element_params.label = Label::from_geant(element.name);
 
         input.elements.push_back(element_params);
     }
 
     // Populate input.materials
-    for (const auto& material : data.materials)
+    for (auto const& material : data.materials)
     {
         MaterialParams::MaterialInput material_params;
-        material_params.temperature    = material.temperature;
+        material_params.temperature = material.temperature;
         material_params.number_density = material.number_density;
-        material_params.matter_state   = to_matter_state(material.state);
-        material_params.label          = Label::from_geant(material.name);
+        material_params.matter_state = to_matter_state(material.state);
+        material_params.label = Label::from_geant(material.name);
 
-        for (const auto& elem_comp : material.elements)
+        for (auto const& elem_comp : material.elements)
         {
             ElementId elem_def_id{elem_comp.element_id};
 
@@ -105,7 +105,7 @@ MaterialParams::from_import(const ImportData& data)
 /*!
  * Construct from a vector of material definitions.
  */
-MaterialParams::MaterialParams(const Input& inp)
+MaterialParams::MaterialParams(Input const& inp)
 {
     CELER_EXPECT(!inp.materials.empty());
 
@@ -142,7 +142,7 @@ MaterialParams::MaterialParams(const Input& inp)
 /*!
  * Get the label of a material.
  */
-const Label& MaterialParams::id_to_label(MaterialId mat) const
+Label const& MaterialParams::id_to_label(MaterialId mat) const
 {
     CELER_EXPECT(mat < mat_labels_.size());
     return mat_labels_.get(mat);
@@ -154,7 +154,7 @@ const Label& MaterialParams::id_to_label(MaterialId mat) const
  *
  * If the label isn't among the materials, a null ID will be returned.
  */
-MaterialId MaterialParams::find_material(const std::string& name) const
+MaterialId MaterialParams::find_material(std::string const& name) const
 {
     auto result = mat_labels_.find_all(name);
     if (result.empty())
@@ -171,7 +171,7 @@ MaterialId MaterialParams::find_material(const std::string& name) const
  * This is useful for materials that are repeated with different
  * uniquifying 'extensions'.
  */
-auto MaterialParams::find_materials(const std::string& name) const
+auto MaterialParams::find_materials(std::string const& name) const
     -> SpanConstMaterialId
 {
     return mat_labels_.find_all(name);
@@ -181,7 +181,7 @@ auto MaterialParams::find_materials(const std::string& name) const
 /*!
  * Get the label of a element.
  */
-const Label& MaterialParams::id_to_label(ElementId el) const
+Label const& MaterialParams::id_to_label(ElementId el) const
 {
     CELER_EXPECT(el < el_labels_.size());
     return el_labels_.get(el);
@@ -193,7 +193,7 @@ const Label& MaterialParams::id_to_label(ElementId el) const
  *
  * If the label isn't among the materials, a null ID will be returned.
  */
-ElementId MaterialParams::find_element(const std::string& name) const
+ElementId MaterialParams::find_element(std::string const& name) const
 {
     auto result = el_labels_.find_all(name);
     if (result.empty())
@@ -207,7 +207,7 @@ ElementId MaterialParams::find_element(const std::string& name) const
 /*!
  * Get zero or more element IDs corresponding to a name.
  */
-auto MaterialParams::find_elements(const std::string& name) const
+auto MaterialParams::find_elements(std::string const& name) const
     -> SpanConstElementId
 {
     return el_labels_.find_all(name);
@@ -222,8 +222,8 @@ auto MaterialParams::find_elements(const std::string& name) const
  * This adds computed quantities in addition to the input values. The result
  * is pushed back onto the host list of stored elements.
  */
-void MaterialParams::append_element_def(const ElementInput& inp,
-                                        HostValue*          host_data)
+void MaterialParams::append_element_def(ElementInput const& inp,
+                                        HostValue* host_data)
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass > zero_quantity());
@@ -232,13 +232,13 @@ void MaterialParams::append_element_def(const ElementInput& inp,
 
     // Copy basic properties
     result.atomic_number = inp.atomic_number;
-    result.atomic_mass   = inp.atomic_mass;
+    result.atomic_mass = inp.atomic_mass;
 
     // Calculate various factors of the atomic number
     const real_type z_real = result.atomic_number.unchecked_get();
-    result.cbrt_z          = std::cbrt(z_real);
-    result.cbrt_zzp        = std::cbrt(z_real * (z_real + 1));
-    result.log_z           = std::log(z_real);
+    result.cbrt_z = std::cbrt(z_real);
+    result.cbrt_zzp = std::cbrt(z_real * (z_real + 1));
+    result.log_z = std::log(z_real);
     result.coulomb_correction
         = detail::calc_coulomb_correction(result.atomic_number);
     result.mass_radiation_coeff = detail::calc_mass_rad_coeff(result);
@@ -255,8 +255,8 @@ void MaterialParams::append_element_def(const ElementInput& inp,
  * aren't duplicated.
  */
 ItemRange<MatElementComponent>
-MaterialParams::extend_elcomponents(const MaterialInput& inp,
-                                    HostValue*           host_data) const
+MaterialParams::extend_elcomponents(MaterialInput const& inp,
+                                    HostValue* host_data) const
 {
     CELER_EXPECT(host_data);
     // Allocate material components
@@ -270,7 +270,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
                      < host_data->elements.size());
         CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
-        components[i].element  = inp.elements_fractions[i].first;
+        components[i].element = inp.elements_fractions[i].first;
         components[i].fraction = inp.elements_fractions[i].second;
         // Add fractions to verify unity
         norm += inp.elements_fractions[i].second;
@@ -284,7 +284,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
                            << " (difference = " << norm - 1 << ")";
 
         // Normalize
-        norm                      = 1.0 / norm;
+        norm = 1.0 / norm;
         real_type total_fractions = 0;
         for (MatElementComponent& comp : components)
         {
@@ -298,7 +298,7 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
     std::sort(
         components.begin(),
         components.end(),
-        [](const MatElementComponent& lhs, const MatElementComponent& rhs) {
+        [](MatElementComponent const& lhs, MatElementComponent const& rhs) {
             return lhs.element < rhs.element;
         });
 
@@ -310,8 +310,8 @@ MaterialParams::extend_elcomponents(const MaterialInput& inp,
 /*!
  * Convert an material input to an material definition and store.
  */
-void MaterialParams::append_material_def(const MaterialInput& inp,
-                                         HostValue*           host_data)
+void MaterialParams::append_material_def(MaterialInput const& inp,
+                                         HostValue* host_data)
 {
     CELER_EXPECT(inp.number_density >= 0);
     CELER_EXPECT((inp.number_density == 0) == inp.elements_fractions.empty());
@@ -320,24 +320,24 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     MaterialRecord result;
     // Copy basic properties
     result.number_density = inp.number_density;
-    result.temperature    = inp.temperature;
-    result.matter_state   = inp.matter_state;
-    result.elements       = this->extend_elcomponents(inp, host_data);
+    result.temperature = inp.temperature;
+    result.matter_state = inp.matter_state;
+    result.elements = this->extend_elcomponents(inp, host_data);
 
     /*!
      * Calculate derived quantities: density, electron density, and rad length
      *
      * NOTE: Electron density calculation may need to be updated for solids.
      */
-    real_type avg_amu_mass        = 0;
-    real_type avg_z               = 0;
-    real_type rad_coeff           = 0;
+    real_type avg_amu_mass = 0;
+    real_type avg_z = 0;
+    real_type rad_coeff = 0;
     real_type log_mean_exc_energy = 0;
-    for (const MatElementComponent& comp :
+    for (MatElementComponent const& comp :
          host_data->elcomponents[result.elements])
     {
         CELER_ASSERT(comp.element < host_data->elements.size());
-        const ElementRecord& el = host_data->elements[comp.element];
+        ElementRecord const& el = host_data->elements[comp.element];
         real_type frac_z = comp.fraction * el.atomic_number.unchecked_get();
 
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
@@ -350,10 +350,10 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     }
     result.density = result.number_density * avg_amu_mass
                      * constants::atomic_mass;
-    result.electron_density    = result.number_density * avg_z;
-    result.rad_length          = 1 / (rad_coeff * result.density);
-    log_mean_exc_energy        = avg_z > 0 ? log_mean_exc_energy / avg_z
-                                           : -numeric_limits<real_type>::infinity();
+    result.electron_density = result.number_density * avg_z;
+    result.rad_length = 1 / (rad_coeff * result.density);
+    log_mean_exc_energy = avg_z > 0 ? log_mean_exc_energy / avg_z
+                                    : -numeric_limits<real_type>::infinity();
     result.log_mean_exc_energy = units::LogMevEnergy{log_mean_exc_energy};
     result.mean_exc_energy = units::MevEnergy{std::exp(log_mean_exc_energy)};
 
@@ -371,4 +371,4 @@ void MaterialParams::append_material_def(const MaterialInput& inp,
     CELER_ENSURE(result.rad_length > 0);
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

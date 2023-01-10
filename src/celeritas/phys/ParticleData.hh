@@ -31,9 +31,9 @@ namespace celeritas
  */
 struct ParticleRecord
 {
-    units::MevMass          mass;           //!< Rest mass [MeV / c^2]
-    units::ElementaryCharge charge;         //!< Charge in units of [e]
-    real_type               decay_constant; //!< Decay constant [1/s]
+    units::MevMass mass;  //!< Rest mass [MeV / c^2]
+    units::ElementaryCharge charge;  //!< Charge in units of [e]
+    real_type decay_constant;  //!< Decay constant [1/s]
 
     //! Value of decay_constant for a stable particle
     static CELER_CONSTEXPR_FUNCTION real_type stable_decay_constant()
@@ -74,7 +74,7 @@ struct ParticleParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    ParticleParamsData& operator=(const ParticleParamsData<W2, M2>& other)
+    ParticleParamsData& operator=(ParticleParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         particles = other.particles;
@@ -99,14 +99,14 @@ struct ParticleParamsData
  */
 struct ParticleTrackState
 {
-    ParticleId particle_id; //!< Type of particle (electron, gamma, ...)
-    real_type  energy;      //!< Kinetic energy [MeV]
+    ParticleId particle_id;  //!< Type of particle (electron, gamma, ...)
+    real_type energy;  //!< Kinetic energy [MeV]
 };
 
 struct ParticleTrackInitializer
 {
-    ParticleId       particle_id; //!< Type of particle (electron, gamma, ...)
-    units::MevEnergy energy;      //!< Kinetic energy [MeV]
+    ParticleId particle_id;  //!< Type of particle (electron, gamma, ...)
+    units::MevEnergy energy;  //!< Kinetic energy [MeV]
 };
 
 //---------------------------------------------------------------------------//
@@ -154,7 +154,7 @@ struct ParticleStateData
  */
 template<MemSpace M>
 inline void resize(ParticleStateData<Ownership::value, M>* data,
-                   const HostCRef<ParticleParamsData>&,
+                   HostCRef<ParticleParamsData> const&,
                    size_type size)
 {
     CELER_EXPECT(size > 0);
@@ -162,4 +162,4 @@ inline void resize(ParticleStateData<Ownership::value, M>* data,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -38,7 +38,7 @@ class ReciprocalDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -108,4 +108,4 @@ ReciprocalDistribution<RealType>::operator()(Generator& rng) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

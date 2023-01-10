@@ -35,8 +35,8 @@ using Revolution = Quantity<TwoPi, double>;
 
 struct DozenUnit
 {
-    static constexpr int         value() { return 12; }
-    static constexpr const char* label() { return "dozen"; }
+    static constexpr int value() { return 12; }
+    static constexpr char const* label() { return "dozen"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -56,7 +56,7 @@ TEST(QuantityTest, usage)
     // exactly operate on data (e.g. in this case where a user wants a radial
     // mesh that spans half a turn, i.e. pi)
     Revolution user_input{0.5};
-    double     dtheta = user_input.value() / 8;
+    double dtheta = user_input.value() / 8;
     EXPECT_EQ(1.0 / 16.0, dtheta);
 
     // Hypothetical return value for user
@@ -142,14 +142,14 @@ TEST(QuantityTest, io)
 
     {
         SCOPED_TRACE("Input as scalar");
-        nlohmann::json inp    = int{123};
-        auto           result = inp.get<Dozen>();
+        nlohmann::json inp = int{123};
+        auto result = inp.get<Dozen>();
         EXPECT_EQ(123, value_as<Dozen>(result));
     }
     {
         SCOPED_TRACE("Input as array");
-        nlohmann::json inp    = {123, "dozen"};
-        auto           result = inp.get<Dozen>();
+        nlohmann::json inp = {123, "dozen"};
+        auto result = inp.get<Dozen>();
         EXPECT_EQ(123, value_as<Dozen>(result));
     }
     {
@@ -164,8 +164,8 @@ TEST(QuantityTest, io)
     }
     {
         SCOPED_TRACE("Output");
-        nlohmann::json    out        = Dozen{2};
-        static const char expected[] = R"json([2,"dozen"])json";
+        nlohmann::json out = Dozen{2};
+        static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
 #else
@@ -174,5 +174,5 @@ TEST(QuantityTest, io)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

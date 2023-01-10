@@ -21,7 +21,7 @@ namespace test
 
 TEST(BernoulliDistributionTest, single_constructor)
 {
-    std::mt19937          rng;
+    std::mt19937 rng;
     BernoulliDistribution quarter_true(0.25);
     EXPECT_SOFT_EQ(0.25, quarter_true.p());
 
@@ -43,5 +43,5 @@ TEST(BernoulliDistributionTest, normalizing_constructor)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

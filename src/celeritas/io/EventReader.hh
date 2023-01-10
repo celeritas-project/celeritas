@@ -35,13 +35,13 @@ class EventReader
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using result_type      = std::vector<Primary>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using result_type = std::vector<Primary>;
     //!@}
 
   public:
     // Construct from a filename
-    EventReader(const char* filename, SPConstParticles params);
+    EventReader(char const* filename, SPConstParticles params);
 
     // Default destructor in .cc
     ~EventReader();
@@ -61,4 +61,4 @@ class EventReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -43,11 +43,11 @@ class KnStepCollectorTestBase : public SimpleTestBase,
         Primary p;
         p.particle_id = this->particle()->find(pdg::gamma());
         CELER_ASSERT(p.particle_id);
-        p.energy    = MevEnergy{10.0};
-        p.track_id  = TrackId{0};
-        p.position  = {0, 0, 0};
+        p.energy = MevEnergy{10.0};
+        p.track_id = TrackId{0};
+        p.position = {0, 0, 0};
         p.direction = {1, 0, 0};
-        p.time      = 0;
+        p.time = 0;
 
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
@@ -77,10 +77,10 @@ class TestEm3CollectorTestBase : public TestEm3Base,
 
     SPConstAction build_along_step() override
     {
-        auto&              action_reg = *this->action_reg();
+        auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1 * units::tesla};
-        auto result        = AlongStepUniformMscAction::from_params(
+        auto result = AlongStepUniformMscAction::from_params(
             action_reg.next_id(), *this->physics(), field_params);
         CELER_ASSERT(result);
         CELER_ASSERT(result->has_msc() == this->enable_msc());
@@ -91,10 +91,10 @@ class TestEm3CollectorTestBase : public TestEm3Base,
     VecPrimary make_primaries(size_type count) override
     {
         Primary p;
-        p.energy    = MevEnergy{10.0};
-        p.position  = {-22, 0, 0};
+        p.energy = MevEnergy{10.0};
+        p.position = {-22, 0, 0};
         p.direction = {1, 0, 0};
-        p.time      = 0;
+        p.time = 0;
         std::vector<Primary> result(count, p);
 
         auto electron = this->particle()->find(pdg::electron());
@@ -104,8 +104,8 @@ class TestEm3CollectorTestBase : public TestEm3Base,
 
         for (auto i : range(count))
         {
-            result[i].event_id    = EventId{0};
-            result[i].track_id    = TrackId{i};
+            result[i].event_id = EventId{0};
+            result[i].track_id = TrackId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -148,15 +148,15 @@ TEST_F(KnStepCollectorTestBase, mixing_types)
 TEST_F(KnStepCollectorTestBase, multiple_interfaces)
 {
     // Add mctruth twice so each step is doubly written
-    auto                        mctruth = std::make_shared<ExampleMctruth>();
+    auto mctruth = std::make_shared<ExampleMctruth>();
     StepCollector::VecInterface interfaces = {mctruth, mctruth};
-    auto                        collector  = std::make_shared<StepCollector>(
+    auto collector = std::make_shared<StepCollector>(
         std::move(interfaces), this->geometry(), this->action_reg().get());
 
     // Do one step with two tracks
     {
         StepperInput step_inp;
-        step_inp.params          = this->core();
+        step_inp.params = this->core();
         step_inp.num_track_slots = 2;
 
         Stepper<MemSpace::host> step(step_inp);
@@ -176,21 +176,21 @@ TEST_F(KnMctruthTest, single_step)
 {
     auto result = this->run(8, 1);
 
-    static const int expected_event[] = {0, 1, 2, 3, 4, 5, 6, 7};
+    static int const expected_event[] = {0, 1, 2, 3, 4, 5, 6, 7};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static const int expected_track[] = {0, 0, 0, 0, 0, 0, 0, 0};
+    static int const expected_track[] = {0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_EQ(expected_track, result.track);
-    static const int expected_step[] = {1, 1, 1, 1, 1, 1, 1, 1};
+    static int const expected_step[] = {1, 1, 1, 1, 1, 1, 1, 1};
     EXPECT_VEC_EQ(expected_step, result.step);
     if (!CELERITAS_USE_VECGEOM)
     {
-        static const int expected_volume[] = {1, 1, 1, 1, 1, 1, 1, 1};
+        static int const expected_volume[] = {1, 1, 1, 1, 1, 1, 1, 1};
         EXPECT_VEC_EQ(expected_volume, result.volume);
     }
-    static const double expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    static double const expected_pos[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static const double expected_dir[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
+    static double const expected_dir[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
                                           1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
 }
@@ -222,7 +222,7 @@ TEST_F(KnCaloTest, single_event)
 {
     auto result = this->run(1, 64);
 
-    static const double expected_edep[] = {0.00043564799352598};
+    static double const expected_edep[] = {0.00043564799352598};
     EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
 }
 
@@ -267,11 +267,11 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
 {
     auto result = this->run(256, 32);
 
-    static const double expected_edep[]
+    static double const expected_edep[]
         = {1535.4185205798, 109.69434829612, 20.443067191226};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

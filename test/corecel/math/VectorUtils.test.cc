@@ -38,7 +38,7 @@ TEST(VectorUtils, linspace)
     {
         // Guard against accumulation error
         const real_type exact_third = 1.0 / 3.0;
-        auto            result = linspace(exact_third, 2 * exact_third, 32768);
+        auto result = linspace(exact_third, 2 * exact_third, 32768);
         ASSERT_EQ(32768, result.size());
         if (sizeof(real_type) == sizeof(double))
         {
@@ -49,5 +49,5 @@ TEST(VectorUtils, linspace)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

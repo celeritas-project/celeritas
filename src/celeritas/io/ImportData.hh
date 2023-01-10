@@ -79,20 +79,20 @@ struct ImportData
 {
     //!@{
     //! \name Type aliases
-    using ImportSBMap               = std::map<int, ImportSBTable>;
-    using ImportLivermorePEMap      = std::map<int, ImportLivermorePE>;
+    using ImportSBMap = std::map<int, ImportSBTable>;
+    using ImportLivermorePEMap = std::map<int, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<int, ImportAtomicRelaxation>;
     //!@}
 
     std::vector<ImportParticle> particles;
-    std::vector<ImportElement>  elements;
+    std::vector<ImportElement> elements;
     std::vector<ImportMaterial> materials;
-    std::vector<ImportProcess>  processes;
-    std::vector<ImportVolume>   volumes;
-    ImportEmParameters          em_params;
-    ImportSBMap                 sb_data;
-    ImportLivermorePEMap        livermore_pe_data;
-    ImportAtomicRelaxationMap   atomic_relaxation_data;
+    std::vector<ImportProcess> processes;
+    std::vector<ImportVolume> volumes;
+    ImportEmParameters em_params;
+    ImportSBMap sb_data;
+    ImportLivermorePEMap livermore_pe_data;
+    ImportAtomicRelaxationMap atomic_relaxation_data;
 
     explicit operator bool() const
     {
@@ -102,4 +102,4 @@ struct ImportData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

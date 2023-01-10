@@ -47,7 +47,7 @@ struct FieldMapElement
  */
 struct FieldMapInput
 {
-    FieldMapParameters           params;
+    FieldMapParameters params;
     std::vector<FieldMapElement> data;
 };
 
@@ -86,15 +86,15 @@ struct FieldMapData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    FieldMapData& operator=(const FieldMapData<W2, M2>& other)
+    FieldMapData& operator=(FieldMapData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        params   = other.params;
+        params = other.params;
         fieldmap = other.fieldmap;
         return *this;
     }
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -33,7 +33,7 @@ TEST(UniformZFieldTest, all)
 
 TEST(UniformFieldTest, all)
 {
-    Real3        field_vec{1, 2, 3};
+    Real3 field_vec{1, 2, 3};
     UniformField calc_field(field_vec);
 
     EXPECT_VEC_SOFT_EQ(field_vec, calc_field({100, -1, 0.5}));
@@ -44,9 +44,9 @@ TEST(CMSParameterizedFieldTest, all)
     // Create the magnetic field with a parameterized field
     CMSParameterizedField calc_field;
 
-    const int nsamples = 8;
-    real_type delta_z  = 25.0;
-    real_type delta_r  = 12.0;
+    int const nsamples = 8;
+    real_type delta_z = 25.0;
+    real_type delta_r = 12.0;
 
     std::vector<real_type> actual;
 
@@ -92,9 +92,9 @@ TEST(CMSMapField, all)
     {
         FieldMapParameters params;
         params.delta_grid = units::meter;
-        params.num_grid_r = 9 + 1;      //! [0:9]
-        params.num_grid_z = 2 * 16 + 1; //! [-16:16]
-        params.offset_z   = 16 * units::meter;
+        params.num_grid_r = 9 + 1;  //! [0:9]
+        params.num_grid_z = 2 * 16 + 1;  //! [-16:16]
+        params.offset_z = 16 * units::meter;
 
         CMSFieldMapReader load_map(
             params,
@@ -104,9 +104,9 @@ TEST(CMSMapField, all)
 
     CMSMapField calc_field(field_map->host_ref());
 
-    const int nsamples = 8;
-    real_type delta_z  = 25.0;
-    real_type delta_r  = 12.0;
+    int const nsamples = 8;
+    real_type delta_z = 25.0;
+    real_type delta_r = 12.0;
 
     std::vector<real_type> actual;
 
@@ -146,5 +146,5 @@ TEST(CMSMapField, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

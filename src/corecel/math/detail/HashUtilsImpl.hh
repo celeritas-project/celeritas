@@ -48,18 +48,18 @@ struct FnvHashTraits;
 template<>
 struct FnvHashTraits<4ul>
 {
-    using value_type                          = std::uint32_t;
+    using value_type = std::uint32_t;
     static constexpr value_type initial_basis = 0x811c9dc5u;
-    static constexpr value_type magic_prime   = 0x01000193u;
+    static constexpr value_type magic_prime = 0x01000193u;
 };
 
 // 64-bit specialization
 template<>
 struct FnvHashTraits<8ul>
 {
-    using value_type                          = std::uint64_t;
+    using value_type = std::uint64_t;
     static constexpr value_type initial_basis = 0xcbf29ce484222325ull;
-    static constexpr value_type magic_prime   = 0x00000100000001b3ull;
+    static constexpr value_type magic_prime = 0x00000100000001b3ull;
 };
 
 //---------------------------------------------------------------------------//
@@ -154,5 +154,5 @@ CELER_FORCEINLINE_FUNCTION FnvHasher<T> make_fast_hasher(T* i)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

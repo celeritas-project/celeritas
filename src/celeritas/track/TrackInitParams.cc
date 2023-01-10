@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/track/TrackInitData.hh" // IWYU pragma: associated
+#include "celeritas/track/TrackInitData.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -18,17 +18,17 @@ namespace celeritas
 /*!
  * Construct with capacity and number of events.
  */
-TrackInitParams::TrackInitParams(const Input& inp)
+TrackInitParams::TrackInitParams(Input const& inp)
 {
     CELER_EXPECT(inp.capacity > 0);
     CELER_EXPECT(inp.max_events > 0);
 
     HostVal<TrackInitParamsData> host_data;
-    host_data.capacity   = inp.capacity;
+    host_data.capacity = inp.capacity;
     host_data.max_events = inp.max_events;
     CELER_ASSERT(host_data);
     data_ = CollectionMirror<TrackInitParamsData>{std::move(host_data)};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -54,7 +54,7 @@ GeantBremsstrahlungProcess::~GeantBremsstrahlungProcess() = default;
  * Define applicability based on particle definition.
  */
 bool GeantBremsstrahlungProcess::IsApplicable(
-    const G4ParticleDefinition& particle)
+    G4ParticleDefinition const& particle)
 {
     return (&particle == G4Electron::Electron()
             || &particle == G4Positron::Positron());
@@ -77,7 +77,7 @@ void GeantBremsstrahlungProcess::ProcessDescription(std::ostream& output) const
  * Initialise process by constructing models based on \c ModelSelection .
  */
 void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
-    const G4ParticleDefinition*, const G4ParticleDefinition*)
+    G4ParticleDefinition const*, G4ParticleDefinition const*)
 {
     if (is_initialized_)
     {
@@ -85,12 +85,12 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         return;
     }
 
-    const auto& em_parameters = G4EmParameters::Instance();
+    auto const& em_parameters = G4EmParameters::Instance();
 
-    double energy_min      = em_parameters->MinKinEnergy();
-    double energy_max      = em_parameters->MaxKinEnergy();
+    double energy_min = em_parameters->MinKinEnergy();
+    double energy_max = em_parameters->MaxKinEnergy();
     double sb_energy_limit = 1 * GeV;
-    double energy_limit    = std::min(energy_max, sb_energy_limit);
+    double energy_limit = std::min(energy_max, sb_energy_limit);
     G4VEmFluctuationModel* fluctuation_model = nullptr;
 
     std::size_t model_index = 0;
@@ -144,8 +144,8 @@ void GeantBremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
 {
     if (auto* model = G4VEnergyLossProcess::EmModel(0))
     {
-        const auto&  param            = G4EmParameters::Instance();
-        const double energy_threshold = param->BremsstrahlungTh();
+        auto const& param = G4EmParameters::Instance();
+        double const energy_threshold = param->BremsstrahlungTh();
 
         output << "      LPM flag: " << param->LPM() << " for E > "
                << model->HighEnergyLimit() / GeV << " GeV";
@@ -159,5 +159,5 @@ void GeantBremsstrahlungProcess::StreamProcessInfo(std::ostream& output) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

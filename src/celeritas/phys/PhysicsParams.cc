@@ -23,7 +23,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/AtomicRelaxationParams.hh" // IWYU pragma: keep
+#include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
@@ -62,7 +62,7 @@ class ImplicitPhysicsAction final : public ImplicitActionInterface,
     // Construct with ID and label
     using ConcreteAction::ConcreteAction;
 };
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -75,7 +75,7 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(!processes_.empty());
     CELER_EXPECT(std::all_of(processes_.begin(),
                              processes_.end(),
-                             [](const SPConstProcess& p) { return bool(p); }));
+                             [](SPConstProcess const& p) { return bool(p); }));
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
@@ -142,8 +142,8 @@ PhysicsParams::PhysicsParams(Input inp)
             "fixed step limiter for charged particles");
         inp.action_registry->insert(fixed_step_action);
         host_data.scalars.fixed_step_limiter = inp.options.fixed_step_limiter;
-        host_data.scalars.fixed_step_action  = fixed_step_action->action_id();
-        fixed_step_action_                   = std::move(fixed_step_action);
+        host_data.scalars.fixed_step_action = fixed_step_action->action_id();
+        fixed_step_action_ = std::move(fixed_step_action);
     }
 
     // Copy data to device
@@ -166,7 +166,7 @@ PhysicsParams::PhysicsParams(Input inp)
 auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->num_processes());
-    const auto& data = this->host_ref();
+    auto const& data = this->host_ref();
     return data.process_ids[data.process_groups[id].processes];
 }
 
@@ -180,7 +180,7 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
     // Construct models, assigning each model ID
     for (auto process_idx : range<ProcessId::size_type>(processes_.size()))
     {
-        auto id_iter    = Process::ActionIdIter{mgr->next_id()};
+        auto id_iter = Process::ActionIdIter{mgr->next_id()};
         auto new_models = processes_[process_idx]->build_models(id_iter);
         CELER_ASSERT(!new_models.empty());
         for (SPConstModel& model : new_models)
@@ -203,7 +203,7 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 /*!
  * Construct on-device physics options.
  */
-void PhysicsParams::build_options(const Options& opts, HostValue* data) const
+void PhysicsParams::build_options(Options const& opts, HostValue* data) const
 {
     CELER_VALIDATE(opts.max_step_over_range > 0,
                    << "invalid max_step_over_range="
@@ -223,11 +223,11 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
     CELER_VALIDATE(opts.secondary_stack_factor > 0,
                    << "invalid secondary_stack_factor="
                    << opts.secondary_stack_factor << " (should be positive)");
-    data->scalars.min_range              = opts.min_range;
-    data->scalars.max_step_over_range    = opts.max_step_over_range;
-    data->scalars.min_eprime_over_e      = opts.min_eprime_over_e;
-    data->scalars.eloss_calc_limit       = opts.eloss_calc_limit;
-    data->scalars.linear_loss_limit      = opts.linear_loss_limit;
+    data->scalars.min_range = opts.min_range;
+    data->scalars.max_step_over_range = opts.max_step_over_range;
+    data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
+    data->scalars.eloss_calc_limit = opts.eloss_calc_limit;
+    data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
 }
 
@@ -235,8 +235,8 @@ void PhysicsParams::build_options(const Options& opts, HostValue* data) const
 /*!
  * Construct particle -> process -> model mappings.
  */
-void PhysicsParams::build_ids(const ParticleParams& particles,
-                              HostValue*            data) const
+void PhysicsParams::build_ids(ParticleParams const& particles,
+                              HostValue* data) const
 {
     CELER_EXPECT(data);
     CELER_EXPECT(!models_.empty());
@@ -248,15 +248,15 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
     // Note: use map to keep ProcessId sorted
     std::vector<std::map<ProcessId, std::vector<ModelRange>>> particle_models(
         particles.size());
-    std::vector<ModelId>       temp_model_ids;
+    std::vector<ModelId> temp_model_ids;
     ParticleModelId::size_type pm_idx{0};
 
     // Construct particle -> process -> model map
     for (auto mid : range(ModelId{this->num_models()}))
     {
-        const Model&    m          = *this->model(mid);
+        Model const& m = *this->model(mid);
         const ProcessId process_id = this->process_id(mid);
-        for (const Applicability& applic : m.applicability())
+        for (Applicability const& applic : m.applicability())
         {
             if (applic.material)
             {
@@ -277,10 +277,10 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         .insert_back(temp_model_ids.begin(), temp_model_ids.end());
 
     auto process_groups = make_builder(&data->process_groups);
-    auto process_ids    = make_builder(&data->process_ids);
-    auto model_groups   = make_builder(&data->model_groups);
-    auto pmodel_ids     = make_builder(&data->pmodel_ids);
-    auto reals          = make_builder(&data->reals);
+    auto process_ids = make_builder(&data->process_ids);
+    auto model_groups = make_builder(&data->model_groups);
+    auto pmodel_ids = make_builder(&data->pmodel_ids);
+    auto reals = make_builder(&data->reals);
 
     process_groups.reserve(particle_models.size());
 
@@ -298,7 +298,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         max_particle_processes = std::max<ProcessId::size_type>(
             max_particle_processes, process_to_models.size());
 
-        std::vector<ProcessId>  temp_processes;
+        std::vector<ProcessId> temp_processes;
         std::vector<ModelGroup> temp_model_datas;
         temp_processes.reserve(process_to_models.size());
         temp_model_datas.reserve(process_to_models.size());
@@ -311,7 +311,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             CELER_ASSERT(!models.empty());
 
             // Construct model data
-            std::vector<real_type>       temp_energy_grid;
+            std::vector<real_type> temp_energy_grid;
             std::vector<ParticleModelId> temp_models;
             temp_energy_grid.reserve(models.size() + 1);
             temp_models.reserve(models.size());
@@ -320,7 +320,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             std::sort(models.begin(), models.end());
             temp_energy_grid.push_back(std::get<0>(models[0]));
 
-            for (const ModelRange& r : models)
+            for (ModelRange const& r : models)
             {
                 CELER_VALIDATE(
                     temp_energy_grid.back() == std::get<0>(r),
@@ -338,7 +338,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
             ModelGroup mdata;
             mdata.energy = reals.insert_back(temp_energy_grid.begin(),
                                              temp_energy_grid.end());
-            mdata.model  = pmodel_ids.insert_back(temp_models.begin(),
+            mdata.model = pmodel_ids.insert_back(temp_models.begin(),
                                                  temp_models.end());
             CELER_ASSERT(mdata);
             temp_model_datas.push_back(mdata);
@@ -347,7 +347,7 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         ProcessGroup pdata;
         pdata.processes = process_ids.insert_back(temp_processes.begin(),
                                                   temp_processes.end());
-        pdata.models    = model_groups.insert_back(temp_model_datas.begin(),
+        pdata.models = model_groups.insert_back(temp_model_datas.begin(),
                                                 temp_model_datas.end());
 
         // It's ok to have particles defined in the problem that do not have
@@ -358,25 +358,25 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
         process_groups.push_back(pdata);
     }
     data->scalars.max_particle_processes = max_particle_processes;
-    data->scalars.num_models             = this->num_models();
+    data->scalars.num_models = this->num_models();
 
     // Assign hardwired models that do on-the-fly xs calculation
     for (auto model_idx : range(this->num_models()))
     {
-        const Model&    model      = *models_[model_idx].first;
+        Model const& model = *models_[model_idx].first;
         const ProcessId process_id = models_[model_idx].second;
-        if (auto* pe_model = dynamic_cast<const LivermorePEModel*>(&model))
+        if (auto* pe_model = dynamic_cast<LivermorePEModel const*>(&model))
         {
-            data->hardwired.photoelectric              = process_id;
+            data->hardwired.photoelectric = process_id;
             data->hardwired.photoelectric_table_thresh = units::MevEnergy{0.2};
-            data->hardwired.livermore_pe               = ModelId{model_idx};
-            data->hardwired.livermore_pe_data          = pe_model->host_ref();
+            data->hardwired.livermore_pe = ModelId{model_idx};
+            data->hardwired.livermore_pe_data = pe_model->host_ref();
         }
-        else if (auto* epgg_model = dynamic_cast<const EPlusGGModel*>(&model))
+        else if (auto* epgg_model = dynamic_cast<EPlusGGModel const*>(&model))
         {
             data->hardwired.positron_annihilation = process_id;
-            data->hardwired.eplusgg               = ModelId{model_idx};
-            data->hardwired.eplusgg_data          = epgg_model->device_ref();
+            data->hardwired.eplusgg = ModelId{model_idx};
+            data->hardwired.eplusgg_data = epgg_model->device_ref();
         }
     }
 
@@ -394,21 +394,21 @@ void PhysicsParams::build_ids(const ParticleParams& particles,
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_xs(const Options&        opts,
-                             const MaterialParams& mats,
-                             HostValue*            data) const
+void PhysicsParams::build_xs(Options const& opts,
+                             MaterialParams const& mats,
+                             HostValue* data) const
 {
     CELER_EXPECT(*data);
 
     using UPGridBuilder = Process::UPConstGridBuilder;
-    using Energy        = Applicability::Energy;
+    using Energy = Applicability::Energy;
 
     ValueGridInserter insert_grid(&data->reals, &data->value_grids);
-    auto              value_tables   = make_builder(&data->value_tables);
-    auto              integral_xs    = make_builder(&data->integral_xs);
-    auto              value_grid_ids = make_builder(&data->value_grid_ids);
-    auto              build_grid
-        = [insert_grid](const UPGridBuilder& builder) -> ValueGridId {
+    auto value_tables = make_builder(&data->value_tables);
+    auto integral_xs = make_builder(&data->integral_xs);
+    auto value_grid_ids = make_builder(&data->value_grid_ids);
+    auto build_grid
+        = [insert_grid](UPGridBuilder const& builder) -> ValueGridId {
         return builder ? builder->build(insert_grid) : ValueGridId{};
     };
 
@@ -419,9 +419,9 @@ void PhysicsParams::build_xs(const Options&        opts,
 
         // Processes for this particle
         ProcessGroup& process_groups = data->process_groups[particle_id];
-        Span<const ProcessId> processes
+        Span<ProcessId const> processes
             = data->process_ids[process_groups.processes];
-        Span<const ModelGroup> model_groups
+        Span<ModelGroup const> model_groups
             = data->model_groups[process_groups.models];
         CELER_ASSERT(processes.size() == model_groups.size());
 
@@ -440,13 +440,13 @@ void PhysicsParams::build_xs(const Options&        opts,
              range(ParticleProcessId::size_type(processes.size())))
         {
             // Get energy bounds for this process
-            Span<const real_type> energy_grid
+            Span<real_type const> energy_grid
                 = data->reals[model_groups[pp_idx].energy];
             applic.lower = Energy{energy_grid.front()};
             applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
-            const Process& proc = *this->process(processes[pp_idx]);
+            Process const& proc = *this->process(processes[pp_idx]);
 
             // Grid IDs for each grid type, each material
             ValueGridArray<std::vector<ValueGridId>> temp_grid_ids;
@@ -457,7 +457,7 @@ void PhysicsParams::build_xs(const Options&        opts,
 
             // Energy of maximum cross section for each material
             std::vector<real_type> energy_max_xs;
-            bool                   use_integral_xs = !opts.disable_integral_xs
+            bool use_integral_xs = !opts.disable_integral_xs
                                    && proc.use_integral_xs();
             if (use_integral_xs)
             {
@@ -474,7 +474,7 @@ void PhysicsParams::build_xs(const Options&        opts,
                 CELER_VALIDATE(
                     std::any_of(builders.begin(),
                                 builders.end(),
-                                [](const UPGridBuilder& p) { return bool(p); }),
+                                [](UPGridBuilder const& p) { return bool(p); }),
                     << "process '" << proc.label()
                     << "' has neither interaction nor energy loss (it must "
                        "have at least one)");
@@ -501,9 +501,9 @@ void PhysicsParams::build_xs(const Options&        opts,
                 else if (auto grid_id
                          = temp_grid_ids[ValueGridType::macro_xs][mat_id.get()])
                 {
-                    const auto&        grid_data = data->value_grids[grid_id];
-                    auto               data_ref  = make_const_ref(*data);
-                    const UniformGrid  loge_grid(grid_data.log_energy);
+                    auto const& grid_data = data->value_grids[grid_id];
+                    auto data_ref = make_const_ref(*data);
+                    const UniformGrid loge_grid(grid_data.log_energy);
                     const XsCalculator calc_xs(grid_data, data_ref.reals);
 
                     // Check if the particle can have a discrete interaction at
@@ -516,14 +516,14 @@ void PhysicsParams::build_xs(const Options&        opts,
                     {
                         // Find the energy of the largest cross section
                         real_type xs_max = 0;
-                        real_type e_max  = 0;
+                        real_type e_max = 0;
                         for (auto i : range(loge_grid.size()))
                         {
                             real_type xs = calc_xs[i];
                             if (xs > xs_max)
                             {
                                 xs_max = xs;
-                                e_max  = std::exp(loge_grid[i]);
+                                e_max = std::exp(loge_grid[i]);
                             }
                         }
                         CELER_ASSERT(e_max > 0);
@@ -543,7 +543,7 @@ void PhysicsParams::build_xs(const Options&        opts,
                 }
 
                 // Index of the electromagnetic msc process
-                if (dynamic_cast<const MultipleScatteringProcess*>(&proc))
+                if (dynamic_cast<MultipleScatteringProcess const*>(&proc))
                 {
                     process_groups.msc_ppid = ParticleProcessId{pp_idx};
                 }
@@ -561,7 +561,7 @@ void PhysicsParams::build_xs(const Options&        opts,
 
                 // Construct value grid table
                 ValueTable& temp_table = temp_tables[vgt][pp_idx];
-                temp_table.grids       = value_grid_ids.insert_back(
+                temp_table.grids = value_grid_ids.insert_back(
                     temp_grid_ids[vgt].begin(), temp_grid_ids[vgt].end());
                 CELER_ASSERT(temp_table.grids.size() == mats.size());
             }
@@ -593,8 +593,8 @@ void PhysicsParams::build_xs(const Options&        opts,
 /*!
  * Construct model cross section CDFs.
  */
-void PhysicsParams::build_model_xs(const MaterialParams& mats,
-                                   HostValue*            data) const
+void PhysicsParams::build_model_xs(MaterialParams const& mats,
+                                   HostValue* data) const
 {
     CELER_EXPECT(*data);
 
@@ -608,7 +608,7 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
 
     for (auto model_idx : range(this->num_models()))
     {
-        const Model& model = *models_[model_idx].first;
+        Model const& model = *models_[model_idx].first;
 
         // Loop over applicable particles
         for (Applicability applic : model.applicability())
@@ -616,11 +616,11 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
             for (auto mat_id : range(MaterialId{mats.size()}))
             {
                 applic.material = mat_id;
-                auto material   = mats.get(mat_id);
+                auto material = mats.get(mat_id);
 
                 // TODO: Create combined SB + RB micro xs grids or possibly
                 // remove combined bremsstrahlung model
-                CELER_VALIDATE(!(dynamic_cast<const CombinedBremModel*>(&model)
+                CELER_VALIDATE(!(dynamic_cast<CombinedBremModel const*>(&model)
                                  && material.num_elements() > 1),
                                << "model '" << model.label()
                                << "' cannot be used with materials composed "
@@ -659,10 +659,10 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
         }
     }
 
-    auto model_xs        = make_builder(&data->model_xs);
-    auto value_tables    = make_builder(&data->value_tables);
+    auto model_xs = make_builder(&data->model_xs);
+    auto value_tables = make_builder(&data->value_tables);
     auto value_table_ids = make_builder(&data->value_table_ids);
-    auto value_grid_ids  = make_builder(&data->value_grid_ids);
+    auto value_grid_ids = make_builder(&data->value_grid_ids);
 
     // Construct model cross section CDF tables
     for (auto& model_table : temp_grid_ids)
@@ -689,7 +689,7 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
             size_type num_bins = data->value_grids[grid_ids[0]].value.size();
 
             // Calculate the cross section CDF
-            const auto elements = mats.get(MaterialId{mat_idx}).elements();
+            auto const elements = mats.get(MaterialId{mat_idx}).elements();
             for (auto bin_idx : range(num_bins))
             {
                 real_type cum_xs{0};
@@ -725,4 +725,4 @@ void PhysicsParams::build_model_xs(const MaterialParams& mats,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

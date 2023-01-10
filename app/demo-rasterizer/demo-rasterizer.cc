@@ -40,7 +40,7 @@ namespace demo_rasterizer
 void run(std::istream& is)
 {
     // Read input options
-    auto inp    = nlohmann::json::parse(is);
+    auto inp = nlohmann::json::parse(is);
     auto timers = nlohmann::json::object();
 
     if (inp.contains("cuda_heap_size"))
@@ -55,7 +55,7 @@ void run(std::istream& is)
 
     // Load geometry
     Stopwatch get_time;
-    auto      geo_params = std::make_shared<GeoParams>(
+    auto geo_params = std::make_shared<GeoParams>(
         inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
 
@@ -79,11 +79,11 @@ void run(std::istream& is)
 
     // Write image
     CELER_LOG(status) << "Transferring image from GPU to disk";
-    get_time                 = {};
+    get_time = {};
     std::string out_filename = inp.at("output");
-    auto        image_data   = image.data_to_host();
+    auto image_data = image.data_to_host();
     std::ofstream(out_filename, std::ios::binary)
-        .write(reinterpret_cast<const char*>(image_data.data()),
+        .write(reinterpret_cast<char const*>(image_data.data()),
                image_data.size() * sizeof(decltype(image_data)::value_type));
     timers["write"] = get_time();
 
@@ -107,7 +107,7 @@ void run(std::istream& is)
     CELER_LOG(info) << "Exported image to " << out_filename;
 }
 
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer
 
 //---------------------------------------------------------------------------//
 /*!
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
         CELER_ASSERT(instream_ptr);
         demo_rasterizer::run(*instream_ptr);
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         CELER_LOG(critical) << "caught exception: " << e.what();
         return EXIT_FAILURE;

@@ -39,16 +39,16 @@ class AtomicRelaxation
     struct result_type
     {
         size_type count{};  //!< Number of secondaries created
-        Energy    energy{}; //!< Sum of the energies of the secondaries
+        Energy energy{};  //!< Sum of the energies of the secondaries
     };
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION AtomicRelaxation(const AtomicRelaxParamsRef& shared,
-                                           const CutoffView&           cutoffs,
-                                           ElementId                   el_id,
-                                           SubshellId       shell_id,
-                                           Span<Secondary>  secondaries,
+    inline CELER_FUNCTION AtomicRelaxation(AtomicRelaxParamsRef const& shared,
+                                           CutoffView const& cutoffs,
+                                           ElementId el_id,
+                                           SubshellId shell_id,
+                                           Span<Secondary> secondaries,
                                            Span<SubshellId> vacancies);
 
     // Simulate atomic relaxation with an initial vacancy in the given shell ID
@@ -57,7 +57,7 @@ class AtomicRelaxation
 
   private:
     // Shared EADL atomic relaxation data
-    const AtomicRelaxParamsRef& shared_;
+    AtomicRelaxParamsRef const& shared_;
     // Photon production threshold [MeV]
     Energy gamma_cutoff_;
     // Electron production threshold [MeV]
@@ -78,7 +78,7 @@ class AtomicRelaxation
 
     template<class Engine>
     inline CELER_FUNCTION TransitionId
-    sample_transition(const AtomicRelaxSubshell& shell, Engine& rng);
+    sample_transition(AtomicRelaxSubshell const& shell, Engine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -97,12 +97,12 @@ class AtomicRelaxation
  * emitted.
  */
 CELER_FUNCTION
-AtomicRelaxation::AtomicRelaxation(const AtomicRelaxParamsRef& shared,
-                                   const CutoffView&           cutoffs,
-                                   ElementId                   el_id,
-                                   SubshellId                  shell_id,
-                                   Span<Secondary>             secondaries,
-                                   Span<SubshellId>            vacancies)
+AtomicRelaxation::AtomicRelaxation(AtomicRelaxParamsRef const& shared,
+                                   CutoffView const& cutoffs,
+                                   ElementId el_id,
+                                   SubshellId shell_id,
+                                   Span<Secondary> secondaries,
+                                   Span<SubshellId> vacancies)
     : shared_(shared)
     , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma))
     , electron_cutoff_(cutoffs.energy(shared_.ids.electron))
@@ -124,15 +124,15 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
-    const AtomicRelaxElement& el     = shared_.elements[el_id_];
-    const auto&               shells = shared_.shells[el.shells];
-    MiniStack<SubshellId>     vacancies(vacancies_);
+    AtomicRelaxElement const& el = shared_.elements[el_id_];
+    auto const& shells = shared_.shells[el.shells];
+    MiniStack<SubshellId> vacancies(vacancies_);
 
     // Push the vacancy created by the primary process onto a stack.
     vacancies.push(shell_id_);
 
     // Total number of secondaries
-    size_type count      = 0;
+    size_type count = 0;
     real_type sum_energy = 0;
 
     // Generate the shower of photons and electrons produced by radiative and
@@ -146,14 +146,14 @@ AtomicRelaxation::operator()(Engine& rng)
 
         // Sample a transition (TODO: refactor to use Selector but with
         // "remainder")
-        const AtomicRelaxSubshell& shell = shells[vacancy_id.get()];
-        const TransitionId trans_id      = this->sample_transition(shell, rng);
+        AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
+        const TransitionId trans_id = this->sample_transition(shell, rng);
 
         if (!trans_id)
             continue;
 
         // Push the new vacancies onto the stack and create the secondary
-        const auto& transition
+        auto const& transition
             = shared_.transitions[shell.transitions][trans_id.get()];
         vacancies.push(transition.initial_shell);
         if (transition.auger_shell)
@@ -164,9 +164,9 @@ AtomicRelaxation::operator()(Engine& rng)
             {
                 // Sampled a non-radiative transition: create an Auger electron
                 CELER_ASSERT(count < secondaries_.size());
-                Secondary& secondary  = secondaries_[count++];
-                secondary.direction   = sample_direction_(rng);
-                secondary.energy      = transition.energy;
+                Secondary& secondary = secondaries_[count++];
+                secondary.direction = sample_direction_(rng);
+                secondary.energy = transition.energy;
                 secondary.particle_id = shared_.ids.electron;
 
                 // Accumulate the energy carried away by secondaries
@@ -177,9 +177,9 @@ AtomicRelaxation::operator()(Engine& rng)
         {
             // Sampled a radiative transition: create a fluorescence photon
             CELER_ASSERT(count < secondaries_.size());
-            Secondary& secondary  = secondaries_[count++];
-            secondary.direction   = sample_direction_(rng);
-            secondary.energy      = transition.energy;
+            Secondary& secondary = secondaries_[count++];
+            secondary.direction = sample_direction_(rng);
+            secondary.energy = transition.energy;
             secondary.particle_id = shared_.ids.gamma;
 
             // Accumulate the energy carried away by secondaries
@@ -188,7 +188,7 @@ AtomicRelaxation::operator()(Engine& rng)
     }
 
     result_type result;
-    result.count  = count;
+    result.count = count;
     result.energy = Energy{sum_energy};
     return result;
 }
@@ -202,10 +202,10 @@ AtomicRelaxation::operator()(Engine& rng)
  */
 template<class Engine>
 inline CELER_FUNCTION auto
-AtomicRelaxation::sample_transition(const AtomicRelaxSubshell& shell,
+AtomicRelaxation::sample_transition(AtomicRelaxSubshell const& shell,
                                     Engine& rng) -> TransitionId
 {
-    const auto& transitions = shared_.transitions[shell.transitions];
+    auto const& transitions = shared_.transitions[shell.transitions];
 
     real_type accum = -generate_canonical(rng);
     for (size_type i = 0; i < transitions.size(); ++i)
@@ -220,4 +220,4 @@ AtomicRelaxation::sample_transition(const AtomicRelaxSubshell& shell,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

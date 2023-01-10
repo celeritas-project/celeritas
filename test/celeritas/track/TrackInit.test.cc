@@ -33,7 +33,7 @@ using TrackInitDeviceValue
 //---------------------------------------------------------------------------//
 
 ITTestInput::ITTestInput(std::vector<size_type>& host_alloc_size,
-                         std::vector<char>&      host_alive)
+                         std::vector<char>& host_alive)
     : alloc_size(host_alloc_size.size()), alive(host_alive.size())
 {
     CELER_EXPECT(host_alloc_size.size() == host_alive.size());
@@ -45,7 +45,7 @@ ITTestInputData ITTestInput::device_ref()
 {
     ITTestInputData result;
     result.alloc_size = alloc_size.device_ref();
-    result.alive      = alive.device_ref();
+    result.alive = alive.device_ref();
     return result;
 }
 
@@ -72,12 +72,12 @@ class TrackInitTest : public SimpleTestBase
         {
             Primary p;
             p.particle_id = ParticleId{0};
-            p.energy      = units::MevEnergy{1. + i};
-            p.position    = {0, 0, 0};
-            p.direction   = {0, 0, 1};
-            p.time        = 0;
-            p.event_id    = EventId{0};
-            p.track_id    = TrackId{i};
+            p.energy = units::MevEnergy{1. + i};
+            p.position = {0, 0, 0};
+            p.direction = {0, 0, 1};
+            p.time = 0;
+            p.event_id = EventId{0};
+            p.track_id = TrackId{i};
             result.push_back(p);
         }
         return result;
@@ -107,11 +107,11 @@ class TrackInitTest : public SimpleTestBase
         data = states.init;
 
         // Store the IDs of the vacant track slots
-        const auto vacancies = data.vacancies.data();
-        result.vacancies     = {vacancies.begin(), vacancies.end()};
+        auto const vacancies = data.vacancies.data();
+        result.vacancies = {vacancies.begin(), vacancies.end()};
 
         // Store the track IDs of the initializers
-        for (const auto& init : data.initializers.data())
+        for (auto const& init : data.initializers.data())
         {
             result.init_ids.push_back(init.sim.track_id.get());
         }
@@ -131,7 +131,7 @@ class TrackInitTest : public SimpleTestBase
     }
 
     CoreStateData<Ownership::value, MemSpace::device> device_states;
-    CoreDeviceRef                                     core_data;
+    CoreDeviceRef core_data;
 };
 
 //---------------------------------------------------------------------------//
@@ -141,14 +141,14 @@ class TrackInitTest : public SimpleTestBase
 TEST_F(TrackInitTest, run)
 {
     const size_type num_primaries = 12;
-    const size_type num_tracks    = 10;
+    const size_type num_tracks = 10;
 
     build_states(num_tracks);
 
     // Check that all of the track slots were marked as empty
     {
-        auto                      result = get_result(core_data.states);
-        static const unsigned int expected_vacancies[]
+        auto result = get_result(core_data.states);
+        static unsigned int const expected_vacancies[]
             = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
@@ -159,8 +159,8 @@ TEST_F(TrackInitTest, run)
 
     // Check the track IDs of the track initializers created from primaries
     {
-        auto                      result = get_result(core_data.states);
-        static const unsigned int expected_track_ids[]
+        auto result = get_result(core_data.states);
+        static unsigned int const expected_track_ids[]
             = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
     }
@@ -170,13 +170,13 @@ TEST_F(TrackInitTest, run)
 
     // Check the track IDs and parent IDs of the initialized tracks
     {
-        auto                      result = get_result(core_data.states);
-        static const unsigned int expected_track_ids[]
+        auto result = get_result(core_data.states);
+        static unsigned int const expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
 
         // All primary particles, so no parent
-        static const int expected_parent_ids[]
+        static int const expected_parent_ids[]
             = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
         EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     }
@@ -184,8 +184,8 @@ TEST_F(TrackInitTest, run)
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
     std::vector<size_type> alloc = {1, 1, 0, 0, 1, 1, 0, 0, 2, 1};
-    std::vector<char>      alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0};
-    ITTestInput            input(alloc, alive);
+    std::vector<char> alive = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0};
+    ITTestInput input(alloc, alive);
 
     // Launch kernel to process interactions
     interact(core_data.states, input.device_ref());
@@ -195,8 +195,8 @@ TEST_F(TrackInitTest, run)
 
     // Check the vacancies
     {
-        auto                      result = get_result(core_data.states);
-        static const unsigned int expected_vacancies[] = {2, 6};
+        auto result = get_result(core_data.states);
+        static unsigned int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
     }
 
@@ -244,15 +244,15 @@ TEST_F(TrackInitTest, run)
 
 TEST_F(TrackInitTest, primaries)
 {
-    const size_type num_sets      = 4;
+    const size_type num_sets = 4;
     const size_type num_primaries = 16;
-    const size_type num_tracks    = 16;
+    const size_type num_tracks = 16;
 
     build_states(num_tracks);
 
     // Kill half the tracks in each interaction and don't produce secondaries
     std::vector<size_type> alloc(num_tracks, 0);
-    std::vector<char>      alive(num_tracks);
+    std::vector<char> alive(num_tracks);
     for (size_type i = 0; i < num_tracks; ++i)
     {
         alive[i] = i % 2;
@@ -279,13 +279,13 @@ TEST_F(TrackInitTest, primaries)
     }
 
     // Check the results
-    static const unsigned int expected_track_ids[] = {
+    static unsigned int const expected_track_ids[] = {
         8u, 1u, 9u, 3u, 10u, 5u, 11u, 7u, 12u, 9u, 13u, 11u, 14u, 13u, 15u, 15u};
-    static const int expected_parent_ids[]
+    static int const expected_parent_ids[]
         = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    static const unsigned int expected_vacancies[]
+    static unsigned int const expected_vacancies[]
         = {0u, 2u, 4u, 6u, 8u, 10u, 12u, 14u};
-    static const unsigned int expected_init_ids[]
+    static unsigned int const expected_init_ids[]
         = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u,
            4u, 5u, 6u, 7u, 0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u};
     auto result = get_result(core_data.states);
@@ -306,15 +306,15 @@ class TrackInitSecondaryTest : public TrackInitTest
 TEST_F(TrackInitSecondaryTest, secondaries)
 {
     const size_type num_primaries = 512;
-    const size_type num_tracks    = 512;
+    const size_type num_tracks = 512;
 
     build_states(num_tracks);
 
     // Allocate input device data (number of secondaries to produce for each
     // track and whether the track survives the interaction)
-    std::vector<size_type> alloc     = {1, 1, 2, 0, 0, 0, 0, 0};
-    std::vector<char>      alive     = {1, 0, 0, 1, 1, 0, 0, 1};
-    size_type              base_size = alive.size();
+    std::vector<size_type> alloc = {1, 1, 2, 0, 0, 0, 0, 0};
+    std::vector<char> alive = {1, 0, 0, 1, 1, 0, 0, 1};
+    size_type base_size = alive.size();
     for (size_type i = 0; i < num_tracks / base_size - 1; ++i)
     {
         alloc.insert(alloc.end(), alloc.begin(), alloc.begin() + base_size);
@@ -346,5 +346,5 @@ TEST_F(TrackInitSecondaryTest, secondaries)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

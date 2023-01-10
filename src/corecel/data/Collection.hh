@@ -189,16 +189,16 @@ class Collection
   public:
     //!@{
     //! Type aliases
-    using SpanT          = typename CollectionTraitsT::SpanT;
-    using SpanConstT     = typename CollectionTraitsT::SpanConstT;
+    using SpanT = typename CollectionTraitsT::SpanT;
+    using SpanConstT = typename CollectionTraitsT::SpanConstT;
     using reference_type = typename CollectionTraitsT::reference_type;
     using const_reference_type =
         typename CollectionTraitsT::const_reference_type;
-    using size_type  = typename I::size_type;
+    using size_type = typename I::size_type;
     using value_type = T;
-    using ItemIdT    = I;
+    using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
-    using AllItemsT  = AllItems<T, M>;
+    using AllItemsT = AllItems<T, M>;
     //!@}
 
   public:
@@ -206,14 +206,14 @@ class Collection
 
     //!@{
     //! Default constructors
-    Collection()                  = default;
-    Collection(const Collection&) = default;
-    Collection(Collection&&)      = default;
+    Collection() = default;
+    Collection(Collection const&) = default;
+    Collection(Collection&&) = default;
     //!@}
 
     // Construct from another collection
     template<Ownership W2, MemSpace M2>
-    explicit inline Collection(const Collection<T, W2, M2, I>& other);
+    explicit inline Collection(Collection<T, W2, M2, I> const& other);
 
     // Construct from another collection (mutable)
     template<Ownership W2, MemSpace M2>
@@ -221,13 +221,13 @@ class Collection
 
     //!@{
     //! Default assignment
-    Collection& operator=(const Collection& other) = default;
+    Collection& operator=(Collection const& other) = default;
     Collection& operator=(Collection&& other) = default;
     //!@}
 
     // Assign from another collection
     template<Ownership W2, MemSpace M2>
-    inline Collection& operator=(const Collection<T, W2, M2, I>& other);
+    inline Collection& operator=(Collection<T, W2, M2, I> const& other);
 
     // Assign (mutable!) from another collection
     template<Ownership W2, MemSpace M2>
@@ -236,15 +236,15 @@ class Collection
     //// ACCESS ////
 
     // Access a single element
-    CELER_FORCEINLINE_FUNCTION reference_type       operator[](ItemIdT i);
+    CELER_FORCEINLINE_FUNCTION reference_type operator[](ItemIdT i);
     CELER_FORCEINLINE_FUNCTION const_reference_type operator[](ItemIdT i) const;
 
     // Access a subset of the data with a slice
-    CELER_FORCEINLINE_FUNCTION SpanT      operator[](ItemRangeT ps);
+    CELER_FORCEINLINE_FUNCTION SpanT operator[](ItemRangeT ps);
     CELER_FORCEINLINE_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
 
     // Access all data.
-    CELER_FORCEINLINE_FUNCTION SpanT      operator[](AllItemsT);
+    CELER_FORCEINLINE_FUNCTION SpanT operator[](AllItemsT);
     CELER_FORCEINLINE_FUNCTION SpanConstT operator[](AllItemsT) const;
 
     //!@{
@@ -276,7 +276,7 @@ class Collection
     //!@{
     // Private accessors for collection construction/access
     using StorageT = typename detail::CollectionStorage<T, W, M>::type;
-    CELER_FORCEINLINE_FUNCTION const StorageT& storage() const
+    CELER_FORCEINLINE_FUNCTION StorageT const& storage() const
     {
         return storage_.data;
     }
@@ -305,7 +305,7 @@ using StateCollection = Collection<T, W, M, ThreadId>;
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>::Collection(const Collection<T, W2, M2, I>& other)
+Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
     : storage_(detail::CollectionAssigner<W, M>()(other.storage_))
 {
     detail::CollectionStorageValidator<W2>()(this->size(),
@@ -324,7 +324,7 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(const Collection<T, W2, M2, I>& other)
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
     storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
@@ -415,4 +415,4 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

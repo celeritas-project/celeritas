@@ -53,7 +53,7 @@ LoggerMessage::~LoggerMessage()
             // Write to the handler
             (*handle_)(prov_, lev_, os.str());
         }
-        catch (const std::exception& e)
+        catch (std::exception const& e)
         {
             std::cerr
                 << "An error occurred writing a log message: " << e.what()
@@ -63,5 +63,5 @@ LoggerMessage::~LoggerMessage()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

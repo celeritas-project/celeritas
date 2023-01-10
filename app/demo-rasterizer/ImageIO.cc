@@ -16,7 +16,7 @@ namespace demo_rasterizer
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-void to_json(nlohmann::json& j, const ImageRunArgs& v)
+void to_json(nlohmann::json& j, ImageRunArgs const& v)
 {
     j = nlohmann::json{{"lower_left", v.lower_left},
                        {"upper_right", v.upper_right},
@@ -24,7 +24,7 @@ void to_json(nlohmann::json& j, const ImageRunArgs& v)
                        {"vertical_pixels", v.vertical_pixels}};
 }
 
-void from_json(const nlohmann::json& j, ImageRunArgs& v)
+void from_json(nlohmann::json const& j, ImageRunArgs& v)
 {
     j.at("lower_left").get_to(v.lower_left);
     j.at("upper_right").get_to(v.upper_right);
@@ -32,7 +32,7 @@ void from_json(const nlohmann::json& j, ImageRunArgs& v)
     j.at("vertical_pixels").get_to(v.vertical_pixels);
 }
 
-void to_json(nlohmann::json& j, const ImageStore& v)
+void to_json(nlohmann::json& j, ImageStore const& v)
 {
     j = nlohmann::json{{"origin", v.origin()},
                        {"down_ax", v.down_ax()},
@@ -44,4 +44,4 @@ void to_json(nlohmann::json& j, const ImageStore& v)
 
 //!@}
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

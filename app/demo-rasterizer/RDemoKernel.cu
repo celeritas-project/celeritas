@@ -26,7 +26,7 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__device__ int geo_id(const GeoTrackView& geo)
+__device__ int geo_id(GeoTrackView const& geo)
 {
     if (geo.is_outside())
         return -1;
@@ -34,15 +34,15 @@ __device__ int geo_id(const GeoTrackView& geo)
 }
 
 __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
-                             const GeoStateRefDevice   geo_state,
-                             const ImageData           image_state)
+                             const GeoStateRefDevice geo_state,
+                             const ImageData image_state)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])
         return;
 
     ImageTrackView image(image_state, tid);
-    GeoTrackView   geo(geo_params, geo_state, tid);
+    GeoTrackView geo(geo_params, geo_state, tid);
 
     // Start track at the leftmost point in the requested direction
     geo = GeoTrackInitializer{image.start_pos(), image.start_dir()};
@@ -52,10 +52,10 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
     // Track along each pixel
     for (unsigned int i = 0; i < image_state.dims[1]; ++i)
     {
-        real_type pix_dist      = image_state.pixel_width;
-        real_type max_dist      = 0;
-        int       max_id        = cur_id;
-        int       abort_counter = 32; // max number of crossings per pixel
+        real_type pix_dist = image_state.pixel_width;
+        real_type max_dist = 0;
+        int max_id = cur_id;
+        int abort_counter = 32;  // max number of crossings per pixel
 
         auto next = geo.find_next_step(pix_dist);
         while (next.boundary && pix_dist > 0)
@@ -71,7 +71,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             else if (next.distance > max_dist)
             {
                 max_dist = next.distance;
-                max_id   = cur_id;
+                max_id = cur_id;
             }
 
             // Cross surface and update post-crossing ID
@@ -86,7 +86,7 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
                 celeritas::axpy((i + 1) * image_state.pixel_width,
                                 image.start_dir(),
                                 &new_pos);
-                geo      = GeoTrackInitializer{new_pos, image.start_dir()};
+                geo = GeoTrackInitializer{new_pos, image.start_dir()};
                 pix_dist = 0;
             }
             if (pix_dist > 0)
@@ -103,20 +103,20 @@ __global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
             if (pix_dist > max_dist)
             {
                 max_dist = pix_dist;
-                max_id   = cur_id;
+                max_id = cur_id;
             }
         }
         image.set_pixel(i, max_id);
     }
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
-void trace(const GeoParamsCRefDevice& geo_params,
-           const GeoStateRefDevice&   geo_state,
-           const ImageData&           image)
+void trace(GeoParamsCRefDevice const& geo_params,
+           GeoStateRefDevice const& geo_state,
+           ImageData const& image)
 {
     CELER_EXPECT(image);
 
@@ -131,4 +131,4 @@ void trace(const GeoParamsCRefDevice& geo_params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

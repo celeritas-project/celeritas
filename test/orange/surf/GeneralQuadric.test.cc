@@ -34,7 +34,7 @@ TEST(GeneralQuadricTest, all)
     const Real3 second{10.3125, 22.9375, 15.75};
     const Real3 cross{-21.867141445557, -20.25, 11.69134295109};
     const Real3 first{-11.964745962156, -9.1328585544429, -65.69134295109};
-    real_type   zeroth = 77.652245962156;
+    real_type zeroth = 77.652245962156;
 
     GeneralQuadric gq{second, cross, first, zeroth};
     EXPECT_VEC_SOFT_EQ(second, gq.second());
@@ -80,5 +80,5 @@ TEST(GeneralQuadricTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

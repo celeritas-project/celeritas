@@ -36,9 +36,9 @@ struct AlongStepLocalState
  * \tparam AE Energy loss applier, e.g. \c detail::NoElossApplier
  */
 template<class MH, class MP, class AE>
-inline CELER_FUNCTION void along_step(MH&&                 msc,
-                                      MP&&                 make_propagator,
-                                      AE&&                 apply_eloss,
+inline CELER_FUNCTION void along_step(MH&& msc,
+                                      MP&& make_propagator,
+                                      AE&& apply_eloss,
                                       CoreTrackView const& track)
 {
     // TODO: scope the 'views' so that the lifetimes don't overlap between this
@@ -64,7 +64,7 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
     }
 
     local.geo_step = local.step_limit.step;
-    bool use_msc   = msc.is_applicable(track, local.geo_step);
+    bool use_msc = msc.is_applicable(track, local.geo_step);
     if (use_msc)
     {
         msc.calc_step(track, &local);
@@ -73,22 +73,22 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
     }
 
     {
-        auto geo       = track.make_geo_view();
+        auto geo = track.make_geo_view();
         auto propagate = make_propagator(track.make_particle_view(), &geo);
-        Propagation p  = propagate(local.geo_step);
+        Propagation p = propagate(local.geo_step);
         if (p.boundary)
         {
             // Stopped at a geometry boundary: this is the new step action.
             CELER_ASSERT(p.distance <= local.geo_step);
             CELER_ASSERT(p.distance < local.step_limit.step);
-            local.geo_step          = p.distance;
+            local.geo_step = p.distance;
             local.step_limit.action = track.boundary_action();
         }
         else if (p.distance < local.geo_step)
         {
             // Some other internal non-boundary geometry limit has been reached
             // (e.g. too many substeps)
-            local.geo_step          = p.distance;
+            local.geo_step = p.distance;
             local.step_limit.action = track.propagation_limit_action();
         }
     }
@@ -105,8 +105,8 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
 
     // Update track's lab-frame time using the beginning-of-step speed
     {
-        auto      particle = track.make_particle_view();
-        real_type speed    = native_value_from(particle.speed());
+        auto particle = track.make_particle_view();
+        real_type speed = native_value_from(particle.speed());
         CELER_ASSERT(speed > 0);
         real_type delta_time = local.step_limit.step / speed;
         sim.add_time(delta_time);
@@ -123,8 +123,8 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the interaction
             // MFP itself.
-            auto      step = track.make_physics_step_view();
-            real_type mfp  = phys.interaction_mfp()
+            auto step = track.make_physics_step_view();
+            real_type mfp = phys.interaction_mfp()
                             - local.step_limit.step * step.macro_xs();
             CELER_ASSERT(mfp > 0);
             phys.interaction_mfp(mfp);
@@ -140,4 +140,4 @@ inline CELER_FUNCTION void along_step(MH&&                 msc,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -29,8 +29,8 @@ class GeantLoggerAdapter : public G4coutDestination
     ~GeantLoggerAdapter();
 
     // Handle error messages
-    G4int ReceiveG4cout(const G4String& str) final;
-    G4int ReceiveG4cerr(const G4String& str) final;
+    G4int ReceiveG4cout(G4String const& str) final;
+    G4int ReceiveG4cerr(G4String const& str) final;
 
   private:
     //// DATA ////
@@ -39,9 +39,9 @@ class GeantLoggerAdapter : public G4coutDestination
     G4coutDestination* saved_cerr_;
 
     //// IMPLEMENTATION ////
-    G4int log_impl(const G4String& str, LogLevel level);
+    G4int log_impl(G4String const& str, LogLevel level);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

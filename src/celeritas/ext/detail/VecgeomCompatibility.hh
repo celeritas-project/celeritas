@@ -31,12 +31,12 @@ CELER_FUNCTION inline auto to_vector(Span<T, 3> s)
 //---------------------------------------------------------------------------//
 // Copy a length-3 array into a Vector3D
 template<class T>
-CELER_FUNCTION inline auto to_vector(const Array<T, 3>& arr)
+CELER_FUNCTION inline auto to_vector(Array<T, 3> const& arr)
     -> vecgeom::Vector3D<T>
 {
     return to_vector(celeritas::make_span<T, 3>(arr));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

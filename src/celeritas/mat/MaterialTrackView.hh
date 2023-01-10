@@ -41,20 +41,20 @@ class MaterialTrackView
   public:
     //!@{
     //! Type aliases
-    using Initializer_t     = MaterialTrackState;
+    using Initializer_t = MaterialTrackState;
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
-    using MaterialStateRef  = NativeRef<MaterialStateData>;
+    using MaterialStateRef = NativeRef<MaterialStateData>;
     //!@}
 
   public:
     // Construct from "static" parameters and "dynamic" state
-    inline CELER_FUNCTION MaterialTrackView(const MaterialParamsRef& params,
-                                            const MaterialStateRef&  states,
-                                            ThreadId                 tid);
+    inline CELER_FUNCTION MaterialTrackView(MaterialParamsRef const& params,
+                                            MaterialStateRef const& states,
+                                            ThreadId tid);
 
     // Initialize the particle
     inline CELER_FUNCTION MaterialTrackView&
-    operator=(const Initializer_t& other);
+    operator=(Initializer_t const& other);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -70,9 +70,9 @@ class MaterialTrackView
     inline CELER_FUNCTION Span<real_type> element_scratch();
 
   private:
-    const MaterialParamsRef& params_;
-    const MaterialStateRef&  states_;
-    const ThreadId           thread_;
+    MaterialParamsRef const& params_;
+    MaterialStateRef const& states_;
+    const ThreadId thread_;
 
     CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };
@@ -84,9 +84,9 @@ class MaterialTrackView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-MaterialTrackView::MaterialTrackView(const MaterialParamsRef& params,
-                                     const MaterialStateRef&  states,
-                                     ThreadId                 tid)
+MaterialTrackView::MaterialTrackView(MaterialParamsRef const& params,
+                                     MaterialStateRef const& states,
+                                     ThreadId tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(tid < states.state.size());
@@ -97,7 +97,7 @@ MaterialTrackView::MaterialTrackView(const MaterialParamsRef& params,
  * Initialize the particle.
  */
 CELER_FUNCTION MaterialTrackView&
-MaterialTrackView::operator=(const Initializer_t& other)
+MaterialTrackView::operator=(Initializer_t const& other)
 {
     CELER_EXPECT(other.material_id < params_.materials.size());
     this->state() = other;
@@ -128,7 +128,7 @@ CELER_FUNCTION MaterialView MaterialTrackView::make_material_view() const
  */
 CELER_FUNCTION Span<real_type> MaterialTrackView::element_scratch()
 {
-    auto            offset = thread_.get() * params_.max_element_components;
+    auto offset = thread_.get() * params_.max_element_components;
     Span<real_type> all_scratch
         = states_.element_scratch[AllItems<real_type, MemSpace::native>{}];
     CELER_ENSURE(offset + params_.max_element_components <= all_scratch.size());
@@ -145,4 +145,4 @@ CELER_FUNCTION MaterialTrackState& MaterialTrackView::state() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -78,5 +78,5 @@ inline MpiComm mpi_comm_self()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

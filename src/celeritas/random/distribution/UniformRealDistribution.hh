@@ -29,7 +29,7 @@ class UniformRealDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -99,4 +99,4 @@ UniformRealDistribution<RealType>::operator()(Generator& rng) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

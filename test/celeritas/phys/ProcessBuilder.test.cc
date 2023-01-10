@@ -31,9 +31,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 template<class T>
-bool is_process_type(const Process* p)
+bool is_process_type(Process const* p)
 {
-    return dynamic_cast<const T*>(p) != nullptr;
+    return dynamic_cast<T const*>(p) != nullptr;
 }
 
 #define EXPECT_PROCESS_TYPE(CLS, VALUE) \
@@ -46,32 +46,32 @@ bool is_process_type(const Process* p)
 class ProcessBuilderTest : public Test
 {
   protected:
-    using SPConstParticle = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterial = std::shared_ptr<const MaterialParams>;
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
 
     using ActionIdIter = Process::ActionIdIter;
-    using Options      = ProcessBuilder::Options;
-    using VGT          = ValueGridType;
-    using IPC          = ImportProcessClass;
+    using Options = ProcessBuilder::Options;
+    using VGT = ValueGridType;
+    using IPC = ImportProcessClass;
 
-    static ImportData&      import_data();
+    static ImportData& import_data();
     static SPConstParticle& particle();
     static SPConstMaterial& material();
 
     static void SetUpTestCase()
     {
         ScopedRootErrorHandler scoped_root_error_;
-        RootImporter           import_from_root(
+        RootImporter import_from_root(
             Test::test_data_path("celeritas", "four-steel-slabs.root").c_str());
         import_data() = import_from_root();
-        particle()    = ParticleParams::from_import(import_data());
-        material()    = MaterialParams::from_import(import_data());
+        particle() = ParticleParams::from_import(import_data());
+        material() = MaterialParams::from_import(import_data());
         CELER_ENSURE(particle() && material());
     }
 
     static bool has_le_data()
     {
-        static const bool result = !celeritas::getenv("G4LEDATA").empty();
+        static bool const result = !celeritas::getenv("G4LEDATA").empty();
         return result;
     }
 };
@@ -120,14 +120,14 @@ TEST_F(ProcessBuilderTest, compton)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -158,14 +158,14 @@ TEST_F(ProcessBuilderTest, e_ionization)
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders   = process->step_limits(applic);
+                auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_TRUE(builders[VGT::energy_loss]);
                 EXPECT_TRUE(builders[VGT::range]);
             }
 
             // Test micro xs
-            for (const auto& model : models)
+            for (auto const& model : models)
             {
                 auto builders = model->micro_xs(applic);
                 EXPECT_TRUE(builders.empty());
@@ -197,14 +197,14 @@ TEST_F(ProcessBuilderTest, eplus_annihilation)
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders   = process->step_limits(applic);
+                auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_FALSE(builders[VGT::energy_loss]);
                 EXPECT_FALSE(builders[VGT::range]);
             }
 
             // Test micro xs
-            for (const auto& model : models)
+            for (auto const& model : models)
             {
                 auto builders = model->micro_xs(applic);
                 EXPECT_TRUE(builders.empty());
@@ -235,14 +235,14 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
@@ -277,12 +277,12 @@ TEST_F(ProcessBuilderTest, msc)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::msc_mfp]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -317,14 +317,14 @@ TEST_F(ProcessBuilderTest, photoelectric)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -362,7 +362,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
             // Only the ionization process has energy loss and range tables.
@@ -374,7 +374,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
@@ -417,7 +417,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
             // Only the ionization process has energy loss and range tables.
@@ -429,7 +429,7 @@ TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -462,14 +462,14 @@ TEST_F(ProcessBuilderTest, rayleigh)
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             auto material = this->material()->get(mat_id);
@@ -483,5 +483,5 @@ TEST_F(ProcessBuilderTest, rayleigh)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

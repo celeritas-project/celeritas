@@ -22,9 +22,9 @@ namespace celeritas
 struct ImportVolume
 {
     unsigned int material_id;
-    std::string  name;
-    std::string  solid_name;
+    std::string name;
+    std::string solid_name;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

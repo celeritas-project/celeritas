@@ -32,5 +32,5 @@ struct VecgeomTraits<MemSpace::device>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

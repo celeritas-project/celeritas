@@ -29,7 +29,7 @@ TEST(SphereTest, all)
     EXPECT_EQ(2, Sphere::Intersections{}.size());
 
     const Real3 origin{-1.1, 2.2, -3.3};
-    real_type   radius = 4.4;
+    real_type radius = 4.4;
 
     Sphere s{origin, radius};
     EXPECT_VEC_SOFT_EQ(origin, s.origin());
@@ -74,5 +74,5 @@ TEST(SphereTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

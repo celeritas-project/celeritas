@@ -25,21 +25,21 @@ class GammaConversionProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
     // Options for pair production
     struct Options
     {
-        bool enable_lpm{true}; //!< Account for LPM effect at high energies
+        bool enable_lpm{true};  //!< Account for LPM effect at high energies
     };
 
   public:
     // Construct from particle data
     GammaConversionProcess(SPConstParticles particles,
-                           SPConstImported  process_data,
-                           Options          options);
+                           SPConstImported process_data,
+                           Options options);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -54,10 +54,10 @@ class GammaConversionProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
+    SPConstParticles particles_;
     ImportedProcessAdapter imported_;
-    Options                options_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

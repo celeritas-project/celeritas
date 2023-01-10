@@ -40,7 +40,7 @@ class SeltzerBergerReader
     SeltzerBergerReader();
 
     // Construct from a user defined path
-    explicit SeltzerBergerReader(const char* path);
+    explicit SeltzerBergerReader(char const* path);
 
     // Read data from ascii for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -50,4 +50,4 @@ class SeltzerBergerReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

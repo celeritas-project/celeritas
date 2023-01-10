@@ -38,16 +38,16 @@ class FieldDriverTest : public Test
     void SetUp() override
     {
         // Input parameters of an electron in a uniform magnetic field
-        test_params.nstates     = 1;
-        test_params.nsteps      = 100;
+        test_params.nstates = 1;
+        test_params.nsteps = 100;
         test_params.revolutions = 10;
         test_params.field_value = 1.0 * units::tesla;
-        test_params.radius      = 3.8085386036 * units::centimeter;
-        test_params.delta_z     = 6.7003310629 * units::centimeter;
-        test_params.energy      = 10.9181415106; // MeV
-        test_params.momentum_y  = 10.9610028286; // MeV/c
-        test_params.momentum_z  = 3.1969591583;  // MeV/c
-        test_params.epsilon     = 1.0e-5;
+        test_params.radius = 3.8085386036 * units::centimeter;
+        test_params.delta_z = 6.7003310629 * units::centimeter;
+        test_params.energy = 10.9181415106;  // MeV
+        test_params.momentum_y = 10.9610028286;  // MeV/c
+        test_params.momentum_z = 3.1969591583;  // MeV/c
+        test_params.epsilon = 1.0e-5;
     }
 
   protected:
@@ -62,9 +62,9 @@ class FieldDriverTest : public Test
 
 template<template<class EquationT> class StepperT, class FieldT>
 CELER_FUNCTION decltype(auto)
-make_mag_field_driver(FieldT&&                  field,
-                      const FieldDriverOptions& options,
-                      units::ElementaryCharge   charge)
+make_mag_field_driver(FieldT&& field,
+                      FieldDriverOptions const& options,
+                      units::ElementaryCharge charge)
 {
     using Driver_t = FieldDriver<StepperT<MagFieldEquation<FieldT>>>;
     return Driver_t{options,
@@ -102,7 +102,7 @@ TEST_F(FieldDriverTest, revolutions)
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
-    real_type hstep         = circumference / test_params.nsteps;
+    real_type hstep = circumference / test_params.nsteps;
 
     // Initial state and the epected state after revolutions
     OdeState y;
@@ -146,7 +146,7 @@ TEST_F(FieldDriverTest, accurate_advance)
 
     // Test parameters and the sub-step size
     real_type circumference = 2 * constants::pi * test_params.radius;
-    real_type hstep         = circumference / test_params.nsteps;
+    real_type hstep = circumference / test_params.nsteps;
 
     // Initial state and the epected state after revolutions
     OdeState y;
@@ -182,5 +182,5 @@ TEST_F(FieldDriverTest, accurate_advance)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -53,13 +53,13 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     VolumeView make_volume_view(VolumeId v) const
     {
         CELER_EXPECT(v);
-        const auto& host_ref = this->params().host_ref();
+        auto const& host_ref = this->params().host_ref();
         return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
     }
 
     Surfaces make_surfaces() const
     {
-        const auto& host_ref = this->params().host_ref();
+        auto const& host_ref = this->params().host_ref();
         return Surfaces(host_ref,
                         host_ref.simple_unit[SimpleUnitId{0}].surfaces);
     }
@@ -272,6 +272,6 @@ TEST_F(SenseCalculatorTest, five_volumes)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-} // namespace celeritas
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas

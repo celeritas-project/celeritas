@@ -60,5 +60,5 @@ TEST(PolyEvaluatorTest, eval_int)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

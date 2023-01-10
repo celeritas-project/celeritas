@@ -156,10 +156,10 @@ TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))
     // values of 1, 10, 100 --> actual xs = {1, 10, 100}
     this->build(1, 100, 3);
     XsGridData data(this->data());
-    data.prime_index = 3; // disallowed
+    data.prime_index = 3;  // disallowed
 
     EXPECT_THROW(XsCalculator(data, this->values()), DebugError);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

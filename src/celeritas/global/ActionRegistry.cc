@@ -47,7 +47,7 @@ void ActionRegistry::insert(SPConstAction action)
 /*!
  * Find the action corresponding to an label.
  */
-ActionId ActionRegistry::find_action(const std::string& label) const
+ActionId ActionRegistry::find_action(std::string const& label) const
 {
     auto iter = action_ids_.find(label);
     if (iter == action_ids_.end())
@@ -56,4 +56,4 @@ ActionId ActionRegistry::find_action(const std::string& label) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

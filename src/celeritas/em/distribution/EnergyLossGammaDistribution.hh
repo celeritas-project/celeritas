@@ -36,7 +36,7 @@ class EnergyLossGammaDistribution
   public:
     //!@{
     //! Type aliases
-    using Energy   = units::MevEnergy;
+    using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
@@ -47,7 +47,7 @@ class EnergyLossGammaDistribution
 
     // Construct from helper-calculated data
     explicit inline CELER_FUNCTION
-    EnergyLossGammaDistribution(const EnergyLossHelper& helper);
+    EnergyLossGammaDistribution(EnergyLossHelper const& helper);
 
     //! Sample energy loss according to the distribution
     template<class Generator>
@@ -76,7 +76,7 @@ class EnergyLossGammaDistribution
  * for analysis purposes.
  */
 CELER_FUNCTION
-EnergyLossGammaDistribution::EnergyLossGammaDistribution(Energy   mean_loss,
+EnergyLossGammaDistribution::EnergyLossGammaDistribution(Energy mean_loss,
                                                          EnergySq bohr_var)
     : sample_gamma_(EnergyLossGammaDistribution::build_gamma(mean_loss.value(),
                                                              bohr_var.value()))
@@ -90,7 +90,7 @@ EnergyLossGammaDistribution::EnergyLossGammaDistribution(Energy   mean_loss,
  * Construct from helper-calculated data.
  */
 CELER_FUNCTION EnergyLossGammaDistribution::EnergyLossGammaDistribution(
-    const EnergyLossHelper& helper)
+    EnergyLossHelper const& helper)
     : EnergyLossGammaDistribution(helper.mean_loss(), helper.bohr_variance())
 {
     CELER_ASSERT(helper.model() == EnergyLossFluctuationModel::gamma);
@@ -109,4 +109,4 @@ EnergyLossGammaDistribution::build_gamma(real_type mean, real_type var)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

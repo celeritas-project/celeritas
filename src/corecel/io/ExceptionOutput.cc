@@ -25,7 +25,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class T>
-void details_to_json(nlohmann::json& j, const T& d)
+void details_to_json(nlohmann::json& j, T const& d)
 {
     j["which"] = to_cstring(d.which);
     if (d.condition)
@@ -42,36 +42,36 @@ void details_to_json(nlohmann::json& j, const T& d)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
-void to_json(nlohmann::json& j, const DebugErrorDetails& d)
+void to_json(nlohmann::json& j, DebugErrorDetails const& d)
 {
     details_to_json(j, d);
 }
 
-void to_json(nlohmann::json& j, const RuntimeErrorDetails& d)
+void to_json(nlohmann::json& j, RuntimeErrorDetails const& d)
 {
     j["what"] = d.what;
     details_to_json(j, d);
 }
 
-void json_from_eptr(nlohmann::json& j, const std::exception_ptr& eptr)
+void json_from_eptr(nlohmann::json& j, std::exception_ptr const& eptr)
 {
     try
     {
         std::rethrow_exception(eptr);
     }
-    catch (const RuntimeError& e)
+    catch (RuntimeError const& e)
     {
-        j         = e.details();
+        j = e.details();
         j["type"] = "RuntimeError";
     }
-    catch (const DebugError& e)
+    catch (DebugError const& e)
     {
-        j         = e.details();
+        j = e.details();
         j["type"] = "DebugError";
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         // Save unknown exception info
         TypeDemangler<std::exception> demangle;
@@ -118,4 +118,4 @@ void ExceptionOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

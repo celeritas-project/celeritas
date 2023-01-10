@@ -25,8 +25,8 @@ class ComptonProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
@@ -46,9 +46,9 @@ class ComptonProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
+    SPConstParticles particles_;
     ImportedProcessAdapter imported_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

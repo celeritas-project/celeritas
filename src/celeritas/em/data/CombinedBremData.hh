@@ -44,19 +44,19 @@ struct CombinedBremData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CombinedBremData& operator=(const CombinedBremData<W2, M2>& other)
+    CombinedBremData& operator=(CombinedBremData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids.action         = other.ids.action;
+        ids.action = other.ids.action;
         sb_differential_xs = other.sb_differential_xs;
-        rb_data            = other.rb_data;
+        rb_data = other.rb_data;
         return *this;
     }
 };
 
 using CombinedBremDeviceRef = DeviceCRef<CombinedBremData>;
-using CombinedBremHostRef   = HostCRef<CombinedBremData>;
-using CombinedBremRef       = NativeCRef<CombinedBremData>;
+using CombinedBremHostRef = HostCRef<CombinedBremData>;
+using CombinedBremRef = NativeCRef<CombinedBremData>;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

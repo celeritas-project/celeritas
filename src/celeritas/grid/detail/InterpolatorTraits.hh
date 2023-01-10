@@ -64,5 +64,5 @@ struct InterpolatorTraits<Interp::log, T>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

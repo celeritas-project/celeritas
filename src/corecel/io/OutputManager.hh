@@ -34,7 +34,7 @@ class OutputManager
   public:
     //!@{
     //! Type aliases
-    using SPConstInterface = std::shared_ptr<const OutputInterface>;
+    using SPConstInterface = std::shared_ptr<OutputInterface const>;
     //!@}
 
   public:
@@ -57,4 +57,4 @@ class OutputManager
 // TODO: potentially add a global instance here?
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

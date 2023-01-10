@@ -20,10 +20,10 @@ namespace detail
 /*!
  * Propagate exceptions to Celeritas.
  */
-G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
-                                     const char*         exception_code,
+G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
+                                     char const* exception_code,
                                      G4ExceptionSeverity severity,
-                                     const char*         description)
+                                     char const* description)
 {
     CELER_EXPECT(origin_of_exception);
     CELER_EXPECT(exception_code);
@@ -54,5 +54,5 @@ G4bool GeantExceptionHandler::Notify(const char*         origin_of_exception,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

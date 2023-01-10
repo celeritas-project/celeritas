@@ -34,4 +34,4 @@ std::vector<real_type> linspace(real_type start, real_type stop, size_type n)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

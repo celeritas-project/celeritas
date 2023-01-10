@@ -23,7 +23,7 @@ class XorwowRngParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = HostCRef<XorwowRngParamsData>;
+    using HostRef = HostCRef<XorwowRngParamsData>;
     using DeviceRef = DeviceCRef<XorwowRngParamsData>;
     //!@}
 
@@ -35,10 +35,10 @@ class XorwowRngParams
     // explicit XorwowRngParams(const std::string& hexstring);
 
     //! Access material properties on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
@@ -46,4 +46,4 @@ class XorwowRngParams
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

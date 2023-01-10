@@ -29,18 +29,18 @@ class LivermorePEModel final : public Model
 {
   public:
     //!@{
-    using MevEnergy    = units::MevEnergy;
-    using ReadData     = std::function<ImportLivermorePE(AtomicNumber)>;
-    using HostRef      = LivermorePEHostRef;
-    using DeviceRef    = LivermorePEDeviceRef;
+    using MevEnergy = units::MevEnergy;
+    using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
+    using HostRef = LivermorePEHostRef;
+    using DeviceRef = LivermorePEDeviceRef;
     //!@}
 
   public:
     // Construct from model ID and other necessary data
-    LivermorePEModel(ActionId              id,
-                     const ParticleParams& particles,
-                     const MaterialParams& materials,
-                     ReadData              load_data);
+    LivermorePEModel(ActionId id,
+                     ParticleParams const& particles,
+                     MaterialParams const& materials,
+                     ReadData load_data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -67,10 +67,10 @@ class LivermorePEModel final : public Model
     }
 
     //! Access data on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access data on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
@@ -78,8 +78,8 @@ class LivermorePEModel final : public Model
 
     using HostXsData = HostVal<LivermorePEXsData>;
     void
-    append_element(const ImportLivermorePE& inp, HostXsData* xs_data) const;
+    append_element(ImportLivermorePE const& inp, HostXsData* xs_data) const;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

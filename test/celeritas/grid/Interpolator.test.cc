@@ -53,5 +53,5 @@ TEST(InterpolateTest, log_log)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

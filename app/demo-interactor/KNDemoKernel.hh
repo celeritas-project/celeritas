@@ -30,8 +30,8 @@ using celeritas::Ownership;
 //! Kernel thread dimensions
 struct DeviceGridParams
 {
-    unsigned int threads_per_block = 256; //!< Threads per block
-    bool         sync = false; //!< Call synchronize after every kernel
+    unsigned int threads_per_block = 256;  //!< Threads per block
+    bool sync = false;  //!< Call synchronize after every kernel
 };
 
 template<Ownership W, MemSpace M>
@@ -41,7 +41,7 @@ struct TableData
     using Items = celeritas::Collection<T, W, M>;
 
     Items<celeritas::real_type> reals;
-    celeritas::XsGridData       xs;
+    celeritas::XsGridData xs;
 
     //// MEMBER FUNCTIONS ////
 
@@ -53,11 +53,11 @@ struct TableData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    TableData& operator=(const TableData<W2, M2>& other)
+    TableData& operator=(TableData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         reals = other.reals;
-        xs    = other.xs;
+        xs = other.xs;
         return *this;
     }
 };
@@ -67,9 +67,9 @@ template<Ownership W, MemSpace M>
 struct ParamsData
 {
     celeritas::ParticleParamsData<W, M> particle;
-    TableData<W, M>                     tables;
-    celeritas::KleinNishinaData         kn_interactor;
-    DetectorParamsData                  detector;
+    TableData<W, M> tables;
+    celeritas::KleinNishinaData kn_interactor;
+    DetectorParamsData detector;
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -78,17 +78,17 @@ struct ParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    ParamsData& operator=(const ParamsData<W2, M2>& other)
+    ParamsData& operator=(ParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        particle      = other.particle;
-        tables        = other.tables;
+        particle = other.particle;
+        tables = other.tables;
         kn_interactor = other.kn_interactor;
         return *this;
     }
 };
 
-using ParamsHostRef   = ::celeritas::HostCRef<ParamsData>;
+using ParamsHostRef = ::celeritas::HostCRef<ParamsData>;
 using ParamsDeviceRef = ::celeritas::DeviceCRef<ParamsData>;
 
 //! Initial conditions
@@ -104,14 +104,14 @@ struct StateData
     using SecondaryAllocatorData
         = celeritas::StackAllocatorData<celeritas::Secondary, W, M>;
 
-    celeritas::ParticleStateData<W, M>    particle;
-    celeritas::RngStateData<W, M>         rng;
-    celeritas::Span<celeritas::Real3>     position;
-    celeritas::Span<celeritas::Real3>     direction;
+    celeritas::ParticleStateData<W, M> particle;
+    celeritas::RngStateData<W, M> rng;
+    celeritas::Span<celeritas::Real3> position;
+    celeritas::Span<celeritas::Real3> direction;
     celeritas::Span<celeritas::real_type> time;
-    celeritas::Span<bool>                 alive;
+    celeritas::Span<bool> alive;
 
-    SecondaryAllocatorData  secondaries;
+    SecondaryAllocatorData secondaries;
     DetectorStateData<W, M> detector;
 
     explicit CELER_FUNCTION operator bool() const
@@ -127,39 +127,39 @@ struct StateData
     }
 };
 
-using StateHostRef   = ::celeritas::HostRef<StateData>;
+using StateHostRef = ::celeritas::HostRef<StateData>;
 using StateDeviceRef = ::celeritas::DeviceRef<StateData>;
 
 //---------------------------------------------------------------------------//
 // Initialize particle states
-void initialize(const DeviceGridParams& grid,
-                const ParamsDeviceRef&  params,
-                const StateDeviceRef&   state,
-                const InitialData&      initial);
+void initialize(DeviceGridParams const& grid,
+                ParamsDeviceRef const& params,
+                StateDeviceRef const& state,
+                InitialData const& initial);
 
 //---------------------------------------------------------------------------//
 // Run an iteration
-void iterate(const DeviceGridParams& grid,
-             const ParamsDeviceRef&  params,
-             const StateDeviceRef&   state);
+void iterate(DeviceGridParams const& grid,
+             ParamsDeviceRef const& params,
+             StateDeviceRef const& state);
 
 //---------------------------------------------------------------------------//
 // Clean up data
-void cleanup(const DeviceGridParams& grid,
-             const ParamsDeviceRef&  params,
-             const StateDeviceRef&   state);
+void cleanup(DeviceGridParams const& grid,
+             ParamsDeviceRef const& params,
+             StateDeviceRef const& state);
 
 //---------------------------------------------------------------------------//
 // Sum the total number of living particles
 celeritas::size_type
-reduce_alive(const DeviceGridParams& grid, celeritas::Span<const bool> alive);
+reduce_alive(DeviceGridParams const& grid, celeritas::Span<bool const> alive);
 
 //---------------------------------------------------------------------------//
 // Finalize, copying tallied data to host
 template<celeritas::MemSpace M>
-void finalize(const ParamsData<Ownership::const_reference, M>& params,
-              const StateData<Ownership::reference, M>&        state,
-              celeritas::Span<celeritas::real_type>            edep)
+void finalize(ParamsData<Ownership::const_reference, M> const& params,
+              StateData<Ownership::reference, M> const& state,
+              celeritas::Span<celeritas::real_type> edep)
 {
     CELER_EXPECT(edep.size() == params.detector.tally_grid.size);
     using celeritas::real_type;
@@ -173,4 +173,4 @@ void finalize(const ParamsData<Ownership::const_reference, M>& params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

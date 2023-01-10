@@ -15,10 +15,10 @@ struct FieldDriverOptions;
 //---------------------------------------------------------------------------//
 
 // Read options from JSON
-void from_json(const nlohmann::json& j, FieldDriverOptions& opts);
+void from_json(nlohmann::json const& j, FieldDriverOptions& opts);
 
 // Write options to JSON
-void to_json(nlohmann::json& j, const FieldDriverOptions& opts);
+void to_json(nlohmann::json& j, FieldDriverOptions const& opts);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

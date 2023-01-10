@@ -24,14 +24,14 @@ template<MemSpace M>
 class Diagnostic
 {
   public:
-    using EventId  = celeritas::EventId;
+    using EventId = celeritas::EventId;
     using StateRef = celeritas::CoreStateData<Ownership::reference, M>;
 
     // Virtual destructor for polymorphic deletion
     virtual ~Diagnostic() = 0;
 
     // Collect diagnostic(s) in the middle of a step
-    virtual void mid_step(const StateRef&) {}
+    virtual void mid_step(StateRef const&) {}
 
     // Collect results from diagnostic
     virtual void get_result(TransporterResult*) {}
@@ -47,4 +47,4 @@ inline Diagnostic<M>::~Diagnostic()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

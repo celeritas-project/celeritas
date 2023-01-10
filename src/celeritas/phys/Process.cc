@@ -14,4 +14,4 @@ namespace celeritas
 Process::~Process() = default;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

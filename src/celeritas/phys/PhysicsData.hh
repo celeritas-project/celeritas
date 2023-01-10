@@ -28,8 +28,8 @@ namespace celeritas
 // TYPES
 //---------------------------------------------------------------------------//
 //! Currently all value grids are cross section grids
-using ValueGrid    = XsGridData;
-using ValueGridId  = OpaqueId<XsGridData>;
+using ValueGrid = XsGridData;
+using ValueGridId = OpaqueId<XsGridData>;
 using ValueTableId = OpaqueId<struct ValueTable>;
 
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ using ValueTableId = OpaqueId<struct ValueTable>;
  */
 struct ValueTable
 {
-    ItemRange<ValueGridId> grids; //!< Value grid by element or material index
+    ItemRange<ValueGridId> grids;  //!< Value grid by element or material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
@@ -63,7 +63,7 @@ struct ValueTable
  */
 struct ModelXsTable
 {
-    ItemRange<ValueTableId> material; //!< Value table by material index
+    ItemRange<ValueTableId> material;  //!< Value table by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !material.empty(); }
@@ -82,7 +82,7 @@ struct ModelGroup
 {
     using Energy = units::MevEnergy;
 
-    ItemRange<real_type>       energy; //!< Energy grid bounds [MeV]
+    ItemRange<real_type> energy;  //!< Energy grid bounds [MeV]
     ItemRange<ParticleModelId> model;  //!< Corresponding models
 
     //! True if assigned
@@ -104,7 +104,7 @@ struct ModelGroup
  */
 struct IntegralXsProcess
 {
-    ItemRange<real_type> energy_max_xs; //!< Energy of the largest xs [mat]
+    ItemRange<real_type> energy_max_xs;  //!< Energy of the largest xs [mat]
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
@@ -128,13 +128,13 @@ struct IntegralXsProcess
  */
 struct ProcessGroup
 {
-    ItemRange<ProcessId> processes; //!< Processes that apply [ppid]
-    ValueGridArray<ItemRange<ValueTable>> tables;      //!< [vgt][ppid]
-    ItemRange<IntegralXsProcess>          integral_xs; //!< [ppid]
-    ItemRange<ModelGroup> models;   //!< Model applicability [ppid]
-    ParticleProcessId eloss_ppid{}; //!< Process with de/dx and range tables
-    ParticleProcessId msc_ppid{};   //!< Process of msc (TODO: delete me)
-    bool has_at_rest{}; //!< Whether the particle type has an at-rest process
+    ItemRange<ProcessId> processes;  //!< Processes that apply [ppid]
+    ValueGridArray<ItemRange<ValueTable>> tables;  //!< [vgt][ppid]
+    ItemRange<IntegralXsProcess> integral_xs;  //!< [ppid]
+    ItemRange<ModelGroup> models;  //!< Model applicability [ppid]
+    ParticleProcessId eloss_ppid{};  //!< Process with de/dx and range tables
+    ParticleProcessId msc_ppid{};  //!< Process of msc (TODO: delete me)
+    bool has_at_rest{};  //!< Whether the particle type has an at-rest process
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -163,22 +163,22 @@ struct HardwiredModels
     //// DATA ////
 
     // Photoelectric effect
-    ProcessId                   photoelectric;
-    units::MevEnergy            photoelectric_table_thresh;
-    ModelId                     livermore_pe;
-    LivermorePEData<W, M>       livermore_pe_data;
+    ProcessId photoelectric;
+    units::MevEnergy photoelectric_table_thresh;
+    ModelId livermore_pe;
+    LivermorePEData<W, M> livermore_pe_data;
     AtomicRelaxParamsData<W, M> relaxation_data;
 
     // Positron annihilation
-    ProcessId   positron_annihilation;
-    ModelId     eplusgg;
+    ProcessId positron_annihilation;
+    ModelId eplusgg;
     EPlusGGData eplusgg_data;
 
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
     template<Ownership W2, MemSpace M2>
-    HardwiredModels& operator=(const HardwiredModels<W2, M2>& other)
+    HardwiredModels& operator=(HardwiredModels<W2, M2> const& other)
     {
         // Note: don't require the other set of hardwired models to be assigned
         photoelectric = other.photoelectric;
@@ -186,13 +186,13 @@ struct HardwiredModels
         {
             // Only assign photoelectric data if that process is present
             photoelectric_table_thresh = other.photoelectric_table_thresh;
-            livermore_pe               = other.livermore_pe;
-            livermore_pe_data          = other.livermore_pe_data;
+            livermore_pe = other.livermore_pe;
+            livermore_pe_data = other.livermore_pe_data;
         }
-        relaxation_data       = other.relaxation_data;
+        relaxation_data = other.relaxation_data;
         positron_annihilation = other.positron_annihilation;
-        eplusgg               = other.eplusgg;
-        eplusgg_data          = other.eplusgg_data;
+        eplusgg = other.eplusgg;
+        eplusgg_data = other.eplusgg_data;
 
         return *this;
     }
@@ -220,14 +220,15 @@ struct PhysicsParamsScalars
     ModelId::size_type num_models{};
 
     // User-configurable constants
-    real_type min_range{};           //!< rho [cm]
-    real_type max_step_over_range{}; //!< alpha [unitless]
-    real_type min_eprime_over_e{};   //!< xi [unitless]
-    Energy    eloss_calc_limit{};   //!< Lowest energy for eloss calculation
+    real_type min_range{};  //!< rho [cm]
+    real_type max_step_over_range{};  //!< alpha [unitless]
+    real_type min_eprime_over_e{};  //!< xi [unitless]
+    Energy eloss_calc_limit{};  //!< Lowest energy for eloss calculation
     real_type linear_loss_limit{};  //!< For scaled range calculation
-    real_type fixed_step_limiter{}; //!< Global charged step size limit [cm]
+    real_type fixed_step_limiter{};  //!< Global charged step size limit [cm]
 
-    real_type secondary_stack_factor = 3; //!< Secondary storage per state size
+    real_type secondary_stack_factor = 3;  //!< Secondary storage per state
+                                           //!< size
 
     // When fixed step limiter is used, this is the corresponding action ID
     ActionId fixed_step_action{};
@@ -300,17 +301,17 @@ struct PhysicsParamsData
     //// DATA ////
 
     // Backend storage
-    Items<real_type>                 reals;
-    Items<ParticleModelId>           pmodel_ids;
-    Items<ValueGrid>                 value_grids;
-    Items<ValueGridId>               value_grid_ids;
-    Items<ProcessId>                 process_ids;
-    Items<ValueTable>                value_tables;
-    Items<ValueTableId>              value_table_ids;
-    Items<IntegralXsProcess>         integral_xs;
-    Items<ModelGroup>                model_groups;
-    ParticleItems<ProcessGroup>      process_groups;
-    ParticleModelItems<ModelId>      model_ids;
+    Items<real_type> reals;
+    Items<ParticleModelId> pmodel_ids;
+    Items<ValueGrid> value_grids;
+    Items<ValueGridId> value_grid_ids;
+    Items<ProcessId> process_ids;
+    Items<ValueTable> value_tables;
+    Items<ValueTableId> value_table_ids;
+    Items<IntegralXsProcess> integral_xs;
+    Items<ModelGroup> model_groups;
+    ParticleItems<ProcessGroup> process_groups;
+    ParticleModelItems<ModelId> model_ids;
     ParticleModelItems<ModelXsTable> model_xs;
 
     // Special data
@@ -329,22 +330,22 @@ struct PhysicsParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    PhysicsParamsData& operator=(const PhysicsParamsData<W2, M2>& other)
+    PhysicsParamsData& operator=(PhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 
-        reals           = other.reals;
-        pmodel_ids      = other.pmodel_ids;
-        value_grids     = other.value_grids;
-        value_grid_ids  = other.value_grid_ids;
-        process_ids     = other.process_ids;
-        value_tables    = other.value_tables;
+        reals = other.reals;
+        pmodel_ids = other.pmodel_ids;
+        value_grids = other.value_grids;
+        value_grid_ids = other.value_grid_ids;
+        process_ids = other.process_ids;
+        value_tables = other.value_tables;
         value_table_ids = other.value_table_ids;
-        integral_xs     = other.integral_xs;
-        model_groups    = other.model_groups;
-        process_groups  = other.process_groups;
-        model_ids       = other.model_ids;
-        model_xs        = other.model_xs;
+        integral_xs = other.integral_xs;
+        model_groups = other.model_groups;
+        process_groups = other.process_groups;
+        model_ids = other.model_ids;
+        model_xs = other.model_xs;
 
         hardwired = other.hardwired;
 
@@ -372,15 +373,15 @@ struct PhysicsParamsData
  */
 struct PhysicsTrackState
 {
-    real_type interaction_mfp; //!< Remaining MFP to interaction
+    real_type interaction_mfp;  //!< Remaining MFP to interaction
 
     // TEMPORARY STATE
-    real_type macro_xs; //!< Total cross section for discrete interactions
-    real_type energy_deposition; //!< Local energy deposition in a step [MeV]
-    real_type dedx_range;        //!< Local energy loss range [cm]
-    MscRange  msc_range;         //!< Range properties for multiple scattering
-    Span<Secondary>    secondaries; //!< Emitted secondaries
-    ElementComponentId element;     //!< Element sampled for interaction
+    real_type macro_xs;  //!< Total cross section for discrete interactions
+    real_type energy_deposition;  //!< Local energy deposition in a step [MeV]
+    real_type dedx_range;  //!< Local energy loss range [cm]
+    MscRange msc_range;  //!< Range properties for multiple scattering
+    Span<Secondary> secondaries;  //!< Emitted secondaries
+    ElementComponentId element;  //!< Element sampled for interaction
 };
 
 //---------------------------------------------------------------------------//
@@ -415,13 +416,13 @@ struct PhysicsStateData
 
     //// DATA ////
 
-    StateItems<PhysicsTrackState> state;    //!< Track state [track]
-    StateItems<MscStep>           msc_step; //!< Internal MSC data [track]
+    StateItems<PhysicsTrackState> state;  //!< Track state [track]
+    StateItems<MscStep> msc_step;  //!< Internal MSC data [track]
 
-    Items<real_type> per_process_xs; //!< XS [track][particle process]
+    Items<real_type> per_process_xs;  //!< XS [track][particle process]
 
-    AtomicRelaxStateData<W, M>          relaxation;  //!< Scratch data
-    StackAllocatorData<Secondary, W, M> secondaries; //!< Secondary stack
+    AtomicRelaxStateData<W, M> relaxation;  //!< Scratch data
+    StackAllocatorData<Secondary, W, M> secondaries;  //!< Secondary stack
 
     //// METHODS ////
 
@@ -439,12 +440,12 @@ struct PhysicsStateData
     PhysicsStateData& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        state    = other.state;
+        state = other.state;
         msc_step = other.msc_step;
 
         per_process_xs = other.per_process_xs;
 
-        relaxation  = other.relaxation;
+        relaxation = other.relaxation;
         secondaries = other.secondaries;
 
         return *this;
@@ -457,8 +458,8 @@ struct PhysicsStateData
  */
 template<MemSpace M>
 inline void resize(PhysicsStateData<Ownership::value, M>* state,
-                   const HostCRef<PhysicsParamsData>&     params,
-                   size_type                              size)
+                   HostCRef<PhysicsParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(size > 0);
     CELER_EXPECT(params.scalars.max_particle_processes > 0);
@@ -471,4 +472,4 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

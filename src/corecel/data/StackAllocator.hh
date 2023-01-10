@@ -102,14 +102,14 @@ class StackAllocator
   public:
     //!@{
     //! Type aliases
-    using value_type  = T;
+    using value_type = T;
     using result_type = value_type*;
     using Data = StackAllocatorData<T, Ownership::reference, MemSpace::native>;
     //!@}
 
   public:
     // Construct with shared data
-    explicit inline CELER_FUNCTION StackAllocator(const Data& data);
+    explicit inline CELER_FUNCTION StackAllocator(Data const& data);
 
     // Total storage capacity (always safe)
     inline CELER_FUNCTION size_type capacity() const;
@@ -131,14 +131,14 @@ class StackAllocator
 
     // View all allocated data
     inline CELER_FUNCTION Span<value_type> get();
-    inline CELER_FUNCTION Span<const value_type> get() const;
+    inline CELER_FUNCTION Span<value_type const> get() const;
 
   private:
-    const Data& data_;
+    Data const& data_;
 
     //// HELPER FUNCTIONS ////
 
-    using SizeId    = ItemId<size_type>;
+    using SizeId = ItemId<size_type>;
     using StorageId = ItemId<T>;
     static CELER_CONSTEXPR_FUNCTION SizeId size_id() { return SizeId{0}; }
 };
@@ -150,7 +150,7 @@ class StackAllocator
  * Construct with defaults.
  */
 template<class T>
-CELER_FUNCTION StackAllocator<T>::StackAllocator(const Data& shared)
+CELER_FUNCTION StackAllocator<T>::StackAllocator(Data const& shared)
     : data_(shared)
 {
     CELER_EXPECT(shared);
@@ -267,10 +267,10 @@ CELER_FUNCTION auto StackAllocator<T>::get() -> Span<value_type>
  * This cannot be called while any running kernel could be modifiying the size.
  */
 template<class T>
-CELER_FUNCTION auto StackAllocator<T>::get() const -> Span<const value_type>
+CELER_FUNCTION auto StackAllocator<T>::get() const -> Span<value_type const>
 {
     return data_.storage[ItemRange<T>{StorageId{0}, StorageId{this->size()}}];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

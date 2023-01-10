@@ -57,5 +57,5 @@ TEST_F(BoundingBoxTest, standard)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

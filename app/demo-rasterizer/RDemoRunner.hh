@@ -25,7 +25,7 @@ class RDemoRunner
     //!@{
     //! Type aliases
     using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
-    using Args       = ImageRunArgs;
+    using Args = ImageRunArgs;
     //!@}
 
   public:
@@ -40,4 +40,4 @@ class RDemoRunner
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

@@ -19,12 +19,12 @@ namespace demo_interactor
 
 template<class Rng>
 inline CELER_FUNCTION void
-move_to_collision(const celeritas::ParticleTrackView& particle,
-                  const celeritas::XsCalculator&      calc_xs,
-                  const celeritas::Real3&             direction,
-                  celeritas::Real3*                   position,
-                  celeritas::real_type*               time,
-                  Rng&                                rng)
+move_to_collision(celeritas::ParticleTrackView const& particle,
+                  celeritas::XsCalculator const& calc_xs,
+                  celeritas::Real3 const& direction,
+                  celeritas::Real3* position,
+                  celeritas::real_type* time,
+                  Rng& rng)
 {
     CELER_EXPECT(position && time);
     using celeritas::real_type;
@@ -41,4 +41,4 @@ move_to_collision(const celeritas::ParticleTrackView& particle,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

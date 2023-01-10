@@ -36,10 +36,10 @@ namespace celeritas
  * Calculate physics step limits based on cross sections and range limiters.
  */
 inline CELER_FUNCTION StepLimit
-calc_physics_step_limit(const MaterialTrackView& material,
-                        const ParticleTrackView& particle,
-                        PhysicsTrackView&        physics,
-                        PhysicsStepView&         pstep)
+calc_physics_step_limit(MaterialTrackView const& material,
+                        ParticleTrackView const& particle,
+                        PhysicsTrackView& physics,
+                        PhysicsStepView& pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
@@ -55,7 +55,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         real_type process_xs = 0;
-        if (const auto& process = physics.integral_xs_process(ppid))
+        if (auto const& process = physics.integral_xs_process(ppid))
         {
             // If the integral approach is used and this particle has an energy
             // loss process, estimate the maximum cross section over the step
@@ -78,7 +78,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
 
     // Determine limits from discrete interactions
     StepLimit limit;
-    limit.step   = 0;
+    limit.step = 0;
     limit.action = physics.scalars().discrete_action();
     if (!particle.is_stopped())
     {
@@ -86,7 +86,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
 
         if (auto ppid = physics.eloss_ppid())
         {
-            auto grid_id    = physics.value_grid(VGT::range, ppid);
+            auto grid_id = physics.value_grid(VGT::range, ppid);
             auto calc_range = physics.make_calculator<RangeCalculator>(grid_id);
             real_type range = calc_range(particle.energy());
             // Save range for the current step and reuse it elsewhere
@@ -96,7 +96,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
             real_type eloss_step = physics.range_to_step(range);
             if (eloss_step <= limit.step)
             {
-                limit.step   = eloss_step;
+                limit.step = eloss_step;
                 limit.action = physics.scalars().range_action();
             }
 
@@ -104,7 +104,7 @@ calc_physics_step_limit(const MaterialTrackView& material,
             real_type fixed_limit = physics.scalars().fixed_step_limiter;
             if (fixed_limit > 0 && fixed_limit < limit.step)
             {
-                limit.step   = fixed_limit;
+                limit.step = fixed_limit;
                 limit.action = physics.scalars().fixed_step_action;
             }
         }
@@ -166,19 +166,19 @@ calc_physics_step_limit(const MaterialTrackView& material,
  * materials and/or small steps)
  */
 inline CELER_FUNCTION ParticleTrackView::Energy
-                      calc_mean_energy_loss(const ParticleTrackView& particle,
-                                            const PhysicsTrackView&  physics,
-                                            real_type                step)
+calc_mean_energy_loss(ParticleTrackView const& particle,
+                      PhysicsTrackView const& physics,
+                      real_type step)
 {
     CELER_EXPECT(step > 0);
     CELER_EXPECT(physics.eloss_ppid());
     using Energy = ParticleTrackView::Energy;
-    using VGT    = ValueGridType;
+    using VGT = ValueGridType;
     static_assert(Energy::unit_type::value()
                       == EnergyLossCalculator::Energy::unit_type::value(),
                   "Incompatible energy types");
 
-    auto            ppid            = physics.eloss_ppid();
+    auto ppid = physics.eloss_ppid();
     const real_type pre_step_energy = value_as<Energy>(particle.energy());
 
     // Calculate the sum of energy loss rate over all processes.
@@ -242,11 +242,11 @@ inline CELER_FUNCTION ParticleTrackView::Energy
  */
 template<class Engine>
 CELER_FUNCTION ActionId
-select_discrete_interaction(const MaterialView&      material,
-                            const ParticleTrackView& particle,
-                            const PhysicsTrackView&  physics,
-                            PhysicsStepView&         pstep,
-                            Engine&                  rng)
+select_discrete_interaction(MaterialView const& material,
+                            ParticleTrackView const& particle,
+                            PhysicsTrackView const& physics,
+                            PhysicsStepView& pstep,
+                            Engine& rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
@@ -279,7 +279,7 @@ select_discrete_interaction(const MaterialView&      material,
 
     // Find the model that applies at the particle energy
     auto find_model = physics.make_model_finder(ppid);
-    auto pmid       = find_model(particle.energy());
+    auto pmid = find_model(particle.energy());
 
     ElementComponentId elcomp_id{};
     if (material.num_elements() == 1)
@@ -300,4 +300,4 @@ select_discrete_interaction(const MaterialView&      material,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

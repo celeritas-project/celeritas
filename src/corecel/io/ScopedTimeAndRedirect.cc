@@ -55,4 +55,4 @@ ScopedTimeAndRedirect::~ScopedTimeAndRedirect()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

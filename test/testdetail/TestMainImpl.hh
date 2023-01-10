@@ -16,5 +16,5 @@ namespace testdetail
 int test_main(int argc, char** argv);
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

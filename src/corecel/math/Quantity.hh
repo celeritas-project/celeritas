@@ -24,11 +24,11 @@ namespace detail
 template<class T>
 struct UnitlessQuantity
 {
-    T value_; //!< Special nonnumeric value
+    T value_;  //!< Special nonnumeric value
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -84,8 +84,8 @@ class Quantity
     //!@{
     //! Type aliases
     using value_type = ValueT;
-    using unit_type  = UnitT;
-    using Unitless   = detail::UnitlessQuantity<ValueT>;
+    using unit_type = UnitT;
+    using Unitless = detail::UnitlessQuantity<ValueT>;
     //!@}
 
   public:
@@ -249,7 +249,7 @@ template<class Q>
 CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
 {
     using value_type = typename Q::value_type;
-    using unit_type  = typename Q::unit_type;
+    using unit_type = typename Q::unit_type;
 
     return Q{value * (value_type{1} / unit_type::value())};
 }
@@ -275,4 +275,4 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Quantity<SrcUnitT, ValueT> quant)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -25,10 +25,10 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-RayleighModel::RayleighModel(ActionId              id,
-                             const ParticleParams& particles,
-                             const MaterialParams& materials,
-                             SPConstImported       data)
+RayleighModel::RayleighModel(ActionId id,
+                             ParticleParams const& particles,
+                             MaterialParams const& materials,
+                             SPConstImported data)
     : imported_(data,
                 particles,
                 ImportProcessClass::rayleigh,
@@ -40,7 +40,7 @@ RayleighModel::RayleighModel(ActionId              id,
     HostValue host_ref;
 
     host_ref.ids.action = id;
-    host_ref.ids.gamma  = particles.find(pdg::gamma());
+    host_ref.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_ref.ids.gamma,
                    << "missing gamma particles (required for "
                    << this->description() << ")");
@@ -61,8 +61,8 @@ auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
     rayleigh_scattering.particle = this->host_ref().ids.gamma;
-    rayleigh_scattering.lower    = zero_quantity();
-    rayleigh_scattering.upper    = units::MevEnergy{1e+8};
+    rayleigh_scattering.lower = zero_quantity();
+    rayleigh_scattering.upper = units::MevEnergy{1e+8};
 
     return {rayleigh_scattering};
 }
@@ -105,7 +105,7 @@ ActionId RayleighModel::action_id() const
 /*!
  * Construct RayleighParameters for all the elements in the problem.
  */
-void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
+void RayleighModel::build_data(HostValue* data, MaterialParams const& materials)
 {
     // Number of elements
     unsigned int num_elements = materials.num_elements();
@@ -143,7 +143,7 @@ void RayleighModel::build_data(HostValue* data, const MaterialParams& materials)
  * Reshaped as [el][param][3] with params.T.reshape((100, 3, 3)),
  * then updated 'n' with params[:,2,:] -= 1
  */
-auto RayleighModel::get_el_parameters(AtomicNumber z) -> const ElScatParams&
+auto RayleighModel::get_el_parameters(AtomicNumber z) -> ElScatParams const&
 {
     CELER_EXPECT(z);
     static const ElScatParams el_params[]
@@ -458,4 +458,4 @@ auto RayleighModel::get_el_parameters(AtomicNumber z) -> const ElScatParams&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

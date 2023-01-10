@@ -28,8 +28,8 @@ class InitializedValue
 
     //!@{
     //! Default copy assign and construct
-    InitializedValue(const InitializedValue&) noexcept            = default;
-    InitializedValue& operator=(const InitializedValue&) noexcept = default;
+    InitializedValue(InitializedValue const&) noexcept = default;
+    InitializedValue& operator=(InitializedValue const&) noexcept = default;
     //!@}
 
     //! Clear other value on move construct
@@ -46,7 +46,7 @@ class InitializedValue
     }
 
     //! Implicit assign from type
-    InitializedValue& operator=(const T& value)
+    InitializedValue& operator=(T const& value)
     {
         value_ = value;
         return *this;
@@ -77,5 +77,5 @@ inline void swap(InitializedValue<T>& a, InitializedValue<T>& b) noexcept
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

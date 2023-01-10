@@ -27,11 +27,11 @@ class VolumeViewTest : public OrangeGeoTestBase
     VolumeView make_view(VolumeId v) const
     {
         CELER_EXPECT(v);
-        const auto& host_ref = this->params().host_ref();
+        auto const& host_ref = this->params().host_ref();
         return VolumeView{host_ref, host_ref.simple_unit[SimpleUnitId{0}], v};
     }
 
-    void test_face_accessors(const VolumeView& volumes)
+    void test_face_accessors(VolumeView const& volumes)
     {
         auto faces = volumes.faces();
         ASSERT_EQ(faces.size(), volumes.num_faces());
@@ -108,5 +108,5 @@ TEST_F(VolumeViewTest, five_volumes)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

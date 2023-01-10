@@ -26,17 +26,17 @@ class SimTrackView
   public:
     //!@{
     //! Type aliases
-    using SimStateRef   = NativeRef<SimStateData>;
+    using SimStateRef = NativeRef<SimStateData>;
     using Initializer_t = SimTrackInitializer;
     //!@}
 
   public:
     // Construct with view to state and persistent data
     inline CELER_FUNCTION
-    SimTrackView(const SimStateRef& states, ThreadId thread);
+    SimTrackView(SimStateRef const& states, ThreadId thread);
 
     // Initialize the sim state
-    inline CELER_FUNCTION SimTrackView& operator=(const Initializer_t& other);
+    inline CELER_FUNCTION SimTrackView& operator=(Initializer_t const& other);
 
     // Add the time change over the step
     inline CELER_FUNCTION void add_time(real_type delta);
@@ -51,16 +51,16 @@ class SimTrackView
     inline CELER_FUNCTION void reset_step_limit();
 
     // Reset step limiter to the given limit
-    inline CELER_FUNCTION void reset_step_limit(const StepLimit& sl);
+    inline CELER_FUNCTION void reset_step_limit(StepLimit const& sl);
 
     // Force the limiting action to take
     inline CELER_FUNCTION void force_step_limit(ActionId action);
 
     // Limit the step and override if the step is equal
-    inline CELER_FUNCTION void force_step_limit(const StepLimit& sl);
+    inline CELER_FUNCTION void force_step_limit(StepLimit const& sl);
 
     // Limit the step by this distance and action
-    inline CELER_FUNCTION bool step_limit(const StepLimit& sl);
+    inline CELER_FUNCTION bool step_limit(StepLimit const& sl);
 
     //// DYNAMIC PROPERTIES ////
 
@@ -83,11 +83,11 @@ class SimTrackView
     CELER_FORCEINLINE_FUNCTION TrackStatus status() const;
 
     // Limiting step and action to take
-    CELER_FORCEINLINE_FUNCTION const StepLimit& step_limit() const;
+    CELER_FORCEINLINE_FUNCTION StepLimit const& step_limit() const;
 
   private:
-    const SimStateRef& states_;
-    const ThreadId     thread_;
+    SimStateRef const& states_;
+    const ThreadId thread_;
 };
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ class SimTrackView
  * Construct from persistent and local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(const SimStateRef& states, ThreadId thread)
+SimTrackView::SimTrackView(SimStateRef const& states, ThreadId thread)
     : states_(states), thread_(thread)
 {
     CELER_EXPECT(thread < states_.size());
@@ -107,7 +107,7 @@ SimTrackView::SimTrackView(const SimStateRef& states, ThreadId thread)
 /*!
  * \brief Initialize the particle.
  */
-CELER_FUNCTION SimTrackView& SimTrackView::operator=(const Initializer_t& other)
+CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
 {
     states_.state[thread_] = other;
     return *this;
@@ -138,7 +138,7 @@ CELER_FUNCTION void SimTrackView::increment_num_steps()
  *
  * The action can be unset if and only if the step is infinite.
  */
-CELER_FUNCTION void SimTrackView::reset_step_limit(const StepLimit& sl)
+CELER_FUNCTION void SimTrackView::reset_step_limit(StepLimit const& sl)
 {
     CELER_EXPECT(sl.step >= 0);
     CELER_EXPECT(static_cast<bool>(sl.action)
@@ -153,7 +153,7 @@ CELER_FUNCTION void SimTrackView::reset_step_limit(const StepLimit& sl)
 CELER_FUNCTION void SimTrackView::reset_step_limit()
 {
     StepLimit limit;
-    limit.step   = numeric_limits<real_type>::infinity();
+    limit.step = numeric_limits<real_type>::infinity();
     limit.action = {};
     this->reset_step_limit(limit);
 }
@@ -179,7 +179,7 @@ CELER_FUNCTION void SimTrackView::force_step_limit(ActionId action)
  * If the step limits are the same, the new action overrides. The new step must
  * not be greater than the current step.
  */
-CELER_FUNCTION void SimTrackView::force_step_limit(const StepLimit& sl)
+CELER_FUNCTION void SimTrackView::force_step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0
                  && sl.step <= states_.state[thread_].step_limit.step);
@@ -195,7 +195,7 @@ CELER_FUNCTION void SimTrackView::force_step_limit(const StepLimit& sl)
  *
  * \return Whether the given limit is the new limit.
  */
-CELER_FUNCTION bool SimTrackView::step_limit(const StepLimit& sl)
+CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 {
     CELER_ASSERT(sl.step >= 0);
 
@@ -277,10 +277,10 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
 /*!
  * Get the current limiting step and action.
  */
-CELER_FUNCTION const StepLimit& SimTrackView::step_limit() const
+CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
 {
     return states_.state[thread_].step_limit;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

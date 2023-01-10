@@ -15,7 +15,7 @@
 #include "corecel/io/JsonPimpl.hh"
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh" // IWYU pragma: keep
+#include "ActionRegistry.hh"  // IWYU pragma: keep
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -46,8 +46,8 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
             {"label", actions_->id_to_label(id)},
         };
 
-        const ActionInterface& action = *actions_->action(id);
-        auto&&                 desc   = action.description();
+        ActionInterface const& action = *actions_->action(id);
+        auto&& desc = action.description();
         if (!desc.empty())
         {
             entry["description"] = std::move(desc);
@@ -61,4 +61,4 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -24,7 +24,7 @@ namespace celeritas
 MultipleScatteringProcess::MultipleScatteringProcess(
     SPConstParticles particles,
     SPConstMaterials materials,
-    SPConstImported  process_data)
+    SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -66,4 +66,4 @@ std::string MultipleScatteringProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

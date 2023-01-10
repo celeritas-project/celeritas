@@ -43,8 +43,8 @@ struct EPlusGGData
     }
 };
 
-using EPlusGGHostRef   = EPlusGGData;
+using EPlusGGHostRef = EPlusGGData;
 using EPlusGGDeviceRef = EPlusGGData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

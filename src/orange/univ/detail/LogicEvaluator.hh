@@ -26,8 +26,8 @@ class LogicEvaluator
   public:
     //@{
     //! Public type aliases
-    using SpanConstLogic = Span<const logic_int>;
-    using SpanConstSense = Span<const Sense>;
+    using SpanConstLogic = Span<logic_int const>;
+    using SpanConstSense = Span<Sense const>;
     //@}
 
   public:
@@ -88,5 +88,5 @@ CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

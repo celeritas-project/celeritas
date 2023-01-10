@@ -13,8 +13,8 @@ namespace testdetail
 {
 //---------------------------------------------------------------------------//
 
-extern const char source_dir[];
+extern char const source_dir[];
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

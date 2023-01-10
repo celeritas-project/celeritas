@@ -37,13 +37,13 @@ class ElementView
     //!@{
     //! Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
-    using AmuMass           = units::AmuMass;
+    using AmuMass = units::AmuMass;
     //!@}
 
   public:
     // Construct from shared material data and global element ID
     inline CELER_FUNCTION
-    ElementView(const MaterialParamsRef& params, ElementId el_id);
+    ElementView(MaterialParamsRef const& params, ElementId el_id);
 
     //// STATIC PROPERTIES ////
 
@@ -69,7 +69,7 @@ class ElementView
     inline CELER_FUNCTION real_type mass_radiation_coeff() const;
 
   private:
-    const ElementRecord& def_;
+    ElementRecord const& def_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,7 +79,7 @@ class ElementView
  * Construct from shared material data and global element ID.
  */
 CELER_FUNCTION
-ElementView::ElementView(const MaterialParamsRef& params, ElementId el_id)
+ElementView::ElementView(MaterialParamsRef const& params, ElementId el_id)
     : def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());
@@ -127,4 +127,4 @@ CELER_FUNCTION real_type ElementView::mass_radiation_coeff() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

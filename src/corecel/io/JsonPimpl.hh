@@ -43,4 +43,4 @@ struct JsonPimpl
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

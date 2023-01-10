@@ -41,16 +41,16 @@ class EPlusGGInteractor
   public:
     //!@{
     //! \name Type aliases
-    using Mass   = units::MevMass;
+    using Mass = units::MevMass;
     using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    EPlusGGInteractor(const EPlusGGData&         shared,
-                      const ParticleTrackView&   particle,
-                      const Real3&               inc_direction,
+    EPlusGGInteractor(EPlusGGData const& shared,
+                      ParticleTrackView const& particle,
+                      Real3 const& inc_direction,
                       StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
@@ -59,11 +59,11 @@ class EPlusGGInteractor
 
   private:
     // Shared constant physics properties
-    const EPlusGGData& shared_;
+    EPlusGGData const& shared_;
     // Incident positron energy [MevEnergy]
     const real_type inc_energy_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Allocate space for secondary particles (two photons)
     StackAllocator<Secondary>& allocate_;
 };
@@ -75,9 +75,9 @@ class EPlusGGInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-EPlusGGInteractor::EPlusGGInteractor(const EPlusGGData&         shared,
-                                     const ParticleTrackView&   particle,
-                                     const Real3&               inc_direction,
+EPlusGGInteractor::EPlusGGInteractor(EPlusGGData const& shared,
+                                     ParticleTrackView const& particle,
+                                     Real3 const& inc_direction,
                                      StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(value_as<Energy>(particle.energy()))
@@ -127,9 +127,9 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     else
     {
         constexpr real_type half = 0.5;
-        const real_type     tau  = inc_energy_
+        const real_type tau = inc_energy_
                               / value_as<Mass>(shared_.electron_mass);
-        const real_type tau2    = tau + 2;
+        const real_type tau2 = tau + 2;
         const real_type sqgrate = std::sqrt(tau / tau2) * half;
 
         // Evaluate limits of the energy sampling
@@ -176,4 +176,4 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

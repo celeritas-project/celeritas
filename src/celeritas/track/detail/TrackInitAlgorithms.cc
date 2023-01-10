@@ -50,12 +50,12 @@ size_type exclusive_scan_counts<MemSpace::host>(Span<size_type> counts)
     for (auto& count_i : counts)
     {
         size_type current = count_i;
-        count_i           = acc;
+        count_i = acc;
         acc += current;
     }
     return acc;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

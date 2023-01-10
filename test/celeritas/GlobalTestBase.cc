@@ -53,15 +53,15 @@ auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
-    inp.geometry    = this->geometry();
-    inp.material    = this->material();
+    inp.geometry = this->geometry();
+    inp.material = this->material();
     inp.geomaterial = this->geomaterial();
-    inp.particle    = this->particle();
-    inp.cutoff      = this->cutoff();
-    inp.physics     = this->physics();
-    inp.rng         = this->rng();
-    inp.init        = this->init();
-    inp.action_reg  = this->action_reg();
+    inp.particle = this->particle();
+    inp.cutoff = this->cutoff();
+    inp.physics = this->physics();
+    inp.rng = this->rng();
+    inp.init = this->init();
+    inp.action_reg = this->action_reg();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
@@ -79,7 +79,7 @@ void GlobalTestBase::write_output()
         CELER_LOG(error) << "JSON unavailable: cannot write output";
         return;
     }
-    std::string   filename = this->make_unique_filename(".json");
+    std::string filename = this->make_unique_filename(".json");
     std::ofstream of(filename);
     this->write_output(of);
     CELER_LOG(info) << "Wrote output to " << filename;
@@ -116,5 +116,5 @@ void GlobalTestBase::register_action_reg_output()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

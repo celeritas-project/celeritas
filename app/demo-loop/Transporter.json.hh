@@ -15,7 +15,7 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 //! Save data to json
-inline void to_json(nlohmann::json& j, const TransporterTiming& v)
+inline void to_json(nlohmann::json& j, TransporterTiming const& v)
 {
     j = nlohmann::json{{"steps", v.steps},
                        {"total", v.total},
@@ -23,7 +23,7 @@ inline void to_json(nlohmann::json& j, const TransporterTiming& v)
                        {"actions", v.actions}};
 }
 
-inline void to_json(nlohmann::json& j, const TransporterResult& v)
+inline void to_json(nlohmann::json& j, TransporterResult const& v)
 {
     j = nlohmann::json{{"initializers", v.initializers},
                        {"active", v.active},
@@ -35,4 +35,4 @@ inline void to_json(nlohmann::json& j, const TransporterResult& v)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

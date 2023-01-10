@@ -37,7 +37,7 @@ class RelativisticBremTest : public InteractorHostTestBase
     {
         // Set up shared material data
         MaterialParams::Input mi;
-        mi.elements  = {{AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
+        mi.elements = {{AtomicNumber{82}, units::AmuMass{207.2}, "Pb"}};
         mi.materials = {{0.05477 * constants::na_avogadro,
                          293.15,
                          MatterState::solid,
@@ -66,7 +66,7 @@ class RelativisticBremTest : public InteractorHostTestBase
              {}}};
         this->set_imported_processes(imported);
 
-        const auto& particles = *this->particle_params();
+        auto const& particles = *this->particle_params();
 
         // Construct RelativisticBremModel
         model_ = std::make_shared<RelativisticBremModel>(
@@ -85,7 +85,7 @@ class RelativisticBremTest : public InteractorHostTestBase
             true);
 
         // Set cutoffs: photon energy thresholds and range cut for Pb
-        CutoffParams::Input           input;
+        CutoffParams::Input input;
         CutoffParams::MaterialCutoffs material_cutoffs;
         material_cutoffs.push_back({MevEnergy{0.0945861}, 0.07});
         input.materials = this->material_params();
@@ -99,12 +99,12 @@ class RelativisticBremTest : public InteractorHostTestBase
         this->set_material("Pb");
     }
 
-    void sanity_check(const Interaction& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         // Check secondaries (bremsstrahlung photon)
         ASSERT_EQ(1, interaction.secondaries.size());
 
-        const auto& gamma = interaction.secondaries.front();
+        auto const& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
         EXPECT_EQ(model_->host_ref().ids.gamma, gamma.particle_id);
 
@@ -153,7 +153,7 @@ TEST_F(RelativisticBremTest, dxsec)
     }
 
     // Note: these are "gold" differential cross sections by the photon energy.
-    const double expected_dxsec_lpm[] = {3.15917865133079,
+    double const expected_dxsec_lpm[] = {3.15917865133079,
                                          2.24073793752395,
                                          1.7690465485807,
                                          1.9393060296929,
@@ -164,7 +164,7 @@ TEST_F(RelativisticBremTest, dxsec)
                                          3.48017265373814,
                                          3.41228707554124};
 
-    const double expected_dxsec[] = {3.55000253342095,
+    double const expected_dxsec[] = {3.55000253342095,
                                      3.54986051043622,
                                      3.54943449138746,
                                      3.54872462599092,
@@ -181,14 +181,14 @@ TEST_F(RelativisticBremTest, dxsec)
 
 TEST_F(RelativisticBremTest, basic_without_lpm)
 {
-    const int num_samples = 4;
+    int const num_samples = 4;
 
     // Reserve  num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_->host_ref(),
@@ -225,10 +225,10 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 
     // Note: these are "gold" values based on the host RNG.
 
-    const double expected_energy[] = {
+    double const expected_energy[] = {
         9.7121539090503, 16.1109589071687, 7.48863745059463, 8338.70226190511};
 
-    const double expected_angle[] = {0.999999999858782,
+    double const expected_angle[] = {0.999999999858782,
                                      0.999999999999921,
                                      0.999999976998416,
                                      0.999999998137601};
@@ -246,14 +246,14 @@ TEST_F(RelativisticBremTest, basic_without_lpm)
 
 TEST_F(RelativisticBremTest, basic_with_lpm)
 {
-    const int num_samples = 4;
+    int const num_samples = 4;
 
     // Reserve  num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
@@ -289,10 +289,10 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
 
     // Note: these are "gold" values based on the host RNG.
 
-    const double expected_energy[] = {
+    double const expected_energy[] = {
         18872.4157243063, 43.6117832245235, 4030.31152398788, 217.621447606391};
 
-    const double expected_angle[] = {0.999999971800136,
+    double const expected_angle[] = {0.999999971800136,
                                      0.999999999587026,
                                      0.999999999683752,
                                      0.999999999474844};
@@ -303,14 +303,14 @@ TEST_F(RelativisticBremTest, basic_with_lpm)
 
 TEST_F(RelativisticBremTest, stress_with_lpm)
 {
-    const int num_samples = 1000;
+    int const num_samples = 1000;
 
     // Reserve  num_samples secondaries;
     this->resize_secondaries(num_samples);
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();
-    auto cutoffs       = this->cutoff_params()->get(MaterialId{0});
+    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     // Create the interactor
     RelativisticBremInteractor interact(model_lpm_->host_ref(),
@@ -325,7 +325,7 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
 
     // Produce samples from the original incident angle/energy
     real_type average_energy{0};
-    Real3     average_angle{0, 0, 0};
+    Real3 average_angle{0, 0, 0};
 
     for (int i : range(num_samples))
     {
@@ -351,5 +351,5 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
     EXPECT_SOFT_EQ(average_angle[2] / num_samples, 0.99999999899845182);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

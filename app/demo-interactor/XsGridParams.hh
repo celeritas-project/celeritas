@@ -33,31 +33,31 @@ class XsGridParams
 {
   public:
     using real_type = celeritas::real_type;
-    using HostRef   = TableData<celeritas::Ownership::const_reference,
+    using HostRef = TableData<celeritas::Ownership::const_reference,
                               celeritas::MemSpace::host>;
     using DeviceRef = TableData<celeritas::Ownership::const_reference,
                                 celeritas::MemSpace::device>;
 
     struct Input
     {
-        std::vector<real_type> energy;       // MeV
-        std::vector<real_type> xs;           // 1/cm
-        real_type              prime_energy; // See class documentation
+        std::vector<real_type> energy;  // MeV
+        std::vector<real_type> xs;  // 1/cm
+        real_type prime_energy;  // See class documentation
     };
 
   public:
     // Construct with input data
-    explicit XsGridParams(const Input& input);
+    explicit XsGridParams(Input const& input);
 
     // Access on-device data
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
     // Get host-side data
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
   private:
     celeritas::CollectionMirror<TableData> data_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

@@ -22,9 +22,9 @@ namespace celeritas
  */
 struct TwodGridData
 {
-    ItemRange<real_type> x;      //!< x grid definition
-    ItemRange<real_type> y;      //!< y grid definition
-    ItemRange<real_type> values; //!< [x][y]
+    ItemRange<real_type> x;  //!< x grid definition
+    ItemRange<real_type> y;  //!< y grid definition
+    ItemRange<real_type> values;  //!< [x][y]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -46,4 +46,4 @@ struct TwodGridData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

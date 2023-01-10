@@ -10,8 +10,8 @@
 #include <TError.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/ColorUtils.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -21,10 +21,10 @@ namespace
 /*!
  * Actual ROOT Error Handler function for Celeritas
  */
-void RootErrorHandler(Int_t       rootlevel,
-                      Bool_t      abort_bool,
-                      const char* location,
-                      const char* msg)
+void RootErrorHandler(Int_t rootlevel,
+                      Bool_t abort_bool,
+                      char const* location,
+                      char const* msg)
 {
     if (rootlevel < gErrorIgnoreLevel)
         return;
@@ -60,7 +60,7 @@ void RootErrorHandler(Int_t       rootlevel,
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -81,4 +81,4 @@ ScopedRootErrorHandler::~ScopedRootErrorHandler()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

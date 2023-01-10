@@ -54,5 +54,5 @@ inline size_type exclusive_scan_counts<MemSpace::device>(Span<size_type>)
 
 #endif
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

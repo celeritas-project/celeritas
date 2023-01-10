@@ -24,7 +24,7 @@ namespace test
 
 TEST(Detail, FindInterp)
 {
-    auto              data = UniformGridData::from_bounds(1.0, 5.0, 3);
+    auto data = UniformGridData::from_bounds(1.0, 5.0, 3);
     const UniformGrid grid(data);
 
     {
@@ -47,10 +47,10 @@ TEST(Detail, FindInterp)
     EXPECT_THROW(detail::find_interp(grid, 5.0), DebugError);
     EXPECT_THROW(detail::find_interp(grid, 5.001), DebugError);
 #endif
-} // namespace test
+}  // namespace test
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
+}  // namespace test
+}  // namespace detail
 
 namespace test
 {
@@ -66,12 +66,12 @@ class TwodGridCalculatorTest : public Test
         xgrid_ = {-1, 0, 1, 3};
         ygrid_ = {0, 0.5, 1.5, 3.5};
 
-        auto build   = make_builder(&values_);
-        grid_data_.x = build.insert_back(xgrid_.begin(), xgrid_.end()); // X
-        grid_data_.y = build.insert_back(ygrid_.begin(), ygrid_.end()); // Y
+        auto build = make_builder(&values_);
+        grid_data_.x = build.insert_back(xgrid_.begin(), xgrid_.end());  // X
+        grid_data_.y = build.insert_back(ygrid_.begin(), ygrid_.end());  // Y
 
-        const auto             nx = xgrid_.size();
-        const auto             ny = ygrid_.size();
+        auto const nx = xgrid_.size();
+        auto const ny = ygrid_.size();
         std::vector<real_type> values(nx * ny);
         for (auto i : range(xgrid_.size()))
         {
@@ -97,8 +97,8 @@ class TwodGridCalculatorTest : public Test
     std::vector<real_type> xgrid_;
     std::vector<real_type> ygrid_;
 
-    TwodGridData                         grid_data_;
-    RealData<Ownership::value>           values_;
+    TwodGridData grid_data_;
+    RealData<Ownership::value> values_;
     RealData<Ownership::const_reference> ref_;
 };
 
@@ -141,12 +141,12 @@ TEST_F(TwodGridCalculatorTest, subgrid)
         }
     }
 
-    const unsigned int expected_lower_idx[] = {0u, 1u, 2u};
-    const double       expected_frac[]      = {0, 0.5, 0.995};
+    unsigned int const expected_lower_idx[] = {0u, 1u, 2u};
+    double const expected_frac[] = {0, 0.5, 0.995};
 
     EXPECT_VEC_EQ(expected_lower_idx, lower_idx);
     EXPECT_VEC_SOFT_EQ(expected_frac, frac);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

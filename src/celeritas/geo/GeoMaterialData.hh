@@ -33,7 +33,7 @@ struct GeoMaterialParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GeoMaterialParamsData& operator=(const GeoMaterialParamsData<W2, M2>& other)
+    GeoMaterialParamsData& operator=(GeoMaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         materials = other.materials;
@@ -42,4 +42,4 @@ struct GeoMaterialParamsData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

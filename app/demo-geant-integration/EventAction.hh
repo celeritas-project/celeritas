@@ -32,12 +32,12 @@ class EventAction final : public G4UserEventAction
   public:
     explicit EventAction(SPTransporter transport);
 
-    void BeginOfEventAction(const G4Event* event) final;
-    void EndOfEventAction(const G4Event* event) final;
+    void BeginOfEventAction(G4Event const* event) final;
+    void EndOfEventAction(G4Event const* event) final;
 
   private:
     SPTransporter transport_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

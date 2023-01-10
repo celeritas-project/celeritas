@@ -22,11 +22,11 @@ namespace test
 class OnlyGeoTestBase : virtual public GlobalTestBase
 {
   public:
-    SPConstParticle  build_particle() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstCutoff    build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstPhysics   build_physics() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstParticle build_particle() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstPhysics build_physics() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
-    SPConstAction   build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstMaterial build_material() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstGeoMaterial build_geomaterial() override
     {
@@ -34,5 +34,5 @@ class OnlyGeoTestBase : virtual public GlobalTestBase
     }
 };
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

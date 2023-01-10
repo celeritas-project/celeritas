@@ -20,7 +20,7 @@ namespace test
 
 struct MockElement
 {
-    int    atomic_number = 0;
+    int atomic_number = 0;
     double atomic_mass;
 };
 
@@ -28,7 +28,7 @@ using MockElementId = ItemId<MockElement>;
 
 struct MockMaterial
 {
-    double                 number_density;
+    double number_density;
     ItemRange<MockElement> elements;
 };
 
@@ -39,9 +39,9 @@ struct MockParamsData
 {
     //// DATA ////
 
-    Collection<MockElement, W, M>  elements;
+    Collection<MockElement, W, M> elements;
     Collection<MockMaterial, W, M> materials;
-    int                            max_element_components{};
+    int max_element_components{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -53,11 +53,11 @@ struct MockParamsData
 
     //! Assign from another set of collections
     template<Ownership W2, MemSpace M2>
-    MockParamsData& operator=(const MockParamsData<W2, M2>& other)
+    MockParamsData& operator=(MockParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        elements               = other.elements;
-        materials              = other.materials;
+        elements = other.elements;
+        materials = other.materials;
         max_element_components = other.max_element_components;
         return *this;
     }
@@ -76,7 +76,7 @@ struct MockStateData
 
     //// MEMBER FUNCTIONS ////
 
-    explicit CELER_FUNCTION  operator bool() const { return !matid.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return !matid.empty(); }
     CELER_FUNCTION size_type size() const { return matid.size(); }
 
     //! Assign from another set of collections on the host
@@ -97,11 +97,11 @@ class MockTrackView
 {
   public:
     using ParamsData = NativeCRef<MockParamsData>;
-    using StateData  = NativeRef<MockStateData>;
+    using StateData = NativeRef<MockStateData>;
 
-    CELER_FUNCTION MockTrackView(const ParamsData& params,
-                                 const StateData&  states,
-                                 ThreadId          tid)
+    CELER_FUNCTION MockTrackView(ParamsData const& params,
+                                 StateData const& states,
+                                 ThreadId tid)
         : params_(params), states_(states), thread_(tid)
     {
         CELER_EXPECT(thread_ < states_.size());
@@ -117,17 +117,17 @@ class MockTrackView
         return this->mat().number_density;
     }
 
-    CELER_FUNCTION Span<const MockElement> elements() const
+    CELER_FUNCTION Span<MockElement const> elements() const
     {
         return params_.elements[this->mat().elements];
     }
 
   private:
-    const ParamsData& params_;
-    const StateData&  states_;
-    ThreadId          thread_;
+    ParamsData const& params_;
+    StateData const& states_;
+    ThreadId thread_;
 
-    CELER_FUNCTION const MockMaterial& mat() const
+    CELER_FUNCTION MockMaterial const& mat() const
     {
         MockMaterialId id = this->matid();
         CELER_ASSERT(id < params_.materials.size());
@@ -142,8 +142,8 @@ class MockTrackView
 struct CTestInput
 {
     DeviceCRef<MockParamsData> params;
-    DeviceRef<MockStateData>   states;
-    Span<double>               result;
+    DeviceRef<MockStateData> states;
+    Span<double> result;
 };
 
 //---------------------------------------------------------------------------//
@@ -158,5 +158,5 @@ inline void col_cuda_test(CTestInput)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

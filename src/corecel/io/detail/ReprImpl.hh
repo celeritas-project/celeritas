@@ -31,8 +31,8 @@ namespace detail
 template<class T>
 struct Repr
 {
-    const T&    obj;
-    const char* name = nullptr;
+    T const& obj;
+    char const* name = nullptr;
 };
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ struct Repr
  * Write a streamable object to a stream.
  */
 template<class T>
-std::ostream& operator<<(std::ostream& os, const Repr<T>& s)
+std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
 {
     ScopedStreamFormat save_fmt(&os);
     ReprTraits<T>::init(os);
@@ -64,11 +64,11 @@ void repr_char(std::ostream& os, char value);
 
 std::string char_to_hex_string(unsigned char value);
 
-void print_simple_type(std::ostream& os, const char* type, const char* name);
+void print_simple_type(std::ostream& os, char const* type, char const* name);
 
 template<class T>
 inline void
-print_container_type(std::ostream& os, const char* type, const char* name)
+print_container_type(std::ostream& os, char const* type, char const* name)
 {
     os << type << '<';
     ReprTraits<T>::print_type(os);
@@ -80,5 +80,5 @@ print_container_type(std::ostream& os, const char* type, const char* name)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

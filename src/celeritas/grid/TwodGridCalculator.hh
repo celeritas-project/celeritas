@@ -43,17 +43,17 @@ class TwodGridCalculator
   public:
     // Construct with grid data and backend values
     inline CELER_FUNCTION
-    TwodGridCalculator(const TwodGridData& grid, const Values& storage);
+    TwodGridCalculator(TwodGridData const& grid, Values const& storage);
 
     // Calculate the value at the given x, y coordinates
-    inline CELER_FUNCTION real_type operator()(const Point& xy) const;
+    inline CELER_FUNCTION real_type operator()(Point const& xy) const;
 
     // Get an interpolator for calculating y values for a given x
     inline CELER_FUNCTION TwodSubgridCalculator operator()(real_type x) const;
 
   private:
-    const TwodGridData& grids_;
-    const Values&       storage_;
+    TwodGridData const& grids_;
+    Values const& storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,8 +62,8 @@ class TwodGridCalculator
 /*!
  * Construct with grids and node-centered data.
  */
-CELER_FUNCTION TwodGridCalculator::TwodGridCalculator(const TwodGridData& grids,
-                                                      const Values& storage)
+CELER_FUNCTION TwodGridCalculator::TwodGridCalculator(TwodGridData const& grids,
+                                                      Values const& storage)
     : grids_{grids}, storage_(storage)
 {
     CELER_EXPECT(grids);
@@ -80,7 +80,7 @@ CELER_FUNCTION TwodGridCalculator::TwodGridCalculator(const TwodGridData& grids,
  * \todo We may need to add logic inside the axis loop to account for points
  * outside the grid.
  */
-CELER_FUNCTION real_type TwodGridCalculator::operator()(const Point& inp) const
+CELER_FUNCTION real_type TwodGridCalculator::operator()(Point const& inp) const
 {
     return (*this)(inp[0])(inp[1]);
 }
@@ -92,10 +92,10 @@ CELER_FUNCTION real_type TwodGridCalculator::operator()(const Point& inp) const
 CELER_FUNCTION TwodSubgridCalculator
 TwodGridCalculator::operator()(real_type x) const
 {
-    const NonuniformGrid<real_type> x_grid{grids_.x, storage_};
+    NonuniformGrid<real_type> const x_grid{grids_.x, storage_};
     CELER_EXPECT(x >= x_grid.front() && x < x_grid.back());
     return {grids_, storage_, detail::find_interp(x_grid, x)};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

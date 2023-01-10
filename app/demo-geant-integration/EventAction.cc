@@ -25,7 +25,7 @@ EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
 /*!
  * Inform Celeritas of the new event's ID.
  */
-void EventAction::BeginOfEventAction(const G4Event* event)
+void EventAction::BeginOfEventAction(G4Event const* event)
 {
     // Set event ID in local transporter
     celeritas::ExceptionConverter call_g4exception{"celer0002"};
@@ -37,7 +37,7 @@ void EventAction::BeginOfEventAction(const G4Event* event)
 /*!
  * Flush all offloaded tracks before ending the event.
  */
-void EventAction::EndOfEventAction(const G4Event*)
+void EventAction::EndOfEventAction(G4Event const*)
 {
     // Transport any tracks left in the buffer
     celeritas::ExceptionConverter call_g4exception{"celer0004"};
@@ -45,4 +45,4 @@ void EventAction::EndOfEventAction(const G4Event*)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

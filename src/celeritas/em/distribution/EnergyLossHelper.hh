@@ -24,10 +24,10 @@ namespace celeritas
 //! Type of energy loss distribution sampling to perform
 enum class EnergyLossFluctuationModel
 {
-    none,     //!< Low density material: do not adjust
-    gamma,    //!< Heavy particles with small mean energy loss
-    gaussian, //!< Heavy particles
-    urban,    //!< Thin layers
+    none,  //!< Low density material: do not adjust
+    gamma,  //!< Heavy particles with small mean energy loss
+    gaussian,  //!< Heavy particles
+    urban,  //!< Thin layers
 };
 
 //---------------------------------------------------------------------------//
@@ -66,21 +66,21 @@ class EnergyLossHelper
     //!@{
     //! \name Type aliases
     using FluctuationRef = NativeCRef<FluctuationData>;
-    using Energy         = units::MevEnergy;
-    using EnergySq       = Quantity<UnitProduct<units::Mev, units::Mev>>;
-    using Mass           = units::MevMass;
-    using Charge         = units::ElementaryCharge;
-    using Model          = EnergyLossFluctuationModel;
-    using Real2          = Array<real_type, 2>;
+    using Energy = units::MevEnergy;
+    using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
+    using Mass = units::MevMass;
+    using Charge = units::ElementaryCharge;
+    using Model = EnergyLossFluctuationModel;
+    using Real2 = Array<real_type, 2>;
     //!@}
 
   public:
     // Construct from model parameters, incident particle, and mean energy loss
-    inline CELER_FUNCTION EnergyLossHelper(const FluctuationRef&    shared,
-                                           const CutoffView&        cutoffs,
-                                           const MaterialTrackView& material,
-                                           const ParticleTrackView& particle,
-                                           Energy                   mean_loss,
+    inline CELER_FUNCTION EnergyLossHelper(FluctuationRef const& shared,
+                                           CutoffView const& cutoffs,
+                                           MaterialTrackView const& material,
+                                           ParticleTrackView const& particle,
+                                           Energy mean_loss,
                                            real_type step_length);
 
     //// STATIC ACCESSORS ////
@@ -94,13 +94,13 @@ class EnergyLossHelper
     //// ACCESSORS ////
 
     //! Shared data
-    CELER_FORCEINLINE_FUNCTION const FluctuationRef& shared() const
+    CELER_FORCEINLINE_FUNCTION FluctuationRef const& shared() const
     {
         return shared_;
     }
 
     //! Current material
-    CELER_FORCEINLINE_FUNCTION const MaterialTrackView& material() const
+    CELER_FORCEINLINE_FUNCTION MaterialTrackView const& material() const
     {
         return material_;
     }
@@ -144,9 +144,9 @@ class EnergyLossHelper
     //// DATA ////
 
     // Shared properties of the fluctuation model
-    const FluctuationRef& shared_;
+    FluctuationRef const& shared_;
     // Current material
-    const MaterialTrackView& material_;
+    MaterialTrackView const& material_;
     // Model to use for the given step
     Model model_{Model::none};
     // Average energy loss calculated from the tables
@@ -181,12 +181,12 @@ class EnergyLossHelper
  * Construct from model parameters, incident particle, and mean energy loss.
  */
 CELER_FUNCTION
-EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
-                                   const CutoffView&        cutoffs,
-                                   const MaterialTrackView& material,
-                                   const ParticleTrackView& particle,
-                                   Energy                   mean_loss,
-                                   real_type                step_length)
+EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
+                                   CutoffView const& cutoffs,
+                                   MaterialTrackView const& material,
+                                   ParticleTrackView const& particle,
+                                   Energy mean_loss,
+                                   real_type step_length)
     : shared_(shared)
     , material_(material)
     , mean_loss_(value_as<Energy>(mean_loss))
@@ -201,9 +201,9 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
         return;
     }
 
-    constexpr real_type half  = 0.5;
-    const real_type     gamma = particle.lorentz_factor();
-    beta_sq_                  = particle.beta_sq();
+    constexpr real_type half = 0.5;
+    const real_type gamma = particle.lorentz_factor();
+    beta_sq_ = particle.beta_sq();
     two_mebsgs_ = 2 * value_as<Mass>(shared_.electron_mass) * beta_sq_
                   * ipow<2>(gamma);
 
@@ -254,4 +254,4 @@ EnergyLossHelper::EnergyLossHelper(const FluctuationRef&    shared,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

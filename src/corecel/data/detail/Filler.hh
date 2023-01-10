@@ -24,7 +24,7 @@ struct Filler;
 template<class T>
 struct Filler<T, MemSpace::host>
 {
-    const T& value;
+    T const& value;
 
     void operator()(Span<T> data) const
     {
@@ -39,7 +39,7 @@ struct Filler<T, MemSpace::host>
 template<class T>
 struct Filler<T, MemSpace::device>
 {
-    const T& value;
+    T const& value;
 
     void operator()(Span<T>) const;
 };
@@ -57,5 +57,5 @@ extern template struct Filler<int, MemSpace::device>;
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

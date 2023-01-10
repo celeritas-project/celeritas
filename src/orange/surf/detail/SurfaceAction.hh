@@ -39,18 +39,18 @@ class SurfaceAction
 {
   public:
     // Construct from surfaces and action
-    inline CELER_FUNCTION SurfaceAction(const Surfaces& surfaces, F&& action);
+    inline CELER_FUNCTION SurfaceAction(Surfaces const& surfaces, F&& action);
 
     // Apply to the surface specified by a surface ID
     inline CELER_FUNCTION decltype(auto) operator()(SurfaceId id);
 
     //! Access the resulting action
-    CELER_FUNCTION const F& action() const { return action_; }
+    CELER_FUNCTION F const& action() const { return action_; }
 
   private:
     //// DATA ////
     Surfaces surfaces_;
-    F        action_;
+    F action_;
 };
 
 //---------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ struct StaticSurfaceAction
  */
 template<class F>
 CELER_FUNCTION
-SurfaceAction<F>::SurfaceAction(const Surfaces& surfaces, F&& action)
+SurfaceAction<F>::SurfaceAction(Surfaces const& surfaces, F&& action)
     : surfaces_(surfaces), action_(::celeritas::forward<F>(action))
 {
 }
@@ -163,5 +163,5 @@ StaticSurfaceAction<T>::operator()(SurfaceType type) const
 //---------------------------------------------------------------------------//
 #undef ORANGE_SURF_DISPATCH_CASE_IMPL
 #undef ORANGE_SURF_DISPATCH_IMPL
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

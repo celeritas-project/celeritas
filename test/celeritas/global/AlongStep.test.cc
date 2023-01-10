@@ -44,10 +44,10 @@ class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
 TEST_F(KnAlongStepTest, basic)
 {
     size_type num_tracks = 10;
-    Input     inp;
+    Input inp;
     inp.particle_id = this->particle()->find(pdg::gamma());
     {
-        inp.energy  = MevEnergy{1};
+        inp.energy = MevEnergy{1};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0, result.eloss);
         EXPECT_SOFT_EQ(1, result.displacement);
@@ -57,7 +57,7 @@ TEST_F(KnAlongStepTest, basic)
         EXPECT_EQ("physics-discrete-select", result.action);
     }
     {
-        inp.energy  = MevEnergy{10};
+        inp.energy = MevEnergy{10};
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0, result.eloss);
         EXPECT_SOFT_EQ(5, result.displacement);
@@ -67,9 +67,9 @@ TEST_F(KnAlongStepTest, basic)
         EXPECT_EQ("geo-boundary", result.action);
     }
     {
-        inp.energy   = MevEnergy{10};
+        inp.energy = MevEnergy{10};
         inp.phys_mfp = 1e-4;
-        auto result  = this->run(inp, num_tracks);
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_EQ(0, result.eloss);
         EXPECT_SOFT_EQ(0.0010008918838569024, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
@@ -81,19 +81,19 @@ TEST_F(KnAlongStepTest, basic)
 
 TEST_F(Em3AlongStepTest, nofluct_nomsc)
 {
-    msc_   = false;
+    msc_ = false;
     fluct_ = false;
 
     size_type num_tracks = 128;
-    Input     inp;
+    Input inp;
     inp.direction = {1, 0, 0};
     {
         SCOPED_TRACE("low energy electron far from boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{1};
-        inp.position    = {0.0 - 0.25};
-        inp.direction   = {0, 1, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{1};
+        inp.position = {0.0 - 0.25};
+        inp.direction = {0, 1, 0};
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.44074534601915, result.eloss, 5e-4);
         EXPECT_SOFT_NEAR(0.22820529792233, result.displacement, 5e-4);
         EXPECT_SOFT_EQ(1, result.angle);
@@ -104,10 +104,10 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
     {
         SCOPED_TRACE("electron very near (1um) boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{10};
-        inp.position    = {0.0 - 1e-4};
-        inp.direction   = {1, 0, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{10};
+        inp.position = {0.0 - 1e-4};
+        inp.direction = {1, 0, 0};
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.00018784530172589, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
@@ -119,19 +119,19 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
 
 TEST_F(Em3AlongStepTest, msc_nofluct)
 {
-    msc_   = true;
+    msc_ = true;
     fluct_ = false;
 
     size_type num_tracks = 1024;
-    Input     inp;
+    Input inp;
     {
         SCOPED_TRACE("electron far from boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{10};
-        inp.position    = {0.0 - 0.25};
-        inp.direction   = {0, 1, 0};
-        inp.phys_mfp    = 100;
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{10};
+        inp.position = {0.0 - 0.25};
+        inp.direction = {0, 1, 0};
+        inp.phys_mfp = 100;
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(2.2870403276278, result.eloss, 5e-4);
         EXPECT_SOFT_NEAR(1.1622519442871, result.displacement, 5e-4);
         EXPECT_SOFT_NEAR(0.82595842677474, result.angle, 1e-3);
@@ -142,10 +142,10 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
     {
         SCOPED_TRACE("low energy electron far from boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{1};
-        inp.position    = {0.0 - 0.25};
-        inp.direction   = {1, 0, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{1};
+        inp.position = {0.0 - 0.25};
+        inp.direction = {1, 0, 0};
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-4);
         EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 5e-4);
         EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 1e-3);
@@ -156,10 +156,10 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
     {
         SCOPED_TRACE("electron very near (1um) boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{10};
-        inp.position    = {0.0 - 1e-4};
-        inp.direction   = {1, 0, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{10};
+        inp.position = {0.0 - 1e-4};
+        inp.direction = {1, 0, 0};
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 5e-4);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
         EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3);
@@ -171,18 +171,18 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
 
 TEST_F(Em3AlongStepTest, fluct_nomsc)
 {
-    msc_   = false;
+    msc_ = false;
     fluct_ = true;
 
     size_type num_tracks = 4096;
-    Input     inp;
+    Input inp;
     {
         SCOPED_TRACE("electron parallel to boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{10};
-        inp.position    = {0.0 - 0.25};
-        inp.direction   = {0, 1, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{10};
+        inp.position = {0.0 - 0.25};
+        inp.direction = {0, 1, 0};
+        auto result = this->run(inp, num_tracks);
 
         EXPECT_SOFT_NEAR(2.0631083076865, result.eloss, 1e-2);
         EXPECT_SOFT_NEAR(1.1026770872455, result.displacement, 1e-2);
@@ -194,10 +194,10 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
     {
         SCOPED_TRACE("electron very near (1um) boundary");
         inp.particle_id = this->particle()->find(pdg::electron());
-        inp.energy      = MevEnergy{10};
-        inp.position    = {0.0 - 1e-4};
-        inp.direction   = {1, 0, 0};
-        auto result     = this->run(inp, num_tracks);
+        inp.energy = MevEnergy{10};
+        inp.position = {0.0 - 1e-4};
+        inp.direction = {1, 0, 0};
+        auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(0.00019264335626186, result.eloss, 0.1);
         EXPECT_SOFT_EQ(9.9999999999993e-05, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
@@ -207,5 +207,5 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -43,9 +43,9 @@ class KleinNishinaInteractor
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    KleinNishinaInteractor(const KleinNishinaData&    shared,
-                           const ParticleTrackView&   particle,
-                           const Real3&               inc_direction,
+    KleinNishinaInteractor(KleinNishinaData const& shared,
+                           ParticleTrackView const& particle,
+                           Real3 const& inc_direction,
                            StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
@@ -60,11 +60,11 @@ class KleinNishinaInteractor
 
   private:
     // Constant data
-    const KleinNishinaData& shared_;
+    KleinNishinaData const& shared_;
     // Incident gamma energy
     const units::MevEnergy inc_energy_;
     // Incident direction
-    const Real3& inc_direction_;
+    Real3 const& inc_direction_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
 };
@@ -79,9 +79,9 @@ class KleinNishinaInteractor
  * handled in code *before* the interactor is constructed.
  */
 CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
-    const KleinNishinaData&    shared,
-    const ParticleTrackView&   particle,
-    const Real3&               inc_direction,
+    KleinNishinaData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
     StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy())
@@ -138,14 +138,14 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
         {
             // Sample f_1(\eps) \propto 1/\eps on [\eps_0, 1]
             // => \eps \gets \eps_0^\xi = \exp(\xi \log \eps_0)
-            epsilon    = sample_f1(rng);
+            epsilon = sample_f1(rng);
             epsilon_sq = epsilon * epsilon;
         }
         else
         {
             // Sample f_2(\eps) = 2 * \eps / (1 - epsilon_0 * epsilon_0)
             epsilon_sq = sample_f2_sq(rng);
-            epsilon    = std::sqrt(epsilon_sq);
+            epsilon = std::sqrt(epsilon_sq);
         }
         CELER_ASSERT(epsilon >= epsilon_0 && epsilon <= 1);
 
@@ -153,13 +153,13 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
         one_minus_costheta = (1 - epsilon) / (epsilon * inc_energy_per_mecsq);
         CELER_ASSERT(one_minus_costheta >= 0 && one_minus_costheta <= 2);
         real_type sintheta_sq = one_minus_costheta * (2 - one_minus_costheta);
-        acceptance_prob       = epsilon * sintheta_sq / (1 + epsilon_sq);
+        acceptance_prob = epsilon * sintheta_sq / (1 + epsilon_sq);
     } while (BernoulliDistribution(acceptance_prob)(rng));
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.energy      = Energy{epsilon * inc_energy_.value()};
-    result.direction   = inc_direction_;
+    result.energy = Energy{epsilon * inc_energy_.value()};
+    result.direction = inc_direction_;
     result.secondaries = {electron_secondary, 1};
 
     // Sample azimuthal direction and rotate the outgoing direction
@@ -176,7 +176,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     if (electron_secondary->energy < KleinNishinaInteractor::secondary_cutoff())
     {
         result.energy_deposition = electron_secondary->energy;
-        *electron_secondary      = {};
+        *electron_secondary = {};
         return result;
     }
 
@@ -195,4 +195,4 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

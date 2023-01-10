@@ -41,5 +41,5 @@ CELER_FORCEINLINE_FUNCTION ThreadId from_back(size_type size, ThreadId tid)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

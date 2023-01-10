@@ -42,13 +42,13 @@ G4VSolid* get_world_solid()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a path to a HepMC3-compatible input file.
  */
-HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(const std::string& filename)
+HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
     : world_solid_{get_world_solid()}
 {
     CELER_LOG(info) << "Loading HepMC3 input file at " << filename;
@@ -100,8 +100,9 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
                           << " primaries from event "
                           << gen_event.event_number();
 
-    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM); // Geant4 units
-    const auto& event_pos = gen_event.event_pos();
+    gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);  // Geant4
+                                                                 // units
+    auto const& event_pos = gen_event.event_pos();
 
     // Verify that vertex is inside the world volume
     if (CELERITAS_DEBUG && CELER_UNLIKELY(!world_solid_))
@@ -112,10 +113,10 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
                      event_pos.x(), event_pos.y(), event_pos.z()})
                  == EInside::kInside);
 
-    for (const auto& gen_particle : gen_event.particles())
+    for (auto const& gen_particle : gen_event.particles())
     {
         // Convert primary to Geant4 vertex
-        const HepMC3::GenParticleData& part_data = gen_particle->data();
+        HepMC3::GenParticleData const& part_data = gen_particle->data();
 
         if (part_data.status <= 0)
         {
@@ -132,9 +133,9 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
             event_pos.x(),
             event_pos.y(),
             event_pos.z(),
-            event_pos.t() / CLHEP::c_light); // [ns] (Geant4 standard unit)
+            event_pos.t() / CLHEP::c_light);  // [ns] (Geant4 standard unit)
 
-        const auto& p = part_data.momentum;
+        auto const& p = part_data.momentum;
         g4_vtx->SetPrimary(
             new G4PrimaryParticle(part_data.pid, p.x(), p.y(), p.z(), p.e()));
 
@@ -145,4 +146,4 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

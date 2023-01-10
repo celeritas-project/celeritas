@@ -20,7 +20,7 @@ struct HexRepr
 };
 
 template<class T>
-inline std::ostream& operator<<(std::ostream& os, const HexRepr<T>& h)
+inline std::ostream& operator<<(std::ostream& os, HexRepr<T> const& h)
 {
     ScopedStreamFormat save_fmt(&os);
 
@@ -35,5 +35,5 @@ inline HexRepr<T> hex_repr(T value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

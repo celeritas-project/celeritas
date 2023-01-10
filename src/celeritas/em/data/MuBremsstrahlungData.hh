@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct MuBremsstrahlungIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId gamma;
     ParticleId mu_minus;
     ParticleId mu_plus;
@@ -62,8 +62,8 @@ struct MuBremsstrahlungData
     }
 };
 
-using MuBremsstrahlungHostRef   = MuBremsstrahlungData;
+using MuBremsstrahlungHostRef = MuBremsstrahlungData;
 using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

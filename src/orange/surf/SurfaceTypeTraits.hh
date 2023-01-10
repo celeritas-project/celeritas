@@ -61,4 +61,4 @@ ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 #undef ORANGE_SURFACE_TRAITS
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

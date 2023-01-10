@@ -22,7 +22,7 @@ class PhysicsParamsOutput final : public OutputInterface
   public:
     //!@{
     //! Type aliases
-    using SPConstPhysicsParams = std::shared_ptr<const PhysicsParams>;
+    using SPConstPhysicsParams = std::shared_ptr<PhysicsParams const>;
     //!@}
 
   public:
@@ -43,4 +43,4 @@ class PhysicsParamsOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

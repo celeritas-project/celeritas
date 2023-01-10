@@ -36,8 +36,8 @@ struct VecgeomParamsData
 {
     using PlacedVolumeT = typename detail::VecgeomTraits<M>::PlacedVolume;
 
-    const PlacedVolumeT* world_volume = nullptr;
-    int                  max_depth    = 0;
+    PlacedVolumeT const* world_volume = nullptr;
+    int max_depth = 0;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
@@ -54,7 +54,7 @@ struct VecgeomParamsData
                       "Only supported assignment is from value to reference");
         CELER_EXPECT(other);
         world_volume = other.world_volume;
-        max_depth    = other.max_depth;
+        max_depth = other.max_depth;
         return *this;
     }
 };
@@ -76,8 +76,8 @@ struct VecgeomStateData
     //// DATA ////
 
     // Collections
-    Items<Real3>     pos;
-    Items<Real3>     dir;
+    Items<Real3> pos;
+    Items<Real3> dir;
     Items<real_type> next_step;
 
     // Wrapper for NavStatePool, vector, or void*
@@ -104,11 +104,11 @@ struct VecgeomStateData
                           && W == Ownership::reference,
                       "Only supported assignment is from value to reference");
         CELER_EXPECT(other);
-        pos       = other.pos;
-        dir       = other.dir;
+        pos = other.pos;
+        dir = other.dir;
         next_step = other.next_step;
-        vgstate   = other.vgstate;
-        vgnext    = other.vgnext;
+        vgstate = other.vgstate;
+        vgnext = other.vgnext;
         return *this;
     }
 };
@@ -119,8 +119,8 @@ struct VecgeomStateData
  */
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,
-            const HostCRef<VecgeomParamsData>&     params,
-            size_type                              size)
+            HostCRef<VecgeomParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(size > 0);
@@ -136,4 +136,4 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

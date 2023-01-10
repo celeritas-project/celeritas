@@ -32,10 +32,10 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-LivermorePEModel::LivermorePEModel(ActionId              id,
-                                   const ParticleParams& particles,
-                                   const MaterialParams& materials,
-                                   ReadData              load_data)
+LivermorePEModel::LivermorePEModel(ActionId id,
+                                   ParticleParams const& particles,
+                                   MaterialParams const& materials,
+                                   ReadData load_data)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -43,9 +43,9 @@ LivermorePEModel::LivermorePEModel(ActionId              id,
     HostVal<LivermorePEData> host_data;
 
     // Save IDs
-    host_data.ids.action   = id;
+    host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
-    host_data.ids.gamma    = particles.find(pdg::gamma());
+    host_data.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
                    << "missing electron and/or gamma particles "
                       "(required for "
@@ -81,8 +81,8 @@ auto LivermorePEModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = this->host_ref().ids.gamma;
-    photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = max_quantity();
+    photon_applic.lower = zero_quantity();
+    photon_applic.upper = max_quantity();
 
     return {photon_applic};
 }
@@ -126,14 +126,14 @@ ActionId LivermorePEModel::action_id() const
 /*!
  * Construct cross section data for a single element.
  */
-void LivermorePEModel::append_element(const ImportLivermorePE& inp,
-                                      HostXsData*              xs) const
+void LivermorePEModel::append_element(ImportLivermorePE const& inp,
+                                      HostXsData* xs) const
 {
     CELER_EXPECT(!inp.shells.empty());
     if (CELERITAS_DEBUG)
     {
         CELER_EXPECT(inp.thresh_lo <= inp.thresh_hi);
-        for (const auto& shell : inp.shells)
+        for (auto const& shell : inp.shells)
         {
             CELER_EXPECT(shell.param_lo.size() == 6);
             CELER_EXPECT(shell.param_hi.size() == 6);
@@ -146,14 +146,14 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
     LivermoreElement el;
 
     // Add tabulated total cross sections
-    el.xs_lo.grid  = reals.insert_back(inp.xs_lo.x.begin(), inp.xs_lo.x.end());
+    el.xs_lo.grid = reals.insert_back(inp.xs_lo.x.begin(), inp.xs_lo.x.end());
     el.xs_lo.value = reals.insert_back(inp.xs_lo.y.begin(), inp.xs_lo.y.end());
-    el.xs_lo.grid_interp  = Interp::linear;
+    el.xs_lo.grid_interp = Interp::linear;
     el.xs_lo.value_interp = Interp::linear;
-    el.xs_hi.grid  = reals.insert_back(inp.xs_hi.x.begin(), inp.xs_hi.x.end());
+    el.xs_hi.grid = reals.insert_back(inp.xs_hi.x.begin(), inp.xs_hi.x.end());
     el.xs_hi.value = reals.insert_back(inp.xs_hi.y.begin(), inp.xs_hi.y.end());
-    el.xs_hi.grid_interp  = Interp::linear;
-    el.xs_hi.value_interp = Interp::linear; // TODO: spline
+    el.xs_hi.grid_interp = Interp::linear;
+    el.xs_hi.value_interp = Interp::linear;  // TODO: spline
 
     // Add energy thresholds for using low and high xs parameterization
     el.thresh_lo = MevEnergy{inp.thresh_lo};
@@ -169,11 +169,11 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
         shells[i].binding_energy = MevEnergy{inp.shells[i].binding_energy};
 
         // Tabulated subshell cross section
-        shells[i].xs.grid  = reals.insert_back(inp.shells[i].energy.begin(),
+        shells[i].xs.grid = reals.insert_back(inp.shells[i].energy.begin(),
                                               inp.shells[i].energy.end());
         shells[i].xs.value = reals.insert_back(inp.shells[i].xs.begin(),
                                                inp.shells[i].xs.end());
-        shells[i].xs.grid_interp  = Interp::linear;
+        shells[i].xs.grid_interp = Interp::linear;
         shells[i].xs.value_interp = Interp::linear;
 
         // Subshell cross section fit parameters
@@ -197,4 +197,4 @@ void LivermorePEModel::append_element(const ImportLivermorePE& inp,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

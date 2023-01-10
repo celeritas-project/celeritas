@@ -60,22 +60,22 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::vector<std::shared_ptr<const Process>>
-build_processes(const ImportData&                            imported,
-                const SetupOptions&                          options,
-                const std::shared_ptr<const ParticleParams>& particle,
-                const std::shared_ptr<const MaterialParams>& material)
+std::vector<std::shared_ptr<Process const>>
+build_processes(ImportData const& imported,
+                SetupOptions const& options,
+                std::shared_ptr<const ParticleParams> const& particle,
+                std::shared_ptr<const MaterialParams> const& material)
 {
     // Build a list of processes to ignore
     ProcessBuilder::UserBuildMap ignore;
-    for (const std::string& process_name : options.ignore_processes)
+    for (std::string const& process_name : options.ignore_processes)
     {
         ImportProcessClass ipc;
         try
         {
             ipc = geant_name_to_import_process_class(process_name);
         }
-        catch (const RuntimeError&)
+        catch (RuntimeError const&)
         {
             CELER_LOG(warning) << "User-ignored process '" << process_name
                                << "' is unknown to Celeritas";
@@ -88,13 +88,13 @@ build_processes(const ImportData&                            imported,
 
     // Get the set of all user-input processes
     std::set<ImportProcessClass> all_process_classes;
-    for (const auto& p : imported.processes)
+    for (auto const& p : imported.processes)
     {
         all_process_classes.insert(p.process_class);
     }
 
     // Build proceses
-    std::vector<std::shared_ptr<const Process>> result;
+    std::vector<std::shared_ptr<Process const>> result;
     for (auto p : all_process_classes)
     {
         result.push_back(build_process(p));
@@ -112,7 +112,7 @@ build_processes(const ImportData&                            imported,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 //! Default destructor
@@ -128,7 +128,7 @@ SharedParams::~SharedParams() = default;
  * and it must complete before any worker thread tries to access the shared
  * data.
  */
-SharedParams::SharedParams(const SetupOptions& options)
+SharedParams::SharedParams(SetupOptions const& options)
 {
     CELER_EXPECT(!*this);
 
@@ -152,7 +152,7 @@ SharedParams::SharedParams(const SetupOptions& options)
  * properties) in single-thread mode has "thread" storage in a multithreaded
  * application. It must be initialized on all threads.
  */
-void SharedParams::InitializeWorker(const SetupOptions& options)
+void SharedParams::InitializeWorker(SetupOptions const& options)
 {
     CELER_LOG_LOCAL(status) << "Initializing worker thread";
     ScopedTimeLog scoped_time;
@@ -221,7 +221,7 @@ void SharedParams::Finalize()
  *
  * This is thread safe and must be called from every worker thread.
  */
-void SharedParams::initialize_device(const SetupOptions& options)
+void SharedParams::initialize_device(SetupOptions const& options)
 {
     if (Device::num_devices() == 0)
     {
@@ -253,7 +253,7 @@ void SharedParams::initialize_device(const SetupOptions& options)
  * that is guaranteed to complete the initialization before any other threads
  * try to access the shared data.
  */
-void SharedParams::initialize_core(const SetupOptions& options)
+void SharedParams::initialize_core(SetupOptions const& options)
 {
     CELER_VALIDATE(options.make_along_step,
                    << "along-step action factory 'make_along_step' was not "
@@ -308,11 +308,11 @@ void SharedParams::initialize_core(const SetupOptions& options)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles       = params.particle;
-        input.materials       = params.material;
-        input.processes       = build_processes(
+        input.particles = params.particle;
+        input.materials = params.material;
+        input.processes = build_processes(
             *imported, options, params.particle, params.material);
-        input.relaxation      = nullptr; // TODO: add later?
+        input.relaxation = nullptr;  // TODO: add later?
         input.action_registry = params.action_reg.get();
 
         input.options.linear_loss_limit = imported->em_params.linear_loss_limit;
@@ -348,9 +348,9 @@ void SharedParams::initialize_core(const SetupOptions& options)
     // Construct track initialization params
     {
         TrackInitParams::Input input;
-        input.capacity   = options.initializer_capacity;
+        input.capacity = options.initializer_capacity;
         input.max_events = options.max_num_events;
-        params.init      = std::make_shared<TrackInitParams>(input);
+        params.init = std::make_shared<TrackInitParams>(input);
     }
 
     // Construct sensitive detector callback
@@ -373,4 +373,4 @@ void SharedParams::initialize_core(const SetupOptions& options)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

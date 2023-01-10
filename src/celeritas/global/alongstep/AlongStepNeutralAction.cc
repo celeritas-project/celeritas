@@ -57,4 +57,4 @@ void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

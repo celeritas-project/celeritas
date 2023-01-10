@@ -23,10 +23,10 @@ namespace celeritas
 struct OdeState
 {
     using MomentumUnits = units::MevMomentum;
-    using Real3         = Array<real_type, 3>;
+    using Real3 = Array<real_type, 3>;
 
-    Real3 pos; //!< Particle position
-    Real3 mom; //!< Particle momentum
+    Real3 pos;  //!< Particle position
+    Real3 mom;  //!< Particle momentum
 };
 
 //---------------------------------------------------------------------------//
@@ -35,9 +35,9 @@ struct OdeState
  */
 struct FieldStepperResult
 {
-    OdeState mid_state; //!< OdeState at the middle
-    OdeState end_state; //!< OdeState at the end
-    OdeState err_state; //!< Delta between one full step and two half steps
+    OdeState mid_state;  //!< OdeState at the middle
+    OdeState end_state;  //!< OdeState at the end
+    OdeState err_state;  //!< Delta between one full step and two half steps
 };
 
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ struct FieldStepperResult
  */
 struct DriverResult
 {
-    OdeState  state; //!< Post-step state
+    OdeState state;  //!< Post-step state
     real_type step;  //!< Actual curved step
 };
 
@@ -56,10 +56,10 @@ struct DriverResult
 /*!
  * Perform y <- ax + y for OdeState.
  */
-inline CELER_FUNCTION void axpy(real_type a, const OdeState& x, OdeState* y)
+inline CELER_FUNCTION void axpy(real_type a, OdeState const& x, OdeState* y)
 {
     axpy(a, x.pos, &y->pos);
     axpy(a, x.mom, &y->mom);
 }
 
-} // namespace celeritas
+}  // namespace celeritas

@@ -43,8 +43,8 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         {
             // Create a volume
             VolumeInput v;
-            v.logic      = {0, 1, logic::lor, logic::ltrue, logic::lor};
-            v.faces      = {SurfaceId{0}, SurfaceId{1}};
+            v.logic = {0, 1, logic::lor, logic::ltrue, logic::lor};
+            v.faces = {SurfaceId{0}, SurfaceId{1}};
             unit.volumes = {std::move(v)};
         }
 
@@ -55,7 +55,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
         // Construct a single dummy volume
         this->build_geometry(std::move(unit));
 
-        const auto& host_ref = this->params().host_ref();
+        auto const& host_ref = this->params().host_ref();
 
         surfaces_ = std::make_unique<Surfaces>(
             host_ref, host_ref.simple_unit[SimpleUnitId{0}].surfaces);
@@ -78,7 +78,7 @@ class SurfaceFunctorsTest : public ::celeritas::test::OrangeGeoTestBase
 
 TEST_F(SurfaceFunctorsTest, calc_sense)
 {
-    Real3     pos{0.9, 0, 0};
+    Real3 pos{0.9, 0, 0};
     CalcSense calc{pos};
 
     EXPECT_EQ(SignedSense::inside, calc(this->make_surface<PlaneX>(0)));
@@ -89,7 +89,7 @@ TEST_F(SurfaceFunctorsTest, calc_sense)
     EXPECT_EQ(SignedSense::outside, calc(this->make_surface<Sphere>(1)));
 
     // Test as generic surfaces
-    pos               = {2, 0, 0};
+    pos = {2, 0, 0};
     auto calc_generic = make_surface_action(*surfaces_, CalcSense{pos});
     EXPECT_EQ(SignedSense::outside, calc_generic(SurfaceId{0}));
     EXPECT_EQ(SignedSense::inside, calc_generic(SurfaceId{1}));
@@ -109,7 +109,7 @@ TEST_F(SurfaceFunctorsTest, num_intersections)
 TEST_F(SurfaceFunctorsTest, calc_normal)
 {
     Real3 pos;
-    auto  calc_normal = make_surface_action(*surfaces_, CalcNormal{pos});
+    auto calc_normal = make_surface_action(*surfaces_, CalcNormal{pos});
 
     pos = {1.25, 1, 1};
     EXPECT_EQ(Real3({1, 0, 0}), calc_normal(SurfaceId{0}));
@@ -127,7 +127,7 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
         = make_surface_action(*surfaces_, CalcSafetyDistance{pos});
 
     real_type eps = 1e-4;
-    pos           = {1.25 + eps, 1, 0};
+    pos = {1.25 + eps, 1, 0};
     EXPECT_SOFT_EQ(eps, calc_distance(SurfaceId{0}));
     EXPECT_SOFT_EQ(0.25 + eps, calc_distance(SurfaceId{1}));
 
@@ -153,6 +153,6 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
-} // namespace celeritas
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas

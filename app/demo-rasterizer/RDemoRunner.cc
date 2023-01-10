@@ -68,4 +68,4 @@ void RDemoRunner::operator()(ImageStore* image, int ntimes) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

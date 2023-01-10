@@ -86,7 +86,7 @@ bool is_monotonic_increasing(SpanConstReal grid)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // BASE CLASS
@@ -119,8 +119,8 @@ ValueGridXsBuilder::from_geant(SpanConstReal lambda_energy,
     // Concatenate the two XS vectors: insert the scaled (lambda_prim) value at
     // the coincident point.
     VecReal xs(lambda.size() + lambda_prim.size() - 1);
-    auto    dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
-    dst         = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
+    auto dst = std::copy(lambda.begin(), lambda.end() - 1, xs.begin());
+    dst = std::copy(lambda_prim.begin(), lambda_prim.end(), dst);
     CELER_ASSERT(dst == xs.end());
 
     // Construct the grid
@@ -156,7 +156,7 @@ ValueGridXsBuilder::from_scaled(SpanConstReal lambda_prim_energy,
 ValueGridXsBuilder::ValueGridXsBuilder(real_type emin,
                                        real_type eprime,
                                        real_type emax,
-                                       VecReal   xs)
+                                       VecReal xs)
     : log_emin_(std::log(emin))
     , log_eprime_(std::log(eprime))
     , log_emax_(std::log(emax))
@@ -185,7 +185,7 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
     // the index below that of the correct grid point will be returned instead.
     // Check and correct for this.
     UniformGrid grid{log_energy};
-    auto        prime_index = grid.find(log_eprime_);
+    auto prime_index = grid.find(log_eprime_);
     if (soft_equal(grid[prime_index + 1], log_eprime_))
         ++prime_index;
     CELER_ASSERT(prime_index + 1 < xs_.size());
@@ -237,7 +237,7 @@ auto ValueGridLogBuilder::from_range(SpanConstReal energy, SpanConstReal value)
  */
 ValueGridLogBuilder::ValueGridLogBuilder(real_type emin,
                                          real_type emax,
-                                         VecReal   value)
+                                         VecReal value)
     : log_emin_(std::log(emin))
     , log_emax_(std::log(emax))
     , value_(std::move(value))
@@ -275,8 +275,8 @@ auto ValueGridLogBuilder::value() const -> SpanConstReal
  */
 ValueGridGenericBuilder::ValueGridGenericBuilder(VecReal grid,
                                                  VecReal value,
-                                                 Interp  grid_interp,
-                                                 Interp  value_interp)
+                                                 Interp grid_interp,
+                                                 Interp value_interp)
     : grid_(std::move(grid))
     , value_(std::move(value))
     , grid_interp_(grid_interp)
@@ -322,4 +322,4 @@ auto ValueGridOTFBuilder::build(ValueGridInserter) const -> ValueGridId
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

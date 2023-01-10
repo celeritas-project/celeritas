@@ -16,4 +16,4 @@ namespace celeritas
 using EnergyLossCalculator = XsCalculator;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

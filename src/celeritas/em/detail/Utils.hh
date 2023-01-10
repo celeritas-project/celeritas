@@ -39,8 +39,8 @@ class MaxSecondariesCalculator
 
   public:
     // Construct with EADL transition data and production thresholds
-    MaxSecondariesCalculator(const Values&                         data,
-                             const ItemRange<AtomicRelaxSubshell>& shells,
+    MaxSecondariesCalculator(Values const& data,
+                             ItemRange<AtomicRelaxSubshell> const& shells,
                              Energy electron_cut,
                              Energy gamma_cut);
 
@@ -48,10 +48,10 @@ class MaxSecondariesCalculator
     size_type operator()();
 
   private:
-    const Values&                             data_;
-    Span<const AtomicRelaxSubshell>           shells_;
-    const Energy                              electron_cut_;
-    const Energy                              gamma_cut_;
+    Values const& data_;
+    Span<AtomicRelaxSubshell const> shells_;
+    const Energy electron_cut_;
+    const Energy gamma_cut_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS
@@ -75,15 +75,15 @@ class MaxStackSizeCalculator
 
   public:
     // Construct with EADL transition data
-    MaxStackSizeCalculator(const Values&                         data,
-                           const ItemRange<AtomicRelaxSubshell>& shells);
+    MaxStackSizeCalculator(Values const& data,
+                           ItemRange<AtomicRelaxSubshell> const& shells);
 
     // Calculate the maximum size of the stack
     size_type operator()();
 
   private:
-    const Values&                             data_;
-    Span<const AtomicRelaxSubshell>           shells_;
+    Values const& data_;
+    Span<AtomicRelaxSubshell const> shells_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS
@@ -93,15 +93,15 @@ class MaxStackSizeCalculator
 
 //---------------------------------------------------------------------------//
 // Calculate the maximum possible secondaries produced in atomic relaxation
-size_type calc_max_secondaries(const MaxSecondariesCalculator::Values& data,
-                               const ItemRange<AtomicRelaxSubshell>&   shells,
+size_type calc_max_secondaries(MaxSecondariesCalculator::Values const& data,
+                               ItemRange<AtomicRelaxSubshell> const& shells,
                                units::MevEnergy electron_cut,
                                units::MevEnergy gamma_cut);
 
 // Calculate the maximum size of the vacancy stack in atomic relaxation
-size_type calc_max_stack_size(const MaxStackSizeCalculator::Values& data,
-                              const ItemRange<AtomicRelaxSubshell>& shells);
+size_type calc_max_stack_size(MaxStackSizeCalculator::Values const& data,
+                              ItemRange<AtomicRelaxSubshell> const& shells);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

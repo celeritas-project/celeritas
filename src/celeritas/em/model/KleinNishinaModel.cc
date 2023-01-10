@@ -18,13 +18,13 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-KleinNishinaModel::KleinNishinaModel(ActionId              id,
-                                     const ParticleParams& particles)
+KleinNishinaModel::KleinNishinaModel(ActionId id,
+                                     ParticleParams const& particles)
 {
     CELER_EXPECT(id);
-    interface_.ids.action   = id;
+    interface_.ids.action = id;
     interface_.ids.electron = particles.find(pdg::electron());
-    interface_.ids.gamma    = particles.find(pdg::gamma());
+    interface_.ids.gamma = particles.find(pdg::gamma());
 
     CELER_VALIDATE(interface_.ids.electron && interface_.ids.gamma,
                    << "missing electron, positron and/or gamma particles "
@@ -45,8 +45,8 @@ auto KleinNishinaModel::applicability() const -> SetApplicability
 {
     Applicability photon_applic;
     photon_applic.particle = interface_.ids.gamma;
-    photon_applic.lower    = zero_quantity();
-    photon_applic.upper    = max_quantity();
+    photon_applic.lower = zero_quantity();
+    photon_applic.upper = max_quantity();
 
     return {photon_applic};
 }
@@ -87,4 +87,4 @@ ActionId KleinNishinaModel::action_id() const
 
 //!@}
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

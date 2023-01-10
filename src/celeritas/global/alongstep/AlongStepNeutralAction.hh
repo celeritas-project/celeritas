@@ -54,4 +54,4 @@ class AlongStepNeutralAction final : public ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -21,12 +21,12 @@ namespace test
 class GridIdFinderTest : public Test
 {
   protected:
-    using Energy  = units::MevEnergy;
-    using IdT     = OpaqueId<struct Foo>;
+    using Energy = units::MevEnergy;
+    using IdT = OpaqueId<struct Foo>;
     using FinderT = GridIdFinder<Energy, IdT>;
 
     std::vector<Energy::value_type> grid;
-    std::vector<IdT>                ids;
+    std::vector<IdT> ids;
 };
 
 TEST_F(GridIdFinderTest, all)
@@ -34,7 +34,7 @@ TEST_F(GridIdFinderTest, all)
     constexpr auto invalid = IdT{}.unchecked_get();
 
     grid = {1e-3, 1, 10, 11};
-    ids  = {IdT{5}, IdT{3}, IdT{7}};
+    ids = {IdT{5}, IdT{3}, IdT{7}};
 
     FinderT find_id(make_span(grid), make_span(ids));
     EXPECT_EQ(invalid, find_id(Energy{1e-6}).unchecked_get());
@@ -48,5 +48,5 @@ TEST_F(GridIdFinderTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

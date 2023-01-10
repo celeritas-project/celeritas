@@ -16,7 +16,7 @@ bool use_color();
 
 //---------------------------------------------------------------------------//
 // Get an ANSI color code: [y]ellow / [r]ed / [ ]default / ...
-const char* color_code(char abbrev);
+char const* color_code(char abbrev);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

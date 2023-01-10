@@ -26,11 +26,11 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void ptv_test_kernel(unsigned int                    size,
-                                DeviceCRef<ParticleParamsData>  params,
-                                DeviceRef<ParticleStateData>    states,
-                                const ParticleTrackInitializer* init,
-                                double*                         result)
+__global__ void ptv_test_kernel(unsigned int size,
+                                DeviceCRef<ParticleParamsData> params,
+                                DeviceRef<ParticleStateData> states,
+                                ParticleTrackInitializer const* init,
+                                double* result)
 {
     auto local_thread_id = KernelParamCalculator::thread_id();
     if (!(local_thread_id < size))
@@ -55,7 +55,7 @@ __global__ void ptv_test_kernel(unsigned int                    size,
     *result++ = p.momentum_sq().value();
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
@@ -83,5 +83,5 @@ PTVTestOutput ptv_test(PTVTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

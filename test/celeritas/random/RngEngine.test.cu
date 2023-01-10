@@ -51,7 +51,7 @@ sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
         samples[tid.get()] = generate_canonical<RealType>(rng);
     }
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
@@ -106,9 +106,9 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template std::vector<float>  re_test_canonical<float>(RngDeviceRef);
+template std::vector<float> re_test_canonical<float>(RngDeviceRef);
 template std::vector<double> re_test_canonical<double>(RngDeviceRef);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

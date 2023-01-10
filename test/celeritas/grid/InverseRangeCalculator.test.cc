@@ -65,5 +65,5 @@ TEST_F(InverseRangeCalculatorTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -37,7 +37,7 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
     // Copy host --> device
     std::vector<int> host_vec(128);
     host_vec.front() = 1;
-    host_vec.back()  = 1234;
+    host_vec.back() = 1234;
     DeviceVector<int> device_vec(host_vec.size());
     {
         Copier<int, MemSpace::host> copy{make_span(host_vec)};
@@ -62,5 +62,5 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

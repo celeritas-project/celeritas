@@ -52,13 +52,13 @@ class InverseRangeCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    InverseRangeCalculator(const XsGridData& grid, const Values& values);
+    InverseRangeCalculator(XsGridData const& grid, Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION Energy operator()(real_type range) const;
 
   private:
-    UniformGrid               log_energy_;
+    UniformGrid log_energy_;
     NonuniformGrid<real_type> range_;
 };
 
@@ -72,8 +72,8 @@ class InverseRangeCalculator
  * Lower-energy particles have shorter ranges.
  */
 CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(const XsGridData& grid,
-                                               const Values&     values)
+InverseRangeCalculator::InverseRangeCalculator(XsGridData const& grid,
+                                               Values const& values)
     : log_energy_(grid.log_energy), range_(grid.value, values)
 {
     CELER_EXPECT(range_.size() == log_energy_.size());
@@ -116,4 +116,4 @@ CELER_FUNCTION auto InverseRangeCalculator::operator()(real_type range) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -31,12 +31,12 @@ namespace test
  * \return Elapsed time duration of actual sleep.
  */
 template<class Rep, class Period>
-inline auto sleep_for(const std::chrono::duration<Rep, Period>& duration)
+inline auto sleep_for(std::chrono::duration<Rep, Period> const& duration)
     -> std::chrono::duration<Rep, Period>
 {
     using Duration = std::chrono::duration<Rep, Period>;
-    using Clock    = std::chrono::high_resolution_clock;
-    auto start     = Clock::now();
+    using Clock = std::chrono::high_resolution_clock;
+    auto start = Clock::now();
     std::this_thread::sleep_for(duration);
     auto stop = Clock::now();
     return std::chrono::duration_cast<Duration>(stop - start);
@@ -52,18 +52,18 @@ TEST(StopwatchTest, all)
 
     // Start the clock, sleep, measure
     Stopwatch elapsed_time;
-    auto      actual_ms  = sleep_for(std::chrono::milliseconds(50));
-    double    measured_s = elapsed_time();
+    auto actual_ms = sleep_for(std::chrono::milliseconds(50));
+    double measured_s = elapsed_time();
     EXPECT_GE(measured_s, 0.05);
     EXPECT_SOFT_NEAR(actual_ms.count() * 0.001, measured_s, tolerance);
     EXPECT_LT(measured_s, 5.0);
 
     // Reset and immediately measure
     elapsed_time = {};
-    measured_s   = elapsed_time();
+    measured_s = elapsed_time();
     EXPECT_LT(measured_s, 0.05);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

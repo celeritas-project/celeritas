@@ -33,4 +33,4 @@ struct ElectronBremIds
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

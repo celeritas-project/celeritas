@@ -41,7 +41,7 @@ class GeantSetup
 
   public:
     // Construct from a GDML file and physics options
-    GeantSetup(const std::string& gdml_filename, Options options);
+    GeantSetup(std::string const& gdml_filename, Options options);
 
     // Default constructor
     GeantSetup() = default;
@@ -56,7 +56,7 @@ class GeantSetup
     //!@}
 
     // Get the world detector volume
-    inline const G4VPhysicalVolume* world() const;
+    inline G4VPhysicalVolume const* world() const;
 
     //! True if we own a run manager
     explicit operator bool() const { return static_cast<bool>(run_manager_); }
@@ -68,8 +68,8 @@ class GeantSetup
     };
     using RMUniquePtr = std::unique_ptr<G4RunManager, RMDeleter>;
 
-    RMUniquePtr              run_manager_{nullptr};
-    const G4VPhysicalVolume* world_{nullptr};
+    RMUniquePtr run_manager_{nullptr};
+    G4VPhysicalVolume const* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
@@ -78,14 +78,14 @@ class GeantSetup
 /*!
  * Get the world detector volume.
  */
-const G4VPhysicalVolume* GeantSetup::world() const
+G4VPhysicalVolume const* GeantSetup::world() const
 {
     CELER_EXPECT(*this);
     return world_;
 }
 
 #if !CELERITAS_USE_GEANT4
-inline GeantSetup::GeantSetup(const std::string&, Options)
+inline GeantSetup::GeantSetup(std::string const&, Options)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
@@ -99,4 +99,4 @@ inline void GeantSetup::RMDeleter::operator()(G4RunManager*) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

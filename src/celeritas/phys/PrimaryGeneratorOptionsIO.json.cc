@@ -28,17 +28,17 @@ namespace
 /*!
  * Get a string corresponding to the distribution type.
  */
-const char* to_cstring(DistributionSelection value)
+char const* to_cstring(DistributionSelection value)
 {
     CELER_EXPECT(value != DistributionSelection::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "delta",
         "isotropic",
         "box",
     };
     static_assert(
-        static_cast<int>(DistributionSelection::size_) * sizeof(const char*)
+        static_cast<int>(DistributionSelection::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -46,12 +46,12 @@ const char* to_cstring(DistributionSelection value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
-void from_json(const nlohmann::json& j, DistributionSelection& value)
+void from_json(nlohmann::json const& j, DistributionSelection& value)
 {
     static auto from_string
         = StringEnumMap<DistributionSelection>::from_cstring_func(
@@ -59,18 +59,18 @@ void from_json(const nlohmann::json& j, DistributionSelection& value)
     value = from_string(j.get<std::string>());
 }
 
-void to_json(nlohmann::json& j, const DistributionSelection& value)
+void to_json(nlohmann::json& j, DistributionSelection const& value)
 {
     j = std::string{to_cstring(value)};
 }
 
-void from_json(const nlohmann::json& j, DistributionOptions& opts)
+void from_json(nlohmann::json const& j, DistributionOptions& opts)
 {
     j.at("distribution").get_to(opts.distribution);
     j.at("params").get_to(opts.params);
 }
 
-void to_json(nlohmann::json& j, const DistributionOptions& opts)
+void to_json(nlohmann::json& j, DistributionOptions const& opts)
 {
     j = nlohmann::json{{"distribution", opts.distribution},
                        {"params", opts.params}};
@@ -80,7 +80,7 @@ void to_json(nlohmann::json& j, const DistributionOptions& opts)
 /*!
  * Read options from JSON.
  */
-void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
+void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
     std::vector<int> pdg;
     j.at("pdg").get_to(pdg);
@@ -102,7 +102,7 @@ void from_json(const nlohmann::json& j, PrimaryGeneratorOptions& opts)
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, const PrimaryGeneratorOptions& opts)
+void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
 {
     std::vector<int> pdg(opts.pdg.size());
     std::transform(
@@ -118,4 +118,4 @@ void to_json(nlohmann::json& j, const PrimaryGeneratorOptions& opts)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

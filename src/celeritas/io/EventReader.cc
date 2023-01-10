@@ -14,7 +14,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/phys/ParticleParams.hh" // IWYU pragma: keep
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
 
 namespace celeritas
@@ -23,7 +23,7 @@ namespace celeritas
 /*!
  * Construct from a filename.
  */
-EventReader::EventReader(const char* filename, SPConstParticles params)
+EventReader::EventReader(char const* filename, SPConstParticles params)
     : params_(std::move(params))
 {
     CELER_EXPECT(params_);
@@ -60,12 +60,12 @@ auto EventReader::operator()() -> result_type
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::CM);
 
     result_type result;
-    int         track_id = 0;
+    int track_id = 0;
     for (auto gen_particle : gen_event.particles())
     {
         // Get the PDG code and check if this particle type is defined for
         // the current physics
-        PDGNumber  pdg{gen_particle->pid()};
+        PDGNumber pdg{gen_particle->pid()};
         ParticleId particle_id{params_->find(pdg)};
         CELER_ASSERT(particle_id);
 
@@ -79,7 +79,7 @@ auto EventReader::operator()() -> result_type
         primary.track_id = TrackId(track_id++);
 
         // Get the position of the primary
-        auto pos         = gen_event.event_pos();
+        auto pos = gen_event.event_pos();
         primary.position = {pos.x() * units::centimeter,
                             pos.y() * units::centimeter,
                             pos.z() * units::centimeter};
@@ -103,4 +103,4 @@ auto EventReader::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

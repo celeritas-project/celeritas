@@ -42,7 +42,7 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
  * Celeritas (which queues the track on its buffer and potentially flushes it)
  * and kill the Geant4 track.
  */
-void TrackingAction::PreUserTrackingAction(const G4Track* track)
+void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
     CELER_EXPECT(track);
     CELER_EXPECT(*params_);
@@ -67,4 +67,4 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

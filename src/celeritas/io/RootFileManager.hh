@@ -26,10 +26,10 @@ class RootFileManager
 {
   public:
     // Construct with filename
-    explicit RootFileManager(const char* filename);
+    explicit RootFileManager(char const* filename);
 
     // Create tree by passing a name and title
-    detail::RootUniquePtr<TTree> make_tree(const char* name, const char* title);
+    detail::RootUniquePtr<TTree> make_tree(char const* name, char const* title);
 
     // Write TFile
     void write();
@@ -40,13 +40,13 @@ class RootFileManager
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootFileManager::RootFileManager(const char*)
+inline RootFileManager::RootFileManager(char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
 inline detail::RootUniquePtr<TTree>
-RootFileManager::make_tree(const char*, const char*)
+RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
@@ -58,4 +58,4 @@ inline void RootFileManager::write()
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -40,7 +40,7 @@ MpiCommunicator::MpiCommunicator(MpiComm comm) : comm_(comm)
 /*!
  * Initialize device in a round-robin fashion from a communicator.
  */
-Device make_device(const MpiCommunicator& comm)
+Device make_device(MpiCommunicator const& comm)
 {
     int num_devices = Device::num_devices();
     if (num_devices == 0)
@@ -53,4 +53,4 @@ Device make_device(const MpiCommunicator& comm)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

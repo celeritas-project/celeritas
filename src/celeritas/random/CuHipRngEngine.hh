@@ -29,18 +29,18 @@ class CuHipRngEngine
   public:
     //!@{
     //! Type aliases
-    using result_type   = unsigned int;
+    using result_type = unsigned int;
     using Initializer_t = CuHipRngInitializer;
-    using StateRef      = NativeRef<CuHipRngStateData>;
+    using StateRef = NativeRef<CuHipRngStateData>;
     //!@}
 
   public:
     // Construct from state
     inline CELER_FUNCTION
-    CuHipRngEngine(const StateRef& state, const ThreadId& id);
+    CuHipRngEngine(StateRef const& state, ThreadId const& id);
 
     // Initialize state from seed
-    inline CELER_FUNCTION CuHipRngEngine& operator=(const Initializer_t& s);
+    inline CELER_FUNCTION CuHipRngEngine& operator=(Initializer_t const& s);
 
     // Sample a random number
     inline CELER_FUNCTION result_type operator()();
@@ -62,7 +62,7 @@ class GenerateCanonical<CuHipRngEngine, float>
   public:
     //!@{
     //! Type aliases
-    using real_type   = float;
+    using real_type = float;
     using result_type = real_type;
     //!@}
 
@@ -81,7 +81,7 @@ class GenerateCanonical<CuHipRngEngine, double>
   public:
     //!@{
     //! Type aliases
-    using real_type   = double;
+    using real_type = double;
     using result_type = real_type;
     //!@}
 
@@ -97,7 +97,7 @@ class GenerateCanonical<CuHipRngEngine, double>
  * Construct from state.
  */
 CELER_FUNCTION
-CuHipRngEngine::CuHipRngEngine(const StateRef& state, const ThreadId& id)
+CuHipRngEngine::CuHipRngEngine(StateRef const& state, ThreadId const& id)
 {
     CELER_EXPECT(id < state.rng.size());
     state_ = &state.rng[id];
@@ -107,7 +107,7 @@ CuHipRngEngine::CuHipRngEngine(const StateRef& state, const ThreadId& id)
 /*!
  * Initialize the RNG engine with a seed value.
  */
-CELER_FUNCTION CuHipRngEngine& CuHipRngEngine::operator=(const Initializer_t& s)
+CELER_FUNCTION CuHipRngEngine& CuHipRngEngine::operator=(Initializer_t const& s)
 {
     CELER_RNG_PREFIX(rand_init)(s.seed, 0, 0, state_);
     return *this;
@@ -143,4 +143,4 @@ GenerateCanonical<CuHipRngEngine, double>::operator()(CuHipRngEngine& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

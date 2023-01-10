@@ -42,7 +42,7 @@ class GenerateCanonical
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -88,4 +88,4 @@ CELER_FUNCTION real_type generate_canonical(Generator& g)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

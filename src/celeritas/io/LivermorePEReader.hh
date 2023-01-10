@@ -24,7 +24,7 @@ class LivermorePEReader
   public:
     //!@{
     //! Type aliases
-    using result_type  = ImportLivermorePE;
+    using result_type = ImportLivermorePE;
     //!@}
 
   public:
@@ -32,7 +32,7 @@ class LivermorePEReader
     LivermorePEReader();
 
     // Construct the reader from the path to the data directory
-    explicit LivermorePEReader(const char* path);
+    explicit LivermorePEReader(char const* path);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -43,4 +43,4 @@ class LivermorePEReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

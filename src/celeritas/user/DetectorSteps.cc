@@ -25,7 +25,7 @@ using StateRef
     = celeritas::StateCollection<T, Ownership::reference, MemSpace::host>;
 
 //---------------------------------------------------------------------------//
-size_type count_num_valid(const DetectorRef& detector)
+size_type count_num_valid(DetectorRef const& detector)
 {
     size_type size{0};
     for (DetectorId id : detector[AllItems<DetectorId>{}])
@@ -40,10 +40,10 @@ size_type count_num_valid(const DetectorRef& detector)
 
 //---------------------------------------------------------------------------//
 template<class T>
-void assign_field(std::vector<T>*    dst,
-                  const StateRef<T>& src,
-                  const DetectorRef& detector,
-                  size_type          size)
+void assign_field(std::vector<T>* dst,
+                  StateRef<T> const& src,
+                  DetectorRef const& detector,
+                  size_type size)
 
 {
     if (src.empty())
@@ -68,7 +68,7 @@ void assign_field(std::vector<T>*    dst,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -76,7 +76,7 @@ void assign_field(std::vector<T>*    dst,
  */
 template<>
 void copy_steps<MemSpace::host>(
-    DetectorStepOutput*                                        output,
+    DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::host> const& state)
 {
     CELER_EXPECT(output);
@@ -113,4 +113,4 @@ void copy_steps<MemSpace::host>(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

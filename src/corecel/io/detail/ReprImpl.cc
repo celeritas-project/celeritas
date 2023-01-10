@@ -67,7 +67,7 @@ void repr_char(std::ostream& os, char value)
 std::string char_to_hex_string(unsigned char value)
 {
     char buffer[3];
-    int  size = std::snprintf(buffer, sizeof(buffer), "%02hhx", value);
+    int size = std::snprintf(buffer, sizeof(buffer), "%02hhx", value);
     CELER_ENSURE(size == 2);
     return {buffer, buffer + 2};
 }
@@ -76,7 +76,7 @@ std::string char_to_hex_string(unsigned char value)
 /*!
  * Print a type string to the stream.
  */
-void print_simple_type(std::ostream& os, const char* type, const char* name)
+void print_simple_type(std::ostream& os, char const* type, char const* name)
 {
     os << type;
     if (name)
@@ -86,5 +86,5 @@ void print_simple_type(std::ostream& os, const char* type, const char* name)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

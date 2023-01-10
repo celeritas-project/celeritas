@@ -50,23 +50,23 @@ class EnergyLossUrbanDistribution
     //!@{
     //! Type aliases
     using FluctuationRef = NativeCRef<FluctuationData>;
-    using Energy         = units::MevEnergy;
-    using Mass           = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     //!@}
 
   public:
     // Construct from particle properties
     inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(const FluctuationRef&    shared,
-                                const MaterialTrackView& cur_mat,
-                                Energy                   unscaled_mean_loss,
-                                Energy                   max_energy,
-                                Mass                     two_mebsgs,
-                                real_type                beta_sq);
+    EnergyLossUrbanDistribution(FluctuationRef const& shared,
+                                MaterialTrackView const& cur_mat,
+                                Energy unscaled_mean_loss,
+                                Energy max_energy,
+                                Mass two_mebsgs,
+                                real_type beta_sq);
 
     // Construct from helper-calculated data
     explicit inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(const EnergyLossHelper& helper);
+    EnergyLossUrbanDistribution(EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>
@@ -81,8 +81,8 @@ class EnergyLossUrbanDistribution
 
     real_type max_energy_;
     real_type loss_scaling_;
-    Real2     binding_energy_;
-    Real2     xs_exc_;
+    Real2 binding_energy_;
+    Real2 xs_exc_;
     real_type xs_ion_;
 
     //// CONSTANTS ////
@@ -105,7 +105,7 @@ class EnergyLossUrbanDistribution
     //! Energy point below which FWHM scaling doesn't change [MeV]
     static CELER_CONSTEXPR_FUNCTION real_type fwhm_min_energy()
     {
-        return 1e-3; // 1 keV
+        return 1e-3;  // 1 keV
     }
 
     //// HELPER FUNCTIONS ////
@@ -119,7 +119,7 @@ class EnergyLossUrbanDistribution
     template<class Engine>
     static CELER_FUNCTION real_type sample_fast_urban(real_type mean,
                                                       real_type stddev,
-                                                      Engine&   rng);
+                                                      Engine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -129,12 +129,12 @@ class EnergyLossUrbanDistribution
  * Construct from distribution parameters.
  */
 CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
-    const FluctuationRef&    shared,
-    const MaterialTrackView& cur_mat,
-    Energy                   unscaled_mean_loss,
-    Energy                   max_energy,
-    Mass                     two_mebsgs,
-    real_type                beta_sq)
+    FluctuationRef const& shared,
+    MaterialTrackView const& cur_mat,
+    Energy unscaled_mean_loss,
+    Energy max_energy,
+    Mass two_mebsgs,
+    real_type beta_sq)
     : max_energy_(max_energy.value())
 {
     CELER_EXPECT(unscaled_mean_loss > zero_quantity());
@@ -155,14 +155,14 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
 
     // Material-dependent data
     CELER_ASSERT(cur_mat.material_id() < shared.urban.size());
-    const UrbanFluctuationParameters& params
+    UrbanFluctuationParameters const& params
         = shared.urban[cur_mat.material_id()];
     binding_energy_ = params.binding_energy;
-    xs_exc_         = {0, 0};
+    xs_exc_ = {0, 0};
 
     // Calculate the excitation macroscopic cross sections and apply the width
     // correction
-    const auto& mat = cur_mat.make_material_view();
+    auto const& mat = cur_mat.make_material_view();
     if (max_energy_ > value_as<Energy>(mat.mean_excitation_energy()))
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10
@@ -206,7 +206,7 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
 
     // Calculate the ionization macroscopic cross section (PRM Eq. 7.11)
     constexpr real_type e_0 = EnergyLossUrbanDistribution::ionization_energy();
-    xs_ion_                 = mean_loss * (max_energy_ - e_0)
+    xs_ion_ = mean_loss * (max_energy_ - e_0)
               / (max_energy_ * e_0 * std::log(max_energy_ / e_0));
     if (xs_exc_[0] + xs_exc_[1] > 0)
     {
@@ -221,7 +221,7 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
  * Construct from helper-calculated data.
  */
 CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
-    const EnergyLossHelper& helper)
+    EnergyLossHelper const& helper)
     : EnergyLossUrbanDistribution(helper.shared(),
                                   helper.material(),
                                   helper.mean_loss(),
@@ -259,7 +259,7 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
     real_type result = 0;
 
     // Mean and variance for fast sampling from Gaussian
-    real_type mean     = 0;
+    real_type mean = 0;
     real_type variance = 0;
 
     for (int i : range(2))
@@ -304,7 +304,7 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
     real_type result = 0;
 
     constexpr real_type e_0 = EnergyLossUrbanDistribution::ionization_energy();
-    const real_type     energy_ratio = max_energy_ / e_0;
+    const real_type energy_ratio = max_energy_ / e_0;
 
     // Parameter that determines the upper limit of the energy interval in
     // which the fast simulation is used
@@ -380,4 +380,4 @@ CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_fast_urban(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

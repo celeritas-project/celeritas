@@ -43,8 +43,8 @@ class GenericXsCalculatorTest : public CalculatorTestBase
     }
 
     GenericGridData data_;
-    Values          storage_;
-    Data            ref_;
+    Values storage_;
+    Data ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,5 +70,5 @@ TEST_F(GenericXsCalculatorTest, all)
     EXPECT_SOFT_EQ(2.0, calc(1e7));
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

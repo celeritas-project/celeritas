@@ -39,15 +39,15 @@ class ImportedProcesses
   public:
     //!@{
     //! Type aliases
-    using ImportProcessId  = OpaqueId<ImportProcess>;
-    using key_type         = std::pair<PDGNumber, ImportProcessClass>;
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
+    using ImportProcessId = OpaqueId<ImportProcess>;
+    using key_type = std::pair<PDGNumber, ImportProcessClass>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
   public:
     // Construct with imported data
     static std::shared_ptr<ImportedProcesses>
-    from_import(const ImportData& data, SPConstParticles particle_params);
+    from_import(ImportData const& data, SPConstParticles particle_params);
 
     // Construct with imported tables
     explicit ImportedProcesses(std::vector<ImportProcess> io);
@@ -56,13 +56,13 @@ class ImportedProcesses
     ImportProcessId find(key_type) const;
 
     // Get the table for the given process ID
-    inline const ImportProcess& get(ImportProcessId id) const;
+    inline ImportProcess const& get(ImportProcessId id) const;
 
     // Number of imported processes
     inline ImportProcessId::size_type size() const;
 
   private:
-    std::vector<ImportProcess>          processes_;
+    std::vector<ImportProcess> processes_;
     std::map<key_type, ImportProcessId> ids_;
 };
 
@@ -75,45 +75,45 @@ class ImportedProcessAdapter
   public:
     //!@{
     //! Type aliases
-    using SPConstImported   = std::shared_ptr<const ImportedProcesses>;
-    using SPConstParticles  = std::shared_ptr<const ParticleParams>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using StepLimitBuilders = Process::StepLimitBuilders;
-    using SpanConstPDG      = Span<const PDGNumber>;
+    using SpanConstPDG = Span<PDGNumber const>;
     //!@}
 
   public:
     // Construct from shared table data
-    ImportedProcessAdapter(SPConstImported         imported,
-                           const SPConstParticles& particles,
-                           ImportProcessClass      process_class,
-                           SpanConstPDG            pdg_numbers);
+    ImportedProcessAdapter(SPConstImported imported,
+                           SPConstParticles const& particles,
+                           ImportProcessClass process_class,
+                           SpanConstPDG pdg_numbers);
 
     // Construct from shared table data
-    ImportedProcessAdapter(SPConstImported                  imported,
-                           const SPConstParticles&          particles,
-                           ImportProcessClass               process_class,
+    ImportedProcessAdapter(SPConstImported imported,
+                           SPConstParticles const& particles,
+                           ImportProcessClass process_class,
                            std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
     StepLimitBuilders step_limits(Applicability range) const;
 
     // Access the imported processes
-    const SPConstImported& processes() const { return imported_; }
+    SPConstImported const& processes() const { return imported_; }
 
   private:
-    using ImportTableId   = OpaqueId<ImportPhysicsTable>;
+    using ImportTableId = OpaqueId<ImportPhysicsTable>;
     using ImportProcessId = ImportedProcesses::ImportProcessId;
 
     struct ParticleProcessIds
     {
         ImportProcessId process;
-        ImportTableId   lambda;
-        ImportTableId   lambda_prim;
-        ImportTableId   dedx;
-        ImportTableId   range;
+        ImportTableId lambda;
+        ImportTableId lambda_prim;
+        ImportTableId dedx;
+        ImportTableId range;
     };
 
-    SPConstImported                          imported_;
+    SPConstImported imported_;
     std::map<ParticleId, ParticleProcessIds> ids_;
 };
 
@@ -123,7 +123,7 @@ class ImportedProcessAdapter
 /*!
  * Get the table for the given process ID.
  */
-const ImportProcess& ImportedProcesses::get(ImportProcessId id) const
+ImportProcess const& ImportedProcesses::get(ImportProcessId id) const
 {
     CELER_EXPECT(id < this->size());
     return processes_[id.get()];
@@ -139,4 +139,4 @@ auto ImportedProcesses::size() const -> ImportProcessId::size_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

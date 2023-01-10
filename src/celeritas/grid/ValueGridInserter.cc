@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Construct with a reference to mutable host data.
  */
-ValueGridInserter::ValueGridInserter(RealCollection*   real_data,
+ValueGridInserter::ValueGridInserter(RealCollection* real_data,
                                      XsGridCollection* xs_grid)
     : values_(real_data), xs_grids_(xs_grid)
 {
@@ -28,9 +28,9 @@ ValueGridInserter::ValueGridInserter(RealCollection*   real_data,
 /*!
  * Add a grid of physics xs data.
  */
-auto ValueGridInserter::operator()(const UniformGridData& log_grid,
-                                   size_type              prime_index,
-                                   SpanConstReal          values) -> XsIndex
+auto ValueGridInserter::operator()(UniformGridData const& log_grid,
+                                   size_type prime_index,
+                                   SpanConstReal values) -> XsIndex
 {
     CELER_EXPECT(log_grid);
     CELER_EXPECT(log_grid.size == values.size());
@@ -38,9 +38,9 @@ auto ValueGridInserter::operator()(const UniformGridData& log_grid,
                  || prime_index == XsGridData::no_scaling());
 
     XsGridData grid;
-    grid.log_energy  = log_grid;
+    grid.log_energy = log_grid;
     grid.prime_index = prime_index;
-    grid.value       = values_.insert_back(values.begin(), values.end());
+    grid.value = values_.insert_back(values.begin(), values.end());
     return xs_grids_.push_back(grid);
 }
 
@@ -48,8 +48,8 @@ auto ValueGridInserter::operator()(const UniformGridData& log_grid,
 /*!
  * Add a grid of log-spaced data without 1/E scaling.
  */
-auto ValueGridInserter::operator()(const UniformGridData& log_grid,
-                                   SpanConstReal          values) -> XsIndex
+auto ValueGridInserter::operator()(UniformGridData const& log_grid,
+                                   SpanConstReal values) -> XsIndex
 {
     return (*this)(log_grid, XsGridData::no_scaling(), values);
 }
@@ -65,4 +65,4 @@ auto ValueGridInserter::operator()(InterpolatedGrid, InterpolatedGrid)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

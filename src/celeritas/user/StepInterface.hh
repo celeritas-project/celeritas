@@ -11,7 +11,7 @@
 
 #include "corecel/Types.hh"
 
-#include "StepData.hh" // IWYU pragma: export
+#include "StepData.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -34,7 +34,7 @@ class StepInterface
   public:
     //@{
     //! \name Type aliases
-    using StateHostRef   = HostRef<StepStateData>;
+    using StateHostRef = HostRef<StepStateData>;
     using StateDeviceRef = DeviceRef<StepStateData>;
     using MapVolumeDetector = std::map<VolumeId, DetectorId>;
     //@}
@@ -69,4 +69,4 @@ class StepInterface
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

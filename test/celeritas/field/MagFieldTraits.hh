@@ -27,12 +27,12 @@ class FieldPropagator;
 template<class FieldT, template<class EquationT> class StepperT>
 struct MagFieldTraits
 {
-    using Field_t      = FieldT;
-    using Equation_t   = MagFieldEquation<const Field_t&>;
-    using Stepper_t    = StepperT<const Equation_t&>;
-    using Driver_t     = FieldDriver<const Stepper_t&>;
-    using Propagator_t = FieldPropagator<const Driver_t&>;
+    using Field_t = FieldT;
+    using Equation_t = MagFieldEquation<Field_t const&>;
+    using Stepper_t = StepperT<Equation_t const&>;
+    using Driver_t = FieldDriver<Stepper_t const&>;
+    using Propagator_t = FieldPropagator<Driver_t const&>;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

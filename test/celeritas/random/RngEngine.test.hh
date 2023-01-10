@@ -44,5 +44,5 @@ inline std::vector<T> re_test_canonical(RngDeviceRef)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

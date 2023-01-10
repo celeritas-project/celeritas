@@ -32,9 +32,9 @@ class DeviceAllocation
   public:
     //!@{
     //! Type aliases
-    using size_type      = std::size_t;
-    using SpanBytes      = Span<Byte>;
-    using SpanConstBytes = Span<const Byte>;
+    using size_type = std::size_t;
+    using SpanBytes = Span<Byte>;
+    using SpanConstBytes = Span<Byte const>;
     //!@}
 
   public:
@@ -79,7 +79,7 @@ class DeviceAllocation
     //// DATA ////
 
     detail::InitializedValue<size_type> size_;
-    DeviceUniquePtr                     data_;
+    DeviceUniquePtr data_;
 };
 
 // Swap two allocations
@@ -126,4 +126,4 @@ void swap(DeviceAllocation& a, DeviceAllocation& b) noexcept
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

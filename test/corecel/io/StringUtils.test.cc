@@ -32,5 +32,5 @@ TEST(StringUtils, ends_with)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

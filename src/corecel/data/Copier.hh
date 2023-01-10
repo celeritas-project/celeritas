@@ -32,17 +32,17 @@ struct Copier
     static_assert(std::is_trivially_copyable<T>::value,
                   "Data is not trivially copyable");
 
-    Span<const T> src;
+    Span<T const> src;
 
     inline void operator()(MemSpace dstmem, Span<T> dst) const;
 };
 
 //---------------------------------------------------------------------------//
 // Copy bytes between two memory spaces
-void copy_bytes(MemSpace    dstmem,
-                void*       dst,
-                MemSpace    srcmem,
-                const void* src,
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
                 std::size_t count);
 
 //---------------------------------------------------------------------------//
@@ -57,4 +57,4 @@ void Copier<T, M>::operator()(MemSpace dstmem, Span<T> dst) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

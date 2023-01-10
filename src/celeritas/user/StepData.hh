@@ -48,7 +48,7 @@ struct StepPointSelection
     }
 
     //! Combine the selection with another
-    StepPointSelection& operator|=(const StepPointSelection& other)
+    StepPointSelection& operator|=(StepPointSelection const& other)
     {
         this->time |= other.time;
         this->pos |= other.pos;
@@ -100,7 +100,7 @@ struct StepSelection
     }
 
     //! Combine the selection with another
-    StepSelection& operator|=(const StepSelection& other)
+    StepSelection& operator|=(StepSelection const& other)
     {
         for (auto sp : range(StepPoint::size_))
         {
@@ -148,11 +148,11 @@ struct StepParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    StepParamsData& operator=(const StepParamsData<W2, M2>& other)
+    StepParamsData& operator=(StepParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        selection                 = other.selection;
-        detector                  = other.detector;
+        selection = other.selection;
+        detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
         return *this;
     }
@@ -175,14 +175,14 @@ struct StepPointStateData
 
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
-    using Energy     = units::MevEnergy;
+    using Energy = units::MevEnergy;
 
     // Sim
     StateItems<real_type> time;
 
     // Geo
-    StateItems<Real3>    pos;
-    StateItems<Real3>    dir;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
     StateItems<VolumeId> volume_id;
 
     // Physics
@@ -198,11 +198,11 @@ struct StepPointStateData
     StepPointStateData& operator=(StepPointStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        time      = other.time;
-        pos       = other.pos;
-        dir       = other.dir;
+        time = other.time;
+        pos = other.pos;
+        dir = other.dir;
         volume_id = other.volume_id;
-        energy    = other.energy;
+        energy = other.energy;
         return *this;
     }
 };
@@ -228,7 +228,7 @@ struct StepStateData
     using StepPointData = StepPointStateData<W, M>;
     template<class T>
     using StateItems = celeritas::StateCollection<T, W, M>;
-    using Energy     = units::MevEnergy;
+    using Energy = units::MevEnergy;
 
     //// DATA ////
 
@@ -242,22 +242,22 @@ struct StepStateData
     StateItems<DetectorId> detector;
 
     // Sim
-    StateItems<EventId>   event_id;
-    StateItems<TrackId>   parent_id;
-    StateItems<ActionId>  action_id;
+    StateItems<EventId> event_id;
+    StateItems<TrackId> parent_id;
+    StateItems<ActionId> action_id;
     StateItems<size_type> track_step_count;
     StateItems<real_type> step_length;
 
     // Physics
     StateItems<ParticleId> particle;
-    StateItems<Energy>     energy_deposition;
+    StateItems<Energy> energy_deposition;
 
     //// METHODS ////
 
     //! True if constructed and correctly sized
     explicit CELER_FUNCTION operator bool() const
     {
-        auto right_sized = [this](const auto& t) {
+        auto right_sized = [this](auto const& t) {
             return (t.size() == this->size()) || t.empty();
         };
 
@@ -282,14 +282,14 @@ struct StepStateData
             points[sp] = other.points[sp];
         }
 
-        track_id          = other.track_id;
-        parent_id         = other.parent_id;
-        detector          = other.detector;
-        event_id          = other.event_id;
-        track_step_count  = other.track_step_count;
-        action_id         = other.action_id;
-        step_length       = other.step_length;
-        particle          = other.particle;
+        track_id = other.track_id;
+        parent_id = other.parent_id;
+        detector = other.detector;
+        event_id = other.event_id;
+        track_step_count = other.track_step_count;
+        action_id = other.action_id;
+        step_length = other.step_length;
+        particle = other.particle;
         energy_deposition = other.energy_deposition;
         return *this;
     }
@@ -303,8 +303,8 @@ struct StepStateData
  */
 template<MemSpace M>
 inline void resize(StepPointStateData<Ownership::value, M>* state,
-                   StepPointSelection                       selection,
-                   size_type                                size)
+                   StepPointSelection selection,
+                   size_type size)
 {
     CELER_EXPECT(size > 0);
 #define SD_RESIZE_IF_SELECTED(ATTR)     \
@@ -331,8 +331,8 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
  */
 template<MemSpace M>
 inline void resize(StepStateData<Ownership::value, M>* state,
-                   const HostCRef<StepParamsData>&     params,
-                   size_type                           size)
+                   HostCRef<StepParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(state->size() == 0);
     CELER_EXPECT(size > 0);
@@ -367,4 +367,4 @@ inline void resize(StepStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

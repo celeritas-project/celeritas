@@ -16,11 +16,11 @@ namespace demo_rasterizer
 //---------------------------------------------------------------------------//
 
 using GeoParamsCRefDevice = celeritas::DeviceCRef<celeritas::GeoParamsData>;
-using GeoStateRefDevice   = celeritas::DeviceRef<celeritas::GeoStateData>;
+using GeoStateRefDevice = celeritas::DeviceRef<celeritas::GeoStateData>;
 
-void trace(const GeoParamsCRefDevice& geo_params,
-           const GeoStateRefDevice&   geo_state,
-           const ImageData&           image);
+void trace(GeoParamsCRefDevice const& geo_params,
+           GeoStateRefDevice const& geo_state,
+           ImageData const& image);
 
 //---------------------------------------------------------------------------//
-} // namespace demo_rasterizer
+}  // namespace demo_rasterizer

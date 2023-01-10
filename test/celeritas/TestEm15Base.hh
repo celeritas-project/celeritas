@@ -20,13 +20,13 @@ namespace test
 class TestEm15Base : public GeantTestBase
 {
   protected:
-    const char* geometry_basename() const override { return "testem15"; }
-    bool        enable_fluctuation() const override { return true; }
-    bool        enable_msc() const override { return true; }
-    bool        combined_brems() const override { return false; }
-    real_type   secondary_stack_factor() const override { return 3.0; }
+    char const* geometry_basename() const override { return "testem15"; }
+    bool enable_fluctuation() const override { return true; }
+    bool enable_msc() const override { return true; }
+    bool combined_brems() const override { return false; }
+    real_type secondary_stack_factor() const override { return 3.0; }
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

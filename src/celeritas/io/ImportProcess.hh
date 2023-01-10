@@ -136,12 +136,12 @@ struct ImportProcess
     using ModelMicroXS = std::vector<ElementPhysicsVectors>;
     //!@}
 
-    int                                      particle_pdg{0};
-    int                                      secondary_pdg{0};
-    ImportProcessType                        process_type;
-    ImportProcessClass                       process_class;
-    std::vector<ImportModelClass>            models;
-    std::vector<ImportPhysicsTable>          tables;
+    int particle_pdg{0};
+    int secondary_pdg{0};
+    ImportProcessType process_type;
+    ImportProcessClass process_class;
+    std::vector<ImportModelClass> models;
+    std::vector<ImportPhysicsTable> tables;
     std::map<ImportModelClass, ModelMicroXS> micro_xs;
 
     explicit operator bool() const
@@ -157,17 +157,17 @@ struct ImportProcess
 //---------------------------------------------------------------------------//
 
 // Get the string form of a process enumeration.
-const char* to_cstring(ImportProcessType value);
-const char* to_cstring(ImportProcessClass value);
-const char* to_cstring(ImportModelClass value);
+char const* to_cstring(ImportProcessType value);
+char const* to_cstring(ImportProcessClass value);
+char const* to_cstring(ImportModelClass value);
 
 // Get the default Geant4 process name
-const char* to_geant_name(ImportProcessClass value);
+char const* to_geant_name(ImportProcessClass value);
 // Convert a Geant4 process name to an IPC (throw RuntimeError if unsupported)
-ImportProcessClass geant_name_to_import_process_class(const std::string& s);
+ImportProcessClass geant_name_to_import_process_class(std::string const& s);
 
 // Whether Celeritas requires microscopic xs data for sampling
 bool needs_micro_xs(ImportModelClass model);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

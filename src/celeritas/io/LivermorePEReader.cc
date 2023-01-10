@@ -26,7 +26,7 @@ namespace celeritas
  */
 LivermorePEReader::LivermorePEReader()
 {
-    const std::string& dir = celeritas::getenv("G4LEDATA");
+    std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4LEDATA is not defined (needed "
                       "to locate Livermore data)");
@@ -37,7 +37,7 @@ LivermorePEReader::LivermorePEReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-LivermorePEReader::LivermorePEReader(const char* path) : path_(path)
+LivermorePEReader::LivermorePEReader(char const* path) : path_(path)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
@@ -63,7 +63,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
     // Read photoelectric effect total cross section above K-shell energy but
     // below energy limit for parameterization
     {
-        std::string   filename = path_ + "/pe-cs-" + z_str + ".dat";
+        std::string filename = path_ + "/pe-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -75,7 +75,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         // Read tabulated energies and cross sections
         real_type energy_min = 0.;
         real_type energy_max = 0.;
-        size_type size       = 0;
+        size_type size = 0;
         infile >> energy_min >> energy_max >> size >> size;
         result.xs_hi.x.resize(size);
         result.xs_hi.y.resize(size);
@@ -88,7 +88,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read photoelectric effect total cross section below K-shell energy
     {
-        std::string   filename = path_ + "/pe-le-cs-" + z_str + ".dat";
+        std::string filename = path_ + "/pe-le-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -103,7 +103,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
             // Read tabulated energies and cross sections
             real_type energy_min = 0.;
             real_type energy_max = 0.;
-            size_type size       = 0;
+            size_type size = 0;
             infile >> energy_min >> energy_max >> size >> size;
             result.xs_lo.x.resize(size);
             result.xs_lo.y.resize(size);
@@ -117,15 +117,15 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read subshell cross section fit parameters in low energy interval
     {
-        std::string   filename = path_ + "/pe-low-" + z_str + ".dat";
+        std::string filename = path_ + "/pe-low-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
-        constexpr size_type num_param  = 6;
-        size_type           num_shells = 0;
+        constexpr size_type num_param = 6;
+        size_type num_shells = 0;
         infile >> num_shells >> num_shells >> result.thresh_lo;
         result.shells.resize(num_shells);
 
@@ -145,15 +145,15 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read subshell cross section fit parameters in high energy interval
     {
-        std::string   filename = path_ + "/pe-high-" + z_str + ".dat";
+        std::string filename = path_ + "/pe-high-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain subshell fit parameters)");
 
         // Read the number of subshells and energy threshold
-        constexpr size_type num_param  = 6;
-        size_type           num_shells = 0;
+        constexpr size_type num_param = 6;
+        size_type num_shells = 0;
         infile >> num_shells >> num_shells >> result.thresh_hi;
         CELER_ASSERT(num_shells == result.shells.size());
 
@@ -175,7 +175,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 
     // Read tabulated subshell cross sections
     {
-        std::string   filename = path_ + "/pe-ss-cs-" + z_str + ".dat";
+        std::string filename = path_ + "/pe-ss-cs-" + z_str + ".dat";
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -185,8 +185,8 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         {
             real_type min_energy = 0.;
             real_type max_energy = 0.;
-            size_type size       = 0;
-            size_type shell_id   = 0;
+            size_type size = 0;
+            size_type shell_id = 0;
             infile >> min_energy >> max_energy >> size >> shell_id;
             shell.energy.resize(size);
             shell.xs.resize(size);
@@ -202,4 +202,4 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -62,8 +62,8 @@ struct BetheHeitlerData
     }
 };
 
-using BetheHeitlerHostRef   = BetheHeitlerData;
+using BetheHeitlerHostRef = BetheHeitlerData;
 using BetheHeitlerDeviceRef = BetheHeitlerData;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

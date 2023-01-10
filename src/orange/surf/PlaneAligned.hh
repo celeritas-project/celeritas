@@ -25,7 +25,7 @@ class PlaneAligned
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 1>;
-    using Storage       = Span<const real_type, 1>;
+    using Storage = Span<const real_type, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -56,14 +56,14 @@ class PlaneAligned
     //// CALCULATION ////
 
     // Determine the sense of the position relative to this surface
-    inline CELER_FUNCTION SignedSense calc_sense(const Real3& pos) const;
+    inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
-        const Real3& pos, const Real3& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
-    inline CELER_FUNCTION Real3 calc_normal(const Real3& pos) const;
+    inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
   private:
     //! Intersection with the axis
@@ -120,7 +120,7 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Storage data) : position_(data[0])
  * Determine the sense of the position relative to this surface.
  */
 template<Axis T>
-CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(const Real3& pos) const
+CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(Real3 const& pos) const
 {
     return real_to_sense(pos[t_index()] - position_);
 }
@@ -131,8 +131,8 @@ CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(const Real3& pos) const
  */
 template<Axis T>
 CELER_FUNCTION auto
-PlaneAligned<T>::calc_intersections(const Real3& pos,
-                                    const Real3& dir,
+PlaneAligned<T>::calc_intersections(Real3 const& pos,
+                                    Real3 const& dir,
                                     SurfaceState on_surface) const
     -> Intersections
 {
@@ -152,7 +152,7 @@ PlaneAligned<T>::calc_intersections(const Real3& pos,
  * Calculate outward normal at a position.
  */
 template<Axis T>
-CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(const Real3&) const
+CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
     Real3 norm{0, 0, 0};
 
@@ -161,4 +161,4 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(const Real3&) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -21,7 +21,7 @@ class EPlusGGModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    EPlusGGModel(ActionId id, const ParticleParams& particles);
+    EPlusGGModel(ActionId id, ParticleParams const& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -55,4 +55,4 @@ class EPlusGGModel final : public Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

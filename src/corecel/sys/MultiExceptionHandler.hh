@@ -43,11 +43,11 @@ class MultiExceptionHandler
 
   public:
     // Default all construct/copy/move
-    MultiExceptionHandler()                                        = default;
-    MultiExceptionHandler(MultiExceptionHandler&&)                 = default;
-    MultiExceptionHandler& operator=(MultiExceptionHandler&&)      = default;
-    MultiExceptionHandler(const MultiExceptionHandler&)            = default;
-    MultiExceptionHandler& operator=(const MultiExceptionHandler&) = default;
+    MultiExceptionHandler() = default;
+    MultiExceptionHandler(MultiExceptionHandler&&) = default;
+    MultiExceptionHandler& operator=(MultiExceptionHandler&&) = default;
+    MultiExceptionHandler(MultiExceptionHandler const&) = default;
+    MultiExceptionHandler& operator=(MultiExceptionHandler const&) = default;
 
     // Terminate if destroyed without handling exceptions
     ~MultiExceptionHandler();
@@ -72,7 +72,7 @@ namespace detail
 {
 // Private implementation function for throwing exceptions
 [[noreturn]] void log_and_rethrow_impl(MultiExceptionHandler&& exceptions);
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -89,4 +89,4 @@ inline void log_and_rethrow(MultiExceptionHandler&& exceptions)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

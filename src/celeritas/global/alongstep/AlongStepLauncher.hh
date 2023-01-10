@@ -25,10 +25,10 @@ namespace celeritas
 template<class M, class P, class E, class F>
 CELER_FUNCTION detail::AlongStepLauncherImpl<M, P, E, F>
 make_along_step_launcher(CoreRef<MemSpace::native> const& core_data,
-                         M&&                              msc_data,
-                         P&&                              propagator_data,
-                         E&&                              eloss_data,
-                         F&&                              call_with_track)
+                         M&& msc_data,
+                         P&& propagator_data,
+                         E&& eloss_data,
+                         F&& call_with_track)
 {
     return {core_data,
             ::celeritas::forward<M>(msc_data),
@@ -38,4 +38,4 @@ make_along_step_launcher(CoreRef<MemSpace::native> const& core_data,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

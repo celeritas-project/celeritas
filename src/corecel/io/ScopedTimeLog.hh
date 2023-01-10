@@ -42,7 +42,7 @@ class ScopedTimeLog
     inline ~ScopedTimeLog();
 
   private:
-    double    min_print_sec_{0.01};
+    double min_print_sec_{0.01};
     Stopwatch get_time_;
 };
 
@@ -72,4 +72,4 @@ ScopedTimeLog::~ScopedTimeLog()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

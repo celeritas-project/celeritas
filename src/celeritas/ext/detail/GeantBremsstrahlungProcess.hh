@@ -39,12 +39,12 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
 
     // Prevent copying
     GeantBremsstrahlungProcess&
-    operator=(const GeantBremsstrahlungProcess& right)
+    operator=(GeantBremsstrahlungProcess const& right)
         = delete;
-    GeantBremsstrahlungProcess(const GeantBremsstrahlungProcess&) = delete;
+    GeantBremsstrahlungProcess(GeantBremsstrahlungProcess const&) = delete;
 
     // True for electrons and positrons
-    bool IsApplicable(const G4ParticleDefinition& particle) final;
+    bool IsApplicable(G4ParticleDefinition const& particle) final;
     // Print documentation
     void ProcessDescription(std::ostream&) const override;
 
@@ -53,16 +53,16 @@ class GeantBremsstrahlungProcess : public G4VEnergyLossProcess
 
   protected:
     // Initialise process by constructing selected models
-    void InitialiseEnergyLossProcess(const G4ParticleDefinition*,
-                                     const G4ParticleDefinition*) override;
+    void InitialiseEnergyLossProcess(G4ParticleDefinition const*,
+                                     G4ParticleDefinition const*) override;
     // Print class parameters
     void StreamProcessInfo(std::ostream& output) const override;
 
   private:
-    bool           is_initialized_;
+    bool is_initialized_;
     ModelSelection model_selection_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

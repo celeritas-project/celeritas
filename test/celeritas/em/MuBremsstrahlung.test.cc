@@ -31,10 +31,10 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        const auto& params  = this->particle_params();
-        data_.ids.gamma     = params->find(pdg::gamma());
-        data_.ids.mu_minus  = params->find(pdg::mu_minus());
-        data_.ids.mu_plus   = params->find(pdg::mu_plus());
+        auto const& params = this->particle_params();
+        data_.ids.gamma = params->find(pdg::gamma());
+        data_.ids.mu_minus = params->find(pdg::mu_minus());
+        data_.ids.mu_plus = params->find(pdg::mu_plus());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         // Set default particle to muon with energy of 1100 MeV
@@ -43,7 +43,7 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
-    void sanity_check(const Interaction& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         // Check change to parent track
         EXPECT_GT(this->particle_track().energy().value(),
@@ -55,7 +55,7 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
         // Check secondaries
         ASSERT_EQ(1, interaction.secondaries.size());
 
-        const auto& gamma = interaction.secondaries.front();
+        auto const& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
         EXPECT_EQ(data_.ids.gamma, gamma.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
@@ -92,7 +92,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
                                         this->secondary_allocator(),
                                         material,
                                         ElementComponentId{0});
-    RandomEngine&              rng_engine = this->rng();
+    RandomEngine& rng_engine = this->rng();
 
     std::vector<double> energy;
     std::vector<double> costheta;
@@ -115,9 +115,9 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    const double expected_energy[] = {
+    double const expected_energy[] = {
         1012.99606184083, 1029.80705246907, 1010.52595539471, 1010.77666768483};
-    const double expected_costheta[] = {0.968418002240112,
+    double const expected_costheta[] = {0.968418002240112,
                                         0.999212413725981,
                                         0.998550042495312,
                                         0.983614606590488};
@@ -135,7 +135,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
 
 TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 {
-    const unsigned int  num_samples = 1e4;
+    unsigned int const num_samples = 1e4;
     std::vector<double> avg_engine_samples;
 
     for (auto particle : {pdg::mu_minus(), pdg::mu_plus()})
@@ -145,11 +145,11 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
             this->set_inc_particle(particle, MevEnergy{inc_e});
 
-            RandomEngine&           rng_engine            = this->rng();
+            RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
 
             // Loop over several incident directions
-            for (const Real3& inc_dir : {Real3{0, 0, 1},
+            for (Real3 const& inc_dir : {Real3{0, 0, 1},
                                          Real3{1, 0, 0},
                                          Real3{1e-9, 0, 1},
                                          Real3{1, 1, 1}})
@@ -184,7 +184,7 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to RNG
-    const double expected_avg_engine_samples[] = {10.4316,
+    double const expected_avg_engine_samples[] = {10.4316,
                                                   9.7148,
                                                   9.2378,
                                                   8.6495,
@@ -199,5 +199,5 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

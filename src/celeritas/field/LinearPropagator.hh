@@ -89,4 +89,4 @@ LinearPropagator::result_type LinearPropagator::operator()(real_type dist)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

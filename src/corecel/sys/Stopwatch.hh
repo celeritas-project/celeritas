@@ -38,9 +38,9 @@ class Stopwatch
     inline double operator()() const;
 
   private:
-    using Clock     = std::chrono::high_resolution_clock;
+    using Clock = std::chrono::high_resolution_clock;
     using TimePoint = Clock::time_point;
-    using Duration  = Clock::duration;
+    using Duration = Clock::duration;
 
     TimePoint start_;
 };
@@ -66,4 +66,4 @@ double Stopwatch::operator()() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

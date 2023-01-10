@@ -28,11 +28,11 @@ namespace celeritas
 /*!
  * Construct from shared process data.
  */
-ImportedModelAdapter::ImportedModelAdapter(SPConstImported       imported,
-                                           const ParticleParams& particles,
-                                           ImportProcessClass    process_class,
-                                           ImportModelClass      model_class,
-                                           SpanConstPDG          pdg_numbers)
+ImportedModelAdapter::ImportedModelAdapter(SPConstImported imported,
+                                           ParticleParams const& particles,
+                                           ImportProcessClass process_class,
+                                           ImportModelClass model_class,
+                                           SpanConstPDG pdg_numbers)
     : imported_(std::move(imported)), model_class_(model_class)
 {
     CELER_EXPECT(!pdg_numbers.empty());
@@ -55,10 +55,10 @@ ImportedModelAdapter::ImportedModelAdapter(SPConstImported       imported,
  * Delegating constructor for a list of particles.
  */
 ImportedModelAdapter::ImportedModelAdapter(
-    SPConstImported                  imported,
-    const ParticleParams&            particles,
-    ImportProcessClass               process_class,
-    ImportModelClass                 model_class,
+    SPConstImported imported,
+    ParticleParams const& particles,
+    ImportProcessClass process_class,
+    ImportModelClass model_class,
     std::initializer_list<PDGNumber> pdg_numbers)
     : ImportedModelAdapter(std::move(imported),
                            particles,
@@ -80,18 +80,18 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
     // Get the imported process that applies for the given particle
     auto proc = particle_to_process_.find(applic.particle);
     CELER_ASSERT(proc != particle_to_process_.end());
-    const ImportProcess& import_process = imported_->get(proc->second);
+    ImportProcess const& import_process = imported_->get(proc->second);
 
     // Get the micro xs grids for the given model, particle, and material
     auto xs = import_process.micro_xs.find(model_class_);
     CELER_ASSERT(xs != import_process.micro_xs.end());
     CELER_ASSERT(applic.material < xs->second.size());
-    const auto& elem_phys_vectors = xs->second[applic.material.get()];
+    auto const& elem_phys_vectors = xs->second[applic.material.get()];
 
     MicroXsBuilders builders(elem_phys_vectors.size());
     for (size_type elcomp_idx : range(elem_phys_vectors.size()))
     {
-        const auto& vec = elem_phys_vectors[elcomp_idx];
+        auto const& vec = elem_phys_vectors[elcomp_idx];
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
             make_span(vec.x), make_span(vec.y));
@@ -100,4 +100,4 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

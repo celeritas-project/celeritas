@@ -33,14 +33,14 @@ class TypeDemangler
     // Get the pretty typename of the instantiated type (static)
     inline std::string operator()() const;
     // Get the *dynamic* pretty typename of a variable (dynamic)
-    inline std::string operator()(const T&) const;
+    inline std::string operator()(T const&) const;
 };
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Demangle the name that comes from `typeid`
-std::string demangled_typeid_name(const char* typeid_name);
+std::string demangled_typeid_name(char const* typeid_name);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -59,10 +59,10 @@ std::string TypeDemangler<T>::operator()() const
  * Get the *dynamic* pretty typename of a variable (dynamic).
  */
 template<class T>
-std::string TypeDemangler<T>::operator()(const T& t) const
+std::string TypeDemangler<T>::operator()(T const& t) const
 {
     return demangled_typeid_name(typeid(t).name());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

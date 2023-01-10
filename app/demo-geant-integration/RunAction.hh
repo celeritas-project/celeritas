@@ -33,25 +33,25 @@ class RunAction final : public G4UserRunAction
     //!@{
     //! \name Type aliases
     using SPConstOptions = std::shared_ptr<const celeritas::SetupOptions>;
-    using SPParams       = std::shared_ptr<celeritas::SharedParams>;
-    using SPTransporter  = std::shared_ptr<celeritas::LocalTransporter>;
+    using SPParams = std::shared_ptr<celeritas::SharedParams>;
+    using SPTransporter = std::shared_ptr<celeritas::LocalTransporter>;
     //!@}
 
   public:
     RunAction(SPConstOptions options,
-              SPParams       params,
-              SPTransporter  transport,
-              bool           init_celeritas);
+              SPParams params,
+              SPTransporter transport,
+              bool init_celeritas);
 
-    void BeginOfRunAction(const G4Run* run) final;
-    void EndOfRunAction(const G4Run* run) final;
+    void BeginOfRunAction(G4Run const* run) final;
+    void EndOfRunAction(G4Run const* run) final;
 
   private:
     SPConstOptions options_;
-    SPParams       params_;
-    SPTransporter  transport_;
-    bool           init_celeritas_;
+    SPParams params_;
+    SPTransporter transport_;
+    bool init_celeritas_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

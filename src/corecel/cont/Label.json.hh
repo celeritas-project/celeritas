@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Read an array from a JSON file.
  */
-inline void from_json(const nlohmann::json& j, Label& value)
+inline void from_json(nlohmann::json const& j, Label& value)
 {
     value = Label::from_separator(j.get<std::string>());
 }
@@ -25,10 +25,10 @@ inline void from_json(const nlohmann::json& j, Label& value)
 /*!
  * Write an array to a JSON file.
  */
-inline void to_json(nlohmann::json& j, const Label& value)
+inline void to_json(nlohmann::json& j, Label const& value)
 {
     j = to_string(value);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

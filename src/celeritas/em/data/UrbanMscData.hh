@@ -28,16 +28,16 @@ struct UrbanMscParameters
 {
     using Energy = units::MevEnergy;
 
-    real_type tau_small{1e-16};                    //!< small value of tau
-    real_type tau_big{8};                          //!< big value of tau
-    real_type tau_limit{1e-6};                     //!< limit of tau
-    real_type lambda_limit{1 * units::millimeter}; //!< lambda limit
-    real_type range_fact{0.04}; //!< range_factor for e-/e+ (0.2 for muon/h)
-    real_type safety_fact{0.6}; //!< safety factor
-    real_type safety_tol{0.01}; //!< safety tolerance
-    real_type geom_limit{5e-8 * units::millimeter}; //!< minimum step
-    Energy    low_energy_limit{1e-5};               //!< 10 eV
-    Energy    high_energy_limit{1e+2};              //!< 100 MeV
+    real_type tau_small{1e-16};  //!< small value of tau
+    real_type tau_big{8};  //!< big value of tau
+    real_type tau_limit{1e-6};  //!< limit of tau
+    real_type lambda_limit{1 * units::millimeter};  //!< lambda limit
+    real_type range_fact{0.04};  //!< range_factor for e-/e+ (0.2 for muon/h)
+    real_type safety_fact{0.6};  //!< safety factor
+    real_type safety_tol{0.01};  //!< safety tolerance
+    real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
+    Energy low_energy_limit{1e-5};  //!< 10 eV
+    Energy high_energy_limit{1e+2};  //!< 100 MeV
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
@@ -79,16 +79,16 @@ struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
 
-    real_type zeff{};        //!< effective atomic_number
-    real_type scaled_zeff{}; //!< 0.70 * sqrt(zeff)
-    real_type z23{};         //!< zeff^(2/3)
-    real_type coeffth1{};    //!< correction in theta_0 formula
-    real_type coeffth2{};    //!< correction in theta_0 formula
-    Real4     d{0, 0, 0, 0}; //!< coefficients of tail parameters
-    real_type stepmin_a{};   //!< coefficient of the step minimum calculation
-    real_type stepmin_b{};   //!< coefficient of the step minimum calculation
-    real_type d_over_r{};    //!< the maximum distance/range for e-/e+
-    real_type d_over_r_mh{}; //!< the maximum distance/range for muon/h
+    real_type zeff{};  //!< effective atomic_number
+    real_type scaled_zeff{};  //!< 0.70 * sqrt(zeff)
+    real_type z23{};  //!< zeff^(2/3)
+    real_type coeffth1{};  //!< correction in theta_0 formula
+    real_type coeffth2{};  //!< correction in theta_0 formula
+    Real4 d{0, 0, 0, 0};  //!< coefficients of tail parameters
+    real_type stepmin_a{};  //!< coefficient of the step minimum calculation
+    real_type stepmin_b{};  //!< coefficient of the step minimum calculation
+    real_type d_over_r{};  //!< the maximum distance/range for e-/e+
+    real_type d_over_r_mh{};  //!< the maximum distance/range for muon/h
 };
 
 //---------------------------------------------------------------------------//
@@ -97,7 +97,7 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId electron;
     ParticleId positron;
 
@@ -135,19 +135,19 @@ struct UrbanMscData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    UrbanMscData& operator=(const UrbanMscData<W2, M2>& other)
+    UrbanMscData& operator=(UrbanMscData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids           = other.ids;
+        ids = other.ids;
         electron_mass = other.electron_mass;
-        params        = other.params;
-        msc_data      = other.msc_data;
+        params = other.params;
+        msc_data = other.msc_data;
         return *this;
     }
 };
 
 using UrbanMscDeviceRef = DeviceCRef<UrbanMscData>;
-using UrbanMscHostRef   = HostCRef<UrbanMscData>;
-using UrbanMscRef       = NativeCRef<UrbanMscData>;
+using UrbanMscHostRef = HostCRef<UrbanMscData>;
+using UrbanMscRef = NativeCRef<UrbanMscData>;
 
-} // namespace celeritas
+}  // namespace celeritas

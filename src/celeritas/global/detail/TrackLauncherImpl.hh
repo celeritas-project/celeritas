@@ -30,7 +30,7 @@ struct TrackLauncher
     //// DATA ////
 
     CoreRefNative const& data;
-    F                    call_with_track;
+    F call_with_track;
 
     //// METHODS ////
 
@@ -44,5 +44,5 @@ struct TrackLauncher
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

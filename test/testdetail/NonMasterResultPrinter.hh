@@ -23,12 +23,12 @@ class NonMasterResultPrinter : public ::testing::EmptyTestEventListener
     // Construct with MPI rank
     explicit NonMasterResultPrinter(int rank);
 
-    void OnTestPartResult(const ::testing::TestPartResult& result) override;
+    void OnTestPartResult(::testing::TestPartResult const& result) override;
 
   private:
     int rank_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

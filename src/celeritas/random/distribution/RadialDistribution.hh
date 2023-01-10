@@ -27,7 +27,7 @@ class RadialDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -74,4 +74,4 @@ CELER_FUNCTION auto RadialDistribution<RealType>::operator()(Generator& rng)
     return std::cbrt(generate_canonical<RealType>(rng)) * radius_;
 }
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

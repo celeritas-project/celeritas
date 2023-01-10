@@ -43,7 +43,7 @@ class EnergyLossGaussianDistribution
   public:
     //!@{
     //! Type aliases
-    using Energy   = units::MevEnergy;
+    using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}
 
@@ -58,14 +58,14 @@ class EnergyLossGaussianDistribution
 
     // Construct from helper-calculated data
     explicit inline CELER_FUNCTION
-    EnergyLossGaussianDistribution(const EnergyLossHelper& helper);
+    EnergyLossGaussianDistribution(EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>
     inline CELER_FUNCTION Energy operator()(Generator& rng);
 
   private:
-    const real_type               max_loss_;
+    const real_type max_loss_;
     NormalDistribution<real_type> sample_normal_;
 };
 
@@ -108,7 +108,7 @@ CELER_FUNCTION EnergyLossGaussianDistribution::EnergyLossGaussianDistribution(
  * Construct from helper-calculated data.
  */
 CELER_FUNCTION EnergyLossGaussianDistribution::EnergyLossGaussianDistribution(
-    const EnergyLossHelper& helper)
+    EnergyLossHelper const& helper)
     : EnergyLossGaussianDistribution{helper.mean_loss(), helper.bohr_variance()}
 {
 }
@@ -130,4 +130,4 @@ CELER_FUNCTION auto EnergyLossGaussianDistribution::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

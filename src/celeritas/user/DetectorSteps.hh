@@ -32,9 +32,9 @@ struct DetectorStepPointOutput
     using Energy = units::MevEnergy;
 
     std::vector<real_type> time;
-    std::vector<Real3>     pos;
-    std::vector<Real3>     dir;
-    std::vector<Energy>    energy;
+    std::vector<Real3> pos;
+    std::vector<Real3> dir;
+    std::vector<Energy> energy;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,15 +58,15 @@ struct DetectorStepOutput
 
     // Detector ID and track ID are always set
     std::vector<DetectorId> detector;
-    std::vector<TrackId>    track_id;
+    std::vector<TrackId> track_id;
 
     // Additional optional data
-    std::vector<EventId>    event_id;
-    std::vector<TrackId>    parent_id;
-    std::vector<size_type>  track_step_count;
-    std::vector<real_type>  step_length;
+    std::vector<EventId> event_id;
+    std::vector<TrackId> parent_id;
+    std::vector<size_type> track_step_count;
+    std::vector<real_type> step_length;
     std::vector<ParticleId> particle;
-    std::vector<Energy>     energy_deposition;
+    std::vector<Energy> energy_deposition;
 
     //! Number of elements in the detector output.
     size_type size() const { return detector.size(); }
@@ -77,7 +77,7 @@ struct DetectorStepOutput
 //---------------------------------------------------------------------------//
 // Copy state data for all steps inside detectors to the output.
 template<MemSpace M>
-void copy_steps(DetectorStepOutput*                           output,
+void copy_steps(DetectorStepOutput* output,
                 StepStateData<Ownership::reference, M> const& state);
 
 template<>
@@ -102,4 +102,4 @@ inline void copy_steps<MemSpace::device>(
 
 #endif
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

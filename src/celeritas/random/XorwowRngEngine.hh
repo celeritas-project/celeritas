@@ -42,7 +42,7 @@ class XorwowRngEngine
     //!@{
     //! Type aliases
     using result_type = unsigned int;
-    using StateRef    = NativeRef<XorwowRngStateData>;
+    using StateRef = NativeRef<XorwowRngStateData>;
     //!@}
 
   public:
@@ -53,7 +53,7 @@ class XorwowRngEngine
 
     // Construct from state
     inline CELER_FUNCTION
-    XorwowRngEngine(const StateRef& state, const ThreadId& id);
+    XorwowRngEngine(StateRef const& state, ThreadId const& id);
 
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
@@ -72,7 +72,7 @@ class GenerateCanonical<XorwowRngEngine, RealType>
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = RealType;
     //!@}
 
@@ -91,7 +91,7 @@ class GenerateCanonical<XorwowRngEngine, RealType>
  * Construct from state.
  */
 CELER_FUNCTION
-XorwowRngEngine::XorwowRngEngine(const StateRef& state, const ThreadId& id)
+XorwowRngEngine::XorwowRngEngine(StateRef const& state, ThreadId const& id)
 {
     CELER_EXPECT(id < state.state.size());
     state_ = &state.state[id];
@@ -103,8 +103,8 @@ XorwowRngEngine::XorwowRngEngine(const StateRef& state, const ThreadId& id)
  */
 CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 {
-    auto&      s = state_->xorstate;
-    const auto t = (s[0] ^ (s[0] >> 2u));
+    auto& s = state_->xorstate;
+    auto const t = (s[0] ^ (s[0] >> 2u));
 
     s[0] = s[1];
     s[1] = s[2];
@@ -117,4 +117,4 @@ CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

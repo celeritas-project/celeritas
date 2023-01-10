@@ -40,43 +40,43 @@ class PrimaryGenerator
 {
   public:
     //!@{
-    using EnergySampler    = std::function<real_type(Engine&)>;
-    using PositionSampler  = std::function<Real3(Engine&)>;
+    using EnergySampler = std::function<real_type(Engine&)>;
+    using PositionSampler = std::function<Real3(Engine&)>;
     using DirectionSampler = std::function<Real3(Engine&)>;
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using VecPrimary       = std::vector<Primary>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using VecPrimary = std::vector<Primary>;
     //!@}
 
     struct Input
     {
         std::vector<PDGNumber> pdg;
-        size_type              num_events{};
-        size_type              primaries_per_event{};
-        EnergySampler          sample_energy;
-        PositionSampler        sample_pos;
-        DirectionSampler       sample_dir;
+        size_type num_events{};
+        size_type primaries_per_event{};
+        EnergySampler sample_energy;
+        PositionSampler sample_pos;
+        DirectionSampler sample_dir;
     };
 
   public:
     // Construct from user input
     static inline PrimaryGenerator
-    from_options(SPConstParticles, const PrimaryGeneratorOptions&);
+    from_options(SPConstParticles, PrimaryGeneratorOptions const&);
 
     // Construct with options and shared particle data
-    inline PrimaryGenerator(SPConstParticles, const Input&);
+    inline PrimaryGenerator(SPConstParticles, Input const&);
 
     // Generate primary particles from a single event
     inline VecPrimary operator()(Engine& rng);
 
   private:
-    size_type               num_events_{};
-    size_type               primaries_per_event_{};
-    EnergySampler           sample_energy_;
-    PositionSampler         sample_pos_;
-    DirectionSampler        sample_dir_;
+    size_type num_events_{};
+    size_type primaries_per_event_{};
+    EnergySampler sample_energy_;
+    PositionSampler sample_pos_;
+    DirectionSampler sample_dir_;
     std::vector<ParticleId> particle_id_;
-    size_type               primary_count_{0};
-    size_type               event_count_{0};
+    size_type primary_count_{0};
+    size_type event_count_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -87,7 +87,7 @@ class PrimaryGenerator
  */
 template<class Engine>
 PrimaryGenerator<Engine>::PrimaryGenerator(SPConstParticles particles,
-                                           const Input&     inp)
+                                           Input const& inp)
     : num_events_(inp.num_events)
     , primaries_per_event_(inp.primaries_per_event)
     , sample_energy_(std::move(inp.sample_energy))
@@ -97,7 +97,7 @@ PrimaryGenerator<Engine>::PrimaryGenerator(SPConstParticles particles,
     CELER_EXPECT(particles);
 
     particle_id_.reserve(inp.pdg.size());
-    for (const auto& pdg : inp.pdg)
+    for (auto const& pdg : inp.pdg)
     {
         particle_id_.push_back(particles->find(pdg));
     }
@@ -118,14 +118,14 @@ auto PrimaryGenerator<Engine>::operator()(Engine& rng) -> VecPrimary
     VecPrimary result(primaries_per_event_);
     for (auto i : range(primaries_per_event_))
     {
-        Primary& p    = result[i];
+        Primary& p = result[i];
         p.particle_id = particle_id_[primary_count_ % particle_id_.size()];
-        p.energy      = units::MevEnergy{sample_energy_(rng)};
-        p.position    = sample_pos_(rng);
-        p.direction   = sample_dir_(rng);
-        p.time        = 0;
-        p.event_id    = EventId{event_count_};
-        p.track_id    = TrackId{i};
+        p.energy = units::MevEnergy{sample_energy_(rng)};
+        p.position = sample_pos_(rng);
+        p.direction = sample_dir_(rng);
+        p.time = 0;
+        p.event_id = EventId{event_count_};
+        p.track_id = TrackId{i};
         ++primary_count_;
     }
     ++event_count_;
@@ -143,20 +143,20 @@ auto PrimaryGenerator<Engine>::operator()(Engine& rng) -> VecPrimary
 template<class Engine>
 PrimaryGenerator<Engine>
 PrimaryGenerator<Engine>::from_options(SPConstParticles particles,
-                                       const PrimaryGeneratorOptions& opts)
+                                       PrimaryGeneratorOptions const& opts)
 {
     using DS = DistributionSelection;
 
     CELER_EXPECT(opts);
 
     typename PrimaryGenerator<Engine>::Input inp;
-    inp.pdg                 = std::move(opts.pdg);
-    inp.num_events          = opts.num_events;
+    inp.pdg = std::move(opts.pdg);
+    inp.num_events = opts.num_events;
     inp.primaries_per_event = opts.primaries_per_event;
 
     // Create energy distribution
     {
-        const auto& p = opts.energy.params;
+        auto const& p = opts.energy.params;
         switch (opts.energy.distribution)
         {
             case DS::delta:
@@ -169,7 +169,7 @@ PrimaryGenerator<Engine>::from_options(SPConstParticles particles,
     }
     // Create spatial distribution
     {
-        const auto& p = opts.position.params;
+        auto const& p = opts.position.params;
         switch (opts.position.distribution)
         {
             case DS::delta:
@@ -188,7 +188,7 @@ PrimaryGenerator<Engine>::from_options(SPConstParticles particles,
     }
     // Create angular distribution
     {
-        const auto& p = opts.direction.params;
+        auto const& p = opts.direction.params;
         switch (opts.direction.distribution)
         {
             case DS::delta:
@@ -209,4 +209,4 @@ PrimaryGenerator<Engine>::from_options(SPConstParticles particles,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

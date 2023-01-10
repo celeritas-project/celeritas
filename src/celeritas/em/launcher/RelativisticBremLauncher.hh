@@ -22,7 +22,7 @@ namespace celeritas
 inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
     RelativisticBremRef const& model, CoreTrackView const& track)
 {
-    auto cutoff   = track.make_cutoff_view();
+    auto cutoff = track.make_cutoff_view();
     auto material = track.make_material_view().make_material_view();
     auto particle = track.make_particle_view();
 
@@ -30,7 +30,7 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
     CELER_ASSERT(elcomp_id);
     auto allocate_secondaries
         = track.make_physics_step_view().make_secondary_allocator();
-    const auto& dir = track.make_geo_view().dir();
+    auto const& dir = track.make_geo_view().dir();
 
     RelativisticBremInteractor interact(
         model, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
@@ -40,4 +40,4 @@ inline CELER_FUNCTION Interaction relativistic_brem_interact_track(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

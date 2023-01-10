@@ -23,4 +23,4 @@ template<MemSpace M>
 struct CoreRef;
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

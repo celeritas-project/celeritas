@@ -28,7 +28,7 @@ class ParticleView
 
   public:
     // Construct from "static" particle definitions
-    inline CELER_FUNCTION ParticleView(const ParticleParamsRef&, ParticleId);
+    inline CELER_FUNCTION ParticleView(ParticleParamsRef const&, ParticleId);
 
     // Unique particle type identifier
     CELER_FORCEINLINE_FUNCTION ParticleId particle_id() const;
@@ -43,8 +43,8 @@ class ParticleView
     CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
 
   private:
-    const ParticleParamsRef& params_;
-    const ParticleId         particle_;
+    ParticleParamsRef const& params_;
+    const ParticleId particle_;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +54,7 @@ class ParticleView
  * Construct from "static" particle definitions.
  */
 CELER_FUNCTION
-ParticleView::ParticleView(const ParticleParamsRef& params, ParticleId id)
+ParticleView::ParticleView(ParticleParamsRef const& params, ParticleId id)
     : params_(params), particle_(id)
 {
     CELER_EXPECT(particle_ < params_.particles.size());
@@ -97,4 +97,4 @@ CELER_FUNCTION real_type ParticleView::decay_constant() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

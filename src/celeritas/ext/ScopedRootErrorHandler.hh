@@ -26,7 +26,7 @@ class ScopedRootErrorHandler
     ~ScopedRootErrorHandler();
 
   private:
-    using ErrorHandlerFuncPtr = void (*)(int, bool, const char*, const char*);
+    using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);
 
     ErrorHandlerFuncPtr previous_;
 };
@@ -43,4 +43,4 @@ inline ScopedRootErrorHandler::~ScopedRootErrorHandler() {}
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

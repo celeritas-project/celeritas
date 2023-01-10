@@ -34,21 +34,21 @@ class UrbanMscScatter
   public:
     //!@{
     //! \name Type aliases
-    using Energy        = units::MevEnergy;
-    using Mass          = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     using MscParameters = UrbanMscParameters;
-    using MaterialData  = UrbanMscMaterialData;
+    using MaterialData = UrbanMscMaterialData;
     //!@}
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscScatter(const UrbanMscRef&       shared,
-                                          const ParticleTrackView& particle,
-                                          GeoTrackView*            geometry,
-                                          const PhysicsTrackView&  physics,
-                                          const MaterialView&      material,
-                                          const MscStep&           input,
-                                          const bool geo_limited);
+    inline CELER_FUNCTION UrbanMscScatter(UrbanMscRef const& shared,
+                                          ParticleTrackView const& particle,
+                                          GeoTrackView* geometry,
+                                          PhysicsTrackView const& physics,
+                                          MaterialView const& material,
+                                          MscStep const& input,
+                                          bool const geo_limited);
 
     // Sample the final true step length, position and direction by msc
     template<class Engine>
@@ -58,20 +58,20 @@ class UrbanMscScatter
     //// DATA ////
 
     real_type inc_energy_;
-    Real3     inc_direction_;
-    bool      is_positron_;
+    Real3 inc_direction_;
+    bool is_positron_;
     real_type rad_length_;
     real_type range_;
     real_type mass_;
 
     // Urban MSC parameters
-    const MscParameters& params_;
+    MscParameters const& params_;
     // Urban MSC material data
-    const MaterialData& msc_;
+    MaterialData const& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
     // Results from UrbanMSCStepLimit
-    bool      is_displaced_;
+    bool is_displaced_;
     real_type geom_path_;
     real_type limit_min_;
     // Geomtry track view
@@ -80,7 +80,7 @@ class UrbanMscScatter
     real_type end_energy_;
     real_type lambda_;
     real_type true_path_;
-    bool      skip_sampling_;
+    bool skip_sampling_;
 
     // Internal state
     real_type tau_{0};
@@ -108,13 +108,13 @@ class UrbanMscScatter
 
     // Sample the angle, cos(theta), of the multiple scattering
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_theta(Engine&   rng,
+    inline CELER_FUNCTION real_type sample_cos_theta(Engine& rng,
                                                      real_type true_path,
                                                      real_type limit_min);
 
     // Sample consine(theta) with a large angle scattering
     template<class Engine>
-    inline CELER_FUNCTION real_type simple_scattering(Engine&   rng,
+    inline CELER_FUNCTION real_type simple_scattering(Engine& rng,
                                                       real_type xmean,
                                                       real_type x2mean) const;
 
@@ -129,7 +129,7 @@ class UrbanMscScatter
 
     // Update direction and position after the multiple scattering
     template<class Engine>
-    inline CELER_FUNCTION Real3 sample_displacement_dir(Engine&   rng,
+    inline CELER_FUNCTION Real3 sample_displacement_dir(Engine& rng,
                                                         real_type phi) const;
 };
 
@@ -140,13 +140,13 @@ class UrbanMscScatter
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscScatter::UrbanMscScatter(const UrbanMscRef&       shared,
-                                 const ParticleTrackView& particle,
-                                 GeoTrackView*            geometry,
-                                 const PhysicsTrackView&  physics,
-                                 const MaterialView&      material,
-                                 const MscStep&           input,
-                                 const bool               geo_limited)
+UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
+                                 ParticleTrackView const& particle,
+                                 GeoTrackView* geometry,
+                                 PhysicsTrackView const& physics,
+                                 MaterialView const& material,
+                                 MscStep const& input,
+                                 bool const geo_limited)
     : inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
@@ -240,7 +240,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     // Calculate direction and return
     result.step_length = true_path_;
-    result.direction   = rotate(from_spherical(costheta, phi), inc_direction_);
+    result.direction = rotate(from_spherical(costheta, phi), inc_direction_);
     return result;
 }
 
@@ -271,7 +271,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
  * for large \f$\theta\f$, if \f$b \approx 1\f$ and \f$d\f$ is not far from 2.
  */
 template<class Engine>
-CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
+CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                                                            real_type true_path,
                                                            real_type limit_min)
 {
@@ -295,7 +295,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
         // Sample the mean distribution of the scattering angle, cos(theta)
 
         // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
-        real_type xmean  = std::exp(-tau_);
+        real_type xmean = std::exp(-tau_);
         real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
 
         // Too large step of the low energy particle
@@ -305,8 +305,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
         }
 
         // Check for extreme small steps
-        real_type tsmall     = min<real_type>(limit_min, params_.lambda_limit);
-        bool      small_step = (true_path < tsmall);
+        real_type tsmall = min<real_type>(limit_min, params_.lambda_limit);
+        bool small_step = (true_path < tsmall);
 
         real_type theta0 = (small_step) ? std::sqrt(true_path / tsmall)
                                               * this->compute_theta0(tsmall)
@@ -362,7 +362,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine&   rng,
 
         // From continuity of derivatives
         real_type b1 = 2 + (c - xsi) * x;
-        real_type d  = fastpow(c * x / b1, c - 1);
+        real_type d = fastpow(c * x / b1, c - 1);
         real_type x0 = 1 - xsi * x;
 
         // Mean of cos\theta computed from the distribution g_2(cos\theta)
@@ -487,15 +487,15 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
  */
 CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
 {
-    using PolyLin  = PolyEvaluator<real_type, 1>;
+    using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     real_type corr{1.0};
 
-    real_type           zeff = msc_.zeff;
-    constexpr real_type xl   = 0.6;
-    constexpr real_type xh   = 0.9;
-    constexpr real_type e    = 113;
+    real_type zeff = msc_.zeff;
+    constexpr real_type xl = 0.6;
+    constexpr real_type xh = 0.9;
+    constexpr real_type e = 113;
 
     real_type x = std::sqrt(tau * (tau + 2) / ipow<2>(tau + 1));
     real_type a = PolyLin(0.994, -4.08e-3)(zeff);
@@ -516,7 +516,7 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
         real_type yh = c + d * std::exp(e * (xh - 1));
         real_type y0 = (yh - yl) / (xh - xl);
         real_type y1 = yl - y0 * xl;
-        corr         = y0 * x + y1;
+        corr = y0 * x + y1;
     }
 
     corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
@@ -656,4 +656,4 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

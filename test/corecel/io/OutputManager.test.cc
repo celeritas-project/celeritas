@@ -29,7 +29,7 @@ class TestInterface final : public OutputInterface
     {
     }
 
-    Category    category() const final { return cat_; }
+    Category category() const final { return cat_; }
     std::string label() const final { return label_; }
 
     void output(JsonPimpl* json) const final
@@ -43,9 +43,9 @@ class TestInterface final : public OutputInterface
     }
 
   private:
-    Category    cat_{};
+    Category cat_{};
     std::string label_{};
-    int         value_{};
+    int value_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +57,7 @@ class OutputManagerTest : public Test
   protected:
     using Category = OutputInterface::Category;
 
-    std::string to_string(const OutputManager& om)
+    std::string to_string(OutputManager const& om)
     {
         std::ostringstream os;
         om.output(&os);
@@ -144,5 +144,5 @@ TEST_F(OutputManagerTest, exception_output)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

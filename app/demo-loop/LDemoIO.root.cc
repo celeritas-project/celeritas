@@ -15,7 +15,7 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-             LDemoArgs&                                   args)
+             LDemoArgs& args)
 {
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);
@@ -49,4 +49,4 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
     tree_input->Write();
 }
 //---------------------------------------------------------------------------//
-} // namespace demo_loop
+}  // namespace demo_loop

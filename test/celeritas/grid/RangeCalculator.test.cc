@@ -59,5 +59,5 @@ TEST_F(RangeCalculatorTest, all)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

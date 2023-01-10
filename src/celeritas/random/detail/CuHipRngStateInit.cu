@@ -38,7 +38,7 @@ __global__ void rng_state_init_kernel(DeviceRef<CuHipRngStateData> const state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACE
@@ -46,8 +46,8 @@ __global__ void rng_state_init_kernel(DeviceRef<CuHipRngStateData> const state,
 /*!
  * Initialize the RNG states on device from seeds randomly generated on host.
  */
-void rng_state_init(const DeviceRef<CuHipRngStateData>& rng,
-                    const DeviceCRef<CuHipRngInitData>& seeds)
+void rng_state_init(DeviceRef<CuHipRngStateData> const& rng,
+                    DeviceCRef<CuHipRngInitData> const& seeds)
 {
     CELER_EXPECT(rng.size() == seeds.size());
     CELER_LAUNCH_KERNEL(rng_state_init,
@@ -58,5 +58,5 @@ void rng_state_init(const DeviceRef<CuHipRngStateData>& rng,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas
