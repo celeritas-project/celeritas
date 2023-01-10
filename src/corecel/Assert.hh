@@ -15,8 +15,7 @@
 
 #include <stdexcept>
 #include <string>
-#if defined(__HIP_DEVICE_COMPILE__)
-#    include <assert.h>
+#if defined(__HIP__)
 #    include <hip/hip_runtime.h>
 #elif defined(__CUDA_ARCH__)
 // No assert header needed for CUDA
@@ -122,9 +121,11 @@
 #elif defined(__CUDA_ARCH__) && !defined(NDEBUG)
 // Use the assert macro for CUDA when supported
 #    define CELER_DEBUG_THROW_(MSG, WHICH) \
-        assert(false && sizeof(#WHICH ": " #MSG))
+        assert(false && sizeof(#WHICH ": " MSG))
 #else
-// Use a special device function to emulate assertion failure
+// Use a special device function to emulate assertion failure if HIP
+// (assertion from multiple threads simultaeously can cause unexpected device
+// failures on AMD hardware) or if NDEBUG is in use with CUDA
 #    define CELER_DEBUG_THROW_(MSG, WHICH) \
         ::celeritas::device_debug_error(   \
             ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
@@ -164,7 +165,7 @@
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
-#if !CELER_DEVICE_COMPILE
+#if !CELER_DEVICE_COMPILE || defined(__HIP__)
 #    define CELER_VALIDATE(COND, MSG)                                     \
         do                                                                \
         {                                                                 \
@@ -461,7 +462,7 @@ class RuntimeError : public std::runtime_error
 //---------------------------------------------------------------------------//
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
-//! Host+device definition for CUDA
+//! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
     DebugErrorType, const char* condition, const char* file, unsigned int line)
 {
@@ -472,16 +473,16 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
     __trap();
 }
 #elif defined(__HIP__)
-//! Host-only overload for HIP
+//! Host-only HIP call (whether or not NDEBUG is in use)
 inline __host__ void device_debug_error(DebugErrorType which,
                                         const char*    condition,
                                         const char*    file,
                                         unsigned int   line)
 {
-    throw DebugError({which, MSG, __FILE__, __LINE__});
+    throw DebugError({which, condition, __FILE__, __LINE__});
 }
 
-//! Device-only overload for HIP
+//! Device-only call for HIP (must always be declared; only used if NDEBUG)
 inline __attribute__((noinline)) __device__ void device_debug_error(
     DebugErrorType, const char* condition, const char* file, unsigned int line)
 {
