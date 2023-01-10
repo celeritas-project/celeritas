@@ -18,6 +18,10 @@
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
+
+namespace
+{
+//---------------------------------------------------------------------------//
 /*!
  * Store CoreParams data to the ROOT MC truth output file.
  * Called by `to_root(...)`.
@@ -28,20 +32,19 @@ namespace demo_loop
  * debugging/analyses, this function can easily be expanded.
  */
 void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-                       celeritas::CoreParams core_params)
+                       celeritas::CoreParams const& core_params)
 {
-    auto action_reg = core_params.action_reg();
-    CELER_EXPECT(action_reg);
+    auto const& action_reg = *core_params.action_reg();
 
     // Initialize CoreParams TTree
     auto tree_params = root_manager->make_tree("core_params", "core_params");
 
     // Store labels
     std::vector<std::string> action_labels;
-    action_labels.resize(action_reg->num_actions());
-    for (auto const id : celeritas::range(action_reg->num_actions()))
+    action_labels.resize(action_reg.num_actions());
+    for (auto const id : celeritas::range(action_reg.num_actions()))
     {
-        action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
+        action_labels[id] = action_reg.id_to_label(celeritas::ActionId{id});
     }
 
     // Set up action labels branch, fill the TTree and write it
@@ -57,6 +60,8 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
     tree_params->Fill();
     tree_params->Write();
 }
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -64,7 +69,7 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
  */
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
              LDemoArgs& args,
-             celeritas::CoreParams core_params)
+             celeritas::CoreParams const& core_params)
 {
     CELER_EXPECT(root_manager);
     CELER_EXPECT(args);

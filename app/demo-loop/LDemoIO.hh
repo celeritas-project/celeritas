@@ -104,12 +104,12 @@ void from_json(nlohmann::json const& j, LDemoArgs& value);
 // Store LDemoArgs to ROOT file when ROOT is available
 void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
              LDemoArgs& args,
-             celeritas::CoreParams core_params);
+             celeritas::CoreParams const& core_params);
 
 #if !CELERITAS_USE_ROOT
 inline void to_root(std::shared_ptr<celeritas::RootFileManager>&,
                     LDemoArgs&,
-                    celeritas::CoreParams)
+                    celeritas::CoreParams const&)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
