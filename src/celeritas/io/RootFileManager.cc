@@ -54,7 +54,7 @@ RootFileManager::make_tree(char const* name, char const* title)
 void RootFileManager::write()
 {
     CELER_EXPECT(tfile_->IsOpen());
-    auto const write_status = tfile_->Write();
+    int write_status = tfile_->Write();
     CELER_ENSURE(write_status);
 }
 

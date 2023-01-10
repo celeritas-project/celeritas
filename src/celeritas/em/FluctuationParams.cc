@@ -43,7 +43,7 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
     auto urban = make_builder(&data.urban);
     for (auto mat_id : range(MaterialId{materials.size()}))
     {
-        auto const mat = materials.get(mat_id);
+        auto const&& mat = materials.get(mat_id);
 
         // Calculate the parameters for the energy loss fluctuation model (see
         // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)

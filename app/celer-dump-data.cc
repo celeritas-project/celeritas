@@ -83,7 +83,7 @@ void print_elements(std::vector<ImportElement>& elements)
 
     for (unsigned int element_id : range(elements.size()))
     {
-        auto const& element = elements.at(element_id);
+        auto const& element = elements[element_id];
         // clang-format off
         cout << "| "
              << setw(10) << std::left << element_id << " | "
@@ -113,7 +113,7 @@ void print_materials(std::vector<ImportMaterial>& materials,
 
     for (unsigned int material_id : range(materials.size()))
     {
-        auto const& material = materials.at(material_id);
+        auto const& material = materials[material_id];
 
         cout << "| " << setw(11) << material_id << " | " << setw(31)
              << material.name << " | " << setw(31)
@@ -148,7 +148,7 @@ void print_materials(std::vector<ImportMaterial>& materials,
     for (unsigned int material_id : range(materials.size()))
     {
         bool is_first_line = true;
-        auto const& material = materials.at(material_id);
+        auto const& material = materials[material_id];
 
         for (auto const& cutoff_key : material.pdg_cutoffs)
         {
@@ -216,20 +216,20 @@ void print_process(ImportProcess const& proc,
         for (size_type mat_id = 0; mat_id < micro_xs.size(); mat_id++)
         {
             // Print materials
-            cout << "\n- " << materials.at(mat_id).name << "\n\n";
+            cout << "\n- " << materials[mat_id].name << "\n\n";
             cout << "| Element       | Size  | Endpoints (MeV, cm^2) |\n"
                  << "| ------------- | ----- | "
                     "-----------------------------------------------------"
                     "------- "
                     "|\n";
 
-            auto const& elem_phys_vectors = micro_xs.at(mat_id);
+            auto const& elem_phys_vectors = micro_xs[mat_id];
 
             for (auto i : celeritas::range(elem_phys_vectors.size()))
             {
                 // Print elements and their physics vectors
-                auto const physvec = elem_phys_vectors.at(i);
-                cout << "| " << setw(13) << std::left << elements.at(i).name
+                auto const& physvec = elem_phys_vectors[i];
+                cout << "| " << setw(13) << std::left << elements[i].name
                      << " | " << setw(5) << physvec.x.size() << " | ("
                      << setprecision(3) << setw(12) << physvec.x.front()
                      << ", " << setprecision(3) << setw(12)
@@ -332,7 +332,7 @@ void print_volumes(std::vector<ImportVolume> const& volumes,
 
     for (unsigned int volume_id : range(volumes.size()))
     {
-        auto const& volume = volumes.at(volume_id);
+        auto const& volume = volumes[volume_id];
         auto const& material = materials.at(volume.material_id);
 
         // clang-format off
@@ -512,7 +512,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    auto const particle_params = ParticleParams::from_import(data);
+    auto const&& particle_params = ParticleParams::from_import(data);
 
     print_particles(*particle_params);
     print_elements(data.elements);

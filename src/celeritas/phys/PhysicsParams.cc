@@ -689,7 +689,7 @@ void PhysicsParams::build_model_xs(MaterialParams const& mats,
             size_type num_bins = data->value_grids[grid_ids[0]].value.size();
 
             // Calculate the cross section CDF
-            auto const elements = mats.get(MaterialId{mat_idx}).elements();
+            auto const&& elements = mats.get(MaterialId{mat_idx}).elements();
             for (auto bin_idx : range(num_bins))
             {
                 real_type cum_xs{0};
