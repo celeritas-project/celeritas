@@ -38,7 +38,15 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
     // Initialize CoreParams TTree
     auto tree_params = root_manager->make_tree("core_params", "core_params");
 
-    // Set up action labels branch
+    // Store labels
+    std::vector<std::string> action_labels;
+    action_labels.resize(action_reg->num_actions());
+    for (auto const id : celeritas::range(action_reg->num_actions()))
+    {
+        action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
+    }
+
+    // Set up action labels branch, fill the TTree and write it
     /*
      * The decision to store a vector instead of making a tree entry for each
      * label is to simplify the reading of the information. Calling
@@ -47,16 +55,7 @@ void store_core_params(std::shared_ptr<celeritas::RootFileManager>& root_manager
      * tree->GetEntry(action_id);
      * tree->GetLeaf("action_label")->GetValue();
      */
-    std::vector<std::string> action_labels;
     tree_params->Branch("action_labels", &action_labels);
-    action_labels.resize(action_reg->num_actions());
-
-    for (auto const id : celeritas::range(action_reg->num_actions()))
-    {
-        action_labels[id] = action_reg->id_to_label(celeritas::ActionId{id});
-    }
-
-    // Fill and write TTree
     tree_params->Fill();
     tree_params->Write();
 }
