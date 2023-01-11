@@ -17,29 +17,35 @@ namespace celeritas
 /*!
  * Accesss the 2D fields (i.e., {thread, level}) of OrangeStateData
  */
-template<Ownership W, MemSpace M>
 class LevelStateAccessor
 {
   public:
-    // Construct from states and indices
-    explicit inline CELER_FUNCTION
-    LevelStateAccessor(OrangeStateData<W, M>* states,
-                       ThreadId               thread_id,
-                       LevelId                level_id);
+    //!@{
+    //! Type aliases
+    using StateRef = NativeRef<OrangeStateData>;
+    //!@}
 
-    CELER_FUNCTION VolumeId volume_id()
+  public:
+    // Construct from states and indices
+    explicit inline CELER_FUNCTION LevelStateAccessor(const StateRef& states,
+                                                      ThreadId thread_id,
+                                                      LevelId  level_id);
+
+    CELER_FUNCTION VolumeId vol()
     {
-        return states_->volume_id[OpaqueId<VolumeId>{offset_}];
+        return states_.vol[ThreadId{offset_}];
+        // return states_.vol[OpaqueId<VolumeId>{offset_}];
     }
 
-    CELER_FUNCTION void set_volume_id(VolumeId id)
+    CELER_FUNCTION void set_vol(VolumeId id)
     {
-        &states_->volume_id[OpaqueId<VolumeId>{offset_}] = id;
+        states_.vol[ThreadId{offset_}] = id;
+        // states_.vol[OpaqueId<VolumeId>{offset_}] = id;
     }
 
   private:
-    const OrangeStateData<W, M>* states_;
-    const size_type              offset_;
+    const StateRef& states_;
+    const size_type offset_;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,14 +54,14 @@ class LevelStateAccessor
 /*!
  * Construct from states and indices
  */
-template<Ownership W, MemSpace M>
 CELER_FUNCTION
-LevelStateAccessor<W, M>::LevelStateAccessor(OrangeStateData<W, M>* states,
-                                             ThreadId               thread_id,
-                                             LevelId                level_id)
+LevelStateAccessor::LevelStateAccessor(const StateRef& states,
+                                       ThreadId        thread_id,
+                                       LevelId         level_id)
     : states_(states)
-    , offset_(thread_id.unchecked_get() * OrangeParamsScalars::max_level
-              + level_id.unchecked_get())
+    //, offset_(thread_id.unchecked_get() * OrangeParamsScalars::max_level
+    //          + level_id.unchecked_get())
+    , offset_(thread_id.unchecked_get())
 {
 }
 

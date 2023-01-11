@@ -309,7 +309,9 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !pos.empty()
+        return !level.empty()
+            && next_level.size() == level.size()
+            && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
             && surf.size() == pos.size()
@@ -330,14 +332,15 @@ struct OrangeStateData
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-
-        pos      = other.pos;
-        dir      = other.dir;
-        vol      = other.vol;
-        universe = other.universe;
-        surf     = other.surf;
-        sense    = other.sense;
-        boundary = other.boundary;
+        level      = other.level;
+        next_level = other.next_level;
+        pos        = other.pos;
+        dir        = other.dir;
+        vol        = other.vol;
+        universe   = other.universe;
+        surf       = other.surf;
+        sense      = other.sense;
+        boundary   = other.boundary;
 
         temp_sense = other.temp_sense;
         temp_face = other.temp_face;

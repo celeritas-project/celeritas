@@ -82,7 +82,14 @@ class OrangeTrackView
     //! The current direction
     CELER_FUNCTION Real3 const& dir() const { return states_.dir[thread_]; }
     //! The current volume ID (null if outside)
-    CELER_FUNCTION VolumeId volume_id() const { return states_.vol[thread_]; }
+    CELER_FUNCTION VolumeId volume_id() const
+    {
+        return states_.vol[thread_];
+        // LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+        // LevelStateAccessor lsa(states_, thread_, LevelId{0});
+        // return lsa.vol();
+    }
+
     //! The current surface ID
     CELER_FUNCTION SurfaceId surface_id() const
     {
@@ -225,14 +232,17 @@ OrangeTrackView::operator=(Initializer_t const& init)
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
         states_.vol[thread_] = global_vol_id;
-        // states_.universe[offset + level] = uid;
+        // LevelStateAccessor lsa(states_, thread_, LevelId{level});
+        // lsa.set_vol(global_vol_id);
+
+        states_.universe[thread_] = uid;
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         level++;
 
     } while (next_uid);
 
-    // states_.level[thread_] = LevelId{level - 1};
+    states_.level[thread_] = LevelId{level - 1};
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -246,14 +256,20 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
-    CELER_EXPECT(states_.vol[init.other.thread_]);
+
+    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
+    // LevelStateAccessor lsa_other(states_, init.other.thread_, LevelId{0});
+    // CELER_EXPECT(lsa_other.vol());
 
     // Copy init track's position but update the direction
     states_.pos[thread_] = states_.pos[init.other.thread_];
     states_.dir[thread_] = init.dir;
+
     states_.vol[thread_] = states_.vol[init.other.thread_];
-    states_.surf[thread_] = states_.surf[init.other.thread_];
-    states_.sense[thread_] = states_.sense[init.other.thread_];
+    // lsa.set_vol(lsa_other.vol());
+
+    states_.surf[thread_]     = states_.surf[init.other.thread_];
+    states_.sense[thread_]    = states_.sense[init.other.thread_];
     states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
     // Clear step and surface info
@@ -271,7 +287,10 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 {
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
+
     return states_.vol[thread_] == VolumeId{0};
+    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
+    // return lsa.vol() == VolumeId{0};
 }
 
 //---------------------------------------------------------------------------//
@@ -503,7 +522,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     detail::LocalState local;
     local.pos = this->pos();
     local.dir = this->dir();
+
     local.volume = states_.vol[thread_];
+    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
+    // local.volume = lsa.vol();
+
     local.surface = {states_.surf[thread_], flip_sense(states_.sense[thread_])};
     local.temp_sense = this->make_temp_sense();
 
@@ -519,8 +542,11 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         init.volume = VolumeId{0};
         init.surface = {};
     }
+
     states_.vol[thread_] = init.volume;
-    states_.surf[thread_] = init.surface.id();
+    // lsa.set_vol(init.volume);
+
+    states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
 
     // Reset boundary crossing state
@@ -629,8 +655,12 @@ CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
     detail::LocalState local;
     local.pos = states_.pos[thread_];
     local.dir = states_.dir[thread_];
+
     local.volume = states_.vol[thread_];
-    local.surface = {states_.surf[thread_], states_.sense[thread_]};
+    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
+    // local.volume = lsa.vol();
+
+    local.surface    = {states_.surf[thread_], states_.sense[thread_]};
     local.temp_sense = this->make_temp_sense();
     local.temp_next = this->make_temp_next();
     return local;

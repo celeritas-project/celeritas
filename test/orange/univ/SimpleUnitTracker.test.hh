@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "orange/OrangeData.hh"
+#include "orange/LevelStateAccessor.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 
 namespace celeritas
@@ -41,11 +42,16 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
                                                    StateRef<M> states,
                                                    ThreadId tid)
 {
+
     // Create local state from global memory
     LocalState lstate;
-    lstate.pos = states.pos[tid];
-    lstate.dir = states.dir[tid];
-    lstate.volume = states.vol[tid];
+    lstate.pos     = states.pos[tid];
+    lstate.dir     = states.dir[tid];
+
+    lstate.volume  = states.vol[tid];
+    //LevelStateAccessor lsa(states, tid, LevelId{0});
+    //lstate.volume  = lsa.vol();
+
     lstate.surface = {states.surf[tid], states.sense[tid]};
 
     const size_type max_faces = params.scalars.max_faces;
@@ -77,8 +83,12 @@ struct InitializingLauncher
         auto init = tracker.initialize(lstate);
 
         // Update state with post-initialization result
-        states.vol[tid] = init.volume;
-        states.surf[tid] = init.surface.id();
+        
+        states.vol[tid]   = init.volume;
+        //LevelStateAccessor lsa(states, tid, LevelId{0});
+        //lsa.set_vol(init.volume);
+
+        states.surf[tid]  = init.surface.id();
         states.sense[tid] = init.surface.unchecked_sense();
 
         lstate.volume = init.volume;
