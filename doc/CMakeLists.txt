@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
@@ -7,6 +7,9 @@
 #-----------------------------------------------------------------------------#
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
+
+# Use full version string instead of short version
+set(DOXYGEN_PROJECT_NUMBER "${Celeritas_VERSION_STRING}")
 
 # File setup
 set(DOXYGEN_EXCLUDE_PATTERNS
@@ -29,9 +32,9 @@ set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/scripts/README.md"
-  "${PROJECT_BINARY_DIR}/src/celeritas_config.h"
-  "${PROJECT_BINARY_DIR}/src/celeritas_cmake_strings.h"
-  "${PROJECT_BINARY_DIR}/src/celeritas_version.cc"
+  "${PROJECT_BINARY_DIR}/include/celeritas_config.h"
+  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
+  "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
 )
 
 # Documentation usage
@@ -59,6 +62,8 @@ set(DOXYGEN_PROJECT_LOGO
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
+set(DOXYGEN_VERBATIM_HEADERS NO)
+set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
@@ -135,10 +140,16 @@ endfunction()
 # Define a configure file with version and configuration info
 set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
+set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
+set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
+if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
+  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}-dev")
+endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
+set(DOXYGEN_XML_PROGRAMLISTING NO)
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
@@ -154,7 +165,6 @@ file(GLOB _DOXYGEN_SOURCE
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
-  "${PROJECT_SOURCE_DIR}/src/celeritas_version.h"
   ${_DOXYGEN_EXTRA_SOURCE}
   USE_STAMP_FILE
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
@@ -220,5 +230,8 @@ celeritas_build_latex(
 )
 
 add_custom_target(doc_pdf DEPENDS "${_doc_pdf}")
+if(CELERITAS_USE_BREATHE)
+  add_dependencies(doc_pdf doxygen_xml)
+endif()
 
 #-----------------------------------------------------------------------------#

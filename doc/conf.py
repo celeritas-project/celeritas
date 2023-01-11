@@ -1,4 +1,4 @@
-# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -35,12 +35,19 @@ try:
 except (KeyError, IOError) as e:
     print("Failed to load config data:", e)
     build_dir = '.'
+    rtdtheme = True
+    try:
+        import sphinx_rtd_theme
+    except ImportError:
+        rtdtheme = False
+
     celer_config = {
         "version": "*unknown version*",
         "release": "*unknown release*",
         "options": {
             "breathe": False,
             "sphinxbib": False,
+            "rtdtheme": rtdtheme,
         }
     }
 
@@ -65,16 +72,19 @@ extensions = [
 
 if celer_config['options']['breathe']:
     extensions.append('breathe')
-    breathe_default_project = project
+    breathe_default_project = 'celeritas'
     breathe_projects = {
-        project: build_dir / 'xml'
+        breathe_default_project: build_dir / 'xml'
     }
     breathe_default_members = ('members',)
 
 if celer_config['options']['sphinxbib']:
     import pybtex
     extensions.append("sphinxcontrib.bibtex")
-    bibtex_bibfiles = ['_static/references.bib']
+    bibtex_bibfiles = [
+        "_static/references.bib",
+        "_static/celeritas.bib"
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
@@ -94,6 +104,8 @@ highlight_language = 'cpp'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'alabaster'
+if celer_config['options']['rtdtheme']:
+    html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -102,13 +114,14 @@ html_static_path = ['_static']
 
 html_logo = "_static/celeritas-thumbnail.png"
 
-html_theme_options = {
-    'github_button': True,
-    'github_user': 'celeritas-project',
-    'github_repo': project.lower(),
-    'show_relbars': True,
-    'show_powered_by': False,
-}
+if html_theme == 'alabaster':
+    html_theme_options = {
+        'github_button': True,
+        'github_user': 'celeritas-project',
+        'github_repo': project.lower(),
+        'show_relbars': True,
+        'show_powered_by': False,
+    }
 
 # -- Options for LaTeX output ------------------------------------------------
 
