@@ -8,19 +8,18 @@
 Release History
 ***************
 
+
 Version 0.2.0
 =============
 
 Version 0.2.0 enables new coupled integration between Celeritas and Geant4
 using the Acceleritas interface library. It features new ROOT output capabilities
 including MC truth output, a set of high-level API classes for integrating
-into existing Geant4 toolkit-based apps, and better support for multithreaded
-use.
+into existing Geant4 toolkit-based apps, and better support for multithreaded use.
 
 New features
 ------------
 
-* Save JSON exception output if demo loop fails *(@sethrj, #507)*
 * Export SB, Livermore PE, and atomic relaxation data to ROOT file *(@stognini, #481)*
 * Refactor ORANGE input to be more extensible *(@sethrj, #510)*
 * Make primary generator more general *(@amandalund, #514)*
@@ -53,15 +52,16 @@ New features
 * Add HepMC3 reader to `demo-geant-integration` *(@stognini, #578)*
 * Add track parent id information to step data *(@stognini, #590)*
 * Enable all physics in geant demo for true offloading *(@sethrj, #591)*
+* Add action labels to the ROOT MC truth output file *(@stognini, #601)*
 
-Reviewers: @sethrj *(12)*, @amandalund *(11)*, @stognini *(2)*, @paulromano *(2)*, @whokion *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @elliottbiondo *(1)*, @mrguilima *(1)*
+Reviewers: @sethrj *(13)*, @amandalund *(10)*, @stognini *(2)*, @paulromano *(2)*, @whokion *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @elliottbiondo *(1)*, @mrguilima *(1)*
 
 Bug fixes
 ---------
 
 * Fix infrastructure and build issues for summit *(@sethrj, #509)*
-* Fix class name conflict, remove default initializers, and add other tweaks *(@sethrj, #504)*
 * Fix indexing of imported micro xs *(@amandalund, #512)*
+* Don't slow particles to zero when hitting boundary *(@sethrj, #524)*
 * Fix JSON build issues *(@sethrj, #536)*
 * Fix library location and configure issues from #526 *(@sethrj, #537)*
 * Fix thread safety issues in Celeritas *(@sethrj, #532)*
@@ -72,11 +72,24 @@ Bug fixes
 * Fix build documentation and issues with newer toolchains *(@sethrj, #571)*
 * Minor fixes for older Geant4/VecGeom releases *(@sethrj, #587)*
 * Use Geant4 environment variables to choose run manager and threads *(@sethrj, #589)*
+* Add backward compatibility for primary generators *(@sethrj, #599)*
 
-Reviewers: @amandalund *(9)*, @sethrj *(7)*, @pcanal *(5)*, @whokion *(3)*, @elliottbiondo *(1)*, @tmdelellis *(1)*, @paulromano *(1)*
+Reviewers: @amandalund *(6)*, @pcanal *(4)*, @sethrj *(2)*, @whokion *(2)*, @elliottbiondo *(1)*, @tmdelellis *(1)*, @paulromano *(1)*
 
 Documentation improvements
 --------------------------
+
+* Add release procedure, roles, and 0.1.x release notes *(@sethrj, #519)*
+* Add DOE DOI and improve PR process documentation *(@sethrj, #533)*
+* Add include-what-you-use script and pragmas *(@sethrj, #540)*
+* Add a simple SensitiveHit for demo-geant4-integration *(@whokion, #579)*
+* Add Acceleritas documentation *(@sethrj, #595)*
+* Update copyrights for 2023 *(@sethrj, #598)*
+
+Reviewers: @paulromano *(2)*, @amandalund *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @sethrj *(1)*, @whokion *(1)*
+
+Minor internal changes
+----------------------
 
 * Add granularity to Geant setup *(@sethrj, #485)*
 * Format code base (clang-format version 14.0.6) *(@sethrj, #506)*
@@ -84,7 +97,6 @@ Documentation improvements
 * Refactor ORANGE data and simple tracker to support nested universes *(@sethrj, #520)*
 * Define gauss as internal field strength and use tesla for input *(@sethrj, #522)*
 * Break library into multiple parts and mirror install tree *(@sethrj, #526)*
-* Add include-what-you-use script and pragmas *(@sethrj, #540)*
 * Split orange/Types and add Orange prefix to Data *(@sethrj, #541)*
 * Update CUDA RDC CMake code *(@pcanal, #545)*
 * Fix git-clang-format hook and code documentation *(@sethrj, #568)*
@@ -92,21 +104,11 @@ Documentation improvements
 * Refactor geant demo app and `accel` code *(@sethrj, #577)*
 * Move HepMC3 reader to accel and make a little more reusable *(@sethrj, #593)*
 * Rename `CELER_TRY_ELSE` to `CELER_TRY_HANDLE` *(@sethrj, #594)*
-* Add Acceleritas documentation *(@sethrj, #595)*
 * Update IWYU and apply to codebase *(@sethrj, #596)*
 * Update clang-format to avoid alignment and use "east const" *(@sethrj, #574)*
-* Update copyrights for 2023 *(@sethrj, #598)*
+* Enable debug assertions for HIP *(@sethrj, #597)*
 
-Reviewers: @amandalund *(9)*, @stognini *(2)*, @sethrj *(2)*, @paulromano *(1)*, @elliottbiondo *(1)*
-
-Minor internal changes
-----------------------
-
-* Add release procedure, roles, and 0.1.x release notes *(@sethrj, #519)*
-* Add DOE DOI and improve PR process documentation *(@sethrj, #533)*
-* Add a simple SensitiveHit for demo-geant4-integration *(@whokion, #579)*
-
-Reviewers: @paulromano *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @sethrj *(1)*, @whokion *(1)*
+Reviewers: @amandalund *(8)*, @stognini *(2)*, @sethrj *(2)*, @elliottbiondo *(1)*, @paulromano *(1)*
 
 Version 0.1.4
 =============

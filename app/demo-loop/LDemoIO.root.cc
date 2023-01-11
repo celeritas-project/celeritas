@@ -7,20 +7,26 @@
 //---------------------------------------------------------------------------//
 #include "LDemoIO.hh"
 
+#include <string>
+#include <vector>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
 
+#include "celeritas/global/ActionRegistry.hh"
+
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
-             LDemoArgs& args)
+/*!
+ * Store input information to the ROOT MC truth output file.
+ */
+void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs)
 {
-    CELER_EXPECT(root_manager);
-    CELER_EXPECT(args);
+    CELER_EXPECT(cargs);
 
-    auto tree_input = root_manager->make_tree("input", "input");
+    auto& args = const_cast<LDemoArgs&>(cargs);
+    auto tree_input = root_manager.make_tree("input", "input");
 
     // Problem definition
     tree_input->Branch("geometry_filename", &args.geometry_filename);
@@ -48,5 +54,45 @@ void to_root(std::shared_ptr<celeritas::RootFileManager>& root_manager,
     tree_input->Fill();
     tree_input->Write();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store CoreParams data to the ROOT MC truth output file.
+ *
+ * \note
+ * Currently only storing the action labels so their IDs can be identified. If
+ * other parameters are needed for future debugging/analyses, this function can
+ * easily be expanded.
+ */
+void to_root(celeritas::RootFileManager& root_manager,
+             celeritas::CoreParams const& core_params)
+{
+    auto const& action_reg = *core_params.action_reg();
+
+    // Initialize CoreParams TTree
+    auto tree_params = root_manager.make_tree("core_params", "core_params");
+
+    // Store labels
+    std::vector<std::string> action_labels;
+    action_labels.resize(action_reg.num_actions());
+    for (auto const id : celeritas::range(action_reg.num_actions()))
+    {
+        action_labels[id] = action_reg.id_to_label(celeritas::ActionId{id});
+    }
+
+    // Set up action labels branch, fill the TTree and write it
+    /*
+     * The decision to store a vector instead of making a tree entry for
+     * each label is to simplify the reading of the information. Calling
+     * action_labels->at(action_id) after loading the first (and only) tree
+     * entry is much simpler than:
+     * tree->GetEntry(action_id);
+     * tree->GetLeaf("action_label")->GetValue();
+     */
+    tree_params->Branch("action_labels", &action_labels);
+    tree_params->Fill();
+    tree_params->Write();
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace demo_loop
