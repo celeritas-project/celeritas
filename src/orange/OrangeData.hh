@@ -373,7 +373,6 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->dir, num_tracks);
 
     resize(&data->vol, size);
-    // resize(&data->vol, num_tracks);
 
     resize(&data->universe, num_tracks);
     resize(&data->surf, num_tracks);
