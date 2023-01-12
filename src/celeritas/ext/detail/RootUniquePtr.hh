@@ -15,7 +15,6 @@
 // Forward-declare ROOT; Expand as needed
 class TFile;
 class TTree;
-class TBranch;
 
 namespace celeritas
 {

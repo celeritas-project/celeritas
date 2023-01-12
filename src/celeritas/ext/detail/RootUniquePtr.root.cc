@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "RootUniquePtr.hh"
 
-#include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
 
@@ -19,6 +18,10 @@ namespace detail
 template<class T>
 void RootDeleter<T>::operator()(T* ptr) const
 {
+    if (ptr->IsA() == TFile::Class() || ptr->IsA() == TTree::Class())
+    {
+        ptr->Write();
+    }
     delete ptr;
 }
 
@@ -27,7 +30,6 @@ void RootDeleter<T>::operator()(T* ptr) const
 //---------------------------------------------------------------------------//
 template struct RootDeleter<TFile>;
 template struct RootDeleter<TTree>;
-template struct RootDeleter<TBranch>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

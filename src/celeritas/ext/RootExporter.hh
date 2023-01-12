@@ -10,7 +10,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
-#include "detail/RootSafeUniquePtrs.hh"
+#include "detail/RootUniquePtr.hh"
 
 namespace celeritas
 {
@@ -36,7 +36,7 @@ class RootExporter
 
   private:
     // ROOT file
-    detail::TFileSafeUniquePtr root_output_;
+    detail::RootUniquePtr<TFile> root_output_;
 
     // ROOT TTree name
     static char const* tree_name();

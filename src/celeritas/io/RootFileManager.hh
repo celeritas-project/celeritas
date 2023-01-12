@@ -9,7 +9,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "celeritas/ext/detail/RootSafeUniquePtrs.hh"
+#include "celeritas/ext/detail/RootUniquePtr.hh"
 
 namespace celeritas
 {
@@ -29,13 +29,13 @@ class RootFileManager
     explicit RootFileManager(char const* filename);
 
     // Create tree by passing a name and title
-    detail::TTreeSafeUniquePtr make_tree(char const* name, char const* title);
+    detail::RootUniquePtr<TTree> make_tree(char const* name, char const* title);
 
     // Write TFile
     void write();
 
   public:
-    detail::TFileSafeUniquePtr tfile_;
+    detail::RootUniquePtr<TFile> tfile_;
 };
 
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ inline RootFileManager::RootFileManager(char const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline detail::TTreeSafeUniquePtr
+inline detail::RootUniquePtr<TTree>
 RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");

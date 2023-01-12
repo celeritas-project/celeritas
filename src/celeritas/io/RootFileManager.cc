@@ -36,13 +36,13 @@ RootFileManager::RootFileManager(char const* filename)
  * To expand this class to write multiple root files (one per thread), add a
  * `tid` input parameter and call `tfile_[tid].get()`.
  */
-detail::TTreeSafeUniquePtr
+detail::RootUniquePtr<TTree>
 RootFileManager::make_tree(char const* name, char const* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
 
     int const split_level = 99;
-    detail::TTreeSafeUniquePtr uptree;
+    detail::RootUniquePtr<TTree> uptree;
     uptree.reset(new TTree(name, title, split_level, tfile_.get()));
     return uptree;
 }
