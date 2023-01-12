@@ -51,6 +51,7 @@ except (KeyError, IOError) as e:
             "rtdtheme": rtdtheme,
         }
     }
+    tags.add('noconfig')
 
 version = celer_config['version']
 release = celer_config['release']
