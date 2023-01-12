@@ -171,7 +171,7 @@ if(CELERITAS_USE_ROOT)
     ext/RootExporter.cc
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
-    ext/detail/RootUniquePtr.root.cc
+    ext/detail/RootSafeUniquePtrs.root.cc
     io/RootFileManager.cc
     io/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"

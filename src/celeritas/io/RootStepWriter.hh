@@ -11,6 +11,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "celeritas/ext/detail/RootSafeUniquePtrs.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -94,7 +95,7 @@ class RootStepWriter final : public StepInterface
     SPRootFileManager root_manager_;
     SPParticleParams particles_;
     StepSelection selection_;
-    detail::RootUniquePtr<TTree> tstep_tree_;
+    detail::TTreeSafeUniquePtr tstep_tree_;
     TStepData tstep_;  // Members are used as refs of the TTree branches
 };
 
