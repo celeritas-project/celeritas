@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RootFileManager.hh"
 
+#include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
 
@@ -36,13 +37,13 @@ RootFileManager::RootFileManager(char const* filename)
  * To expand this class to write multiple root files (one per thread), add a
  * `tid` input parameter and call `tfile_[tid].get()`.
  */
-detail::RootUniquePtr<TTree>
+RootUPWrite<TTree>
 RootFileManager::make_tree(char const* name, char const* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
 
     int const split_level = 99;
-    detail::RootUniquePtr<TTree> uptree;
+    RootUPWrite<TTree> uptree;
     uptree.reset(new TTree(name, title, split_level, tfile_.get()));
     return uptree;
 }

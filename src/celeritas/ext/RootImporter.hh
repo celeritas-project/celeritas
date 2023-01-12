@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "celeritas/io/ImportData.hh"
 
-#include "detail/RootUniquePtr.hh"
+#include "RootUniquePtr.hh"
 
 namespace celeritas
 {
@@ -48,7 +48,7 @@ class RootImporter
 
   private:
     // ROOT file
-    detail::RootUniquePtr<TFile> root_input_;
+    RootUPRead<TFile> root_input_;
 
     // ROOT TTree name
     static char const* tree_name();

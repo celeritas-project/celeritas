@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootUniquePtr.root.cc
+//! \file celeritas/ext/RootUniquePtr.root.cc
 //---------------------------------------------------------------------------//
 #include "RootUniquePtr.hh"
 
@@ -12,25 +12,28 @@
 
 namespace celeritas
 {
-namespace detail
-{
-//---------------------------------------------------------------------------//
+
 template<class T>
-void RootDeleter<T>::operator()(T* ptr) const
+void WriteAndDeleteRoot<T>::operator()(T* ptr)
 {
-    if (ptr->IsA() == TFile::Class() || ptr->IsA() == TTree::Class())
-    {
-        ptr->Write();
-    }
+    ptr->Write();
+    delete ptr;
+}
+
+template<class T>
+void DeleteRoot<T>::operator()(T* ptr) const
+{
     delete ptr;
 }
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
-template struct RootDeleter<TFile>;
-template struct RootDeleter<TTree>;
+template struct WriteAndDeleteRoot<TFile>;
+template struct WriteAndDeleteRoot<TTree>;
+
+template struct DeleteRoot<TFile>;
+template struct DeleteRoot<TTree>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

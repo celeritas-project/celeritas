@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootUniquePtr.hh
+//! \file celeritas/ext/RootUniquePtr.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,33 +13,47 @@
 #include "corecel/Assert.hh"
 
 // Forward-declare ROOT; Expand as needed
+class TObject;
 class TFile;
 class TTree;
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Helper to prevent ROOT from propagating to downstream code.
+/*!
+ * Helpers to prevent ROOT from propagating to downstream code.
+ */
 template<class T>
-struct RootDeleter
+struct WriteAndDeleteRoot
+{
+    void operator()(T*);
+};
+
+template<class T>
+struct DeleteRoot
 {
     void operator()(T*) const;
 };
 
 template<class T>
-using RootUniquePtr = std::unique_ptr<T, RootDeleter<T>>;
+using RootUPWrite = std::unique_ptr<T, WriteAndDeleteRoot<T>>;
+template<class T>
+using RootUPRead = std::unique_ptr<T, DeleteRoot<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 template<class T>
-inline void RootDeleter<T>::operator()(T*) const
+void WriteAndDeleteRoot<T>::operator()(T*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+template<class T>
+void DeleteRoot<T>::operator()(T*) const
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
