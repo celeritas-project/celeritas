@@ -313,7 +313,7 @@ struct OrangeStateData
             && next_level.size() == level.size()
             && !pos.empty()
             && dir.size() == pos.size()
-            && vol.size() == pos.size()
+            //&& vol.size() == pos.size()
             && surf.size() == pos.size()
             && sense.size() == pos.size()
             && boundary.size() == pos.size()
@@ -369,14 +369,16 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     auto size = params.scalars.max_level * num_tracks;
 
-    resize(&data->pos, size);
-    resize(&data->dir, size);
-    resize(&data->vol, size);
+    resize(&data->pos, num_tracks);
+    resize(&data->dir, num_tracks);
 
-    resize(&data->universe, size);
-    resize(&data->surf, size);
-    resize(&data->sense, size);
-    resize(&data->boundary, size);
+    resize(&data->vol, size);
+    // resize(&data->vol, num_tracks);
+
+    resize(&data->universe, num_tracks);
+    resize(&data->surf, num_tracks);
+    resize(&data->sense, num_tracks);
+    resize(&data->boundary, num_tracks);
 
     size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);

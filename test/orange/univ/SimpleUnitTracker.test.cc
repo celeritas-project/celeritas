@@ -299,9 +299,12 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
-    for (auto vol : host.vol[AllItems<VolumeId>{}])
+    // for (auto vol : host.vol[AllItems<VolumeId>{}])
+    for (auto i : range(host.size()))
     {
-        if (vol < counts.size())
+        auto vol = host.vol[ThreadId{i}];
+
+        if (vol.unchecked_get() < counts.size())
         {
             ++counts[vol.unchecked_get()];
         }
