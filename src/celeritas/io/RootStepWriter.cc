@@ -113,7 +113,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
 
         for (auto const sp : range(StepPoint::size_))
         {
-            RSW_STORE(points[sp].volume_id, .get());
+            RSW_STORE(points[sp].volume_id, .unchecked_get());
             RSW_STORE(points[sp].energy, .value());
             RSW_STORE(points[sp].time, /* no getter */);
             RSW_STORE(points[sp].dir, /* no getter */);
