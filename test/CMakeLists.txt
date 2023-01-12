@@ -278,6 +278,7 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
+    ${_optional_geant4_env}
     LINK_LIBRARIES VecGeom::vecgeom)
 endif()
 
