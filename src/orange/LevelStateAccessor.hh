@@ -33,18 +33,17 @@ class LevelStateAccessor
 
     CELER_FUNCTION VolumeId vol()
     {
-        // return states_.vol[OpaqueId<VolumeId>{offset_}];
-        return states_->vol[ThreadId{offset_}];
+        return states_->vol[OpaqueId<VolumeId>{index_}];
     }
 
     CELER_FUNCTION void set_vol(VolumeId id)
     {
-        states_->vol[ThreadId{offset_}] = id;
+        states_->vol[OpaqueId<VolumeId>{index_}] = id;
     }
 
   private:
     const StateRef* states_;
-    const size_type offset_;
+    const size_type index_;
 };
 
 //---------------------------------------------------------------------------//
@@ -58,9 +57,9 @@ LevelStateAccessor::LevelStateAccessor(const StateRef* states,
                                        ThreadId        thread_id,
                                        LevelId         level_id)
     : states_(states)
-    //, offset_(thread_id.unchecked_get() * OrangeParamsScalars::max_level
+    //, index_(thread_id.unchecked_get() * OrangeParamsScalars::max_level
     //          + level_id.unchecked_get())
-    , offset_(thread_id.unchecked_get())
+    , index_(thread_id.unchecked_get())
 {
 }
 

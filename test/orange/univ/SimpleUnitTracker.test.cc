@@ -299,10 +299,11 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
-    // for (auto vol : host.vol[AllItems<VolumeId>{}])
     for (auto i : range(host.size()))
     {
-        auto vol = host.vol[ThreadId{i}];
+        auto               thread_id = ThreadId{i};
+        LevelStateAccessor lsa(&host, thread_id, host.level[thread_id]);
+        auto               vol = lsa.vol();
 
         if (vol.unchecked_get() < counts.size())
         {

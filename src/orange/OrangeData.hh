@@ -289,7 +289,7 @@ struct OrangeStateData
     // Dimensions {num_tracks, max_level}
     StateItems<Real3>      pos;
     StateItems<Real3>      dir;
-    StateItems<VolumeId>   vol;
+    Items<VolumeId>        vol;
     StateItems<UniverseId> universe;
 
     // Surface crossing, dimensions {num_tracks, max_level}

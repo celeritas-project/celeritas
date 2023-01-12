@@ -84,10 +84,8 @@ class OrangeTrackView
     //! The current volume ID (null if outside)
     CELER_FUNCTION VolumeId volume_id() const
     {
-        return states_.vol[thread_];
-        // LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
-        // LevelStateAccessor lsa(states_, thread_, LevelId{0});
-        // return lsa.vol();
+        LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+        return lsa.vol();
     }
 
     //! The current surface ID
@@ -231,9 +229,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
-        states_.vol[thread_] = global_vol_id;
-        // LevelStateAccessor lsa(states_, thread_, LevelId{level});
-        // lsa.set_vol(global_vol_id);
+        LevelStateAccessor lsa(&states_, thread_, LevelId{level});
+        lsa.set_vol(global_vol_id);
 
         states_.universe[thread_] = uid;
 
@@ -257,16 +254,18 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
-    // LevelStateAccessor lsa_other(states_, init.other.thread_, LevelId{0});
-    // CELER_EXPECT(lsa_other.vol());
+    for (auto i : range(states_.level[thread_]))
+    {
+        LevelStateAccessor lsa(&states_, thread_, LevelId{i});
+        LevelStateAccessor lsa_other(&states_, init.other.thread_, LevelId{i});
+        CELER_EXPECT(lsa_other.vol());
+
+        lsa.set_vol(lsa_other.vol());
+    }
 
     // Copy init track's position but update the direction
     states_.pos[thread_] = states_.pos[init.other.thread_];
     states_.dir[thread_] = init.dir;
-
-    states_.vol[thread_] = states_.vol[init.other.thread_];
-    // lsa.set_vol(lsa_other.vol());
 
     states_.surf[thread_]     = states_.surf[init.other.thread_];
     states_.sense[thread_]    = states_.sense[init.other.thread_];
@@ -288,9 +287,9 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
 
-    return states_.vol[thread_] == VolumeId{0};
-    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
-    // return lsa.vol() == VolumeId{0};
+    // return states_.vol[thread_] == VolumeId{0};
+    LevelStateAccessor lsa(&states_, thread_, LevelId{0});
+    return lsa.vol() == VolumeId{0};
 }
 
 //---------------------------------------------------------------------------//
@@ -523,9 +522,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.pos = this->pos();
     local.dir = this->dir();
 
-    local.volume = states_.vol[thread_];
-    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
-    // local.volume = lsa.vol();
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    local.volume = lsa.vol();
 
     local.surface = {states_.surf[thread_], flip_sense(states_.sense[thread_])};
     local.temp_sense = this->make_temp_sense();
@@ -543,8 +541,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         init.surface = {};
     }
 
-    states_.vol[thread_] = init.volume;
-    // lsa.set_vol(init.volume);
+    lsa.set_vol(init.volume);
 
     states_.surf[thread_]  = init.surface.id();
     states_.sense[thread_] = init.surface.unchecked_sense();
@@ -656,9 +653,8 @@ CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
     local.pos = states_.pos[thread_];
     local.dir = states_.dir[thread_];
 
-    local.volume = states_.vol[thread_];
-    // LevelStateAccessor lsa(states_, thread_, LevelId{0});
-    // local.volume = lsa.vol();
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    local.volume = lsa.vol();
 
     local.surface    = {states_.surf[thread_], states_.sense[thread_]};
     local.temp_sense = this->make_temp_sense();
