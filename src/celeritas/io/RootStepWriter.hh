@@ -29,42 +29,6 @@ namespace celeritas
 class RootStepWriter final : public StepInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPRootFileManager = std::shared_ptr<RootFileManager>;
-    using SPParticleParams = std::shared_ptr<ParticleParams const>;
-    //!@}
-
-    // Construct with RootFileManager, ParticleParams, and data selection
-    RootStepWriter(SPRootFileManager root_manager,
-                   SPParticleParams particle_params,
-                   StepSelection selection);
-
-    // Set number of entries stored in memory before being flushed to disk
-    void set_auto_flush(long num_entries);
-
-    // Process step data on the host and fill step tree
-    void execute(StateHostRef const& steps) final;
-
-    // Device execution cannot be implemented
-    void execute(StateDeviceRef const&) final
-    {
-        CELER_NOT_IMPLEMENTED("RootStepWriter is host-only.");
-    }
-
-    // Selection of data to be stored
-    StepSelection selection() const final { return selection_; }
-
-    // No filter selection is implemented
-    Filters filters() const final { return Filters{}; }
-
-  private:
-    // Create steps tree based on selection_ booleans
-    void make_tree();
-
-  private:
-    //// TYPES ////
-
     // Truth step point data; Naming convention *must* match StepPointStateData
     struct TStepPoint
     {
@@ -89,13 +53,48 @@ class RootStepWriter final : public StepInterface
         EnumArray<StepPoint, TStepPoint> points;
     };
 
-    //// DATA ////
+    //!@{
+    //! \name Type aliases
+    using SPRootFileManager = std::shared_ptr<RootFileManager>;
+    using SPParticleParams = std::shared_ptr<ParticleParams const>;
+    using RSWFilter = std::pair<StepSelection, TStepData>;
+    //!@}
 
+    // Construct with RootFileManager, ParticleParams, and data selection
+    RootStepWriter(SPRootFileManager root_manager,
+                   SPParticleParams particle_params,
+                   StepSelection selection,
+                   RSWFilter filter_conditions);
+
+    // Set number of entries stored in memory before being flushed to disk
+    void set_auto_flush(long num_entries);
+
+    // Process step data on the host and fill step tree
+    void execute(StateHostRef const& steps) final;
+
+    // Device execution cannot be implemented
+    void execute(StateDeviceRef const&) final
+    {
+        CELER_NOT_IMPLEMENTED("RootStepWriter is host-only.");
+    }
+
+    // Selection of data to be stored
+    StepSelection selection() const final { return selection_; }
+
+    // No filter selection is implemented
+    Filters filters() const final { return Filters{}; }
+
+  private:
+    // Create steps tree based on selection_ booleans
+    void make_tree();
+
+  private:
     SPRootFileManager root_manager_;
     SPParticleParams particles_;
     StepSelection selection_;
     detail::RootUniquePtr<TTree> tstep_tree_;
     TStepData tstep_;  // Members are used as refs of the TTree branches
+    std::unique_ptr<RSWFilter> rsw_filter_;
 };
 
 //---------------------------------------------------------------------------//

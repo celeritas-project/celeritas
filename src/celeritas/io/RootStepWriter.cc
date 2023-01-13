@@ -44,13 +44,15 @@ namespace celeritas
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
-                               StepSelection selection)
+                               StepSelection selection,
+                               RSWFilter filter_conditions)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
 {
     CELER_EXPECT(root_manager_);
+    rsw_filter_ = std::make_unique<RSWFilter>(filter_conditions);
     this->make_tree();
 }
 
@@ -84,6 +86,21 @@ void RootStepWriter::execute(StateHostRef const& steps)
         }                                                          \
     } while (0)
 
+#define RSW_FILTER(ATTR, GETTER)                                        \
+    do                                                                  \
+    {                                                                   \
+        if (!rsw_filter_)                                               \
+        {                                                               \
+            RSW_STORE(ATTR, GETTER);                                    \
+        }                                                               \
+                                                                        \
+        else if (rsw_filter_->first.ATTR                                \
+                 && rsw_filter_->second.ATTR == steps.ATTR[tid] GETTER) \
+        {                                                               \
+            RSW_STORE(ATTR, GETTER);                                    \
+        }                                                               \
+    } while (0)
+
     CELER_EXPECT(steps);
     tstep_ = TStepData();
 
@@ -99,16 +116,21 @@ void RootStepWriter::execute(StateHostRef const& steps)
         // Track id is always set
         tstep_.track_id = steps.track_id[tid].unchecked_get();
 
-        RSW_STORE(event_id, .get());
-        RSW_STORE(parent_id, .unchecked_get());
-        RSW_STORE(action_id, .get());
-        RSW_STORE(energy_deposition, .value());
-        RSW_STORE(step_length, /* no getter */);
-        RSW_STORE(track_step_count, /* no getter */);
+        RSW_FILTER(event_id, .get());
+        RSW_FILTER(parent_id, .unchecked_get());
+        RSW_FILTER(action_id, .get());
+        RSW_FILTER(energy_deposition, .value());
+        RSW_FILTER(step_length, /* no getter */);
+        RSW_FILTER(track_step_count, /* no getter */);
         if (selection_.particle)
         {
-            copy_if_selected(particles_->id_to_pdg(steps.particle[tid]).get(),
-                             tstep_.particle);
+            auto const pdg = particles_->id_to_pdg(steps.particle[tid]).get();
+
+            if (rsw_filter_->first.particle
+                && rsw_filter_->second.particle == pdg)
+            {
+                copy_if_selected(pdg, tstep_.particle);
+            }
         }
 
         for (auto const sp : range(StepPoint::size_))
@@ -124,6 +146,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
     }
 
 #undef RSW_STORE
+#undef RSW_FILTER
 }
 
 //---------------------------------------------------------------------------//
