@@ -121,10 +121,25 @@ void run(std::istream* is, OutputManager* output)
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
 
+        StepSelection rsw_selection;
+        RootStepWriter::TStepData rsw_selection_values;
+        rsw_selection.action_id = true;
+        rsw_selection.particle = true;
+        rsw_selection_values.action_id = 8;
+        rsw_selection_values.particle = 22;
+
+        // step_writer = std::make_shared<RootStepWriter>(
+        //     root_manager,
+        //     transport_ptr->params().particle(),
+        //     StepSelection::all(),
+        //     RootStepWriter::UPRSWFilter(nullptr));
+
         step_writer = std::make_shared<RootStepWriter>(
             root_manager,
             transport_ptr->params().particle(),
-            StepSelection::all());
+            StepSelection::all(),
+            RootStepWriter::UPRSWFilter(new RootStepWriter::RSWFilter(
+                rsw_selection, rsw_selection_values)));
 
         step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},
