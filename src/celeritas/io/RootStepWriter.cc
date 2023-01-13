@@ -185,23 +185,22 @@ void RootStepWriter::make_tree()
 //---------------------------------------------------------------------------//
 bool RootStepWriter::verify_selection()
 {
+    if (!rsw_filter_)
+    {
+        // No filter created, every value must be stored
+        return true;
+    }
+
     StepSelection verify_values;
 
-#define RSW_VERIFY_FILTER(ATTR)                             \
-    do                                                      \
-    {                                                       \
-        if (!rsw_filter_)                                   \
-        {                                                   \
-            verify_values.ATTR = true;                      \
-        }                                                   \
-        else                                                \
-        {                                                   \
-            if (rsw_filter_->first.ATTR                     \
-                && rsw_filter_->second.ATTR == tstep_.ATTR) \
-            {                                               \
-                verify_values.ATTR = true;                  \
-            }                                               \
-        }                                                   \
+#define RSW_VERIFY_FILTER(ATTR)                         \
+    do                                                  \
+    {                                                   \
+        if (rsw_filter_->first.ATTR                     \
+            && rsw_filter_->second.ATTR == tstep_.ATTR) \
+        {                                               \
+            verify_values.ATTR = true;                  \
+        }                                               \
     } while (0)
 
     RSW_VERIFY_FILTER(event_id);
@@ -221,14 +220,15 @@ bool RootStepWriter::verify_selection()
         RSW_VERIFY_FILTER(points[sp].pos);
     }
 
-#undef RSW_VERIFY_FILTER
-
     if (verify_values == rsw_filter_->first)
     {
+        // All values are in agreement with the provided filter selection
         return true;
     }
 
     return false;
+
+#undef RSW_VERIFY_FILTER
 }
 
 //---------------------------------------------------------------------------//
