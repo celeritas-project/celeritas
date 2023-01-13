@@ -11,7 +11,7 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include "corecel/io/Logger.hh"
+#include "corecel/Assert.hh"
 
 namespace
 {
@@ -57,6 +57,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
     if (filter_conditions)
     {
         rsw_filter_ = std::move(filter_conditions);
+        this->validate_rsw_filter();
     }
     this->make_tree();
 }
@@ -127,7 +128,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
             RSW_STORE(points[sp].pos, /* no getter */);
         }
 
-        if (this->verify_selection())
+        if (this->is_selection_valid())
         {
             tstep_tree_->Fill();
         }
@@ -188,7 +189,7 @@ void RootStepWriter::make_tree()
  * `rsw_filter_->second` and return true if all conditions are simultaneously
  * satisfied.
  */
-bool RootStepWriter::verify_selection()
+bool RootStepWriter::is_selection_valid()
 {
     if (!rsw_filter_)
     {
@@ -234,6 +235,51 @@ bool RootStepWriter::verify_selection()
     return false;
 
 #undef RSW_VERIFY_FILTER
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Validate RootStepWriter filter. Filter is valid only if any filtered data is
+ * also set to true in the StepSelection. I.e. every filtered value must be
+ * part of the selection of data to be stored in the ROOT file.
+ */
+void RootStepWriter::validate_rsw_filter()
+{
+    CELER_EXPECT(rsw_filter_);
+    std::pair<bool, std::string> invalid_filter = std::make_pair(true, "");
+
+#define RSW_ASSERT_FILTER(ATTR)                                          \
+    do                                                                   \
+    {                                                                    \
+        if (rsw_filter_->first.ATTR == true && selection_.ATTR == false) \
+        {                                                                \
+            invalid_filter = std::make_pair(false, #ATTR);               \
+        }                                                                \
+    } while (0)
+
+    RSW_ASSERT_FILTER(event_id);
+    RSW_ASSERT_FILTER(parent_id);
+    RSW_ASSERT_FILTER(action_id);
+    RSW_ASSERT_FILTER(energy_deposition);
+    RSW_ASSERT_FILTER(step_length);
+    RSW_ASSERT_FILTER(track_step_count);
+    RSW_ASSERT_FILTER(particle);
+
+    for (auto const sp : range(StepPoint::size_))
+    {
+        RSW_ASSERT_FILTER(points[sp].volume_id);
+        RSW_ASSERT_FILTER(points[sp].energy);
+        RSW_ASSERT_FILTER(points[sp].time);
+        RSW_ASSERT_FILTER(points[sp].dir);
+        RSW_ASSERT_FILTER(points[sp].pos);
+    }
+
+#undef RSW_ASSERT_FILTER
+
+    CELER_VALIDATE(invalid_filter.first,
+                   << invalid_filter.second
+                   << " cannot be true in the filter and false in the "
+                      "selection. Filtered data must be stored.");
 }
 
 //---------------------------------------------------------------------------//

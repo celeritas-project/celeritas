@@ -90,7 +90,10 @@ class RootStepWriter final : public StepInterface
     void make_tree();
 
     // Verify if current step must be saved
-    bool verify_selection();
+    bool is_selection_valid();
+
+    // Validate correctness of the RSW selection booleans
+    void validate_rsw_filter();
 
   private:
     SPRootFileManager root_manager_;
