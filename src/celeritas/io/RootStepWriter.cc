@@ -185,21 +185,21 @@ void RootStepWriter::make_tree()
 //---------------------------------------------------------------------------//
 bool RootStepWriter::verify_selection()
 {
-    bool is_valid{false};
+    StepSelection verify_values;
 
 #define RSW_VERIFY_FILTER(ATTR)                             \
     do                                                      \
     {                                                       \
         if (!rsw_filter_)                                   \
         {                                                   \
-            is_valid = true;                                \
+            verify_values.ATTR = true;                      \
         }                                                   \
         else                                                \
         {                                                   \
             if (rsw_filter_->first.ATTR                     \
                 && rsw_filter_->second.ATTR == tstep_.ATTR) \
             {                                               \
-                is_valid = true;                            \
+                verify_values.ATTR = true;                  \
             }                                               \
         }                                                   \
     } while (0)
@@ -223,7 +223,12 @@ bool RootStepWriter::verify_selection()
 
 #undef RSW_VERIFY_FILTER
 
-    return is_valid;
+    if (verify_values == rsw_filter_->first)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------------------------//
