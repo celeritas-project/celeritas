@@ -79,7 +79,6 @@ struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
 
-    real_type zeff{};  //!< effective atomic_number
     real_type scaled_zeff{};  //!< 0.70 * sqrt(zeff)
     real_type z23{};  //!< zeff^(2/3)
     real_type coeffth1{};  //!< correction in theta_0 formula

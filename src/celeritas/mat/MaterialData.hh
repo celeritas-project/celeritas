@@ -74,6 +74,7 @@ struct MaterialRecord
 
     // COMPUTED PROPERTIES
 
+    real_type zeff;  //!< Weighted atomic number
     real_type density;  //!< Density [g/cm^3]
     real_type electron_density;  //!< Electron number density [1/cm^3]
     real_type rad_length;  //!< Radiation length [cm]

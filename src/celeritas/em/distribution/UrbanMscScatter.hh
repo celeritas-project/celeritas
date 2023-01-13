@@ -70,6 +70,9 @@ class UrbanMscScatter
     MaterialData const& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
+    // Average atomic number (used only if positron)
+    real_type const zeff_;
+
     // Results from UrbanMSCStepLimit
     bool is_displaced_;
     real_type geom_path_;
@@ -156,6 +159,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , params_(shared.params)
     , msc_(shared.msc_data[material.material_id()])
     , helper_(shared, particle, physics)
+    , zeff_(material.zeff())
     , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
     , limit_min_(physics.msc_range().limit_min)
@@ -490,18 +494,17 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
     using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    real_type corr{1.0};
+    real_type corr;
 
-    real_type zeff = msc_.zeff;
     constexpr real_type xl = 0.6;
     constexpr real_type xh = 0.9;
     constexpr real_type e = 113;
 
     real_type x = std::sqrt(tau * (tau + 2) / ipow<2>(tau + 1));
-    real_type a = PolyLin(0.994, -4.08e-3)(zeff);
-    real_type b = PolyQuad(7.16, 52.6, 365)(1 / zeff);
-    real_type c = PolyLin(1, -4.47e-3)(zeff);
-    real_type d = real_type(1.21e-3) * zeff;
+    real_type a = PolyLin(0.994, -4.08e-3)(zeff_);
+    real_type b = PolyQuad(7.16, 52.6, 365)(1 / zeff_);
+    real_type c = PolyLin(1, -4.47e-3)(zeff_);
+    real_type d = real_type(1.21e-3) * zeff_;
     if (x < xl)
     {
         corr = a * (1 - std::exp(-b * x));
@@ -519,7 +522,7 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
         corr = y0 * x + y1;
     }
 
-    corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
+    corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff_);
 
     return corr;
 }

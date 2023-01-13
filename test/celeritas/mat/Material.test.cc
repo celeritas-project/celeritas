@@ -183,6 +183,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
+        EXPECT_SOFT_EQ(32.0, mat.zeff());
         EXPECT_SOFT_EQ(3.6700020622594716, mat.density());
         EXPECT_SOFT_EQ(9.4365282069663997e+23, mat.electron_density());
         EXPECT_SOFT_EQ(3.5393292693170424, mat.radiation_length());
@@ -205,6 +206,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(0, mat.number_density());
         EXPECT_SOFT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
+        EXPECT_SOFT_EQ(0, mat.zeff());
         EXPECT_SOFT_EQ(0, mat.density());
         EXPECT_SOFT_EQ(0, mat.electron_density());
         EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
@@ -223,6 +225,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
         EXPECT_SOFT_EQ(100, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(1.0, mat.zeff());
         EXPECT_SOFT_EQ(0.00017976, mat.density());
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
         EXPECT_SOFT_EQ(350729.99844063615, mat.radiation_length());
@@ -240,6 +243,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.072e+20, mat.number_density());
         EXPECT_SOFT_EQ(110, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(1.0, mat.zeff());
         EXPECT_SOFT_EQ(0.00017943386624303615, mat.density());
         EXPECT_SOFT_EQ(1.072e+20, mat.electron_density());
         EXPECT_SOFT_EQ(351367.47504673258, mat.radiation_length());

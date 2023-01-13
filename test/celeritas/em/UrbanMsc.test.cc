@@ -226,7 +226,6 @@ TEST_F(UrbanMscTest, msc_scattering)
     UrbanMscMaterialData const& msc_
         = model->host_ref().msc_data[material_view.material_id()];
 
-    EXPECT_DOUBLE_EQ(msc_.zeff, 25.8);
     EXPECT_DOUBLE_EQ(msc_.z23, 8.7313179636909233);
     EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
     EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);

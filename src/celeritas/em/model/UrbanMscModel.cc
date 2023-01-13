@@ -139,23 +139,9 @@ auto UrbanMscModel::calc_material_data(MaterialView const& material_view)
         return {};
     }
 
-    // Use double-precision for host-side setup since all the precomputed
-    // factors are written as doubles
-    double zeff{0};
-    double norm{0};
-    for (auto el_id : range(ElementComponentId{material_view.num_elements()}))
-    {
-        double weight = material_view.get_element_density(el_id);
-        AtomicNumber z = material_view.make_element_view(el_id).atomic_number();
-        zeff += z.unchecked_get() * weight;
-        norm += weight;
-    }
-    zeff /= norm;
-    CELER_ASSERT(zeff > 0);
-
     MaterialData data;
 
-    data.zeff = zeff;
+    double zeff = material_view.zeff();
     data.scaled_zeff = 0.70 * std::sqrt(zeff);
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
@@ -178,8 +164,7 @@ auto UrbanMscModel::calc_material_data(MaterialView const& material_view)
     data.stepmin_b = 1e3 * 6.152 / (1 + 0.111 * zeff);
 
     // Parameters for the maximum distance that particles can travel
-    data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(data.zeff)
-                    + 4.3769e-3 * zeff;
+    data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff) + 4.3769e-3 * zeff;
     data.d_over_r_mh = 1.15 - 9.76e-4 * zeff;
 
     return data;
