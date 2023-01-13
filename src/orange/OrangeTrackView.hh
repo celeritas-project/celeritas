@@ -254,7 +254,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    for (auto i : range(states_.level[thread_]))
+    for (auto i : range(states_.level[init.other.thread_]))
     {
         LevelStateAccessor lsa(&states_, thread_, LevelId{i});
         LevelStateAccessor lsa_other(&states_, init.other.thread_, LevelId{i});
@@ -264,6 +264,9 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
     }
 
     // Copy init track's position but update the direction
+    states_.level[thread_]      = states_.level[init.other.thread_];
+    states_.next_level[thread_] = states_.next_level[init.other.thread_];
+
     states_.pos[thread_] = states_.pos[init.other.thread_];
     states_.dir[thread_] = init.dir;
 

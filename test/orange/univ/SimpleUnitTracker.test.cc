@@ -281,6 +281,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     // Clear other data
     fill(VolumeId{}, &result.vol);
     fill(SurfaceId{}, &result.surf);
+    fill(LevelId{}, &result.level);
 
     CELER_ENSURE(result);
     return result;
@@ -301,8 +302,10 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
 
     for (auto i : range(host.size()))
     {
-        auto               thread_id = ThreadId{i};
-        LevelStateAccessor lsa(&host, thread_id, host.level[thread_id]);
+        auto thread_id = ThreadId{i};
+        // TODO Update for multiple universes
+        // LevelStateAccessor lsa(&host, thread_id, host.level[thread_id]);
+        LevelStateAccessor lsa(&host, thread_id, LevelId{0});
         auto               vol = lsa.vol();
 
         if (vol.unchecked_get() < counts.size())

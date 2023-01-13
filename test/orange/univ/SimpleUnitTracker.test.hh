@@ -47,9 +47,11 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
     lstate.pos = states.pos[tid];
     lstate.dir = states.dir[tid];
 
-    // lstate.volume  = states.vol[tid];
-    LevelStateAccessor lsa(&states, tid, states.level[tid]);
-    lstate.volume = lsa.vol();
+    for (auto i : range(OrangeParamsScalars::max_level))
+    {
+        LevelStateAccessor lsa(&states, tid, LevelId{i});
+        lstate.volume = lsa.vol();
+    }
 
     lstate.surface = {states.surf[tid], states.sense[tid]};
 
@@ -83,7 +85,9 @@ struct InitializingLauncher
 
         // Update state with post-initialization result
 
-        LevelStateAccessor lsa(&states, tid, states.level[tid]);
+        // TODO: for multiuniverses tests, we acutally have to iterative
+        // through daughter universes to assign the level and volume
+        LevelStateAccessor lsa(&states, tid, LevelId{0});
         lsa.set_vol(init.volume);
 
         states.surf[tid]  = init.surface.id();

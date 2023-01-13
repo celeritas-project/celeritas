@@ -57,9 +57,7 @@ LevelStateAccessor::LevelStateAccessor(const StateRef* states,
                                        ThreadId        thread_id,
                                        LevelId         level_id)
     : states_(states)
-    //, index_(thread_id.unchecked_get() * OrangeParamsScalars::max_level
-    //          + level_id.unchecked_get())
-    , index_(thread_id.unchecked_get())
+    , index_(thread_id.get() * OrangeParamsScalars::max_level + level_id.get())
 {
 }
 
