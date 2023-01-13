@@ -199,7 +199,7 @@ bool RootStepWriter::is_selection_valid()
 
     StepSelection verify_values;
 
-#define RSW_VERIFY_FILTER(ATTR)                         \
+#define RSW_APPLY_FILTER(ATTR)                          \
     do                                                  \
     {                                                   \
         if (rsw_filter_->first.ATTR                     \
@@ -209,21 +209,21 @@ bool RootStepWriter::is_selection_valid()
         }                                               \
     } while (0)
 
-    RSW_VERIFY_FILTER(event_id);
-    RSW_VERIFY_FILTER(parent_id);
-    RSW_VERIFY_FILTER(action_id);
-    RSW_VERIFY_FILTER(energy_deposition);
-    RSW_VERIFY_FILTER(step_length);
-    RSW_VERIFY_FILTER(track_step_count);
-    RSW_VERIFY_FILTER(particle);
+    RSW_APPLY_FILTER(event_id);
+    RSW_APPLY_FILTER(parent_id);
+    RSW_APPLY_FILTER(action_id);
+    RSW_APPLY_FILTER(energy_deposition);
+    RSW_APPLY_FILTER(step_length);
+    RSW_APPLY_FILTER(track_step_count);
+    RSW_APPLY_FILTER(particle);
 
     for (auto const sp : range(StepPoint::size_))
     {
-        RSW_VERIFY_FILTER(points[sp].volume_id);
-        RSW_VERIFY_FILTER(points[sp].energy);
-        RSW_VERIFY_FILTER(points[sp].time);
-        RSW_VERIFY_FILTER(points[sp].dir);
-        RSW_VERIFY_FILTER(points[sp].pos);
+        RSW_APPLY_FILTER(points[sp].volume_id);
+        RSW_APPLY_FILTER(points[sp].energy);
+        RSW_APPLY_FILTER(points[sp].time);
+        RSW_APPLY_FILTER(points[sp].dir);
+        RSW_APPLY_FILTER(points[sp].pos);
     }
 
     if (verify_values == rsw_filter_->first)
@@ -234,7 +234,7 @@ bool RootStepWriter::is_selection_valid()
 
     return false;
 
-#undef RSW_VERIFY_FILTER
+#undef RSW_APPLY_FILTER
 }
 
 //---------------------------------------------------------------------------//
@@ -246,9 +246,9 @@ bool RootStepWriter::is_selection_valid()
 void RootStepWriter::validate_rsw_filter()
 {
     CELER_EXPECT(rsw_filter_);
-    std::pair<bool, std::string> invalid_filter = std::make_pair(true, "");
+    std::pair<bool, std::string> invalid_filter(true, "");
 
-#define RSW_ASSERT_FILTER(ATTR)                                          \
+#define RSW_VALIDATE_FILTER(ATTR)                                        \
     do                                                                   \
     {                                                                    \
         if (rsw_filter_->first.ATTR == true && selection_.ATTR == false) \
@@ -257,24 +257,24 @@ void RootStepWriter::validate_rsw_filter()
         }                                                                \
     } while (0)
 
-    RSW_ASSERT_FILTER(event_id);
-    RSW_ASSERT_FILTER(parent_id);
-    RSW_ASSERT_FILTER(action_id);
-    RSW_ASSERT_FILTER(energy_deposition);
-    RSW_ASSERT_FILTER(step_length);
-    RSW_ASSERT_FILTER(track_step_count);
-    RSW_ASSERT_FILTER(particle);
+    RSW_VALIDATE_FILTER(event_id);
+    RSW_VALIDATE_FILTER(parent_id);
+    RSW_VALIDATE_FILTER(action_id);
+    RSW_VALIDATE_FILTER(energy_deposition);
+    RSW_VALIDATE_FILTER(step_length);
+    RSW_VALIDATE_FILTER(track_step_count);
+    RSW_VALIDATE_FILTER(particle);
 
     for (auto const sp : range(StepPoint::size_))
     {
-        RSW_ASSERT_FILTER(points[sp].volume_id);
-        RSW_ASSERT_FILTER(points[sp].energy);
-        RSW_ASSERT_FILTER(points[sp].time);
-        RSW_ASSERT_FILTER(points[sp].dir);
-        RSW_ASSERT_FILTER(points[sp].pos);
+        RSW_VALIDATE_FILTER(points[sp].volume_id);
+        RSW_VALIDATE_FILTER(points[sp].energy);
+        RSW_VALIDATE_FILTER(points[sp].time);
+        RSW_VALIDATE_FILTER(points[sp].dir);
+        RSW_VALIDATE_FILTER(points[sp].pos);
     }
 
-#undef RSW_ASSERT_FILTER
+#undef RSW_VALIDATE_FILTER
 
     CELER_VALIDATE(invalid_filter.first,
                    << invalid_filter.second
