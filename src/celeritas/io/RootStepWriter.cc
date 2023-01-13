@@ -183,11 +183,16 @@ void RootStepWriter::make_tree()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Compare values stored in `tstep_` with pre-defined values in
+ * `rsw_filter_->second` and return true if all conditions are simultaneously
+ * satisfied.
+ */
 bool RootStepWriter::verify_selection()
 {
     if (!rsw_filter_)
     {
-        // No filter created, every value must be stored
+        // No existing filter; Store all steps
         return true;
     }
 

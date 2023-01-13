@@ -29,7 +29,7 @@ namespace celeritas
 class RootStepWriter final : public StepInterface
 {
   public:
-    // Truth step point data; Naming convention *must* match StepPointStateData
+    //! Truth step point data; Naming convention must match StepPointStateData
     struct TStepPoint
     {
         size_type volume_id;
@@ -39,7 +39,7 @@ class RootStepWriter final : public StepInterface
         std::array<real_type, 3> dir;
     };
 
-    // Full truth step data; Naming convention *must* match StepStateData
+    //! Truth step data; Naming convention must match StepStateData
     struct TStepData
     {
         size_type event_id;
@@ -105,7 +105,8 @@ class RootStepWriter final : public StepInterface
 #if !CELERITAS_USE_ROOT
 inline RootStepWriter::RootStepWriter(SPRootFileManager,
                                       SPParticleParams,
-                                      StepSelection)
+                                      StepSelection,
+                                      UPRSWFilter)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
