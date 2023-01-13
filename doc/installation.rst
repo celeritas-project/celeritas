@@ -6,19 +6,19 @@
 
 .. _infrastructure:
 
-**************
-Infrastructure
-**************
+************
+Installation
+************
+
+
+Dependencies
+============
 
 Celeritas is built using modern CMake_. It has multiple dependencies to operate
 as a full-featured code, but each dependency can be individually disabled as
 needed.
 
 .. _CMake: https://cmake.org
-
-
-Dependencies
-============
 
 The code requires external dependencies to build with full functionality.
 However, any combination of these requirements can be omitted to enable
@@ -73,7 +73,8 @@ fewer available components.
 Ideally you will build Celeritas with all dependencies to gain the full
 functionality of the code, but there are circumstances in which you may not
 have (or want) all the dependencies or features available. By default, the CMake code in
-Celeritas queries available packages and sets several `CELERITAS_USE_{package}`
+Celeritas queries available packages and sets several
+``CELERITAS_USE_{package}``
 options based on what it finds, so you have a good chance of successfully
 configuring Celeritas on the first go. Some optional features
 will error out in the configure if their required
@@ -83,7 +84,7 @@ the next configure will succeed (with that component disabled).
 Toolchain installation
 ======================
 
-The recommended way to install dependencies is with `Spack`,
+The recommended way to install dependencies is with ``Spack``,
 an HPC-oriented package manager that includes numerous scientific packages,
 including those used in HEP. Celeritas includes a Spack environment at
 :file:`scripts/spack.yaml` that describes the code's full suite
@@ -131,7 +132,7 @@ CMake Presets
 
 To manage multiple builds with different
 configure options (debug or release, VecGeom or ORANGE), you can use the
-CMake presets provided by Celeritas via the `CMakePresets.json` file for CMake
+CMake presets provided by Celeritas via the ``CMakePresets.json`` file for CMake
 3.21 and higher:
 
 .. code-block:: console
@@ -150,14 +151,15 @@ different expectations for available dependencies.
       CMake Error: Could not read presets from celeritas: Unrecognized "version"
       field
 
-   which is just a poor way of saying the version in the ``CMakePresets.json`` file
-   is newer than that version knows how to handle.
+   which is just a poor way of saying the version in the ``CMakePresets.json``
+   file is newer than that version knows how to handle.
 
 If you want to add your own set of custom options and flags, create a
 ``CMakeUserPresets.json`` file or, if you wish to contribute on a regular
-basis, create a preset at ``scripts/cmake-presets/${HOSTNAME%%.*}.json`` and
+basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
-build, and test. See :file:`scripts/README.md` for more details.
+build, and test. See :file:`scripts/README.md` in the code repository for more
+details.
 
 Downstream usage as a library
 =============================
