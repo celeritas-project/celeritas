@@ -24,8 +24,9 @@
         "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings",
         "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
         "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O",
-        "CMAKE_CXX_COMPILER": "CC",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
     },
