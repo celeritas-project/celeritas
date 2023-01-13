@@ -25,6 +25,11 @@ namespace celeritas
  * entry a step. Since the ROOT data is stored in branches with primitive types
  * instead of a full struct, no dictionaries are needed for reading the output
  * file.
+ *
+ * The data can be filtered by defining a `RSWFilter`. This will store a
+ * `pair<StepSelection, TStepData>` informing which data should be filtered
+ * (StepSelection booleans) and by what values (TStepData). If no filtering is
+ * needed, simply pass a nullptr to the constructor.
  */
 class RootStepWriter final : public StepInterface
 {
@@ -62,6 +67,7 @@ class RootStepWriter final : public StepInterface
     //!@}
 
     // Construct with RootFileManager, ParticleParams, and data selection
+    // UPRSWFilter should be passed as a nullptr if all data should be stored
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection,
