@@ -141,6 +141,7 @@ struct ImportProcess
     ImportProcessType process_type;
     ImportProcessClass process_class;
     std::vector<ImportModelClass> models;
+    // TODO: map from ImportTableType
     std::vector<ImportPhysicsTable> tables;
     std::map<ImportModelClass, ModelMicroXS> micro_xs;
 

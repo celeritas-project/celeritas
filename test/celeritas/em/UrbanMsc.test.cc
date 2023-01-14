@@ -204,8 +204,6 @@ class UrbanMscTest : public GlobalGeoTestBase
     // Views
     std::shared_ptr<ParticleTrackView> part_view_;
     RandomEngine rng_;
-
-    std::shared_ptr<UrbanMscModel> model_;
 };
 
 //---------------------------------------------------------------------------//
@@ -220,13 +218,18 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     // Create the model
     std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ActionId{0}, *this->particle(), *this->material());
+        ActionId{0},
+        *this->particle(),
+        *this->material(),
+        ImportedProcessAdapter{processes_data_,
+                               this->particle(),
+                               ImportProcessClass::msc,
+                               {pdg::electron(), pdg::positron()}});
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
     UrbanMscMaterialData const& msc_
-        = model->host_ref().msc_data[material_view.material_id()];
+        = model->host_ref().material_data[material_view.material_id()];
 
-    EXPECT_DOUBLE_EQ(msc_.z23, 8.7313179636909233);
     EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
     EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);
     EXPECT_DOUBLE_EQ(msc_.d[0], 1.6889578380303167);

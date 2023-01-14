@@ -80,11 +80,11 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
     if (step <= msc_params_.params.geom_limit)
         return false;
 
-    auto phys = track.make_physics_view();
-    if (!phys.msc_ppid())
+    auto particle = track.make_particle_view();
+    if (particle.particle_id() != msc_params_.ids.electron
+        && particle.particle_id() != msc_params_.ids.positron)
         return false;
 
-    auto particle = track.make_particle_view();
     return particle.energy() > msc_params_.params.low_energy_limit
            && particle.energy() < msc_params_.params.high_energy_limit;
 }

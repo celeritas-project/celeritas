@@ -38,6 +38,7 @@ class UrbanMscScatter
     using Mass = units::MevMass;
     using MscParameters = UrbanMscParameters;
     using MaterialData = UrbanMscMaterialData;
+    using UrbanMscRef = NativeCRef<UrbanMscData>;
     //!@}
 
   public:
@@ -125,7 +126,7 @@ class UrbanMscScatter
     inline CELER_FUNCTION real_type compute_theta0(real_type true_path) const;
 
     // Calculate the correction on theta0 for positrons
-    inline CELER_FUNCTION real_type calc_correction(real_type tau) const;
+    inline CELER_FUNCTION real_type calc_positron_correction(real_type tau) const;
 
     // Calculate the length of the displacement (using geometry safety)
     inline CELER_FUNCTION real_type calc_displacement_length(real_type rmax2);
@@ -157,7 +158,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , range_(physics.dedx_range())
     , mass_(value_as<Mass>(shared.electron_mass))
     , params_(shared.params)
-    , msc_(shared.msc_data[material.material_id()])
+    , msc_(shared.material_data[material.material_id()])
     , helper_(shared, particle, physics)
     , zeff_(material.zeff())
     , is_displaced_(input.is_displaced && !geo_limited)
@@ -169,7 +170,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                  || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(geom_path_ > 0);
 
-    lambda_ = helper_.msc_mfp(Energy{inc_energy_});
+    lambda_ = helper_.calc_msc_mfp(Energy{inc_energy_});
 
     // Convert the geometry path length to the true path length if needed
     true_path_ = !geo_limited ? input.true_path
@@ -283,7 +284,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
     real_type result = 1;
 
-    real_type lambda_end = helper_.msc_mfp(Energy{end_energy_});
+    real_type lambda_end = helper_.calc_msc_mfp(Energy{end_energy_});
 
     tau_ = true_path
            / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
@@ -470,7 +471,7 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
     if (is_positron_)
     {
         real_type tau = std::sqrt(inc_energy_ * end_energy_) / mass_;
-        y *= this->calc_correction(tau);
+        y *= this->calc_positron_correction(tau);
     }
 
     // Note: multiply abs(charge) if the charge number is not unity
@@ -489,7 +490,8 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
  *
  * \param tau (incident energy * energy at the end of step)/electron_mass.
  */
-CELER_FUNCTION real_type UrbanMscScatter::calc_correction(real_type tau) const
+CELER_FUNCTION real_type
+UrbanMscScatter::calc_positron_correction(real_type tau) const
 {
     using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
