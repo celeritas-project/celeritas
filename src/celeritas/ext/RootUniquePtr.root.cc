@@ -12,7 +12,6 @@
 
 namespace celeritas
 {
-
 template<class T>
 void WriteAndDeleteRoot<T>::operator()(T* ptr)
 {
@@ -27,11 +26,13 @@ void DeleteRoot<T>::operator()(T* ptr) const
 }
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
+// EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
+// Write and Delete
 template struct WriteAndDeleteRoot<TFile>;
 template struct WriteAndDeleteRoot<TTree>;
 
+// Delete only
 template struct DeleteRoot<TFile>;
 template struct DeleteRoot<TTree>;
 

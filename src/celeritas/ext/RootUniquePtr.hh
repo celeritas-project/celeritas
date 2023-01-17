@@ -13,15 +13,19 @@
 #include "corecel/Assert.hh"
 
 // Forward-declare ROOT; Expand as needed
-class TObject;
 class TFile;
 class TTree;
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Helpers to prevent ROOT from propagating to downstream code.
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
 /*!
- * Helpers to prevent ROOT from propagating to downstream code.
+ * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
+ * classes.
  */
 template<class T>
 struct WriteAndDeleteRoot
@@ -29,12 +33,19 @@ struct WriteAndDeleteRoot
     void operator()(T*);
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Deleter only. Used by TFile and TTree reader classes or TObjects that should
+ * not invoke `Write()`.
+ */
 template<class T>
 struct DeleteRoot
 {
     void operator()(T*) const;
 };
 
+//---------------------------------------------------------------------------//
+// Type aliases
 template<class T>
 using RootUPWrite = std::unique_ptr<T, WriteAndDeleteRoot<T>>;
 template<class T>
