@@ -239,8 +239,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.set_vol(global_vol_id);
         lsa.set_pos(init.pos);
         lsa.set_dir(init.dir);
-
-        states_.universe[thread_] = uid;
+        lsa.set_universe(uid);
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         level++;

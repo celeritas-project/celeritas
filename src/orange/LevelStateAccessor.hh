@@ -61,6 +61,16 @@ class LevelStateAccessor
         states_->dir[OpaqueId<Real3>{index_}] = dir;
     }
 
+    CELER_FUNCTION UniverseId universe()
+    {
+        return states_->universe[OpaqueId<UniverseId>{index_}];
+    }
+
+    CELER_FUNCTION void set_universe(UniverseId id)
+    {
+        states_->universe[OpaqueId<UniverseId>{index_}] = id;
+    }
+
   private:
     const StateRef* states_;
     const size_type index_;

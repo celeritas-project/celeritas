@@ -287,10 +287,10 @@ struct OrangeStateData
     StateItems<LevelId> next_level;
 
     // Dimensions {num_tracks, max_level}
-    Items<Real3>           pos;
-    Items<Real3>           dir;
-    Items<VolumeId>        vol;
-    StateItems<UniverseId> universe;
+    Items<Real3>      pos;
+    Items<Real3>      dir;
+    Items<VolumeId>   vol;
+    Items<UniverseId> universe;
 
     // Surface crossing, dimensions {num_tracks, max_level}
     StateItems<SurfaceId>      surf;
@@ -314,6 +314,7 @@ struct OrangeStateData
             && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
+            && universe.size() == pos.size()
             && surf.size() == level.size()
             && sense.size() == level.size()
             && boundary.size() == level.size()
@@ -372,8 +373,8 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->vol, size);
+    resize(&data->universe, size);
 
-    resize(&data->universe, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->boundary, num_tracks);
