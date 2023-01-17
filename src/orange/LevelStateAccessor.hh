@@ -71,6 +71,16 @@ class LevelStateAccessor
         states_->universe[OpaqueId<UniverseId>{index_}] = id;
     }
 
+    CELER_FUNCTION SurfaceId surf()
+    {
+        return states_->surf[OpaqueId<SurfaceId>{index_}];
+    }
+
+    CELER_FUNCTION void set_surf(SurfaceId id)
+    {
+        states_->surf[OpaqueId<SurfaceId>{index_}] = id;
+    }
+
   private:
     const StateRef* states_;
     const size_type index_;

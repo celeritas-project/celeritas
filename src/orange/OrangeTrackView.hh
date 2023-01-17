@@ -99,7 +99,8 @@ class OrangeTrackView
     //! The current surface ID
     CELER_FUNCTION SurfaceId surface_id() const
     {
-        return states_.surf[thread_];
+        LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+        return lsa.surf();
     }
     //! After 'find_next_step', the next straight-line surface
     CELER_FUNCTION SurfaceId next_surface_id() const
@@ -200,7 +201,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
     // Save known data to global memory
-    states_.surf[thread_]     = {};
+
     states_.sense[thread_]    = {};
     states_.boundary[thread_] = BoundaryResult::exiting;
 
@@ -240,6 +241,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.set_pos(init.pos);
         lsa.set_dir(init.dir);
         lsa.set_universe(uid);
+        lsa.set_surf(SurfaceId{});
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         level++;
@@ -270,13 +272,13 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         lsa.set_vol(lsa_other.vol());
         lsa.set_pos(lsa_other.pos());
         lsa.set_dir(lsa_other.dir());
+        lsa.set_surf(lsa_other.surf());
     }
 
     // Copy init track's position but update the direction
     states_.level[thread_]      = states_.level[init.other.thread_];
     states_.next_level[thread_] = states_.next_level[init.other.thread_];
 
-    states_.surf[thread_]     = states_.surf[init.other.thread_];
     states_.sense[thread_]    = states_.sense[init.other.thread_];
     states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
@@ -445,7 +447,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
-    if (states_.surf[thread_])
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    if (lsa.surf())
     {
         // Zero distance to boundary on a surface
         return real_type{0};
@@ -474,7 +478,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     lsa.set_pos(pos);
 
     // Move to the inside of the surface
-    states_.surf[thread_] = next_surface_.id();
+    lsa.set_surf(next_surface_.id());
+
     states_.sense[thread_] = next_surface_.unchecked_sense();
     this->clear_next_step();
 }
@@ -501,7 +506,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     lsa.set_pos(pos);
 
     next_step_ -= dist;
-    states_.surf[thread_] = {};
+    lsa.set_surf(SurfaceId{});
 }
 
 //---------------------------------------------------------------------------//
@@ -516,7 +521,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
     LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
     lsa.set_pos(pos);
 
-    states_.surf[thread_] = {};
+    lsa.set_surf(SurfaceId{});
     this->clear_next_step();
 }
 
@@ -548,7 +553,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
     local.volume = lsa.vol();
 
-    local.surface = {states_.surf[thread_], flip_sense(states_.sense[thread_])};
+    local.surface    = {lsa.surf(), flip_sense(states_.sense[thread_])};
     local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
@@ -566,7 +571,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     lsa.set_vol(init.volume);
 
-    states_.surf[thread_]  = init.surface.id();
+    lsa.set_surf(init.surface.id());
     states_.sense[thread_] = init.surface.unchecked_sense();
 
     // Reset boundary crossing state
@@ -681,7 +686,7 @@ CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
     local.dir    = lsa.dir();
     local.volume = lsa.vol();
 
-    local.surface    = {states_.surf[thread_], states_.sense[thread_]};
+    local.surface    = {lsa.surf(), states_.sense[thread_]};
     local.temp_sense = this->make_temp_sense();
     local.temp_next = this->make_temp_next();
     return local;
