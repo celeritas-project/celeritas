@@ -78,9 +78,17 @@ class OrangeTrackView
     //// ACCESSORS ////
 
     //! The current position
-    CELER_FUNCTION Real3 const& pos() const { return states_.pos[thread_]; }
+    CELER_FUNCTION const Real3 pos() const
+    {
+        LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+        return lsa.pos();
+    }
     //! The current direction
-    CELER_FUNCTION Real3 const& dir() const { return states_.dir[thread_]; }
+    CELER_FUNCTION const Real3 dir() const
+    {
+        LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+        return lsa.dir();
+    }
     //! The current volume ID (null if outside)
     CELER_FUNCTION VolumeId volume_id() const
     {
@@ -192,10 +200,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
     // Save known data to global memory
-    states_.pos[thread_] = init.pos;
-    states_.dir[thread_] = init.dir;
-    states_.surf[thread_] = {};
-    states_.sense[thread_] = {};
+    states_.surf[thread_]     = {};
+    states_.sense[thread_]    = {};
     states_.boundary[thread_] = BoundaryResult::exiting;
 
     // Clear local data
@@ -231,6 +237,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         LevelStateAccessor lsa(&states_, thread_, LevelId{level});
         lsa.set_vol(global_vol_id);
+        lsa.set_pos(init.pos);
+        lsa.set_dir(init.dir);
 
         states_.universe[thread_] = uid;
 
@@ -261,14 +269,13 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         CELER_EXPECT(lsa_other.vol());
 
         lsa.set_vol(lsa_other.vol());
+        lsa.set_pos(lsa_other.pos());
+        lsa.set_dir(lsa_other.dir());
     }
 
     // Copy init track's position but update the direction
     states_.level[thread_]      = states_.level[init.other.thread_];
     states_.next_level[thread_] = states_.next_level[init.other.thread_];
-
-    states_.pos[thread_] = states_.pos[init.other.thread_];
-    states_.dir[thread_] = init.dir;
 
     states_.surf[thread_]     = states_.surf[init.other.thread_];
     states_.sense[thread_]    = states_.sense[init.other.thread_];
@@ -460,7 +467,13 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     CELER_EXPECT(next_surface_);
 
     // Physically move next step
-    axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
+    // axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
+
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    auto               pos = lsa.pos();
+    axpy(next_step_, lsa.dir(), &pos);
+    lsa.set_pos(pos);
+
     // Move to the inside of the surface
     states_.surf[thread_] = next_surface_.id();
     states_.sense[thread_] = next_surface_.unchecked_sense();
@@ -481,7 +494,13 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(dist != next_step_ || !next_surface_);
 
     // Move and update next_step_
-    axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
+    // axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
+
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    auto               pos = lsa.pos();
+    axpy(dist, lsa.dir(), &pos);
+    lsa.set_pos(pos);
+
     next_step_ -= dist;
     states_.surf[thread_] = {};
 }
@@ -495,7 +514,9 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
-    states_.pos[thread_] = pos;
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    lsa.set_pos(pos);
+
     states_.surf[thread_] = {};
     this->clear_next_step();
 }
@@ -589,7 +610,8 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     }
 
     // Complete direction setting
-    states_.dir[thread_] = newdir;
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    lsa.set_dir(newdir);
 
     this->clear_next_step();
 }
@@ -653,10 +675,11 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
 CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
 {
     detail::LocalState local;
-    local.pos = states_.pos[thread_];
-    local.dir = states_.dir[thread_];
 
     LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    local.pos    = lsa.pos();
+    local.dir    = lsa.dir();
     local.volume = lsa.vol();
 
     local.surface    = {states_.surf[thread_], states_.sense[thread_]};

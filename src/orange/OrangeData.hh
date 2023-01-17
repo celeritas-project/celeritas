@@ -287,8 +287,8 @@ struct OrangeStateData
     StateItems<LevelId> next_level;
 
     // Dimensions {num_tracks, max_level}
-    StateItems<Real3>      pos;
-    StateItems<Real3>      dir;
+    Items<Real3>           pos;
+    Items<Real3>           dir;
     Items<VolumeId>        vol;
     StateItems<UniverseId> universe;
 
@@ -313,10 +313,10 @@ struct OrangeStateData
             && next_level.size() == level.size()
             && !pos.empty()
             && dir.size() == pos.size()
-            //&& vol.size() == pos.size()
-            && surf.size() == pos.size()
-            && sense.size() == pos.size()
-            && boundary.size() == pos.size()
+            && vol.size() == pos.size()
+            && surf.size() == level.size()
+            && sense.size() == level.size()
+            && boundary.size() == level.size()
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -325,7 +325,7 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return pos.size(); }
+    CELER_FUNCTION ThreadId::size_type size() const { return level.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -369,9 +369,8 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
 
     auto size = params.scalars.max_level * num_tracks;
 
-    resize(&data->pos, num_tracks);
-    resize(&data->dir, num_tracks);
-
+    resize(&data->pos, size);
+    resize(&data->dir, size);
     resize(&data->vol, size);
 
     resize(&data->universe, num_tracks);

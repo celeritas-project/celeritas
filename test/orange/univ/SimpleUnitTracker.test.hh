@@ -44,14 +44,11 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 {
     // Create local state from global memory
     LocalState lstate;
-    lstate.pos = states.pos[tid];
-    lstate.dir = states.dir[tid];
 
-    for (auto i : range(OrangeParamsScalars::max_level))
-    {
-        LevelStateAccessor lsa(&states, tid, LevelId{i});
-        lstate.volume = lsa.vol();
-    }
+    LevelStateAccessor lsa(&states, tid, LevelId{0});
+    lstate.pos    = lsa.pos();
+    lstate.dir    = lsa.dir();
+    lstate.volume = lsa.vol();
 
     lstate.surface = {states.surf[tid], states.sense[tid]};
 

@@ -41,6 +41,26 @@ class LevelStateAccessor
         states_->vol[OpaqueId<VolumeId>{index_}] = id;
     }
 
+    CELER_FUNCTION Real3 pos()
+    {
+        return states_->pos[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION void set_pos(Real3 pos)
+    {
+        states_->pos[OpaqueId<Real3>{index_}] = pos;
+    }
+
+    CELER_FUNCTION Real3 dir()
+    {
+        return states_->dir[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION void set_dir(Real3 dir)
+    {
+        states_->dir[OpaqueId<Real3>{index_}] = dir;
+    }
+
   private:
     const StateRef* states_;
     const size_type index_;
