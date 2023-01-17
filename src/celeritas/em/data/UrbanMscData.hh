@@ -95,7 +95,9 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscIds
 {
+    // TODO: remove when this is no longer a model
     ActionId action;
+    // TODO: change to a bitset based on particle ID when we add muons, hadrons
     ParticleId electron;
     ParticleId positron;
 
@@ -133,8 +135,9 @@ struct UrbanMscParMatData
 /*!
  * Device data for Urban MSC.
  *
- * This model applies only to electrons and positrons, so the ParticleItems are
- * hard-coded as a length-2 array.
+ * Since the model currently applies only to electrons and positrons, the
+ * particles are hardcoded to be length 2. TODO: extend to other charged
+ * particles when further physics is implemented.
  */
 template<Ownership W, MemSpace M>
 struct UrbanMscData
@@ -145,8 +148,6 @@ struct UrbanMscData
     using Items = Collection<T, W, M>;
     template<class T>
     using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
-    template<class T>
-    using ParticleItems = celeritas::Array<T, 2>;
 
     //// DATA ////
 

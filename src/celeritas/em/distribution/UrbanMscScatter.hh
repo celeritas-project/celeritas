@@ -474,7 +474,7 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
         y *= this->calc_positron_correction(tau);
     }
 
-    // Note: multiply abs(charge) if the charge number is not unity
+    // TODO for hadrons: multiply abs(charge)
     real_type theta0 = value_as<Energy>(c_highland()) * std::sqrt(y)
                        * invbetacp;
 
