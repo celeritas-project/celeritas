@@ -278,7 +278,7 @@ TEST_F(ProcessBuilderTest, msc)
         {
             applic.material = mat_id;
             auto builders = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::msc_mfp]);
+            EXPECT_FALSE(builders[VGT::macro_xs]);
         }
 
         // Test micro xs

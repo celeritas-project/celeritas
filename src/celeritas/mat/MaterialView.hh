@@ -79,6 +79,9 @@ class MaterialView
 
     //// DERIVATIVE DATA ////
 
+    // Weighted atomic number
+    inline CELER_FUNCTION real_type zeff() const;
+
     // Material density [g/cm^3]
     inline CELER_FUNCTION real_type density() const;
 
@@ -201,6 +204,17 @@ MaterialView::get_element_density(ElementComponentId id) const
 CELER_FUNCTION Span<MatElementComponent const> MaterialView::elements() const
 {
     return params_.elcomponents[this->material_def().elements];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Weighted atomic number.
+ *
+ * This is Z weighted by the atomic fraction of each element in the material.
+ */
+CELER_FUNCTION real_type MaterialView::zeff() const
+{
+    return this->material_def().zeff;
 }
 
 //---------------------------------------------------------------------------//

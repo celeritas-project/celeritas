@@ -33,6 +33,7 @@ class UrbanMscHelper
     //! Type aliases
     using Energy = units::MevEnergy;
     using MaterialData = UrbanMscMaterialData;
+    using UrbanMscRef = NativeCRef<UrbanMscData>;
     //!@}
 
   public:
@@ -44,15 +45,21 @@ class UrbanMscHelper
     //// HELPER FUNCTIONS ////
 
     // The mean free path of the multiple scattering for a given energy
-    inline CELER_FUNCTION real_type msc_mfp(Energy energy) const;
+    inline CELER_FUNCTION real_type calc_msc_mfp(Energy energy) const;
 
-    // TODO: the following two methods are used only by MscStepLimit
+    // TODO: the following methods are used only by MscStepLimit
 
     // The total energy loss over a given step length
     inline CELER_FUNCTION Energy calc_eloss(real_type step) const;
 
     // The kinetic energy at the end of a given step length corrected by dedx
     inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
+
+    //! Step limit scaling based on atomic number and particle type
+    CELER_FUNCTION real_type scaled_zeff() const
+    {
+        return pmdata_.scaled_zeff;
+    }
 
   private:
     //// DATA ////
@@ -68,8 +75,10 @@ class UrbanMscHelper
     ValueGridId range_gid_;
     // Grid ID of dedx value of the energy loss
     ValueGridId eloss_gid_;
-    // Grid ID of the lambda value of MSC
-    ValueGridId mfp_gid_;
+
+    // Data for this particle + material
+    UrbanMscParMatData const& pmdata_;
+    XsCalculator calc_msc_xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -85,6 +94,9 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
     : inc_energy_(value_as<Energy>(particle.energy()))
     , physics_(physics)
     , dtrl_(shared.params.dtrl())
+    , pmdata_(shared.par_mat_data[shared.at(physics.material_id(),
+                                            particle.particle_id())])
+    , calc_msc_xs_(pmdata_.xs, shared.reals)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -92,17 +104,15 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
     ParticleProcessId eloss_pid = physics.eloss_ppid();
     range_gid_ = physics.value_grid(ValueGridType::range, eloss_pid);
     eloss_gid_ = physics.value_grid(ValueGridType::energy_loss, eloss_pid);
-    mfp_gid_ = physics_.value_grid(ValueGridType::msc_mfp, physics_.msc_ppid());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the mean free path of the msc for a given particle energy.
  */
-CELER_FUNCTION real_type UrbanMscHelper::msc_mfp(Energy energy) const
+CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
-    auto calc_xs = physics_.make_calculator<XsCalculator>(mfp_gid_);
-    real_type xsec = calc_xs(energy) / ipow<2>(energy.value());
+    real_type xsec = calc_msc_xs_(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0);
     return 1 / xsec;
 }

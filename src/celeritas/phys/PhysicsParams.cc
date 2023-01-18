@@ -474,7 +474,10 @@ void PhysicsParams::build_xs(Options const& opts,
                 CELER_VALIDATE(
                     std::any_of(builders.begin(),
                                 builders.end(),
-                                [](UPGridBuilder const& p) { return bool(p); }),
+                                [](UPGridBuilder const& p) { return bool(p); })
+                        // TODO: super hack since MSC doesn't have any sampled
+                        // or along-step interaction: fix while refactoring
+                        || proc.label() == "Multiple scattering",
                     << "process '" << proc.label()
                     << "' has neither interaction nor energy loss (it must "
                        "have at least one)");
@@ -540,12 +543,6 @@ void PhysicsParams::build_xs(Options const& opts,
                     CELER_ASSERT(!process_groups.eloss_ppid
                                  || pp_idx == process_groups.eloss_ppid.get());
                     process_groups.eloss_ppid = ParticleProcessId{pp_idx};
-                }
-
-                // Index of the electromagnetic msc process
-                if (dynamic_cast<MultipleScatteringProcess const*>(&proc))
-                {
-                    process_groups.msc_ppid = ParticleProcessId{pp_idx};
                 }
             }
 

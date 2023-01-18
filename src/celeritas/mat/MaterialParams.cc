@@ -329,10 +329,10 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
      *
      * NOTE: Electron density calculation may need to be updated for solids.
      */
-    real_type avg_amu_mass = 0;
-    real_type avg_z = 0;
-    real_type rad_coeff = 0;
-    real_type log_mean_exc_energy = 0;
+    double avg_amu_mass = 0;
+    double avg_z = 0;
+    double rad_coeff = 0;
+    double log_mean_exc_energy = 0;
     for (MatElementComponent const& comp :
          host_data->elcomponents[result.elements])
     {
@@ -348,6 +348,7 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
                * std::log(value_as<units::MevEnergy>(
                    detail::get_mean_excitation_energy(el.atomic_number)));
     }
+    result.zeff = avg_z;
     result.density = result.number_density * avg_amu_mass
                      * constants::atomic_mass;
     result.electron_density = result.number_density * avg_z;

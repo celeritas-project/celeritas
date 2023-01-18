@@ -206,7 +206,11 @@ auto ImportedProcessAdapter::step_limits(Applicability range) const
     StepLimitBuilders builders;
 
     // Construct cross section tables
-    if (ids.lambda && ids.lambda_prim)
+    if (import_process.process_class == ImportProcessClass::msc)
+    {
+        // No cross sections
+    }
+    else if (ids.lambda && ids.lambda_prim)
     {
         // Both unscaled and scaled values are present
         auto const& lo = get_vector(ids.lambda);
@@ -230,12 +234,8 @@ auto ImportedProcessAdapter::step_limits(Applicability range) const
         auto const& vec = get_vector(ids.lambda);
         CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
 
-        ValueGridType vgt
-            = (import_process.process_class == ImportProcessClass::msc)
-                  ? ValueGridType::msc_mfp
-                  : ValueGridType::macro_xs;
-        builders[vgt] = ValueGridLogBuilder::from_geant(make_span(vec.x),
-                                                        make_span(vec.y));
+        builders[ValueGridType::macro_xs] = ValueGridLogBuilder::from_geant(
+            make_span(vec.x), make_span(vec.y));
     }
 
     // Construct slowing-down data
