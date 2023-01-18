@@ -16,6 +16,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -51,12 +52,15 @@ UrbanMscModel::UrbanMscModel(ActionId id,
     CELER_VALIDATE(host_data.ids.electron && host_data.ids.positron,
                    << "missing e-/e+ (required for " << this->description()
                    << ")");
+
     // TODO: change IDs to a vector for all particles. This model should apply
     // to muons and charged hadrons as well
-    CELER_VALIDATE(!particles.find(pdg::mu_minus())
-                       && !particles.find(pdg::mu_plus())
-                       && !particles.find(pdg::proton()),
-                   << "support for other particles is not implemented");
+    if (particles.find(pdg::mu_minus()) || particles.find(pdg::mu_plus())
+        || particles.find(pdg::proton()))
+    {
+        CELER_LOG(warning) << "Multiple scattering is not implemented for for "
+                              "particles other than electron and positron";
+    }
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
