@@ -161,6 +161,14 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}

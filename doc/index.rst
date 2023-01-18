@@ -25,9 +25,11 @@ Celeritas
 
    \begin{abstract}
 
-The Celeritas project implements HEP detector physics on GPU accelerator
-hardware with the ultimate goal of supporting the massive computational
-requirements of LHC-HL upgrade.
+Celeritas is a Monte Carlo particle transport code for simulating High Energy
+Physics detectors on general purpose GPUs. Motivated by the massive
+computational requirements of the High Luminosity upgrade to the Large Hadron
+Collider, the code's initial goal is to accelerate electromagnetic physics
+simulations of the CMS and ATLAS detectors.
 
 .. raw:: latex
 
@@ -42,8 +44,10 @@ requirements of LHC-HL upgrade.
    :maxdepth: 2
    :caption: Contents
 
+   introduction.rst
+   installation.rst
    overview.rst
-   infrastructure.rst
+   physics.rst
    api.rst
    examples.rst
    references.rst
