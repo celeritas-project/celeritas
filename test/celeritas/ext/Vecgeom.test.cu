@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,12 +22,12 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-__global__ void vgg_test_kernel(const DeviceCRef<VecgeomParamsData> params,
-                                const DeviceRef<VecgeomStateData>   state,
-                                const GeoTrackInitializer*          start,
-                                const int max_segments,
-                                int*      ids,
-                                double*   distances)
+__global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
+                                DeviceRef<VecgeomStateData> const state,
+                                GeoTrackInitializer const* start,
+                                int const max_segments,
+                                int* ids,
+                                double* distances)
 {
     CELER_EXPECT(params && state);
 
@@ -60,7 +60,7 @@ __global__ void vgg_test_kernel(const DeviceCRef<VecgeomParamsData> params,
     }
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //! Run on device and return results
 VGGTestOutput vgg_test(VGGTestInput input)
@@ -100,5 +100,5 @@ VGGTestOutput vgg_test(VGGTestInput input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

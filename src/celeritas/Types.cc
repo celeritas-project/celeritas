@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -13,11 +13,11 @@ namespace celeritas
 /*!
  * Get a string corresponding to an action order.
  */
-const char* to_cstring(ActionOrder value)
+char const* to_cstring(ActionOrder value)
 {
     CELER_EXPECT(value != ActionOrder::size_);
 
-    static const char* const strings[] = {
+    static char const* const strings[] = {
         "start",
         "pre",
         "along",
@@ -27,7 +27,7 @@ const char* to_cstring(ActionOrder value)
         "end",
     };
     static_assert(
-        static_cast<unsigned int>(ActionOrder::size_) * sizeof(const char*)
+        static_cast<unsigned int>(ActionOrder::size_) * sizeof(char const*)
             == sizeof(strings),
         "Enum strings are incorrect");
 
@@ -35,4 +35,4 @@ const char* to_cstring(ActionOrder value)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

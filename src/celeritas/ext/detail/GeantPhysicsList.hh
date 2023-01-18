@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <G4ParticleDefinition.hh>
 #include <G4VUserPhysicsList.hh>
 
 #include "../GeantPhysicsOptions.hh"
@@ -29,7 +30,7 @@ class GeantPhysicsList : public G4VUserPhysicsList
 
   public:
     // Set up during construction
-    explicit GeantPhysicsList(const Options& options);
+    explicit GeantPhysicsList(Options const& options);
 
     // Set up minimal EM particle list
     void ConstructParticle() override;
@@ -46,5 +47,5 @@ class GeantPhysicsList : public G4VUserPhysicsList
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

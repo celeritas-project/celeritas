@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ class VecgeomTestBase : virtual public GlobalTestBase
     struct TrackingResult
     {
         std::vector<std::string> volumes;
-        std::vector<real_type>   distances;
+        std::vector<real_type> distances;
 
         void print_expected();
     };
@@ -71,21 +71,21 @@ class VecgeomTestBase : virtual public GlobalTestBase
     }
 
     //! Find linear segments until outside
-    TrackingResult track(const Real3& pos, const Real3& dir);
+    TrackingResult track(Real3 const& pos, Real3 const& dir);
 
   private:
     HostStateStore host_state;
 };
 
-auto VecgeomTestBase::track(const Real3& pos, const Real3& dir)
+auto VecgeomTestBase::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    const auto& params = *this->geometry();
+    auto const& params = *this->geometry();
 
     TrackingResult result;
 
     VecgeomTrackView geo = this->make_geo_track_view();
-    geo                  = {pos, dir};
+    geo = {pos, dir};
 
     if (geo.is_outside())
     {
@@ -141,14 +141,14 @@ class FourLevelsTest : public GlobalGeoTestBase,
                        public VecgeomTestBase
 {
   public:
-    const char* geometry_basename() const final { return "four-levels"; }
+    char const* geometry_basename() const final { return "four-levels"; }
 };
 
 //---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsTest, accessors)
 {
-    const auto& geom = *this->geometry();
+    auto const& geom = *this->geometry();
     EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
@@ -164,7 +164,7 @@ TEST_F(FourLevelsTest, accessors)
 TEST_F(FourLevelsTest, detailed_track)
 {
     VecgeomTrackView geo = this->make_geo_track_view();
-    geo                  = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
+    geo = GeoTrackInitializer{{-10, -10, -10}, {1, 0, 0}};
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
     EXPECT_FALSE(geo.is_on_boundary());
 
@@ -250,7 +250,7 @@ TEST_F(FourLevelsTest, tracking)
         SCOPED_TRACE("Rightward");
         auto result = this->track({-10, -10, -10}, {1, 0, 0});
         // result.print_expected();
-        static const char* const expected_volumes[] = {"Shape2",
+        static char const* const expected_volumes[] = {"Shape2",
                                                        "Shape1",
                                                        "Envelope",
                                                        "World",
@@ -268,7 +268,7 @@ TEST_F(FourLevelsTest, tracking)
     {
         SCOPED_TRACE("From outside edge");
         auto result = this->track({-24, 10., 10.}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"[OUTSIDE]",
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
                                                        "Shape1",
@@ -290,7 +290,7 @@ TEST_F(FourLevelsTest, tracking)
     {
         SCOPED_TRACE("Leaving world");
         auto result = this->track({-10, 10, 10}, {0, 1, 0});
-        static const char* const expected_volumes[]
+        static char const* const expected_volumes[]
             = {"Shape2", "Shape1", "Envelope", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {5, 1, 2, 6};
@@ -299,7 +299,7 @@ TEST_F(FourLevelsTest, tracking)
     {
         SCOPED_TRACE("Upward");
         auto result = this->track({-10, 10, 10}, {0, 0, 1});
-        static const char* const expected_volumes[]
+        static char const* const expected_volumes[]
             = {"Shape2", "Shape1", "Envelope", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {5, 1, 3, 5};
@@ -309,7 +309,7 @@ TEST_F(FourLevelsTest, tracking)
         // Formerly in linear propagator test, used to fail
         SCOPED_TRACE("From just outside world");
         auto result = this->track({-24, 10, 10}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"[OUTSIDE]",
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
                                                        "Shape1",
@@ -334,13 +334,13 @@ TEST_F(FourLevelsTest, tracking)
 
 TEST_F(FourLevelsTest, safety)
 {
-    VecgeomTrackView       geo = this->make_geo_track_view();
+    VecgeomTrackView geo = this->make_geo_track_view();
     std::vector<real_type> safeties;
 
     for (auto i : range(11))
     {
         real_type r = 2.0 * i;
-        geo         = {{r, r, r}, {1, 0, 0}};
+        geo = {{r, r, r}, {1, 0, 0}};
 
         if (!geo.is_outside())
         {
@@ -380,17 +380,17 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
                   {{-10, -10, -10}, {-1, 0, 0}}};
     StateStore device_states(this->geometry()->host_ref(), input.init.size());
     input.max_segments = 5;
-    input.params       = this->geometry()->device_ref();
-    input.state        = device_states.ref();
+    input.params = this->geometry()->device_ref();
+    input.state = device_states.ref();
 
     // Run kernel
     auto output = vgg_test(input);
 
-    static const int expected_ids[]
+    static int const expected_ids[]
         = {1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
            1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
 
-    static const double expected_distances[]
+    static double const expected_distances[]
         = {5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
            5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
 
@@ -408,7 +408,7 @@ class SolidsTest : public VecgeomTestBase,
                    public GlobalGeoTestBase
 {
   public:
-    const char* geometry_basename() const final { return "solids"; }
+    char const* geometry_basename() const final { return "solids"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -424,7 +424,7 @@ TEST_F(SolidsTest, accessors)
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    const auto& geom = *this->geometry();
+    auto const& geom = *this->geometry();
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
@@ -478,9 +478,9 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
         return std::make_shared<VecgeomParams>(this->get_world_volume());
     }
 
-    bool      enable_fluctuation() const final { return false; }
-    bool      enable_msc() const final { return false; }
-    bool      combined_brems() const final { return false; }
+    bool enable_fluctuation() const final { return false; }
+    bool enable_msc() const final { return false; }
+    bool combined_brems() const final { return false; }
     real_type secondary_stack_factor() const final { return 0; }
 };
 
@@ -603,7 +603,7 @@ TEST_F(FourLevelsGeantTest, tracking)
 class SolidsGeantTest : public GeantBuilderTestBase
 {
   public:
-    const char* geometry_basename() const final { return "solids"; }
+    char const* geometry_basename() const final { return "solids"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -619,7 +619,7 @@ TEST_F(SolidsGeantTest, accessors)
         ADD_FAILURE() << "VecGeom 1.2.0 does not implement expected solids";
     }
 
-    const auto& geom = *this->geometry();
+    auto const& geom = *this->geometry();
     // TODO: there are 27 actual solids, but there are a few "unused" volumes
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
@@ -639,8 +639,8 @@ TEST_F(SolidsGeantTest, DISABLED_trace)
 {
     {
         SCOPED_TRACE("Center +x");
-        auto                     result = this->track({-100, 0, 0}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"World",
+        auto result = this->track({-100, 0, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"World",
                                                        "vol1",
                                                        "World",
                                                        "vol2",
@@ -659,7 +659,7 @@ TEST_F(SolidsGeantTest, DISABLED_trace)
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
-        static const char* const expected_volumes[]
+        static char const* const expected_volumes[]
             = {"World", "vol11", "World", "vol21", "World", "vol31", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[]
@@ -669,7 +669,7 @@ TEST_F(SolidsGeantTest, DISABLED_trace)
     {
         SCOPED_TRACE("Lower +x");
         auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"World"};
+        static char const* const expected_volumes[] = {"World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {600};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -678,5 +678,5 @@ TEST_F(SolidsGeantTest, DISABLED_trace)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

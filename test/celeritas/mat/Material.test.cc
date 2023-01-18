@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,7 +27,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, const MaterialId& mat)
+std::ostream& operator<<(std::ostream& os, MaterialId const& mat)
 {
     os << "MaterialId{";
     if (mat)
@@ -72,8 +72,8 @@ TEST(MaterialUtils, radiation_length)
     auto calc_inv_rad_coeff
         = [](int atomic_number, real_type amu_mass) -> real_type {
         ElementRecord el;
-        el.atomic_number      = AtomicNumber{atomic_number};
-        el.atomic_mass        = units::AmuMass{amu_mass};
+        el.atomic_number = AtomicNumber{atomic_number};
+        el.atomic_mass = units::AmuMass{amu_mass};
         el.coulomb_correction = calc_coulomb_correction(el.atomic_number);
 
         return 1 / detail::calc_mass_rad_coeff(el);
@@ -95,8 +95,8 @@ TEST(MaterialUtils, radiation_length)
     EXPECT_SOFT_NEAR(5.93, calc_inv_rad_coeff(94, 244.06420), 1e-2);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
+}  // namespace test
+}  // namespace detail
 
 namespace test
 {
@@ -155,7 +155,7 @@ TEST_F(MaterialTest, params)
     EXPECT_EQ(MaterialId{1}, params->find_material("hard vacuum"));
     EXPECT_THROW(params->find_material("H2"), RuntimeError);
     {
-        auto             found      = params->find_materials("H2");
+        auto found = params->find_materials("H2");
         const MaterialId expected[] = {MaterialId{2}, MaterialId{3}};
         EXPECT_VEC_EQ(expected, found);
     }
@@ -183,6 +183,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(2.948915064677e+22, mat.number_density());
         EXPECT_SOFT_EQ(293.0, mat.temperature());
         EXPECT_EQ(MatterState::solid, mat.matter_state());
+        EXPECT_SOFT_EQ(32.0, mat.zeff());
         EXPECT_SOFT_EQ(3.6700020622594716, mat.density());
         EXPECT_SOFT_EQ(9.4365282069663997e+23, mat.electron_density());
         EXPECT_SOFT_EQ(3.5393292693170424, mat.radiation_length());
@@ -205,6 +206,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(0, mat.number_density());
         EXPECT_SOFT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
+        EXPECT_SOFT_EQ(0, mat.zeff());
         EXPECT_SOFT_EQ(0, mat.density());
         EXPECT_SOFT_EQ(0, mat.electron_density());
         EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
@@ -223,6 +225,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.number_density());
         EXPECT_SOFT_EQ(100, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(1.0, mat.zeff());
         EXPECT_SOFT_EQ(0.00017976, mat.density());
         EXPECT_SOFT_EQ(1.0739484359044669e+20, mat.electron_density());
         EXPECT_SOFT_EQ(350729.99844063615, mat.radiation_length());
@@ -240,6 +243,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(1.072e+20, mat.number_density());
         EXPECT_SOFT_EQ(110, mat.temperature());
         EXPECT_EQ(MatterState::gas, mat.matter_state());
+        EXPECT_SOFT_EQ(1.0, mat.zeff());
         EXPECT_SOFT_EQ(0.00017943386624303615, mat.density());
         EXPECT_SOFT_EQ(1.072e+20, mat.electron_density());
         EXPECT_SOFT_EQ(351367.47504673258, mat.radiation_length());
@@ -283,14 +287,14 @@ class MaterialParamsImportTest : public Test
         data_ = import_from_root();
     }
     std::string root_filename_;
-    ImportData  data_;
+    ImportData data_;
 
     ScopedRootErrorHandler scoped_root_error_;
 };
 
 TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
 {
-    const auto material_params = MaterialParams::from_import(data_);
+    auto const material_params = MaterialParams::from_import(data_);
     // Material labels
     EXPECT_EQ("G4_Galactic", material_params->id_to_label(MaterialId{0}).name);
     EXPECT_EQ("G4_STAINLESS-STEEL",
@@ -306,16 +310,16 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
     MaterialView mat(material_params->host_ref(), MaterialId{1});
 
     EXPECT_EQ(MatterState::solid, mat.matter_state());
-    EXPECT_SOFT_EQ(293.15, mat.temperature());         // [K]
-    EXPECT_SOFT_EQ(7.9999999972353661, mat.density()); // [g/cm^3]
+    EXPECT_SOFT_EQ(293.15, mat.temperature());  // [K]
+    EXPECT_SOFT_EQ(7.9999999972353661, mat.density());  // [g/cm^3]
     EXPECT_SOFT_EQ(2.2444320228819809e+24,
-                   mat.electron_density());                       // [1/cm^3]
-    EXPECT_SOFT_EQ(8.6993489258991514e+22, mat.number_density()); // [1/cm^3]
+                   mat.electron_density());  // [1/cm^3]
+    EXPECT_SOFT_EQ(8.6993489258991514e+22, mat.number_density());  // [1/cm^3]
 
     // Test elements by unpacking them
     std::vector<unsigned int> els;
-    std::vector<real_type>    fracs;
-    for (const auto& component : mat.elements())
+    std::vector<real_type> fracs;
+    for (auto const& component : mat.elements())
     {
         els.push_back(component.element.unchecked_get());
         fracs.push_back(component.fraction);
@@ -323,8 +327,8 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
 
     // Fractions are normalized and thus may differ from the imported ones
     // Fe, Cr, Ni
-    static unsigned int const expected_els[]   = {0, 1, 2};
-    static real_type          expected_fracs[] = {0.74, 0.18, 0.08};
+    static unsigned int const expected_els[] = {0, 1, 2};
+    static real_type expected_fracs[] = {0.74, 0.18, 0.08};
     EXPECT_VEC_EQ(expected_els, els);
     EXPECT_VEC_SOFT_EQ(expected_fracs, fracs);
 }
@@ -365,10 +369,10 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     result = m_test(input);
 #endif
 
-    const double expected_temperatures[] = {293, 0, 100, 110};
-    const double expected_rad_len[]
+    double const expected_temperatures[] = {293, 0, 100, 110};
+    double const expected_rad_len[]
         = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
-    const double expected_tot_z[]
+    double const expected_tot_z[]
         = {9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);
@@ -376,5 +380,5 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     EXPECT_VEC_SOFT_EQ(expected_tot_z, result.tot_z);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

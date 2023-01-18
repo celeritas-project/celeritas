@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,9 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "StepGatherAction.hh"
 
+#include <mutex>
+#include <utility>
+
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/user/StepData.hh"
 
 #include "StepGatherLauncher.hh"
 
@@ -19,18 +25,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<StepPoint P>
-void step_gather_device(CoreRef<MemSpace::device> const&  core,
+void step_gather_device(CoreRef<MemSpace::device> const& core,
                         DeviceCRef<StepParamsData> const& step_params,
-                        DeviceRef<StepStateData> const&   step_state);
+                        DeviceRef<StepStateData> const& step_state);
 
 //---------------------------------------------------------------------------//
 /*!
  * Capture construction arguments.
  */
 template<StepPoint P>
-StepGatherAction<P>::StepGatherAction(ActionId      id,
+StepGatherAction<P>::StepGatherAction(ActionId id,
                                       SPStepStorage storage,
-                                      VecInterface  callbacks)
+                                      VecInterface callbacks)
     : id_(id), storage_(std::move(storage)), callbacks_(std::move(callbacks))
 {
     CELER_EXPECT(id_);
@@ -63,7 +69,7 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
     // creating/accessing/processing state data simultaneously
     std::lock_guard<std::mutex> scoped_lock{storage_->mumu};
 
-    const auto& step_state = this->get_state(core);
+    auto const& step_state = this->get_state(core);
     CELER_ASSERT(step_state.size() == core.states.size());
 
     MultiExceptionHandler capture_exception;
@@ -71,13 +77,13 @@ void StepGatherAction<P>::execute(CoreHostRef const& core) const
 #pragma omp parallel for
     for (size_type i = 0; i < core.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 
     if (P == StepPoint::post)
     {
-        for (const auto& sp_callback : callbacks_)
+        for (auto const& sp_callback : callbacks_)
         {
             sp_callback->execute(step_state);
         }
@@ -103,7 +109,7 @@ void StepGatherAction<P>::execute(CoreDeviceRef const& core) const
 
     if (P == StepPoint::post)
     {
-        for (const auto& sp_callback : callbacks_)
+        for (auto const& sp_callback : callbacks_)
         {
             sp_callback->execute(step_state);
         }
@@ -121,5 +127,5 @@ template class StepGatherAction<StepPoint::pre>;
 template class StepGatherAction<StepPoint::post>;
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

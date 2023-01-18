@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,8 +30,8 @@ class ExampleCalorimeters final : public StepInterface
 {
   public:
     // Construct from detectors to monitor
-    ExampleCalorimeters(const GeoParams&                geo,
-                        const std::vector<std::string>& volumes);
+    ExampleCalorimeters(GeoParams const& geo,
+                        std::vector<std::string> const& volumes);
 
     // Filter data being gathered
     Filters filters() const final;
@@ -49,17 +49,17 @@ class ExampleCalorimeters final : public StepInterface
     }
 
     //! Access summed energy deposition [MeV] for all volumes
-    Span<const real_type> deposition() const { return make_span(deposition_); }
+    Span<real_type const> deposition() const { return make_span(deposition_); }
 
     // Reset for a new event
     void clear();
 
   private:
-    std::vector<VolumeId>  detectors_;
+    std::vector<VolumeId> detectors_;
     std::vector<real_type> deposition_;
-    EventId                event_;
+    EventId event_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

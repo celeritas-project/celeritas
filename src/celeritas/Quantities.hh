@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/math/Quantity.hh" // IWYU pragma: export
+#include "corecel/math/Quantity.hh"  // IWYU pragma: export
 
 #include "Constants.hh"
 #include "Units.hh"
@@ -34,7 +34,7 @@ struct Mev
         return 1e6 * constants::e_electron * units::volt;
     }
     //! Text label for output
-    static const char* label() { return "MeV"; }
+    static char const* label() { return "MeV"; }
 };
 
 //! Unit for annotating the logarithm of (E/MeV)
@@ -60,7 +60,7 @@ struct EElectron
     //! Conversion factor from the unit to CGS
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return constants::e_electron; // *Positive* sign
+        return constants::e_electron;  // *Positive* sign
     }
 };
 
@@ -98,15 +98,15 @@ using CLightSq = UnitProduct<CLight, CLight>;
 //!@{
 //! \name Units for particle quantities
 using ElementaryCharge = Quantity<EElectron>;
-using MevEnergy        = Quantity<Mev>;
-using LogMevEnergy     = Quantity<LogMev>;
-using MevMass          = Quantity<UnitDivide<Mev, CLightSq>>;
-using MevMomentum      = Quantity<UnitDivide<Mev, CLight>>;
-using MevMomentumSq    = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
-using LightSpeed       = Quantity<CLight>;
-using AmuMass          = Quantity<Amu>;
+using MevEnergy = Quantity<Mev>;
+using LogMevEnergy = Quantity<LogMev>;
+using MevMass = Quantity<UnitDivide<Mev, CLightSq>>;
+using MevMomentum = Quantity<UnitDivide<Mev, CLight>>;
+using MevMomentumSq = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
+using LightSpeed = Quantity<CLight>;
+using AmuMass = Quantity<Amu>;
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace units
-} // namespace celeritas
+}  // namespace units
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@ struct TrivialInvalidValueTraits
     static T value()
     {
         T result;
-        std::memset(&result, 0xd0, sizeof(T)); // 4*b"\xf0\x9f\xa6\xa4".decode()
+        std::memset(&result, 0xd0, sizeof(T));  // 4*b"\xf0\x9f\xa6\xa4".decode()
         return result;
     }
 };
@@ -128,7 +128,7 @@ struct InvalidFiller<MemSpace::host>
     {
         CELER_EXPECT(c);
 
-        T    val   = InvalidValueTraits<T>::value();
+        T val = InvalidValueTraits<T>::value();
         auto items = (*c)[AllItems<T>{}];
         std::fill(items.begin(), items.end(), val);
     }
@@ -148,5 +148,5 @@ void fill_invalid(Collection<T, W, M, I>* c)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

@@ -1,11 +1,17 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/ActionRegistry.cc
 //---------------------------------------------------------------------------//
 #include "ActionRegistry.hh"
+
+#include <type_traits>
+#include <utility>
+
+#include "corecel/Assert.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -41,7 +47,7 @@ void ActionRegistry::insert(SPConstAction action)
 /*!
  * Find the action corresponding to an label.
  */
-ActionId ActionRegistry::find_action(const std::string& label) const
+ActionId ActionRegistry::find_action(std::string const& label) const
 {
     auto iter = action_ids_.find(label);
     if (iter == action_ids_.end())
@@ -50,4 +56,4 @@ ActionId ActionRegistry::find_action(const std::string& label) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

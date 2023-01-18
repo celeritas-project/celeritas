@@ -1,10 +1,10 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/RootInterfaceLinkDef.h
-//! Define the classes added to the ROOT dictionary.
+//! \brief Define the classes added to the ROOT dictionary
 //---------------------------------------------------------------------------//
 #ifdef __CINT__
 

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,7 +21,7 @@ class KleinNishinaModel final : public Model
 {
   public:
     // Construct from model ID and other necessary data
-    KleinNishinaModel(ActionId id, const ParticleParams& particles);
+    KleinNishinaModel(ActionId id, ParticleParams const& particles);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -52,4 +52,4 @@ class KleinNishinaModel final : public Model
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

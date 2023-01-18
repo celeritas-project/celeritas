@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,14 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepUniformMscAction.hh"
 
+#include <utility>
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
+#include "celeritas/global/alongstep/AlongStepLauncher.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "AlongStepLauncher.hh"
@@ -27,15 +29,15 @@ namespace celeritas
  * Construct the along-step action from input parameters.
  */
 std::shared_ptr<AlongStepUniformMscAction>
-AlongStepUniformMscAction::from_params(ActionId                  id,
-                                       const PhysicsParams&      physics,
-                                       const UniformFieldParams& field_params)
+AlongStepUniformMscAction::from_params(ActionId id,
+                                       PhysicsParams const& physics,
+                                       UniformFieldParams const& field_params)
 {
     // TODO: Super hacky!! This will be cleaned up later.
     SPConstMsc msc;
     for (auto mid : range(ModelId{physics.num_models()}))
     {
-        msc = std::dynamic_pointer_cast<const UrbanMscModel>(
+        msc = std::dynamic_pointer_cast<UrbanMscModel const>(
             physics.model(mid));
         if (msc)
         {
@@ -53,7 +55,7 @@ AlongStepUniformMscAction::from_params(ActionId                  id,
  * Construct with next action ID and optional energy loss parameters.
  */
 AlongStepUniformMscAction::AlongStepUniformMscAction(
-    ActionId id, const UniformFieldParams& field_params, SPConstMsc msc)
+    ActionId id, UniformFieldParams const& field_params, SPConstMsc msc)
     : id_(id)
     , msc_(std::move(msc))
     , field_params_(field_params)
@@ -85,7 +87,7 @@ void AlongStepUniformMscAction::execute(CoreHostRef const& data) const
 #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }
@@ -96,7 +98,7 @@ void AlongStepUniformMscAction::execute(CoreHostRef const& data) const
  */
 template<MemSpace M>
 AlongStepUniformMscAction::ExternalRefs<M>::ExternalRefs(
-    const SPConstMsc& msc_params)
+    SPConstMsc const& msc_params)
 {
     if (M == MemSpace::device && !celeritas::device())
     {
@@ -111,4 +113,4 @@ AlongStepUniformMscAction::ExternalRefs<M>::ExternalRefs(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

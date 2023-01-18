@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "corecel/Assert.hh"
 
@@ -30,28 +31,35 @@ class StepCollector;
  * passed to a thread-local \c LocalTransporter instance. At the beginning of
  * the run, after Geant4 has initialized physics data, the \c Initialize method
  * must be called first on the "master" thread to populate the Celeritas data
- * structures (geometry, physics). \c Initialize must subsequently be invoked
- * on all worker threads.
+ * structures (geometry, physics). \c InitializeWorker must subsequently be
+ * invoked on all worker threads to set up thread-local data (specifically,
+ * CUDA device initialization).
  */
 class SharedParams
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstParams = std::shared_ptr<const CoreParams>;
+    using SPConstParams = std::shared_ptr<CoreParams const>;
     //!@}
 
   public:
     // Default constructors, assignment, destructor
     SharedParams() = default;
-    SharedParams(SharedParams&&)                 = default;
-    SharedParams(const SharedParams&)            = default;
-    SharedParams& operator=(SharedParams&&)      = default;
-    SharedParams& operator=(const SharedParams&) = default;
+    SharedParams(SharedParams&&) = default;
+    SharedParams(SharedParams const&) = default;
+    SharedParams& operator=(SharedParams&&) = default;
+    SharedParams& operator=(SharedParams const&) = default;
     ~SharedParams();
 
-    // Thread-safe setup of Celeritas using Geant4 data.
-    void Initialize(const SetupOptions& options);
+    // Construct Celeritas using Geant4 data on the master thread.
+    explicit SharedParams(SetupOptions const& options);
+
+    // Initialize shared data on the "master" thread
+    inline void Initialize(SetupOptions const& options);
+
+    // On worker threads, set up data with thread storage duration
+    static void InitializeWorker(SetupOptions const& options);
 
     // Write (shared) diagnostic output and clear shared data on master.
     void Finalize();
@@ -65,15 +73,25 @@ class SharedParams
   private:
     //// DATA ////
 
-    std::shared_ptr<CoreParams>         params_;
+    std::shared_ptr<CoreParams> params_;
     std::shared_ptr<detail::HitManager> hit_manager_;
-    std::shared_ptr<StepCollector>      step_collector_;
-    std::string                         output_filename_;
+    std::shared_ptr<StepCollector> step_collector_;
+    std::string output_filename_;
 
     //// HELPER FUNCTIONS ////
 
-    void initialize_master(const SetupOptions& options);
+    static void initialize_device(SetupOptions const& options);
+    void initialize_core(SetupOptions const& options);
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper for making initialization more obvious from user code.
+ */
+void SharedParams::Initialize(SetupOptions const& options)
+{
+    *this = SharedParams(options);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -88,4 +106,4 @@ auto SharedParams::Params() const -> SPConstParams
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include <type_traits>
 
 #include "accel/SetupOptions.hh"
 
@@ -34,14 +35,15 @@ class GlobalSetup
 
     //!@{
     //! Demo setup options
-    const std::string& GetGeometryFile() const { return geometry_file_; }
+    std::string const& GetGeometryFile() const { return geometry_file_; }
+    std::string const& GetEventFile() const { return event_file_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
     celeritas::SDSetupOptions& GetSDSetupOptions() { return options_->sd; }
 
     //! Get an immutable reference to the setup options
-    std::shared_ptr<const SetupOptions> GetSetupOptions() const
+    std::shared_ptr<SetupOptions const> GetSetupOptions() const
     {
         return options_;
     }
@@ -49,17 +51,20 @@ class GlobalSetup
     // Set the along-step factory function/instance
     void SetAlongStep(SetupOptions::AlongStepFactory asf);
 
+    // Set the list of ignored EM process names
+    void SetIgnoreProcesses(SetupOptions::VecString ignored);
+
   private:
     // Private constructor since we're a singleton
     GlobalSetup();
     ~GlobalSetup();
 
     // Data
-    std::shared_ptr<SetupOptions> options_;
-    std::string                   geometry_file_;
-
+    std::shared_ptr<celeritas::SetupOptions> options_;
+    std::string geometry_file_;
+    std::string event_file_;
     std::unique_ptr<G4GenericMessenger> messenger_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

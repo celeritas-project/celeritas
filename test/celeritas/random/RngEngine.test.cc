@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -36,8 +36,8 @@ class SequenceEngineTest : public Test
   public:
     void SetUp() override
     {
-        const double inv_32 = std::ldexp(1.0, -32.0);
-        const double inv_64 = std::ldexp(1.0, -64.0);
+        double const inv_32 = std::ldexp(1.0, -32.0);
+        double const inv_64 = std::ldexp(1.0, -64.0);
         /*!
          * Note: even the lowest *normalized* float value (1e-38) is below
          * 2**-64, so the "min" values for both double and float are
@@ -63,14 +63,14 @@ class SequenceEngineTest : public Test
             inv_32,
             std::nextafter(inv_32, 1.0),
             std::nextafter(float(inv_32), 1.0f),
-            std::nextafter(0.5f, 0.0f), // .5f - epsf
-            0x7fffffffu * inv_32,       // not exactly representable by float
-            std::nextafter(0.5, 0.0),   // .5 - eps
+            std::nextafter(0.5f, 0.0f),  // .5f - epsf
+            0x7fffffffu * inv_32,  // not exactly representable by float
+            std::nextafter(0.5, 0.0),  // .5 - eps
             0.5,
-            std::nextafter(0.5, 1.0),   // .5 + eps
-            std::nextafter(0.5f, 1.0f), // .5f + epsf
-            std::nextafter(1.0f, 0.0f), // 1 - float eps
-            std::nextafter(1.0, 0.0),   // 1 - double eps
+            std::nextafter(0.5, 1.0),  // .5 + eps
+            std::nextafter(0.5f, 1.0f),  // .5f + epsf
+            std::nextafter(1.0f, 0.0f),  // 1 - float eps
+            std::nextafter(1.0, 0.0),  // 1 - double eps
         };
     }
     std::vector<double> values_;
@@ -79,7 +79,7 @@ class SequenceEngineTest : public Test
 TEST_F(SequenceEngineTest, manual)
 {
     SequenceEngine::VecResult raw_vals{0x00000000u, 0x20210408u, 0xffffffffu};
-    SequenceEngine            engine(raw_vals);
+    SequenceEngine engine(raw_vals);
     EXPECT_EQ(0, engine.count());
     EXPECT_EQ(3, engine.max_count());
 
@@ -100,7 +100,7 @@ TEST_F(SequenceEngineTest, from_reals)
     SequenceEngine::VecResult actual(engine.max_count());
     std::generate(actual.begin(), actual.end(), std::ref(engine));
 
-    const unsigned int expected[]
+    unsigned int const expected[]
         = {0u,          0u,          1u,          0u,          1u,
            0u,          12345678u,   0u,          4294901760u, 0u,
            4294967040u, 0u,          0u,          1u,          0u,
@@ -187,7 +187,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
     }
 
 #if CELERITAS_RNG == CELERITAS_RNG_CURAND
-    static const unsigned int expected_test_values[] = {165860337u,
+    static unsigned int const expected_test_values[] = {165860337u,
                                                         3006138920u,
                                                         2161337536u,
                                                         390101068u,
@@ -197,7 +197,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         473544901u,
                                                         2822849608u};
 #elif CELERITAS_RNG == CELERITAS_RNG_HIPRAND
-    static const unsigned int expected_test_values[] = {2191810108u,
+    static unsigned int const expected_test_values[] = {2191810108u,
                                                         1563840703u,
                                                         1491406143u,
                                                         2960567511u,
@@ -207,7 +207,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         964015610u,
                                                         4033624067u};
 #elif CELERITAS_RNG == CELERITAS_RNG_XORWOW
-    static const unsigned int expected_test_values[] = {492039014u,
+    static unsigned int const expected_test_values[] = {492039014u,
                                                         3443467310u,
                                                         2732308719u,
                                                         1725881526u,
@@ -218,7 +218,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
                                                         3489021697u};
 #else
     PRINT_EXPECTED(test_values);
-    static const unsigned int expected_test_values[] = {0};
+    static unsigned int const expected_test_values[] = {0};
 #endif
     EXPECT_VEC_EQ(test_values, expected_test_values);
 }
@@ -232,7 +232,7 @@ class DeviceRngEngineFloatTest : public DeviceRngEngineTest
 {
 };
 
-void check_expected_float_samples(const std::vector<float>& v)
+void check_expected_float_samples(std::vector<float> const& v)
 {
     ASSERT_LE(2, v.size());
 #if CELERITAS_RNG == CELERITAS_RNG_CURAND
@@ -249,7 +249,7 @@ void check_expected_float_samples(const std::vector<float>& v)
 #endif
 }
 
-void check_expected_float_samples(const std::vector<double>& v)
+void check_expected_float_samples(std::vector<double> const& v)
 {
     ASSERT_LE(2, v.size());
 #if CELERITAS_RNG == CELERITAS_RNG_CURAND
@@ -276,7 +276,7 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
 #endif
 {
     using RngDeviceStore = typename TestFixture::RngDeviceStore;
-    using real_type      = TypeParam;
+    using real_type = TypeParam;
 
     // Create and initialize states
     RngDeviceStore rng_store(this->params->host_ref(), 100);
@@ -295,5 +295,5 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
     check_expected_float_samples(values);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

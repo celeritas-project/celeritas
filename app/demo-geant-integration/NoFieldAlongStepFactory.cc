@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "NoFieldAlongStepFactory.hh"
 
+#include <memory>
+#include <type_traits>
+
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 
@@ -29,4 +32,4 @@ auto NoFieldAlongStepFactory::operator()(argument_type input) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

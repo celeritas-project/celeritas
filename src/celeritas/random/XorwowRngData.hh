@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -35,7 +36,7 @@ struct XorwowRngParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    XorwowRngParamsData& operator=(const XorwowRngParamsData<W2, M2>& other)
+    XorwowRngParamsData& operator=(XorwowRngParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         seed = other.seed;
@@ -51,7 +52,7 @@ struct XorwowState
     static_assert(sizeof(uint_t) == 4, "Expected 32-bit int");
 
     Array<uint_t, 5> xorstate;  //!< x, y, z, w, v
-    uint_t           weylstate; //!< d
+    uint_t weylstate;  //!< d
 };
 
 //---------------------------------------------------------------------------//
@@ -70,7 +71,7 @@ struct XorwowRngStateData
 
     //// DATA ////
 
-    StateItems<XorwowState> state; //!< Track state [track]
+    StateItems<XorwowState> state;  //!< Track state [track]
 
     //// METHODS ////
 
@@ -101,8 +102,8 @@ struct XorwowRngStateData
  */
 template<MemSpace M>
 void resize(XorwowRngStateData<Ownership::value, M>* state,
-            const HostCRef<XorwowRngParamsData>&     params,
-            size_type                                size);
+            HostCRef<XorwowRngParamsData> const& params,
+            size_type size);
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

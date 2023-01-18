@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
@@ -24,6 +24,11 @@ celeritas_polysource(ExceptionConverter)
 
 if(CELERITAS_USE_JSON)
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
+endif()
+
+if(CELERITAS_USE_HepMC3)
+  list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
+  list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 
 #-----------------------------------------------------------------------------#

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,17 +31,17 @@ class VecgeomParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef           = HostCRef<VecgeomParamsData>;
-    using DeviceRef         = DeviceCRef<VecgeomParamsData>;
-    using SpanConstVolumeId = Span<const VolumeId>;
+    using HostRef = HostCRef<VecgeomParamsData>;
+    using DeviceRef = DeviceCRef<VecgeomParamsData>;
+    using SpanConstVolumeId = Span<VolumeId const>;
     //!@}
 
   public:
     // Construct from a GDML filename
-    explicit VecgeomParams(const std::string& gdml_filename);
+    explicit VecgeomParams(std::string const& gdml_filename);
 
     // Create a VecGeom model from a pre-existing Geant4 geometry
-    explicit VecgeomParams(const G4VPhysicalVolume* world);
+    explicit VecgeomParams(G4VPhysicalVolume const* world);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams();
@@ -55,19 +55,19 @@ class VecgeomParams
     VolumeId::size_type num_volumes() const { return vol_labels_.size(); }
 
     // Get the label for a placed volume ID
-    const Label& id_to_label(VolumeId vol_id) const;
+    Label const& id_to_label(VolumeId vol_id) const;
 
     // Get the volume ID corresponding to a unique name
-    inline VolumeId find_volume(const char* name) const;
+    inline VolumeId find_volume(char const* name) const;
 
     // Get the volume ID corresponding to a unique label name
-    VolumeId find_volume(const std::string& name) const;
+    VolumeId find_volume(std::string const& name) const;
 
     // Get the volume ID corresponding to a unique label
-    VolumeId find_volume(const Label& label) const;
+    VolumeId find_volume(Label const& label) const;
 
     // Get zero or more volume IDs corresponding to a name
-    SpanConstVolumeId find_volumes(const std::string& name) const;
+    SpanConstVolumeId find_volumes(std::string const& name) const;
 
     //! Maximum nested geometry depth
     int max_depth() const { return host_ref_.max_depth; }
@@ -75,10 +75,10 @@ class VecgeomParams
     //// SURFACES (NOT APPLICABLE FOR VECGEOM) ////
 
     // Get the label for a placed volume ID
-    inline const Label& id_to_label(SurfaceId) const;
+    inline Label const& id_to_label(SurfaceId) const;
 
     // Get the surface ID corresponding to a unique label name
-    inline SurfaceId find_surface(const std::string& name) const;
+    inline SurfaceId find_surface(std::string const& name) const;
 
     //! Number of distinct surfaces
     size_type num_surfaces() const { return 0; }
@@ -86,10 +86,10 @@ class VecgeomParams
     //// DATA ACCESS ////
 
     //! Access geometry data on host
-    inline const HostRef& host_ref() const;
+    inline HostRef const& host_ref() const;
 
     //! Access geometry data on host
-    inline const DeviceRef& device_ref() const;
+    inline DeviceRef const& device_ref() const;
 
   private:
     //// DATA ////
@@ -98,7 +98,7 @@ class VecgeomParams
     LabelIdMultiMap<VolumeId> vol_labels_;
 
     // Host/device storage and reference
-    HostRef   host_ref_;
+    HostRef host_ref_;
     DeviceRef device_ref_;
 
     //// HELPER FUNCTIONS ////
@@ -120,7 +120,7 @@ class VecgeomParams
  * This method is here to disambiguate the implicit std::string and Label
  * constructors.
  */
-VolumeId VecgeomParams::find_volume(const char* name) const
+VolumeId VecgeomParams::find_volume(char const* name) const
 {
     return this->find_volume(std::string{name});
 }
@@ -129,7 +129,7 @@ VolumeId VecgeomParams::find_volume(const char* name) const
 /*!
  * No surface IDs are defined in vecgeom.
  */
-const Label& VecgeomParams::id_to_label(SurfaceId) const
+Label const& VecgeomParams::id_to_label(SurfaceId) const
 {
     CELER_NOT_IMPLEMENTED("surfaces in VecGeom");
 }
@@ -138,7 +138,7 @@ const Label& VecgeomParams::id_to_label(SurfaceId) const
 /*!
  * No surface IDs are defined in vecgeom.
  */
-SurfaceId VecgeomParams::find_surface(const std::string&) const
+SurfaceId VecgeomParams::find_surface(std::string const&) const
 {
     return {};
 }
@@ -147,7 +147,7 @@ SurfaceId VecgeomParams::find_surface(const std::string&) const
 /*!
  * Access geometry data on host.
  */
-auto VecgeomParams::host_ref() const -> const HostRef&
+auto VecgeomParams::host_ref() const -> HostRef const&
 {
     CELER_ENSURE(host_ref_);
     return host_ref_;
@@ -157,11 +157,11 @@ auto VecgeomParams::host_ref() const -> const HostRef&
 /*!
  * Access geometry data on device.
  */
-auto VecgeomParams::device_ref() const -> const DeviceRef&
+auto VecgeomParams::device_ref() const -> DeviceRef const&
 {
     CELER_ENSURE(device_ref_);
     return device_ref_;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

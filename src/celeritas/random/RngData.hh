@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ template<Ownership W, MemSpace M>
 using RngParamsData = CuHipRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = CuHipRngStateData<W, M>;
-} // namespace celeritas
+}  // namespace celeritas
 #elif (CELERITAS_RNG == CELERITAS_RNG_XORWOW)
 #    include "XorwowRngData.hh"
 namespace celeritas
@@ -29,6 +29,6 @@ template<Ownership W, MemSpace M>
 using RngParamsData = XorwowRngParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using RngStateData = XorwowRngStateData<W, M>;
-} // namespace celeritas
+}  // namespace celeritas
 #endif
 // IWYU pragma: end_exports

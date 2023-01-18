@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,9 +15,8 @@
 #include <G4SDManager.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "accel/ExceptionConverter.hh"
+#include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveDetector.hh"
@@ -57,15 +56,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     CELER_LOG_LOCAL(status) << "Loading detector geometry";
 
-    // Create parser; do *not* strip `0x` extensions since those are needed to
-    // deduplicate complex geometries (e.g. CMS) and are handled by the Label
-    // and LabelIdMultiMap. Note that material and element names (at least as
-    // of Geant4@11.0) are *always* stripped: only volumes and solids keep
-    // their extension.
     G4GDMLParser gdml_parser;
     gdml_parser.SetStripFlag(false);
 
-    const std::string& filename = GlobalSetup::Instance()->GetGeometryFile();
+    std::string const& filename = GlobalSetup::Instance()->GetGeometryFile();
     if (filename.empty())
     {
         G4Exception("DetectorConstruction::Construct()",
@@ -77,9 +71,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     gdml_parser.Read(filename, validate_gdml_schema);
 
     // Find sensitive detectors
-    for (const auto& lv_vecaux : *gdml_parser.GetAuxMap())
+    for (auto const& lv_vecaux : *gdml_parser.GetAuxMap())
     {
-        for (const G4GDMLAuxStructType& aux : lv_vecaux.second)
+        for (G4GDMLAuxStructType const& aux : lv_vecaux.second)
         {
             if (aux.type == "SensDet")
             {
@@ -108,4 +102,4 @@ void DetectorConstruction::ConstructSDandField()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

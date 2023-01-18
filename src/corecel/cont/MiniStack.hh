@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ class MiniStack
 {
   public:
     //!@{
-    using size_type  = ::celeritas::size_type;
+    using size_type = ::celeritas::size_type;
     using value_type = T;
     //!@}
 
@@ -57,10 +57,10 @@ class MiniStack
     CELER_FORCEINLINE_FUNCTION size_type capacity() const { return capacity_; }
 
   private:
-    T*        data_;
+    T* data_;
     size_type size_;
     size_type capacity_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

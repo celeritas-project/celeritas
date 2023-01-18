@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -13,7 +13,7 @@ from launchbounds import make_launch_bounds
 
 CLIKE_TOP = '''\
 //{modeline:-^75s}//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -59,12 +59,14 @@ inline void {clsname}::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CC_TEMPLATE = CLIKE_TOP + """\
 #include "{clsname}.hh"
+
+#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -86,13 +88,13 @@ void {clsname}::execute(CoreHostRef const& data) const
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {{
-        CELER_TRY_ELSE(launch(ThreadId{{i}}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{{i}}), capture_exception);
     }}
     log_and_rethrow(std::move(capture_exception));
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 CU_TEMPLATE = CLIKE_TOP + """\
@@ -122,9 +124,9 @@ __global__ void{launch_bounds}{func}_kernel(CoreDeviceRef const data
     auto launch = make_track_launcher(data, detail::{func}_track);
     launch(tid);
 }}
-}} // namespace
+}}  // namespace
 
-void {clsname}::execute(const CoreDeviceRef& data) const
+void {clsname}::execute(CoreDeviceRef const& data) const
 {{
     CELER_EXPECT(data);
     CELER_LAUNCH_KERNEL({func},
@@ -133,8 +135,8 @@ void {clsname}::execute(const CoreDeviceRef& data) const
                         data);
 }}
 
-}} // namespace generated
-}} // namespace celeritas
+}}  // namespace generated
+}}  // namespace celeritas
 """
 
 TEMPLATES = {

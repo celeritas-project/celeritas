@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,6 @@ using celeritas::ImportProcess;
 
 class TFile;
 class TTree;
-
 class G4VProcess;
 class G4VEmProcess;
 class G4VEmModel;
@@ -38,7 +37,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 enum class TableSelection
 {
-    minimal, //!< Store only lambda, dedx, and range
+    minimal,  //!< Store only lambda, dedx, and range
     all
 };
 
@@ -84,30 +83,30 @@ class ImportProcessConverter
 {
   public:
     // Construct with selected list of tables
-    ImportProcessConverter(TableSelection                     which_tables,
-                           const std::vector<ImportMaterial>& materials,
-                           const std::vector<ImportElement>&  elements);
+    ImportProcessConverter(TableSelection which_tables,
+                           std::vector<ImportMaterial> const& materials,
+                           std::vector<ImportElement> const& elements);
 
     // Default destructor
     ~ImportProcessConverter();
 
     // Return ImportProcess for a given particle and physics process
-    ImportProcess operator()(const G4ParticleDefinition& particle,
-                             const G4VProcess&           process);
+    ImportProcess operator()(G4ParticleDefinition const& particle,
+                             G4VProcess const& process);
 
   private:
     // Save common process attributes
     template<class T>
-    void store_common_process(const T& process);
+    void store_common_process(T const& process);
     // Save "discrete" process
-    void store_em_process(const G4VEmProcess& em_process);
+    void store_em_process(G4VEmProcess const& em_process);
     // Save "continuous/discrete" process
-    void store_eloss_process(const G4VEnergyLossProcess& eloss_process);
+    void store_eloss_process(G4VEnergyLossProcess const& eloss_process);
     // Save multiple scattering data to this->process_
-    void store_msc_process(const G4VMultipleScattering& msc_process);
+    void store_msc_process(G4VMultipleScattering const& msc_process);
 
     // Write the remaining elements of this->process_
-    void add_table(const G4PhysicsTable*      table,
+    void add_table(G4PhysicsTable const* table,
                    celeritas::ImportTableType table_type);
 
     // Store element cross section data into physics vectors
@@ -120,7 +119,7 @@ class ImportProcessConverter
   private:
     // Store material and element information for the element selector tables
     std::vector<ImportMaterial> materials_;
-    std::vector<ImportElement>  elements_;
+    std::vector<ImportElement> elements_;
 
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;
@@ -131,20 +130,20 @@ class ImportProcessConverter
     // Keep track of processes and tables already written
     struct PrevProcess
     {
-        const G4ParticleDefinition* particle;
+        G4ParticleDefinition const* particle;
     };
 
     struct PrevTable
     {
-        int                           particle_pdg;
+        int particle_pdg;
         celeritas::ImportProcessClass process_class;
-        celeritas::ImportTableType    table_type;
+        celeritas::ImportTableType table_type;
     };
 
-    std::unordered_map<const G4VProcess*, PrevProcess>   written_processes_;
-    std::unordered_map<const G4PhysicsTable*, PrevTable> written_tables_;
+    std::unordered_map<G4VProcess const*, PrevProcess> written_processes_;
+    std::unordered_map<G4PhysicsTable const*, PrevTable> written_tables_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

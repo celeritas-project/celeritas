@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,8 +33,8 @@ namespace
  * Kernel to initialize particle data.
  */
 __global__ void initialize_kernel(ParamsDeviceRef const params,
-                                  StateDeviceRef const  states,
-                                  InitialData const     init)
+                                  StateDeviceRef const states,
+                                  InitialData const init)
 {
     unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -49,9 +49,9 @@ __global__ void initialize_kernel(ParamsDeviceRef const params,
 
     // Particles begin alive and in the +z direction
     states.direction[tid] = {0, 0, 1};
-    states.position[tid]  = {0, 0, 0};
-    states.time[tid]      = 0;
-    states.alive[tid]     = true;
+    states.position[tid] = {0, 0, 0};
+    states.time[tid] = 0;
+    states.alive[tid] = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -71,7 +71,7 @@ move_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Construct particle accessor from immutable and thread-local data
     ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
-    RngEngine         rng(states.rng, ThreadId(tid));
+    RngEngine rng(states.rng, ThreadId(tid));
 
     // Move to collision
     XsCalculator calc_xs(params.tables.xs, params.tables.reals);
@@ -96,7 +96,7 @@ __global__ void
 interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
     StackAllocator<Secondary> allocate_secondaries(states.secondaries);
-    unsigned int              tid = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // Exit if out of range or already dead
     if (tid >= states.size() || !states.alive[tid])
@@ -106,15 +106,15 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 
     // Construct particle accessor from immutable and thread-local data
     ParticleTrackView particle(params.particle, states.particle, ThreadId(tid));
-    RngEngine         rng(states.rng, ThreadId(tid));
+    RngEngine rng(states.rng, ThreadId(tid));
 
     Detector detector(params.detector, states.detector);
 
     Hit h;
-    h.pos    = states.position[tid];
-    h.dir    = states.direction[tid];
+    h.pos = states.position[tid];
+    h.dir = states.direction[tid];
     h.thread = ThreadId(tid);
-    h.time   = states.time[tid];
+    h.time = states.time[tid];
 
     if (particle.energy() < units::MevEnergy{0.01})
     {
@@ -138,9 +138,9 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     // Deposit energy from the secondary (effectively, an infinite energy
     // cutoff)
     {
-        const auto& secondary = interaction.secondaries.front();
-        h.dir                 = secondary.direction;
-        h.energy_deposited    = units::MevEnergy{
+        auto const& secondary = interaction.secondaries.front();
+        h.dir = secondary.direction;
+        h.energy_deposited = units::MevEnergy{
             secondary.energy.value() + interaction.energy_deposition.value()};
         detector.buffer_hit(h);
     }
@@ -157,7 +157,7 @@ interact_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 __global__ void
 process_hits_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
-    Detector        detector(params.detector, states.detector);
+    Detector detector(params.detector, states.detector);
     Detector::HitId hid{blockIdx.x * blockDim.x + threadIdx.x};
 
     if (hid < detector.num_hits())
@@ -174,7 +174,7 @@ __global__ void
 cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 {
     unsigned int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
-    Detector     detector(params.detector, states.detector);
+    Detector detector(params.detector, states.detector);
     StackAllocator<Secondary> allocate_secondaries(states.secondaries);
 
     if (thread_idx == 0)
@@ -184,7 +184,7 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
     }
 }
 
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // KERNEL INTERFACES
@@ -195,10 +195,10 @@ cleanup_kernel(ParamsDeviceRef const params, StateDeviceRef const states)
 /*!
  * Initialize particle states.
  */
-void initialize(const DeviceGridParams& opts,
-                const ParamsDeviceRef&  params,
-                const StateDeviceRef&   states,
-                const InitialData&      initial)
+void initialize(DeviceGridParams const& opts,
+                ParamsDeviceRef const& params,
+                StateDeviceRef const& states,
+                InitialData const& initial)
 {
     CELER_EXPECT(states.alive.size() == states.size());
     CELER_EXPECT(states.rng.size() == states.size());
@@ -214,9 +214,9 @@ void initialize(const DeviceGridParams& opts,
 /*!
  * Run an iteration.
  */
-void iterate(const DeviceGridParams& opts,
-             const ParamsDeviceRef&  params,
-             const StateDeviceRef&   states)
+void iterate(DeviceGridParams const& opts,
+             ParamsDeviceRef const& params,
+             StateDeviceRef const& states)
 {
     // Move to the collision site
     CDE_LAUNCH_KERNEL(
@@ -237,9 +237,9 @@ void iterate(const DeviceGridParams& opts,
 /*!
  * Clean up after an iteration.
  */
-void cleanup(const DeviceGridParams& opts,
-             const ParamsDeviceRef&  params,
-             const StateDeviceRef&   states)
+void cleanup(DeviceGridParams const& opts,
+             ParamsDeviceRef const& params,
+             StateDeviceRef const& states)
 {
     // Process hits from buffer to grid
     CDE_LAUNCH_KERNEL(process_hits,
@@ -259,4 +259,4 @@ void cleanup(const DeviceGridParams& opts,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

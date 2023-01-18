@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,7 +15,7 @@
 #include "GeantSetup.hh"
 
 // Geant4 forward declaration
-class G4VPhysicalVolume; // IWYU pragma: keep
+class G4VPhysicalVolume;  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -46,9 +46,9 @@ class GeantImporter
         using Flags = unsigned int;
         enum : unsigned int
         {
-            dummy  = 0x1, //!< Dummy particles+processes
-            em     = 0x2, //!< EM particles and fundamental proceses
-            hadron = 0x4, //!< Hadronic particles and processes
+            dummy = 0x1,  //!< Dummy particles+processes
+            em = 0x2,  //!< EM particles and fundamental proceses
+            hadron = 0x4,  //!< Hadronic particles and processes
         };
 
         Flags particles = em;
@@ -60,16 +60,16 @@ class GeantImporter
 
   public:
     // Get an externally loaded Geant4 top-level geometry element
-    static const G4VPhysicalVolume* get_world_volume();
+    static G4VPhysicalVolume const* get_world_volume();
 
     // Construct from an existing Geant4 geometry, assuming physics is loaded
-    explicit GeantImporter(const G4VPhysicalVolume* world);
+    explicit GeantImporter(G4VPhysicalVolume const* world);
 
     // Construct by capturing a GeantSetup object
     explicit GeantImporter(GeantSetup&& setup);
 
     // Fill data from Geant4
-    ImportData operator()(const DataSelection& selection);
+    ImportData operator()(DataSelection const& selection);
 
     //! Fill all available data from Geant4
     ImportData operator()() { return (*this)(DataSelection{}); }
@@ -78,19 +78,19 @@ class GeantImporter
     // Optional setup if celeritas handles initialization
     GeantSetup setup_;
     // World physical volume
-    const G4VPhysicalVolume* world_{nullptr};
+    G4VPhysicalVolume const* world_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4
-inline const G4VPhysicalVolume* GeantImporter::get_world_volume()
+inline G4VPhysicalVolume const* GeantImporter::get_world_volume()
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantImporter::GeantImporter(const G4VPhysicalVolume*)
+inline GeantImporter::GeantImporter(G4VPhysicalVolume const*)
 {
     (void)sizeof(world_);
     CELER_NOT_CONFIGURED("Geant4");
@@ -101,11 +101,11 @@ inline GeantImporter::GeantImporter(GeantSetup&&)
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline ImportData GeantImporter::operator()(const DataSelection&)
+inline ImportData GeantImporter::operator()(DataSelection const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

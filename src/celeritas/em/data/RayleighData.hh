@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ struct RayleighParameters
  */
 struct RayleighIds
 {
-    ActionId   action;
+    ActionId action;
     ParticleId gamma;
 
     //! Check whether the data is assigned
@@ -69,18 +69,18 @@ struct RayleighData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    RayleighData& operator=(const RayleighData<W2, M2>& other)
+    RayleighData& operator=(RayleighData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         ids.action = other.ids.action;
-        ids.gamma  = other.ids.gamma;
-        params     = other.params;
+        ids.gamma = other.ids.gamma;
+        params = other.params;
         return *this;
     }
 };
 
 using RayleighDeviceRef = DeviceCRef<RayleighData>;
-using RayleighHostRef   = HostCRef<RayleighData>;
-using RayleighRef       = NativeCRef<RayleighData>;
+using RayleighHostRef = HostCRef<RayleighData>;
+using RayleighRef = NativeCRef<RayleighData>;
 
-} // namespace celeritas
+}  // namespace celeritas

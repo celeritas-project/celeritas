@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepNeutralAction.hh"
 
+#include <utility>
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/alongstep/detail/AlongStepLauncherImpl.hh"
+#include "celeritas/global/alongstep/AlongStepLauncher.hh"
 
 #include "AlongStepLauncher.hh"
 #include "detail/AlongStepNeutral.hh"
@@ -42,7 +43,7 @@ void AlongStepNeutralAction::execute(CoreHostRef const& data) const
 #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {
-        CELER_TRY_ELSE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
 }
@@ -56,4 +57,4 @@ void AlongStepNeutralAction::execute(CoreDeviceRef const&) const
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

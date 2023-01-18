@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
@@ -16,6 +17,7 @@
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -49,20 +51,20 @@ class SeltzerBergerModel final : public Model
 {
   public:
     //!@{
-    using Mass            = units::MevMass;
-    using ReadData        = std::function<ImportSBTable(AtomicNumber)>;
-    using HostRef         = HostCRef<SeltzerBergerData>;
-    using DeviceRef       = DeviceCRef<SeltzerBergerData>;
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using Mass = units::MevMass;
+    using ReadData = std::function<ImportSBTable(AtomicNumber)>;
+    using HostRef = HostCRef<SeltzerBergerData>;
+    using DeviceRef = DeviceCRef<SeltzerBergerData>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
     // Construct from model ID and other necessary data
-    SeltzerBergerModel(ActionId              id,
-                       const ParticleParams& particles,
-                       const MaterialParams& materials,
-                       SPConstImported       data,
-                       ReadData              load_sb_table);
+    SeltzerBergerModel(ActionId id,
+                       ParticleParams const& particles,
+                       MaterialParams const& materials,
+                       SPConstImported data,
+                       ReadData load_sb_table);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -89,10 +91,10 @@ class SeltzerBergerModel final : public Model
     }
 
     //! Access SB data on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access SB data on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Host/device storage and reference
@@ -101,11 +103,11 @@ class SeltzerBergerModel final : public Model
     ImportedModelAdapter imported_;
 
     using HostXsTables = HostVal<SeltzerBergerTableData>;
-    void append_table(const ElementView&   element,
-                      const ImportSBTable& table,
-                      HostXsTables*        tables,
-                      Mass                 electron_mass) const;
+    void append_table(ElementView const& element,
+                      ImportSBTable const& table,
+                      HostXsTables* tables,
+                      Mass electron_mass) const;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

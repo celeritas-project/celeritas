@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
@@ -23,9 +24,9 @@ namespace celeritas
  */
 struct AtomicRelaxTransition
 {
-    SubshellId       initial_shell; //!< Index of the originating shell
-    SubshellId       auger_shell;   //!< Index of the Auger electron shell
-    real_type        probability;
+    SubshellId initial_shell;  //!< Index of the originating shell
+    SubshellId auger_shell;  //!< Index of the Auger electron shell
+    real_type probability;
     units::MevEnergy energy;
 };
 
@@ -45,7 +46,7 @@ struct AtomicRelaxSubshell
 struct AtomicRelaxElement
 {
     ItemRange<AtomicRelaxSubshell> shells;
-    size_type max_secondary; //!< Maximum number of secondaries possible
+    size_type max_secondary;  //!< Maximum number of secondaries possible
 
     //! Check whether the element is assigned (false for Z < 6).
     explicit CELER_FUNCTION operator bool() const
@@ -77,11 +78,11 @@ struct AtomicRelaxParamsData
 
     //// MEMBER DATA ////
 
-    AtomicRelaxIds                   ids;
-    Items<AtomicRelaxTransition>     transitions;
-    Items<AtomicRelaxSubshell>       shells;
+    AtomicRelaxIds ids;
+    Items<AtomicRelaxTransition> transitions;
+    Items<AtomicRelaxSubshell> shells;
     ElementItems<AtomicRelaxElement> elements;
-    size_type                        max_stack_size{};
+    size_type max_stack_size{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -94,12 +95,12 @@ struct AtomicRelaxParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    AtomicRelaxParamsData& operator=(const AtomicRelaxParamsData<W2, M2>& other)
+    AtomicRelaxParamsData& operator=(AtomicRelaxParamsData<W2, M2> const& other)
     {
-        ids            = other.ids;
-        transitions    = other.transitions;
-        shells         = other.shells;
-        elements       = other.elements;
+        ids = other.ids;
+        transitions = other.transitions;
+        shells = other.shells;
+        elements = other.elements;
         max_stack_size = other.max_stack_size;
         return *this;
     }
@@ -118,8 +119,8 @@ struct AtomicRelaxStateData
     using Items = StateCollection<T, W, M>;
 
     //! Storage for the stack of vacancy subshell IDs
-    Items<SubshellId> scratch; // 2D array: [num states][max stack size]
-    size_type         num_states;
+    Items<SubshellId> scratch;  // 2D array: [num states][max stack size]
+    size_type num_states;
 
     //! Whether the interface is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -134,7 +135,7 @@ struct AtomicRelaxStateData
     template<Ownership W2, MemSpace M2>
     AtomicRelaxStateData& operator=(AtomicRelaxStateData<W2, M2>& other)
     {
-        scratch    = other.scratch;
+        scratch = other.scratch;
         num_states = other.num_states;
         return *this;
     }
@@ -148,8 +149,8 @@ using AtomicRelaxStateRef = NativeRef<AtomicRelaxStateData>;
  */
 template<MemSpace M>
 inline void resize(AtomicRelaxStateData<Ownership::value, M>* state,
-                   const HostCRef<AtomicRelaxParamsData>&     params,
-                   size_type                                  size)
+                   HostCRef<AtomicRelaxParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&state->scratch, size * params.max_stack_size);
@@ -157,4 +158,4 @@ inline void resize(AtomicRelaxStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

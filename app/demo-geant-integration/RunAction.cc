@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
 
-#include <G4Threading.hh>
+#include <functional>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -16,6 +19,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
+#include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
 {
@@ -24,64 +28,84 @@ namespace demo_geant
  * Construct with Celeritas setup options and shared data.
  */
 RunAction::RunAction(SPConstOptions options,
-                     SPParams       params,
-                     SPTransporter  transport)
-    : options_(options), params_(params), transport_(transport)
+                     SPParams params,
+                     SPTransporter transport,
+                     bool init_celeritas)
+    : options_{std::move(options)}
+    , params_{std::move(params)}
+    , transport_{std::move(transport)}
+    , init_celeritas_{init_celeritas}
 {
     CELER_EXPECT(options_);
     CELER_EXPECT(params_);
-    CELER_EXPECT(transport_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
  */
-void RunAction::BeginOfRunAction(const G4Run* run)
+void RunAction::BeginOfRunAction(G4Run const* run)
 {
     CELER_EXPECT(run);
 
-    if (!CELERITAS_USE_VECGEOM)
+    celeritas::ExceptionConverter call_g4exception{"celer0001"};
+
+    if (init_celeritas_)
     {
-        // For testing purposes, pass the GDML input filename to Celeritas
-        const_cast<celeritas::SetupOptions&>(*options_).geometry_file
-            = GlobalSetup::Instance()->GetGeometryFile();
+        // This worker (or master thread) is responsible for initializing
+        // celeritas
+        if (!CELERITAS_USE_VECGEOM)
+        {
+            // For testing purposes, pass the GDML input filename to Celeritas
+            const_cast<celeritas::SetupOptions&>(*options_).geometry_file
+                = GlobalSetup::Instance()->GetGeometryFile();
+        }
+
+        // Create the along-step action
+        GlobalSetup::Instance()->SetAlongStep(NoFieldAlongStepFactory{});
+
+        // Initialize shared data and setup GPU on all threads
+        CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
+        CELER_ASSERT(*params_);
+    }
+    else
+    {
+        CELER_TRY_HANDLE(celeritas::SharedParams::InitializeWorker(*options_),
+                         call_g4exception);
     }
 
-    celeritas::ExceptionConverter call_g4exception{"celer0001"};
-    CELER_TRY_ELSE(
-        {
-            // Initialize shared data
-            params_->Initialize(*options_);
-            CELER_ASSERT(*params_);
-
-            // Construct thread-local transporter
-            *transport_ = celeritas::LocalTransporter(*options_, *params_);
-            CELER_ENSURE(*transport_);
-        },
-        call_g4exception);
+    if (transport_)
+    {
+        // Allocate data in shared thread-local transporter
+        CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
+                         call_g4exception);
+        CELER_ENSURE(*transport_);
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Finalize Celeritas.
  */
-void RunAction::EndOfRunAction(const G4Run*)
+void RunAction::EndOfRunAction(G4Run const*)
 {
     CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
     celeritas::ExceptionConverter call_g4exception{"celer0005"};
 
-    // Deallocate Celeritas state data (ensures that objects are deleted on the
-    // thread in which they're created, necessary by some geant4
-    // thread-local allocators)
-    CELER_TRY_ELSE(transport_->Finalize(), call_g4exception);
-
-    // Clear shared data and write if master thread (when running without MT)
-    if (G4Threading::IsMasterThread())
+    if (transport_)
     {
-        CELER_TRY_ELSE(params_->Finalize(), call_g4exception);
+        // Deallocate Celeritas state data (ensures that objects are deleted on
+        // the thread in which they're created, necessary by some geant4
+        // thread-local allocators)
+        CELER_TRY_HANDLE(transport_->Finalize(), call_g4exception);
+    }
+
+    if (init_celeritas_)
+    {
+        // Clear shared data and write
+        CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

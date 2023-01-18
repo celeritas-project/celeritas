@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -64,12 +64,12 @@ class BumpCalculator
 {
   public:
     explicit CELER_FORCEINLINE_FUNCTION
-    BumpCalculator(const OrangeParamsScalars& scalars)
+    BumpCalculator(OrangeParamsScalars const& scalars)
         : scalars_(scalars)
     {
     }
 
-    inline CELER_FUNCTION real_type operator()(const Real3& pos) const
+    inline CELER_FUNCTION real_type operator()(Real3 const& pos) const
     {
         real_type result = scalars_.bump_abs;
         for (real_type p : pos)
@@ -81,7 +81,7 @@ class BumpCalculator
     }
 
   private:
-    const OrangeParamsScalars& scalars_;
+    OrangeParamsScalars const& scalars_;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,7 +90,7 @@ class BumpCalculator
 /*!
  * Convert an OnSurface (may be null) to an OnFace using a volume view.
  */
-inline CELER_FUNCTION OnFace find_face(const VolumeView& vol, OnSurface surf)
+inline CELER_FUNCTION OnFace find_face(VolumeView const& vol, OnSurface surf)
 {
     return {surf ? vol.find_face(surf.id()) : FaceId{}, surf.unchecked_sense()};
 }
@@ -99,12 +99,12 @@ inline CELER_FUNCTION OnFace find_face(const VolumeView& vol, OnSurface surf)
 /*!
  * Convert an OnFace (may be null) to an OnSurface using a volume view.
  */
-inline CELER_FUNCTION OnSurface get_surface(const VolumeView& vol, OnFace face)
+inline CELER_FUNCTION OnSurface get_surface(VolumeView const& vol, OnFace face)
 {
     return {face ? vol.get_surface(face.id()) : SurfaceId{},
             face.unchecked_sense()};
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

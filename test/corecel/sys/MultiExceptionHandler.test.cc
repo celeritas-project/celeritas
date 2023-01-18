@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ TEST_F(MultiExceptionHandlerTest, single)
 {
     MultiExceptionHandler capture_exception;
     EXPECT_TRUE(capture_exception.empty());
-    CELER_TRY_ELSE(
+    CELER_TRY_HANDLE(
         throw RuntimeError::from_validate("first exception", "", "here", 1),
         capture_exception);
     EXPECT_FALSE(capture_exception.empty());
@@ -64,14 +64,14 @@ TEST_F(MultiExceptionHandlerTest, single)
 TEST_F(MultiExceptionHandlerTest, multi)
 {
     MultiExceptionHandler capture_exception;
-    CELER_TRY_ELSE(
+    CELER_TRY_HANDLE(
         throw RuntimeError::from_validate("first exception", "", "here", 1),
         capture_exception);
     for (auto i : range(3))
     {
         DebugErrorDetails deets{
             DebugErrorType::internal, "false", "test.cc", i};
-        CELER_TRY_ELSE(throw DebugError(deets), capture_exception);
+        CELER_TRY_HANDLE(throw DebugError(deets), capture_exception);
     }
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 
@@ -89,10 +89,10 @@ TEST_F(MultiExceptionHandlerTest, multi)
 TEST_F(MultiExceptionHandlerTest, DISABLED_uncaught)
 {
     MultiExceptionHandler catchme;
-    CELER_TRY_ELSE(CELER_VALIDATE(false, << "derp"), catchme);
+    CELER_TRY_HANDLE(CELER_VALIDATE(false, << "derp"), catchme);
     // Program will terminate when catchme leaves scope
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

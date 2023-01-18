@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,7 +10,6 @@
 #include <G4GDMLParser.hh>
 #include <G4VPhysicalVolume.hh>
 
-#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
@@ -28,13 +27,13 @@ void detail::PVDeleter::operator()(G4VPhysicalVolume* vol) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
  * Load a gdml input file, creating a pointer with ownership semantics.
  */
-UPG4PhysicalVolume load_gdml(const std::string& filename)
+UPG4PhysicalVolume load_gdml(std::string const& filename)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
 
@@ -55,4 +54,4 @@ UPG4PhysicalVolume load_gdml(const std::string& filename)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

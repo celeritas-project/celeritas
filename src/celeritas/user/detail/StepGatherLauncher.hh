@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,16 +25,16 @@ struct StepGatherLauncher
 {
     //!@{
     //! \name Type aliases
-    using CoreRefNative       = CoreRef<MemSpace::native>;
+    using CoreRefNative = CoreRef<MemSpace::native>;
     using StepParamsRefNative = NativeCRef<StepParamsData>;
-    using StepStateRefNative  = NativeRef<StepStateData>;
+    using StepStateRefNative = NativeRef<StepStateData>;
     //!@}
 
     //// DATA ////
 
-    CoreRefNative const&       core_data;
+    CoreRefNative const& core_data;
     StepParamsRefNative const& step_params;
-    StepStateRefNative const&  step_state;
+    StepStateRefNative const& step_state;
 
     //// METHODS ////
 
@@ -65,7 +65,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     } while (0)
 
     {
-        const auto sim      = track.make_sim_view();
+        auto const sim = track.make_sim_view();
         bool inactive = (sim.status() == TrackStatus::inactive);
 
         if (P == StepPoint::post)
@@ -94,7 +94,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         // stepping)
         if (P == StepPoint::pre)
         {
-            const auto geo = track.make_geo_view();
+            auto const geo = track.make_geo_view();
             CELER_ASSERT(!geo.is_outside());
             VolumeId vol = geo.volume_id();
             CELER_ASSERT(vol);
@@ -112,7 +112,7 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
         if (P == StepPoint::post && this->step_params.nonzero_energy_deposition)
         {
             // Filter out tracks that didn't deposit energy over the step
-            const auto pstep = track.make_physics_step_view();
+            auto const pstep = track.make_physics_step_view();
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
@@ -123,22 +123,23 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     }
 
     {
-        const auto sim = track.make_sim_view();
+        auto const sim = track.make_sim_view();
 
         SGL_SET_IF_SELECTED(points[P].time, sim.time());
         if (P == StepPoint::post)
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
+            SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
 
-            const auto& limit = sim.step_limit();
+            auto const& limit = sim.step_limit();
             SGL_SET_IF_SELECTED(action_id, limit.action);
             SGL_SET_IF_SELECTED(step_length, limit.step);
         }
     }
 
     {
-        const auto geo = track.make_geo_view();
+        auto const geo = track.make_geo_view();
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
@@ -147,11 +148,11 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
     }
 
     {
-        const auto par = track.make_particle_view();
+        auto const par = track.make_particle_view();
 
         if (P == StepPoint::post)
         {
-            const auto pstep = track.make_physics_step_view();
+            auto const pstep = track.make_physics_step_view();
             SGL_SET_IF_SELECTED(energy_deposition, pstep.energy_deposition());
             SGL_SET_IF_SELECTED(particle, par.particle_id());
         }
@@ -161,5 +162,5 @@ CELER_FUNCTION void StepGatherLauncher<P>::operator()(ThreadId thread) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

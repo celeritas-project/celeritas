@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ class SeltzerBergerReader
     SeltzerBergerReader();
 
     // Construct from a user defined path
-    explicit SeltzerBergerReader(const char* path);
+    explicit SeltzerBergerReader(char const* path);
 
     // Read data from ascii for the given element
     result_type operator()(AtomicNumber atomic_number) const;
@@ -50,4 +50,4 @@ class SeltzerBergerReader
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

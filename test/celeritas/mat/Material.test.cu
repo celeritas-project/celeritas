@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,13 +27,13 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void m_test_kernel(unsigned int const                  size,
+__global__ void m_test_kernel(unsigned int const size,
                               MTestInput::MaterialParamsRef const params,
-                              MTestInput::MaterialStateRef const  states,
-                              const MaterialTrackState* const     init,
-                              real_type*                          temperatures,
-                              real_type*                          rad_len,
-                              real_type*                          tot_z)
+                              MTestInput::MaterialStateRef const states,
+                              MaterialTrackState const* const init,
+                              real_type* temperatures,
+                              real_type* rad_len,
+                              real_type* tot_z)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= size)
@@ -46,9 +46,9 @@ __global__ void m_test_kernel(unsigned int const                  size,
     CELER_ASSERT(mat_track.material_id() == init[tid.get()].material_id);
 
     // Get material properties
-    const auto& mat         = mat_track.make_material_view();
+    auto const& mat = mat_track.make_material_view();
     temperatures[tid.get()] = mat.temperature();
-    rad_len[tid.get()]      = mat.radiation_length();
+    rad_len[tid.get()] = mat.radiation_length();
 
     // Fill elements with finctional cross sections
     Span<real_type> scratch = mat_track.element_scratch();
@@ -56,7 +56,7 @@ __global__ void m_test_kernel(unsigned int const                  size,
     for (auto ec : range(mat.num_elements()))
     {
         // Pretend to calculate cross section for the ec'th element
-        const auto& element = mat.make_element_view(ElementComponentId{ec});
+        auto const& element = mat.make_element_view(ElementComponentId{ec});
         scratch[ec]
             = static_cast<real_type>(element.atomic_number().unchecked_get());
     }
@@ -69,18 +69,18 @@ __global__ void m_test_kernel(unsigned int const                  size,
     }
     tot_z[tid.get()] = tz;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-MTestOutput m_test(const MTestInput& input)
+MTestOutput m_test(MTestInput const& input)
 {
     thrust::device_vector<MaterialTrackState> init = input.init;
-    thrust::device_vector<real_type>          temperatures(input.size());
-    thrust::device_vector<real_type>          rad_len(input.size());
-    thrust::device_vector<real_type>          tot_z(input.size());
+    thrust::device_vector<real_type> temperatures(input.size());
+    thrust::device_vector<real_type> rad_len(input.size());
+    thrust::device_vector<real_type> tot_z(input.size());
 
     CELER_LAUNCH_KERNEL(m_test,
                         device().default_block_size(),
@@ -107,5 +107,5 @@ MTestOutput m_test(const MTestInput& input)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

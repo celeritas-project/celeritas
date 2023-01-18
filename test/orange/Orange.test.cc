@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -85,7 +85,7 @@ class Geant4Testem15Test : public OrangeTest
 
 TEST_F(OneVolumeTest, params)
 {
-    const OrangeParams& geo = this->params();
+    OrangeParams const& geo = this->params();
 
     EXPECT_EQ(1, geo.num_volumes());
     EXPECT_EQ(0, geo.num_surfaces());
@@ -133,7 +133,7 @@ TEST_F(OneVolumeTest, track_view)
 
 TEST_F(TwoVolumeTest, params)
 {
-    const OrangeParams& geo = this->params();
+    OrangeParams const& geo = this->params();
 
     EXPECT_EQ(2, geo.num_volumes());
     EXPECT_EQ(1, geo.num_surfaces());
@@ -142,7 +142,7 @@ TEST_F(TwoVolumeTest, params)
     EXPECT_EQ("sphere", geo.id_to_label(SurfaceId{0}).name);
     EXPECT_EQ(SurfaceId{0}, geo.find_surface("sphere"));
 
-    const auto& bbox = geo.bbox();
+    auto const& bbox = geo.bbox();
     EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -1.5}), bbox.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 1.5}), bbox.upper());
 }
@@ -218,7 +218,7 @@ TEST_F(TwoVolumeTest, simple_track)
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
     auto geo = this->make_track_view();
-    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -258,7 +258,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 {
     auto geo = this->make_track_view();
-    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -295,7 +295,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 {
     auto geo = this->make_track_view();
-    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -337,7 +337,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 {
     auto geo = this->make_track_view();
-    geo      = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
+    geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
 
@@ -389,7 +389,7 @@ TEST_F(TwoVolumeTest, persistence)
 {
     {
         auto geo = this->make_track_view();
-        geo      = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
+        geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
         geo.find_next_step();
         geo.move_to_boundary();
     }
@@ -501,7 +501,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
 
 TEST_F(FiveVolumesTest, params)
 {
-    const OrangeParams& geo = this->params();
+    OrangeParams const& geo = this->params();
 
     EXPECT_EQ(6, geo.num_volumes());
     EXPECT_EQ(12, geo.num_surfaces());
@@ -510,7 +510,7 @@ TEST_F(FiveVolumesTest, params)
 
 TEST_F(UniversesTest, params)
 {
-    const OrangeParams& geo = this->params();
+    OrangeParams const& geo = this->params();
     EXPECT_EQ(9, geo.num_volumes());
     EXPECT_EQ(21, geo.num_surfaces());
     EXPECT_FALSE(geo.supports_safety());
@@ -528,7 +528,7 @@ TEST_F(UniversesTest, params)
                                          "b",
                                          "c"};
     std::vector<std::string> actual;
-    for (const auto id : range(VolumeId{geo.num_volumes()}))
+    for (auto const id : range(VolumeId{geo.num_volumes()}))
     {
         actual.push_back(geo.id_to_label(id).name);
     }
@@ -559,7 +559,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
 TEST_F(Geant4Testem15Test, params)
 {
-    const OrangeParams& geo = this->params();
+    OrangeParams const& geo = this->params();
 
     EXPECT_EQ(3, geo.num_volumes());
     EXPECT_EQ(12, geo.num_surfaces());
@@ -600,5 +600,5 @@ TEST_F(Geant4Testem15Test, safety)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ TEST(ItemRange, types)
 TEST(ItemRange, accessors)
 {
     using ItemRangeT = ItemRange<int>;
-    using ItemIdT    = ItemId<int>;
+    using ItemIdT = ItemId<int>;
     ItemRangeT ps;
     EXPECT_EQ(0, ps.size());
     EXPECT_TRUE(ps.empty());
@@ -63,9 +63,9 @@ TEST(CollectionBuilder, size_limits)
 {
     using IdType = OpaqueId<struct Tiny, std::uint8_t>;
     Collection<double, Ownership::value, MemSpace::host, IdType> host_val;
-    auto                build = make_builder(&host_val);
+    auto build = make_builder(&host_val);
     std::vector<double> dummy(254);
-    auto                irange = build.insert_back(dummy.begin(), dummy.end());
+    auto irange = build.insert_back(dummy.begin(), dummy.end());
     EXPECT_EQ(0, irange.begin()->unchecked_get());
     EXPECT_EQ(254, irange.end()->unchecked_get());
 
@@ -96,7 +96,7 @@ TEST(CollectionBuilder, size_limits)
 class SimpleCollectionTest : public Test
 {
   protected:
-    using IntId    = ItemId<int>;
+    using IntId = ItemId<int>;
     using IntRange = ItemRange<int>;
     template<MemSpace M>
     using AllInts = AllItems<int, M>;
@@ -108,7 +108,7 @@ class SimpleCollectionTest : public Test
     template<MemSpace M>
     using CRef = Collection<int, Ownership::const_reference, M>;
 
-    static constexpr MemSpace host   = MemSpace::host;
+    static constexpr MemSpace host = MemSpace::host;
     static constexpr MemSpace device = MemSpace::device;
 };
 
@@ -138,7 +138,7 @@ TEST_F(SimpleCollectionTest, accessors)
     host_ref[irange].back() = 321;
     EXPECT_EQ(321, host_ref[IntId{3}]);
 
-    const Ref<host>& host_ref_cref = host_ref;
+    Ref<host> const& host_ref_cref = host_ref;
     EXPECT_EQ(123, host_ref_cref[IntId{0}]);
     EXPECT_EQ(321, host_ref_cref[irange].back());
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
@@ -193,7 +193,7 @@ class CollectionTest : public Test
         HostVal<MockParamsData> host_data;
         host_data.max_element_components = 3;
 
-        auto el_builder  = make_builder(&host_data.elements);
+        auto el_builder = make_builder(&host_data.elements);
         auto mat_builder = make_builder(&host_data.materials);
         el_builder.reserve(5);
         mat_builder.reserve(2);
@@ -201,7 +201,7 @@ class CollectionTest : public Test
         //// Construct materials and elements ////
         {
             MockMaterial m;
-            m.number_density             = 2.0;
+            m.number_density = 2.0;
             const MockElement elements[] = {
                 {1, 1.1},
                 {3, 5.0},
@@ -216,7 +216,7 @@ class CollectionTest : public Test
         {
             MockMaterial m;
             m.number_density = 20.0;
-            m.elements       = el_builder.insert_back({{10, 20.0}});
+            m.elements = el_builder.insert_back({{10, 20.0}});
             mat_builder.push_back(m);
         }
         {
@@ -230,12 +230,12 @@ class CollectionTest : public Test
 
         // Test host-accessible values and const correctness
         {
-            const auto& host_data_const = host_data;
+            auto const& host_data_const = host_data;
 
-            const MockMaterial& m
+            MockMaterial const& m
                 = host_data_const.materials[MockMaterialId{0}];
             EXPECT_EQ(3, m.elements.size());
-            Span<const MockElement> els = host_data_const.elements[m.elements];
+            Span<MockElement const> els = host_data_const.elements[m.elements];
             EXPECT_EQ(3, els.size());
             EXPECT_EQ(6, els[2].atomic_number);
         }
@@ -247,8 +247,8 @@ class CollectionTest : public Test
                                       MockParamsData<Ownership::const_reference,
                                                      MemSpace::host>>::value));
 
-            const auto& host_value_const = host_data;
-            auto        host_cref2       = make_const_ref(host_value_const);
+            auto const& host_value_const = host_data;
+            auto host_cref2 = make_const_ref(host_value_const);
             EXPECT_TRUE((std::is_same<decltype(host_cref2),
                                       MockParamsData<Ownership::const_reference,
                                                      MemSpace::host>>::value));
@@ -276,7 +276,7 @@ TEST_F(CollectionTest, host)
 {
     HostVal<MockStateData> host_state;
     resize(&host_state, 1);
-    auto host_state_ref               = make_ref(host_state);
+    auto host_state_ref = make_ref(host_state);
     host_state_ref.matid[ThreadId{0}] = MockMaterialId{1};
 
     // Create view
@@ -303,9 +303,9 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
 
     // For brevity, only check the first 6 values (they repeat after that)
     result.resize(6);
-    const double expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
+    double const expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

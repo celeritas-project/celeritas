@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,7 +33,7 @@ template<class... Args>
 std::size_t hash_combine(Args const&... args)
 {
     // Construct a hasher and initialize
-    std::size_t             result;
+    std::size_t result;
     CELER_MAYBE_UNUSED auto hash_fnv = detail::make_fast_hasher(&result);
 
     // Hash each one of the arguments sequentially by expanding into an unused
@@ -44,4 +44,4 @@ std::size_t hash_combine(Args const&... args)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

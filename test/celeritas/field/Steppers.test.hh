@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ CELER_FUNCTION decltype(auto)
 make_mag_field_stepper(FieldT&& field, units::ElementaryCharge charge)
 {
     using Equation_t = MagFieldEquation<FieldT>;
-    using Stepper_t  = StepperT<Equation_t>;
+    using Stepper_t = StepperT<Equation_t>;
     return Stepper_t{Equation_t{::celeritas::forward<FieldT>(field), charge}};
 }
 
@@ -72,5 +72,5 @@ inline StepperTestOutput dp547_test(FieldTestParams)
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

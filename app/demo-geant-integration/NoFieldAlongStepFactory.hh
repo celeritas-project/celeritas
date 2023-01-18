@@ -24,4 +24,4 @@ class NoFieldAlongStepFactory final
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

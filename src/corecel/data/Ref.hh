@@ -1,10 +1,10 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/Ref.hh
-//! Helper functions for memspace-specific references.
+//! \brief Helper functions for memspace-specific references
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -42,7 +42,7 @@ inline S<Ownership::reference, M> make_ref(S<Ownership::value, M>& states)
  */
 template<template<Ownership, MemSpace> class P, MemSpace M>
 inline P<Ownership::const_reference, M>
-make_ref(const P<Ownership::value, M>& params)
+make_ref(P<Ownership::value, M> const& params)
 {
     P<Ownership::const_reference, M> result;
     result = params;
@@ -54,7 +54,7 @@ make_ref(const P<Ownership::value, M>& params)
  * Construct a const reference object pointing to params data.
  */
 template<template<Ownership, MemSpace> class P, MemSpace M>
-inline decltype(auto) make_const_ref(const P<Ownership::value, M>& params)
+inline decltype(auto) make_const_ref(P<Ownership::value, M> const& params)
 {
     return make_ref(params);
 }
@@ -73,4 +73,4 @@ decltype(auto) get_ref(T&& obj)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

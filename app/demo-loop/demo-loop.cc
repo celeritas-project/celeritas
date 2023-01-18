@@ -1,25 +1,29 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file demo-loop/demo-loop.cc
 //---------------------------------------------------------------------------//
-#include <cstddef>
+#include <cstdlib>
+#include <exception>
 #include <fstream>
 #include <functional>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <random>
-#include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_version.h"
-#include "corecel/data/Ref.hh"
+#include "corecel/Assert.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterface.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputManager.hh"
 #include "corecel/sys/Device.hh"
@@ -31,14 +35,19 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/global/ActionRegistryOutput.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventReader.hh"
+#include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/StepCollector.hh"
+#include "celeritas/user/StepData.hh"
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
@@ -88,12 +97,12 @@ void run(std::istream* is, OutputManager* output)
     Stopwatch get_setup_time;
 
     // Load all the problem data and create transporter
-    auto         transport_ptr = build_transporter(run_args);
-    const double setup_time    = get_setup_time();
+    auto transport_ptr = build_transporter(run_args);
+    double const setup_time = get_setup_time();
 
     {
         // Save diagnostic information
-        const CoreParams& params = transport_ptr->params();
+        CoreParams const& params = transport_ptr->params();
         output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
         output->insert(
             std::make_shared<ActionRegistryOutput>(params.action_reg()));
@@ -101,8 +110,8 @@ void run(std::istream* is, OutputManager* output)
 
     // Save results to ROOT MC truth output file when possible
     std::shared_ptr<RootFileManager> root_manager;
-    std::shared_ptr<StepCollector>   step_collector;
-    std::shared_ptr<RootStepWriter>  step_writer;
+    std::shared_ptr<StepCollector> step_collector;
+    std::shared_ptr<RootStepWriter> step_writer;
 
     if (!run_args.mctruth_filename.empty())
     {
@@ -122,12 +131,13 @@ void run(std::istream* is, OutputManager* output)
             transport_ptr->params().geometry(),
             transport_ptr->params().action_reg().get());
 
-        // Store input data
-        to_root(root_manager, run_args);
+        // Store input and CoreParams data
+        to_root(*root_manager, run_args);
+        to_root(*root_manager, transport_ptr->params());
     }
 
     // Run all the primaries
-    TransporterResult    result;
+    TransporterResult result;
     std::vector<Primary> primaries;
     if (run_args.primary_gen_options)
     {
@@ -145,7 +155,7 @@ void run(std::istream* is, OutputManager* output)
     {
         EventReader read_event(run_args.hepmc3_filename.c_str(),
                                transport_ptr->params().particle());
-        auto        event = read_event();
+        auto event = read_event();
         while (!event.empty())
         {
             primaries.insert(primaries.end(), event.begin(), event.end());
@@ -169,7 +179,7 @@ void run(std::istream* is, OutputManager* output)
         root_manager->write();
     }
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -178,7 +188,7 @@ void run(std::istream* is, OutputManager* output)
 int main(int argc, char* argv[])
 {
     ScopedRootErrorHandler scoped_root_error;
-    ScopedMpiInit          scoped_mpi(&argc, &argv);
+    ScopedMpiInit scoped_mpi(&argc, &argv);
 
     MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
@@ -202,13 +212,13 @@ int main(int argc, char* argv[])
     // Initialize GPU
     celeritas::activate_device(celeritas::make_device(comm));
 
-    std::string   filename = args[1];
+    std::string filename = args[1];
     std::ifstream infile;
     std::istream* instream = nullptr;
     if (filename == "-")
     {
         instream = &std::cin;
-        filename = "<stdin>"; // For nicer output on failure
+        filename = "<stdin>";  // For nicer output on failure
     }
     else
     {
@@ -239,7 +249,7 @@ int main(int argc, char* argv[])
     {
         run(instream, &output);
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         CELER_LOG(critical)
             << "While running input at " << filename << ": " << e.what();

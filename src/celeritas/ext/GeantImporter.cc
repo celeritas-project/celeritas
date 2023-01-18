@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,44 +8,53 @@
 #include "GeantImporter.hh"
 
 #include <algorithm>
-#include <cstdlib>
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
+#include <G4Element.hh>
+#include <G4ElementTable.hh>
+#include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
-#include <G4MaterialTable.hh>
+#include <G4MaterialCutsCouple.hh>
+#include <G4Navigator.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4ProcessVector.hh>
+#include <G4ProductionCuts.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
+#include <G4String.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4TransportationManager.hh>
+#include <G4Types.hh>
+#include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
+#include <G4VRangeToEnergyConverter.hh>
 #include <G4VSolid.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportParticle.hh"
-#include "celeritas/io/ImportPhysicsTable.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/AllElementReader.hh"
-#include "detail/GeantExceptionHandler.hh"
-#include "detail/GeantLoggerAdapter.hh"
 #include "detail/ImportProcessConverter.hh"
 
 namespace celeritas
@@ -117,7 +126,7 @@ struct ProcessFilter
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
-ImportMaterialState to_material_state(const G4State& g4_material_state)
+ImportMaterialState to_material_state(G4State const& g4_material_state)
 {
     switch (g4_material_state)
     {
@@ -138,7 +147,7 @@ ImportMaterialState to_material_state(const G4State& g4_material_state)
  * Safely switch from G4ProductionCutsIndex [G4ProductionCuts.hh] to the
  * particle's pdg encoding.
  */
-PDGNumber to_pdg(const G4ProductionCutsIndex& index)
+PDGNumber to_pdg(G4ProductionCutsIndex const& index)
 {
     switch (index)
     {
@@ -165,7 +174,7 @@ PDGNumber to_pdg(const G4ProductionCutsIndex& index)
  * Function called by \c store_volumes(...) .
  */
 void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
-                  const G4LogicalVolume&                logical_volume)
+                  G4LogicalVolume const& logical_volume)
 {
     auto iter_inserted = volids_volumes.emplace(logical_volume.GetInstanceID(),
                                                 ImportVolume{});
@@ -178,11 +187,11 @@ void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
     // Fill volume properties
     ImportVolume& volume = iter_inserted.first->second;
     volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
-    volume.name        = logical_volume.GetName();
-    volume.solid_name  = logical_volume.GetSolid()->GetName();
+    volume.name = logical_volume.GetName();
+    volume.solid_name = logical_volume.GetSolid()->GetName();
 
     // Recursive: repeat for every daughter volume, if there are any
-    for (const auto i : range(logical_volume.GetNoDaughters()))
+    for (auto const i : range(logical_volume.GetNoDaughters()))
     {
         loop_volumes(volids_volumes,
                      *logical_volume.GetDaughter(i)->GetLogicalVolume());
@@ -205,7 +214,7 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        const G4ParticleDefinition& g4_particle_def
+        G4ParticleDefinition const& g4_particle_def
             = *(particle_iterator.value());
 
         PDGNumber pdg{g4_particle_def.GetPDGEncoding()};
@@ -215,12 +224,12 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
         }
 
         ImportParticle particle;
-        particle.name      = g4_particle_def.GetParticleName();
-        particle.pdg       = pdg.unchecked_get();
-        particle.mass      = g4_particle_def.GetPDGMass();
-        particle.charge    = g4_particle_def.GetPDGCharge();
-        particle.spin      = g4_particle_def.GetPDGSpin();
-        particle.lifetime  = g4_particle_def.GetPDGLifeTime();
+        particle.name = g4_particle_def.GetParticleName();
+        particle.pdg = pdg.unchecked_get();
+        particle.mass = g4_particle_def.GetPDGMass();
+        particle.charge = g4_particle_def.GetPDGCharge();
+        particle.spin = g4_particle_def.GetPDGSpin();
+        particle.lifetime = g4_particle_def.GetPDGLifeTime();
         particle.is_stable = g4_particle_def.GetPDGStable();
 
         if (!particle.is_stable)
@@ -242,23 +251,23 @@ store_particles(GeantImporter::DataSelection::Flags particle_flags)
  */
 std::vector<ImportElement> store_elements()
 {
-    const auto& g4element_table = *G4Element::GetElementTable();
+    auto const& g4element_table = *G4Element::GetElementTable();
 
     std::vector<ImportElement> elements;
     elements.resize(g4element_table.size());
 
     // Loop over element data
-    for (const auto& g4element : g4element_table)
+    for (auto const& g4element : g4element_table)
     {
         CELER_ASSERT(g4element);
 
         // Add element to vector
         ImportElement element;
-        element.name                  = g4element->GetName();
-        element.atomic_number         = g4element->GetZ();
-        element.atomic_mass           = g4element->GetAtomicMassAmu();
+        element.name = g4element->GetName();
+        element.atomic_number = g4element->GetZ();
+        element.atomic_mass = g4element->GetAtomicMassAmu();
         element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
-        element.coulomb_factor        = g4element->GetfCoulomb();
+        element.coulomb_factor = g4element->GetfCoulomb();
 
         elements[g4element->GetIndex()] = element;
     }
@@ -275,7 +284,7 @@ std::vector<ImportMaterial>
 store_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
-    const auto&    g4production_cuts_table
+    auto const& g4production_cuts_table
         = *G4ProductionCutsTable::GetProductionCutsTable();
 
     std::vector<ImportMaterial> materials;
@@ -322,11 +331,11 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     for (unsigned int i : range(g4production_cuts_table.GetTableSize()))
     {
         // Fetch material, element, and production cuts lists
-        const auto& g4material_cuts_couple
+        auto const& g4material_cuts_couple
             = g4production_cuts_table.GetMaterialCutsCouple(i);
-        const auto& g4material  = g4material_cuts_couple->GetMaterial();
-        const auto& g4elements  = g4material->GetElementVector();
-        const auto& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
+        auto const& g4material = g4material_cuts_couple->GetMaterial();
+        auto const& g4elements = g4material->GetElementVector();
+        auto const& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
 
         CELER_ASSERT(g4material_cuts_couple);
         CELER_ASSERT(g4material);
@@ -335,29 +344,29 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 
         // Populate material information
         ImportMaterial material;
-        material.name             = g4material->GetName();
-        material.state            = to_material_state(g4material->GetState());
-        material.temperature      = g4material->GetTemperature(); // [K]
-        material.density          = g4material->GetDensity() / (g / cm3);
+        material.name = g4material->GetName();
+        material.state = to_material_state(g4material->GetState());
+        material.temperature = g4material->GetTemperature();  // [K]
+        material.density = g4material->GetDensity() / (g / cm3);
         material.electron_density = g4material->GetTotNbOfElectPerVolume()
                                     / (1. / cm3);
         material.number_density = g4material->GetTotNbOfAtomsPerVolume()
                                   / (1. / cm3);
-        material.radiation_length   = g4material->GetRadlen() / cm;
+        material.radiation_length = g4material->GetRadlen() / cm;
         material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
         // Populate material production cut values
-        for (const auto& idx_convert : cut_converters)
+        for (auto const& idx_convert : cut_converters)
         {
-            G4ProductionCutsIndex      g4i       = idx_convert.first;
+            G4ProductionCutsIndex g4i = idx_convert.first;
             G4VRangeToEnergyConverter& converter = *idx_convert.second;
 
-            const double range  = g4prod_cuts->GetProductionCut(g4i);
-            const double energy = converter.Convert(range, g4material);
+            double const range = g4prod_cuts->GetProductionCut(g4i);
+            double const energy = converter.Convert(range, g4material);
 
             ImportProductionCut cutoffs;
             cutoffs.energy = energy / MeV;
-            cutoffs.range  = range / cm;
+            cutoffs.range = range / cm;
 
             material.pdg_cutoffs.insert({to_pdg(g4i).get(), cutoffs});
         }
@@ -365,11 +374,11 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
         // Populate element information for this material
         for (int j : range(g4elements->size()))
         {
-            const auto& g4element = g4elements->at(j);
+            auto const& g4element = g4elements->at(j);
             CELER_ASSERT(g4element);
 
             ImportMatElemComponent elem_comp;
-            elem_comp.element_id    = g4element->GetIndex();
+            elem_comp.element_id = g4element->GetIndex();
             elem_comp.mass_fraction = g4material->GetFractionVector()[j];
             double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
                                       / (1. / cm3);
@@ -383,13 +392,13 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
         // Sort element components by increasing element ID
         std::sort(material.elements.begin(),
                   material.elements.end(),
-                  [](const ImportMatElemComponent& lhs,
-                     const ImportMatElemComponent& rhs) {
+                  [](ImportMatElemComponent const& lhs,
+                     ImportMatElemComponent const& rhs) {
                       return lhs.element_id < rhs.element_id;
                   });
 
         // Add material to vector
-        const unsigned int material_id = g4material_cuts_couple->GetIndex();
+        unsigned int const material_id = g4material_cuts_couple->GetIndex();
         CELER_ASSERT(material_id < materials.size());
         CELER_ASSERT(material_id == i);
         materials[material_id] = material;
@@ -406,28 +415,28 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
  */
 std::vector<ImportProcess>
 store_processes(GeantImporter::DataSelection::Flags process_flags,
-                const std::vector<ImportParticle>&  particles,
-                const std::vector<ImportElement>&   elements,
-                const std::vector<ImportMaterial>&  materials)
+                std::vector<ImportParticle> const& particles,
+                std::vector<ImportElement> const& elements,
+                std::vector<ImportMaterial> const& materials)
 {
     ProcessFilter include_process{process_flags};
 
-    std::vector<ImportProcess>     processes;
+    std::vector<ImportProcess> processes;
     detail::ImportProcessConverter load_process(
         detail::TableSelection::minimal, materials, elements);
 
-    for (const auto& p : particles)
+    for (auto const& p : particles)
     {
-        const G4ParticleDefinition* g4_particle_def
+        G4ParticleDefinition const* g4_particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
         CELER_ASSERT(g4_particle_def);
 
-        const G4ProcessVector& process_list
+        G4ProcessVector const& process_list
             = *g4_particle_def->GetProcessManager()->GetProcessList();
 
         for (auto j : range(process_list.size()))
         {
-            const G4VProcess& process = *process_list[j];
+            G4VProcess const& process = *process_list[j];
             if (!include_process(process.GetProcessType()))
             {
                 CELER_LOG(debug)
@@ -450,9 +459,9 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
+std::vector<ImportVolume> store_volumes(G4VPhysicalVolume const* world_volume)
 {
-    std::vector<ImportVolume>            volumes;
+    std::vector<ImportVolume> volumes;
     std::map<unsigned int, ImportVolume> volids_volumes;
 
     // Recursive loop over all logical volumes to populate map<volid, volume>
@@ -460,7 +469,7 @@ std::vector<ImportVolume> store_volumes(const G4VPhysicalVolume* world_volume)
 
     // Populate vector<ImportVolume>
     volumes.reserve(volids_volumes.size());
-    for (const auto& key : volids_volumes)
+    for (auto const& key : volids_volumes)
     {
         CELER_ASSERT(key.first == volumes.size());
         volumes.push_back(key.second);
@@ -478,20 +487,20 @@ ImportEmParameters store_em_parameters()
 {
     ImportEmParameters import;
 
-    const auto& g4 = *G4EmParameters::Instance();
+    auto const& g4 = *G4EmParameters::Instance();
 
     import.energy_loss_fluct = g4.LossFluctuation();
-    import.lpm               = g4.LPM();
+    import.lpm = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
-    import.auger             = g4.Auger();
+    import.auger = g4.Auger();
 
     CELER_ENSURE(import);
     return import;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -500,7 +509,7 @@ ImportEmParameters store_em_parameters()
  * This is only defined if Geant4 has already been set up. It's meant to be
  * used in concert with GeantImporter or other Geant-importing classes.
  */
-const G4VPhysicalVolume* GeantImporter::get_world_volume()
+G4VPhysicalVolume const* GeantImporter::get_world_volume()
 {
     auto* man = G4TransportationManager::GetTransportationManager();
     CELER_ASSERT(man);
@@ -515,7 +524,7 @@ const G4VPhysicalVolume* GeantImporter::get_world_volume()
 /*!
  * Construct from an existing Geant4 geometry, assuming physics is loaded.
  */
-GeantImporter::GeantImporter(const G4VPhysicalVolume* world) : world_(world)
+GeantImporter::GeantImporter(G4VPhysicalVolume const* world) : world_(world)
 {
     CELER_EXPECT(world_);
 }
@@ -535,7 +544,7 @@ GeantImporter::GeantImporter(GeantSetup&& setup) : setup_(std::move(setup))
 /*!
  * Load data from Geant4.
  */
-ImportData GeantImporter::operator()(const DataSelection& selected)
+ImportData GeantImporter::operator()(DataSelection const& selected)
 {
     ImportData import_data;
 
@@ -543,13 +552,13 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedTimeLog scoped_time;
         import_data.particles = store_particles(selected.particles);
-        import_data.elements  = store_elements();
+        import_data.elements = store_elements();
         import_data.materials = store_materials(selected.particles);
         import_data.processes = store_processes(selected.processes,
                                                 import_data.particles,
                                                 import_data.elements,
                                                 import_data.materials);
-        import_data.volumes   = store_volumes(world_);
+        import_data.volumes = store_volumes(world_);
         if (selected.processes & DataSelection::em)
         {
             import_data.em_params = store_em_parameters();
@@ -597,4 +606,4 @@ ImportData GeantImporter::operator()(const DataSelection& selected)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,10 +1,13 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/ImportedProcesses.test.cc
+//! \file celeritas/phys/ProcessBuilder.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas/phys/ProcessBuilder.hh"
+
+#include "corecel/sys/Environment.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -18,7 +21,6 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "celeritas_test.hh"
@@ -28,51 +30,81 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-using VGT = ValueGridType;
+template<class T>
+bool is_process_type(Process const* p)
+{
+    return dynamic_cast<T const*>(p) != nullptr;
+}
+
+#define EXPECT_PROCESS_TYPE(CLS, VALUE) \
+    EXPECT_PRED1(is_process_type<CLS>, VALUE)
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ImportedProcessesTest : public Test
+class ProcessBuilderTest : public Test
 {
   protected:
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
-    using ActionIdIter     = Process::ActionIdIter;
+    using SPConstParticle = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterial = std::shared_ptr<MaterialParams const>;
 
-    void SetUp() override
+    using ActionIdIter = Process::ActionIdIter;
+    using Options = ProcessBuilder::Options;
+    using VGT = ValueGridType;
+    using IPC = ImportProcessClass;
+
+    static ImportData& import_data();
+    static SPConstParticle& particle();
+    static SPConstMaterial& material();
+
+    static void SetUpTestCase()
     {
+        ScopedRootErrorHandler scoped_root_error_;
         RootImporter import_from_root(
-            this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
-
-        auto data = import_from_root();
-
-        particles_ = ParticleParams::from_import(data);
-        materials_ = MaterialParams::from_import(data);
-        processes_
-            = std::make_shared<ImportedProcesses>(std::move(data.processes));
-
-        CELER_ENSURE(particles_);
-        CELER_ENSURE(processes_->size() > 0);
+            Test::test_data_path("celeritas", "four-steel-slabs.root").c_str());
+        import_data() = import_from_root();
+        particle() = ParticleParams::from_import(import_data());
+        material() = MaterialParams::from_import(import_data());
+        CELER_ENSURE(particle() && material());
     }
 
-    SPConstParticles particles_;
-    SPConstMaterials materials_;
-    SPConstImported  processes_;
-
-    ScopedRootErrorHandler scoped_root_error_;
+    static bool has_le_data()
+    {
+        static bool const result = !celeritas::getenv("G4LEDATA").empty();
+        return result;
+    }
 };
+
+ImportData& ProcessBuilderTest::import_data()
+{
+    static ImportData id;
+    return id;
+}
+
+auto ProcessBuilderTest::particle() -> SPConstParticle&
+{
+    static SPConstParticle particle;
+    return particle;
+}
+
+auto ProcessBuilderTest::material() -> SPConstMaterial&
+{
+    static SPConstMaterial material;
+    return material;
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ImportedProcessesTest, compton)
+TEST_F(ProcessBuilderTest, compton)
 {
-    // Create Compton process
-    auto process = std::make_shared<ComptonProcess>(particles_, processes_);
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::compton);
+    EXPECT_PROCESS_TYPE(ComptonProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -83,19 +115,19 @@ TEST_F(ImportedProcessesTest, compton)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -103,14 +135,13 @@ TEST_F(ImportedProcessesTest, compton)
     }
 }
 
-TEST_F(ImportedProcessesTest, e_ionization)
+TEST_F(ProcessBuilderTest, e_ionization)
 {
-    EIonizationProcess::Options options;
-    options.use_integral_xs = true;
-
-    // Create electron ionization process
-    auto process = std::make_shared<EIonizationProcess>(
-        particles_, processes_, options);
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::e_ioni);
+    EXPECT_PROCESS_TYPE(EIonizationProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -120,21 +151,21 @@ TEST_F(ImportedProcessesTest, e_ionization)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(2, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders   = process->step_limits(applic);
+                auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_TRUE(builders[VGT::energy_loss]);
                 EXPECT_TRUE(builders[VGT::range]);
             }
 
             // Test micro xs
-            for (const auto& model : models)
+            for (auto const& model : models)
             {
                 auto builders = model->micro_xs(applic);
                 EXPECT_TRUE(builders.empty());
@@ -143,14 +174,13 @@ TEST_F(ImportedProcessesTest, e_ionization)
     }
 }
 
-TEST_F(ImportedProcessesTest, eplus_annihilation)
+TEST_F(ProcessBuilderTest, eplus_annihilation)
 {
-    EPlusAnnihilationProcess::Options options;
-    options.use_integral_xs = true;
-
-    // Create positron annihilation process
-    auto process
-        = std::make_shared<EPlusAnnihilationProcess>(particles_, options);
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::annihilation);
+    EXPECT_PROCESS_TYPE(EPlusAnnihilationProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -160,21 +190,21 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     auto all_applic = models.front()->applicability();
     ASSERT_EQ(1, all_applic.size());
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         for (auto applic : all_applic)
         {
             // Test step limits
             {
                 applic.material = mat_id;
-                auto builders   = process->step_limits(applic);
+                auto builders = process->step_limits(applic);
                 EXPECT_TRUE(builders[VGT::macro_xs]);
                 EXPECT_FALSE(builders[VGT::energy_loss]);
                 EXPECT_FALSE(builders[VGT::range]);
             }
 
             // Test micro xs
-            for (const auto& model : models)
+            for (auto const& model : models)
             {
                 auto builders = model->micro_xs(applic);
                 EXPECT_TRUE(builders.empty());
@@ -183,14 +213,13 @@ TEST_F(ImportedProcessesTest, eplus_annihilation)
     }
 }
 
-TEST_F(ImportedProcessesTest, gamma_conversion)
+TEST_F(ProcessBuilderTest, gamma_conversion)
 {
-    GammaConversionProcess::Options options;
-    options.enable_lpm = true;
-
-    // Create gamma conversion process
-    auto process = std::make_shared<GammaConversionProcess>(
-        particles_, processes_, options);
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::conversion);
+    EXPECT_PROCESS_TYPE(GammaConversionProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -201,22 +230,22 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
-            auto material = materials_->get(mat_id);
+            auto material = this->material()->get(mat_id);
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
@@ -226,11 +255,13 @@ TEST_F(ImportedProcessesTest, gamma_conversion)
     }
 }
 
-TEST_F(ImportedProcessesTest, msc)
+TEST_F(ProcessBuilderTest, msc)
 {
-    // Create Multiple scattering process
-    auto process = std::make_shared<MultipleScatteringProcess>(
-        particles_, materials_, processes_);
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::msc);
+    EXPECT_PROCESS_TYPE(MultipleScatteringProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -241,17 +272,17 @@ TEST_F(ImportedProcessesTest, msc)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
-            EXPECT_TRUE(builders[VGT::msc_mfp]);
+            auto builders = process->step_limits(applic);
+            EXPECT_FALSE(builders[VGT::macro_xs]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -259,20 +290,18 @@ TEST_F(ImportedProcessesTest, msc)
     }
 }
 
-TEST_F(ImportedProcessesTest, photoelectric)
+TEST_F(ProcessBuilderTest, photoelectric)
 {
-    PhotoelectricProcess::ReadData reader;
-    try
+    if (!this->has_le_data())
     {
-        // Reader requires Geant4 environment variables
-        reader = LivermorePEReader();
+        GTEST_SKIP() << "Missing G4LEDATA";
     }
-    catch (const RuntimeError& e)
-    {
-        GTEST_SKIP() << "Failed to create reader: " << e.what();
-    }
-    auto process = std::make_shared<PhotoelectricProcess>(
-        particles_, materials_, processes_, reader);
+
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), Options{});
+    // Create process
+    auto process = build_process(IPC::photoelectric);
+    EXPECT_PROCESS_TYPE(PhotoelectricProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -283,19 +312,19 @@ TEST_F(ImportedProcessesTest, photoelectric)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -303,25 +332,21 @@ TEST_F(ImportedProcessesTest, photoelectric)
     }
 }
 
-TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
+TEST_F(ProcessBuilderTest, bremsstrahlung_multiple_models)
 {
-    BremsstrahlungProcess::ReadData reader;
-    try
+    if (!this->has_le_data())
     {
-        reader = SeltzerBergerReader();
-    }
-    catch (const RuntimeError& e)
-    {
-        GTEST_SKIP() << "Failed to create reader: " << e.what();
+        GTEST_SKIP() << "Missing G4LEDATA";
     }
 
-    // Create bremsstrahlung process with multiple models (SeltzerBergerModel
-    // and RelativisticBremModel)
-    BremsstrahlungProcess::Options options;
-    options.combined_model  = false;
-    options.use_integral_xs = true;
-    auto process            = std::make_shared<BremsstrahlungProcess>(
-        particles_, materials_, processes_, reader, options);
+    Options pbopts;
+    pbopts.brem_combined = false;
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), pbopts);
+
+    // Create process
+    auto process = build_process(IPC::e_brems);
+    EXPECT_PROCESS_TYPE(BremsstrahlungProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -332,12 +357,12 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
             // Only the ionization process has energy loss and range tables.
@@ -349,10 +374,10 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
-            auto material = materials_->get(mat_id);
+            auto material = this->material()->get(mat_id);
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
@@ -362,24 +387,21 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_multiple_models)
     }
 }
 
-TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
+TEST_F(ProcessBuilderTest, bremsstrahlung_combined_model)
 {
-    BremsstrahlungProcess::ReadData reader;
-    try
+    if (!this->has_le_data())
     {
-        reader = SeltzerBergerReader();
-    }
-    catch (const RuntimeError& e)
-    {
-        GTEST_SKIP() << "Failed to create reader: " << e.what();
+        GTEST_SKIP() << "Missing G4LEDATA";
     }
 
-    // Create the combined bremsstrahlung process
-    BremsstrahlungProcess::Options options;
-    options.combined_model  = true;
-    options.use_integral_xs = true;
-    auto process            = std::make_shared<BremsstrahlungProcess>(
-        particles_, materials_, processes_, reader, options);
+    Options pbopts;
+    pbopts.brem_combined = true;
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), pbopts);
+
+    // Create process
+    auto process = build_process(IPC::e_brems);
+    EXPECT_PROCESS_TYPE(BremsstrahlungProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -390,12 +412,12 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
 
             // Only the ionization process has energy loss and range tables.
@@ -407,7 +429,7 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
             EXPECT_TRUE(builders.empty());
@@ -415,11 +437,16 @@ TEST_F(ImportedProcessesTest, bremsstrahlung_combined_model)
     }
 }
 
-TEST_F(ImportedProcessesTest, rayleigh)
+TEST_F(ProcessBuilderTest, rayleigh)
 {
-    // Create Rayleigh scattering process
-    auto process = std::make_shared<RayleighProcess>(
-        particles_, materials_, processes_);
+    Options pbopts;
+    pbopts.brem_combined = false;
+    ProcessBuilder build_process(
+        this->import_data(), this->particle(), this->material(), pbopts);
+
+    // Create process
+    auto process = build_process(IPC::rayleigh);
+    EXPECT_PROCESS_TYPE(RayleighProcess, process.get());
 
     // Test model
     auto models = process->build_models(ActionIdIter{});
@@ -430,22 +457,22 @@ TEST_F(ImportedProcessesTest, rayleigh)
     ASSERT_EQ(1, all_applic.size());
     Applicability applic = *all_applic.begin();
 
-    for (auto mat_id : range(MaterialId{materials_->num_materials()}))
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {
         // Test step limits
         {
             applic.material = mat_id;
-            auto builders   = process->step_limits(applic);
+            auto builders = process->step_limits(applic);
             EXPECT_TRUE(builders[VGT::macro_xs]);
             EXPECT_FALSE(builders[VGT::energy_loss]);
             EXPECT_FALSE(builders[VGT::range]);
         }
 
         // Test micro xs
-        for (const auto& model : models)
+        for (auto const& model : models)
         {
             auto builders = model->micro_xs(applic);
-            auto material = materials_->get(mat_id);
+            auto material = this->material()->get(mat_id);
             EXPECT_EQ(material.num_elements(), builders.size());
             for (auto elcomp_idx : range(material.num_elements()))
             {
@@ -454,6 +481,7 @@ TEST_F(ImportedProcessesTest, rayleigh)
         }
     }
 }
+
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

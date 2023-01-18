@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,12 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "HitManager.hh"
 
+#include <utility>
+#include <G4GDMLWriteStructure.hh>
+#include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Label.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/geo/GeoParams.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "accel/SetupOptions.hh"
 
 #include "HitProcessor.hh"
@@ -24,21 +30,21 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-void update_selection(StepPointSelection*              selection,
-                      const SDSetupOptions::StepPoint& options)
+void update_selection(StepPointSelection* selection,
+                      SDSetupOptions::StepPoint const& options)
 {
-    selection->time   = options.global_time;
-    selection->pos    = options.position;
+    selection->time = options.global_time;
+    selection->pos = options.position;
     selection->energy = options.kinetic_energy;
 }
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Map detector IDs on construction.
  */
-HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
+HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
 {
     CELER_EXPECT(setup.enabled);
@@ -55,6 +61,9 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
     // Logical volumes to pass to hit processor
     std::vector<G4LogicalVolume*> lv_with_sd;
 
+    // Helper class to extract GDML names+labels from Geant4 volume
+    G4GDMLWriteStructure temp_writer;
+
     // Loop over all logical volumes
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
@@ -70,8 +79,9 @@ HitManager::HitManager(const GeoParams& geo, const SDSetupOptions& setup)
         }
 
         // Convert volume name to GPU geometry ID
-        auto label = Label::from_geant(lv->GetName());
-        auto id    = geo.find_volume(label);
+        auto label
+            = Label::from_geant(temp_writer.GenerateName(lv->GetName(), lv));
+        auto id = geo.find_volume(label);
         if (!id)
         {
             // Fallback to skipping the extension
@@ -150,5 +160,5 @@ void HitManager::execute(StateDeviceRef const& data)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

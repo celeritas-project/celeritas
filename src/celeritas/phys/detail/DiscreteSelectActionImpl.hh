@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/phys/PhysicsData.hh"
+#include "celeritas/phys/PhysicsTrackView.hh"
+#include "celeritas/random/RngEngine.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "../PhysicsStepUtils.hh"
 
@@ -45,8 +53,8 @@ discrete_select_track(celeritas::CoreTrackView const& track)
     auto particle = track.make_particle_view();
     {
         // Select the action to take
-        auto mat  = track.make_material_view().make_material_view();
-        auto rng  = track.make_rng_engine();
+        auto mat = track.make_material_view().make_material_view();
+        auto rng = track.make_rng_engine();
         auto step = track.make_physics_step_view();
         auto action
             = select_discrete_interaction(mat, particle, phys, step, rng);
@@ -59,5 +67,5 @@ discrete_select_track(celeritas::CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

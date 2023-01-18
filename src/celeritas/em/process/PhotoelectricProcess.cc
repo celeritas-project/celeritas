@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,8 +10,8 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -23,8 +23,8 @@ namespace celeritas
  */
 PhotoelectricProcess::PhotoelectricProcess(SPConstParticles particles,
                                            SPConstMaterials materials,
-                                           SPConstImported  process_data,
-                                           ReadData         load_data)
+                                           SPConstImported process_data,
+                                           ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -68,4 +68,4 @@ std::string PhotoelectricProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

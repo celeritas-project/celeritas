@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@ class CaloTestBase : virtual public StepCollectorTestBase
 {
   public:
     using VecPrimary = std::vector<Primary>;
-    using VecString  = std::vector<std::string>;
+    using VecString = std::vector<std::string>;
 
     struct RunResult
     {
@@ -50,9 +50,9 @@ class CaloTestBase : virtual public StepCollectorTestBase
 
   protected:
     std::shared_ptr<ExampleCalorimeters> example_calos_;
-    std::shared_ptr<StepCollector>       collector_;
+    std::shared_ptr<StepCollector> collector_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

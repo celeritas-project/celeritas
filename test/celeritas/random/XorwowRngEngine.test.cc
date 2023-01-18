@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -100,9 +100,9 @@ TEST(GenerateCanonical32, dbl)
 
 TEST(GenerateCanonical32, moments)
 {
-    int num_samples = 1 << 20; // ~1m
+    int num_samples = 1 << 20;  // ~1m
 
-    std::mt19937                rng;
+    std::mt19937 rng;
     GenerateCanonical32<double> generate_canonical;
     ::celeritas::test::RngTally tally;
 
@@ -113,8 +113,8 @@ TEST(GenerateCanonical32, moments)
     tally.check(num_samples, 1e-3);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace detail
+}  // namespace test
+}  // namespace detail
 
 namespace test
 {
@@ -153,7 +153,7 @@ TEST_F(XorwowRngEngineTest, host)
     std::copy_n(
         &state_ref.begin()->xorstate[0], flattened.size(), flattened.begin());
 
-    static const unsigned int expected_flattened[]
+    static unsigned int const expected_flattened[]
         = {2421091215u, 3647994171u, 2504472727u, 1236778574u, 4083156575u,
            63361926u,   3719645674u, 843467800u,  1265623178u, 295820715u,
            1583721852u, 802677129u,  3794549800u, 1642707272u, 4266580851u,
@@ -170,10 +170,10 @@ TEST_F(XorwowRngEngineTest, host)
 TEST_F(XorwowRngEngineTest, moments)
 {
     unsigned int num_samples = 1 << 12;
-    unsigned int num_seeds   = 1 << 8;
+    unsigned int num_seeds = 1 << 8;
 
     HostStore states(params->host_ref(), num_seeds);
-    RngTally  tally;
+    RngTally tally;
 
     for (unsigned int i = 0; i < num_seeds; ++i)
     {
@@ -196,5 +196,5 @@ TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

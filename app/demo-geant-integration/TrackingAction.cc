@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "TrackingAction.hh"
 
+#include <algorithm>
+#include <iterator>
+#include <type_traits>
 #include <G4Electron.hh>
 #include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
@@ -22,7 +25,7 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Celeritas shared data.
+ * Construct with Celeritas shared and thread-local data.
  */
 TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
     : params_(params), transport_(transport)
@@ -34,8 +37,12 @@ TrackingAction::TrackingAction(SPConstParams params, SPTransporter transport)
 //---------------------------------------------------------------------------//
 /*!
  * At the start of a track, determine whether to use Celeritas to transport it.
+ *
+ * If the track is one of a few predetermined EM particles, we pass it to
+ * Celeritas (which queues the track on its buffer and potentially flushes it)
+ * and kill the Geant4 track.
  */
-void TrackingAction::PreUserTrackingAction(const G4Track* track)
+void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
     CELER_EXPECT(track);
     CELER_EXPECT(*params_);
@@ -54,10 +61,10 @@ void TrackingAction::PreUserTrackingAction(const G4Track* track)
     {
         // Celeritas is transporting this track
         celeritas::ExceptionConverter call_g4exception{"celer0003"};
-        CELER_TRY_ELSE(transport_->Push(*track), call_g4exception);
+        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ class XsCalculator
   public:
     // Construct from state-independent data
     inline CELER_FUNCTION
-    XsCalculator(const XsGridData& grid, const Values& values);
+    XsCalculator(XsGridData const& grid, Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -57,8 +57,8 @@ class XsCalculator
     inline CELER_FUNCTION real_type operator[](size_type index) const;
 
   private:
-    const XsGridData& data_;
-    const Values&     reals_;
+    XsGridData const& data_;
+    Values const& reals_;
 
     CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
@@ -70,7 +70,7 @@ class XsCalculator
  * Construct from cross section data.
  */
 CELER_FUNCTION
-XsCalculator::XsCalculator(const XsGridData& grid, const Values& values)
+XsCalculator::XsCalculator(XsGridData const& grid, Values const& values)
     : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);
@@ -87,7 +87,7 @@ XsCalculator::XsCalculator(const XsGridData& grid, const Values& values)
 CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 {
     const UniformGrid loge_grid(data_.log_energy);
-    const real_type   loge = std::log(energy.value());
+    const real_type loge = std::log(energy.value());
 
     // Snap out-of-bounds values to closest grid points
     size_type lower_idx;
@@ -95,12 +95,12 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
     if (loge <= loge_grid.front())
     {
         lower_idx = 0;
-        result    = this->get(lower_idx);
+        result = this->get(lower_idx);
     }
     else if (loge >= loge_grid.back())
     {
         lower_idx = loge_grid.size() - 1;
-        result    = this->get(lower_idx);
+        result = this->get(lower_idx);
     }
     else
     {
@@ -109,7 +109,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
         CELER_ASSERT(lower_idx + 1 < loge_grid.size());
 
         const real_type upper_energy = std::exp(loge_grid[lower_idx + 1]);
-        real_type       upper_xs     = this->get(lower_idx + 1);
+        real_type upper_xs = this->get(lower_idx + 1);
         if (lower_idx + 1 == data_.prime_index)
         {
             // Cross section data for the upper point has *already* been scaled
@@ -138,8 +138,8 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 CELER_FUNCTION real_type XsCalculator::operator[](size_type index) const
 {
     const UniformGrid loge_grid(data_.log_energy);
-    real_type         energy = std::exp(loge_grid[index]);
-    real_type         result = this->get(index);
+    real_type energy = std::exp(loge_grid[index]);
+    real_type result = this->get(index);
 
     if (index >= data_.prime_index)
     {
@@ -159,4 +159,4 @@ CELER_FUNCTION real_type XsCalculator::get(size_type index) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

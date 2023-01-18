@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,12 +8,15 @@
 #include "Logger.hh"
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <mutex>
-#include <sstream> // IWYU pragma: keep
+#include <sstream>  // IWYU pragma: keep
+#include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -30,7 +33,7 @@ namespace
 //! Default global logger prints the error message with basic colors
 void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
 {
-    static std::mutex           log_mutex;
+    static std::mutex log_mutex;
     std::lock_guard<std::mutex> scoped_lock{log_mutex};
 
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
@@ -65,7 +68,7 @@ void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
 class LocalHandler
 {
   public:
-    explicit LocalHandler(const MpiCommunicator& comm) : rank_(comm.rank()) {}
+    explicit LocalHandler(MpiCommunicator const& comm) : rank_(comm.rank()) {}
 
     void operator()(Provenance prov, LogLevel lev, std::string msg)
     {
@@ -84,15 +87,15 @@ class LocalHandler
 };
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with communicator (only rank zero is active) and handler.
  */
-Logger::Logger(const MpiCommunicator& comm,
-               LogHandler             handle,
-               const char*            level_env)
+Logger::Logger(MpiCommunicator const& comm,
+               LogHandler handle,
+               char const* level_env)
 {
     if (comm.rank() == 0)
     {
@@ -103,11 +106,11 @@ Logger::Logger(const MpiCommunicator& comm,
     {
         // Search for the provided environment variable to set the default
         // logging level using the `to_cstring` function in LoggerTypes.
-        const std::string& env_value = celeritas::getenv(level_env);
+        std::string const& env_value = celeritas::getenv(level_env);
         if (!env_value.empty())
         {
             auto levels = range(LogLevel::size_);
-            auto iter   = std::find_if(
+            auto iter = std::find_if(
                 levels.begin(), levels.end(), [&env_value](LogLevel lev) {
                     return env_value == to_cstring(lev);
                 });
@@ -147,9 +150,9 @@ Logger make_default_world_logger()
  */
 Logger make_default_self_logger()
 {
-    auto comm    = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
-                       ? MpiCommunicator::comm_world()
-                       : MpiCommunicator{};
+    auto comm = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
+                    ? MpiCommunicator::comm_world()
+                    : MpiCommunicator{};
     auto handler = ScopedMpiInit::status() != ScopedMpiInit::Status::disabled
                        ? LocalHandler{comm}
                        : LogHandler{&default_global_handler};
@@ -186,4 +189,4 @@ Logger& self_logger()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

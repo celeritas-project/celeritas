@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -39,17 +39,17 @@ class PhysicsStepView
   public:
     //!@{
     //! Type aliases
-    using PhysicsParamsRef   = NativeCRef<PhysicsParamsData>;
-    using PhysicsStateRef    = NativeRef<PhysicsStateData>;
+    using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef = NativeRef<PhysicsStateData>;
     using SecondaryAllocator = StackAllocator<Secondary>;
-    using Energy             = units::MevEnergy;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION PhysicsStepView(const PhysicsParamsRef& params,
-                                          const PhysicsStateRef&  states,
-                                          ThreadId                id);
+    inline CELER_FUNCTION PhysicsStepView(PhysicsParamsRef const& params,
+                                          PhysicsStateRef const& states,
+                                          ThreadId id);
 
     // Set the total (process-integrated) macroscopic xs [cm^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
@@ -58,7 +58,7 @@ class PhysicsStepView
     inline CELER_FUNCTION void element(ElementComponentId);
 
     // Save MSC step data
-    inline CELER_FUNCTION void msc_step(const MscStep&);
+    inline CELER_FUNCTION void msc_step(MscStep const&);
 
     // Reset the energy deposition
     inline CELER_FUNCTION void reset_energy_deposition();
@@ -79,17 +79,17 @@ class PhysicsStepView
     CELER_FORCEINLINE_FUNCTION ElementComponentId element() const;
 
     // Retrieve MSC step data
-    inline CELER_FUNCTION const MscStep& msc_step() const;
+    inline CELER_FUNCTION MscStep const& msc_step() const;
 
     // Access local energy deposition
     inline CELER_FUNCTION Energy energy_deposition() const;
 
     // Access secondaries created by an interaction
-    inline CELER_FUNCTION Span<const Secondary> secondaries() const;
+    inline CELER_FUNCTION Span<Secondary const> secondaries() const;
 
     // Access scratch space for particle-process cross section calculations
     inline CELER_FUNCTION real_type& per_process_xs(ParticleProcessId);
-    inline CELER_FUNCTION real_type  per_process_xs(ParticleProcessId) const;
+    inline CELER_FUNCTION real_type per_process_xs(ParticleProcessId) const;
 
     //// THREAD-INDEPENDENT ////
 
@@ -103,14 +103,14 @@ class PhysicsStepView
   private:
     //// DATA ////
 
-    const PhysicsParamsRef& params_;
-    const PhysicsStateRef&  states_;
-    const ThreadId          thread_;
+    PhysicsParamsRef const& params_;
+    PhysicsStateRef const& states_;
+    const ThreadId thread_;
 
     //// CLASS FUNCTIONS ////
 
-    CELER_FORCEINLINE_FUNCTION PhysicsTrackState&       state();
-    CELER_FORCEINLINE_FUNCTION const PhysicsTrackState& state() const;
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState& state();
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackState const& state() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -119,9 +119,9 @@ class PhysicsStepView
 /*!
  * Construct from shared and state data.
  */
-CELER_FUNCTION PhysicsStepView::PhysicsStepView(const PhysicsParamsRef& params,
-                                                const PhysicsStateRef&  states,
-                                                ThreadId                tid)
+CELER_FUNCTION PhysicsStepView::PhysicsStepView(PhysicsParamsRef const& params,
+                                                PhysicsStateRef const& states,
+                                                ThreadId tid)
     : params_(params), states_(states), thread_(tid)
 {
     CELER_EXPECT(thread_);
@@ -150,7 +150,7 @@ CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
 /*!
  * Save MSC step limit data.
  */
-CELER_FUNCTION void PhysicsStepView::msc_step(const MscStep& limit)
+CELER_FUNCTION void PhysicsStepView::msc_step(MscStep const& limit)
 {
     states_.msc_step[thread_] = limit;
 }
@@ -223,7 +223,7 @@ CELER_FUNCTION ElementComponentId PhysicsStepView::element() const
 /*!
  * Access calculated MSC step data.
  */
-CELER_FUNCTION const MscStep& PhysicsStepView::msc_step() const
+CELER_FUNCTION MscStep const& PhysicsStepView::msc_step() const
 {
     return states_.msc_step[thread_];
 }
@@ -243,7 +243,7 @@ CELER_FUNCTION auto PhysicsStepView::energy_deposition() const -> Energy
 /*!
  * Access secondaries created by a discrete interaction.
  */
-CELER_FUNCTION Span<const Secondary> PhysicsStepView::secondaries() const
+CELER_FUNCTION Span<Secondary const> PhysicsStepView::secondaries() const
 {
     return this->state().secondaries;
 }
@@ -309,10 +309,10 @@ CELER_FUNCTION PhysicsTrackState& PhysicsStepView::state()
 }
 
 //! Get the thread-local state (const)
-CELER_FUNCTION const PhysicsTrackState& PhysicsStepView::state() const
+CELER_FUNCTION PhysicsTrackState const& PhysicsStepView::state() const
 {
     return states_.state[thread_];
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,9 +21,9 @@ namespace test
 TEST(NormalDistributionTest, bin)
 {
     DiagnosticRngEngine<std::mt19937> rng;
-    int                               num_samples = 10000;
+    int num_samples = 10000;
 
-    double mean   = 0.0;
+    double mean = 0.0;
     double stddev = 1.0;
 
     NormalDistribution<double> sample_normal{mean, stddev};
@@ -46,11 +46,11 @@ TEST(NormalDistributionTest, bin)
             ++counters[5];
     }
 
-    const int expected_counters[] = {235, 1379, 3397, 3411, 1352, 226};
+    int const expected_counters[] = {235, 1379, 3397, 3411, 1352, 226};
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(2 * num_samples, rng.count());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

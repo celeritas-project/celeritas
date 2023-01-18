@@ -31,17 +31,17 @@ namespace detail
 class BVHNavigator
 {
   public:
-    using Precision          = vecgeom::Precision;
-    using Vector3D           = vecgeom::Vector3D<vecgeom::Precision>;
+    using Precision = vecgeom::Precision;
+    using Vector3D = vecgeom::Vector3D<vecgeom::Precision>;
     using VPlacedVolumePtr_t = vecgeom::VPlacedVolume const*;
 
     static constexpr Precision kBoundaryPush = 10 * vecgeom::kTolerance;
 
     CELER_FUNCTION static VPlacedVolumePtr_t
     LocatePointIn(vecgeom::VPlacedVolume const* vol,
-                  Vector3D const&               point,
-                  vecgeom::NavigationState&     path,
-                  bool                          top,
+                  Vector3D const& point,
+                  vecgeom::NavigationState& path,
+                  bool top,
                   vecgeom::VPlacedVolume const* exclude = nullptr)
     {
         if (top)
@@ -77,7 +77,7 @@ class BVHNavigator
     RelocatePoint(Vector3D const& localpoint, vecgeom::NavigationState& path)
     {
         vecgeom::VPlacedVolume const* currentmother = path.Top();
-        Vector3D                      transformed   = localpoint;
+        Vector3D transformed = localpoint;
         do
         {
             path.Pop();
@@ -102,12 +102,12 @@ class BVHNavigator
     // out_state.SetBoundaryState(true) and hitcandidate is set to the hit
     // daughter volume, or kept unchanged if the current volume is left.
     CELER_FUNCTION static double
-    ComputeStepAndHit(Vector3D const&                 localpoint,
-                      Vector3D const&                 localdir,
-                      Precision                       step_limit,
+    ComputeStepAndHit(Vector3D const& localpoint,
+                      Vector3D const& localdir,
+                      Precision step_limit,
                       vecgeom::NavigationState const& in_state,
-                      vecgeom::NavigationState&       out_state,
-                      VPlacedVolumePtr_t&             hitcandidate)
+                      vecgeom::NavigationState& out_state,
+                      VPlacedVolumePtr_t& hitcandidate)
     {
         if (step_limit <= 0)
         {
@@ -117,7 +117,7 @@ class BVHNavigator
             return 0;
         }
 
-        Precision          step = step_limit;
+        Precision step = step_limit;
         VPlacedVolumePtr_t pvol = in_state.Top();
 
         // need to calc DistanceToOut first
@@ -170,12 +170,12 @@ class BVHNavigator
     // Computes a step in the current volume from the localpoint into localdir,
     // until the next daughter bounding box, taking step_limit into account.
     CELER_FUNCTION static double
-    ApproachNextVolume(Vector3D const&                 localpoint,
-                       Vector3D const&                 localdir,
-                       Precision                       step_limit,
+    ApproachNextVolume(Vector3D const& localpoint,
+                       Vector3D const& localdir,
+                       Precision step_limit,
                        vecgeom::NavigationState const& in_state)
     {
-        Precision          step = step_limit;
+        Precision step = step_limit;
         VPlacedVolumePtr_t pvol = in_state.Top();
 
         if (pvol->GetDaughters().size() > 0)
@@ -210,10 +210,10 @@ class BVHNavigator
   public:
     // Computes the isotropic safety from the globalpoint.
     CELER_FUNCTION static double
-    ComputeSafety(Vector3D const&                 globalpoint,
+    ComputeSafety(Vector3D const& globalpoint,
                   vecgeom::NavigationState const& state)
     {
-        VPlacedVolumePtr_t        pvol = state.Top();
+        VPlacedVolumePtr_t pvol = state.Top();
         vecgeom::Transformation3D m;
         state.TopMatrix(m);
         Vector3D localpoint = m.Transform(globalpoint);
@@ -236,12 +236,12 @@ class BVHNavigator
     // hit, the function calls out_state.SetBoundaryState(true) and relocates
     // the state to the next volume.
     CELER_FUNCTION static double
-    ComputeStepAndPropagatedState(Vector3D const&                 globalpoint,
-                                  Vector3D const&                 globaldir,
-                                  Precision                       step_limit,
+    ComputeStepAndPropagatedState(Vector3D const& globalpoint,
+                                  Vector3D const& globaldir,
+                                  Precision step_limit,
                                   vecgeom::NavigationState const& in_state,
-                                  vecgeom::NavigationState&       out_state,
-                                  Precision                       push = 0)
+                                  vecgeom::NavigationState& out_state,
+                                  Precision push = 0)
     {
         // If we are on the boundary, push a bit more
         if (in_state.IsOnBoundary())
@@ -266,13 +266,13 @@ class BVHNavigator
         vecgeom::Transformation3D m;
         in_state.TopMatrix(m);
         localpoint = m.Transform(globalpoint);
-        localdir   = m.TransformDirection(globaldir);
+        localdir = m.TransformDirection(globaldir);
         // The user may want to move point from boundary before computing the
         // step
         localpoint += push * localdir;
 
         VPlacedVolumePtr_t hitcandidate = nullptr;
-        Precision          step         = ComputeStepAndHit(
+        Precision step = ComputeStepAndHit(
             localpoint, localdir, step_limit, in_state, out_state, hitcandidate);
         step += push;
 
@@ -321,12 +321,12 @@ class BVHNavigator
     // However the function does _NOT_ relocate the state to the next volume,
     // that is entering multiple volumes that share a boundary.
     CELER_FUNCTION static double
-    ComputeStepAndNextVolume(Vector3D const&                 globalpoint,
-                             Vector3D const&                 globaldir,
-                             Precision                       step_limit,
+    ComputeStepAndNextVolume(Vector3D const& globalpoint,
+                             Vector3D const& globaldir,
+                             Precision step_limit,
                              vecgeom::NavigationState const& in_state,
-                             vecgeom::NavigationState&       out_state,
-                             Precision                       push = 0)
+                             vecgeom::NavigationState& out_state,
+                             Precision push = 0)
     {
         // If we are on the boundary, push a bit more
         if (in_state.IsOnBoundary())
@@ -351,13 +351,13 @@ class BVHNavigator
         vecgeom::Transformation3D m;
         in_state.TopMatrix(m);
         localpoint = m.Transform(globalpoint);
-        localdir   = m.TransformDirection(globaldir);
+        localdir = m.TransformDirection(globaldir);
         // The user may want to move point from boundary before computing the
         // step
         localpoint += push * localdir;
 
         VPlacedVolumePtr_t hitcandidate = nullptr;
-        Precision          step         = ComputeStepAndHit(
+        Precision step = ComputeStepAndHit(
             localpoint, localdir, step_limit, in_state, out_state, hitcandidate);
         step += push;
 
@@ -366,7 +366,7 @@ class BVHNavigator
             if (!hitcandidate)
             {
                 vecgeom::VPlacedVolume const* currentmother = out_state.Top();
-                Vector3D                      transformed   = localpoint;
+                Vector3D transformed = localpoint;
                 // Push the point inside the next volume.
                 transformed += (step + kBoundaryPush) * localdir;
 
@@ -396,7 +396,7 @@ class BVHNavigator
     CELER_FUNCTION static vecgeom::Precision
     ComputeStepToApproachNextVolume(Vector3D const& globalpoint,
                                     Vector3D const& globaldir,
-                                    Precision       step_limit,
+                                    Precision step_limit,
                                     vecgeom::NavigationState const& in_state)
     {
         // calculate local point/dir from global point/dir
@@ -407,7 +407,7 @@ class BVHNavigator
         vecgeom::Transformation3D m;
         in_state.TopMatrix(m);
         localpoint = m.Transform(globalpoint);
-        localdir   = m.TransformDirection(globaldir);
+        localdir = m.TransformDirection(globaldir);
 
         Precision step
             = ApproachNextVolume(localpoint, localdir, step_limit, in_state);
@@ -418,8 +418,8 @@ class BVHNavigator
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
     CELER_FUNCTION static void
-    RelocateToNextVolume(Vector3D const&           globalpoint,
-                         Vector3D const&           globaldir,
+    RelocateToNextVolume(Vector3D const& globalpoint,
+                         Vector3D const& globaldir,
                          vecgeom::NavigationState& state)
     {
         // Push the point inside the next volume.
@@ -450,5 +450,5 @@ class BVHNavigator
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

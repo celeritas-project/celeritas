@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -11,6 +11,8 @@
 #include <memory>
 
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/Applicability.hh"
+#include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Process.hh"
@@ -18,6 +20,7 @@
 namespace celeritas
 {
 struct ImportLivermorePE;
+
 //---------------------------------------------------------------------------//
 /*!
  * Photoelectric effect process for gammas.
@@ -27,18 +30,18 @@ class PhotoelectricProcess : public Process
   public:
     //!@{
     //! Type aliases
-    using SPConstParticles = std::shared_ptr<const ParticleParams>;
-    using SPConstMaterials = std::shared_ptr<const MaterialParams>;
-    using SPConstImported  = std::shared_ptr<const ImportedProcesses>;
-    using ReadData         = std::function<ImportLivermorePE(AtomicNumber)>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
     //!@}
 
   public:
     // Construct from Livermore photoelectric data
     PhotoelectricProcess(SPConstParticles particles,
                          SPConstMaterials materials,
-                         SPConstImported  process_data,
-                         ReadData         load_data);
+                         SPConstImported process_data,
+                         ReadData load_data);
 
     // Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -53,11 +56,11 @@ class PhotoelectricProcess : public Process
     std::string label() const final;
 
   private:
-    SPConstParticles       particles_;
-    SPConstMaterials       materials_;
+    SPConstParticles particles_;
+    SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    ReadData               load_pe_;
+    ReadData load_pe_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

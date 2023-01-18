@@ -1,5 +1,5 @@
 //---------------------------------*-C++-*-----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -63,8 +63,8 @@ class Range
     //!@{
     //! Type aliases
     using const_iterator = detail::range_iter<T>;
-    using size_type      = typename TraitsT::counter_type;
-    using value_type     = T;
+    using size_type = typename TraitsT::counter_type;
+    using value_type = T;
     //@}
 
     template<class U>
@@ -159,8 +159,8 @@ class Count
     //!@{
     //! Type aliases
     using const_iterator = detail::inf_range_iter<T>;
-    using size_type      = typename TraitsT::counter_type;
-    using value_type     = T;
+    using size_type = typename TraitsT::counter_type;
+    using value_type = T;
     //@}
 
     CELER_FUNCTION Count() : begin_{} {}
@@ -173,7 +173,7 @@ class Count
 
     CELER_FUNCTION const_iterator begin() const { return begin_; }
     CELER_FUNCTION const_iterator end() const { return const_iterator(); }
-    CELER_FUNCTION bool           empty() const { return false; }
+    CELER_FUNCTION bool empty() const { return false; }
 
   private:
     const_iterator begin_;
@@ -220,4 +220,4 @@ CELER_FUNCTION Count<T> count(T begin)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

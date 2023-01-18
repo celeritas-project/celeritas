@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,9 +10,13 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 #include "PDGNumber.hh"
 #include "ParticleData.hh"
@@ -45,18 +49,18 @@ class ParticleParams
   public:
     //!@{
     //! References to constructed data
-    using HostRef   = HostCRef<ParticleParamsData>;
+    using HostRef = HostCRef<ParticleParamsData>;
     using DeviceRef = DeviceCRef<ParticleParamsData>;
     //!@}
 
     //! Define a particle's input data
     struct ParticleInput
     {
-        std::string             name;     //!< Particle name
-        PDGNumber               pdg_code; //!< See "Review of Particle Physics"
-        units::MevMass          mass;     //!< Rest mass [MeV / c^2]
-        units::ElementaryCharge charge;   //!< Charge in units of [e]
-        real_type               decay_constant; //!< Decay constant [1/s]
+        std::string name;  //!< Particle name
+        PDGNumber pdg_code;  //!< See "Review of Particle Physics"
+        units::MevMass mass;  //!< Rest mass [MeV / c^2]
+        units::ElementaryCharge charge;  //!< Charge in units of [e]
+        real_type decay_constant;  //!< Decay constant [1/s]
     };
 
     //! Input data to construct this class
@@ -64,10 +68,10 @@ class ParticleParams
 
   public:
     // Construct with imported data
-    static std::shared_ptr<ParticleParams> from_import(const ImportData& data);
+    static std::shared_ptr<ParticleParams> from_import(ImportData const& data);
 
     // Construct with a vector of particle definitions
-    explicit ParticleParams(const Input& defs);
+    explicit ParticleParams(Input const& defs);
 
     //// HOST ACCESSORS ////
 
@@ -75,13 +79,13 @@ class ParticleParams
     ParticleId::size_type size() const { return md_.size(); }
 
     // Get particle name
-    inline const std::string& id_to_label(ParticleId id) const;
+    inline std::string const& id_to_label(ParticleId id) const;
 
     // Get PDG code
     inline PDGNumber id_to_pdg(ParticleId id) const;
 
     // Find the ID from a name
-    inline ParticleId find(const std::string& name) const;
+    inline ParticleId find(std::string const& name) const;
 
     // Find the ID from a PDG code
     inline ParticleId find(PDGNumber pdg_code) const;
@@ -90,10 +94,10 @@ class ParticleParams
     ParticleView get(ParticleId id) const;
 
     //! Access material properties on the host
-    const HostRef& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host(); }
 
     //! Access material properties on the device
-    const DeviceRef& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device(); }
 
   private:
     // Saved copy of metadata
@@ -115,7 +119,7 @@ class ParticleParams
 /*!
  * Get particle name.
  */
-const std::string& ParticleParams::id_to_label(ParticleId id) const
+std::string const& ParticleParams::id_to_label(ParticleId id) const
 {
     CELER_EXPECT(id < this->size());
     return md_[id.get()].first;
@@ -135,7 +139,7 @@ PDGNumber ParticleParams::id_to_pdg(ParticleId id) const
 /*!
  * Find the ID from a name.
  */
-ParticleId ParticleParams::find(const std::string& name) const
+ParticleId ParticleParams::find(std::string const& name) const
 {
     auto iter = name_to_id_.find(name);
     if (iter == name_to_id_.end())
@@ -160,4 +164,4 @@ ParticleId ParticleParams::find(PDGNumber pdg_code) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

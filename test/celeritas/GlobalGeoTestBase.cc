@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
     auto& lazy = GlobalGeoTestBase::lazy_geo();
 
     // Construct filename
-    const char* basename_cstr = this->geometry_basename();
+    char const* basename_cstr = this->geometry_basename();
     CELER_ASSERT(basename_cstr);
     std::string basename{basename_cstr};
     CELER_ASSERT(!basename.empty());
@@ -34,15 +34,15 @@ auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
     {
         // Construct filename:
         // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-        const char* ext      = CELERITAS_USE_VECGEOM ? ".gdml" : ".org.json";
-        auto        filename = basename + ext;
+        char const* ext = CELERITAS_USE_VECGEOM ? ".gdml" : ".org.json";
+        auto filename = basename + ext;
         std::string test_file
             = this->test_data_path("celeritas", filename.c_str());
 
         // MUST reset geometry before trying to build a new one
         // since VecGeom is all full of globals
         GlobalGeoTestBase::reset_geometry();
-        lazy.geo      = std::make_shared<GeoParams>(test_file.c_str());
+        lazy.geo = std::make_shared<GeoParams>(test_file.c_str());
         lazy.basename = std::move(basename);
     }
 
@@ -89,5 +89,5 @@ auto GlobalGeoTestBase::lazy_geo() -> LazyGeo&
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

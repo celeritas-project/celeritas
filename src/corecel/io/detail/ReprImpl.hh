@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,6 +9,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <type_traits>
 
 #include "corecel/Assert.hh"
@@ -30,8 +31,8 @@ namespace detail
 template<class T>
 struct Repr
 {
-    const T&    obj;
-    const char* name = nullptr;
+    T const& obj;
+    char const* name = nullptr;
 };
 
 //---------------------------------------------------------------------------//
@@ -39,7 +40,7 @@ struct Repr
  * Write a streamable object to a stream.
  */
 template<class T>
-std::ostream& operator<<(std::ostream& os, const Repr<T>& s)
+std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
 {
     ScopedStreamFormat save_fmt(&os);
     ReprTraits<T>::init(os);
@@ -63,11 +64,11 @@ void repr_char(std::ostream& os, char value);
 
 std::string char_to_hex_string(unsigned char value);
 
-void print_simple_type(std::ostream& os, const char* type, const char* name);
+void print_simple_type(std::ostream& os, char const* type, char const* name);
 
 template<class T>
 inline void
-print_container_type(std::ostream& os, const char* type, const char* name)
+print_container_type(std::ostream& os, char const* type, char const* name)
 {
     os << type << '<';
     ReprTraits<T>::print_type(os);
@@ -79,5 +80,5 @@ print_container_type(std::ostream& os, const char* type, const char* name)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

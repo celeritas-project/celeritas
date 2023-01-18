@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ TEST(IsotropicDistributionTest, bin)
 {
     int num_samples = 10000;
 
-    IsotropicDistribution<>                 sample_isotropic;
+    IsotropicDistribution<> sample_isotropic;
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);
@@ -52,5 +52,5 @@ TEST(IsotropicDistributionTest, bin)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

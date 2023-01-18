@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,11 +25,11 @@ class UniformZField
 
     //! Return the field at the given position
     CELER_FUNCTION
-    Real3 operator()(const Real3&) const { return {0, 0, value_}; }
+    Real3 operator()(Real3 const&) const { return {0, 0, value_}; }
 
   private:
     real_type value_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

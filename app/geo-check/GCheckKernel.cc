@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,10 +8,13 @@
 #include "GCheckKernel.hh"
 
 #include <cstdio>
+#include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "orange/OrangeData.hh"
 #include "celeritas/field/LinearPropagator.hh"
-#include "celeritas/geo/GeoParams.hh" // IWYU pragma: keep
+#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 
 using namespace celeritas;
 using std::printf;
@@ -22,9 +25,9 @@ namespace geo_check
 /*!
  *  Run tracking on the CPU
  */
-GCheckOutput run_cpu(const SPConstGeo&          params,
-                     const GeoTrackInitializer* init,
-                     int                        max_steps)
+GCheckOutput run_cpu(SPConstGeo const& params,
+                     GeoTrackInitializer const* init,
+                     int max_steps)
 {
     using StateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
@@ -33,7 +36,7 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
     GeoTrackView geo(params->host_ref(), state.ref(), ThreadId(0));
     geo = GeoTrackInitializer{init->pos, init->dir};
 
-    LinearPropagator propagate(&geo); // one propagator per track
+    LinearPropagator propagate(&geo);  // one propagator per track
 
     printf("Initial track: pos=(%f, %f, %f), dir=(%f, %f, %f), outside=%i\n",
            geo.pos()[0],
@@ -46,11 +49,11 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
 
     // Track from outside detector, moving right
     GCheckOutput result;
-    int          istep = 0;
-    int          stuck = 0;
+    int istep = 0;
+    int stuck = 0;
     do
     {
-        auto step = propagate(); // to next boundary
+        auto step = propagate();  // to next boundary
         if (step.boundary)
             geo.cross_boundary();
         result.ids.push_back(physid(geo));
@@ -93,4 +96,4 @@ GCheckOutput run_cpu(const SPConstGeo&          params,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace geo_check
+}  // namespace geo_check

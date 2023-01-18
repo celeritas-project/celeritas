@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -47,7 +47,7 @@ struct SpanImpl
 {
     //// DATA ////
 
-    T*                           data = nullptr;
+    T* data = nullptr;
     static constexpr std::size_t size = Extent;
 
     //// METHODS ////
@@ -57,7 +57,7 @@ struct SpanImpl
 
     //! Construct from a dynamic span
     CELER_FORCEINLINE_FUNCTION
-    SpanImpl(const SpanImpl<T, dynamic_extent>& other) : data(other.data)
+    SpanImpl(SpanImpl<T, dynamic_extent> const& other) : data(other.data)
     {
         CELER_EXPECT(other.size == Extent);
     }
@@ -79,7 +79,7 @@ struct SpanImpl<T, 0>
 {
     //// DATA ////
 
-    T*                           data = nullptr;
+    T* data = nullptr;
     static constexpr std::size_t size = 0;
 
     //// CONSTRUCTORS ////
@@ -103,7 +103,7 @@ struct SpanImpl<T, dynamic_extent>
 {
     //// DATA ////
 
-    T*          data = nullptr;
+    T* data = nullptr;
     std::size_t size = 0;
 
     //// METHODS ////
@@ -119,5 +119,5 @@ struct SpanImpl<T, dynamic_extent>
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

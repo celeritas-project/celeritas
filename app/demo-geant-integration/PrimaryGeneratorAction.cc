@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,33 +7,57 @@
 //---------------------------------------------------------------------------//
 #include "PrimaryGeneratorAction.hh"
 
-#include <G4ParticleTable.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4ThreeVector.hh>
+#include <G4Event.hh>
+
+#include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
+
+#include "GlobalSetup.hh"
+
+using celeritas::HepMC3PrimaryGenerator;
 
 namespace demo_geant
 {
+namespace
+{
 //---------------------------------------------------------------------------//
 /*!
- * Set up particle gun
+ * Global HepMC3 file reader shared across threads.
+ *
+ * The first time this is called, the reader will be initialized from the
+ * GlobalSetup event file argument.
  */
-PrimaryGeneratorAction::PrimaryGeneratorAction()
+HepMC3PrimaryGenerator& shared_reader()
 {
-    auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(11);
-    gun_.SetParticleDefinition(g4particle_def);
-    gun_.SetParticleEnergy(500 * MeV);
-    gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});          // origin
-    gun_.SetParticleMomentumDirection(G4ThreeVector{1, 0, 0}); // +x
+    static celeritas::HepMC3PrimaryGenerator reader{
+        GlobalSetup::Instance()->GetEventFile()};
+    return reader;
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the total number of events available in the HepMC3 file.
+ *
+ * This will load the HepMC3 file if not already active.
+ */
+int PrimaryGeneratorAction::NumEvents()
+{
+    return shared_reader().NumEvents();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primaries based on the particle gun data.
+ * Generate primaries from HepMC3 input file.
  */
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-    gun_.GeneratePrimaryVertex(event);
+    celeritas::ExceptionConverter call_g4exception{"celer0000"};
+    CELER_TRY_HANDLE(shared_reader().GeneratePrimaryVertex(event),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

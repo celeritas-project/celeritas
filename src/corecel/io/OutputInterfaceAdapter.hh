@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,14 +30,14 @@ class OutputInterfaceAdapter final : public OutputInterface
   public:
     //!@{
     //! Type aliases
-    using SPConstT = std::shared_ptr<const T>;
-    using SPThis   = std::shared_ptr<OutputInterfaceAdapter<T>>;
+    using SPConstT = std::shared_ptr<T const>;
+    using SPThis = std::shared_ptr<OutputInterfaceAdapter<T>>;
     //!@}
 
   public:
     // DANGEROUS helper function
     static inline SPThis
-    from_const_ref(Category cat, std::string label, const T& obj);
+    from_const_ref(Category cat, std::string label, T const& obj);
 
     // Construct by capturing an object
     static inline SPThis
@@ -56,9 +56,9 @@ class OutputInterfaceAdapter final : public OutputInterface
     void output(JsonPimpl* jp) const final { to_json(jp->obj, *obj_); }
 
   private:
-    Category    cat_;
+    Category cat_;
     std::string label_;
-    SPConstT    obj_;
+    SPConstT obj_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,14 +79,14 @@ class OutputInterfaceAdapter final : public OutputInterface
  * \endcode
  */
 template<class T>
-auto OutputInterfaceAdapter<T>::from_const_ref(Category    cat,
+auto OutputInterfaceAdapter<T>::from_const_ref(Category cat,
                                                std::string label,
-                                               const T&    obj) -> SPThis
+                                               T const& obj) -> SPThis
 {
-    auto null_deleter = [](const T*) {};
+    auto null_deleter = [](T const*) {};
 
     return std::make_shared<OutputInterfaceAdapter<T>>(
-        cat, std::move(label), std::shared_ptr<const T>(&obj, null_deleter));
+        cat, std::move(label), std::shared_ptr<T const>(&obj, null_deleter));
 }
 
 //---------------------------------------------------------------------------//
@@ -94,9 +94,9 @@ auto OutputInterfaceAdapter<T>::from_const_ref(Category    cat,
  * Construct by capturing an object.
  */
 template<class T>
-auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category    cat,
+auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category cat,
                                                 std::string label,
-                                                T&&         obj) -> SPThis
+                                                T&& obj) -> SPThis
 {
     return std::make_shared<OutputInterfaceAdapter<T>>(
         cat, std::move(label), std::make_shared<T>(std::move(obj)));
@@ -107,9 +107,9 @@ auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category    cat,
  * Construct from category, label, and shared pointer.
  */
 template<class T>
-OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category    cat,
+OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category cat,
                                                   std::string label,
-                                                  SPConstT    obj)
+                                                  SPConstT obj)
     : cat_(cat), label_(std::move(label)), obj_(std::move(obj))
 {
     CELER_EXPECT(cat != Category::size_);
@@ -117,4 +117,4 @@ OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category    cat,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

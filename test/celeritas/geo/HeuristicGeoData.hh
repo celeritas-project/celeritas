@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -30,14 +30,14 @@ namespace test
 struct HeuristicGeoScalars
 {
     // User-configurable options
-    Real3     lower{0, 0, 0};
-    Real3     upper{0, 0, 0};
-    real_type log_min_step{-16.11809565095832}; // 1 nm
+    Real3 lower{0, 0, 0};
+    Real3 upper{0, 0, 0};
+    real_type log_min_step{-16.11809565095832};  // 1 nm
     real_type log_max_step{2.302585092994046};  // 10 cm
 
     // Set from geometry
     VolumeId::size_type num_volumes{};
-    bool                ignore_zero_safety{};
+    bool ignore_zero_safety{};
 
     explicit CELER_FUNCTION operator bool() const
     {
@@ -61,12 +61,12 @@ struct HeuristicGeoParamsData
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     HeuristicGeoParamsData&
-    operator=(const HeuristicGeoParamsData<W2, M2>& other)
+    operator=(HeuristicGeoParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        rng      = other.rng;
-        s        = other.s;
+        rng = other.rng;
+        s = other.s;
         return *this;
     }
 };
@@ -85,8 +85,8 @@ struct HeuristicGeoStateData
     template<class T>
     using StateItems = StateCollection<T, W, M>;
 
-    GeoStateData<W, M>     geometry;
-    RngStateData<W, M>     rng;
+    GeoStateData<W, M> geometry;
+    RngStateData<W, M> rng;
     StateItems<LifeStatus> status;
 
     Collection<real_type, W, M, VolumeId> accum_path;
@@ -105,9 +105,9 @@ struct HeuristicGeoStateData
     HeuristicGeoStateData& operator=(HeuristicGeoStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        geometry   = other.geometry;
-        rng        = other.rng;
-        status     = other.status;
+        geometry = other.geometry;
+        rng = other.rng;
+        status = other.status;
         accum_path = other.accum_path;
         return *this;
     }
@@ -119,8 +119,8 @@ struct HeuristicGeoStateData
  */
 template<MemSpace M>
 inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
-                   const HostCRef<HeuristicGeoParamsData>&     params,
-                   size_type                                   size)
+                   HostCRef<HeuristicGeoParamsData> const& params,
+                   size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(params);
@@ -135,5 +135,5 @@ inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

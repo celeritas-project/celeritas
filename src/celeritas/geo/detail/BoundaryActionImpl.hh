@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {
@@ -39,10 +46,10 @@ inline CELER_FUNCTION void boundary_track(celeritas::CoreTrackView const& track)
     {
         // Update the material in the new region
         auto geo_mat = track.make_geo_material_view();
-        auto matid   = geo_mat.material_id(geo.volume_id());
+        auto matid = geo_mat.material_id(geo.volume_id());
         CELER_ASSERT(matid);
         auto mat = track.make_material_view();
-        mat      = {matid};
+        mat = {matid};
 
         CELER_ENSURE(geo.is_on_boundary());
     }
@@ -54,5 +61,5 @@ inline CELER_FUNCTION void boundary_track(celeritas::CoreTrackView const& track)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

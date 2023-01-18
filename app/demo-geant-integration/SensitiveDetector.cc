@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -11,8 +11,10 @@
 #include <G4HCofThisEvent.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
+#include <G4StepPoint.hh>
 #include <G4String.hh>
-#include <G4SystemOfUnits.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
 
@@ -68,7 +70,7 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     CELER_ASSERT(touchable);
 
     unsigned int id = touchable->GetVolume()->GetCopyNo();
-    HitData      data{id,
+    HitData data{id,
                  edep,
                  step->GetPreStepPoint()->GetGlobalTime(),
                  touchable->GetTranslation()};
@@ -79,4 +81,4 @@ bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,19 +40,20 @@ class UrbanMscStepLimit
   public:
     //!@{
     //! Type aliases
-    using Energy        = units::MevEnergy;
-    using Mass          = units::MevMass;
+    using Energy = units::MevEnergy;
+    using Mass = units::MevMass;
     using MscParameters = UrbanMscParameters;
-    using MaterialData  = UrbanMscMaterialData;
+    using MaterialData = UrbanMscMaterialData;
+    using UrbanMscRef = NativeCRef<UrbanMscData>;
     //!@}
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscStepLimit(const UrbanMscRef&       shared,
-                                            const ParticleTrackView& particle,
-                                            PhysicsTrackView*        physics,
-                                            MaterialId               matid,
-                                            bool      on_boundary,
+    inline CELER_FUNCTION UrbanMscStepLimit(UrbanMscRef const& shared,
+                                            ParticleTrackView const& particle,
+                                            PhysicsTrackView* physics,
+                                            MaterialId matid,
+                                            bool on_boundary,
                                             real_type safety,
                                             real_type phys_step);
 
@@ -64,25 +65,23 @@ class UrbanMscStepLimit
     //// DATA ////
 
     // Shared constant data
-    const UrbanMscRef& shared_;
+    UrbanMscRef const& shared_;
     // PhysicsTrackView
     PhysicsTrackView& physics_;
     // Incident particle energy [Energy]
     const real_type inc_energy_;
-    // Incident particle flag for positron
-    const bool is_positron_;
     // Incident particle safety
     const real_type safety_;
     // Urban MSC setable parameters
-    const MscParameters& params_;
+    MscParameters const& params_;
     // Urban MSC material-dependent data
-    const MaterialData& msc_;
+    MaterialData const& msc_;
     // Urban MSC helper class
     UrbanMscHelper helper_;
     // Urban MSC range properties
     MscRange msc_range_;
 
-    bool      on_boundary_{};
+    bool on_boundary_{};
     real_type lambda_{};
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
@@ -118,20 +117,19 @@ class UrbanMscStepLimit
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
-                                     const ParticleTrackView& particle,
-                                     PhysicsTrackView*        physics,
-                                     MaterialId               matid,
-                                     bool                     on_boundary,
-                                     real_type                safety,
-                                     real_type                phys_step)
+UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
+                                     ParticleTrackView const& particle,
+                                     PhysicsTrackView* physics,
+                                     MaterialId matid,
+                                     bool on_boundary,
+                                     real_type safety,
+                                     real_type phys_step)
     : shared_(shared)
     , physics_(*physics)
     , inc_energy_(value_as<Energy>(particle.energy()))
-    , is_positron_(particle.particle_id() == shared.ids.positron)
     , safety_(safety)
     , params_(shared.params)
-    , msc_(shared_.msc_data[matid])
+    , msc_(shared_.material_data[matid])
     , helper_(shared, particle, physics_)
     , msc_range_(physics_.msc_range())
     , on_boundary_(on_boundary)
@@ -144,7 +142,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(const UrbanMscRef&       shared,
     CELER_EXPECT(phys_step > 0);
 
     // Mean free path for MSC at current energy
-    lambda_ = helper_.msc_mfp(Energy{inc_energy_});
+    lambda_ = helper_.calc_msc_mfp(Energy{inc_energy_});
 
     // The slowing down range should already have been applied as a step limit
     CELER_ENSURE(range_ >= phys_step_);
@@ -178,8 +176,8 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
         || range_ * msc_.d_over_r < safety_)
     {
         result.is_displaced = false;
-        auto temp           = this->calc_geom_path(result.true_path);
-        result.geom_path    = temp.geom_path;
+        auto temp = this->calc_geom_path(result.true_path);
+        result.geom_path = temp.geom_path;
 
         return result;
     }
@@ -227,9 +225,9 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     }
 
     {
-        auto temp        = this->calc_geom_path(result.true_path);
+        auto temp = this->calc_geom_path(result.true_path);
         result.geom_path = temp.geom_path;
-        result.alpha     = temp.alpha;
+        result.alpha = temp.alpha;
     }
 
     return result;
@@ -266,7 +264,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     // Do the true path -> geom path transformation
     GeomPathAlpha result;
     result.geom_path = true_path;
-    result.alpha     = -1;
+    result.alpha = -1;
 
     if (true_path < shared_.params.min_step())
     {
@@ -290,7 +288,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
              || true_path == range_)
     {
         result.alpha = 1 / range_;
-        real_type w  = 1 + 1 / (result.alpha * lambda_);
+        real_type w = 1 + 1 / (result.alpha * lambda_);
 
         result.geom_path = 1 / (result.alpha * w);
         if (true_path < range_)
@@ -302,11 +300,11 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     {
         real_type rfinal
             = max<real_type>(range_ - true_path, real_type(0.01) * range_);
-        Energy    loss    = helper_.calc_eloss(rfinal);
-        real_type lambda1 = helper_.msc_mfp(loss);
+        Energy loss = helper_.calc_eloss(rfinal);
+        real_type lambda1 = helper_.calc_msc_mfp(loss);
 
-        result.alpha     = (lambda_ - lambda1) / (lambda_ * true_path);
-        real_type w      = 1 + 1 / (result.alpha * lambda_);
+        result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
+        real_type w = 1 + 1 / (result.alpha * lambda_);
         result.geom_path = (1 - fastpow(lambda1 / lambda_, w))
                            / (result.alpha * w);
     }
@@ -327,9 +325,8 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     real_type xm = lambda_
                    / PolyQuad(2, msc_.stepmin_a, msc_.stepmin_b)(inc_energy_);
 
-    // Scale based on particle type and effective atomic number:
-    // 0.7 * z^{1/2} for positrons, otherwise 0.87 * z^{2/3}
-    xm *= is_positron_ ? msc_.scaled_zeff : real_type(0.87) * msc_.z23;
+    // Scale based on particle type and effective atomic number
+    xm *= helper_.scaled_zeff();
 
     if (inc_energy_ < value_as<Energy>(this->tlow()))
     {
@@ -342,4 +339,4 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,9 +22,9 @@ namespace celeritas
  */
 struct TwodGridData
 {
-    ItemRange<real_type> x;      //!< x grid definition
-    ItemRange<real_type> y;      //!< y grid definition
-    ItemRange<real_type> values; //!< [x][y]
+    ItemRange<real_type> x;  //!< x grid definition
+    ItemRange<real_type> y;  //!< y grid definition
+    ItemRange<real_type> values;  //!< [x][y]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -46,4 +46,4 @@ struct TwodGridData
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

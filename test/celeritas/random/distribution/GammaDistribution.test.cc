@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,7 +28,7 @@ TEST_F(GammaDistributionTest, bin_large_alpha)
     int num_samples = 10000;
 
     double alpha = 9.0;
-    double beta  = 0.5;
+    double beta = 0.5;
 
     GammaDistribution<double> sample_gamma{alpha, beta};
 
@@ -52,7 +52,7 @@ TEST_F(GammaDistributionTest, bin_large_alpha)
             ++counters[6];
     }
 
-    const int expected_counters[] = {211, 1387, 2529, 2548, 1784, 916, 625};
+    int const expected_counters[] = {211, 1387, 2529, 2548, 1784, 916, 625};
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(40118, rng.count());
 }
@@ -62,7 +62,7 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
     int num_samples = 10000;
 
     double alpha = 0.5;
-    double beta  = 1.0;
+    double beta = 1.0;
 
     GammaDistribution<double> sample_gamma{alpha, beta};
 
@@ -82,11 +82,11 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
             ++counters[4];
     }
 
-    const int expected_counters[] = {8486, 1081, 310, 79, 44};
+    int const expected_counters[] = {8486, 1081, 310, 79, 44};
     EXPECT_VEC_EQ(expected_counters, counters);
     EXPECT_EQ(61136, rng.count());
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

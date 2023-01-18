@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -26,7 +27,7 @@ struct PVDeleter
 };
 
 //---------------------------------------------------------------------------//
-} // namespace detail
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
@@ -42,7 +43,7 @@ using UPG4PhysicalVolume
 /*!
  * Load a GDML file and return the world volume.
  */
-UPG4PhysicalVolume load_gdml(const std::string& gdml_filename);
+UPG4PhysicalVolume load_gdml(std::string const& gdml_filename);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -53,11 +54,11 @@ inline void detail::PVDeleter::operator()(G4VPhysicalVolume*) const
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline UPG4PhysicalVolume load_gdml(const std::string&)
+inline UPG4PhysicalVolume load_gdml(std::string const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

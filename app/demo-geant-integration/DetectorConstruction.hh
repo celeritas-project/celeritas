@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,12 +28,12 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     DetectorConstruction();
 
     G4VPhysicalVolume* Construct() final;
-    void               ConstructSDandField() final;
+    void ConstructSDandField() final;
 
   private:
-    std::unique_ptr<G4VPhysicalVolume>                    world_;
+    std::unique_ptr<G4VPhysicalVolume> world_;
     std::vector<std::pair<G4LogicalVolume*, std::string>> detectors_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant

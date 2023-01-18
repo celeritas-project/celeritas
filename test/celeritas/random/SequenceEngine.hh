@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -40,14 +40,14 @@ class SequenceEngine
     //@{
     //! Typedefs
     using result_type = std::uint32_t;
-    using VecResult   = std::vector<result_type>;
-    using LimitsT     = std::numeric_limits<result_type>;
-    using size_type   = VecResult::size_type;
+    using VecResult = std::vector<result_type>;
+    using LimitsT = std::numeric_limits<result_type>;
+    using size_type = VecResult::size_type;
     //!@}
 
   public:
     // Nearly reproduce the given stream of reals with generate_canonical
-    inline static SequenceEngine from_reals(Span<const double> values);
+    inline static SequenceEngine from_reals(Span<double const> values);
 
     // Nearly reproduce the given stream of reals with generate_canonical
     inline static SequenceEngine
@@ -73,7 +73,7 @@ class SequenceEngine
     size_type i_;
 };
 //---------------------------------------------------------------------------//
-} // namespace test
+}  // namespace test
 
 //---------------------------------------------------------------------------//
 /*!
@@ -85,7 +85,7 @@ class GenerateCanonical<test::SequenceEngine, T>
   public:
     //!@{
     //! Type aliases
-    using real_type   = T;
+    using real_type = T;
     using result_type = real_type;
     //!@}
 
@@ -107,7 +107,7 @@ namespace test
  * (see the RngEngine unit test) will not be exactly reproduced. All input
  * values must be bounded in  \f$ [0, 1) \f$ .
  */
-SequenceEngine SequenceEngine::from_reals(Span<const double> values)
+SequenceEngine SequenceEngine::from_reals(Span<double const> values)
 {
     using real_type = double;
 
@@ -115,7 +115,7 @@ SequenceEngine SequenceEngine::from_reals(Span<const double> values)
     const real_type range = SequenceEngine::max() + real_type(1);
 
     SequenceEngine::VecResult elements(values.size() * 2);
-    auto                      dst = elements.begin();
+    auto dst = elements.begin();
     for (double v : values)
     {
         CELER_EXPECT(v >= 0 && v < 1);
@@ -176,7 +176,7 @@ auto SequenceEngine::operator()() -> result_type
     return values_[i_++];
 }
 //---------------------------------------------------------------------------//
-} // namespace test
+}  // namespace test
 
 //---------------------------------------------------------------------------//
 /*!
@@ -210,4 +210,4 @@ T GenerateCanonical<test::SequenceEngine, T>::operator()(
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

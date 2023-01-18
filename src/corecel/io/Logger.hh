@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,8 +10,11 @@
 #include <string>
 #include <utility>
 
+#include "corecel/io/Logger.hh"
+#include "corecel/io/detail/LoggerMessage.hh"
+
 #include "LoggerTypes.hh"
-#include "detail/LoggerMessage.hh" // IWYU pragma: keep
+#include "detail/LoggerMessage.hh"  // IWYU pragma: keep
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -50,6 +53,7 @@
 namespace celeritas
 {
 class MpiCommunicator;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage logging in serial and parallel.
@@ -67,9 +71,9 @@ class Logger
 {
   public:
     // Construct with communicator (only rank zero is active) and handler
-    Logger(const MpiCommunicator& comm,
-           LogHandler             handle,
-           const char*            level_env = nullptr);
+    Logger(MpiCommunicator const& comm,
+           LogHandler handle,
+           char const* level_env = nullptr);
 
     // Create a logger that flushes its contents when it destructs
     inline detail::LoggerMessage operator()(Provenance prov, LogLevel lev);
@@ -82,7 +86,7 @@ class Logger
 
   private:
     LogHandler handle_;
-    LogLevel   min_level_ = LogLevel::status;
+    LogLevel min_level_ = LogLevel::status;
 };
 
 //---------------------------------------------------------------------------//
@@ -113,4 +117,4 @@ Logger& world_logger();
 Logger& self_logger();
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

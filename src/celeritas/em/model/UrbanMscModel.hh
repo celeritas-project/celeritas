@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,6 +16,7 @@ namespace celeritas
 class ParticleParams;
 class MaterialParams;
 class MaterialView;
+class ImportedProcessAdapter;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -26,15 +27,16 @@ class UrbanMscModel final : public Model
   public:
     //@{
     //! Type aliases
-    using HostRef   = HostCRef<UrbanMscData>;
+    using HostRef = HostCRef<UrbanMscData>;
     using DeviceRef = DeviceCRef<UrbanMscData>;
     //@}
 
   public:
     // Construct from model ID and other necessary data
-    UrbanMscModel(ActionId              id,
-                  const ParticleParams& particles,
-                  const MaterialParams& materials);
+    UrbanMscModel(ActionId id,
+                  ParticleParams const& particles,
+                  MaterialParams const& materials,
+                  ImportedProcessAdapter const& pdata);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -61,10 +63,10 @@ class UrbanMscModel final : public Model
     }
 
     //! Access UrbanMsc data on the host
-    const HostRef& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const { return mirror_.host(); }
 
     //! Access UrbanMsc data on the device
-    const DeviceRef& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const { return mirror_.device(); }
 
   private:
     //// DATA ////
@@ -74,14 +76,13 @@ class UrbanMscModel final : public Model
 
     //// TYPES ////
 
-    using HostValue    = HostVal<UrbanMscData>;
+    using HostValue = HostVal<UrbanMscData>;
     using MaterialData = UrbanMscMaterialData;
 
     //// HELPER FUNCTIONS ////
 
-    void build_data(HostValue* host_data, const MaterialParams& materials);
-    MaterialData calc_material_data(const MaterialView& material_view);
+    static MaterialData calc_material_data(MaterialView const& material_view);
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

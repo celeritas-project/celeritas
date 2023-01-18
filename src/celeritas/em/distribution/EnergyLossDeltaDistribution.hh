@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ class EnergyLossDeltaDistribution
   public:
     //! Construct from helper-calculated mean
     explicit CELER_FUNCTION
-    EnergyLossDeltaDistribution(const EnergyLossHelper& helper)
+    EnergyLossDeltaDistribution(EnergyLossHelper const& helper)
         : mean_energy_(helper.mean_loss())
     {
     }
@@ -48,4 +48,4 @@ class EnergyLossDeltaDistribution
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

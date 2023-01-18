@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,7 +38,7 @@ class NormalDistribution
   public:
     //!@{
     //! Type aliases
-    using real_type   = RealType;
+    using real_type = RealType;
     using result_type = real_type;
     //!@}
 
@@ -54,8 +54,8 @@ class NormalDistribution
   private:
     const real_type mean_;
     const real_type stddev_;
-    real_type       spare_{};
-    bool            has_spare_{false};
+    real_type spare_{};
+    bool has_spare_{false};
 };
 
 //---------------------------------------------------------------------------//
@@ -89,11 +89,11 @@ CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
     }
 
     real_type theta = 2 * constants::pi * generate_canonical(rng);
-    real_type r     = std::sqrt(-2 * std::log(generate_canonical(rng)));
-    spare_          = r * std::cos(theta);
-    has_spare_      = true;
+    real_type r = std::sqrt(-2 * std::log(generate_canonical(rng)));
+    spare_ = r * std::cos(theta);
+    has_spare_ = true;
     return r * std::sin(theta) * stddev_ + mean_;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

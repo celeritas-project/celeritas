@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
@@ -259,7 +259,7 @@ if(CELERITAS_BUILD_DEMOS)
   if(CELERITAS_BUILD_TESTS)
     set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/demo-loop/simple-driver.py")
     set(_gdml_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/simple-cms.gdml")
-    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/input.hepmc3")
+    set(_hepmc3_inp "${CMAKE_CURRENT_SOURCE_DIR}/data/gamma-3evt-15prim.hepmc3")
     set(_mctruth_out "")
     set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
     if(CELERITAS_USE_ROOT)
@@ -343,7 +343,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/DetectorConstruction.cc
     demo-geant-integration/EventAction.cc
     demo-geant-integration/GlobalSetup.cc
-    demo-geant-integration/MasterRunAction.cc
     demo-geant-integration/NoFieldAlongStepFactory.cc
     demo-geant-integration/PrimaryGeneratorAction.cc
     demo-geant-integration/RunAction.cc
@@ -351,9 +350,28 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/SensitiveHit.cc
     demo-geant-integration/TrackingAction.cc
   )
-  celeritas_target_link_libraries(demo-geant-integration Celeritas::accel)
+  celeritas_target_link_libraries(demo-geant-integration
+    Celeritas::accel
+  )
+  if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
+    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+      set(DEMO_MAX_NUM_TRACKS 524288)
+      set(DEMO_INIT_CAPACITY 4194304)
+    else()
+      # Use smaller number of tracks when running on CPU
+      set(DEMO_MAX_NUM_TRACKS 1024)
+      set(DEMO_INIT_CAPACITY 32768)
+    endif()
 
-  if(CELERITAS_BUILD_TESTS)
+    if(NOT CELERITAS_DEBUG)
+      set(DEMO_EVENTS
+        "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarsplit-12evt-1108prim.hepmc3")
+    else()
+      # Use fewer events for debug
+      set(DEMO_EVENTS
+        "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarbits-12evt-118prim.hepmc3")
+    endif()
+
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY
@@ -369,7 +387,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     )
     if(Geant4_multithreaded_FOUND)
       list(APPEND _env
-        "NUM_THREADS=2"
+        "G4FORCENUMBEROFTHREADS=2"
       )
     endif()
     if(CELERITAS_USE_OpenMP)

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "MultipleScatteringProcess.hh"
 
+#include <utility>
+
+#include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/io/ImportProcess.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {
@@ -18,7 +24,7 @@ namespace celeritas
 MultipleScatteringProcess::MultipleScatteringProcess(
     SPConstParticles particles,
     SPConstMaterials materials,
-    SPConstImported  process_data)
+    SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -37,7 +43,7 @@ auto MultipleScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
     return {std::make_shared<UrbanMscModel>(
-        *start_id++, *particles_, *materials_)};
+        *start_id++, *particles_, *materials_, imported_)};
 }
 
 //---------------------------------------------------------------------------//
@@ -60,4 +66,4 @@ std::string MultipleScatteringProcess::label() const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

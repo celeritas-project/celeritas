@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,15 +42,15 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using VGT       = ValueGridType;
+using VGT = ValueGridType;
 using MevEnergy = units::MevEnergy;
-using Action    = MscInteraction::Action;
+using Action = MscInteraction::Action;
 
 using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
-using GeoStateRefDevice   = DeviceRef<GeoStateData>;
+using GeoStateRefDevice = DeviceRef<GeoStateData>;
 
 using SimStateValue = HostVal<SimStateData>;
-using SimStateRef   = NativeRef<SimStateData>;
+using SimStateRef = NativeRef<SimStateData>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -59,8 +59,8 @@ using SimStateRef   = NativeRef<SimStateData>;
 class UrbanMscTest : public GlobalGeoTestBase
 {
   protected:
-    using RandomEngine    = DiagnosticRngEngine<std::mt19937>;
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
 
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
@@ -70,7 +70,7 @@ class UrbanMscTest : public GlobalGeoTestBase
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
 
   protected:
-    const char* geometry_basename() const override
+    char const* geometry_basename() const override
     {
         return "four-steel-slabs";
     }
@@ -81,7 +81,7 @@ class UrbanMscTest : public GlobalGeoTestBase
 
         RootImporter import_from_root(
             this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
-        import_data_    = import_from_root();
+        import_data_ = import_from_root();
         processes_data_ = std::make_shared<ImportedProcesses>(
             std::move(import_data_.processes));
         CELER_ASSERT(processes_data_->size() > 0);
@@ -154,8 +154,8 @@ class UrbanMscTest : public GlobalGeoTestBase
         phys_view = PhysicsTrackInitializer{};
 
         // Calculate and store the energy loss (dedx) range limit
-        auto ppid       = phys_view.eloss_ppid();
-        auto grid_id    = phys_view.value_grid(VGT::range, ppid);
+        auto ppid = phys_view.eloss_ppid();
+        auto grid_id = phys_view.value_grid(VGT::range, ppid);
         auto calc_range = phys_view.make_calculator<RangeCalculator>(grid_id);
         real_type range = calc_range(energy);
         phys_view.dedx_range(range);
@@ -183,8 +183,8 @@ class UrbanMscTest : public GlobalGeoTestBase
         // Initialize
         ParticleTrackView::Initializer_t init;
         init.particle_id = this->particle()->find(pdg);
-        init.energy      = energy;
-        *part_view_      = init;
+        init.energy = energy;
+        *part_view_ = init;
     }
 
     RandomEngine& rng()
@@ -193,19 +193,17 @@ class UrbanMscTest : public GlobalGeoTestBase
         return rng_;
     }
 
-    ImportData      import_data_;
+    ImportData import_data_;
     SPConstImported processes_data_;
 
     PhysicsParamsHostRef params_ref_;
-    PhysicsStateStore    physics_state_;
-    ParticleStateStore   particle_state_;
-    GeoStateStore        geo_state_;
+    PhysicsStateStore physics_state_;
+    ParticleStateStore particle_state_;
+    GeoStateStore geo_state_;
 
     // Views
     std::shared_ptr<ParticleTrackView> part_view_;
-    RandomEngine                       rng_;
-
-    std::shared_ptr<UrbanMscModel> model_;
+    RandomEngine rng_;
 };
 
 //---------------------------------------------------------------------------//
@@ -215,19 +213,23 @@ class UrbanMscTest : public GlobalGeoTestBase
 TEST_F(UrbanMscTest, msc_scattering)
 {
     // Views
-    GeoTrackView       geo_view      = this->make_geo_track_view();
+    GeoTrackView geo_view = this->make_geo_track_view();
     const MaterialView material_view = this->material()->get(MaterialId{1});
 
     // Create the model
     std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ActionId{0}, *this->particle(), *this->material());
+        ActionId{0},
+        *this->particle(),
+        *this->material(),
+        ImportedProcessAdapter{processes_data_,
+                               this->particle(),
+                               ImportProcessClass::msc,
+                               {pdg::electron(), pdg::positron()}});
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    const UrbanMscMaterialData& msc_
-        = model->host_ref().msc_data[material_view.material_id()];
+    UrbanMscMaterialData const& msc_
+        = model->host_ref().material_data[material_view.material_id()];
 
-    EXPECT_DOUBLE_EQ(msc_.zeff, 25.8);
-    EXPECT_DOUBLE_EQ(msc_.z23, 8.7313179636909233);
     EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
     EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);
     EXPECT_DOUBLE_EQ(msc_.d[0], 1.6889578380303167);
@@ -240,7 +242,7 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
 
     // Test the step limitation algorithm and the msc sample scattering
-    MscStep        step_result;
+    MscStep step_result;
     MscInteraction sample_result;
 
     // Input
@@ -257,14 +259,14 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     // Mock SimStateData
     SimStateValue states_ref;
-    auto          sim_state_data = make_builder(&states_ref.state);
+    auto sim_state_data = make_builder(&states_ref.state);
     sim_state_data.reserve(nsamples);
 
     // Calculate range instead of hardcoding to ensure step and range values
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
-    constexpr double    step_is_range = -1;
-    std::vector<double> step          = {0.00279169, 0.412343, 0.0376414};
+    constexpr double step_is_range = -1;
+    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
     step.resize(nsamples, step_is_range);
 
     for (unsigned int i : range(nsamples))
@@ -285,27 +287,27 @@ TEST_F(UrbanMscTest, msc_scattering)
             step[i] = phys.dedx_range();
         }
     }
-    const SimStateRef& states = make_ref(states_ref);
-    SimTrackView       sim_track_view(states, ThreadId{0});
+    SimStateRef const& states = make_ref(states_ref);
+    SimTrackView sim_track_view(states, ThreadId{0});
 
     ASSERT_EQ(nsamples, step.size());
     EXPECT_EQ(nsamples, sim_state_data.size());
     EXPECT_EQ(0, sim_track_view.num_steps());
 
-    RandomEngine&       rng_engine = this->rng();
+    RandomEngine& rng_engine = this->rng();
     std::vector<double> fstep;
     std::vector<double> angle;
     std::vector<double> displace;
-    std::vector<char>   action;
-    Real3               direction{0, 0, 1};
+    std::vector<char> action;
+    Real3 direction{0, 0, 1};
 
     for (auto i : range(nsamples))
     {
         real_type r = i * 2 - real_type(1e-4);
-        geo_view    = {{r, r, r}, direction};
+        geo_view = {{r, r, r}, direction};
 
-        MevEnergy        inc_energy = MevEnergy{energy[i]};
-        PhysicsTrackView phys       = this->make_track_view(
+        MevEnergy inc_energy = MevEnergy{energy[i]};
+        PhysicsTrackView phys = this->make_track_view(
             pdg::electron(), MaterialId{1}, inc_energy);
 
         UrbanMscStepLimit step_limiter(model->host_ref(),
@@ -340,7 +342,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                                                      : 'u');
     }
 
-    static const double expected_fstep[] = {0.0027916899999997,
+    static double const expected_fstep[] = {0.0027916899999997,
                                             0.134631648532277,
                                             0.0376414,
                                             0.0781632965764156,
@@ -349,7 +351,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0.000742152890009348,
                                             3.1163160031423e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    static const double expected_angle[] = {0.000314741326035635,
+    static double const expected_angle[] = {0.000314741326035635,
                                             0.738624667826603,
                                             -0.145610123961716,
                                             0,
@@ -358,7 +360,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0,
                                             0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
-    static const double expected_displace[] = {8.19862035797085e-06,
+    static double const expected_displace[] = {8.19862035797085e-06,
                                                9.7530617641316e-05,
                                                -7.1670542039709e-05,
                                                0,
@@ -367,10 +369,10 @@ TEST_F(UrbanMscTest, msc_scattering)
                                                0,
                                                0};
     EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
-    static const char expected_action[]
+    static char const expected_action[]
         = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
     EXPECT_VEC_EQ(expected_action, action);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

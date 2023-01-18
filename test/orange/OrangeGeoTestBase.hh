@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,7 +38,7 @@ class OrangeGeoTestBase : public Test
     //!@{
     //! Type aliases
     using HostStateRef = OrangeStateData<Ownership::reference, MemSpace::host>;
-    using Params       = OrangeParams;
+    using Params = OrangeParams;
     //!@}
 
     //!@{
@@ -56,10 +56,10 @@ class OrangeGeoTestBase : public Test
 
   public:
     // Convert a vector of senses to a string
-    static std::string senses_to_string(Span<const Sense> senses);
+    static std::string senses_to_string(Span<Sense const> senses);
 
     // Convert a string to a sense vector
-    static std::vector<Sense> string_to_senses(const std::string& s);
+    static std::vector<Sense> string_to_senses(std::string const& s);
 
     // Default constructor
     OrangeGeoTestBase() = default;
@@ -68,7 +68,7 @@ class OrangeGeoTestBase : public Test
     ~OrangeGeoTestBase();
 
     // Load `test/orange/data/{filename}` JSON input
-    void build_geometry(const char* filename);
+    void build_geometry(char const* filename);
 
     // Load geometry with one infinite volume
     void build_geometry(OneVolInput);
@@ -80,22 +80,22 @@ class OrangeGeoTestBase : public Test
     void build_geometry(UnitInput);
 
     //! Get the data after loading
-    const Params& params() const
+    Params const& params() const
     {
         CELER_EXPECT(params_);
         return *params_;
     }
 
     // Lazily create and get a single-serving host state
-    const HostStateRef& host_state();
+    HostStateRef const& host_state();
 
     //// QUERYING ////
 
     // Find the volume from its label (nullptr allowed)
-    VolumeId find_volume(const char* label) const;
+    VolumeId find_volume(char const* label) const;
 
     // Find the surface from its label (NULL pointer allowed)
-    SurfaceId find_surface(const char* label) const;
+    SurfaceId find_surface(char const* label) const;
 
     // Surface name (or sentinel if no surface);
     std::string id_to_label(SurfaceId) const;
@@ -133,5 +133,5 @@ class OrangeGeoTestBase : public Test
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

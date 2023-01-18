@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -19,7 +19,7 @@ namespace celeritas
 {
 struct ImportData;
 struct PhysicsParamsOptions;
-} // namespace celeritas
+}  // namespace celeritas
 
 namespace celeritas
 {
@@ -47,28 +47,28 @@ class GeantTestBase : virtual public GlobalGeoTestBase
 
     //!@{
     //! Get the Geant4 top-level geometry element
-    const G4VPhysicalVolume* get_world_volume();
-    const G4VPhysicalVolume* get_world_volume() const;
+    G4VPhysicalVolume const* get_world_volume();
+    G4VPhysicalVolume const* get_world_volume() const;
     //!@}
 
   protected:
-    virtual bool      enable_fluctuation() const     = 0;
-    virtual bool      enable_msc() const             = 0;
-    virtual bool      combined_brems() const         = 0;
+    virtual bool enable_fluctuation() const = 0;
+    virtual bool enable_msc() const = 0;
+    virtual bool combined_brems() const = 0;
     virtual real_type secondary_stack_factor() const = 0;
 
-    SPConstMaterial    build_material() override;
+    SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;
-    SPConstParticle    build_particle() override;
-    SPConstCutoff      build_cutoff() override;
-    SPConstPhysics     build_physics() override;
-    SPConstTrackInit   build_init() override;
-    SPConstAction      build_along_step() override;
+    SPConstParticle build_particle() override;
+    SPConstCutoff build_cutoff() override;
+    SPConstPhysics build_physics() override;
+    SPConstTrackInit build_init() override;
+    SPConstAction build_along_step() override;
 
     virtual PhysicsOptions build_physics_options() const;
 
     // Access lazily (re)loaded static geant4 data
-    const ImportData& imported_data() const;
+    ImportData const& imported_data() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -76,8 +76,8 @@ class GeantTestBase : virtual public GlobalGeoTestBase
 struct PrintableBuildConf
 {
 };
-std::ostream& operator<<(std::ostream& os, const PrintableBuildConf&);
+std::ostream& operator<<(std::ostream& os, PrintableBuildConf const&);
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

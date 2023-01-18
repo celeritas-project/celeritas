@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ namespace test
 template<class T>
 __global__ void nl_test_kernel(NLTestOutput<T>* data)
 {
-    using limits_t               = numeric_limits<T>;
+    using limits_t = numeric_limits<T>;
     unsigned int local_thread_id = KernelParamCalculator::thread_id().get();
     if (local_thread_id == 0)
     {
@@ -86,9 +86,9 @@ NLTestOutput<T> nl_test()
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template NLTestOutput<float>  nl_test<float>();
+template NLTestOutput<float> nl_test<float>();
 template NLTestOutput<double> nl_test<double>();
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

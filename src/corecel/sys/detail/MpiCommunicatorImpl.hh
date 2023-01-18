@@ -1,10 +1,10 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/MpiCommunicatorImpl.hh
-//! Type definitions for MPI parallel operations (implementation-agnostic)
+//! \brief Type definitions for MPI parallel operations (MPI optional)
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,7 +26,7 @@ using MpiComm = MPI_Comm;
 
 #else
 
-//@{
+//!@{
 //! Mock MPI communicator
 struct MpiComm
 {
@@ -78,5 +78,5 @@ inline MpiComm mpi_comm_self()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

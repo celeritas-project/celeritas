@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,11 +9,15 @@
 
 #include <algorithm>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 #include "../ActionRegistry.hh"
 
@@ -25,7 +29,7 @@ namespace detail
 /*!
  * Construct from an action registry and sequence options.
  */
-ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
+ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
     : options_(std::move(options))
 {
     using EAI = ExplicitActionInterface;
@@ -38,7 +42,7 @@ ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
     for (auto aidx : range(reg.num_actions()))
     {
         // Get abstract action shared pointer and see if it's explicit
-        const auto& base = reg.action(ActionId{aidx});
+        auto const& base = reg.action(ActionId{aidx});
         if (auto expl = std::dynamic_pointer_cast<const EAI>(base))
         {
             // Mark order as set
@@ -57,7 +61,7 @@ ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),
               actions_.end(),
-              [](const SPConstExplicit& a, const SPConstExplicit& b) {
+              [](SPConstExplicit const& a, SPConstExplicit const& b) {
                   return std::make_tuple(a->order(), a->action_id())
                          < std::make_tuple(b->order(), b->action_id());
               });
@@ -75,7 +79,7 @@ ActionSequence::ActionSequence(const ActionRegistry& reg, Options options)
  * The given action ID \em must be an explicit action.
  */
 template<MemSpace M>
-void ActionSequence::execute(const CoreRef<M>& data)
+void ActionSequence::execute(CoreRef<M> const& data)
 {
     if (M == MemSpace::host || options_.sync)
     {
@@ -94,7 +98,7 @@ void ActionSequence::execute(const CoreRef<M>& data)
     else
     {
         // Just loop over the actions
-        for (const SPConstExplicit& sp_action : actions_)
+        for (SPConstExplicit const& sp_action : actions_)
         {
             sp_action->execute(data);
         }
@@ -105,9 +109,9 @@ void ActionSequence::execute(const CoreRef<M>& data)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template void ActionSequence::execute(const CoreRef<MemSpace::host>&);
-template void ActionSequence::execute(const CoreRef<MemSpace::device>&);
+template void ActionSequence::execute(CoreRef<MemSpace::host> const&);
+template void ActionSequence::execute(CoreRef<MemSpace::device> const&);
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

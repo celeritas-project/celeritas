@@ -1,13 +1,14 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file demo-interactor/host-demo-interactor.cc
 //---------------------------------------------------------------------------//
 
-#include <cstddef>
+#include <cstdlib>
 #include <fstream>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -15,13 +16,21 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_version.h"
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Units.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "DetectorData.hh"
 #include "HostKNDemoRunner.hh"
 #include "KNDemoIO.hh"
 #include "LoadXs.hh"
@@ -41,7 +50,7 @@ namespace demo_interactor
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
-    constexpr auto zero   = zero_quantity();
+    constexpr auto zero = zero_quantity();
     constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     return std::make_shared<ParticleParams>(
@@ -86,7 +95,7 @@ void run(std::istream& is)
     };
     cout << outp.dump() << endl;
 }
-} // namespace demo_interactor
+}  // namespace demo_interactor
 
 //---------------------------------------------------------------------------//
 /*!

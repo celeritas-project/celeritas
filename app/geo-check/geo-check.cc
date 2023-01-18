@@ -1,15 +1,30 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geo-check.cc
 //---------------------------------------------------------------------------//
 
+#include <cstdlib>
+#include <exception>
 #include <fstream>
+#include <initializer_list>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+#include <nlohmann/json.hpp>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Label.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "orange/Types.hh"
+#include "celeritas/geo/GeoParamsFwd.hh"
 
 #include "GCheckRunner.hh"
 #include "nlohmann/json.hpp"
@@ -60,7 +75,7 @@ void run(std::istream& is, bool use_cuda)
     run(&trkinit);
 }
 
-} // namespace geo_check
+}  // namespace geo_check
 
 //---------------------------------------------------------------------------//
 /*!
@@ -107,7 +122,7 @@ int main(int argc, char* argv[])
             CELER_LOG(status) << "CUDA capability is disabled.";
         }
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         CELER_LOG(status) << "No GPU device available - disable CUDA.";
         use_cuda = false;
@@ -118,7 +133,7 @@ int main(int argc, char* argv[])
         CELER_ASSERT(instream_ptr);
         geo_check::run(*instream_ptr, use_cuda);
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         CELER_LOG(critical) << "Caught exception: " << e.what();
         return EXIT_FAILURE;

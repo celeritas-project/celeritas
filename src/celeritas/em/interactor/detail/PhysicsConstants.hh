@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -73,15 +73,15 @@ CELER_CONSTEXPR_FUNCTION MevPerCm lpm_constant()
 //! Maximum energy for the SeltzerBerger model - TODO: make this configurable
 CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
 {
-    return units::MevEnergy{1e3}; //! 1 GeV
+    return units::MevEnergy{1e3};  //! 1 GeV
 }
 
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {
-    return units::MevEnergy{1e8}; //! 100 TeV
+    return units::MevEnergy{1e8};  //! 100 TeV
 }
 //!@}
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

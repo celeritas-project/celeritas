@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ namespace celeritas
 template<class T>
 struct ImportedElementalMapLoader
 {
-    const std::map<int, T>& tables;
+    std::map<int, T> const& tables;
 
     inline T operator()(AtomicNumber z) const;
 };
@@ -37,7 +37,7 @@ struct ImportedElementalMapLoader
  */
 template<class T>
 inline ImportedElementalMapLoader<T>
-make_imported_element_loader(const std::map<int, T>& data)
+make_imported_element_loader(std::map<int, T> const& data)
 {
     return {data};
 }
@@ -59,4 +59,4 @@ T ImportedElementalMapLoader<T>::operator()(AtomicNumber z) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

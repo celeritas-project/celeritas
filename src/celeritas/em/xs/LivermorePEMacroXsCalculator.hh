@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,24 +26,24 @@ class LivermorePEMacroXsCalculator
   public:
     //!@{
     //! Type aliases
-    using Energy       = LivermorePEMicroXsCalculator::Energy;
+    using Energy = LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits = LivermorePEMicroXsCalculator::XsUnits;
-    using XsUnits      = units::NativeUnit;
+    using XsUnits = units::NativeUnit;
     //!@}
 
   public:
     // Construct with shared data and material
     inline CELER_FUNCTION
-    LivermorePEMacroXsCalculator(const LivermorePERef& shared,
-                                 const MaterialView&   material);
+    LivermorePEMacroXsCalculator(LivermorePERef const& shared,
+                                 MaterialView const& material);
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    const LivermorePERef&           shared_;
-    Span<const MatElementComponent> elements_;
-    real_type                       number_density_;
+    LivermorePERef const& shared_;
+    Span<MatElementComponent const> elements_;
+    real_type number_density_;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ class LivermorePEMacroXsCalculator
  * Construct with shared model and material data.
  */
 CELER_FUNCTION LivermorePEMacroXsCalculator::LivermorePEMacroXsCalculator(
-    const LivermorePERef& shared, const MaterialView& material)
+    LivermorePERef const& shared, MaterialView const& material)
     : shared_(shared)
     , elements_(material.elements())
     , number_density_(material.number_density())
@@ -69,9 +69,9 @@ CELER_FUNCTION LivermorePEMacroXsCalculator::LivermorePEMacroXsCalculator(
 CELER_FUNCTION real_type
 LivermorePEMacroXsCalculator::operator()(Energy energy) const
 {
-    real_type                    result = 0.;
+    real_type result = 0.;
     LivermorePEMicroXsCalculator calc_micro_xs(shared_, energy);
-    for (const auto& el_comp : elements_)
+    for (auto const& el_comp : elements_)
     {
         const real_type micro_xs = calc_micro_xs(el_comp.element);
         CELER_ASSERT(micro_xs >= 0);
@@ -83,4 +83,4 @@ LivermorePEMacroXsCalculator::operator()(Energy energy) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,7 +34,7 @@ namespace testdetail
 //---------------------------------------------------------------------------//
 int test_main(int argc, char** argv)
 {
-    ScopedMpiInit   scoped_mpi(&argc, &argv);
+    ScopedMpiInit scoped_mpi(&argc, &argv);
     MpiCommunicator comm
         = (ScopedMpiInit::status() == ScopedMpiInit::Status::disabled
                ? MpiCommunicator{}
@@ -45,7 +45,7 @@ int test_main(int argc, char** argv)
         // Initialize device
         activate_device(make_device(comm));
     }
-    catch (const std::exception& e)
+    catch (std::exception const& e)
     {
         if (comm.rank() == 0)
         {
@@ -82,7 +82,7 @@ int test_main(int argc, char** argv)
     listeners.Append(new ParallelHandler(comm));
 
     // Run everything
-    int  failed   = RUN_ALL_TESTS();
+    int failed = RUN_ALL_TESTS();
     bool no_tests = testing::UnitTest::GetInstance()->test_to_run_count() == 0;
     failed += (no_tests ? 1 : 0);
 
@@ -101,8 +101,8 @@ int test_main(int argc, char** argv)
         // Write diagnostics and overall test result
         if (device())
         {
-            const auto& kr  = celeritas::kernel_registry();
-            auto        msg = CELER_LOG(debug);
+            auto const& kr = celeritas::kernel_registry();
+            auto msg = CELER_LOG(debug);
             msg << "Kernel diagnostics: ";
             for (auto kernel_id : range(KernelId{kr.num_kernels()}))
             {
@@ -122,5 +122,5 @@ int test_main(int argc, char** argv)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace testdetail
-} // namespace celeritas
+}  // namespace testdetail
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,14 +7,15 @@
 //---------------------------------------------------------------------------//
 #include "ActionRegistryOutput.hh"
 
+#include <type_traits>
 #include <utility>
 
 #include "celeritas_config.h"
-#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
-#include "ActionRegistry.hh"
+#include "ActionInterface.hh"
+#include "ActionRegistry.hh"  // IWYU pragma: keep
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -45,8 +46,8 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
             {"label", actions_->id_to_label(id)},
         };
 
-        const ActionInterface& action = *actions_->action(id);
-        auto&&                 desc   = action.description();
+        ActionInterface const& action = *actions_->action(id);
+        auto&& desc = action.description();
         if (!desc.empty())
         {
             entry["description"] = std::move(desc);
@@ -60,4 +61,4 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

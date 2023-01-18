@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,14 +41,14 @@ class RungeKuttaStepper
     }
 
     // Advance the ODE state according to the field equations
-    CELER_FUNCTION result_type operator()(real_type       step,
-                                          const OdeState& beg_state) const;
+    CELER_FUNCTION result_type operator()(real_type step,
+                                          OdeState const& beg_state) const;
 
   private:
     // Return the final state by the 4th order Runge-Kutta method
-    CELER_FUNCTION auto do_step(real_type       step,
-                                const OdeState& beg_state,
-                                const OdeState& end_slope) const -> OdeState;
+    CELER_FUNCTION auto do_step(real_type step,
+                                OdeState const& beg_state,
+                                OdeState const& end_slope) const -> OdeState;
 
   private:
     // Equation of the motion
@@ -81,15 +81,15 @@ class RungeKuttaStepper
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state) const
+RungeKuttaStepper<E>::operator()(real_type step, OdeState const& beg_state) const
     -> result_type
 {
     using celeritas::axpy;
-    real_type           half_step               = step / real_type(2);
+    real_type half_step = step / real_type(2);
     constexpr real_type fourth_order_correction = 1 / real_type(15);
 
     result_type result;
-    OdeState    beg_slope = calc_rhs_(beg_state);
+    OdeState beg_slope = calc_rhs_(beg_state);
 
     // Do two half steps
     result.mid_state = this->do_step(half_step, beg_state, beg_slope);
@@ -115,13 +115,13 @@ RungeKuttaStepper<E>::operator()(real_type step, const OdeState& beg_state) cons
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::do_step(real_type       step,
-                              const OdeState& beg_state,
-                              const OdeState& beg_slope) const -> OdeState
+RungeKuttaStepper<E>::do_step(real_type step,
+                              OdeState const& beg_state,
+                              OdeState const& beg_slope) const -> OdeState
 {
     using celeritas::axpy;
-    real_type           half_step = step / real_type(2);
-    constexpr real_type sixth     = 1 / real_type(6);
+    real_type half_step = step / real_type(2);
+    constexpr real_type sixth = 1 / real_type(6);
 
     // 1st step k1 = (step/2)*beg_slope
     OdeState mid_est = beg_state;
@@ -151,4 +151,4 @@ RungeKuttaStepper<E>::do_step(real_type       step,
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

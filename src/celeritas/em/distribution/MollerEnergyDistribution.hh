@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -92,7 +92,7 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
     real_type epsilon;
     do
     {
-        epsilon     = 1 / sample_inverse_epsilon(rng);
+        epsilon = 1 / sample_inverse_epsilon(rng);
         g_numerator = calc_g_fraction(epsilon);
 
     } while (BernoulliDistribution(g_numerator / g_denominator)(rng));
@@ -107,7 +107,7 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 CELER_FUNCTION real_type
 MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
 {
-    const real_type two_gamma_term  = (2 * gamma_ - 1) / ipow<2>(gamma_);
+    const real_type two_gamma_term = (2 * gamma_ - 1) / ipow<2>(gamma_);
     const real_type complement_frac = 1 - epsilon;
 
     return 1 - two_gamma_term * epsilon
@@ -118,4 +118,4 @@ MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

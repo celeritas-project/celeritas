@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,9 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriter.hh"
 
-#include <algorithm>
-#include <iostream>
-#include <tuple>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -30,13 +27,13 @@ void copy_if_selected(const T1& src, T2& dst)
 /*!
  * Copy StepPointStateData Real3 position and direction to TStepPoint arrays.
  */
-void copy_if_selected(const celeritas::Real3& src, std::array<double, 3>& dst)
+void copy_if_selected(celeritas::Real3 const& src, std::array<double, 3>& dst)
 {
     std::memcpy(&dst, &src, sizeof(src));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace
+}  // namespace
 
 namespace celeritas
 {
@@ -46,8 +43,8 @@ namespace celeritas
  * id to pdg), and the selection of data to be tallied.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
-                               SPParticleParams  particle_params,
-                               StepSelection     selection)
+                               SPParticleParams particle_params,
+                               StepSelection selection)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
@@ -74,8 +71,7 @@ void RootStepWriter::set_auto_flush(long num_entries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect step data from each track on each thread id and fill the ROOT step
- * tree.
+ * Collect step data and fill the ROOT TTree for all active threads.
  */
 void RootStepWriter::execute(StateHostRef const& steps)
 {
@@ -92,7 +88,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
     tstep_ = TStepData();
 
     // Loop over thread ids and fill TTree
-    for (const auto tid : range(ThreadId{steps.size()}))
+    for (auto const tid : range(ThreadId{steps.size()}))
     {
         if (!steps.track_id[tid])
         {
@@ -104,6 +100,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
         tstep_.track_id = steps.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
+        RSW_STORE(parent_id, .unchecked_get());
         RSW_STORE(action_id, .get());
         RSW_STORE(energy_deposition, .value());
         RSW_STORE(step_length, /* no getter */);
@@ -114,9 +111,9 @@ void RootStepWriter::execute(StateHostRef const& steps)
                              tstep_.particle);
         }
 
-        for (const auto sp : range(StepPoint::size_))
+        for (auto const sp : range(StepPoint::size_))
         {
-            RSW_STORE(points[sp].volume_id, .get());
+            RSW_STORE(points[sp].volume_id, .unchecked_get());
             RSW_STORE(points[sp].energy, .value());
             RSW_STORE(points[sp].time, /* no getter */);
             RSW_STORE(points[sp].dir, /* no getter */);
@@ -137,9 +134,6 @@ void RootStepWriter::execute(StateHostRef const& steps)
  * object. Therefore, the data is flattened so that each member of `TStepData`
  * is an individual branch that stores primitive types and is created based on
  * the `StepSelection` booleans.
- *
- * A macro is used to simplify the process of moving from Collection to a ROOT
- * branch.
  */
 void RootStepWriter::make_tree()
 {
@@ -154,12 +148,14 @@ void RootStepWriter::make_tree()
 
     tstep_tree_ = root_manager_->make_tree("steps", "steps");
 
-    tstep_tree_->Branch("track_id", &tstep_.track_id); // Always on
+    tstep_tree_->Branch("track_id", &tstep_.track_id);  // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
+    RSW_CREATE_BRANCH(parent_id, "parent_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
     RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
     RSW_CREATE_BRANCH(particle, "particle");
+    RSW_CREATE_BRANCH(energy_deposition, "energy_deposition");
     // Pre-step
     RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
     RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");
@@ -177,4 +173,4 @@ void RootStepWriter::make_tree()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

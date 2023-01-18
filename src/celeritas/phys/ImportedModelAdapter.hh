@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,6 +27,7 @@
 namespace celeritas
 {
 class ParticleParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct microscopic cross section from imported physics data.
@@ -37,23 +38,23 @@ class ImportedModelAdapter
     //!@{
     //! Type aliases
     using MicroXsBuilders = Model::MicroXsBuilders;
-    using SpanConstPDG    = Span<const PDGNumber>;
-    using SPConstImported = std::shared_ptr<const ImportedProcesses>;
+    using SpanConstPDG = Span<PDGNumber const>;
+    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
   public:
     // Construct from shared table data
-    ImportedModelAdapter(SPConstImported       imported,
-                         const ParticleParams& particles,
-                         ImportProcessClass    process_class,
-                         ImportModelClass      model_class,
-                         SpanConstPDG          pdg_numbers);
+    ImportedModelAdapter(SPConstImported imported,
+                         ParticleParams const& particles,
+                         ImportProcessClass process_class,
+                         ImportModelClass model_class,
+                         SpanConstPDG pdg_numbers);
 
     // Construct from shared table data
-    ImportedModelAdapter(SPConstImported                  imported,
-                         const ParticleParams&            particles,
-                         ImportProcessClass               process_class,
-                         ImportModelClass                 model_class,
+    ImportedModelAdapter(SPConstImported imported,
+                         ParticleParams const& particles,
+                         ImportProcessClass process_class,
+                         ImportModelClass model_class,
                          std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct micro cross sections from the given particle/material type
@@ -62,10 +63,10 @@ class ImportedModelAdapter
   private:
     using ImportProcessId = ImportedProcesses::ImportProcessId;
 
-    SPConstImported                                 imported_;
-    ImportModelClass                                model_class_;
+    SPConstImported imported_;
+    ImportModelClass model_class_;
     std::unordered_map<ParticleId, ImportProcessId> particle_to_process_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

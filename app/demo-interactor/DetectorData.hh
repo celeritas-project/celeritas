@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,10 +28,10 @@ namespace demo_interactor
  */
 struct Hit
 {
-    celeritas::Real3            pos;
-    celeritas::Real3            dir;
-    celeritas::ThreadId         thread;
-    celeritas::real_type        time;
+    celeritas::Real3 pos;
+    celeritas::Real3 dir;
+    celeritas::ThreadId thread;
+    celeritas::real_type time;
     celeritas::units::MevEnergy energy_deposited;
 };
 
@@ -58,7 +58,7 @@ struct DetectorStateData
     using size_type = celeritas::size_type;
 
     celeritas::StackAllocatorData<Hit, W, M> hit_buffer;
-    celeritas::Collection<real_type, W, M>   tally_deposition;
+    celeritas::Collection<real_type, W, M> tally_deposition;
 
     //! Whether the interface is initialized
     explicit CELER_FUNCTION operator bool() const
@@ -74,7 +74,7 @@ struct DetectorStateData
     DetectorStateData& operator=(DetectorStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        hit_buffer       = other.hit_buffer;
+        hit_buffer = other.hit_buffer;
         tally_deposition = other.tally_deposition;
         return *this;
     }
@@ -87,8 +87,8 @@ struct DetectorStateData
  */
 template<celeritas::MemSpace M>
 inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
-                   const DetectorParamsData&                          params,
-                   celeritas::size_type                               size)
+                   DetectorParamsData const& params,
+                   celeritas::size_type size)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
@@ -98,4 +98,4 @@ inline void resize(DetectorStateData<celeritas::Ownership::value, M>* data,
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace demo_interactor
+}  // namespace demo_interactor

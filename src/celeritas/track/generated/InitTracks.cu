@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,8 +28,8 @@ __launch_bounds__(1024, 8)
 #endif
 #endif // CELERITAS_LAUNCH_BOUNDS
 init_tracks_kernel(
-    const CoreDeviceRef core_data,
-    const size_type num_vacancies)
+    CoreDeviceRef const core_data,
+    size_type const num_vacancies)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (!(tid < num_vacancies))
@@ -38,11 +38,11 @@ init_tracks_kernel(
     detail::InitTracksLauncher<MemSpace::device> launch(core_data, num_vacancies);
     launch(tid);
 }
-} // namespace
+}  // namespace
 
 void init_tracks(
-    const CoreDeviceRef& core_data,
-    const size_type num_vacancies)
+    CoreDeviceRef const& core_data,
+    size_type const num_vacancies)
 {
     CELER_LAUNCH_KERNEL(
         init_tracks,
@@ -51,5 +51,5 @@ void init_tracks(
         core_data, num_vacancies);
 }
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

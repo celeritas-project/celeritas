@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,14 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
+#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/io/StringUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "celeritas_cmake_strings.h"
 #include "celeritas_test.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
@@ -41,10 +41,10 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
 
 bool geant4_is_v10()
 {
-    static const bool result = starts_with(celeritas_geant4_version, "10.");
+    static bool const result = starts_with(celeritas_geant4_version, "10.");
     return result;
 }
-} // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -73,7 +73,7 @@ class GeantImporterTest : public Test
         void print_expected() const;
     };
 
-    ImportData import_geant(const DataSelection& selection)
+    ImportData import_geant(DataSelection const& selection)
     {
         // Only allow a single importer per global execution, because of Geant4
         // limitations.
@@ -82,32 +82,32 @@ class GeantImporterTest : public Test
         return import_geant(selection);
     }
 
-    ImportSummary summarize(const ImportData& data) const;
+    ImportSummary summarize(ImportData const& data) const;
     ImportXsSummary
-    summarize(const ImportProcess::ElementPhysicsVectors& xs) const;
+    summarize(ImportProcess::ElementPhysicsVectors const& xs) const;
 
     virtual GeantSetup setup_geant() = 0;
 };
 
 //---------------------------------------------------------------------------//
-auto GeantImporterTest::summarize(const ImportData& data) const -> ImportSummary
+auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
 {
     ImportSummary s;
-    for (const auto& p : data.particles)
+    for (auto const& p : data.particles)
     {
         s.particles.push_back(p.name);
     }
 
     // Create sorted unique set of process and model names inserted
     std::set<ImportProcessClass> pclass;
-    std::set<ImportModelClass>   mclass;
-    for (const auto& p : data.processes)
+    std::set<ImportModelClass> mclass;
+    for (auto const& p : data.processes)
     {
         pclass.insert(p.process_class);
         mclass.insert(p.models.begin(), p.models.end());
     }
     s.processes = to_vec_string(pclass.begin(), pclass.end());
-    s.models    = to_vec_string(mclass.begin(), mclass.end());
+    s.models = to_vec_string(mclass.begin(), mclass.end());
     return s;
 }
 
@@ -127,10 +127,10 @@ void GeantImporterTest::ImportSummary::print_expected() const
 }
 
 auto GeantImporterTest::summarize(
-    const ImportProcess::ElementPhysicsVectors& xs) const -> ImportXsSummary
+    ImportProcess::ElementPhysicsVectors const& xs) const -> ImportXsSummary
 {
     ImportXsSummary result;
-    for (const auto& vec : xs)
+    for (auto const& vec : xs)
     {
         EXPECT_FALSE(vec.x.empty());
         EXPECT_EQ(vec.x.size(), vec.y.size());
@@ -167,8 +167,8 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         opts.relaxation = RelaxationSelection::all;
 #if CELERITAS_USE_JSON
         {
-            nlohmann::json    out = opts;
-            static const char expected[]
+            nlohmann::json out = opts;
+            static char const expected[]
                 = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all"})json";
             EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
@@ -188,11 +188,11 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     options.particles = DataSelection::em;
 
     auto imported = this->import_geant(options);
-    auto summary  = this->summarize(imported);
+    auto summary = this->summarize(imported);
 
-    static const char* expected_particles[] = {"e+", "e-", "gamma"};
+    static char const* expected_particles[] = {"e+", "e-", "gamma"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static const char* expected_processes[] = {"msc",
+    static char const* expected_processes[] = {"msc",
                                                "e_ioni",
                                                "e_brems",
                                                "photoelectric",
@@ -200,7 +200,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                                "conversion",
                                                "rayleigh"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"urban_msc",
+    static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
@@ -219,11 +219,11 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     options.processes = DataSelection::em;
 
     auto imported = this->import_geant(options);
-    auto summary  = this->summarize(imported);
+    auto summary = this->summarize(imported);
 
-    static const char* expected_particles[] = {"e+", "e-", "gamma", "proton"};
+    static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static const char* expected_processes[] = {"msc",
+    static char const* expected_processes[] = {"msc",
                                                "e_ioni",
                                                "e_brems",
                                                "photoelectric",
@@ -231,7 +231,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                                "conversion",
                                                "rayleigh"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static const char* expected_models[] = {"urban_msc",
+    static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
@@ -248,16 +248,16 @@ TEST_F(FourSteelSlabsEmStandard, elements)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& elements = import_data.elements;
+    auto const& elements = import_data.elements;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
-    std::vector<int>         atomic_numbers;
+    std::vector<int> atomic_numbers;
     std::vector<double> atomic_masses, inv_rad_lengths_tsai, coulomb_factors;
 
-    for (const auto& element : elements)
+    for (auto const& element : elements)
     {
         names.push_back(element.name);
         atomic_masses.push_back(element.atomic_mass);
@@ -266,17 +266,17 @@ TEST_F(FourSteelSlabsEmStandard, elements)
         inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
     }
 
-    static const char*  expected_names[]          = {"Fe", "Cr", "Ni", "H"};
-    static const int    expected_atomic_numbers[] = {26, 24, 28, 1};
-    static const double expected_atomic_masses[]
-        = {55.845110798, 51.996130137, 58.6933251009, 1.007940752665}; // [AMU]
-    static const double expected_coulomb_factors[] = {0.04197339849163,
+    static char const* expected_names[] = {"Fe", "Cr", "Ni", "H"};
+    static int const expected_atomic_numbers[] = {26, 24, 28, 1};
+    static double const expected_atomic_masses[] = {
+        55.845110798, 51.996130137, 58.6933251009, 1.007940752665};  // [AMU]
+    static double const expected_coulomb_factors[] = {0.04197339849163,
                                                       0.03592322294658,
                                                       0.04844802666907,
                                                       6.400838295295e-05};
     // Check inverse radiation length since soft equal comparison is
     // useless for extremely small values
-    static const double expected_inv_rad_lengths_tsai[] = {9.3141768784882e+40,
+    static double const expected_inv_rad_lengths_tsai[] = {9.3141768784882e+40,
                                                            1.0803147822537e+41,
                                                            8.1192652842163e+40,
                                                            2.3509634762707e+43};
@@ -294,20 +294,20 @@ TEST_F(FourSteelSlabsEmStandard, materials)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& materials = import_data.materials;
+    auto const& materials = import_data.materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
-    std::vector<int>         states;
-    std::vector<int>         pdgs;
-    std::vector<double>      cutoff_energies, cutoff_ranges;
+    std::vector<int> states;
+    std::vector<int> pdgs;
+    std::vector<double> cutoff_energies, cutoff_ranges;
     std::vector<double> el_comps_ids, el_comps_mass_frac, el_comps_num_fracs;
     std::vector<double> densities, num_densities, e_densities, temperatures,
         rad_lengths, nuc_int_lengths;
 
-    for (const auto& material : materials)
+    for (auto const& material : materials)
     {
         names.push_back(material.name);
         states.push_back((int)material.state);
@@ -318,14 +318,14 @@ TEST_F(FourSteelSlabsEmStandard, materials)
         rad_lengths.push_back(material.radiation_length);
         temperatures.push_back(material.temperature);
 
-        for (const auto& key : material.pdg_cutoffs)
+        for (auto const& key : material.pdg_cutoffs)
         {
             pdgs.push_back(key.first);
             cutoff_energies.push_back(key.second.energy);
             cutoff_ranges.push_back(key.second.range);
         }
 
-        for (const auto& el_comp : material.elements)
+        for (auto const& el_comp : material.elements)
         {
             el_comps_ids.push_back(el_comp.element_id);
             el_comps_mass_frac.push_back(el_comp.mass_fraction);
@@ -333,45 +333,46 @@ TEST_F(FourSteelSlabsEmStandard, materials)
         }
     }
 
-    static const char* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     EXPECT_VEC_EQ(expected_names, names);
-    static const int expected_states[] = {3, 1};
+    static int const expected_states[] = {3, 1};
     EXPECT_VEC_EQ(expected_states, states);
-    static const int expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
+    static int const expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdgs, pdgs);
-    static const double expected_cutoff_energies[] = {0.00099,
+    static double const expected_cutoff_energies[] = {0.00099,
                                                       0.00099,
                                                       0.00099,
                                                       1.22808845964606,
                                                       1.31345289979559,
                                                       0.0209231725658313};
-    EXPECT_VEC_NEAR(expected_cutoff_energies, cutoff_energies,
+    EXPECT_VEC_NEAR(expected_cutoff_energies,
+                    cutoff_energies,
                     geant4_is_v10() ? 1e-12 : 0.02);
-    static const double expected_cutoff_ranges[]
+    static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
-    static const double expected_densities[] = {1e-25, 8};
+    static double const expected_densities[] = {1e-25, 8};
     EXPECT_VEC_SOFT_EQ(expected_densities, densities);
-    static const double expected_e_densities[]
+    static double const expected_e_densities[]
         = {0.05974697167543, 2.244432022882e+24};
     EXPECT_VEC_SOFT_EQ(expected_e_densities, e_densities);
-    static const double expected_num_densities[]
+    static double const expected_num_densities[]
         = {0.05974697167543, 8.699348925899e+22};
     EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
-    static const double expected_nuc_int_lengths[]
+    static double const expected_nuc_int_lengths[]
         = {3.500000280825e+26, 16.67805709739};
     EXPECT_VEC_SOFT_EQ(expected_nuc_int_lengths, nuc_int_lengths);
-    static const double expected_rad_lengths[]
+    static double const expected_rad_lengths[]
         = {6.304350904227e+26, 1.738067064483};
     EXPECT_VEC_SOFT_EQ(expected_rad_lengths, rad_lengths);
-    static const double expected_temperatures[] = {2.73, 293.15};
+    static double const expected_temperatures[] = {2.73, 293.15};
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
-    static const double expected_el_comps_ids[] = {3, 0, 1, 2};
+    static double const expected_el_comps_ids[] = {3, 0, 1, 2};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
-    static const double expected_el_comps_mass_frac[]
+    static double const expected_el_comps_mass_frac[]
         = {1, 0.7462128746215, 0.1690010443115, 0.08478608106695};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_mass_frac, el_comps_mass_frac);
-    static const double expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
+    static double const expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
 }
 
@@ -381,9 +382,9 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& processes = import_data.processes;
+    auto const& processes = import_data.processes;
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),
                             processes.end(),
@@ -408,17 +409,17 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     // No ionization micro xs
     EXPECT_EQ(0, ioni->micro_xs.size());
 
-    const auto& tables = ioni->tables;
+    auto const& tables = ioni->tables;
     ASSERT_EQ(3, tables.size());
     {
         // Test energy loss table
-        const ImportPhysicsTable& dedx = tables[0];
+        ImportPhysicsTable const& dedx = tables[0];
         ASSERT_EQ(ImportTableType::dedx, dedx.table_type);
         EXPECT_EQ(ImportUnits::mev, dedx.x_units);
         EXPECT_EQ(ImportUnits::mev_per_cm, dedx.y_units);
         ASSERT_EQ(2, dedx.physics_vectors.size());
 
-        const ImportPhysicsVector& steel = dedx.physics_vectors.back();
+        ImportPhysicsVector const& steel = dedx.physics_vectors.back();
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(85, steel.x.size());
@@ -429,13 +430,13 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     }
     {
         // Test range table
-        const ImportPhysicsTable& range = tables[1];
+        ImportPhysicsTable const& range = tables[1];
         ASSERT_EQ(ImportTableType::range, range.table_type);
         EXPECT_EQ(ImportUnits::mev, range.x_units);
         EXPECT_EQ(ImportUnits::cm, range.y_units);
         ASSERT_EQ(2, range.physics_vectors.size());
 
-        const ImportPhysicsVector& steel = range.physics_vectors.back();
+        ImportPhysicsVector const& steel = range.physics_vectors.back();
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(85, steel.x.size());
@@ -446,13 +447,13 @@ TEST_F(FourSteelSlabsEmStandard, processes)
     }
     {
         // Test cross-section table
-        const ImportPhysicsTable& xs = tables[2];
+        ImportPhysicsTable const& xs = tables[2];
         ASSERT_EQ(ImportTableType::lambda, xs.table_type);
         EXPECT_EQ(ImportUnits::mev, xs.x_units);
         EXPECT_EQ(ImportUnits::cm_inv, xs.y_units);
         ASSERT_EQ(2, xs.physics_vectors.size());
 
-        const ImportPhysicsVector& steel = xs.physics_vectors.back();
+        ImportPhysicsVector const& steel = xs.physics_vectors.back();
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(54, steel.x.size());
@@ -472,7 +473,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         EXPECT_EQ(brem->models.size(), brem->micro_xs.size());
         {
             // Check Seltzer-Berger electron micro xs
-            const auto& sb = brem->micro_xs.find(brem->models[0]);
+            auto const& sb = brem->micro_xs.find(brem->models[0]);
             EXPECT_EQ(ImportModelClass::e_brems_sb, sb->first);
 
             // 2 materials; second material is stainless steel with 3
@@ -482,7 +483,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
 
             auto result = summarize(sb->second.back());
 
-            static const real_type expected_size[]     = {5ul, 5ul, 5ul};
+            static const real_type expected_size[] = {5ul, 5ul, 5ul};
             static const real_type expected_x_bounds[] = {0.020923172565831,
                                                           1000,
                                                           0.020923172565831,
@@ -501,7 +502,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         }
         {
             // Check relativistic brems electron micro xs
-            const auto& rb = brem->micro_xs.find(brem->models[1]);
+            auto const& rb = brem->micro_xs.find(brem->models[1]);
             EXPECT_EQ(ImportModelClass::e_brems_lpm, rb->first);
 
             auto result = summarize(rb->second.back());
@@ -529,24 +530,24 @@ TEST_F(FourSteelSlabsEmStandard, processes)
             EXPECT_EQ(1, conv->micro_xs.size());
             EXPECT_EQ(conv->models.size(), conv->micro_xs.size());
 
-            const auto& bh = conv->micro_xs.find(conv->models[0]);
+            auto const& bh = conv->micro_xs.find(conv->models[0]);
             EXPECT_EQ(ImportModelClass::bethe_heitler_lpm, bh->first);
 
             auto result = summarize(bh->second.back());
 
-            static const unsigned int expected_size[]     = {9u, 9u, 9u};
-            static const double       expected_x_bounds[] = {1.02199782,
-                                                             100000000,
-                                                             1.02199782,
-                                                             100000000,
-                                                             1.02199782,
-                                                             100000000};
-            static const double       expected_y_bounds[] = {1.4603666285612,
-                                                             4.4976609946794,
-                                                             1.250617083013,
-                                                             3.8760336885145,
-                                                             1.6856988385825,
-                                                             5.1617257552977};
+            static unsigned int const expected_size[] = {9u, 9u, 9u};
+            static double const expected_x_bounds[] = {1.02199782,
+                                                       100000000,
+                                                       1.02199782,
+                                                       100000000,
+                                                       1.02199782,
+                                                       100000000};
+            static double const expected_y_bounds[] = {1.4603666285612,
+                                                       4.4976609946794,
+                                                       1.250617083013,
+                                                       3.8760336885145,
+                                                       1.6856988385825,
+                                                       5.1617257552977};
 
             EXPECT_VEC_EQ(expected_size, result.size);
             EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
@@ -561,30 +562,30 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& volumes = import_data.volumes;
+    auto const& volumes = import_data.volumes;
     EXPECT_EQ(5, volumes.size());
 
     std::vector<unsigned int> material_ids;
-    std::vector<std::string>  names, solids;
+    std::vector<std::string> names, solids;
 
-    for (const auto& volume : volumes)
+    for (auto const& volume : volumes)
     {
         material_ids.push_back(volume.material_id);
         names.push_back(volume.name);
         solids.push_back(volume.solid_name);
     }
 
-    const unsigned int expected_material_ids[] = {1, 1, 1, 1, 0};
+    unsigned int const expected_material_ids[] = {1, 1, 1, 1, 0};
 
-    static const char* expected_names[] = {"box0x125555be0",
+    static char const* expected_names[] = {"box0x125555be0",
                                            "box0x125556d20",
                                            "box0x125557160",
                                            "box0x1255575a0",
                                            "World0x125555f10"};
 
-    static const char* expected_solids[] = {"box0x125555b70",
+    static char const* expected_solids[] = {"box0x125555b70",
                                             "box0x125556c70",
                                             "box0x1255570a0",
                                             "box0x125557500",
@@ -601,9 +602,9 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& em_params = import_data.em_params;
+    auto const& em_params = import_data.em_params;
     EXPECT_EQ(true, em_params.energy_loss_fluct);
     EXPECT_EQ(true, em_params.lpm);
     EXPECT_EQ(true, em_params.integral_approach);
@@ -617,21 +618,21 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& sb_map = import_data.sb_data;
+    auto const& sb_map = import_data.sb_data;
     EXPECT_EQ(4, sb_map.size());
 
-    std::vector<int>    atomic_numbers;
+    std::vector<int> atomic_numbers;
     std::vector<double> sb_table_x;
     std::vector<double> sb_table_y;
     std::vector<double> sb_table_value;
 
-    for (const auto& key : sb_map)
+    for (auto const& key : sb_map)
     {
         atomic_numbers.push_back(key.first);
 
-        const auto& sb_table = key.second;
+        auto const& sb_table = key.second;
         sb_table_x.push_back(sb_table.x.front());
         sb_table_y.push_back(sb_table.y.front());
         sb_table_value.push_back(sb_table.value.front());
@@ -640,12 +641,12 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
         sb_table_value.push_back(sb_table.value.back());
     }
 
-    const int    expected_atomic_numbers[] = {1, 24, 26, 28};
-    const double expected_sb_table_x[]
+    int const expected_atomic_numbers[] = {1, 24, 26, 28};
+    double const expected_sb_table_x[]
         = {-6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103};
-    const double expected_sb_table_y[]
+    double const expected_sb_table_y[]
         = {1e-12, 1, 1e-12, 1, 1e-12, 1, 1e-12, 1};
-    const double expected_sb_table_value[] = {7.85327,
+    double const expected_sb_table_value[] = {7.85327,
                                               0.046875,
                                               2.33528,
                                               0.717773,
@@ -666,12 +667,12 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& lpe_map = import_data.livermore_pe_data;
+    auto const& lpe_map = import_data.livermore_pe_data;
     EXPECT_EQ(4, lpe_map.size());
 
-    std::vector<int>    atomic_numbers;
+    std::vector<int> atomic_numbers;
     std::vector<size_t> shell_sizes;
     std::vector<double> thresh_lo;
     std::vector<double> thresh_hi;
@@ -680,16 +681,16 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
     std::vector<double> shell_xs;
     std::vector<double> shell_energy;
 
-    for (const auto& key : lpe_map)
+    for (auto const& key : lpe_map)
     {
         atomic_numbers.push_back(key.first);
 
-        const auto& ilpe = key.second;
+        auto const& ilpe = key.second;
 
         shell_sizes.push_back(ilpe.shells.size());
 
-        const auto& shells_front = ilpe.shells.front();
-        const auto& shells_back  = ilpe.shells.back();
+        auto const& shells_front = ilpe.shells.front();
+        auto const& shells_back = ilpe.shells.back();
 
         thresh_lo.push_back(ilpe.thresh_lo);
         thresh_hi.push_back(ilpe.thresh_hi);
@@ -708,14 +709,14 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
         shell_energy.push_back(shells_back.energy.back());
     }
 
-    const int           expected_atomic_numbers[] = {1, 24, 26, 28};
-    const unsigned long expected_shell_sizes[]    = {1ul, 10ul, 10ul, 10ul};
-    const double        expected_thresh_lo[]
+    int const expected_atomic_numbers[] = {1, 24, 26, 28};
+    unsigned long const expected_shell_sizes[] = {1ul, 10ul, 10ul, 10ul};
+    double const expected_thresh_lo[]
         = {0.00537032, 0.00615, 0.0070834, 0.0083028};
-    const double expected_thresh_hi[]
+    double const expected_thresh_hi[]
         = {0.0609537, 0.0616595, 0.0616595, 0.0595662};
 
-    const double expected_shell_binding_energy[] = {1.361e-05,
+    double const expected_shell_binding_energy[] = {1.361e-05,
                                                     1.361e-05,
                                                     0.0059576,
                                                     5.96e-06,
@@ -724,7 +725,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
                                                     0.0083028,
                                                     8.09e-06};
 
-    const double expected_shell_xs[] = {1.58971e-08,
+    double const expected_shell_xs[] = {1.58971e-08,
                                         1.6898e-09,
                                         1.58971e-08,
                                         1.6898e-09,
@@ -741,7 +742,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
                                         1.20169e-09,
                                         1.91543e-05};
 
-    const double expected_shell_energy[] = {1.361e-05,
+    double const expected_shell_energy[] = {1.361e-05,
                                             0.0933254,
                                             1.361e-05,
                                             0.0933254,
@@ -773,24 +774,24 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
     DataSelection options;
     options.particles = DataSelection::em;
     options.processes = DataSelection::em;
-    auto import_data  = this->import_geant(options);
+    auto import_data = this->import_geant(options);
 
-    const auto& ar_map = import_data.atomic_relaxation_data;
+    auto const& ar_map = import_data.atomic_relaxation_data;
     EXPECT_EQ(4, ar_map.size());
 
-    std::vector<int>    atomic_numbers;
+    std::vector<int> atomic_numbers;
     std::vector<size_t> shell_sizes;
-    std::vector<int>    designator;
+    std::vector<int> designator;
     std::vector<double> auger_probability;
     std::vector<double> auger_energy;
     std::vector<double> fluor_probability;
     std::vector<double> fluor_energy;
 
-    for (const auto& key : ar_map)
+    for (auto const& key : ar_map)
     {
         atomic_numbers.push_back(key.first);
 
-        const auto& shells = key.second.shells;
+        auto const& shells = key.second.shells;
         shell_sizes.push_back(shells.size());
 
         if (shells.empty())
@@ -798,8 +799,8 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
             continue;
         }
 
-        const auto& shells_front = shells.front();
-        const auto& shells_back  = shells.back();
+        auto const& shells_front = shells.front();
+        auto const& shells_back = shells.back();
 
         designator.push_back(shells_front.designator);
         designator.push_back(shells_back.designator);
@@ -823,11 +824,11 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
         fluor_energy.push_back(shells_back.fluor.back().energy);
     }
 
-    const int           expected_atomic_numbers[] = {1, 24, 26, 28};
-    const unsigned long expected_shell_sizes[]    = {0ul, 7ul, 7ul, 7ul};
-    const int           expected_designator[]     = {1, 11, 1, 11, 1, 11};
+    int const expected_atomic_numbers[] = {1, 24, 26, 28};
+    unsigned long const expected_shell_sizes[] = {0ul, 7ul, 7ul, 7ul};
+    int const expected_designator[] = {1, 11, 1, 11, 1, 11};
 
-    const double expected_auger_probability[] = {0.048963695828293,
+    double const expected_auger_probability[] = {0.048963695828293,
                                                  2.787499762505e-06,
                                                  0.015819909422702,
                                                  0.047183428103535,
@@ -840,7 +841,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
                                                  0.021880812772728,
                                                  0.057510033570965};
 
-    const double expected_auger_energy[] = {0.00458292,
+    double const expected_auger_energy[] = {0.00458292,
                                             0.00594477,
                                             3.728e-05,
                                             3.787e-05,
@@ -853,7 +854,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
                                             4.837e-05,
                                             5.546e-05};
 
-    const double expected_fluor_probability[] = {0.082575892964534,
+    double const expected_fluor_probability[] = {0.082575892964534,
                                                  3.6954996851434e-06,
                                                  6.8993041093842e-08,
                                                  1.9834011813594e-08,
@@ -866,7 +867,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
                                                  1.0946006389633e-06,
                                                  5.1065929809277e-07};
 
-    const double expected_fluor_energy[] = {0.00536786,
+    double const expected_fluor_energy[] = {0.00536786,
                                             0.00595123,
                                             4.374e-05,
                                             4.424e-05,
@@ -888,5 +889,5 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
     EXPECT_VEC_SOFT_EQ(expected_fluor_energy, fluor_energy);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

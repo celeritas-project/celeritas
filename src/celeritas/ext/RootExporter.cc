@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,7 @@ namespace celeritas
 /*!
  * Construct from path to ROOT file.
  */
-RootExporter::RootExporter(const char* filename)
+RootExporter::RootExporter(char const* filename)
 {
     CELER_LOG(info) << "Creating ROOT file at " << filename;
     ScopedTimeLog scoped_time;
@@ -37,9 +37,9 @@ RootExporter::RootExporter(const char* filename)
 /*!
  * Write data to the ROOT file.
  */
-void RootExporter::operator()(const ImportData& import_data)
+void RootExporter::operator()(ImportData const& import_data)
 {
-    TTree    tree_data(tree_name(), tree_name());
+    TTree tree_data(tree_name(), tree_name());
     TBranch* branch = tree_data.Branch(branch_name(),
                                        const_cast<ImportData*>(&import_data));
     CELER_VALIDATE(branch, << "failed to initialize ROOT ImportData");
@@ -54,7 +54,7 @@ void RootExporter::operator()(const ImportData& import_data)
 /*!
  * Hardcoded ROOT TTree name, consistent with \e app/celer-export-geant.
  */
-const char* RootExporter::tree_name()
+char const* RootExporter::tree_name()
 {
     return "geant4_data";
 }
@@ -63,10 +63,10 @@ const char* RootExporter::tree_name()
 /*!
  * Hardcoded ROOT TBranch name, consistent with \e app/celer-export-geant.
  */
-const char* RootExporter::branch_name()
+char const* RootExporter::branch_name()
 {
     return "ImportData";
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

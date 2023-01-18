@@ -3,7 +3,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/track/detail/ProcessPrimariesLauncher.hh" // IWYU pragma: associated
 #include "corecel/cont/Span.hh"
 #include "celeritas/phys/Primary.hh"
 
@@ -13,19 +12,19 @@ namespace generated
 {
 
 void process_primaries(
-    const CoreHostRef& core_data,
-    const Span<const Primary> primaries);
+    CoreHostRef const& core_data,
+    Span<const Primary> const primaries);
 
 void process_primaries(
-    const CoreDeviceRef& core_data,
-    const Span<const Primary> primaries);
+    CoreDeviceRef const& core_data,
+    Span<const Primary> const primaries);
 
 #if !CELER_USE_DEVICE
-inline void process_primaries(const CoreDeviceRef&, const Span<const Primary>)
+inline void process_primaries(CoreDeviceRef const&, Span<const Primary> const)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 #endif
 
-} // namespace generated
-} // namespace celeritas
+}  // namespace generated
+}  // namespace celeritas

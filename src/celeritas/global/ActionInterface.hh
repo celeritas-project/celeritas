@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,9 +9,8 @@
 
 #include <string>
 
-#include "celeritas/Types.hh" // IWYU pragma: export
-
-#include "CoreTrackDataFwd.hh" // IWYU pragma: export
+#include "celeritas/Types.hh"  // IWYU pragma: export
+#include "celeritas/global/CoreTrackDataFwd.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -69,7 +68,7 @@ class ExplicitActionInterface : public virtual ActionInterface
   public:
     //@{
     //! \name Type aliases
-    using CoreHostRef   = CoreRef<MemSpace::host>;
+    using CoreHostRef = CoreRef<MemSpace::host>;
     using CoreDeviceRef = CoreRef<MemSpace::device>;
     //@}
 
@@ -138,10 +137,10 @@ class ConcreteAction : public virtual ActionInterface
     std::string description() const final { return description_; }
 
   private:
-    ActionId    id_;
+    ActionId id_;
     std::string label_;
     std::string description_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

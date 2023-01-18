@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """\
@@ -106,7 +106,7 @@ TEST_F({name}Test, host)
 // }}
 
 //---------------------------------------------------------------------------//
-}} // namespace test
+}}  // namespace test
 {namespace_end}
 '''
 
@@ -240,7 +240,7 @@ inline void {lowabbr}_test(
 #endif
 
 //---------------------------------------------------------------------------//
-}} // namespace test
+}}  // namespace test
 {namespace_end}
 '''
 
@@ -292,7 +292,7 @@ void {lowabbr}_test(
 }}
 
 //---------------------------------------------------------------------------//
-}} // namespace test
+}}  // namespace test
 {namespace_end}
 '''
 
@@ -541,7 +541,7 @@ def generate(repodir, filename, namespace):
     nsend = []
     for subns in namespace.split('::'):
         nsbeg.append(f'namespace {subns}\n{{')
-        nsend.append(f'}} // namespace {subns}')
+        nsend.append(f'}}  // namespace {subns}')
 
     capabbr = re.sub(r'[^A-Z]+', '', name)
     variables = {

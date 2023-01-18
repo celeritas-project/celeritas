@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,15 +29,15 @@ enum class CeleritasLabs
     size_
 };
 
-const char* to_cstring(CeleritasLabs lab)
+char const* to_cstring(CeleritasLabs lab)
 {
     CELER_EXPECT(lab != CeleritasLabs::size_);
-    static const char* strings[] = {"argonne", "fermilab", "ornl"};
+    static char const* strings[] = {"argonne", "fermilab", "ornl"};
     return strings[static_cast<int>(lab)];
 }
 
 // Make sure to test in the case where to_cstring is overloaded
-const char* to_cstring(SomeOtherEnum);
+char const* to_cstring(SomeOtherEnum);
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -74,5 +74,5 @@ TEST(StringEnumMapTest, from_generic)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ CELER_FUNCTION float GenerateCanonical32<float>::operator()(Generator& rng)
     static_assert(Generator::max() == 0xffffffffu,
                   "Generator must return 32-bit sample");
 
-    constexpr float norm = 2.32830643654e-10f; // 1 / 2**32
+    constexpr float norm = 2.32830643654e-10f;  // 1 / 2**32
     return norm * rng();
 }
 
@@ -85,12 +85,12 @@ CELER_FUNCTION double GenerateCanonical32<double>::operator()(Generator& rng)
     // Convert the two 32-byte samples to a 53-bit-precision double by shifting
     // the 'upper' and combining the lower bits of the upper with the higher
     // bits of the lower
-    constexpr double norm = 1.1102230246251565e-16; // 1 / 2^53
+    constexpr double norm = 1.1102230246251565e-16;  // 1 / 2^53
     return norm
            * static_cast<double>((static_cast<ull_int>(upper) << (53ul - 32ul))
                                  ^ static_cast<ull_int>(lower));
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

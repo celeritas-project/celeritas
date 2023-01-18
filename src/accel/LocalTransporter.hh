@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,17 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
 #include <G4Track.hh>
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {
 struct SetupOptions;
 class SharedParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Manage offloading of tracks to Celeritas.
@@ -36,16 +41,20 @@ class LocalTransporter
     LocalTransporter() = default;
 
     // Initialized with shared (across threads) params
-    LocalTransporter(const SetupOptions& options, const SharedParams& params);
+    LocalTransporter(SetupOptions const& options, SharedParams const& params);
+
+    // Alternative to construction + move assignment
+    inline void
+    Initialize(SetupOptions const& options, SharedParams const& params);
 
     // Set the event ID
     void SetEventId(int);
 
     // Whether Celeritas supports offloading of this track
-    bool IsApplicable(const G4Track&) const;
+    bool IsApplicable(G4Track const&) const;
 
     // Offload this track
-    void Push(const G4Track&);
+    void Push(G4Track const&);
 
     // Transport all buffered tracks to completion
     void Flush();
@@ -60,11 +69,11 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
-    std::shared_ptr<const ParticleParams> particles_;
-    std::shared_ptr<StepperInterface>     step_;
-    std::vector<Primary>                  buffer_;
+    std::shared_ptr<ParticleParams const> particles_;
+    std::shared_ptr<StepperInterface> step_;
+    std::vector<Primary> buffer_;
 
-    EventId            event_id_;
+    EventId event_id_;
     TrackId::size_type track_counter_{};
 
     size_type auto_flush_{};
@@ -72,4 +81,17 @@ class LocalTransporter
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+/*!
+ * Helper for making initialization more obvious from user code.
+ *
+ * This gives it some symmetry with Finalize, which is provided as an
+ * exception-friendly destructor.
+ */
+void LocalTransporter::Initialize(SetupOptions const& options,
+                                  SharedParams const& params)
+{
+    *this = LocalTransporter(options, params);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@ namespace test
 
 class GeoMaterialTest : public GlobalGeoTestBase, public OnlyGeoTestBase
 {
-    const char* geometry_basename() const override { return "simple-cms"; }
+    char const* geometry_basename() const override { return "simple-cms"; }
 
     SPConstMaterial build_material() override
     {
@@ -40,14 +40,14 @@ class GeoMaterialTest : public GlobalGeoTestBase, public OnlyGeoTestBase
     {
         // Create geometry/material coupling
         GeoMaterialParams::Input input;
-        input.geometry  = this->geometry();
+        input.geometry = this->geometry();
         input.materials = this->material();
         input.volume_to_mat.resize(data_.volumes.size());
         input.volume_labels.resize(data_.volumes.size());
 
-        for (const auto vol_idx : range(data_.volumes.size()))
+        for (auto const vol_idx : range(data_.volumes.size()))
         {
-            const ImportVolume& volume = data_.volumes[vol_idx];
+            ImportVolume const& volume = data_.volumes[vol_idx];
 
             input.volume_to_mat[vol_idx] = MaterialId{volume.material_id};
             input.volume_labels[vol_idx] = Label::from_geant(volume.name);
@@ -78,11 +78,11 @@ class GeoMaterialTest : public GlobalGeoTestBase, public OnlyGeoTestBase
 TEST_F(GeoMaterialTest, host)
 {
     // Geometry track view and mat view
-    const auto& geo_params = *this->geometry();
-    const auto& mat_params = *this->material();
+    auto const& geo_params = *this->geometry();
+    auto const& mat_params = *this->material();
     CollectionStateStore<GeoStateData, MemSpace::host> geo_state(
         geo_params.host_ref(), 1);
-    GeoTrackView    geo(geo_params.host_ref(), geo_state.ref(), ThreadId{0});
+    GeoTrackView geo(geo_params.host_ref(), geo_state.ref(), ThreadId{0});
     GeoMaterialView geo_mat_view(this->geomaterial()->host_ref());
 
     // Track across layers to get a truly implementation-independent
@@ -108,5 +108,5 @@ TEST_F(GeoMaterialTest, host)
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

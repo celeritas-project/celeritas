@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -17,12 +17,12 @@ namespace test
 /*!
  * Convert calorimeter volume names to volume IDs.
  */
-ExampleCalorimeters::ExampleCalorimeters(const GeoParams&                geo,
-                                         const std::vector<std::string>& volumes)
+ExampleCalorimeters::ExampleCalorimeters(GeoParams const& geo,
+                                         std::vector<std::string> const& volumes)
 {
     CELER_EXPECT(!volumes.empty());
 
-    for (const auto& name : volumes)
+    for (auto const& name : volumes)
     {
         auto vid = geo.find_volume(name);
         CELER_VALIDATE(vid, << "volume '" << name << "' does not exist");
@@ -58,7 +58,7 @@ auto ExampleCalorimeters::filters() const -> Filters
 StepSelection ExampleCalorimeters::selection() const
 {
     StepSelection result;
-    result.event_id          = true;
+    result.event_id = true;
     result.energy_deposition = true;
 
     return result;
@@ -105,5 +105,5 @@ void ExampleCalorimeters::clear()
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

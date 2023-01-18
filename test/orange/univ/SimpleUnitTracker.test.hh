@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -28,24 +28,24 @@ using StateRef = OrangeStateData<Ownership::reference, M>;
 
 template<class T>
 CELER_CONSTEXPR_FUNCTION ItemRange<T>
-                         build_range(size_type stride, ThreadId tid)
+build_range(size_type stride, ThreadId tid)
 {
     CELER_EXPECT(tid);
     using IdT = ItemId<T>;
-    auto t    = tid.unchecked_get();
+    auto t = tid.unchecked_get();
     return {IdT{t * stride}, IdT{(t + 1) * stride}};
 }
 
 template<MemSpace M = MemSpace::native>
 inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
-                                                   StateRef<M>  states,
-                                                   ThreadId     tid)
+                                                   StateRef<M> states,
+                                                   ThreadId tid)
 {
     // Create local state from global memory
     LocalState lstate;
-    lstate.pos     = states.pos[tid];
-    lstate.dir     = states.dir[tid];
-    lstate.volume  = states.vol[tid];
+    lstate.pos = states.pos[tid];
+    lstate.dir = states.dir[tid];
+    lstate.volume = states.vol[tid];
     lstate.surface = {states.surf[tid], states.sense[tid]};
 
     const size_type max_faces = params.scalars.max_faces;
@@ -67,25 +67,25 @@ template<MemSpace M = MemSpace::native>
 struct InitializingLauncher
 {
     ParamsRef<M> params;
-    StateRef<M>  states;
+    StateRef<M> states;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
         // Instantiate tracker and initialize
         SimpleUnitTracker tracker(this->params, SimpleUnitId{0});
-        auto              lstate = build_local_state(params, states, tid);
-        auto              init   = tracker.initialize(lstate);
+        auto lstate = build_local_state(params, states, tid);
+        auto init = tracker.initialize(lstate);
 
         // Update state with post-initialization result
-        states.vol[tid]   = init.volume;
-        states.surf[tid]  = init.surface.id();
+        states.vol[tid] = init.volume;
+        states.surf[tid] = init.surface.id();
         states.sense[tid] = init.surface.unchecked_sense();
 
         lstate.volume = init.volume;
-        auto isect    = tracker.intersect(lstate);
+        auto isect = tracker.intersect(lstate);
 
         // BOGUS
-        states.surf[tid]  = isect.surface.id();
+        states.surf[tid] = isect.surface.id();
         states.sense[tid] = flip_sense(isect.surface.unchecked_sense());
     }
 };
@@ -94,12 +94,12 @@ struct InitializingLauncher
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device
-void test_initialize(const ParamsRef<MemSpace::device>&,
-                     const StateRef<MemSpace::device>&);
+void test_initialize(ParamsRef<MemSpace::device> const&,
+                     StateRef<MemSpace::device> const&);
 
 #if !CELER_USE_DEVICE
-inline void test_initialize(const ParamsRef<MemSpace::device>&,
-                            const StateRef<MemSpace::device>&)
+inline void test_initialize(ParamsRef<MemSpace::device> const&,
+                            StateRef<MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
@@ -107,5 +107,5 @@ inline void test_initialize(const ParamsRef<MemSpace::device>&,
 #endif
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

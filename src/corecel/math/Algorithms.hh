@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -77,7 +77,7 @@ template<class T = void>
 struct Less
 {
     CELER_CONSTEXPR_FUNCTION auto
-    operator()(const T& lhs, const T& rhs) const noexcept -> decltype(auto)
+    operator()(T const& lhs, T const& rhs) const noexcept -> decltype(auto)
     {
         return lhs < rhs;
     }
@@ -139,7 +139,7 @@ CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
  */
 template<class ForwardIt, class T, class Compare>
 CELER_FORCEINLINE_FUNCTION ForwardIt
-lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
+lower_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::lower_bound_impl<CompareRef>(
@@ -153,7 +153,7 @@ lower_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
 template<class ForwardIt, class T>
 CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
                                                  ForwardIt last,
-                                                 const T&  value)
+                                                 T const& value)
 {
     return ::celeritas::lower_bound(first, last, value, Less<>{});
 }
@@ -164,7 +164,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
  */
 template<class ForwardIt, class T, class Compare>
 CELER_FORCEINLINE_FUNCTION ForwardIt
-upper_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
+upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::upper_bound_impl<CompareRef>(
@@ -178,7 +178,7 @@ upper_bound(ForwardIt first, ForwardIt last, const T& value, Compare comp)
 template<class ForwardIt, class T>
 CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
                                                  ForwardIt last,
-                                                 const T&  value)
+                                                 T const& value)
 {
     return ::celeritas::upper_bound(first, last, value, Less<>{});
 }
@@ -235,7 +235,7 @@ template<class T>
 #else
 template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
 #endif
-CELER_CONSTEXPR_FUNCTION const T& max(const T& a, const T& b) noexcept
+CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
     return (b > a) ? b : a;
 }
@@ -260,7 +260,7 @@ template<class T>
 #else
 template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
 #endif
-CELER_CONSTEXPR_FUNCTION const T& min(const T& a, const T& b) noexcept
+CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
     return (b < a) ? b : a;
 }
@@ -280,7 +280,7 @@ CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 template<class ForwardIt, class Compare>
 inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter,
                                             ForwardIt last,
-                                            Compare   comp)
+                                            Compare comp)
 {
     // Avoid incrementing past the end
     if (iter == last)
@@ -377,4 +377,4 @@ CELER_CONSTEXPR_FUNCTION T ceil_div(T top, T bottom)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

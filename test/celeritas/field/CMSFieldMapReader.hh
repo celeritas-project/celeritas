@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -38,25 +38,25 @@ class CMSFieldMapReader
     // Input format
     struct CMSFieldMapInput
     {
-        int             idx_z; //! index of z grid
-        int             idx_r; //! index of r grid
-        FieldMapElement value; //! z and r components of the field
+        int idx_z;  //! index of z grid
+        int idx_r;  //! index of r grid
+        FieldMapElement value;  //! z and r components of the field
     };
 
   public:
     // Construct the reader using the path of the map file
-    CMSFieldMapReader(const FieldMapParameters& params, std::string file_name);
+    CMSFieldMapReader(FieldMapParameters const& params, std::string file_name);
 
     // Read the volume-based CMS magnetic field map
     result_type operator()() const;
 
   private:
     // Shared parameters for a user defined magnetic field map
-    const FieldMapParameters& params_;
+    FieldMapParameters const& params_;
     // File name containing the magnetic field map
     std::string file_name_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

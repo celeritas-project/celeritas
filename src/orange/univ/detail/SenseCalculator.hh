@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,18 +33,18 @@ class SenseCalculator
     //! Return result
     struct result_type
     {
-        Span<Sense> senses; //!< Calculated senses for the volume
-        OnFace      face;   //!< The first face encountered that we are "on"
+        Span<Sense> senses;  //!< Calculated senses for the volume
+        OnFace face;  //!< The first face encountered that we are "on"
     };
 
   public:
     // Construct from persistent, current, and temporary data
-    inline CELER_FUNCTION SenseCalculator(const Surfaces& surfaces,
-                                          const Real3&    pos,
-                                          Span<Sense>     storage);
+    inline CELER_FUNCTION SenseCalculator(Surfaces const& surfaces,
+                                          Real3 const& pos,
+                                          Span<Sense> storage);
 
     // Calculate senses for the given volume, possibly on a face
-    inline CELER_FUNCTION result_type operator()(const VolumeView& vol,
+    inline CELER_FUNCTION result_type operator()(VolumeView const& vol,
                                                  OnFace face = {}) const;
 
   private:
@@ -64,9 +64,9 @@ class SenseCalculator
 /*!
  * Construct from persistent, current, and temporary data.
  */
-CELER_FUNCTION SenseCalculator::SenseCalculator(const Surfaces& surfaces,
-                                                const Real3&    pos,
-                                                Span<Sense>     storage)
+CELER_FUNCTION SenseCalculator::SenseCalculator(Surfaces const& surfaces,
+                                                Real3 const& pos,
+                                                Span<Sense> storage)
     : surfaces_(surfaces), pos_(pos), sense_storage_(storage)
 {
 }
@@ -79,7 +79,7 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(const Surfaces& surfaces,
  * of the return will be set.
  */
 CELER_FUNCTION auto
-SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
+SenseCalculator::operator()(VolumeView const& vol, OnFace face) const
     -> result_type
 {
     CELER_EXPECT(vol.num_faces() <= sense_storage_.size());
@@ -88,7 +88,7 @@ SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
     // Resulting senses are a subset of the storage; and the face is preserved
     result_type result;
     result.senses = sense_storage_.first(vol.num_faces());
-    result.face   = face;
+    result.face = face;
 
     // Build a functor to calculate the sense of a surface ID given the current
     // state position
@@ -102,7 +102,7 @@ SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
         {
             // Calculate sense
             SignedSense ss = calc_sense(vol.get_surface(cur_face));
-            cur_sense      = to_sense(ss);
+            cur_sense = to_sense(ss);
             if (!result.face && ss == SignedSense::on)
             {
                 // This is the first face that we're exactly on: save it
@@ -123,5 +123,5 @@ SenseCalculator::operator()(const VolumeView& vol, OnFace face) const
 }
 
 //---------------------------------------------------------------------------//
-} // namespace detail
-} // namespace celeritas
+}  // namespace detail
+}  // namespace celeritas

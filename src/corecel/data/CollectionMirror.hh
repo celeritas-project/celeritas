@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,7 +52,7 @@ class CollectionMirror
     //!@{
     //! Type aliases
     using HostValue = celeritas::HostVal<P>;
-    using HostRef   = celeritas::HostCRef<P>;
+    using HostRef = celeritas::HostCRef<P>;
     using DeviceRef = celeritas::DeviceCRef<P>;
     //!@}
 
@@ -67,22 +67,22 @@ class CollectionMirror
     explicit operator bool() const { return static_cast<bool>(host_); }
 
     // Get references to host data after construction
-    inline const HostRef& host_ref() const;
+    inline HostRef const& host_ref() const;
     // Get references to device data after construction
-    inline const DeviceRef& device_ref() const;
+    inline DeviceRef const& device_ref() const;
 
     //!@{
     //! Deprecated alias to _ref-suffied functions
-    const HostRef& host() const { return this->host_ref(); }
+    HostRef const& host() const { return this->host_ref(); }
     // Get references to device data after construction
-    const DeviceRef& device() const { return this->device_ref(); }
+    DeviceRef const& device() const { return this->device_ref(); }
     //!@}
 
   private:
-    HostValue                             host_;
-    HostRef                               host_ref_;
+    HostValue host_;
+    HostRef host_ref_;
     P<Ownership::value, MemSpace::device> device_;
-    DeviceRef                             device_ref_;
+    DeviceRef device_ref_;
 };
 
 //---------------------------------------------------------------------------//
@@ -100,7 +100,7 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
     if (celeritas::device())
     {
         // Copy data to device and save reference
-        device_     = host_;
+        device_ = host_;
         device_ref_ = device_;
     }
 }
@@ -109,7 +109,7 @@ CollectionMirror<P>::CollectionMirror(HostValue&& host)
  * Get references to host data after construction.
  */
 template<template<Ownership, MemSpace> class P>
-auto CollectionMirror<P>::host_ref() const -> const HostRef&
+auto CollectionMirror<P>::host_ref() const -> HostRef const&
 {
     CELER_ENSURE(host_ref_);
     return host_ref_;
@@ -123,11 +123,11 @@ auto CollectionMirror<P>::host_ref() const -> const HostRef&
  * data wasn't set).
  */
 template<template<Ownership, MemSpace> class P>
-auto CollectionMirror<P>::device_ref() const -> const DeviceRef&
+auto CollectionMirror<P>::device_ref() const -> DeviceRef const&
 {
     CELER_ENSURE(device_ref_);
     return device_ref_;
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

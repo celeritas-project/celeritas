@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,13 +22,13 @@ namespace celeritas
 struct ImportParticle
 {
     std::string name;
-    int         pdg;
-    double      mass;     //!< [MeV]
-    double      charge;   //!< [Multiple of electron charge]
-    double      spin;     //!< [Multiple of hbar]
-    double      lifetime; //!< [s]
-    bool        is_stable;
+    int pdg;
+    double mass;  //!< [MeV]
+    double charge;  //!< [Multiple of electron charge]
+    double spin;  //!< [Multiple of hbar]
+    double lifetime;  //!< [s]
+    bool is_stable;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

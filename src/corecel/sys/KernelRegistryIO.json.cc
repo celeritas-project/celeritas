@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,7 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "KernelRegistryIO.json.hh"
 
+#include <atomic>
+#include <string>
+
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/KernelAttributes.hh"
 
 #include "KernelRegistry.hh"
 
@@ -17,14 +21,14 @@ namespace celeritas
 /*!
  * Write kernel metadata out to JSON.
  */
-void to_json(nlohmann::json& j, const KernelRegistry& kr)
+void to_json(nlohmann::json& j, KernelRegistry const& kr)
 {
-    const bool write_profiling = KernelRegistry::profiling();
+    bool const write_profiling = KernelRegistry::profiling();
 
     j = nlohmann::json::array();
     for (auto kernel_id : range(KernelId{kr.num_kernels()}))
     {
-        const auto& md = kr.kernel(kernel_id);
+        auto const& md = kr.kernel(kernel_id);
         j.emplace_back(nlohmann::json::object({
             {"name", md.name},
             {"threads_per_block", md.attributes.threads_per_block},
@@ -47,4 +51,4 @@ void to_json(nlohmann::json& j, const KernelRegistry& kr)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+}  // namespace celeritas

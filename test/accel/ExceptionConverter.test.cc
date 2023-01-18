@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,10 +23,10 @@ class ExceptionHandler final : public G4VExceptionHandler
 {
   public:
     //! Accept error codes from geant4
-    G4bool Notify(const char*         originOfException,
-                  const char*         exceptionCode,
+    G4bool Notify(char const* originOfException,
+                  char const* exceptionCode,
                   G4ExceptionSeverity severity,
-                  const char*         description) final
+                  char const* description) final
     {
         if (originOfException)
             origin = originOfException;
@@ -42,15 +42,15 @@ class ExceptionHandler final : public G4VExceptionHandler
     void clear()
     {
         origin = {};
-        code   = {};
-        level  = G4ExceptionSeverity::JustWarning;
-        desc   = {};
+        code = {};
+        level = G4ExceptionSeverity::JustWarning;
+        desc = {};
     }
 
-    std::string         origin;
-    std::string         code;
+    std::string origin;
+    std::string code;
     G4ExceptionSeverity level;
-    std::string         desc;
+    std::string desc;
 };
 
 class ExceptionConverterTest : public ::celeritas::test::Test
@@ -80,7 +80,7 @@ class ExceptionConverterTest : public ::celeritas::test::Test
 TEST_F(ExceptionConverterTest, debug)
 {
     ExceptionConverter call_g4e{"test001"};
-    CELER_TRY_ELSE(
+    CELER_TRY_HANDLE(
         throw ::celeritas::DebugError({::celeritas::DebugErrorType::internal,
                                        "there are five lights",
                                        "me.cc",
@@ -97,8 +97,8 @@ TEST_F(ExceptionConverterTest, debug)
 TEST_F(ExceptionConverterTest, runtime)
 {
     ExceptionConverter call_g4e{"test002"};
-    CELER_TRY_ELSE(CELER_VALIDATE(2 + 2 == 5, << "math actually works"),
-                   call_g4e);
+    CELER_TRY_HANDLE(CELER_VALIDATE(2 + 2 == 5, << "math actually works"),
+                     call_g4e);
 
     EXPECT_EQ(0, handler().origin.find("accel/ExceptionConverter.test.cc"))
         << "actual path: '" << handler().origin << '\'';
@@ -107,5 +107,5 @@ TEST_F(ExceptionConverterTest, runtime)
 }
 
 //---------------------------------------------------------------------------//
-} // namespace test
-} // namespace celeritas
+}  // namespace test
+}  // namespace celeritas

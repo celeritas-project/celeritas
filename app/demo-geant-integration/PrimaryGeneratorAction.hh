@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,29 +7,26 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ParticleGun.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Minimal implementation of a primary generator action class.
- *
- * TODO: replace with HepMC3 input.
+ * Generate events by reading from a HepMC3 file.
  */
 class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
-    // Set up particle gun.
-    PrimaryGeneratorAction();
+    // Get the total number of events available in the HepMC3 file
+    static int NumEvents();
+
+    // Construct primary action
+    PrimaryGeneratorAction() = default;
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
-
-  private:
-    G4ParticleGun gun_;
 };
 
 //---------------------------------------------------------------------------//
-} // namespace demo_geant
+}  // namespace demo_geant
