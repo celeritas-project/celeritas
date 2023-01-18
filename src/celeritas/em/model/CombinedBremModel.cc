@@ -17,8 +17,8 @@
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/generated/CombinedBremInteract.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
+#include "../interactor/detail/PhysicsConstants.hh"
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"
 
@@ -65,7 +65,7 @@ auto CombinedBremModel::applicability() const -> SetApplicability
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().rb_data.ids.electron;
     electron_brem.lower = zero_quantity();
-    electron_brem.upper = high_energy_limit();
+    electron_brem.upper = detail::high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle = this->host_ref().rb_data.ids.positron;

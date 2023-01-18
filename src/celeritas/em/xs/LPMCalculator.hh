@@ -16,9 +16,10 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
+
+#include "../interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {
@@ -90,7 +91,7 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
     : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()
-                  * value_as<MevPerCm>(lpm_constant()))
+                  * value_as<detail::MevPerCm>(detail::lpm_constant()))
     , dielectric_suppression_(dielectric_suppression)
     , gamma_energy_(gamma_energy.value())
 {
@@ -143,7 +144,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         // where the characteristic photon energy scale \f$ k_p \f$ is defined
         // in terms of the plasma frequency of the medium \f$ \omega_p \f$: \f$
         // k_p = \hbar \omega_p \frac{E}{m_e c^2} \f$
-        const real_type k_p_sq = electron_density_ * migdal_constant()
+        const real_type k_p_sq = electron_density_ * detail::migdal_constant()
                                  * ipow<2>(epsilon * gamma_energy_);
         s *= (1 + k_p_sq / ipow<2>(gamma_energy_));
 

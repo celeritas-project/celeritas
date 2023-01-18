@@ -25,6 +25,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the bremsstrahlung photon energy from the relativistic model.
@@ -110,4 +112,5 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

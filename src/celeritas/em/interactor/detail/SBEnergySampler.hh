@@ -26,6 +26,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the bremsstrahlung photon energy from the SeltzerBerger model.
@@ -143,4 +145,5 @@ CELER_FUNCTION auto SBEnergySampler::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
