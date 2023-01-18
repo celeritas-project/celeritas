@@ -50,7 +50,7 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
     lstate.dir    = lsa.dir();
     lstate.volume = lsa.vol();
 
-    lstate.surface = {lsa.surf(), states.sense[tid]};
+    lstate.surface = {lsa.surf(), lsa.sense()};
 
     const size_type max_faces = params.scalars.max_faces;
     lstate.temp_sense = states.temp_sense[build_range<Sense>(max_faces, tid)];
@@ -88,14 +88,14 @@ struct InitializingLauncher
         lsa.set_vol(init.volume);
 
         lsa.set_surf(init.surface.id());
-        states.sense[tid] = init.surface.unchecked_sense();
+        lsa.set_sense(init.surface.unchecked_sense());
 
         lstate.volume = init.volume;
         auto isect = tracker.intersect(lstate);
 
         // BOGUS
         lsa.set_surf(isect.surface.id());
-        states.sense[tid] = flip_sense(isect.surface.unchecked_sense());
+        lsa.set_sense(flip_sense(isect.surface.unchecked_sense()));
     }
 };
 

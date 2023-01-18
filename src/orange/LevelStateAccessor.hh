@@ -81,6 +81,16 @@ class LevelStateAccessor
         states_->surf[OpaqueId<SurfaceId>{index_}] = id;
     }
 
+    CELER_FUNCTION Sense sense()
+    {
+        return states_->sense[OpaqueId<Sense>{index_}];
+    }
+
+    CELER_FUNCTION void set_sense(Sense sense)
+    {
+        states_->sense[OpaqueId<Sense>{index_}] = sense;
+    }
+
   private:
     const StateRef* states_;
     const size_type index_;

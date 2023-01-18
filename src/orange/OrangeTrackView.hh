@@ -202,7 +202,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     // Save known data to global memory
 
-    states_.sense[thread_]    = {};
     states_.boundary[thread_] = BoundaryResult::exiting;
 
     // Clear local data
@@ -242,6 +241,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.set_dir(init.dir);
         lsa.set_universe(uid);
         lsa.set_surf(SurfaceId{});
+        lsa.set_sense(Sense{});
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         level++;
@@ -273,13 +273,13 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         lsa.set_pos(lsa_other.pos());
         lsa.set_dir(lsa_other.dir());
         lsa.set_surf(lsa_other.surf());
+        lsa.set_sense(lsa_other.sense());
     }
 
     // Copy init track's position but update the direction
     states_.level[thread_]      = states_.level[init.other.thread_];
     states_.next_level[thread_] = states_.next_level[init.other.thread_];
 
-    states_.sense[thread_]    = states_.sense[init.other.thread_];
     states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
     // Clear step and surface info
@@ -479,8 +479,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 
     // Move to the inside of the surface
     lsa.set_surf(next_surface_.id());
+    lsa.set_sense(next_surface_.unchecked_sense());
 
-    states_.sense[thread_] = next_surface_.unchecked_sense();
     this->clear_next_step();
 }
 
@@ -553,7 +553,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
     local.volume = lsa.vol();
 
-    local.surface    = {lsa.surf(), flip_sense(states_.sense[thread_])};
+    local.surface    = {lsa.surf(), flip_sense(lsa.sense())};
     local.temp_sense = this->make_temp_sense();
 
     // Update the post-crossing volume
@@ -572,7 +572,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     lsa.set_vol(init.volume);
 
     lsa.set_surf(init.surface.id());
-    states_.sense[thread_] = init.surface.unchecked_sense();
+    lsa.set_sense(init.surface.unchecked_sense());
 
     // Reset boundary crossing state
     states_.boundary[thread_] = BoundaryResult::exiting;
@@ -686,7 +686,7 @@ CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
     local.dir    = lsa.dir();
     local.volume = lsa.vol();
 
-    local.surface    = {lsa.surf(), states_.sense[thread_]};
+    local.surface    = {lsa.surf(), lsa.sense()};
     local.temp_sense = this->make_temp_sense();
     local.temp_next = this->make_temp_next();
     return local;
