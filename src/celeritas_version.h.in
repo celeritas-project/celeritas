@@ -9,17 +9,12 @@
 #ifndef celeritas_version_h
 #define celeritas_version_h
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*! Celeritas version. Encoded as (major * 100 + minor) * 100 + patch. */
+#define CELERITAS_VERSION @CELERITAS_VERSION@
 
 static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 static const int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
 static const int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
 static const int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 #endif /* celeritas_version_h */

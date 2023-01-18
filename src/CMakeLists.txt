@@ -11,6 +11,9 @@ include(CeleritasGen)
 #----------------------------------------------------------------------------#
 # Celeritas version
 
+math(EXPR CELERITAS_VERSION
+  "(${PROJECT_VERSION_MINOR} * 100 + ${PROJECT_VERSION_MINOR}) * 100 + ${PROJECT_VERSION_PATCH}"
+)
 celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
 
 #----------------------------------------------------------------------------#
