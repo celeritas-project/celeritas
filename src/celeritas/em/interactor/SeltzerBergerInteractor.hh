@@ -89,9 +89,7 @@ class SeltzerBergerInteractor
 
     //// HELPER CLASSES ////
     // A helper to sample the bremsstrahlung photon energy
-    SBEnergySampler sb_energy_sampler_;
-    // A helper to update the final state of the primary and the secondary
-    BremFinalStateHelper final_state_interaction_;
+    detail::SBEnergySampler sample_photon_energy_;
 };
 
 //---------------------------------------------------------------------------//
@@ -119,18 +117,13 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
     , gamma_cutoff_(cutoffs.energy(shared.ids.gamma))
     , allocate_(allocate)
     , elcomp_id_(elcomp_id)
-    , sb_energy_sampler_(shared.differential_xs,
-                         particle,
-                         gamma_cutoff_,
-                         material,
-                         elcomp_id,
-                         shared.electron_mass,
-                         inc_particle_is_electron_)
-    , final_state_interaction_(inc_energy_,
-                               inc_direction_,
-                               inc_momentum_,
-                               shared.electron_mass,
-                               shared.ids.gamma)
+    , sample_photon_energy_(shared.differential_xs,
+                            particle.energy(),
+                            gamma_cutoff_,
+                            material,
+                            elcomp_id,
+                            shared.electron_mass,
+                            inc_particle_is_electron_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
@@ -149,6 +142,8 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
     // Check if secondary can be produced. If not, this interaction cannot
     // happen and the incident particle must undergo an energy loss process
     // instead.
+    // TODO: reject this interaction before launching the kernel by using
+    // correct material-dependent lower bounds for the interaction
     if (gamma_cutoff_ > inc_energy_)
     {
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
@@ -162,11 +157,17 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Sample the bremsstrahlung photon energy
-    Energy gamma_energy = sb_energy_sampler_(rng);
+    // Sample the bremsstrahlung photon energy to construct the final sampler
+    detail::BremFinalStateHelper sample_interaction(inc_energy_,
+                                                    inc_direction_,
+                                                    inc_momentum_,
+                                                    shared_.electron_mass,
+                                                    shared_.ids.gamma,
+                                                    sample_photon_energy_(rng),
+                                                    secondaries);
 
     // Update kinematics of the final state and return this interaction
-    return final_state_interaction_(rng, gamma_energy, secondaries);
+    return sample_interaction(rng);
 }
 
 //---------------------------------------------------------------------------//
