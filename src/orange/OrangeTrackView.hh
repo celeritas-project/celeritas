@@ -200,10 +200,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    // Save known data to global memory
-
-    states_.boundary[thread_] = BoundaryResult::exiting;
-
     // Clear local data
     this->clear_next_step();
 
@@ -242,6 +238,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.set_universe(uid);
         lsa.set_surf(SurfaceId{});
         lsa.set_sense(Sense{});
+        lsa.set_boundary(BoundaryResult::exiting);
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         level++;
@@ -274,13 +271,12 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
         lsa.set_dir(lsa_other.dir());
         lsa.set_surf(lsa_other.surf());
         lsa.set_sense(lsa_other.sense());
+        lsa.set_boundary(lsa_other.boundary());
     }
 
     // Copy init track's position but update the direction
     states_.level[thread_]      = states_.level[init.other.thread_];
     states_.next_level[thread_] = states_.next_level[init.other.thread_];
-
-    states_.boundary[thread_] = states_.boundary[init.other.thread_];
 
     // Clear step and surface info
     this->clear_next_step();
@@ -318,7 +314,9 @@ CELER_FUNCTION bool OrangeTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
-    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -409,7 +407,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
         // On a boundary, headed back in: next step is zero
         return {0, true};
@@ -465,15 +465,16 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    CELER_EXPECT(states_.boundary[thread_] != BoundaryResult::reentrant);
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    CELER_EXPECT(lsa.boundary() != BoundaryResult::reentrant);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(next_surface_);
 
     // Physically move next step
     // axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
 
-    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
-    auto               pos = lsa.pos();
+    auto pos = lsa.pos();
     axpy(next_step_, lsa.dir(), &pos);
     lsa.set_pos(pos);
 
@@ -537,11 +538,13 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    if (CELER_UNLIKELY(states_.boundary[thread_] == BoundaryResult::reentrant))
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
+    if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
-        states_.boundary[thread_] = BoundaryResult::exiting;
+        lsa.set_boundary(BoundaryResult::exiting);
         return;
     }
 
@@ -550,9 +553,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     local.pos = this->pos();
     local.dir = this->dir();
 
-    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
-    local.volume = lsa.vol();
-
+    local.volume     = lsa.vol();
     local.surface    = {lsa.surf(), flip_sense(lsa.sense())};
     local.temp_sense = this->make_temp_sense();
 
@@ -575,7 +576,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     lsa.set_sense(init.surface.unchecked_sense());
 
     // Reset boundary crossing state
-    states_.boundary[thread_] = BoundaryResult::exiting;
+    lsa.set_boundary(BoundaryResult::exiting);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -594,6 +595,8 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
 
+    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+
     if (this->is_on_boundary())
     {
         // Changing direction on a boundary is dangerous, as it could mean we
@@ -608,13 +611,11 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         {
             // The boundary crossing direction has changed! Reverse our plans
             // to change the logical state and move to a new volume.
-            states_.boundary[thread_]
-                = flip_boundary(states_.boundary[thread_]);
+            lsa.set_boundary(flip_boundary(lsa.boundary()));
         }
     }
 
     // Complete direction setting
-    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
     lsa.set_dir(newdir);
 
     this->clear_next_step();

@@ -91,6 +91,16 @@ class LevelStateAccessor
         states_->sense[OpaqueId<Sense>{index_}] = sense;
     }
 
+    CELER_FUNCTION BoundaryResult boundary()
+    {
+        return states_->boundary[OpaqueId<BoundaryResult>{index_}];
+    }
+
+    CELER_FUNCTION void set_boundary(BoundaryResult br)
+    {
+        states_->boundary[OpaqueId<BoundaryResult>{index_}] = br;
+    }
+
   private:
     const StateRef* states_;
     const size_type index_;
