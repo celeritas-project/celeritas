@@ -15,5 +15,3 @@ relying on `find_package` alone.
 find_package(Celeritas QUIET CONFIG)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Celeritas CONFIG_MODE)
-
-#-----------------------------------------------------------------------------#

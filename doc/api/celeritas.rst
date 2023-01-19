@@ -2,6 +2,8 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _api_celeritas:
+
 Celeritas
 =========
 
@@ -12,7 +14,11 @@ implementation for the Celeritas codebase, using components from the
 Fundamentals
 ------------
 
+.. _api_units:
+
 .. doxygennamespace:: units
+
+.. _api_constants:
 
 .. doxygennamespace:: constants
 

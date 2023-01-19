@@ -180,5 +180,5 @@ of ``target_link_libraries`` with a customized version::
   include(CeleritasLibrary)
   celeritas_target_link_libraries(mycode PUBLIC Celeritas::celeritas)
 
-The test project at :file:`scripts/ci/test-installation` demonstrates how to
-use Celeritas as a library with a short standalone CMake project.
+The :ref:`example_minimal` example demonstrates how to use Celeritas as a
+library with a short standalone CMake project.

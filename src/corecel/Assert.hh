@@ -58,18 +58,19 @@
  * in \c __device__ -annotated code.
  *
  * The error message should read: \verbatim
-   <PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?
+   "<PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?"
   \endverbatim
  *
  * Examples with correct casing and punctuation:
- * - failed to open '{filename}' (should contain relaxation data)
- * - unexpected end of file '{filename}' (data is inconsistent with
- *   boundaries)
- * - MPI was not initialized (needed to construct a communicator). Maybe set
+ * - "failed to open '{filename}' (should contain relaxation data)"
+ * - "unexpected end of file '{filename}' (data is inconsistent with
+ *   boundaries)"
+ * - "MPI was not initialized (needed to construct a communicator). Maybe set
  *   the environment variable CELER_DISABLE_PARALLEL=1 to disable
  *   externally?"
- * - min_range={opts.min_range} (must be positive)"
+ * - "invalid min_range={opts.min_range} (must be positive)"
  *
+ * This looks in pracice like:
  * \code
    CELER_VALIDATE(file_stream,
                   << "failed to open '" << filename

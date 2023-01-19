@@ -8,20 +8,20 @@
 Overview
 ********
 
-This section summarizes some core concepts
-
+This section summarizes key usage patterns and implementation details from
+Celeritas, especially those that differ from Geant4.
 
 Units
 =====
 
 The unit system in Celeritas is CGS with centimeter (cm), gram (g), second (s),
 gauss (Ga?), and kelvin (K) all having a value of unity. With these definitions,
-densities can be defined in natural units of :math:`\mathrm{g}/mathrm{cm}^3`,
-and macroscopic cross sections are in units of :math:`mathrm{cm}^{-1}`. See
-:ref:`_CPPv45units` for more descriptions of the core unit system and the
-exactly defined values for SI units such as tesla.
+densities can be defined in natural units of :math:`\mathrm{g}/\mathrm{cm}^3`,
+and macroscopic cross sections are in units of :math:`\mathrm{cm}^{-1}`. See
+the :ref:`units documentation <api_units>` for more descriptions of the core
+unit system and the exactly defined values for SI units such as tesla.
 
-Celeritas defines :ref:`_CPPv49constants` from a few different sources.
+Celeritas defines :ref:`constants <api_constants>` from a few different sources.
 Mathematical constants are defined as truncated floating point values. Some
 physical constants such as the speed of light, Planck's constant, and the
 electron charge, have exact numerical values as specified by the SI unit system
@@ -29,14 +29,14 @@ electron charge, have exact numerical values as specified by the SI unit system
 radius are derived from experimental measurements in CODATA 2018. Because the
 reported constants are derived from regression fits to experimental data
 points, some exactly defined physical relationships (such as the fine structure
-:math:`\alpha = ...`) are only approximate.
+:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}` are only approximate.
 
 Unlike Geant4 and the CLHEP unit systems, Celeritas avoids using "natural"
 units in its definitions. Although a natural unit system makes some
 expressions easier to evaluate, it can lead to errors in the definition of
 derivative constants and is fundamentally in conflict with consistent unit
 systems such as SI. To enable special unit systems in harmony with the
-native Celeritas unit system, the :ref:`_CPPv4I00EN9celeritas8QuantityE` class
+native Celeritas unit system, the :ref:`Quantity <api_quantity>` class
 stores quantities in another unit system with a compile-time constant that
 allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of e but
@@ -55,7 +55,7 @@ example, a uniform distribution over the range :math:`[a, b)` takes the *a* and
 random engine as its sole argument.
 
 Celeritas extends this paradigm to physics distributions. At a low level,
-it has :ref:`random number distributions <_celeritas_random>` that result in
+it has :ref:`random number distributions <celeritas_random>` that result in
 single real values (such as uniform, exponential, gamma) and correlated
 three-vectors (such as sampling an isotropic direction).
 
@@ -74,8 +74,27 @@ Physics
 =======
 
 
+Geometry
+========
+
+Celeritas has two choices of geometry implementation. VecGeom_ is a
+CUDA-compatible library for navigation on Geant4 detector geometries.
+:ref:`api_orange` is a work in progress for surface-based geometry navigation
+that is "platform portable", i.e. able to run on GPUs from multiple vendors.
+
+Celeritas wraps both geometry packages with a uniform interface for changing
+and querying the geometry state.
+
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
 
 Stepping loop
 =============
 
+The stepping loop in Celeritas is a sorted loop over "actions", each of which
+is usually a kernel launch (or an inner loop over tracks if running on CPU).
 
+GPU usage
+=========
+
+Celeritas automatically copies data to device when constructing objects as long
+as the GPU is enabled.

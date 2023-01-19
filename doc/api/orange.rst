@@ -2,6 +2,8 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _api_orange:
+
 ORANGE
 ======
 
