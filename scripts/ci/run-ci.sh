@@ -54,14 +54,11 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
 # List XML files generated: jenkins will upload these later
 find Testing -name '*.xml'
   
+# Test examples against installed celeritas
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  # Test installation
-  cd ../scripts/ci
   export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  . test-examples.sh
+  source ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
   || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
-  # Test installation
-  cd ../scripts/ci
-  . test-examples.sh
+  source ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 fi
