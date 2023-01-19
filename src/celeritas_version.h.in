@@ -9,7 +9,8 @@
 #ifndef celeritas_version_h
 #define celeritas_version_h
 
-/*! Celeritas version. Encoded as (major * 100 + minor) * 100 + patch. */
+/*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
+ * component: (major * 256 + minor) * 256 + patch. */
 #define CELERITAS_VERSION @CELERITAS_VERSION@
 
 static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
