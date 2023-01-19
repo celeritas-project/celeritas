@@ -337,7 +337,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
-  add_executable(demo-geant-integration
+  set(_demo_geant_integration_src
     demo-geant-integration/demo-geant-integration.cc
     demo-geant-integration/ActionInitialization.cc
     demo-geant-integration/DetectorConstruction.cc
@@ -350,8 +350,31 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/SensitiveHit.cc
     demo-geant-integration/TrackingAction.cc
   )
+  set(_demo_geant_integration_libs Celeritas::accel)
+
+  if(CELERITAS_USE_ROOT)
+    list(APPEND _demo_geant_integration_src
+      demo-geant-integration/HitRootIO.cc
+    )
+    list(APPEND _demo_geant_integration_libs ROOT::Tree HitClassesDict)
+    include_directories(
+      ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration
+      ${ROOT_INCLUDE_DIRS} ${Geant4_INCLUDE_DIR}
+    )
+    REFLEX_GENERATE_DICTIONARY(HitClasses
+      demo-geant-integration/HitClasses.hh
+      SELECTION demo-geant-integration/selection.xml
+    )
+    add_library(HitClassesDict SHARED HitClasses.cxx)
+    set(libsuffix .so)
+    set(ROOT_LIBRARY_PROPERTIES ${ROOT_LIBRARY_PROPERTIES} SUFFIX ${libsuffix})
+    set_target_properties(HitClassesDict PROPERTIES ${ROOT_LIBRARY_PROPERTIES})
+    target_link_libraries(HitClassesDict ${ROOT_LIBRARIES} ${Geant4_LIBRARIES})
+  endif()
+
+  add_executable(demo-geant-integration ${_demo_geant_integration_src})
   celeritas_target_link_libraries(demo-geant-integration
-    Celeritas::accel
+    ${_demo_geant_integration_libs}
   )
   if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
