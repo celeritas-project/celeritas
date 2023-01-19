@@ -33,6 +33,7 @@ struct HitData
 class SensitiveHit final : public G4VHit
 {
   public:
+    SensitiveHit() {}
     explicit SensitiveHit(HitData const& data);
 
     //! Accessor the hit data
