@@ -13,6 +13,9 @@
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
 
+#include "GlobalSetup.hh"
+#include "HitRootIO.hh"
+
 namespace demo_geant
 {
 //---------------------------------------------------------------------------//
@@ -37,11 +40,17 @@ void EventAction::BeginOfEventAction(G4Event const* event)
 /*!
  * Flush all offloaded tracks before ending the event.
  */
-void EventAction::EndOfEventAction(G4Event const*)
+void EventAction::EndOfEventAction(G4Event const* event)
 {
     // Transport any tracks left in the buffer
     celeritas::ExceptionConverter call_g4exception{"celer0004"};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
+
+    if (GlobalSetup::Instance()->GetSetupOptions()->sd.write_hits)
+    {
+        // Write sensitive hits
+        HitRootIO::GetInstance()->WriteHits(event);
+    }
 }
 
 //---------------------------------------------------------------------------//

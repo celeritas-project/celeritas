@@ -72,6 +72,13 @@ GlobalSetup::GlobalSetup()
         cmd.SetDefaultValue(std::to_string(options_->secondary_stack_factor));
     }
     {
+        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
+                                                options_->root_buffer_size);
+        cmd.SetGuidance("Set the buffer size (bytes) of output root file");
+        options_->root_buffer_size = 128000;
+        cmd.SetDefaultValue(std::to_string(options_->root_buffer_size));
+    }
+    {
         auto& cmd = messenger_->DeclareProperty(
             "initializerCapacity", options_->initializer_capacity);
         cmd.SetGuidance("Set the maximum number of queued tracks");
