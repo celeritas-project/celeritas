@@ -360,7 +360,7 @@ struct OrangeStateData
 template<MemSpace M>
 inline void resize(OrangeStateData<Ownership::value, M>* data,
                    HostCRef<OrangeParamsData> const& params,
-                   size_type size)
+                   size_type num_tracks)
 {
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
