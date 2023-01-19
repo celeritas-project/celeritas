@@ -15,7 +15,6 @@
 #include <TBranch.h>
 #include <TFile.h>
 #include <TObject.h>
-#include <TSystem.h>
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
@@ -44,8 +43,6 @@ G4ThreadLocal HitRootIO* HitRootIO::instance_ = nullptr;
 HitRootIO::HitRootIO()
 {
     G4AutoLock lock(&HitRootIOMutex);
-    gSystem->Load("libHitClassesDict");
-
     file_name_ = std::regex_replace(
         GlobalSetup::Instance()->GetSetupOptions()->output_file,
         std::regex("json"),

@@ -366,9 +366,6 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       SELECTION demo-geant-integration/selection.xml
     )
     add_library(HitClassesDict SHARED HitClasses.cxx)
-    set(libsuffix .so)
-    set(ROOT_LIBRARY_PROPERTIES ${ROOT_LIBRARY_PROPERTIES} SUFFIX ${libsuffix})
-    set_target_properties(HitClassesDict PROPERTIES ${ROOT_LIBRARY_PROPERTIES})
     target_link_libraries(HitClassesDict ${ROOT_LIBRARIES} ${Geant4_LIBRARIES})
   endif()
 
