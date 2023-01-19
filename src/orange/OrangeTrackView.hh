@@ -159,13 +159,17 @@ class OrangeTrackView
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
 
-    inline CELER_FUNCTION detail::LocalState make_local_state() const;
+    inline CELER_FUNCTION detail::LocalState
+                          make_local_state(LevelId level) const;
 
     // Whether the next distance-to-boundary has been found
     CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
 
     // Invalidate the next distance-to-boundary
     CELER_FORCEINLINE_FUNCTION void clear_next_step();
+
+    // Iterative over layers to find the next step
+    CELER_FORCEINLINE_FUNCTION void find_next_step_impl(double max_step);
 };
 
 //---------------------------------------------------------------------------//
@@ -241,7 +245,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.set_boundary(BoundaryResult::exiting);
 
         next_uid = params_.volume_records[global_vol_id].daughter;
-        level++;
+        ++level;
 
     } while (next_uid);
 
@@ -328,66 +332,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
         this->clear_next_step();
     }
 
-    // if (!this->has_next_step())
-    //{
-    //    // The univese the particle is currently within
-    //    const auto& current_uid = states_.universe[thread_];
-
-    //    // The next uid we will test
-    //    UniverseId          next_uid = top_universe_id();
-
-    //    // The uid we are testing
-    //    UniverseId          uid;
-
-    //    auto min_step = no_intersection();
-    //    celeritas::detail::OnSurface min_surface;
-    //    UniverseId min_uid;
-
-    //    // Create local state
-    //    detail::LocalState local;
-    //    local.pos        = init.pos;
-    //    local.dir        = init.dir;
-    //    local.volume     = {};
-    //    local.surface    = {};
-    //    local.temp_sense = this->make_temp_sense();
-
-    //    do
-    //    {
-    //        uid = next_uid;
-
-    //        auto tracker = this->make_tracker(uid);
-
-    //        auto tinit   = tracker.initialize(local);
-    //        CELER_ASSERT(tinit.volume && !tinit.surface);
-    //        global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
-
-    //        auto isect    = tracker.intersect(this->make_local_state());
-
-    //        if (isect.distance < min_step)
-    //        {
-    //            min_step   = isect.distance;
-    //            min_surface = isect.surface;
-    //            min_uid = uid;
-    //        }
-
-    //        next_uid = params_.volume_records[global_vol_id].daughter;
-
-    //    }
-    //    while (uid != current_uid);
-
-    //    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
-    //
-    //    next_step_ = min_step;
-    //    next_surface_ = unit_indexer.global_surface(uid, min_surface);
-
-    // }
-
     if (!this->has_next_step())
     {
-        auto tracker = this->make_tracker(UniverseId{0});
-        auto isect = tracker.intersect(this->make_local_state());
-        next_step_ = isect.distance;
-        next_surface_ = isect.surface;
+        this->find_next_step_impl(no_intersection());
     }
 
     Propagation result;
@@ -427,10 +374,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
-        auto tracker = this->make_tracker(UniverseId{0});
-        auto isect = tracker.intersect(this->make_local_state(), max_step);
-        next_step_ = isect.distance;
-        next_surface_ = isect.surface;
+        this->find_next_step_impl(max_step);
     }
 
     Propagation result;
@@ -439,6 +383,66 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(result.distance <= max_step);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Iterate over all levels to find the next step
+ */
+CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
+{
+    // The univese the particle is currently within
+
+    LevelStateAccessor current_level_lsa(
+        &states_, thread_, LevelId{states_.level[thread_]});
+    const auto& current_uid = current_level_lsa.universe();
+
+    // The uid we are iteratively checking for nearest intersection
+    UniverseId check_uid;
+
+    // The next uid we will check
+    UniverseId next_check_uid = top_universe_id();
+
+    auto                         min_step = max_step;
+    celeritas::detail::OnSurface min_surface_local;
+    UniverseId                   min_uid;
+
+    size_type level = 0;
+
+    do
+    {
+        check_uid    = next_check_uid;
+        auto tracker = this->make_tracker(check_uid);
+        auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
+                                       max_step);
+
+        if (isect.distance < min_step)
+        {
+            min_step          = isect.distance;
+            min_surface_local = isect.surface;
+            min_uid           = check_uid;
+        }
+
+        LevelStateAccessor lsa(&states_, thread_, LevelId{level});
+        next_check_uid = params_.volume_records[lsa.vol()].daughter;
+        ++level;
+    } while (check_uid != current_uid);
+
+    next_step_ = min_step;
+
+    // convert local to global surface
+    detail::UnitIndexer ui(params_.unit_indexer_data);
+
+    if (min_uid)
+    {
+        next_surface_ = celeritas::detail::OnSurface(
+            ui.global_surface(min_uid, min_surface_local.id()),
+            min_surface_local.unchecked_sense());
+    }
+    else
+    {
+        next_surface_ = min_surface_local;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -677,11 +681,12 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
 /*!
  * Create a local state.
  */
-CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state() const
+CELER_FUNCTION detail::LocalState
+               OrangeTrackView::make_local_state(LevelId level) const
 {
     detail::LocalState local;
 
-    LevelStateAccessor lsa(&states_, thread_, states_.level[thread_]);
+    LevelStateAccessor lsa(&states_, thread_, level);
 
     local.pos    = lsa.pos();
     local.dir    = lsa.dir();
