@@ -55,10 +55,12 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
 find Testing -name '*.xml'
   
 # Test examples against installed celeritas
+export CMAKE_PRESET
+export CELER_SOURCE_DIR
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  source ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
+  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
   || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
-  source ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
+  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 fi
