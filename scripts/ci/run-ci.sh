@@ -58,10 +58,10 @@ if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
   # Test installation
   cd ../scripts/ci
   export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  exec ./test-installation.sh
+  exec ./test-examples.sh
 elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
   || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
   # Test installation
   cd ../scripts/ci
-  exec ./test-installation.sh
+  exec ./test-examples.sh
 fi
