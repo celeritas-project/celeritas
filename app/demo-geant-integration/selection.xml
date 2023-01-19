@@ -4,6 +4,7 @@
     <class name="demo_geant::HitData" />
     <class name="demo_geant::HitRootEvent" />
     <class name="demo_geant::SensitiveHit" />
+    <class name="std::vector<G4VHit*>" />
     <class name="std::vector<demo_geant::SensitiveHit*>" />
     <class name="std::map<std::string, std::vector<G4VHit*> >" />
 </lcgdict>
