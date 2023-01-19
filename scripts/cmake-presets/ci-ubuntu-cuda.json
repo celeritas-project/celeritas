@@ -87,7 +87,7 @@
       "jobs": 16
     },
     {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
-    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
+    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base", "targets": ["all", "install"]},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
     {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
