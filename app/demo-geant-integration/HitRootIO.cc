@@ -26,15 +26,10 @@
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
 
-namespace
-{
-// Mutex within the HitRootIO scope
-G4Mutex HitRootIOMutex = G4MUTEX_INITIALIZER;
-}  // namespace
-
 namespace demo_geant
 {
 G4ThreadLocal HitRootIO* HitRootIO::instance_ = nullptr;
+G4Mutex HitRootIO::io_mutex_ = G4MUTEX_INITIALIZER;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -42,7 +37,7 @@ G4ThreadLocal HitRootIO* HitRootIO::instance_ = nullptr;
  */
 HitRootIO::HitRootIO()
 {
-    G4AutoLock lock(&HitRootIOMutex);
+    G4AutoLock lock(&io_mutex_);
     file_name_ = std::regex_replace(
         GlobalSetup::Instance()->GetSetupOptions()->output_file,
         std::regex("\\.json$"),
@@ -113,7 +108,7 @@ void HitRootIO::WriteHits(G4Event const* event)
     }
 
     // Write a HitRootEvent into output ROOT file
-    G4AutoLock lock(&HitRootIOMutex);
+    G4AutoLock lock(&io_mutex_);
     this->WriteObject(hit_event.release());
 }
 

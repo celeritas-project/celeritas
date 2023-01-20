@@ -80,6 +80,7 @@ class HitRootIO
     TTree* tree_{nullptr};
     TBranch* event_branch_{nullptr};
 
+    static G4Mutex io_mutex_;
     static G4ThreadLocal HitRootIO* instance_;
 };
 
