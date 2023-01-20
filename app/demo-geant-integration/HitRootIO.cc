@@ -45,8 +45,8 @@ HitRootIO::HitRootIO()
     G4AutoLock lock(&HitRootIOMutex);
     file_name_ = std::regex_replace(
         GlobalSetup::Instance()->GetSetupOptions()->output_file,
-        std::regex("json"),
-        "root");
+        std::regex("\\.json$"),
+        ".root");
 
     if (G4Threading::IsWorkerThread())
     {
@@ -60,6 +60,7 @@ HitRootIO::HitRootIO()
         CELER_VALIDATE(file_->IsOpen(), << "Failed to open " << file_name_);
         tree_ = new TTree(
             "Events", "Hit collections", this->SplitLevel(), file_);
+        G4AutoDelete::Register(file_);
         G4AutoDelete::Register(tree_);
     }
 }
@@ -131,8 +132,13 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
             this->SplitLevel());
         init_branch_ = true;
     }
+    else
+    {
+        event_branch_->SetAddress(&hit_event);
+    }
 
     tree_->Fill();
+    event_branch_->ResetAddress();
     file_->Write("", TObject::kOverwrite);
 }
 
@@ -191,9 +197,8 @@ void HitRootIO::Merge()
 
             TTree* tree = TTree::MergeTrees(list.get());
             tree->SetName("Events");
-            auto hit_event = std::make_unique<HitRootEvent>().release();
-            tree->SetBranchAddress("event.", &hit_event);
-            tree->Write();
+            //  Write both the TFile and TTree meta-data
+            file->Write();
             file->Close();
         }
         // Delete the merged file
