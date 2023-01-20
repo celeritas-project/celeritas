@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "HitRootIO.hh"
 
+#include <cstdio>
 #include <regex>
+
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -90,11 +92,11 @@ void HitRootIO::WriteHits(G4Event const* event)
     for (int i = 0; i < HCE->GetNumberOfCollections(); i++)
     {
         G4VHitsCollection* hc = HCE->GetHC(i);
-        G4String hcname = hc->GetName();
+	std::string hcname = hc->GetName();
         {
             std::vector<G4VHit*> hits;
-            G4int number_of_hits = hc->GetSize();
-            for (G4int j = 0; j < number_of_hits; ++j)
+            int number_of_hits = hc->GetSize();
+            for (int j = 0; j < number_of_hits; ++j)
             {
                 G4VHit* hit = hc->GetHit(j);
                 SensitiveHit* sd_hit = dynamic_cast<SensitiveHit*>(hit);
@@ -193,7 +195,7 @@ void HitRootIO::Merge()
             file->Close();
         }
         // Delete the merged file
-        CELER_TRY_HANDLE(remove(file_name.c_str()), call_g4exception);
+        CELER_TRY_HANDLE(std::remove(file_name.c_str()), call_g4exception);
     }
 }
 

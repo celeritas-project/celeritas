@@ -36,11 +36,11 @@ class HitRootEvent
   public:
     HitRootEvent() = default;
 
-    void SetEventID(G4int id) { event_id_ = id; }
+    void SetEventID(int id) { event_id_ = id; }
     HitContainer* GetHCMap() { return &hcmap_; }
 
   private:
-    G4int event_id_{0};
+    int event_id_{0};
     HitContainer hcmap_;
 };
 
@@ -77,7 +77,7 @@ class HitRootIO
     static constexpr short int SplitLevel() { return 99; }
 
   private:
-    G4bool init_branch_{false};
+    bool init_branch_{false};
     std::string file_name_;
     TFile* file_{nullptr};
     TTree* tree_{nullptr};
