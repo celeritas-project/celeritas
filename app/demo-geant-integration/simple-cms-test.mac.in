@@ -3,9 +3,9 @@
 /run/verbose 0
 /event/verbose 0
 
-/setup/setGeometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
-/setup/setEventFile @DEMO_EVENTS@
-/setup/setOutputFile simple-cms.out.json
+/setup/geometryFile @PROJECT_SOURCE_DIR@/app/data/simple-cms.gdml
+/setup/eventFile @DEMO_EVENTS@
+/setup/outputFile simple-cms.out.json
 /setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
 /setup/maxNumEvents 1024
 /setup/rootBufferSize 128000
