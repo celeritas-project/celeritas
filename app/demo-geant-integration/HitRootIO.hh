@@ -11,6 +11,7 @@
 #include <G4Types.hh>
 #include <G4VHit.hh>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
 class TFile;

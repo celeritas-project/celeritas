@@ -45,6 +45,18 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the filename of the event input read by HepMC3");
     }
     {
+        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
+                                                root_buffer_size_);
+        cmd.SetGuidance("Set the buffer size (bytes) of output root file");
+        cmd.SetDefaultValue(std::to_string(root_buffer_size_));
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("writeSDHits",
+                                                write_sd_hits_);
+        cmd.SetGuidance("Write a ROOT output file with hits from the SDs");
+        cmd.SetDefaultValue("false");
+    }
+    {
         auto& cmd = messenger_->DeclareProperty("outputFile",
                                                 options_->output_file);
         cmd.SetGuidance("Set the JSON output file name");
@@ -70,13 +82,6 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Set the number of secondary slots per track slot");
         options_->secondary_stack_factor = 3;
         cmd.SetDefaultValue(std::to_string(options_->secondary_stack_factor));
-    }
-    {
-        auto& cmd = messenger_->DeclareProperty("rootBufferSize",
-                                                options_->root_buffer_size);
-        cmd.SetGuidance("Set the buffer size (bytes) of output root file");
-        options_->root_buffer_size = 128000;
-        cmd.SetDefaultValue(std::to_string(options_->root_buffer_size));
     }
     {
         auto& cmd = messenger_->DeclareProperty(

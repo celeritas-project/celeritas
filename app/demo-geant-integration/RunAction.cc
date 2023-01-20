@@ -107,13 +107,11 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
 
-#if CELERITAS_USE_ROOT
-    if (options_->sd.write_hits)
+    if (GlobalSetup::Instance()->GetWriteSDHits())
     {
         // Close ROOT output of sensitive hits
         HitRootIO::GetInstance()->Close();
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//

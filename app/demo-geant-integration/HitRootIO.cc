@@ -119,7 +119,7 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
         event_branch_ = tree_->Branch(
             "event.",
             &hit_event,
-            GlobalSetup::Instance()->GetSetupOptions()->root_buffer_size,
+            GlobalSetup::Instance()->GetRootBufferSize(),
             this->SplitLevel());
         init_branch_ = true;
     }

@@ -30,11 +30,8 @@ struct SDSetupOptions
 
     //! Call back to Geant4 sensitive detectors
     bool enabled{false};
-
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
-    //! Write sensitive hits to a root file
-    bool write_hits{false};
     //! Save energy deposition
     bool energy_deposition{true};
     //! Set TouchableHandle for PreStepPoint
@@ -108,7 +105,6 @@ struct SetupOptions
     //!@{
     //! \name Sensitive detector options
     SDSetupOptions sd;
-    size_type root_buffer_size{};
     //!@}
 
     //!@{
