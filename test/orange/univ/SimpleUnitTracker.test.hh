@@ -8,8 +8,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "orange/LevelStateAccessor.hh"
 #include "orange/OrangeData.hh"
+#include "orange/detail/LevelStateAccessor.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 
 namespace celeritas
@@ -46,8 +46,8 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
     LocalState lstate;
 
     LevelStateAccessor lsa(&states, tid, LevelId{0});
-    lstate.pos    = lsa.pos();
-    lstate.dir    = lsa.dir();
+    lstate.pos = lsa.pos();
+    lstate.dir = lsa.dir();
     lstate.volume = lsa.vol();
 
     lstate.surface = {lsa.surf(), lsa.sense()};

@@ -12,9 +12,9 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "LevelStateAccessor.hh"
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
+#include "detail/LevelStateAccessor.hh"
 #include "detail/UnitIndexer.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/UniverseTypeTraits.hh"
