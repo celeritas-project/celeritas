@@ -36,6 +36,7 @@
 #include <G4PVDivision.hh>
 #include <G4PVParameterised.hh>
 #include <G4Para.hh>
+#include <G4Paraboloid.hh>
 #include <G4Polycone.hh>
 #include <G4Polyhedra.hh>
 #include <G4PropagatorInField.hh>
@@ -108,7 +109,7 @@ static constexpr double scale = 0.1; // G4 mm to VecGeom cm scale
 
 double TrapParametersGetZ(G4Trap const& t)
 {
-    const double* start = reinterpret_cast<const double*>(&t);
+    double const* start = reinterpret_cast<double const*>(&t);
 
     // 10 derives from sizeof(G4VSolid) + ... + offset
     auto r = start[11];
@@ -120,7 +121,7 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
                                           double&       theta,
                                           double&       phi)
 {
-    const double* start = reinterpret_cast<const double*>(&t);
+    double const* start = reinterpret_cast<double const*>(&t);
 //#define GEODEBUG 1
 #ifdef GEODEBUG
     std::cout << " - Extra check: Dz = " << t.GetZHalfLength()
@@ -318,7 +319,7 @@ void G4VecGeomConverter::ExtractReplicatedTransformations(
     }
     for (int r = 0; r < nReplicas; ++r)
     {
-        const auto translation = (-width * (nReplicas - 1) * 0.5 + r * width)
+        auto const translation = (-width * (nReplicas - 1) * 0.5 + r * width)
                                  * direction;
         auto tr = new Transformation3D(
             translation[0], translation[1], translation[2]);
@@ -330,13 +331,13 @@ std::vector<VPlacedVolume const*> const*
 G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
 {
     // WARN POTENTIALLY UNSUPPORTED CASE
-    if (dynamic_cast<const G4PVParameterised*>(node))
+    if (dynamic_cast<G4PVParameterised const*>(node))
     {
         std::cout << "WARNING: PARAMETRIZED VOLUME FOUND " << node->GetName()
                   << "\n";
     }
     fReplicaTransformations.clear();
-    if (auto replica = dynamic_cast<const G4PVReplica*>(node))
+    if (auto replica = dynamic_cast<G4PVReplica const*>(node))
     {
         std::cout << "INFO: REPLICA VOLUME FOUND " << replica->GetName()
                   << "\n";
@@ -344,7 +345,7 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
         ExtractReplicatedTransformations(*replica, fReplicaTransformations);
 #endif
     }
-    if (dynamic_cast<const G4PVDivision*>(node))
+    if (dynamic_cast<G4PVDivision const*>(node))
     {
         std::cout << "WARNING: DIVISION VOLUME FOUND " << node->GetName()
                   << "\n";
@@ -357,7 +358,7 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
     }
 
     // convert node transformation
-    const auto transformation
+    auto const transformation
         = Convert(node->GetTranslation(), node->GetRotation());
     if (fReplicaTransformations.size() == 0)
     {
@@ -366,14 +367,14 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
 
     auto vgvector = new std::vector<VPlacedVolume const*>;
 
-    const auto     g4logical      = node->GetLogicalVolume();
+    auto const g4logical = node->GetLogicalVolume();
     LogicalVolume* logical_volume = Convert(g4logical);
 
     // place (all replicas here) ... if normal we will only have one
     // transformation
     for (auto& transf : fReplicaTransformations)
     {
-        const VPlacedVolume* placed_volume
+        VPlacedVolume const* placed_volume
             = logical_volume->Place(node->GetName(), transf);
         vgvector->emplace_back(placed_volume);
     }
@@ -389,8 +390,8 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
 
     for (int i = 0; i < remaining_daughters; ++i)
     {
-        const auto daughter_node = g4logical->GetDaughter(i);
-        const auto placedvector  = Convert(daughter_node);
+        auto const daughter_node = g4logical->GetDaughter(i);
+        auto const placedvector = Convert(daughter_node);
         for (auto placed : *placedvector)
         {
             logical_volume->PlaceDaughter((VPlacedVolume*)placed);
@@ -453,9 +454,9 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
             logical_volume->GetUnplacedVolume())
         && !dynamic_cast<G4BooleanSolid const*>(volume->GetSolid()))
     {
-        const auto v1 = logical_volume->GetUnplacedVolume()->Capacity()
+        auto const v1 = logical_volume->GetUnplacedVolume()->Capacity()
                         / ipow<3>(scale);
-        const auto v2 = volume->GetSolid()->GetCubicVolume();
+        auto const v2 = volume->GetSolid()->GetCubicVolume();
         if (fabs((v1 / v2) - 1.0) > 0.05)
         {
             std::cerr << volume->GetName() << " capacities: VG=" << v1
@@ -527,7 +528,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     {
         auto params = p->GetOriginalParameters();
         // fix dimensions - (requires making a copy of some arrays)
-        const int                 NZs = params->Num_z_planes;
+        int const NZs = params->Num_z_planes;
         std::unique_ptr<double[]> zs(new double[NZs]);    // double zs[NZs];
         std::unique_ptr<double[]> rmins(new double[NZs]); // double rmins[NZs];
         std::unique_ptr<double[]> rmaxs(new double[NZs]); // double rmaxs[NZs];
@@ -551,11 +552,11 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     {
         auto params = pgon->GetOriginalParameters();
         // G4 has a different radius conventions (than TGeo, gdml, VecGeom)!
-        const double convertRad
+        double const convertRad
             = std::cos(0.5 * params->Opening_angle / params->numSide);
 
         // fix dimensions - (requires making a copy of some arrays)
-        const int                 NZs = params->Num_z_planes;
+        int const NZs = params->Num_z_planes;
         std::unique_ptr<double[]> zs(new double[NZs]);    // double zs[NZs];
         std::unique_ptr<double[]> rmins(new double[NZs]); // double rmins[NZs];
         std::unique_ptr<double[]> rmaxs(new double[NZs]); // double rmaxs[NZs];
@@ -726,11 +727,11 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         G4ThreeVector anchor, p1, p2, p3;
         tet->GetVertices(anchor, p1, p2, p3);
         // Else use std::vector<G4ThreeVector> vertices = tet->GetVertices();
-        const Vector3D<Precision> pt0(
+        Vector3D<Precision> const pt0(
             anchor.getX(), anchor.getY(), anchor.getZ());
-        const Vector3D<Precision> pt1(p1.getX(), p1.getY(), p1.getZ());
-        const Vector3D<Precision> pt2(p2.getX(), p2.getY(), p2.getZ());
-        const Vector3D<Precision> pt3(p3.getX(), p3.getY(), p3.getZ());
+        Vector3D<Precision> const pt1(p1.getX(), p1.getY(), p1.getZ());
+        Vector3D<Precision> const pt2(p2.getX(), p2.getY(), p2.getZ());
+        Vector3D<Precision> const pt3(p3.getX(), p3.getY(), p3.getZ());
         unplaced_volume = GeoManager::MakeInstance<UnplacedTet>(
             scale * pt0, scale * pt1, scale * pt2, scale * pt3);
     }
@@ -740,7 +741,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     {
         // auto params = p->GetOriginalParameters();
         // fix dimensions - (requires making a copy of some arrays)
-        const int                 nVtx = gt->GetNofVertices();
+        int const nVtx = gt->GetNofVertices();
         std::unique_ptr<double[]> vx(new double[nVtx]);
         std::unique_ptr<double[]> vy(new double[nVtx]);
         for (int i = 0; i < nVtx; ++i)
@@ -757,7 +758,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     else if (auto gp = dynamic_cast<G4GenericPolycone const*>(shape))
     {
         // fix dimensions - (requires making a copy of some arrays)
-        const int                 nRZs = gp->GetNumRZCorner();
+        int const nRZs = gp->GetNumRZCorner();
         std::unique_ptr<double[]> zs(new double[nRZs]);
         std::unique_ptr<double[]> rs(new double[nRZs]);
         for (int i = 0; i < nRZs; ++i)
@@ -783,13 +784,13 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         UnplacedTessellated* unpvol
             = static_cast<UnplacedTessellated*>(unplaced_volume);
 
-        const int                 nFacets = tess->GetNumberOfFacets();
+        int const nFacets = tess->GetNumberOfFacets();
         std::unique_ptr<Vertex[]> vtx(new Vertex[4]); // 3- or 4-side facets
                                                       // only
         for (int i = 0; i < nFacets; ++i)
         {
-            const G4VFacet* facet = tess->GetFacet(i);
-            const int       nVtx  = facet->GetNumberOfVertices();
+            G4VFacet const* facet = tess->GetFacet(i);
+            int const nVtx = facet->GetNumberOfVertices();
             for (int iv = 0; iv < nVtx; ++iv)
             {
                 auto vxg4 = facet->GetVertex(iv);
@@ -823,6 +824,15 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             Vector3D<Precision>(lowNorm[0], lowNorm[1], lowNorm[2]),
             Vector3D<Precision>(hiNorm[0], hiNorm[1], hiNorm[2]));
         // TODO: consider moving this as a specialization to UnplacedTube
+    }
+
+    // Paraboloid
+    else if (auto pb = dynamic_cast<G4Paraboloid const*>(shape))
+    {
+        unplaced_volume = GeoManager::MakeInstance<UnplacedParaboloid>(
+            scale * pb->GetRadiusMinusZ(),
+            scale * pb->GetRadiusPlusZ(),
+            scale * pb->GetZHalfLength());
     }
 
     // Boolean volumes
@@ -931,18 +941,6 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
 #endif
     }
-
-    //  // Paraboloid
-    //  if (shape->IsA() == TGeoParaboloid::Class()) {
-    //    TGeoParaboloid const *const p = static_cast<TGeoParaboloid const
-    //    *>(shape);
-    //
-    //    unplaced_volume =
-    //    GeoManager::MakeInstance<UnplacedParaboloid>(
-    //        scale * p->GetRlo() * LUnit(),
-    //        scale * p->GetRhi() * LUnit(),
-    //        scale * p->GetDz() * LUnit());
-    //  }
 
 #ifdef CHECK_CAPACITY
     // Check capacity as a 'soft' confirmation that the shape / solid was
