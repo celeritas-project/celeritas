@@ -29,7 +29,7 @@ SPDX-License-Identifier: (Apache-2.0 OR MIT)
 <class name="celeritas::ImportData::ImportAtomicRelaxationMap" />
 <class name="celeritas::ImportData" />
 
-<class name="map<int,celeritas::ImportProductionCut>" />
-<class name="map<celeritas::ImportModelClass,vector<vector<celeritas::ImportPhysicsVector> > >" />
+<class name="std::map<int,celeritas::ImportProductionCut>" />
+<class name="std::map<celeritas::ImportModelClass,std::vector<vector<celeritas::ImportPhysicsVector> > >" />
 
 </rootdict>
