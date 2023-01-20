@@ -89,7 +89,7 @@ acceptance of all terms of the Geant4 Software license.
    <composite n="1" ref="Oxygen"/>
   </material>
   <material name="Air">
-   <D value="1.290" unit="mg/cm3"/>
+   <!--D value="1.290" unit="mg/cm3"/-->
    <fraction n="0.7" ref="Nitrogen"/>
    <fraction n="0.3" ref="Oxygen"/>
   </material>
@@ -377,13 +377,13 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="identity"/>
    </physvol>
 
-  <physvol>
+   <physvol>
      <volumeref ref="genPocone1"/>
      <positionref ref="posGenPocone1"/>
      <rotationref ref="identity"/>
    </physvol>
 
-    <physvol>
+   <physvol>
      <volumeref ref="ellipsoid1"/>
      <positionref ref="posEllipso1"/>
      <rotationref ref="identity"/>
