@@ -425,9 +425,6 @@ TEST_F(SolidsTest, accessors)
     }
 
     auto const& geom = *this->geometry();
-    // TODO: there are 27 actual solids, but there are a few "unused" volumes
-    // created during construction, and different versions of VecGeom are
-    // missing different solids (and thus are missing volumes!)
     EXPECT_EQ(25, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
@@ -491,14 +488,14 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 class FourLevelsGeantTest : public GeantBuilderTestBase
 {
   public:
-    const char* geometry_basename() const final { return "four-levels"; }
+    char const* geometry_basename() const final { return "four-levels"; }
 };
 
 //---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsGeantTest, accessors)
 {
-    const auto& geom = *this->geometry();
+    auto const& geom = *this->geometry();
     EXPECT_EQ(4, geom.num_volumes());
     EXPECT_EQ(4, geom.max_depth());
 
@@ -516,7 +513,7 @@ TEST_F(FourLevelsGeantTest, tracking)
         SCOPED_TRACE("Rightward");
         auto result = this->track({-10, -10, -10}, {1, 0, 0});
         // result.print_expected();
-        static const char* const expected_volumes[] = {"Shape2",
+        static char const* const expected_volumes[] = {"Shape2",
                                                        "Shape1",
                                                        "Envelope",
                                                        "World",
@@ -534,7 +531,7 @@ TEST_F(FourLevelsGeantTest, tracking)
     {
         SCOPED_TRACE("From outside edge");
         auto result = this->track({-24, 10., 10.}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"[OUTSIDE]",
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
                                                        "Shape1",
@@ -556,7 +553,7 @@ TEST_F(FourLevelsGeantTest, tracking)
     {
         SCOPED_TRACE("Leaving world");
         auto result = this->track({-10, 10, 10}, {0, 1, 0});
-        static const char* const expected_volumes[]
+        static char const* const expected_volumes[]
             = {"Shape2", "Shape1", "Envelope", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {5, 1, 2, 6};
@@ -565,7 +562,7 @@ TEST_F(FourLevelsGeantTest, tracking)
     {
         SCOPED_TRACE("Upward");
         auto result = this->track({-10, 10, 10}, {0, 0, 1});
-        static const char* const expected_volumes[]
+        static char const* const expected_volumes[]
             = {"Shape2", "Shape1", "Envelope", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static const real_type expected_distances[] = {5, 1, 3, 5};
@@ -575,7 +572,7 @@ TEST_F(FourLevelsGeantTest, tracking)
         // Formerly in linear propagator test, used to fail
         SCOPED_TRACE("From just outside world");
         auto result = this->track({-24, 10, 10}, {1, 0, 0});
-        static const char* const expected_volumes[] = {"[OUTSIDE]",
+        static char const* const expected_volumes[] = {"[OUTSIDE]",
                                                        "World",
                                                        "Envelope",
                                                        "Shape1",
