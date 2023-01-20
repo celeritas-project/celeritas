@@ -153,20 +153,6 @@ if(CELERITAS_USE_ROOT)
   # functions set this to the same value for our targets.
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CELERITAS_LIBRARY_OUTPUT_DIRECTORY})
 
-  # Generate the dictionary source file
-  root_generate_dictionary(CeleritasRootInterface
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportMaterial.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportParticle.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsTable.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
-    NOINSTALL
-    MODULE celeritas
-    LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
-  )
   celeritas_add_object_library(celeritas_root
     ext/RootExporter.cc
     ext/RootImporter.cc
@@ -174,12 +160,21 @@ if(CELERITAS_USE_ROOT)
     ext/detail/RootUniquePtr.root.cc
     io/RootFileManager.cc
     io/RootStepWriter.cc
-    "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
   target_link_libraries(celeritas_root
     PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
   )
+  # reflex_generate_dictionary will only look at the include directories if
+  # its first argument is a target (and it does not recurse to the target's
+  # dependencies)
+  target_include_directories(celeritas_root PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+  reflex_generate_dictionary(celeritas_root
+    "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceClasses.hh"
+    SELECTION "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterface_sel.xml"
+    OPTIONS "-llibceleritas.so"  # equivalent to root_generate_dictionary MODULE option
+  )
+  target_sources(celeritas_root PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/celeritas_root.cxx")
 
   # Install the rootmap/pcm files needed for users or downstream apps to use
   # Celeritas ROOT interfaces

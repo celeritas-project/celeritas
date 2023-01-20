@@ -1,0 +1,36 @@
+<!-- 
+Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+See the top-level COPYRIGHT file for details.
+SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+\file celeritas/ext/RootInterface_sel.xml
+\brief Define the classes added to the ROOT dictionary
+-->
+<rootdict>
+
+// clang-format off
+<class name="celeritas::ImportParticle" />
+<class name="celeritas::ImportProcess" />
+<class name="celeritas::ImportPhysicsTable" />
+<class name="celeritas::ImportPhysicsVector" />
+<class name="celeritas::ImportMaterial" />
+<class name="celeritas::ImportProductionCut" />
+<class name="celeritas::ImportMatElemComponent" />
+<class name="celeritas::ImportElement" />
+<class name="celeritas::ImportVolume" />
+<class name="celeritas::ImportSBTable" />
+<class name="celeritas::ImportLivermoreSubshell" />
+<class name="celeritas::ImportLivermorePE" />
+<class name="celeritas::ImportAtomicTransition" />
+<class name="celeritas::ImportAtomicSubshell" />
+<class name="celeritas::ImportAtomicRelaxation" />
+<class name="celeritas::ImportEmParameters" />
+<class name="celeritas::ImportData::ImportSBMap" />
+<class name="celeritas::ImportData::ImportLivermorePEMap" />
+<class name="celeritas::ImportData::ImportAtomicRelaxationMap" />
+<class name="celeritas::ImportData" />
+
+<class name="map<int,celeritas::ImportProductionCut>" />
+<class name="map<celeritas::ImportModelClass,vector<vector<celeritas::ImportPhysicsVector> > >" />
+
+</rootdict>

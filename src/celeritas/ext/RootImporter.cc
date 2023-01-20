@@ -21,7 +21,7 @@
 // initialize ROOT. It's not necessary for shared libraries (due to static
 // initialization shenanigans) but is needed for static libs. The name is a
 // function of the name passed to the MODULE argument of
-// the cmake root_generate_dictionary command.
+// the cmake reflex_generate_dictionary command.
 void TriggerDictionaryInitialization_libceleritas();
 
 namespace celeritas
