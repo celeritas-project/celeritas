@@ -8,7 +8,6 @@ SPDX-License-Identifier: (Apache-2.0 OR MIT)
 -->
 <rootdict>
 
-// clang-format off
 <class name="celeritas::ImportParticle" />
 <class name="celeritas::ImportProcess" />
 <class name="celeritas::ImportPhysicsTable" />
