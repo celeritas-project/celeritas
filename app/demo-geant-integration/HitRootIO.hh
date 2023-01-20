@@ -11,6 +11,8 @@
 #include <G4Types.hh>
 #include <G4VHit.hh>
 
+#include "corecel/Assert.hh"
+
 class TFile;
 class TTree;
 class TBranch;
@@ -82,6 +84,23 @@ class HitRootIO
 
     static G4ThreadLocal HitRootIO* instance_;
 };
+
+#if !CELERITAS_USE_ROOT
+inline HitRootIO* HitRootIO::GetInstance()
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline void HitRootIO::WriteHits(G4Event const*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+inline void HitRootIO::Close()
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace demo_geant

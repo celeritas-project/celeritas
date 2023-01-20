@@ -17,7 +17,6 @@
 #include <TROOT.h>
 #include <TTree.h>
 
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "accel/ExceptionConverter.hh"

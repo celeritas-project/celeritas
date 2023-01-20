@@ -42,15 +42,19 @@ void EventAction::BeginOfEventAction(G4Event const* event)
  */
 void EventAction::EndOfEventAction(G4Event const* event)
 {
+    CELER_ENSURE(event);
+
     // Transport any tracks left in the buffer
     celeritas::ExceptionConverter call_g4exception{"celer0004"};
     CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
 
+#if CELERITAS_USE_ROOT
     if (GlobalSetup::Instance()->GetSetupOptions()->sd.write_hits)
     {
         // Write sensitive hits
         HitRootIO::GetInstance()->WriteHits(event);
     }
+#endif
 }
 
 //---------------------------------------------------------------------------//
