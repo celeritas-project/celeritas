@@ -63,7 +63,7 @@ class HepMC3PrimaryGenerator final : public G4VPrimaryGenerator
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_HEPMC3
-inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
+inline HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const&)
 {
     CELER_NOT_CONFIGURED("HepMC3");
     (void)sizeof(world_solid_);
