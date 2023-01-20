@@ -122,22 +122,9 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
                                           double&       phi)
 {
     double const* start = reinterpret_cast<double const*>(&t);
-//#define GEODEBUG 1
-#ifdef GEODEBUG
-    std::cout << " - Extra check: Dz = " << t.GetZHalfLength()
-              << " double[8-12]:" << ' ' << start[8] << ' ' << start[9] << ' '
-              << start[10] << ' ' << start[11] << ' ' << start[12] << "\n";
-    std::cout << " - Extra check: tan(alpha1) = " << t.GetTanAlpha1()
-              << " vs double[13-17] = " << start[13] << ' ' << start[14] << ' '
-              << start[15] << ' ' << start[16] << ' ' << start[17] << "\n";
-    std::cout << " - Extra check: tan(alpha2) = " << t.GetTanAlpha2()
-              << " vs double[18-21] = " << start[18] << ' ' << start[19] << ' '
-              << start[20] << ' ' << start[21] << "\n";
-#endif
-
     assert(t.GetZHalfLength() == start[11]);
-    double x_peek = start[11]; // tan(theta)*cos(phi)
-    double y_peek = start[12]; // tan(theta)*sin(phi)
+    double x_peek = start[11];
+    double y_peek = start[12];
 
     if (x_peek == 0. && y_peek == 0.)
     {
@@ -150,21 +137,6 @@ void TrapParametersGetOriginalThetaAndPhi(G4Trap const& t,
         phi   = std::atan2(y_peek, x_peek);
         theta = std::atan2(x_peek, cos(phi));
     }
-
-#ifdef GEODEBUG
-    G4double g4theta = t.GetTheta();
-    G4double g4phi   = t.GetPhi();
-    std::cout << " <ChangedGeant4> Trap : name " << t.GetName()
-              << " 'computed' parameters:  "
-              << " a) theta = " << theta << " vs g4 " << g4theta
-              << " diff = " << theta - g4theta << "\n"
-              << " b) phi   = " << phi << " vs g4 " << g4phi << " diff = "
-              << phi - g4phi
-              // << " Next values = " << start[12] << " , " << start[13]
-              << "\n";
-    theta = g4theta; // t.GetTheta();
-    phi   = g4phi;   // t.GetPhi();
-#endif
 }
 
 void InitVecGeomNavigators()
@@ -461,8 +433,8 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
         {
             std::cerr << volume->GetName() << " capacities: VG=" << v1
                       << "  G4=" << v2;
-            //        << "\n VG Volume: ";
-            //  logical_volume->GetUnplacedVolume()->Print();
+            // std::cerr << "\n VG Volume: ";
+            // logical_volume->GetUnplacedVolume()->Print();
             // std::cerr <<"G4 volume: ";
             // volume->GetSolid()->StreamInfo(std::cerr);
             std::cerr << std::endl;

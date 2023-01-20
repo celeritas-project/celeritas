@@ -71,8 +71,8 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
 
     // Convert the geometry to VecGeom
     detail::g4_to_vecgeom(world, /* verbose = */ true);
-    CELER_LOG(info) << "Converted: max_depth = "
-                    << vecgeom::GeoManager::Instance().getMaxDepth();
+    CELER_LOG(debug) << "Converted: max_depth = "
+                     << vecgeom::GeoManager::Instance().getMaxDepth();
 
     //.. dump VecGeom geometry details for comparison
     vecgeom::VPlacedVolume const* vgWorld
