@@ -361,7 +361,7 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration
       ${ROOT_INCLUDE_DIRS} ${Geant4_INCLUDE_DIR}
     )
-    REFLEX_GENERATE_DICTIONARY(HitClasses
+    reflex_generate_dictionary(HitClasses
       demo-geant-integration/HitClasses.hh
       SELECTION demo-geant-integration/selection.xml
     )
