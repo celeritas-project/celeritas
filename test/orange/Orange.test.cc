@@ -559,15 +559,15 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
 TEST_F(UniversesTest, boundary_crossing_multiple_universes)
 {
-    // auto geo = this->make_track_view();
+    auto geo = this->make_track_view();
 
-    //// Initialize in outermost universe
-    // geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
-    // EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
-    // EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    // EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
-    // EXPECT_FALSE(geo.is_outside());
-    // EXPECT_FALSE(geo.is_on_boundary());
+    // Initialize in outermost universe
+    geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // auto next = geo.find_next_step();
     // EXPECT_SOFT_EQ(1.0, next.distance);
@@ -575,12 +575,10 @@ TEST_F(UniversesTest, boundary_crossing_multiple_universes)
     // std::cout<<"NEXT
     // BOUNDARY"<<this->params().id_to_label(geo.next_surface_id())<<std::endl;
 
-    /////////////////////
-
     // geo = Initializer_t{{0.5, -2, 1}, {-1, 0, 0}};
     // EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
 
-    // auto next = geo.find_next_step();
+    // next = geo.find_next_step();
 
     // EXPECT_SOFT_EQ(0.5, next.distance);
     // EXPECT_TRUE(next.boundary);

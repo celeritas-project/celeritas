@@ -27,9 +27,13 @@ class LevelStateAccessor
 
   public:
     // Construct from states and indices
-    explicit inline CELER_FUNCTION LevelStateAccessor(const StateRef* states,
+    explicit inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
                                                       ThreadId thread_id,
-                                                      LevelId  level_id);
+                                                      LevelId level_id);
+
+    // Construct from states and indices at the current level
+    explicit inline CELER_FUNCTION
+    LevelStateAccessor(StateRef const* states, ThreadId thread_id);
 
     CELER_FUNCTION VolumeId vol()
     {
@@ -102,7 +106,7 @@ class LevelStateAccessor
     }
 
   private:
-    const StateRef* states_;
+    StateRef const* states_;
     const size_type index_;
 };
 
@@ -113,13 +117,26 @@ class LevelStateAccessor
  * Construct from states and indices
  */
 CELER_FUNCTION
-LevelStateAccessor::LevelStateAccessor(const StateRef* states,
-                                       ThreadId        thread_id,
-                                       LevelId         level_id)
+LevelStateAccessor::LevelStateAccessor(StateRef const* states,
+                                       ThreadId thread_id,
+                                       LevelId level_id)
     : states_(states)
     , index_(thread_id.get() * OrangeParamsScalars::max_level + level_id.get())
 {
 }
 
 //---------------------------------------------------------------------------//
-} // namespace celeritas
+/*!
+ * Construct from states and indices at the current level
+ */
+CELER_FUNCTION
+LevelStateAccessor::LevelStateAccessor(StateRef const* states,
+                                       ThreadId thread_id)
+    : states_(states)
+    , index_(thread_id.get() * OrangeParamsScalars::max_level
+             + states_->level[thread_id].get())
+{
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
