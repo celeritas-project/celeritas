@@ -336,8 +336,11 @@ endif()
 # DEMO: Geant4 integration
 #-----------------------------------------------------------------------------#
 function(celeritas_reflex_generate_dictionary)
-  # Inform ROOT scripts of include directories
+  # Inform ROOT scripts of include directories since it can't pull them through
+  # targets
   include_directories(
+    "${PROJECT_SOURCE_DIR}/src"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
     "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration"
     ${ROOT_INCLUDE_DIRS}
     ${Geant4_INCLUDE_DIRS}
