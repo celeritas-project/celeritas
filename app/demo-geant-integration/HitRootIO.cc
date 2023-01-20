@@ -8,13 +8,13 @@
 #include "HitRootIO.hh"
 
 #include <regex>
-#include <G4AutoDelete.hh>
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TObject.h>
+#include <TROOT.h>
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
@@ -29,7 +29,6 @@
 namespace demo_geant
 {
 G4ThreadLocal HitRootIO* HitRootIO::instance_ = nullptr;
-G4Mutex HitRootIO::io_mutex_ = G4MUTEX_INITIALIZER;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -37,7 +36,8 @@ G4Mutex HitRootIO::io_mutex_ = G4MUTEX_INITIALIZER;
  */
 HitRootIO::HitRootIO()
 {
-    G4AutoLock lock(&io_mutex_);
+    ROOT::EnableThreadSafety();
+
     file_name_ = std::regex_replace(
         GlobalSetup::Instance()->GetSetupOptions()->output_file,
         std::regex("\\.json$"),
@@ -55,8 +55,6 @@ HitRootIO::HitRootIO()
         CELER_VALIDATE(file_->IsOpen(), << "Failed to open " << file_name_);
         tree_ = new TTree(
             "Events", "Hit collections", this->SplitLevel(), file_);
-        G4AutoDelete::Register(file_);
-        G4AutoDelete::Register(tree_);
     }
 }
 
@@ -108,7 +106,6 @@ void HitRootIO::WriteHits(G4Event const* event)
     }
 
     // Write a HitRootEvent into output ROOT file
-    G4AutoLock lock(&io_mutex_);
     this->WriteObject(hit_event.release());
 }
 
