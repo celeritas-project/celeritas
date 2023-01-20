@@ -8,6 +8,6 @@
 /setup/outputFile simple-cms.out.json
 /setup/maxNumTracks @DEMO_MAX_NUM_TRACKS@
 /setup/maxNumEvents 1024
-/setup/rootBufferSize 128000
+@DEMO_ROOT_OPTIONS@
 /setup/secondaryStackFactor 3
 /setup/initializerCapacity @DEMO_INIT_CAPACITY@

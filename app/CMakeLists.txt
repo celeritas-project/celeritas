@@ -399,7 +399,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       set(DEMO_EVENTS
         "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarbits-12evt-118prim.hepmc3")
     endif()
-
+    if(CELERITAS_USE_ROOT)
+      set(DEMO_ROOT_OPTIONS "/setup/rootBufferSize 128000
+/setup/writeSDHits true")
+    endif()
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY
