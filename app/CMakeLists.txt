@@ -335,6 +335,16 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: Geant4 integration
 #-----------------------------------------------------------------------------#
+function(celeritas_reflex_generate_dictionary)
+  # Inform ROOT scripts of include directories
+  include_directories(
+    "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration"
+    ${ROOT_INCLUDE_DIRS}
+    ${Geant4_INCLUDE_DIRS}
+    ${CLHEP_INCLUDE_DIRS}
+  )
+  reflex_generate_dictionary(${ARGN})
+endfunction()
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   set(_demo_geant_integration_src
@@ -353,20 +363,15 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   set(_demo_geant_integration_libs Celeritas::accel)
 
   if(CELERITAS_USE_ROOT)
-    list(APPEND _demo_geant_integration_src
-      demo-geant-integration/HitRootIO.cc
-    )
-    list(APPEND _demo_geant_integration_libs ROOT::Tree HitClassesDict)
-    include_directories(
-      ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration
-      ${ROOT_INCLUDE_DIRS} ${Geant4_INCLUDE_DIR}
-    )
-    reflex_generate_dictionary(HitClasses
+    celeritas_reflex_generate_dictionary(HitClasses
       demo-geant-integration/HitClasses.hh
       SELECTION demo-geant-integration/selection.xml
     )
-    add_library(HitClassesDict SHARED HitClasses.cxx)
-    target_link_libraries(HitClassesDict ${ROOT_LIBRARIES} ${Geant4_LIBRARIES})
+    list(APPEND _demo_geant_integration_src
+      "${CMAKE_CURRENT_BINARY_DIR}/HitClasses.cxx"
+      demo-geant-integration/HitRootIO.cc
+    )
+    list(APPEND _demo_geant_integration_libs ROOT::Tree)
   endif()
 
   add_executable(demo-geant-integration ${_demo_geant_integration_src})
