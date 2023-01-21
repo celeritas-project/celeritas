@@ -689,7 +689,9 @@ OrangeTrackView::make_local_state(LevelId level) const
 
     local.pos = lsa.pos();
     local.dir = lsa.dir();
-    local.volume = lsa.vol();
+
+    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
+    local.volume = unit_indexer.local_volume(lsa.vol()).volume;
 
     local.surface = {lsa.surf(), lsa.sense()};
     local.temp_sense = this->make_temp_sense();
