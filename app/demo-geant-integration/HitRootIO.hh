@@ -82,8 +82,6 @@ class HitRootIO
     TFile* file_{nullptr};
     TTree* tree_{nullptr};
     TBranch* event_branch_{nullptr};
-
-    static G4ThreadLocal HitRootIO* instance_;
 };
 
 #if !CELERITAS_USE_ROOT
