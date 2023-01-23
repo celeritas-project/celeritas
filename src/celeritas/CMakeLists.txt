@@ -174,6 +174,17 @@ if(CELERITAS_USE_ROOT)
     SELECTION "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterface_sel.xml"
     OPTIONS "-llibceleritas.so"  # equivalent to root_generate_dictionary MODULE option
   )
+  # We need to copy the auxiliary files to be next to the library in order for them
+  # to be properly loaded.
+  add_custom_command(TARGET celeritas_root-dictgen POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+           ${CMAKE_CURRENT_BINARY_DIR}/celeritas_rootDict.rootmap
+           ${CMAKE_CURRENT_BINARY_DIR}/libceleritas_rdict.pcm
+           ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+  )
+  # Add the dictionary source file to the library; we can only do this after the
+  # fact as reflex_generate_dictionary need to target/library to be already declared
+  # in order for the include directive to be used.
   target_sources(celeritas_root PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/celeritas_root.cxx")
 
   # Install the rootmap/pcm files needed for users or downstream apps to use
@@ -182,8 +193,8 @@ if(CELERITAS_USE_ROOT)
     "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}celeritas"
   )
   install(FILES
-    "${_lib_prefix}.rootmap"
-    "${_lib_prefix}_rdict.pcm"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/celeritas_rootDict.rootmap"
+    "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libceleritas_rdict.pcm"
     COMPONENT runtime
     DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   )
