@@ -9,7 +9,6 @@
 
 #include <cstdio>
 #include <regex>
-
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -29,8 +28,6 @@
 
 namespace demo_geant
 {
-G4ThreadLocal HitRootIO* HitRootIO::instance_ = nullptr;
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a ROOT output file for each worker except the master thread if MT
@@ -65,12 +62,8 @@ HitRootIO::HitRootIO()
  */
 HitRootIO* HitRootIO::GetInstance()
 {
-    if (instance_ == nullptr)
-    {
-        static G4ThreadLocalSingleton<HitRootIO> instance;
-        instance_ = instance.Instance();
-    }
-    return instance_;
+    static G4ThreadLocalSingleton<HitRootIO> instance;
+    return instance.Instance();
 }
 
 //---------------------------------------------------------------------------//
@@ -92,7 +85,7 @@ void HitRootIO::WriteHits(G4Event const* event)
     for (int i = 0; i < HCE->GetNumberOfCollections(); i++)
     {
         G4VHitsCollection* hc = HCE->GetHC(i);
-	std::string hcname = hc->GetName();
+        std::string hcname = hc->GetName();
         {
             std::vector<G4VHit*> hits;
             int number_of_hits = hc->GetSize();
@@ -112,17 +105,17 @@ void HitRootIO::WriteHits(G4Event const* event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill and write a HitRootEvent object
+ * Fill a HitRootEvent object
  */
 void HitRootIO::WriteObject(HitRootEvent* hit_event)
 {
     if (!init_branch_)
     {
-        event_branch_ = tree_->Branch(
-            "event.",
-            &hit_event,
-            GlobalSetup::Instance()->GetRootBufferSize(),
-            this->SplitLevel());
+        event_branch_
+            = tree_->Branch("event.",
+                            &hit_event,
+                            GlobalSetup::Instance()->GetRootBufferSize(),
+                            this->SplitLevel());
         init_branch_ = true;
     }
     else
@@ -132,12 +125,11 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 
     tree_->Fill();
     event_branch_->ResetAddress();
-    file_->Write("", TObject::kOverwrite);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Close or Merge output
+ * Write, and Close or Merge output
  */
 void HitRootIO::Close()
 {
@@ -145,6 +137,7 @@ void HitRootIO::Close()
     {
         CELER_LOG(info) << "Writing hit ROOT output to " << file_name_ << "\"";
         file_ = tree_->GetCurrentFile();
+        file_->Write("", TObject::kOverwrite);
         file_->Close();
     }
     else
@@ -153,6 +146,10 @@ void HitRootIO::Close()
         if (G4Threading::IsMasterThread())
         {
             this->Merge();
+        }
+        else
+        {
+            file_->Write("", TObject::kOverwrite);
         }
     }
 }
