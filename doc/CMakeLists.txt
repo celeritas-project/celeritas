@@ -142,7 +142,10 @@ set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
 if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}-dev")
+  math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+  set(Celeritas_SHORT_VERSION
+    "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
+  )
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
