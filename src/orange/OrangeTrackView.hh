@@ -78,28 +78,15 @@ class OrangeTrackView
     //// ACCESSORS ////
 
     //! The current position
-    CELER_FUNCTION const Real3 pos() const { return this->make_lsa().pos(); }
-
+    CELER_FORCEINLINE_FUNCTION const Real3 pos() const;
     //! The current direction
-    CELER_FUNCTION const Real3 dir() const { return this->make_lsa().dir(); }
-
+    CELER_FORCEINLINE_FUNCTION const Real3 dir() const;
     //! The current volume ID (null if outside)
-    CELER_FUNCTION VolumeId volume_id() const
-    {
-        return this->make_lsa().vol();
-    }
-
+    CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
     //! The current surface ID
-    CELER_FUNCTION SurfaceId surface_id() const
-    {
-        return this->make_lsa().surf();
-    }
-
+    CELER_FORCEINLINE_FUNCTION SurfaceId surface_id() const;
     //! After 'find_next_step', the next straight-line surface
-    CELER_FUNCTION SurfaceId next_surface_id() const
-    {
-        return next_surface_.id();
-    }
+    CELER_FORCEINLINE_FUNCTION SurfaceId next_surface_id() const;
     // Whether the track is outside the valid geometry region
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
@@ -289,6 +276,51 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current position
+ */
+CELER_FUNCTION const Real3 OrangeTrackView::pos() const
+{
+    return this->make_lsa().pos();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current direction
+ */
+CELER_FUNCTION const Real3 OrangeTrackView::dir() const
+{
+    return this->make_lsa().dir();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current volume ID (null if outside)
+ */
+CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
+{
+    return this->make_lsa().vol();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current surface ID
+ */
+CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
+{
+    return this->make_lsa().surf();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After 'find_next_step', the next straight-line surface
+ */
+CELER_FUNCTION SurfaceId OrangeTrackView::next_surface_id() const
+{
+    return next_surface_.id();
 }
 
 //---------------------------------------------------------------------------//
