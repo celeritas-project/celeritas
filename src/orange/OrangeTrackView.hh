@@ -78,30 +78,23 @@ class OrangeTrackView
     //// ACCESSORS ////
 
     //! The current position
-    CELER_FUNCTION const Real3 pos() const
-    {
-        LevelStateAccessor lsa(&states_, thread_);
-        return lsa.pos();
-    }
+    CELER_FUNCTION const Real3 pos() const { return this->make_lsa().pos(); }
+
     //! The current direction
-    CELER_FUNCTION const Real3 dir() const
-    {
-        LevelStateAccessor lsa(&states_, thread_);
-        return lsa.dir();
-    }
+    CELER_FUNCTION const Real3 dir() const { return this->make_lsa().dir(); }
+
     //! The current volume ID (null if outside)
     CELER_FUNCTION VolumeId volume_id() const
     {
-        LevelStateAccessor lsa(&states_, thread_);
-        return lsa.vol();
+        return this->make_lsa().vol();
     }
 
     //! The current surface ID
     CELER_FUNCTION SurfaceId surface_id() const
     {
-        LevelStateAccessor lsa(&states_, thread_);
-        return lsa.surf();
+        return this->make_lsa().surf();
     }
+
     //! After 'find_next_step', the next straight-line surface
     CELER_FUNCTION SurfaceId next_surface_id() const
     {

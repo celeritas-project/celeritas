@@ -274,8 +274,8 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        pos_view[i * OrangeParamsScalars::max_level] = sample_box(rng);
-        dir_view[i * OrangeParamsScalars::max_level] = sample_isotropic(rng);
+        pos_view[i * result.max_level] = sample_box(rng);
+        dir_view[i * result.max_level] = sample_isotropic(rng);
     }
 
     // Clear other data

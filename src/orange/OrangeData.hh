@@ -26,8 +26,7 @@ namespace celeritas
  */
 struct OrangeParamsScalars
 {
-    static constexpr size_type max_level{20};
-
+    size_type max_level{};
     size_type max_faces{};
     size_type max_intersections{};
     size_type max_logic_depth{};
@@ -287,15 +286,20 @@ struct OrangeStateData
     StateItems<LevelId> next_level;
 
     // Dimensions {num_tracks, max_level}
-    Items<Real3>      pos;
-    Items<Real3>      dir;
-    Items<VolumeId>   vol;
+    Items<Real3> pos;
+    Items<Real3> dir;
+    Items<VolumeId> vol;
     Items<UniverseId> universe;
 
     // Surface crossing, dimensions {num_tracks, max_level}
-    Items<SurfaceId>      surf;
-    Items<Sense>          sense;
+    Items<SurfaceId> surf;
+    Items<Sense> sense;
     Items<BoundaryResult> boundary;
+
+    // TODO: this is problem-dependent data and should eventually be removed
+    // max_level defines the stride into the preceding pseudo-2D Collections
+    // (pos, dir, ..., etc.)
+    size_type max_level;
 
     // Scratch space
     Items<Sense> temp_sense;  // [track][max_faces]
@@ -318,6 +322,7 @@ struct OrangeStateData
             && surf.size() == pos.size()
             && sense.size() == pos.size()
             && boundary.size() == pos.size()
+            && max_level
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -333,15 +338,16 @@ struct OrangeStateData
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-        level      = other.level;
+        level = other.level;
         next_level = other.next_level;
-        pos        = other.pos;
-        dir        = other.dir;
-        vol        = other.vol;
-        universe   = other.universe;
-        surf       = other.surf;
-        sense      = other.sense;
-        boundary   = other.boundary;
+        pos = other.pos;
+        dir = other.dir;
+        vol = other.vol;
+        universe = other.universe;
+        surf = other.surf;
+        sense = other.sense;
+        boundary = other.boundary;
+        max_level = other.max_level;
 
         temp_sense = other.temp_sense;
         temp_face = other.temp_face;
@@ -368,7 +374,8 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     resize(&data->level, num_tracks);
     resize(&data->next_level, num_tracks);
 
-    auto size = params.scalars.max_level * num_tracks;
+    data->max_level = params.scalars.max_level;
+    auto const size = data->max_level * num_tracks;
 
     resize(&data->pos, size);
     resize(&data->dir, size);

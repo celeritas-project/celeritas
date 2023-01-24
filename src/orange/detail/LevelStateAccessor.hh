@@ -30,11 +30,6 @@ class LevelStateAccessor
     explicit inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
                                                       ThreadId thread_id,
                                                       LevelId level_id);
-
-    // Construct from states and indices at the current level
-    explicit inline CELER_FUNCTION
-    LevelStateAccessor(StateRef const* states, ThreadId thread_id);
-
     CELER_FUNCTION VolumeId vol()
     {
         return states_->vol[OpaqueId<VolumeId>{index_}];
@@ -121,20 +116,7 @@ LevelStateAccessor::LevelStateAccessor(StateRef const* states,
                                        ThreadId thread_id,
                                        LevelId level_id)
     : states_(states)
-    , index_(thread_id.get() * OrangeParamsScalars::max_level + level_id.get())
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from states and indices at the current level
- */
-CELER_FUNCTION
-LevelStateAccessor::LevelStateAccessor(StateRef const* states,
-                                       ThreadId thread_id)
-    : states_(states)
-    , index_(thread_id.get() * OrangeParamsScalars::max_level
-             + states_->level[thread_id].get())
+    , index_(thread_id.get() * states_->max_level + level_id.get())
 {
 }
 
