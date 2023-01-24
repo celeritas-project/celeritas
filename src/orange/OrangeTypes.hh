@@ -34,7 +34,7 @@ using logic_int = unsigned short int;
 using FaceId = OpaqueId<struct Face>;
 
 //! Identifier for the current "level", i.e. depth of embedded universe
-using LevelId = OpaqueId<unsigned short int>;
+using LevelId = OpaqueId<struct Level>;
 
 //! Translation of a single embedded universe
 using Translation = Real3;
