@@ -150,6 +150,9 @@ class OrangeTrackView
 
     //// HELPER FUNCTIONS ////
 
+    // Iterative over layers to find the next step
+    inline CELER_FUNCTION void find_next_step_impl(double max_step);
+
     // Create a local tracker
     inline CELER_FUNCTION SimpleUnitTracker make_tracker(UniverseId) const;
 
@@ -168,8 +171,12 @@ class OrangeTrackView
     // Invalidate the next distance-to-boundary
     CELER_FORCEINLINE_FUNCTION void clear_next_step();
 
-    // Iterative over layers to find the next step
-    CELER_FORCEINLINE_FUNCTION void find_next_step_impl(double max_step);
+    // Make a LevelStateAccessor for the current thread and level
+    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa() const;
+
+    // Make a LevelStateAccessor for a given thread and level
+    CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa(ThreadId thread,
+                                                           LevelId level) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -235,7 +242,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
 
-        LevelStateAccessor lsa(&states_, thread_, LevelId{level});
+        auto lsa = this->make_lsa(thread_, LevelId{level});
+
         lsa.set_vol(global_vol_id);
         lsa.set_pos(init.pos);
         lsa.set_dir(init.dir);
@@ -266,8 +274,9 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     for (auto i : range(states_.level[init.other.thread_]))
     {
-        LevelStateAccessor lsa(&states_, thread_, LevelId{i});
-        LevelStateAccessor lsa_other(&states_, init.other.thread_, LevelId{i});
+        auto lsa = this->make_lsa(thread_, LevelId{i});
+        auto lsa_other = this->make_lsa(init.other.thread_, LevelId{i});
+
         CELER_EXPECT(lsa_other.vol());
 
         lsa.set_vol(lsa_other.vol());
@@ -297,9 +306,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
 {
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
-
-    // return states_.vol[thread_] == VolumeId{0};
-    LevelStateAccessor lsa(&states_, thread_, LevelId{0});
+    auto lsa = this->make_lsa(thread_, LevelId{0});
     return lsa.vol() == VolumeId{0};
 }
 
@@ -318,7 +325,7 @@ CELER_FUNCTION bool OrangeTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 {
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
 
     if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
@@ -354,7 +361,7 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(max_step > 0);
 
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
 
     if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
@@ -387,88 +394,11 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
 //---------------------------------------------------------------------------//
 /*!
- * Iterate over all levels to find the next step
- */
-CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
-{
-    // The univese the particle is currently within
-
-    LevelStateAccessor current_level_lsa(&states_, thread_);
-    auto const& current_uid = current_level_lsa.universe();
-
-    // The uid we are iteratively checking for nearest intersection
-    UniverseId check_uid;
-
-    // The next uid we will check
-    UniverseId next_check_uid = top_universe_id();
-
-    auto min_step = max_step;
-    celeritas::detail::OnSurface min_surface_local;
-    UniverseId min_uid;
-
-    size_type level = 0;
-
-    do
-    {
-        check_uid = next_check_uid;
-        auto tracker = this->make_tracker(check_uid);
-        auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
-                                       max_step);
-
-        if (isect.distance < min_step)
-        {
-            min_step = isect.distance;
-            min_surface_local = isect.surface;
-            min_uid = check_uid;
-        }
-
-        LevelStateAccessor lsa(&states_, thread_, LevelId{level});
-        next_check_uid = params_.volume_records[lsa.vol()].daughter;
-        ++level;
-    } while (check_uid != current_uid);
-
-    next_step_ = min_step;
-
-    // convert local to global surface
-    detail::UnitIndexer ui(params_.unit_indexer_data);
-
-    if (min_uid)
-    {
-        next_surface_ = celeritas::detail::OnSurface(
-            ui.global_surface(min_uid, min_surface_local.id()),
-            min_surface_local.unchecked_sense());
-    }
-    else
-    {
-        next_surface_ = min_surface_local;
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the distance to the nearest boundary in any direction.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety()
-{
-    LevelStateAccessor lsa(&states_, thread_);
-
-    if (lsa.surf())
-    {
-        // Zero distance to boundary on a surface
-        return real_type{0};
-    }
-
-    auto tracker = this->make_tracker(UniverseId{0});
-    return tracker.safety(this->pos(), this->volume_id());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Move to the next straight-line boundary but do not change volume
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
 
     CELER_EXPECT(lsa.boundary() != BoundaryResult::reentrant);
     CELER_EXPECT(this->has_next_step());
@@ -504,7 +434,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     // Move and update next_step_
     // axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
 
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
     auto pos = lsa.pos();
     axpy(dist, lsa.dir(), &pos);
     lsa.set_pos(pos);
@@ -522,7 +452,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
  */
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
     lsa.set_pos(pos);
 
     lsa.set_surf(SurfaceId{});
@@ -541,7 +471,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
 
     if (CELER_UNLIKELY(lsa.boundary() == BoundaryResult::reentrant))
     {
@@ -598,7 +528,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
 
-    LevelStateAccessor lsa(&states_, thread_);
+    auto lsa = this->make_lsa();
 
     if (this->is_on_boundary())
     {
@@ -627,6 +557,82 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
+/*!
+ * Iterate over all levels to find the next step
+ */
+CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
+{
+    // The univese the particle is currently within
+
+    auto current_level_lsa = this->make_lsa();
+    auto const& current_uid = current_level_lsa.universe();
+
+    // The uid we are iteratively checking for nearest intersection
+    UniverseId check_uid;
+
+    // The next uid we will check
+    UniverseId next_check_uid = top_universe_id();
+
+    auto min_step = max_step;
+    celeritas::detail::OnSurface min_surface_local;
+    UniverseId min_uid;
+
+    size_type level = 0;
+
+    do
+    {
+        check_uid = next_check_uid;
+        auto tracker = this->make_tracker(check_uid);
+        auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
+                                       max_step);
+
+        if (isect.distance < min_step)
+        {
+            min_step = isect.distance;
+            min_surface_local = isect.surface;
+            min_uid = check_uid;
+        }
+
+        auto lsa = this->make_lsa(thread_, LevelId{level});
+        next_check_uid = params_.volume_records[lsa.vol()].daughter;
+        ++level;
+    } while (check_uid != current_uid);
+
+    next_step_ = min_step;
+
+    // convert local to global surface
+    detail::UnitIndexer ui(params_.unit_indexer_data);
+
+    if (min_uid)
+    {
+        next_surface_ = celeritas::detail::OnSurface(
+            ui.global_surface(min_uid, min_surface_local.id()),
+            min_surface_local.unchecked_sense());
+    }
+    else
+    {
+        next_surface_ = min_surface_local;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest boundary in any direction.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety()
+{
+    auto lsa = this->make_lsa();
+
+    if (lsa.surf())
+    {
+        // Zero distance to boundary on a surface
+        return real_type{0};
+    }
+
+    auto tracker = this->make_tracker(UniverseId{0});
+    return tracker.safety(this->pos(), this->volume_id());
+}
+
 /*!
  * Create a local tracker for a universe.
  *
@@ -685,7 +691,7 @@ OrangeTrackView::make_local_state(LevelId level) const
 {
     detail::LocalState local;
 
-    LevelStateAccessor lsa(&states_, thread_, level);
+    auto lsa = this->make_lsa(thread_, level);
 
     local.pos = lsa.pos();
     local.dir = lsa.dir();
@@ -721,6 +727,25 @@ CELER_FUNCTION void OrangeTrackView::clear_next_step()
 #if CELERITAS_DEBUG
     next_surface_ = {};
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for the current thread and level
+ */
+CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
+{
+    return this->make_lsa(thread_, states_.level[thread_]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Make a LevelStateAccessor for a given thread and level
+ */
+CELER_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa(ThreadId thread,
+                                                            LevelId level) const
+{
+    return LevelStateAccessor(&states_, thread, level);
 }
 
 //---------------------------------------------------------------------------//
