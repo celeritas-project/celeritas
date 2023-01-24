@@ -197,7 +197,7 @@ bool RootStepWriter::is_selection_valid()
         return true;
     }
 
-    StepSelection verify_values;
+    TStepFilterSelection verify_values;
 
 #define RSW_APPLY_FILTER(ATTR)                          \
     do                                                  \
@@ -210,6 +210,7 @@ bool RootStepWriter::is_selection_valid()
     } while (0)
 
     RSW_APPLY_FILTER(event_id);
+    RSW_APPLY_FILTER(track_id);
     RSW_APPLY_FILTER(parent_id);
     RSW_APPLY_FILTER(action_id);
     RSW_APPLY_FILTER(energy_deposition);
@@ -257,6 +258,7 @@ void RootStepWriter::validate_rsw_filter()
         }                                                                \
     } while (0)
 
+    // No need to validate track_id as it is always true in StepSelection
     RSW_VALIDATE_FILTER(event_id);
     RSW_VALIDATE_FILTER(parent_id);
     RSW_VALIDATE_FILTER(action_id);

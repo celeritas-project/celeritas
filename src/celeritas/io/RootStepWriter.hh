@@ -26,9 +26,9 @@ namespace celeritas
  * instead of a full struct, no dictionaries are needed for reading the output
  * file.
  *
- * The data can be filtered by defining a `RSWFilter`. This will store a
- * `pair<StepSelection, TStepData>` informing which data should be filtered
- * (StepSelection booleans) and by what values (TStepData). If no filtering is
+ * The data can be filtered by defining a `RSWFilter`. This
+ * `pair<TStepSelection, TStepData>` informs which data should be filtered
+ * (TStepSelection booleans) and by what values (TStepData). If no filtering is
  * needed, simply pass a nullptr to the constructor.
  */
 class RootStepWriter final : public StepInterface
@@ -58,12 +58,61 @@ class RootStepWriter final : public StepInterface
         EnumArray<StepPoint, TStepPoint> points;
     };
 
+    //! Filter selection booleans; Naming convention must match TStepData
+    struct TStepFilterSelection
+    {
+        bool event_id{false};
+        bool track_id{false};
+        bool parent_id{false};
+        bool track_step_count{false};
+        bool action_id{false};
+        bool step_length{false};
+        bool particle{false};
+        bool energy_deposition{false};
+        EnumArray<StepPoint, StepPointSelection> points;
+
+        //! Compare selection with another (use boost pfr?)
+        bool operator==(TStepFilterSelection const& other)
+        {
+            return this->event_id == other.event_id
+                   && this->track_id == other.track_id
+                   && this->parent_id == other.parent_id
+                   && this->track_step_count == other.track_step_count
+                   && this->action_id == other.action_id
+                   && this->step_length == other.step_length
+                   && this->particle == other.particle
+                   && this->energy_deposition == other.energy_deposition
+                   // Pre-step
+                   && this->points[StepPoint::pre].dir
+                          == other.points[StepPoint::pre].dir
+                   && this->points[StepPoint::pre].pos
+                          == other.points[StepPoint::pre].pos
+                   && this->points[StepPoint::pre].energy
+                          == other.points[StepPoint::pre].energy
+                   && this->points[StepPoint::pre].time
+                          == other.points[StepPoint::pre].time
+                   && this->points[StepPoint::pre].volume_id
+                          == other.points[StepPoint::pre].volume_id
+                   // Post-step
+                   && this->points[StepPoint::post].dir
+                          == other.points[StepPoint::post].dir
+                   && this->points[StepPoint::post].pos
+                          == other.points[StepPoint::post].pos
+                   && this->points[StepPoint::post].energy
+                          == other.points[StepPoint::post].energy
+                   && this->points[StepPoint::post].time
+                          == other.points[StepPoint::post].time
+                   && this->points[StepPoint::post].volume_id
+                          == other.points[StepPoint::post].volume_id;
+        }
+    };
+
     //!@{
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using SPParticleParams = std::shared_ptr<ParticleParams const>;
-    using RSWFilter = std::pair<StepSelection, TStepData>;
-    using UPRSWFilter = std::unique_ptr<std::pair<StepSelection, TStepData>>;
+    using RSWFilter = std::pair<TStepFilterSelection, TStepData>;
+    using UPRSWFilter = std::unique_ptr<RSWFilter>;
     //!@}
 
     // Construct with RootFileManager, ParticleParams, and data selection

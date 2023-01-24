@@ -116,40 +116,6 @@ struct StepSelection
         this->energy_deposition |= other.energy_deposition;
         return *this;
     }
-
-    //! Compare selection with another
-    bool operator==(StepSelection const& other)
-    {
-        return this->event_id == other.event_id
-               && this->parent_id == other.parent_id
-               && this->track_step_count == other.track_step_count
-               && this->action_id == other.action_id
-               && this->step_length == other.step_length
-               && this->particle == other.particle
-               && this->energy_deposition == other.energy_deposition
-               // Pre-step
-               && this->points[StepPoint::pre].dir
-                      == other.points[StepPoint::pre].dir
-               && this->points[StepPoint::pre].pos
-                      == other.points[StepPoint::pre].pos
-               && this->points[StepPoint::pre].energy
-                      == other.points[StepPoint::pre].energy
-               && this->points[StepPoint::pre].time
-                      == other.points[StepPoint::pre].time
-               && this->points[StepPoint::pre].volume_id
-                      == other.points[StepPoint::pre].volume_id
-               // Post-step
-               && this->points[StepPoint::post].dir
-                      == other.points[StepPoint::post].dir
-               && this->points[StepPoint::post].pos
-                      == other.points[StepPoint::post].pos
-               && this->points[StepPoint::post].energy
-                      == other.points[StepPoint::post].energy
-               && this->points[StepPoint::post].time
-                      == other.points[StepPoint::post].time
-               && this->points[StepPoint::post].volume_id
-                      == other.points[StepPoint::post].volume_id;
-    }
 };
 
 //---------------------------------------------------------------------------//
