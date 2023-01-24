@@ -38,12 +38,12 @@ class LevelStateAccessor
         return states_->vol[OpaqueId<VolumeId>{index_}];
     }
 
-    CELER_FUNCTION Real3 pos() const
+    CELER_FUNCTION Real3 const& pos() const
     {
         return states_->pos[OpaqueId<Real3>{index_}];
     }
 
-    CELER_FUNCTION Real3 dir() const
+    CELER_FUNCTION Real3 const& dir() const
     {
         return states_->dir[OpaqueId<Real3>{index_}];
     }
