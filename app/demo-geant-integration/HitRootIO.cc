@@ -49,10 +49,10 @@ HitRootIO::HitRootIO()
     if (G4Threading::IsWorkerThread()
         || !G4Threading::IsMultithreadedApplication())
     {
-        file_ = TFile::Open(file_name_.c_str(), "recreate");
+        file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
         CELER_VALIDATE(file_->IsOpen(), << "Failed to open " << file_name_);
-        tree_ = new TTree(
-            "Events", "Hit collections", this->SplitLevel(), file_);
+        tree_.reset(new TTree(
+            "Events", "Hit collections", this->SplitLevel(), file_.get()));
     }
 }
 
@@ -111,11 +111,11 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 {
     if (!init_branch_)
     {
-        event_branch_
-            = tree_->Branch("event.",
-                            &hit_event,
-                            GlobalSetup::Instance()->GetRootBufferSize(),
-                            this->SplitLevel());
+        event_branch_.reset(
+            tree_->Branch("event.",
+                          &hit_event,
+                          GlobalSetup::Instance()->GetRootBufferSize(),
+                          this->SplitLevel()));
         init_branch_ = true;
     }
     else
@@ -136,7 +136,7 @@ void HitRootIO::Close()
     if (!G4Threading::IsMultithreadedApplication())
     {
         CELER_LOG(info) << "Writing hit ROOT output to " << file_name_ << "\"";
-        file_ = tree_->GetCurrentFile();
+        file_.reset(tree_->GetCurrentFile());
         file_->Write("", TObject::kOverwrite);
         file_->Close();
     }
@@ -152,6 +152,11 @@ void HitRootIO::Close()
             file_->Write("", TObject::kOverwrite);
         }
     }
+
+    // Clean up ROOT TObject classes
+    event_branch_.reset();
+    tree_.reset();
+    file_.reset();
 }
 
 //---------------------------------------------------------------------------//

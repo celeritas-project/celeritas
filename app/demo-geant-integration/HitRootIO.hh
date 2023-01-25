@@ -79,9 +79,9 @@ class HitRootIO
   private:
     bool init_branch_{false};
     std::string file_name_;
-    TFile* file_{nullptr};
-    TTree* tree_{nullptr};
-    TBranch* event_branch_{nullptr};
+    std::unique_ptr<TFile> file_;
+    std::unique_ptr<TTree> tree_;
+    std::unique_ptr<TBranch> event_branch_;
 };
 
 #if !CELERITAS_USE_ROOT
