@@ -13,6 +13,9 @@
 
 #include "RootUniquePtr.hh"
 
+// Forward declare ROOT
+class TFile;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -23,10 +26,11 @@ namespace celeritas
  * information from a ROOT file that contains an \c ImportData object.
  * Currently, said ROOT file is created by the \c RootExporter class.
  *
- * \c RootImporter , along with all \c Import[Class] type of classes, are the
- * link between Geant4 and Celeritas. Every Celeritas' host/device class that
- * relies on imported data has its own \c from_import(...) function that will
- * take the data loaded by the \c RootImporter and load it accordingly:
+ * \c RootImporter , along with all \c Import[Class] type of classes, are
+ * the link between Geant4 and Celeritas. Every Celeritas' host/device
+ * class that relies on imported data has its own \c from_import(...)
+ * function that will take the data loaded by the \c RootImporter and load
+ * it accordingly:
  *
  * \code
  *  RootImporter import("/path/to/root_file.root");
@@ -40,6 +44,11 @@ namespace celeritas
 class RootImporter
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using UPTFileReader = std::unique_ptr<TFile, ReadRootDeleter>;
+    //!@}
+
     // Construct with ROOT file name
     explicit RootImporter(char const* filename);
 
@@ -48,7 +57,7 @@ class RootImporter
 
   private:
     // ROOT file
-    RootUPRead<TFile> root_input_;
+    UPTFileReader root_input_;
 
     // ROOT TTree name
     static char const* tree_name();

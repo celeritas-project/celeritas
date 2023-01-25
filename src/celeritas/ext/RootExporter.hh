@@ -12,6 +12,9 @@
 
 #include "RootUniquePtr.hh"
 
+// Forward declare ROOT
+class TFile;
+
 namespace celeritas
 {
 struct ImportData;
@@ -28,16 +31,16 @@ struct ImportData;
 class RootExporter
 {
   public:
-    // Construct with ROOT file name
+    //! Construct with ROOT file name
     explicit RootExporter(char const* filename);
 
-    // Save data to the ROOT file
+    //! Save data to the ROOT file
     void operator()(ImportData const& data);
 
   private:
-    // ROOT file
-    RootUPWrite<TFile> root_output_;
+    std::unique_ptr<TFile, WriteRootDeleter> root_output_;
 
+  private:
     // ROOT TTree name
     static char const* tree_name();
     // ROOT TBranch name

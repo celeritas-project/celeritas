@@ -7,34 +7,30 @@
 //---------------------------------------------------------------------------//
 #include "RootUniquePtr.hh"
 
-#include <TFile.h>
-#include <TTree.h>
+#include <TObject.h>
 
 namespace celeritas
 {
-template<class T>
-void WriteAndDeleteRoot<T>::operator()(T* ptr)
+//---------------------------------------------------------------------------//
+/*!
+ * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
+ * classes.
+ */
+void WriteRootDeleter::operator()(TObject* ptr)
 {
     ptr->Write();
     delete ptr;
 }
 
-template<class T>
-void DeleteRoot<T>::operator()(T* ptr) const
+//---------------------------------------------------------------------------//
+/*!
+ * Deleter only. Used by TFile and TTree reader classes or TObjects that should
+ * not invoke `Write()`.
+ */
+void ReadRootDeleter::operator()(TObject* ptr)
 {
     delete ptr;
 }
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATIONS
-//---------------------------------------------------------------------------//
-// Write and Delete
-template struct WriteAndDeleteRoot<TFile>;
-template struct WriteAndDeleteRoot<TTree>;
-
-// Delete only
-template struct DeleteRoot<TFile>;
-template struct DeleteRoot<TTree>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

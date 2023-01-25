@@ -11,6 +11,10 @@
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
 
+// Forward declare ROOT
+class TFile;
+class TTree;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -25,17 +29,23 @@ namespace celeritas
 class RootFileManager
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using UPTFileWriter = std::unique_ptr<TFile, WriteRootDeleter>;
+    using UPTTreeWriter = std::unique_ptr<TTree, WriteRootDeleter>;
+    //!@}
+
     // Construct with filename
     explicit RootFileManager(char const* filename);
 
     // Create tree by passing a name and title
-    RootUPWrite<TTree> make_tree(char const* name, char const* title);
+    UPTTreeWriter make_tree(char const* name, char const* title);
 
     // Write TFile
     void write();
 
   public:
-    RootUPWrite<TFile> tfile_;
+    UPTFileWriter tfile_;
 };
 
 //---------------------------------------------------------------------------//
@@ -45,7 +55,7 @@ inline RootFileManager::RootFileManager(char const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline RootUPWrite<TTree> RootFileManager::make_tree(char const*, char const*)
+inline UPTTreeWriter RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

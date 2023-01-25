@@ -12,9 +12,8 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
-// Forward-declare ROOT; Expand as needed
-class TFile;
-class TTree;
+// Forward-declare ROOT
+class TObject;
 
 namespace celeritas
 {
@@ -27,10 +26,9 @@ namespace celeritas
  * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
  * classes.
  */
-template<class T>
-struct WriteAndDeleteRoot
+struct WriteRootDeleter
 {
-    void operator()(T*);
+    void operator()(TObject* obj);
 };
 
 //---------------------------------------------------------------------------//
@@ -38,29 +36,19 @@ struct WriteAndDeleteRoot
  * Deleter only. Used by TFile and TTree reader classes or TObjects that should
  * not invoke `Write()`.
  */
-template<class T>
-struct DeleteRoot
+struct ReadRootDeleter
 {
-    void operator()(T*) const;
+    void operator()(TObject* obj);
 };
 
 //---------------------------------------------------------------------------//
-// Type aliases
-template<class T>
-using RootUPWrite = std::unique_ptr<T, WriteAndDeleteRoot<T>>;
-template<class T>
-using RootUPRead = std::unique_ptr<T, DeleteRoot<T>>;
-
-//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-template<class T>
-void WriteAndDeleteRoot<T>::operator()(T*)
+void WriteRootDeleter::operator()(TObject* ptr)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-template<class T>
-void DeleteRoot<T>::operator()(T*) const
+void ReadRootDeleter::operator()(TObject* ptr)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
