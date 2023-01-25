@@ -107,6 +107,7 @@ class RootStepWriter final : public StepInterface
         }
     };
 
+  public:
     //!@{
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
@@ -156,7 +157,7 @@ class RootStepWriter final : public StepInterface
     StepSelection selection_;
     detail::RootUniquePtr<TTree> tstep_tree_;
     TStepData tstep_;  // Members are used as refs of the TTree branches
-    UPRSWFilter rsw_filter_{nullptr};
+    UPRSWFilter rsw_filter_;
 };
 
 //---------------------------------------------------------------------------//

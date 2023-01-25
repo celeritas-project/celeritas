@@ -240,9 +240,10 @@ bool RootStepWriter::is_selection_valid()
 
 //---------------------------------------------------------------------------//
 /*!
- * Validate RootStepWriter filter. Filter is valid only if any filtered data is
- * also set to true in the StepSelection. I.e. every filtered value must be
- * part of the selection of data to be stored in the ROOT file.
+ * Validate RootStepWriter filter. Filtering is validated if, and only if,
+ * every boolean of TStepFilterSelection that is set to true is also set to
+ * true in the StepSelection. I.e. every filtered value must be part of the
+ * selection of the data to be stored in the ROOT file.
  */
 void RootStepWriter::validate_rsw_filter()
 {
@@ -281,7 +282,8 @@ void RootStepWriter::validate_rsw_filter()
     CELER_VALIDATE(invalid_filter.first,
                    << invalid_filter.second
                    << " cannot be true in the filter and false in the "
-                      "selection. Filtered data must be stored.");
+                      "selection. Any filtered data must also be stored in "
+                      "the ROOT file.");
 }
 
 //---------------------------------------------------------------------------//
