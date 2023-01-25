@@ -72,35 +72,32 @@ HitRootIO* HitRootIO::GetInstance()
  */
 void HitRootIO::WriteHits(G4Event const* event)
 {
-    G4HCofThisEvent* HCE = event->GetHCofThisEvent();
-    if (HCE == nullptr)
+    G4HCofThisEvent* hce = event->GetHCofThisEvent();
+    if (hce == nullptr)
     {
         return;
     }
 
     // Write the collection of sensitive hits into HitRootEvent
-    auto hit_event = std::make_unique<HitRootEvent>();
-    hit_event->SetEventID(event->GetEventID());
-    HitRootEvent::HitContainer* hcmap = hit_event->GetHCMap();
-    for (int i = 0; i < HCE->GetNumberOfCollections(); i++)
+    HitRootEvent hit_event;
+    hit_event.event_id = event->GetEventID();
+    for (int i = 0; i < hce->GetNumberOfCollections(); i++)
     {
-        G4VHitsCollection* hc = HCE->GetHC(i);
+        G4VHitsCollection* hc = hce->GetHC(i);
         std::string hcname = hc->GetName();
+        std::vector<G4VHit*> hits;
+        int number_of_hits = hc->GetSize();
+        for (int j = 0; j < number_of_hits; ++j)
         {
-            std::vector<G4VHit*> hits;
-            int number_of_hits = hc->GetSize();
-            for (int j = 0; j < number_of_hits; ++j)
-            {
-                G4VHit* hit = hc->GetHit(j);
-                SensitiveHit* sd_hit = dynamic_cast<SensitiveHit*>(hit);
-                hits.push_back(sd_hit);
-            }
-            hcmap->insert(std::make_pair(hcname, hits));
+            G4VHit* hit = hc->GetHit(j);
+            SensitiveHit* sd_hit = dynamic_cast<SensitiveHit*>(hit);
+            hits.push_back(sd_hit);
         }
+        hit_event.hcmap.insert(std::make_pair(hcname, std::move(hits)));
     }
 
     // Write a HitRootEvent into output ROOT file
-    this->WriteObject(hit_event.release());
+    this->WriteObject(&hit_event);
 }
 
 //---------------------------------------------------------------------------//

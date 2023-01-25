@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
+#include <string>
+#include <vector>
 #include <G4ThreadLocalSingleton.hh>
 #include <G4Types.hh>
 #include <G4VHit.hh>
@@ -25,23 +28,10 @@ namespace demo_geant
 /*!
  * Example of output event structure stored in ROOT.
  */
-class HitRootEvent
+struct HitRootEvent
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using HitContainer = std::map<std::string, std::vector<G4VHit*>>;
-    //!@}
-
-  public:
-    HitRootEvent() = default;
-
-    void SetEventID(int id) { event_id_ = id; }
-    HitContainer* GetHCMap() { return &hcmap_; }
-
-  private:
-    int event_id_{0};
-    HitContainer hcmap_;
+    int event_id{0};
+    std::map<std::string, std::vector<G4VHit*>> hcmap;
 };
 
 //---------------------------------------------------------------------------//
