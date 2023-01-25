@@ -34,77 +34,38 @@ namespace celeritas
 class RootStepWriter final : public StepInterface
 {
   public:
+    static constexpr size_type unspecified()
+    {
+        return static_cast<size_type>(-1);
+    }
+
+    static constexpr std::array<real_type, 3> unspecified_array()
+    {
+        return std::array<real_type, 3>{0, 0, 0};
+    }
+
     //! Truth step point data; Naming convention must match StepPointStateData
     struct TStepPoint
     {
-        size_type volume_id;
-        real_type energy;  //!< [MeV]
-        real_type time;  //!< [s]
-        std::array<real_type, 3> pos;  //!< [cm]
-        std::array<real_type, 3> dir;
+        size_type volume_id = unspecified();
+        real_type energy = unspecified();  //!< [MeV]
+        real_type time = unspecified();  //!< [s]
+        std::array<real_type, 3> pos = unspecified_array();  //!< [cm]
+        std::array<real_type, 3> dir = unspecified_array();
     };
 
     //! Truth step data; Naming convention must match StepStateData
     struct TStepData
     {
-        size_type event_id;
-        size_type track_id;
-        size_type parent_id;
-        size_type action_id;
-        size_type track_step_count;
-        int particle;  //!< PDG number
-        real_type energy_deposition;  //!< [MeV]
-        real_type step_length;  //!< [cm]
+        size_type event_id = unspecified();
+        size_type track_id = unspecified();
+        size_type parent_id = unspecified();
+        size_type action_id = unspecified();
+        size_type track_step_count = unspecified();
+        int particle = unspecified();  //!< PDG number
+        real_type energy_deposition = unspecified();  //!< [MeV]
+        real_type step_length = unspecified();  //!< [cm]
         EnumArray<StepPoint, TStepPoint> points;
-    };
-
-    //! Filter selection booleans; Naming convention must match TStepData
-    struct TStepFilterSelection
-    {
-        bool event_id{false};
-        bool track_id{false};
-        bool parent_id{false};
-        bool track_step_count{false};
-        bool action_id{false};
-        bool step_length{false};
-        bool particle{false};
-        bool energy_deposition{false};
-        EnumArray<StepPoint, StepPointSelection> points;
-
-        //! Compare selection with another (use boost pfr?)
-        bool operator==(TStepFilterSelection const& other)
-        {
-            return this->event_id == other.event_id
-                   && this->track_id == other.track_id
-                   && this->parent_id == other.parent_id
-                   && this->track_step_count == other.track_step_count
-                   && this->action_id == other.action_id
-                   && this->step_length == other.step_length
-                   && this->particle == other.particle
-                   && this->energy_deposition == other.energy_deposition
-                   // Pre-step
-                   && this->points[StepPoint::pre].dir
-                          == other.points[StepPoint::pre].dir
-                   && this->points[StepPoint::pre].pos
-                          == other.points[StepPoint::pre].pos
-                   && this->points[StepPoint::pre].energy
-                          == other.points[StepPoint::pre].energy
-                   && this->points[StepPoint::pre].time
-                          == other.points[StepPoint::pre].time
-                   && this->points[StepPoint::pre].volume_id
-                          == other.points[StepPoint::pre].volume_id
-                   // Post-step
-                   && this->points[StepPoint::post].dir
-                          == other.points[StepPoint::post].dir
-                   && this->points[StepPoint::post].pos
-                          == other.points[StepPoint::post].pos
-                   && this->points[StepPoint::post].energy
-                          == other.points[StepPoint::post].energy
-                   && this->points[StepPoint::post].time
-                          == other.points[StepPoint::post].time
-                   && this->points[StepPoint::post].volume_id
-                          == other.points[StepPoint::post].volume_id;
-        }
     };
 
   public:
@@ -112,8 +73,7 @@ class RootStepWriter final : public StepInterface
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using SPParticleParams = std::shared_ptr<ParticleParams const>;
-    using RSWFilter = std::pair<TStepFilterSelection, TStepData>;
-    using UPRSWFilter = std::unique_ptr<RSWFilter>;
+    using RSWFilter = std::function<bool(TStepData const&)>;
     //!@}
 
     // Construct with RootFileManager, ParticleParams, and data selection
@@ -121,7 +81,7 @@ class RootStepWriter final : public StepInterface
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection,
-                   UPRSWFilter filter_conditions);
+                   RSWFilter filter);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
@@ -145,19 +105,13 @@ class RootStepWriter final : public StepInterface
     // Create steps tree based on selection_ booleans
     void make_tree();
 
-    // Verify if current step must be saved
-    bool is_selection_valid();
-
-    // Validate correctness of the RSW selection booleans
-    void validate_rsw_filter();
-
   private:
     SPRootFileManager root_manager_;
     SPParticleParams particles_;
     StepSelection selection_;
     detail::RootUniquePtr<TTree> tstep_tree_;
-    TStepData tstep_;  // Members are used as refs of the TTree branches
-    UPRSWFilter rsw_filter_;
+    TStepData tstep_;  // Members are passed as refs to the TTree branches
+    std::function<bool(TStepData const&)> filter_;
 };
 
 //---------------------------------------------------------------------------//

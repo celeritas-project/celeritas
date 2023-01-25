@@ -47,18 +47,14 @@ namespace celeritas
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
                                StepSelection selection,
-                               UPRSWFilter filter_conditions)
+                               RSWFilter filter)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
+    , filter_(filter)
 {
     CELER_EXPECT(root_manager_);
-    if (filter_conditions)
-    {
-        rsw_filter_ = std::move(filter_conditions);
-        this->validate_rsw_filter();
-    }
     this->make_tree();
 }
 
@@ -128,7 +124,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
             RSW_STORE(points[sp].pos, /* no getter */);
         }
 
-        if (this->is_selection_valid())
+        if (filter_ && filter_(tstep_))
         {
             tstep_tree_->Fill();
         }
@@ -181,109 +177,6 @@ void RootStepWriter::make_tree()
     RSW_CREATE_BRANCH(points[StepPoint::post].time, "post_time");
 
 #undef RSW_CREATE_BRANCH
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compare values stored in `tstep_` with pre-defined values in
- * `rsw_filter_->second` and return true if all conditions are simultaneously
- * satisfied.
- */
-bool RootStepWriter::is_selection_valid()
-{
-    if (!rsw_filter_)
-    {
-        // No existing filter; Store all steps
-        return true;
-    }
-
-    TStepFilterSelection verify_values;
-
-#define RSW_APPLY_FILTER(ATTR)                          \
-    do                                                  \
-    {                                                   \
-        if (rsw_filter_->first.ATTR                     \
-            && rsw_filter_->second.ATTR == tstep_.ATTR) \
-        {                                               \
-            verify_values.ATTR = true;                  \
-        }                                               \
-    } while (0)
-
-    RSW_APPLY_FILTER(event_id);
-    RSW_APPLY_FILTER(track_id);
-    RSW_APPLY_FILTER(parent_id);
-    RSW_APPLY_FILTER(action_id);
-    RSW_APPLY_FILTER(energy_deposition);
-    RSW_APPLY_FILTER(step_length);
-    RSW_APPLY_FILTER(track_step_count);
-    RSW_APPLY_FILTER(particle);
-
-    for (auto const sp : range(StepPoint::size_))
-    {
-        RSW_APPLY_FILTER(points[sp].volume_id);
-        RSW_APPLY_FILTER(points[sp].energy);
-        RSW_APPLY_FILTER(points[sp].time);
-        RSW_APPLY_FILTER(points[sp].dir);
-        RSW_APPLY_FILTER(points[sp].pos);
-    }
-
-    if (verify_values == rsw_filter_->first)
-    {
-        // All values are in agreement with the provided filter selection
-        return true;
-    }
-
-    return false;
-
-#undef RSW_APPLY_FILTER
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Validate RootStepWriter filter. Filtering is validated if, and only if,
- * every boolean of TStepFilterSelection that is set to true is also set to
- * true in the StepSelection. I.e. every filtered value must be part of the
- * selection of the data to be stored in the ROOT file.
- */
-void RootStepWriter::validate_rsw_filter()
-{
-    CELER_EXPECT(rsw_filter_);
-    std::pair<bool, std::string> invalid_filter(true, "");
-
-#define RSW_VALIDATE_FILTER(ATTR)                                        \
-    do                                                                   \
-    {                                                                    \
-        if (rsw_filter_->first.ATTR == true && selection_.ATTR == false) \
-        {                                                                \
-            invalid_filter = std::make_pair(false, #ATTR);               \
-        }                                                                \
-    } while (0)
-
-    // No need to validate track_id as it is always true in StepSelection
-    RSW_VALIDATE_FILTER(event_id);
-    RSW_VALIDATE_FILTER(parent_id);
-    RSW_VALIDATE_FILTER(action_id);
-    RSW_VALIDATE_FILTER(energy_deposition);
-    RSW_VALIDATE_FILTER(step_length);
-    RSW_VALIDATE_FILTER(track_step_count);
-    RSW_VALIDATE_FILTER(particle);
-
-    for (auto const sp : range(StepPoint::size_))
-    {
-        RSW_VALIDATE_FILTER(points[sp].volume_id);
-        RSW_VALIDATE_FILTER(points[sp].energy);
-        RSW_VALIDATE_FILTER(points[sp].time);
-        RSW_VALIDATE_FILTER(points[sp].dir);
-        RSW_VALIDATE_FILTER(points[sp].pos);
-    }
-
-#undef RSW_VALIDATE_FILTER
-
-    CELER_VALIDATE(invalid_filter.first,
-                   << invalid_filter.second
-                   << " cannot be true in the filter and false in the "
-                      "selection. Any filtered data must also be stored in "
-                      "the ROOT file.");
 }
 
 //---------------------------------------------------------------------------//

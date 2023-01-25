@@ -32,6 +32,26 @@ class CoreParams;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
+//! Write when event ID matches and either track ID or parent ID matches
+struct MCTruthFilter
+{
+    using size_type = celeritas::size_type;
+    static constexpr size_type unspecified()
+    {
+        return static_cast<size_type>(-1);
+    }
+    size_type event_id = unspecified();
+    size_type track_id = unspecified();
+    size_type parent_id = unspecified();
+
+    explicit operator bool()
+    {
+        return event_id != unspecified() || track_id != unspecified()
+               || parent_id != unspecified();
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
  */
@@ -48,6 +68,9 @@ struct LDemoArgs
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;  //!< Path to HepMC3 event data
     std::string mctruth_filename;  //!< Path to ROOT MC truth event data
+
+    // Optional filter for ROOT MC truth data
+    MCTruthFilter mctruth_filter;
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;

@@ -121,32 +121,28 @@ void run(std::istream* is, OutputManager* output)
         root_manager = std::make_shared<RootFileManager>(
             run_args.mctruth_filename.c_str());
 
-#if 0
-        RootStepWriter::TStepFilterSelection rsw_filter_selection;
-        RootStepWriter::TStepData rsw_filter_values;
-
-        // Filter track id
-        rsw_filter_selection.track_id = true;
-        rsw_filter_values.track_id = 275;
-        // Filter PDG
-        rsw_filter_selection.particle = true;
-        rsw_filter_values.particle = 22;
+        std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
+        if (run_args.mctruth_filter)
+        {
+            // Write if event ID matches (or is undefined) *and* either the
+            // track ID or parent ID matches.
+            rsw_filter = [opts = run_args.mctruth_filter](
+                             RootStepWriter::TStepData const& step) {
+                auto matches = [](size_type step_id, size_type filter_id) {
+                    return filter_id == MCTruthFilter::unspecified()
+                           || step_id == filter_id;
+                };
+                return (matches(step.event_id, opts.event_id)
+                        && (matches(step.track_id, opts.track_id)
+                            || matches(step.parent_id, opts.parent_id)));
+            };
+        }
 
         step_writer = std::make_shared<RootStepWriter>(
             root_manager,
             transport_ptr->params().particle(),
             StepSelection::all(),
-            RootStepWriter::UPRSWFilter(new RootStepWriter::RSWFilter(
-                rsw_filter_selection, rsw_filter_values)));
-#endif
-        // Test with no filters
-#if 1
-        step_writer = std::make_shared<RootStepWriter>(
-            root_manager,
-            transport_ptr->params().particle(),
-            StepSelection::all(),
-            RootStepWriter::UPRSWFilter(nullptr));
-#endif
+            rsw_filter);
 
         step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},
