@@ -85,17 +85,17 @@ struct InitializingLauncher
         // TODO: for multiuniverses tests, we acutally have to iterative
         // through daughter universes to assign the level and volume
         LevelStateAccessor lsa(&states, tid, LevelId{0});
-        lsa.set_vol(init.volume);
+        lsa.vol() = init.volume;
 
-        lsa.set_surf(init.surface.id());
-        lsa.set_sense(init.surface.unchecked_sense());
+        lsa.surf() = init.surface.id();
+        lsa.sense() = init.surface.unchecked_sense();
 
         lstate.volume = init.volume;
         auto isect = tracker.intersect(lstate);
 
         // BOGUS
-        lsa.set_surf(isect.surface.id());
-        lsa.set_sense(flip_sense(isect.surface.unchecked_sense()));
+        lsa.surf() = isect.surface.id();
+        lsa.sense() = flip_sense(isect.surface.unchecked_sense());
     }
 };
 

@@ -31,9 +31,46 @@ class LevelStateAccessor
                                                       ThreadId thread_id,
                                                       LevelId level_id);
 
-    //// GETTERS ////
+    //// ACCESSORS ////
 
-    CELER_FUNCTION VolumeId vol() const
+    CELER_FUNCTION VolumeId& vol()
+    {
+        return states_->vol[OpaqueId<VolumeId>{index_}];
+    }
+
+    CELER_FUNCTION Real3& pos()
+    {
+        return states_->pos[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION Real3& dir()
+    {
+        return states_->dir[OpaqueId<Real3>{index_}];
+    }
+
+    CELER_FUNCTION UniverseId& universe()
+    {
+        return states_->universe[OpaqueId<UniverseId>{index_}];
+    }
+
+    CELER_FUNCTION SurfaceId& surf()
+    {
+        return states_->surf[OpaqueId<SurfaceId>{index_}];
+    }
+
+    CELER_FUNCTION Sense& sense()
+    {
+        return states_->sense[OpaqueId<Sense>{index_}];
+    }
+
+    CELER_FUNCTION BoundaryResult& boundary()
+    {
+        return states_->boundary[OpaqueId<BoundaryResult>{index_}];
+    }
+
+    //// CONST ACCESSORS ////
+
+    CELER_FUNCTION VolumeId const& vol() const
     {
         return states_->vol[OpaqueId<VolumeId>{index_}];
     }
@@ -48,61 +85,24 @@ class LevelStateAccessor
         return states_->dir[OpaqueId<Real3>{index_}];
     }
 
-    CELER_FUNCTION UniverseId universe() const
+    CELER_FUNCTION UniverseId const& universe() const
     {
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION SurfaceId surf() const
+    CELER_FUNCTION SurfaceId const& surf() const
     {
         return states_->surf[OpaqueId<SurfaceId>{index_}];
     }
 
-    CELER_FUNCTION Sense sense() const
+    CELER_FUNCTION Sense const& sense() const
     {
         return states_->sense[OpaqueId<Sense>{index_}];
     }
 
-    CELER_FUNCTION BoundaryResult boundary() const
+    CELER_FUNCTION BoundaryResult const& boundary() const
     {
         return states_->boundary[OpaqueId<BoundaryResult>{index_}];
-    }
-
-    //// SETTERS ////
-
-    CELER_FUNCTION void set_vol(VolumeId id)
-    {
-        states_->vol[OpaqueId<VolumeId>{index_}] = id;
-    }
-
-    CELER_FUNCTION void set_pos(Real3 pos)
-    {
-        states_->pos[OpaqueId<Real3>{index_}] = pos;
-    }
-
-    CELER_FUNCTION void set_dir(Real3 dir)
-    {
-        states_->dir[OpaqueId<Real3>{index_}] = dir;
-    }
-
-    CELER_FUNCTION void set_universe(UniverseId id)
-    {
-        states_->universe[OpaqueId<UniverseId>{index_}] = id;
-    }
-
-    CELER_FUNCTION void set_surf(SurfaceId id)
-    {
-        states_->surf[OpaqueId<SurfaceId>{index_}] = id;
-    }
-
-    CELER_FUNCTION void set_sense(Sense sense)
-    {
-        states_->sense[OpaqueId<Sense>{index_}] = sense;
-    }
-
-    CELER_FUNCTION void set_boundary(BoundaryResult br)
-    {
-        states_->boundary[OpaqueId<BoundaryResult>{index_}] = br;
     }
 
   private:

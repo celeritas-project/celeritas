@@ -224,13 +224,13 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
         auto lsa = this->make_lsa(thread_, LevelId{level});
 
-        lsa.set_vol(global_vol_id);
-        lsa.set_pos(init.pos);
-        lsa.set_dir(init.dir);
-        lsa.set_universe(uid);
-        lsa.set_surf(SurfaceId{});
-        lsa.set_sense(Sense{});
-        lsa.set_boundary(BoundaryResult::exiting);
+        lsa.vol() = global_vol_id;
+        lsa.pos() = init.pos;
+        lsa.dir() = init.dir;
+        lsa.universe() = uid;
+        lsa.surf() = SurfaceId{};
+        lsa.sense() = Sense{};
+        lsa.boundary() = BoundaryResult::exiting;
 
         next_uid = params_.volume_records[global_vol_id].daughter;
         ++level;
@@ -259,12 +259,12 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
         CELER_EXPECT(lsa_other.vol());
 
-        lsa.set_vol(lsa_other.vol());
-        lsa.set_pos(lsa_other.pos());
-        lsa.set_dir(lsa_other.dir());
-        lsa.set_surf(lsa_other.surf());
-        lsa.set_sense(lsa_other.sense());
-        lsa.set_boundary(lsa_other.boundary());
+        lsa.vol() = lsa_other.vol();
+        lsa.pos() = lsa_other.pos();
+        lsa.dir() = lsa_other.dir();
+        lsa.surf() = lsa_other.surf();
+        lsa.sense() = lsa_other.sense();
+        lsa.boundary() = lsa_other.boundary();
     }
 
     // Copy init track's position but update the direction
@@ -430,15 +430,11 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     CELER_EXPECT(next_surface_);
 
     // Physically move next step
-    // axpy(next_step_, states_.dir[thread_], &states_.pos[thread_]);
-
-    auto pos = lsa.pos();
-    axpy(next_step_, lsa.dir(), &pos);
-    lsa.set_pos(pos);
+    axpy(next_step_, lsa.dir(), &lsa.pos());
 
     // Move to the inside of the surface
-    lsa.set_surf(next_surface_.id());
-    lsa.set_sense(next_surface_.unchecked_sense());
+    lsa.surf() = next_surface_.id();
+    lsa.sense() = next_surface_.unchecked_sense();
 
     this->clear_next_step();
 }
@@ -457,15 +453,11 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(dist != next_step_ || !next_surface_);
 
     // Move and update next_step_
-    // axpy(dist, states_.dir[thread_], &states_.pos[thread_]);
-
     auto lsa = this->make_lsa();
-    auto pos = lsa.pos();
-    axpy(dist, lsa.dir(), &pos);
-    lsa.set_pos(pos);
+    axpy(dist, lsa.dir(), &lsa.pos());
 
     next_step_ -= dist;
-    lsa.set_surf(SurfaceId{});
+    lsa.surf() = SurfaceId{};
 }
 
 //---------------------------------------------------------------------------//
@@ -478,9 +470,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
 CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
     auto lsa = this->make_lsa();
-    lsa.set_pos(pos);
-
-    lsa.set_surf(SurfaceId{});
+    lsa.pos() = pos;
+    lsa.surf() = SurfaceId{};
     this->clear_next_step();
 }
 
@@ -502,7 +493,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     {
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
-        lsa.set_boundary(BoundaryResult::exiting);
+        lsa.boundary() = BoundaryResult::exiting;
         return;
     }
 
@@ -528,13 +519,13 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         init.surface = {};
     }
 
-    lsa.set_vol(init.volume);
+    lsa.vol() = init.volume;
 
-    lsa.set_surf(init.surface.id());
-    lsa.set_sense(init.surface.unchecked_sense());
+    lsa.surf() = init.surface.id();
+    lsa.sense() = init.surface.unchecked_sense();
 
     // Reset boundary crossing state
-    lsa.set_boundary(BoundaryResult::exiting);
+    lsa.boundary() = BoundaryResult::exiting;
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -569,12 +560,12 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         {
             // The boundary crossing direction has changed! Reverse our plans
             // to change the logical state and move to a new volume.
-            lsa.set_boundary(flip_boundary(lsa.boundary()));
+            lsa.boundary() = flip_boundary(lsa.boundary());
         }
     }
 
     // Complete direction setting
-    lsa.set_dir(newdir);
+    lsa.dir() = newdir;
 
     this->clear_next_step();
 }
