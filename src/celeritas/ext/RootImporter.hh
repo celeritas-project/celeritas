@@ -44,11 +44,6 @@ namespace celeritas
 class RootImporter
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using UPTFileReader = std::unique_ptr<TFile, ReadRootDeleter>;
-    //!@}
-
     // Construct with ROOT file name
     explicit RootImporter(char const* filename);
 
@@ -57,7 +52,7 @@ class RootImporter
 
   private:
     // ROOT file
-    UPTFileReader root_input_;
+    UPRootReader<TFile> root_input_;
 
     // ROOT TTree name
     static char const* tree_name();

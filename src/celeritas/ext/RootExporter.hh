@@ -38,7 +38,7 @@ class RootExporter
     void operator()(ImportData const& data);
 
   private:
-    std::unique_ptr<TFile, WriteRootDeleter> root_output_;
+    UPRootWriter<TFile> root_output_;
 
   private:
     // ROOT TTree name

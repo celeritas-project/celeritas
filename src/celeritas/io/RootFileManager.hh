@@ -29,23 +29,17 @@ namespace celeritas
 class RootFileManager
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using UPTFileWriter = std::unique_ptr<TFile, WriteRootDeleter>;
-    using UPTTreeWriter = std::unique_ptr<TTree, WriteRootDeleter>;
-    //!@}
-
     // Construct with filename
     explicit RootFileManager(char const* filename);
 
     // Create tree by passing a name and title
-    UPTTreeWriter make_tree(char const* name, char const* title);
+    UPRootWriter<TTree> make_tree(char const* name, char const* title);
 
     // Write TFile
     void write();
 
   public:
-    UPTFileWriter tfile_;
+    UPRootWriter<TFile> tfile_;
 };
 
 //---------------------------------------------------------------------------//

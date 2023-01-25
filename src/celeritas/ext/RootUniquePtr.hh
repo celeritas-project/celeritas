@@ -26,9 +26,10 @@ namespace celeritas
  * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
  * classes.
  */
+template<class T>
 struct WriteRootDeleter
 {
-    void operator()(TObject* obj);
+    void operator()(T* ptr);
 };
 
 //---------------------------------------------------------------------------//
@@ -36,19 +37,30 @@ struct WriteRootDeleter
  * Deleter only. Used by TFile and TTree reader classes or TObjects that should
  * not invoke `Write()`.
  */
+template<class T>
 struct ReadRootDeleter
 {
-    void operator()(TObject* obj);
+    void operator()(T* ptr);
 };
 
 //---------------------------------------------------------------------------//
+// Type aliases
+template<class T>
+using UPRootWriter = std::unique_ptr<T, WriteRootDeleter<T>>;
+
+template<class T>
+using UPRootReader = std::unique_ptr<T, ReadRootDeleter<T>>;
+
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-void WriteRootDeleter::operator()(TObject* ptr)
+template<class T>
+void WriteRootDeleter<T>::operator()(T* ptr)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-void ReadRootDeleter::operator()(TObject* ptr)
+template<class T>
+void ReadRootDeleter<T>::operator()(T* ptr)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
