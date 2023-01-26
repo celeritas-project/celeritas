@@ -467,7 +467,8 @@ class RuntimeError : public std::runtime_error
  *
  * This can be overridden in higher-level parts of the code for specific needs
  * (e.g., writing thread, event, and track contexts in Celeritas solver
- * kernels). Note that in order for derived classes to work with `std::throw_with_nested`, they *MUST NOT* be `final`.
+ * kernels). Note that in order for derived classes to work with
+ * `std::throw_with_nested`, they *MUST NOT* be `final`.
  */
 class RichContextException : public std::exception
 {
@@ -476,7 +477,7 @@ class RichContextException : public std::exception
     virtual void output(JsonPimpl*) const = 0;
 
     //! Provide the name for this exception class
-    virtual const char* type() const = 0;
+    virtual char const* type() const = 0;
 };
 
 //---------------------------------------------------------------------------//
