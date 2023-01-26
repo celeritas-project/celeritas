@@ -54,13 +54,13 @@ using UPRootReader = std::unique_ptr<T, ReadRootDeleter<T>>;
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 template<class T>
-void WriteRootDeleter<T>::operator()(T* ptr)
+void WriteRootDeleter<T>::operator()(T*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 
 template<class T>
-void ReadRootDeleter<T>::operator()(T* ptr)
+void ReadRootDeleter<T>::operator()(T*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
