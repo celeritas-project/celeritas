@@ -402,6 +402,10 @@ char const* to_cstring(RuntimeErrorType which);
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
+// Forward declaration of simple struct with pointer to an NLJSON object
+struct JsonPimpl;
+
+//---------------------------------------------------------------------------//
 /*!
  * Error thrown by Celeritas assertions.
  */
@@ -455,6 +459,24 @@ class RuntimeError : public std::runtime_error
 
   private:
     RuntimeErrorDetails details_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base class for writing arbitrary exception context to JSON.
+ *
+ * This can be overridden in higher-level parts of the code for specific needs
+ * (e.g., writing thread, event, and track contexts in Celeritas solver
+ * kernels). Note that in order for derived classes to work with `std::throw_with_nested`, they *MUST NOT* be `final`.
+ */
+class RichContextException : public std::exception
+{
+  public:
+    //! Write output to the given JSON object
+    virtual void output(JsonPimpl*) const = 0;
+
+    //! Provide the name for this exception class
+    virtual const char* type() const = 0;
 };
 
 //---------------------------------------------------------------------------//
