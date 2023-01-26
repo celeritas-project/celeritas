@@ -49,7 +49,7 @@ inline RootFileManager::RootFileManager(char const*)
     CELER_NOT_CONFIGURED("ROOT");
 }
 
-inline UPTTreeWriter RootFileManager::make_tree(char const*, char const*)
+inline UPRootWriter<TTree> RootFileManager::make_tree(char const*, char const*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
