@@ -141,6 +141,9 @@ class Stepper final : public StepperInterface
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }
 
+    //! Access core data for debugging
+    CoreRef<M> const& core_data() const { return core_ref_; }
+
   private:
     // Params and call sequence
     std::shared_ptr<CoreParams const> params_;

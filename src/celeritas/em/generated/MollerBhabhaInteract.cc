@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/em/launcher/MollerBhabhaLauncher.hh" // IWYU pragma: associated
 #include "celeritas/phys/InteractionLauncher.hh"
 
@@ -38,7 +39,10 @@ void moller_bhabha_interact(
     #pragma omp parallel for
     for (celeritas::size_type i = 0; i < core_data.states.size(); ++i)
     {
-        CELER_TRY_HANDLE(launch(celeritas::ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE_CONTEXT(
+            launch(ThreadId{i}),
+            capture_exception,
+            KernelContextException(core_data, ThreadId{i}, "moller_bhabha"));
     }
     log_and_rethrow(std::move(capture_exception));
 }

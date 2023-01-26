@@ -11,6 +11,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "corecel/Types.hh"
+#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/track/detail/InitTracksLauncher.hh" // IWYU pragma: associated
 
 namespace celeritas
@@ -26,7 +27,10 @@ void init_tracks(
     #pragma omp parallel for
     for (ThreadId::size_type i = 0; i < num_vacancies; ++i)
     {
-        CELER_TRY_HANDLE(launch(ThreadId{i}), capture_exception);
+        CELER_TRY_HANDLE_CONTEXT(
+            launch(ThreadId{i}),
+            capture_exception,
+            KernelContextException(core_data, ThreadId{i}, "init_tracks"));
     }
     log_and_rethrow(std::move(capture_exception));
 }
