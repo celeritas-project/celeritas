@@ -51,7 +51,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
     if (GlobalSetup::Instance()->GetWriteSDHits())
     {
         // Write sensitive hits
-        HitRootIO::GetInstance()->WriteHits(event);
+        HitRootIO::Instance()->WriteHits(event);
     }
 }
 

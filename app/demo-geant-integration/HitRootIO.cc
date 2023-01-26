@@ -30,7 +30,7 @@ namespace demo_geant
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a ROOT output file for each worker except the master thread if MT
+ * Create a ROOT output file for each worker except the master thread if MT.
  */
 HitRootIO::HitRootIO()
 {
@@ -50,20 +50,24 @@ HitRootIO::HitRootIO()
         || !G4Threading::IsMultithreadedApplication())
     {
         file_.reset(TFile::Open(file_name_.c_str(), "recreate"));
-        CELER_VALIDATE(file_->IsOpen(), << "Failed to open " << file_name_);
+        CELER_VALIDATE(file_->IsOpen(), << "failed to open " << file_name_);
         tree_.reset(new TTree(
             "Events", "Hit collections", this->SplitLevel(), file_.get()));
     }
 }
 
 //---------------------------------------------------------------------------//
+//! Default destructor
+HitRootIO::~HitRootIO() = default;
+
+//---------------------------------------------------------------------------//
 /*!
- * Return the static thread local singleton instance
+ * Return the static thread local singleton instance>
  */
-HitRootIO* HitRootIO::GetInstance()
+HitRootIO* HitRootIO::Instance()
 {
-    static G4ThreadLocalSingleton<HitRootIO> instance;
-    return instance.Instance();
+    static G4ThreadLocal HitRootIO instance;
+    return &instance;
 }
 
 //---------------------------------------------------------------------------//
@@ -102,18 +106,16 @@ void HitRootIO::WriteHits(G4Event const* event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill a HitRootEvent object
+ * Fill a HitRootEvent object.
  */
 void HitRootIO::WriteObject(HitRootEvent* hit_event)
 {
-    if (!init_branch_)
+    if (!event_branch_)
     {
-        event_branch_.reset(
-            tree_->Branch("event.",
+        event_branch_ =tree_->Branch("event.",
                           &hit_event,
                           GlobalSetup::Instance()->GetRootBufferSize(),
-                          this->SplitLevel()));
-        init_branch_ = true;
+                          this->SplitLevel());
     }
     else
     {
@@ -126,22 +128,26 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write, and Close or Merge output
+ * Write, and Close or Merge output.
  */
 void HitRootIO::Close()
 {
+    CELER_LOG_LOCAL(status) << "Closing ROOT file";
+    CELER_EXPECT((file_ && file_->IsOpen())
+                 || (G4Threading::IsMultithreadedApplication()
+                     && G4Threading::IsMasterThread()));
+
     if (!G4Threading::IsMultithreadedApplication())
     {
-        CELER_LOG(info) << "Writing hit ROOT output to " << file_name_ << "\"";
-        file_.reset(tree_->GetCurrentFile());
+        CELER_LOG(info) << "Writing hit ROOT output to " << file_name_;
+        CELER_ASSERT(tree_);
         file_->Write("", TObject::kOverwrite);
-        file_->Close();
     }
     else
     {
-        // Merge output file on the master thread if MT
         if (G4Threading::IsMasterThread())
         {
+            // Merge output file on the master thread
             this->Merge();
         }
         else
@@ -149,16 +155,14 @@ void HitRootIO::Close()
             file_->Write("", TObject::kOverwrite);
         }
     }
-
-    // Clean up ROOT TObject classes
-    event_branch_.reset();
+    event_branch_ = nullptr;
     tree_.reset();
     file_.reset();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Merging output root files from multiple threads using TTree::MergeTrees
+ * Merging output root files from multiple threads using TTree::MergeTrees.
  *
  * TODO: use TBufferMerger and follow the example described in the ROOT
  * tutorials/multicore/mt103_fillNtupleFromMultipleThreads.C which stores
@@ -171,8 +175,7 @@ void HitRootIO::Merge()
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);
 
-    celeritas::ExceptionConverter call_g4exception{"celer0006"};
-    CELER_LOG(info) << "Merging hit root files from " << nthreads
+    CELER_LOG_LOCAL(info) << "Merging hit root files from " << nthreads
                     << " threads into \"" << file_name_ << "\"";
 
     for (int i = 0; i < nthreads; ++i)
@@ -185,7 +188,7 @@ void HitRootIO::Merge()
         if (i == nthreads - 1)
         {
             TFile* file = TFile::Open(file_name_.c_str(), "recreate");
-            CELER_VALIDATE(file->IsOpen(), << "Failed to open " << file_name_);
+            CELER_VALIDATE(file->IsOpen(), << "failed to open " << file_name_);
 
             TTree* tree = TTree::MergeTrees(list.get());
             tree->SetName("Events");
@@ -194,7 +197,7 @@ void HitRootIO::Merge()
             file->Close();
         }
         // Delete the merged file
-        CELER_TRY_HANDLE(std::remove(file_name.c_str()), call_g4exception);
+        std::remove(file_name.c_str());
     }
 }
 

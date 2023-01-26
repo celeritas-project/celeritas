@@ -110,7 +110,7 @@ void RunAction::EndOfRunAction(G4Run const*)
     if (GlobalSetup::Instance()->GetWriteSDHits())
     {
         // Close ROOT output of sensitive hits
-        HitRootIO::GetInstance()->Close();
+        CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
     }
 }
 

@@ -43,7 +43,8 @@ class HitRootIO
     friend class G4ThreadLocalSingleton<HitRootIO>;
 
   public:
-    static HitRootIO* GetInstance();
+    // Return non-owning pointer to a singleton
+    static HitRootIO* Instance();
 
     // Write sensitive hits of a G4Event to ROOT output file
     void WriteHits(G4Event const* event);
@@ -54,6 +55,11 @@ class HitRootIO
   private:
     // Set up output data and file
     HitRootIO();
+    HitRootIO(HitRootIO&&) = default;
+    HitRootIO& operator=(HitRootIO&&) = default;
+
+    // Default destructor
+    ~HitRootIO();
 
     //// HELPER FUNCTIONS ////
 
@@ -67,15 +73,14 @@ class HitRootIO
     static constexpr short int SplitLevel() { return 99; }
 
   private:
-    bool init_branch_{false};
     std::string file_name_;
     std::unique_ptr<TFile> file_;
     std::unique_ptr<TTree> tree_;
-    std::unique_ptr<TBranch> event_branch_;
+    TBranch* event_branch_{nullptr};
 };
 
 #if !CELERITAS_USE_ROOT
-inline HitRootIO* HitRootIO::GetInstance()
+inline HitRootIO* HitRootIO::Instance()
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
