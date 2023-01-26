@@ -16,6 +16,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "celeritas_test.hh"
@@ -75,6 +76,19 @@ TEST_F(ParticleTest, params_accessors)
 
     EXPECT_EQ("electron", defs.id_to_label(ParticleId(0)));
     EXPECT_EQ(PDGNumber(11), defs.id_to_pdg(ParticleId(0)));
+}
+
+TEST_F(ParticleTest, output)
+{
+    ParticleParamsOutput out(this->particle_params);
+    EXPECT_EQ("particle", out.label());
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(
+            R"json([{"label":"electron","pdg":11},{"label":"gamma","pdg":22},{"label":"neutron","pdg":2112}])json",
+            to_string(out));
+    }
 }
 
 //---------------------------------------------------------------------------//
