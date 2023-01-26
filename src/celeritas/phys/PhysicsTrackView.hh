@@ -80,6 +80,9 @@ class PhysicsTrackView
     // Range properties for multiple scattering
     CELER_FORCEINLINE_FUNCTION MscRange const& msc_range() const;
 
+    // Current material identifier
+    CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
+
     //// PROCESSES (depend on particle type and possibly material) ////
 
     // Number of processes that apply to this track
@@ -155,9 +158,6 @@ class PhysicsTrackView
 
     // Particle-process ID of the process with the de/dx and range tables
     inline CELER_FUNCTION ParticleProcessId eloss_ppid() const;
-
-    // Particle-process ID of the process with the msc cross section table
-    inline CELER_FUNCTION ParticleProcessId msc_ppid() const;
 
   private:
     PhysicsParamsRef const& params_;
@@ -252,6 +252,15 @@ CELER_FUNCTION void PhysicsTrackView::dedx_range(real_type range)
 CELER_FUNCTION void PhysicsTrackView::msc_range(MscRange const& msc_range)
 {
     this->state().msc_range = msc_range;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Current material identifier.
+ */
+CELER_FUNCTION MaterialId PhysicsTrackView::material_id() const
+{
+    return material_;
 }
 
 //---------------------------------------------------------------------------//
@@ -483,15 +492,6 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::eloss_ppid() const
 {
     return this->process_group().eloss_ppid;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Particle-process ID of the multiple scattering process
- */
-CELER_FUNCTION ParticleProcessId PhysicsTrackView::msc_ppid() const
-{
-    return this->process_group().msc_ppid;
 }
 
 //---------------------------------------------------------------------------//

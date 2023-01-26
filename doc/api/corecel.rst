@@ -4,7 +4,7 @@
 
 .. doxygenfile:: celeritas_version.h
 
-.. _corecel:
+.. _api_corecel:
 
 Core package
 ============
@@ -47,6 +47,8 @@ Math, numerics, and algorithms
 .. doxygenfile:: corecel/math/Atomics.hh
 
 .. doxygenstruct:: celeritas::numeric_limits
+
+.. _api_quantity:
 
 .. doxygenfile:: corecel/math/Quantity.hh
 

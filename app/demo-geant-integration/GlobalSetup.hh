@@ -37,6 +37,8 @@ class GlobalSetup
     //! Demo setup options
     std::string const& GetGeometryFile() const { return geometry_file_; }
     std::string const& GetEventFile() const { return event_file_; }
+    int GetRootBufferSize() const { return root_buffer_size_; }
+    bool GetWriteSDHits() const { return write_sd_hits_; }
     //!@}
 
     //! Get a mutable reference to the setup options for DetectorConstruction
@@ -63,6 +65,9 @@ class GlobalSetup
     std::shared_ptr<celeritas::SetupOptions> options_;
     std::string geometry_file_;
     std::string event_file_;
+    int root_buffer_size_{128000};
+    bool write_sd_hits_{false};
+
     std::unique_ptr<G4GenericMessenger> messenger_;
 };
 

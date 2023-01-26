@@ -57,8 +57,8 @@ list(APPEND SOURCES
   global/Stepper.cc
   global/detail/ActionSequence.cc
   grid/ValueGridBuilder.cc
+  grid/ValueGridData.cc
   grid/ValueGridInserter.cc
-  grid/ValueGridInterface.cc
   io/AtomicRelaxationReader.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc

@@ -16,7 +16,7 @@ API documentation
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
 The Celeritas codebase lives under the ``src/`` directory and is divided into
-three packages. Additional top-level files provide access to version and
+four packages. Additional top-level files provide access to version and
 configuration attributes.
 
 .. toctree::

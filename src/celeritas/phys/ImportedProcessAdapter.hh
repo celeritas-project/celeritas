@@ -95,7 +95,10 @@ class ImportedProcessAdapter
                            std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits(Applicability range) const;
+    StepLimitBuilders step_limits(Applicability applic) const;
+
+    // Get the lambda table for the given particle ID
+    inline ImportPhysicsTable const& get_lambda(ParticleId id) const;
 
     // Access the imported processes
     SPConstImported const& processes() const { return imported_; }
@@ -136,6 +139,22 @@ ImportProcess const& ImportedProcesses::get(ImportProcessId id) const
 auto ImportedProcesses::size() const -> ImportProcessId::size_type
 {
     return processes_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get cross sections for the given particle ID.
+ *
+ * This is currently used for loading MSC data for calculating mean free paths.
+ */
+ImportPhysicsTable const&
+ImportedProcessAdapter::get_lambda(ParticleId id) const
+{
+    auto iter = ids_.find(id);
+    CELER_EXPECT(iter != ids_.end());
+    ImportTableId tab = iter->second.lambda;
+    CELER_ENSURE(tab);
+    return imported_->get(iter->second.process).tables[tab.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
