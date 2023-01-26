@@ -17,11 +17,12 @@
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/generated/RelativisticBremInteract.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "../interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {
@@ -75,8 +76,8 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower = seltzer_berger_limit();
-    electron_brem.upper = high_energy_limit();
+    electron_brem.lower = detail::seltzer_berger_limit();
+    electron_brem.upper = detail::high_energy_limit();
 
     Applicability positron_brem = electron_brem;
     positron_brem.particle = this->host_ref().ids.positron;

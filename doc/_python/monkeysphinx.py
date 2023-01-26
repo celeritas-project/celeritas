@@ -3,6 +3,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 Monkey-patch sphinx to shoehorn latex output into an ORNL TM compatible style.
+
+Note: this is known to work as of ~January 2023::
+
+    py-sphinxcontrib-bibtex@2.5.0
+    py-pybtex@0.24.0
+    py-sphinx@5.3.0
 """
 
 import sphinx

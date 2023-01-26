@@ -70,6 +70,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
  */
 void LocalTransporter::SetEventId(int id)
 {
+    CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
     event_id_ = EventId(id);
     track_counter_ = 0;
@@ -81,6 +82,7 @@ void LocalTransporter::SetEventId(int id)
  */
 bool LocalTransporter::IsApplicable(G4Track const& g4track) const
 {
+    CELER_EXPECT(*this);
     PDGNumber pdg{g4track.GetDefinition()->GetPDGEncoding()};
     return static_cast<bool>(particles_->find(pdg));
 }
@@ -91,6 +93,7 @@ bool LocalTransporter::IsApplicable(G4Track const& g4track) const
  */
 void LocalTransporter::Push(G4Track const& g4track)
 {
+    CELER_EXPECT(*this);
     CELER_EXPECT(event_id_);
     CELER_EXPECT(this->IsApplicable(g4track));
 
@@ -127,6 +130,7 @@ void LocalTransporter::Push(G4Track const& g4track)
  */
 void LocalTransporter::Flush()
 {
+    CELER_EXPECT(*this);
     if (buffer_.empty())
     {
         return;
@@ -163,6 +167,7 @@ void LocalTransporter::Flush()
  */
 void LocalTransporter::Finalize()
 {
+    CELER_EXPECT(*this);
     CELER_VALIDATE(buffer_.empty(),
                    << "some offloaded tracks were not flushed");
 
