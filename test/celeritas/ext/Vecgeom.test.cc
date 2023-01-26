@@ -428,7 +428,7 @@ TEST_F(SolidsTest, accessors)
     EXPECT_EQ(26, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
-    EXPECT_EQ("World", geom.id_to_label(VolumeId{28}).name);
+    EXPECT_EQ("World", geom.id_to_label(VolumeId{geom.num_volumes() - 1}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("trap1", geom.id_to_label(VolumeId{9}).name);
@@ -483,8 +483,7 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
 //---------------------------------------------------------------------------//
 
-#define FourLevelsGeantTest \
-    TEST_IF_CELERITAS_GEANT(DISABLED_FourLevelsGeantTest)
+#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
 class FourLevelsGeantTest : public GeantBuilderTestBase
 {
   public:
@@ -563,9 +562,9 @@ TEST_F(FourLevelsGeantTest, tracking)
         SCOPED_TRACE("Upward");
         auto result = this->track({-10, 10, 10}, {0, 0, 1});
         static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "Envelope", "World"};
+            = {"Shape2", "Shape1", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {5, 1, 3, 5};
+        static const real_type expected_distances[] = {5, 1, 8};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
@@ -621,13 +620,13 @@ TEST_F(SolidsGeantTest, accessors)
     // created during construction, and different versions of VecGeom are
     // missing different solids (and thus are missing volumes!)
     // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
-    EXPECT_EQ(32, geom.num_volumes());
+    EXPECT_EQ(28, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
     EXPECT_EQ("World", geom.id_to_label(VolumeId{0}).name);
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
-    EXPECT_EQ("inner_virtual", geom.id_to_label(VolumeId{9}).name);
+    EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
 }
 
 //---------------------------------------------------------------------------//
