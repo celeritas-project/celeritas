@@ -28,11 +28,11 @@ struct RootWritableDeleter
 
 //---------------------------------------------------------------------------//
 /*!
- * Deleter only. Used by TFile and TTree reader classes or TObjects that should
- * not invoke `Write()`.
+ * Custom deleter to avoid propagating any dependency-specific implementation
+ * downstream the code.
  */
 template<class T>
-struct RootReadDeleter
+struct ExternDeleter
 {
     void operator()(T* ptr);
 };
@@ -41,9 +41,8 @@ struct RootReadDeleter
 // Type aliases
 template<class T>
 using UPRootWritable = std::unique_ptr<T, RootWritableDeleter<T>>;
-
 template<class T>
-using UPRootReadOnly = std::unique_ptr<T, RootReadDeleter<T>>;
+using UPRootReadOnly = std::unique_ptr<T, ExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
@@ -54,7 +53,7 @@ void RootWritableDeleter<T>::operator()(T*)
 }
 
 template<class T>
-void RootReadDeleter<T>::operator()(T*)
+void ExternDeleter<T>::operator()(T*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

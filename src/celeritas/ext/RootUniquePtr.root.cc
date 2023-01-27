@@ -26,23 +26,23 @@ void RootWritableDeleter<T>::operator()(T* ptr)
 
 //---------------------------------------------------------------------------//
 /*!
- * Deleter only. Used by TFile and TTree reader classes or TObjects that should
- * not invoke `Write()`.
+ * Custom deleter to avoid propagating any dependency-specific implementation
+ * downstream.
  */
 template<class T>
-void RootReadDeleter<T>::operator()(T* ptr)
+void ExternDeleter<T>::operator()(T* ptr)
 {
     delete ptr;
 }
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
+// EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 template struct RootWritableDeleter<TFile>;
 template struct RootWritableDeleter<TTree>;
 
-template struct RootReadDeleter<TFile>;
-template struct RootReadDeleter<TTree>;
+template struct ExternDeleter<TFile>;
+template struct ExternDeleter<TTree>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
