@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ImageIO.hh"
 
-#include "corecel/cont/Array.json.hh"
+#include "corecel/cont/ArrayIO.json.hh"
 
 #include "ImageStore.hh"
 
