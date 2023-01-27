@@ -28,7 +28,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a shared action manager.
+ * Construct from shared physics data.
  */
 PhysicsParamsOutput::PhysicsParamsOutput(SPConstPhysicsParams physics)
     : physics_(std::move(physics))
