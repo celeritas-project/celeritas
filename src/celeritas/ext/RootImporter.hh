@@ -51,7 +51,7 @@ class RootImporter
 
   private:
     // ROOT file
-    UPRootReadOnly<TFile> root_input_;
+    UPExtern<TFile> root_input_;
 
     // ROOT TTree name
     static char const* tree_name();

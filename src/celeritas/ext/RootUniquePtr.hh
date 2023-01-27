@@ -42,7 +42,7 @@ struct ExternDeleter
 template<class T>
 using UPRootWritable = std::unique_ptr<T, RootWritableDeleter<T>>;
 template<class T>
-using UPRootReadOnly = std::unique_ptr<T, ExternDeleter<T>>;
+using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
