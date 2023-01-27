@@ -8,7 +8,6 @@
 #include "RootUniquePtr.hh"
 
 #include <TFile.h>
-#include <TObject.h>
 #include <TTree.h>
 
 namespace celeritas
@@ -19,7 +18,7 @@ namespace celeritas
  * classes.
  */
 template<class T>
-void WriteRootDeleter<T>::operator()(T* ptr)
+void RootWritableDeleter<T>::operator()(T* ptr)
 {
     ptr->Write();
     delete ptr;
@@ -31,7 +30,7 @@ void WriteRootDeleter<T>::operator()(T* ptr)
  * not invoke `Write()`.
  */
 template<class T>
-void ReadRootDeleter<T>::operator()(T* ptr)
+void RootReadDeleter<T>::operator()(T* ptr)
 {
     delete ptr;
 }
@@ -39,11 +38,11 @@ void ReadRootDeleter<T>::operator()(T* ptr)
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
-template struct WriteRootDeleter<TFile>;
-template struct WriteRootDeleter<TTree>;
+template struct RootWritableDeleter<TFile>;
+template struct RootWritableDeleter<TTree>;
 
-template struct ReadRootDeleter<TFile>;
-template struct ReadRootDeleter<TTree>;
+template struct RootReadDeleter<TFile>;
+template struct RootReadDeleter<TTree>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -31,14 +31,14 @@ struct ImportData;
 class RootExporter
 {
   public:
-    //! Construct with ROOT file name
+    // Construct with ROOT file name
     explicit RootExporter(char const* filename);
 
-    //! Save data to the ROOT file
+    // Save data to the ROOT file
     void operator()(ImportData const& data);
 
   private:
-    UPRootWriter<TFile> root_output_;
+    UPRootWritable<TFile> root_output_;
 
   private:
     // ROOT TTree name
