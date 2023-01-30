@@ -29,7 +29,7 @@ class KNDemoRunner
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using result_type = KNDemoResult;
     using constSPParticleParams

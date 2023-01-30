@@ -45,7 +45,7 @@ class Process
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstModel = std::shared_ptr<Model const>;
     using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
     using VecModel = std::vector<SPConstModel>;

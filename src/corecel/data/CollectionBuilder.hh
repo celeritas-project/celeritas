@@ -46,7 +46,7 @@ class CollectionBuilder
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using CollectionT = Collection<T, Ownership::value, M, I>;
     using value_type = T;
     using size_type = typename CollectionT::size_type;

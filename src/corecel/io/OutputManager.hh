@@ -33,7 +33,7 @@ class OutputManager
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstInterface = std::shared_ptr<OutputInterface const>;
     //!@}
 

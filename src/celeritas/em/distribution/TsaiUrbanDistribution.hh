@@ -37,7 +37,7 @@ class TsaiUrbanDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
     using result_type = real_type;

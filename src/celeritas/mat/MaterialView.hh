@@ -35,7 +35,7 @@ class MaterialView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     //!@}
 

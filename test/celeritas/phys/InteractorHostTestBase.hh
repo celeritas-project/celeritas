@@ -54,7 +54,7 @@ class InteractorHostTestBase : public Test
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
     using MevEnergy = units::MevEnergy;
     using Action = Interaction::Action;

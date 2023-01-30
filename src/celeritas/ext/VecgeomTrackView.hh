@@ -43,7 +43,7 @@ class VecgeomTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
     using StateRef = NativeRef<VecgeomStateData>;

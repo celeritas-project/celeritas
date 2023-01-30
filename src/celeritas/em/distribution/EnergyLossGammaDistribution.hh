@@ -35,7 +35,7 @@ class EnergyLossGammaDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;
     //!@}

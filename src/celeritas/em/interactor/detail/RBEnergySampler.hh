@@ -35,7 +35,7 @@ class RBEnergySampler
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     //!@}
 

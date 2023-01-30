@@ -37,7 +37,7 @@ class RBDiffXsCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using ElementData = RelBremElementData;
     //!@}

@@ -102,6 +102,11 @@ dependencies:
   celeritas scripts/spack.yaml``.
 - Install all the dependencies with ``spack -e celeritas install``.
 
+The current Spack environment for full-featured development is:
+
+.. literalinclude:: ../scripts/spack.yaml
+   :language: yaml
+
 .. _Spack: https://github.com/spack/spack
 .. _spack-start: https://spack.readthedocs.io/en/latest/getting_started.html
 .. _cuda-arch: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/

@@ -28,7 +28,7 @@ class GCheckRunner
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstGeo = std::shared_ptr<const celeritas::GeoParams>;
     //!@}
 

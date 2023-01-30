@@ -35,7 +35,7 @@ class GeantSetup
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Options = GeantPhysicsOptions;
     //!@}
 

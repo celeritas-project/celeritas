@@ -44,7 +44,7 @@ class RelativisticBremInteractor
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Momentum = units::MevMomentum;
     using ElementData = RelBremElementData;

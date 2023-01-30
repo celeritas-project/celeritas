@@ -31,7 +31,7 @@ class ElementSelectorTest : public Test
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using RandomEngine = std::mt19937;
     //!@}
 

@@ -25,7 +25,7 @@ class LivermorePEMacroXsCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits = LivermorePEMicroXsCalculator::XsUnits;
     using XsUnits = units::NativeUnit;

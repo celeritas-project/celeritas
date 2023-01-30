@@ -21,7 +21,7 @@ class PhysicsParamsOutput final : public OutputInterface
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstPhysicsParams = std::shared_ptr<PhysicsParams const>;
     //!@}
 

@@ -30,7 +30,7 @@ struct EnumArray
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
 
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using key_type = E;
     using value_type = T;
     using size_type = std::underlying_type_t<E>;
@@ -74,7 +74,7 @@ struct EnumArray
     //!@}
 
     //!@{
-    //! Iterator acces
+    //! Iterator access
     CFIF_ iterator begin() { return data_; }
     CFIF_ iterator end() { return data_ + N; }
     CFIF_ const_iterator begin() const { return data_; }

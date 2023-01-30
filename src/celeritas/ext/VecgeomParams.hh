@@ -30,7 +30,7 @@ class VecgeomParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<VecgeomParamsData>;
     using DeviceRef = DeviceCRef<VecgeomParamsData>;
     using SpanConstVolumeId = Span<VolumeId const>;

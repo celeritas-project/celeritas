@@ -21,7 +21,7 @@ class ParticleParamsOutput final : public OutputInterface
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstParticleParams = std::shared_ptr<ParticleParams const>;
     //!@}
 

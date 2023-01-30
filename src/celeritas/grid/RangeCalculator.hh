@@ -36,7 +36,7 @@ class RangeCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = Quantity<XsGridData::EnergyUnits>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;

@@ -58,7 +58,7 @@ class ElementSelector
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SpanReal = Span<real_type>;
     using SpanConstReal = Span<real_type const>;
     //!@}

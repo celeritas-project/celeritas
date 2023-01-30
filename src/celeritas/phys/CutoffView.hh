@@ -29,7 +29,7 @@ class CutoffView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using CutoffId = OpaqueId<ParticleCutoff>;
     using CutoffData = NativeCRef<CutoffParamsData>;
     using Energy = units::MevEnergy;

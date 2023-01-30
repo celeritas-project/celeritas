@@ -34,7 +34,7 @@ class SBEnergyDistHelper
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SBDXsec = NativeCRef<SeltzerBergerTableData>;
     using Xs = Quantity<SBElementTableData::XsUnits>;
     using Energy = units::MevEnergy;
