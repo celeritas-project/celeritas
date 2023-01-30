@@ -39,7 +39,7 @@ class MaterialParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<MaterialParamsData>;
     using DeviceRef = DeviceCRef<MaterialParamsData>;
     using SpanConstMaterialId = Span<MaterialId const>;

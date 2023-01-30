@@ -39,7 +39,7 @@ class EnergyDiagnostic : public Diagnostic<M>
 {
   public:
     //!@{
-    //! Types
+    //! \name Type aliases
     using real_type = celeritas::real_type;
     using Axis = celeritas::Axis;
     using Items = celeritas::Collection<real_type, Ownership::value, M>;

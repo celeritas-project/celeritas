@@ -74,7 +74,7 @@ struct EnumArray
     //!@}
 
     //!@{
-    //! Iterator acces
+    //! Iterator access
     CFIF_ iterator begin() { return data_; }
     CFIF_ iterator end() { return data_ + N; }
     CFIF_ const_iterator begin() const { return data_; }

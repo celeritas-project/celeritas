@@ -63,7 +63,7 @@ class SequenceEngine
     size_type max_count() const { return values_.size(); }
 
     //!@{
-    //! Engine limits
+    //! \name Engine limits
     static constexpr result_type min() { return LimitsT::min(); }
     static constexpr result_type max() { return LimitsT::max(); }
     //!@}

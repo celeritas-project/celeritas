@@ -34,7 +34,7 @@ class GlobalSetup
     static GlobalSetup* Instance();
 
     //!@{
-    //! Demo setup options
+    //! \name Demo setup options
     std::string const& GetGeometryFile() const { return geometry_file_; }
     std::string const& GetEventFile() const { return event_file_; }
     int GetRootBufferSize() const { return root_buffer_size_; }

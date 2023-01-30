@@ -39,7 +39,7 @@ class OrangeParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<OrangeParamsData>;
     using DeviceRef = DeviceCRef<OrangeParamsData>;
     using SpanConstVolumeId = Span<VolumeId const>;
