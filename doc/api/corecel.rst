@@ -13,12 +13,12 @@ primarily pertaining to GPU abstractions.
 Configuration
 -------------
 
-The configure file contains all-caps definitions of the CMake configuration
-options as 0/1 defines.
-
-.. doxygenfile:: celeritas_config.h
-
-.. doxygenfile:: celeritas_cmake_strings.h
+The ``celeritas_config.h`` configure file contains all-caps definitions of the
+CMake configuration options as 0/1 defines so they can be used with ``if
+constexpr`` and other C++ expressions. The ``celeritas_cmake_strings.h``
+defines static C strings with configuration options such as key dependent
+library versions. Finally, ``celeritas_version.h`` defines version numbers as
+a preprocessor definition, a set of integers, and a descriptive string.
 
 .. doxygenfile:: celeritas_version.h
 
