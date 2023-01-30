@@ -16,7 +16,11 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Geant4 CONFIG_MODE)
 
 if(Geant4_FOUND AND Geant4_VERSION VERSION_GREATER_EQUAL 11 AND CELERITAS_USE_CUDA)
-  target_compile_features(Geant4::G4global INTERFACE cuda_std_17)
+  if(TARGET Geant4::G4global)
+    target_compile_features(Geant4::G4global INTERFACE cuda_std_17)
+  else()
+    target_compile_features(Geant4::G4global-static INTERFACE cuda_std_17)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
