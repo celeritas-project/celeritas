@@ -84,7 +84,7 @@ class GenerateCanonical<test::SequenceEngine, T>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = T;
     using result_type = real_type;
     //!@}

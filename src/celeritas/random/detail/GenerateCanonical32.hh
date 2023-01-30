@@ -25,7 +25,7 @@ class GenerateCanonical32<float>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = float;
     //!@}
 
@@ -40,7 +40,7 @@ class GenerateCanonical32<double>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = double;
     //!@}
 

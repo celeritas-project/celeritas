@@ -38,7 +38,7 @@ class PhysicsStepView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
     using PhysicsStateRef = NativeRef<PhysicsStateData>;
     using SecondaryAllocator = StackAllocator<Secondary>;

@@ -35,7 +35,7 @@ class ElementView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     using AmuMass = units::AmuMass;
     //!@}

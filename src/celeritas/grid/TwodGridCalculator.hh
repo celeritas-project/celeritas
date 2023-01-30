@@ -34,7 +34,7 @@ class TwodGridCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Point = Array<real_type, 2>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;

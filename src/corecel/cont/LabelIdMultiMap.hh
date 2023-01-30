@@ -45,7 +45,7 @@ class LabelIdMultiMap
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using IdT = I;
     using SpanConstIdT = Span<IdT const>;
     using VecLabel = std::vector<Label>;

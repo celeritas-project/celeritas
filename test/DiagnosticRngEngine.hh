@@ -27,7 +27,7 @@ class DiagnosticRngEngine
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = typename Engine::result_type;
     using size_type = std::size_t;
     //!@}

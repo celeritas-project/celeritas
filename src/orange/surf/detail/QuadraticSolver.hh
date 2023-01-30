@@ -37,7 +37,7 @@ class QuadraticSolver
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     //!@}
 

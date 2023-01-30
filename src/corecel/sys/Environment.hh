@@ -40,7 +40,7 @@ class Environment
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using key_type = Container::key_type;
     using mapped_type = Container::mapped_type;
     using value_type = Container::value_type;

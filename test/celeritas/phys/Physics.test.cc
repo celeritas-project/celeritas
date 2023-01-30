@@ -143,7 +143,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParamsHostRef = HostCRef<PhysicsParamsData>;
     //!@}
@@ -631,7 +631,7 @@ class PHYS_DEVICE_TEST : public PhysicsParamsTest
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using StateStore = CollectionStateStore<PhysicsStateData, MemSpace::device>;
     //!@}
 

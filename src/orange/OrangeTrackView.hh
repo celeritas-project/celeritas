@@ -49,7 +49,7 @@ class OrangeTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ParamsRef = NativeCRef<OrangeParamsData>;
     using StateRef = NativeRef<OrangeStateData>;
     using Initializer_t = GeoTrackInitializer;

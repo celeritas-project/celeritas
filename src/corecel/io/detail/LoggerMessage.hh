@@ -31,7 +31,7 @@ class LoggerMessage
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using StreamManip = std::ostream& (*)(std::ostream&);
     //!@}
 

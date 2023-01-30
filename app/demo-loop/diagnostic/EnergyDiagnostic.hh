@@ -98,7 +98,7 @@ class EnergyDiagnosticLauncher
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = celeritas::real_type;
     using ThreadId = celeritas::ThreadId;
     using Pointers = EnergyBinPointers<M>;

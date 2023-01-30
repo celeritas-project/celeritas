@@ -28,7 +28,7 @@ class ImageStore
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = celeritas::real_type;
     using UInt2 = celeritas::Array<unsigned int, 2>;
     using Real3 = celeritas::Real3;

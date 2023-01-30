@@ -50,7 +50,7 @@ class CollectionMirror
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using HostValue = celeritas::HostVal<P>;
     using HostRef = celeritas::HostCRef<P>;
     using DeviceRef = celeritas::DeviceCRef<P>;

@@ -22,7 +22,7 @@ class ParticleView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ParticleParamsRef = NativeCRef<ParticleParamsData>;
     //!@}
 

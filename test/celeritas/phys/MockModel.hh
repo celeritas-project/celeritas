@@ -28,7 +28,7 @@ class MockModel final : public Model
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using BarnMicroXs = Quantity<units::Barn>;
     using ModelCallback = std::function<void(ActionId)>;
     using VecMicroXs = std::vector<BarnMicroXs>;

@@ -96,7 +96,7 @@ struct TransporterTiming
 struct TransporterResult
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = celeritas::real_type;
     using size_type = celeritas::size_type;
     using VecCount = std::vector<size_type>;
@@ -142,7 +142,7 @@ class TransporterBase
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SpanConstPrimary = celeritas::Span<const celeritas::Primary>;
     using CoreParams = celeritas::CoreParams;
     using ActionId = celeritas::ActionId;

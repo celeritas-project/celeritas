@@ -40,7 +40,7 @@ class MaterialTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Initializer_t = MaterialTrackState;
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
     using MaterialStateRef = NativeRef<MaterialStateData>;

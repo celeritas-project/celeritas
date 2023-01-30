@@ -27,7 +27,7 @@ class NonuniformGrid
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = ::celeritas::size_type;
     using value_type = T;
     using Values

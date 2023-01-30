@@ -30,7 +30,7 @@ struct EnumArray
     static_assert(std::is_enum<E>::value, "Template parameter must be an enum");
 
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using key_type = E;
     using value_type = T;
     using size_type = std::underlying_type_t<E>;

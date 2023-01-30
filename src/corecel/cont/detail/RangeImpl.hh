@@ -150,7 +150,7 @@ class range_iter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using TraitsT = RangeTypeTraits<T>;
     using value_type = T;
     using counter_type = typename TraitsT::counter_type;
