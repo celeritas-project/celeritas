@@ -36,7 +36,7 @@ class ImportedModelAdapter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MicroXsBuilders = Model::MicroXsBuilders;
     using SpanConstPDG = Span<PDGNumber const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;

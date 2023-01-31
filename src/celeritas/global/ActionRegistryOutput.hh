@@ -22,7 +22,7 @@ class ActionRegistryOutput final : public OutputInterface
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstActionRegistry = std::shared_ptr<ActionRegistry const>;
     //!@}
 

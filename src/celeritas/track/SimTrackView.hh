@@ -25,7 +25,7 @@ class SimTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SimStateRef = NativeRef<SimStateData>;
     using Initializer_t = SimTrackInitializer;
     //!@}

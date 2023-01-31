@@ -12,6 +12,31 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Recursively log a possibly nested exception message.
+void log_exception(std::exception const& e, Logger::Message* msg)
+{
+    try
+    {
+        std::rethrow_if_nested(e);
+    }
+    catch (std::exception const& next)
+    {
+        log_exception(next, msg);
+        *msg << "\n... from: ";
+    }
+    catch (...)
+    {
+        // Ignore unknown exception
+    }
+    *msg << e.what();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -26,17 +51,19 @@ namespace detail
     for (auto eptr_iter = exc_vec.begin() + 1; eptr_iter != exc_vec.end();
          ++eptr_iter)
     {
+        auto msg = CELER_LOG_LOCAL(critical);
+        msg << "ignoring exception: ";
         try
         {
             std::rethrow_exception(*eptr_iter);
         }
         catch (std::exception const& e)
         {
-            CELER_LOG_LOCAL(critical) << "ignoring exception: " << e.what();
+            log_exception(e, &msg);
         }
         catch (...)
         {
-            CELER_LOG_LOCAL(critical) << "ignoring exception of unknown type";
+            msg << "unknown type";
         }
     }
 

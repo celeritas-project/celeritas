@@ -78,7 +78,7 @@ class FnvHasher
 
   public:
     //@{
-    //! Public type aliases
+    //! \name Type aliases
     using value_type = T;
     //@}
 

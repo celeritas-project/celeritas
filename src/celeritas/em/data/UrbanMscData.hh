@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/XsGridData.hh"
 
 namespace celeritas
 {
@@ -79,9 +80,6 @@ struct UrbanMscMaterialData
 {
     using Real4 = Array<real_type, 4>;
 
-    real_type zeff{};  //!< effective atomic_number
-    real_type scaled_zeff{};  //!< 0.70 * sqrt(zeff)
-    real_type z23{};  //!< zeff^(2/3)
     real_type coeffth1{};  //!< correction in theta_0 formula
     real_type coeffth2{};  //!< correction in theta_0 formula
     Real4 d{0, 0, 0, 0};  //!< coefficients of tail parameters
@@ -93,11 +91,13 @@ struct UrbanMscMaterialData
 
 //---------------------------------------------------------------------------//
 /*!
- * Physics IDs for MSC
+ * Physics IDs for MSC.
  */
 struct UrbanMscIds
 {
+    // TODO: remove when this is no longer a model
     ActionId action;
+    // TODO: change to a bitset based on particle ID when we add muons, hadrons
     ParticleId electron;
     ParticleId positron;
 
@@ -110,13 +110,46 @@ struct UrbanMscIds
 
 //---------------------------------------------------------------------------//
 /*!
- * Device data for step limitation algorithms and angular scattering.
+ * Particle- and material-dependent data for MSC.
+ *
+ * The scaled Zeff parameters are:
+ *
+ *   Particle | a    | b
+ *   -------- | ---- | ----
+ *   electron | 0.87 | 2/3
+ *   positron | 0.7  | 1/2
+ */
+struct UrbanMscParMatData
+{
+    XsGridData xs;  //!< For calculating MFP
+    real_type scaled_zeff{};  //!< a * Z^b
+
+    //! Whether the data is assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return xs && scaled_zeff > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Device data for Urban MSC.
+ *
+ * Since the model currently applies only to electrons and positrons, the
+ * particles are hardcoded to be length 2. TODO: extend to other charged
+ * particles when further physics is implemented.
  */
 template<Ownership W, MemSpace M>
 struct UrbanMscData
 {
+    //// TYPES ////
+
+    template<class T>
+    using Items = Collection<T, W, M>;
     template<class T>
     using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
+
+    //// DATA ////
 
     //! Type-free IDs
     UrbanMscIds ids;
@@ -125,12 +158,20 @@ struct UrbanMscData
     //! User-assignable options
     UrbanMscParameters params;
     //! Material-dependent data
-    MaterialItems<UrbanMscMaterialData> msc_data;
+    MaterialItems<UrbanMscMaterialData> material_data;
+    //! Particle and material-dependent data
+    Items<UrbanMscParMatData> par_mat_data;  // [mat]{electron, positron}
+
+    // Backend storage
+    Items<real_type> reals;
+
+    //// METHODS ////
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !msc_data.empty();
+        return ids && electron_mass > zero_quantity() && !material_data.empty()
+               && !par_mat_data.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -141,13 +182,22 @@ struct UrbanMscData
         ids = other.ids;
         electron_mass = other.electron_mass;
         params = other.params;
-        msc_data = other.msc_data;
+        material_data = other.material_data;
+        par_mat_data = other.par_mat_data;
+        reals = other.reals;
         return *this;
     }
-};
 
-using UrbanMscDeviceRef = DeviceCRef<UrbanMscData>;
-using UrbanMscHostRef = HostCRef<UrbanMscData>;
-using UrbanMscRef = NativeCRef<UrbanMscData>;
+    //! Get the data location for a material + particle
+    CELER_FUNCTION ItemId<UrbanMscParMatData>
+    at(MaterialId mat, ParticleId par) const
+    {
+        CELER_EXPECT(mat && par);
+        size_type result = mat.unchecked_get() * 2;
+        result += (par == this->ids.electron ? 0 : 1);
+        CELER_ENSURE(result < this->par_mat_data.size());
+        return ItemId<UrbanMscParMatData>{result};
+    }
+};
 
 }  // namespace celeritas

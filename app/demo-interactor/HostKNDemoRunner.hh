@@ -30,7 +30,7 @@ class HostKNDemoRunner
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using result_type = demo_interactor::KNDemoResult;
     using constSPParticleParams

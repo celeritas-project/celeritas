@@ -48,7 +48,7 @@ class ParticleParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<ParticleParamsData>;
     using DeviceRef = DeviceCRef<ParticleParamsData>;
     //!@}

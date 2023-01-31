@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Angular distribution for pair-production and bremsstrahlung processes.
+ * Polar angular distribution for pair-production and bremsstrahlung processes.
  *
  * For pair-production, the polar angle of the electron (or positron) is
  * defined with respect to the direction of the parent photon. The energy-
@@ -37,7 +37,7 @@ class TsaiUrbanDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
     using result_type = real_type;
@@ -47,7 +47,7 @@ class TsaiUrbanDistribution
     // Construct with defaults
     inline CELER_FUNCTION TsaiUrbanDistribution(Energy energy, Mass mass);
 
-    // Sample using the given random number generator
+    // Sample cos(theta) using the given random number generator
     template<class Engine>
     inline CELER_FUNCTION result_type operator()(Engine& rng);
 
@@ -70,7 +70,9 @@ TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample gamma angle (z-axis along the parent particle).
+ * Sample the cosine of the polar angle of the exiting gamma.
+ *
+ * The z-axis is with respect to the direction of the parent particle.
  */
 template<class Engine>
 CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)

@@ -1,33 +1,23 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/Label.json.hh
+//! \file celeritas/grid/ValueGridData.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "ValueGridData.hh"
 
-#include <sstream>
-#include <nlohmann/json.hpp>
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Read an array from a JSON file.
- */
-inline void from_json(nlohmann::json const& j, Label& value)
+char const* to_cstring(ValueGridType value)
 {
-    value = Label::from_separator(j.get<std::string>());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write an array to a JSON file.
- */
-inline void to_json(nlohmann::json& j, Label const& value)
-{
-    j = to_string(value);
+    static char const* const strings[] = {"macro_xs", "energy_loss", "range"};
+    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
+                 < sizeof(strings));
+    return strings[static_cast<unsigned int>(value)];
 }
 
 //---------------------------------------------------------------------------//

@@ -15,7 +15,7 @@ namespace celeritas
 /*!
  * Access invariant material- and particle-dependent cutoff values.
  *
- * \c CutoffParamsData is defined in \c CutoffInterface and constructed by
+ * \c CutoffParamsData is defined in \c CutoffData.hh and constructed by
  * \c CutoffParams .
  *
  * \code
@@ -29,7 +29,7 @@ class CutoffView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using CutoffId = OpaqueId<ParticleCutoff>;
     using CutoffData = NativeCRef<CutoffParamsData>;
     using Energy = units::MevEnergy;

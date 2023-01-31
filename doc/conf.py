@@ -7,6 +7,7 @@
 import datetime
 import os
 import json
+import sys
 from pathlib import Path
 
 # -- Project information -----------------------------------------------------
@@ -50,6 +51,7 @@ except (KeyError, IOError) as e:
             "rtdtheme": rtdtheme,
         }
     }
+    tags.add('noconfig')
 
 version = celer_config['version']
 release = celer_config['release']
@@ -98,6 +100,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 highlight_language = 'cpp'
+
+sys.path.insert(0, os.path.join(os.path.abspath('.'), "_python"))
+import monkeysphinx
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -22,7 +22,7 @@ class TrackInitParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<TrackInitParamsData>;
     using DeviceRef = DeviceCRef<TrackInitParamsData>;
     //!@}

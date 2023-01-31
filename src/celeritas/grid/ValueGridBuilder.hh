@@ -31,7 +31,7 @@ class ValueGridBuilder
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ValueGridId = ItemId<struct XsGridData>;
     //!@}
 
@@ -65,7 +65,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SpanConstReal = Span<real_type const>;
     using VecReal = std::vector<real_type>;
     //!@}
@@ -108,7 +108,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using VecReal = std::vector<real_type>;
     using SpanConstReal = Span<real_type const>;
     using Id = ItemId<XsGridData>;
@@ -145,7 +145,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using VecReal = std::vector<real_type>;
     using Id = ItemId<XsGridData>;
     //!@}

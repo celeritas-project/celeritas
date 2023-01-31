@@ -84,7 +84,7 @@ class StepDiagnostic : public Diagnostic<M>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using SPConstParticles = std::shared_ptr<const celeritas::ParticleParams>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
@@ -127,7 +127,7 @@ class StepLauncher
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using ThreadId = celeritas::ThreadId;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;

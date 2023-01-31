@@ -20,7 +20,7 @@ class DeltaDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = T;
     //!@}
 

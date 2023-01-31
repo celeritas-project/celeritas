@@ -22,16 +22,13 @@ namespace detail
  * Helper class for writing log messages.
  *
  * This class should only be created by a Logger instance. When it destructs,
- * the handler is called.
- * \code
-    LoggerMessage ...;
-   \endcode
+ * the handler is called to print the information.
  */
 class LoggerMessage
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using StreamManip = std::ostream& (*)(std::ostream&);
     //!@}
 

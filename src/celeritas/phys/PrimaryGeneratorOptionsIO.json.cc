@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Array.json.hh"
+#include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StringEnumMap.hh"
 #include "celeritas/phys/PDGNumber.hh"

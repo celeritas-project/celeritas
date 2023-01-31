@@ -50,7 +50,7 @@ class CollectionMirror
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using HostValue = celeritas::HostVal<P>;
     using HostRef = celeritas::HostCRef<P>;
     using DeviceRef = celeritas::DeviceCRef<P>;
@@ -72,7 +72,7 @@ class CollectionMirror
     inline DeviceRef const& device_ref() const;
 
     //!@{
-    //! Deprecated alias to _ref-suffied functions
+    //! Deprecated alias to _ref-suffixed functions
     HostRef const& host() const { return this->host_ref(); }
     // Get references to device data after construction
     DeviceRef const& device() const { return this->device_ref(); }

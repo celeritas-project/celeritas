@@ -2,6 +2,8 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. highlight:: none
+
 .. _license:
 
 *******
@@ -33,8 +35,7 @@ Small portions of Celeritas are derived from other open source projects.
 BVHNavigator
 ------------
 
-Derived from `AdePT<https://github.com/apt-sim/AdePT>` under the following
-license::
+Derived from AdePT_ under the following license::
 
    Copyright 2020 CERN
 
@@ -49,3 +50,5 @@ license::
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+.. _AdePT: https://github.com/apt-sim/AdePT

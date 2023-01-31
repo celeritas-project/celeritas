@@ -22,7 +22,7 @@ class CuHipRngParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<CuHipRngParamsData>;
     using DeviceRef = DeviceCRef<CuHipRngParamsData>;
     //!@}

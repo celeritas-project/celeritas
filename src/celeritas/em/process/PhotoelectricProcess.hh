@@ -29,7 +29,7 @@ class PhotoelectricProcess : public Process
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;

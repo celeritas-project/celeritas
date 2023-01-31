@@ -22,7 +22,7 @@ class XorwowRngParams
 {
   public:
     //!@{
-    //! References to constructed data
+    //! \name Type aliases
     using HostRef = HostCRef<XorwowRngParamsData>;
     using DeviceRef = DeviceCRef<XorwowRngParamsData>;
     //!@}

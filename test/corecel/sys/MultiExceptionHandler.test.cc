@@ -19,6 +19,14 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+// Helper classes
+class MockContextException : public std::exception
+{
+  public:
+    char const* what() const noexcept final { return "some context"; }
+};
+
+//---------------------------------------------------------------------------//
 
 class MultiExceptionHandlerTest : public ::celeritas::test::Test
 {
@@ -82,7 +90,26 @@ TEST_F(MultiExceptionHandlerTest, multi)
            "failed: false",
            "ignoring exception: test.cc:2:\nceleritas: internal assertion "
            "failed: false"};
-    EXPECT_VEC_EQ(expected_messages, messages);
+    EXPECT_VEC_EQ(expected_messages, this->messages);
+}
+
+TEST_F(MultiExceptionHandlerTest, multi_nested)
+{
+    MultiExceptionHandler capture_exception;
+    CELER_TRY_HANDLE_CONTEXT(
+        throw RuntimeError::from_validate("first exception", "", "here", 1),
+        capture_exception,
+        MockContextException{});
+    DebugErrorDetails deets{DebugErrorType::internal, "false", "test.cc", 2};
+    CELER_TRY_HANDLE_CONTEXT(
+        throw DebugError(deets), capture_exception, MockContextException{});
+    EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
+                 MockContextException);
+
+    static const std::string expected_messages[]
+        = {"ignoring exception: test.cc:2:\nceleritas: internal assertion "
+           "failed: false\n... from: some context"};
+    EXPECT_VEC_EQ(expected_messages, this->messages);
 }
 
 // Failure case can't be tested as part of the rest of the suite

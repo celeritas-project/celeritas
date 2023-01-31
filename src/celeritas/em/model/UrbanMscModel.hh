@@ -16,6 +16,7 @@ namespace celeritas
 class ParticleParams;
 class MaterialParams;
 class MaterialView;
+class ImportedProcessAdapter;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -34,7 +35,8 @@ class UrbanMscModel final : public Model
     // Construct from model ID and other necessary data
     UrbanMscModel(ActionId id,
                   ParticleParams const& particles,
-                  MaterialParams const& materials);
+                  MaterialParams const& materials,
+                  ImportedProcessAdapter const& pdata);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -79,8 +81,7 @@ class UrbanMscModel final : public Model
 
     //// HELPER FUNCTIONS ////
 
-    void build_data(HostValue* host_data, MaterialParams const& materials);
-    MaterialData calc_material_data(MaterialView const& material_view);
+    static MaterialData calc_material_data(MaterialView const& material_view);
 };
 
 //---------------------------------------------------------------------------//

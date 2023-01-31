@@ -58,18 +58,19 @@
  * in \c __device__ -annotated code.
  *
  * The error message should read: \verbatim
-   <PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?
+   "<PROBLEM> (<WHY IT'S A PROBLEM>) <SUGGESTION>?"
   \endverbatim
  *
  * Examples with correct casing and punctuation:
- * - failed to open '{filename}' (should contain relaxation data)
- * - unexpected end of file '{filename}' (data is inconsistent with
- *   boundaries)
- * - MPI was not initialized (needed to construct a communicator). Maybe set
+ * - "failed to open '{filename}' (should contain relaxation data)"
+ * - "unexpected end of file '{filename}' (data is inconsistent with
+ *   boundaries)"
+ * - "MPI was not initialized (needed to construct a communicator). Maybe set
  *   the environment variable CELER_DISABLE_PARALLEL=1 to disable
  *   externally?"
- * - min_range={opts.min_range} (must be positive)"
+ * - "invalid min_range={opts.min_range} (must be positive)"
  *
+ * This looks in pracice like:
  * \code
    CELER_VALIDATE(file_stream,
                   << "failed to open '" << filename
@@ -402,6 +403,10 @@ char const* to_cstring(RuntimeErrorType which);
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
+// Forward declaration of simple struct with pointer to an NLJSON object
+struct JsonPimpl;
+
+//---------------------------------------------------------------------------//
 /*!
  * Error thrown by Celeritas assertions.
  */
@@ -455,6 +460,25 @@ class RuntimeError : public std::runtime_error
 
   private:
     RuntimeErrorDetails details_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Base class for writing arbitrary exception context to JSON.
+ *
+ * This can be overridden in higher-level parts of the code for specific needs
+ * (e.g., writing thread, event, and track contexts in Celeritas solver
+ * kernels). Note that in order for derived classes to work with
+ * `std::throw_with_nested`, they *MUST NOT* be `final`.
+ */
+class RichContextException : public std::exception
+{
+  public:
+    //! Write output to the given JSON object
+    virtual void output(JsonPimpl*) const = 0;
+
+    //! Provide the name for this exception class
+    virtual char const* type() const = 0;
 };
 
 //---------------------------------------------------------------------------//

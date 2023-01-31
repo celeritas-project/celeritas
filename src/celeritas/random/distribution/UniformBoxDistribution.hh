@@ -26,7 +26,7 @@ class UniformBoxDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = RealType;
     using result_type = Array<real_type, 3>;
     //!@}

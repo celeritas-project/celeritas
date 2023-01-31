@@ -26,7 +26,7 @@ class UniformGrid
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = ::celeritas::size_type;
     using value_type = ::celeritas::real_type;
     //!@}

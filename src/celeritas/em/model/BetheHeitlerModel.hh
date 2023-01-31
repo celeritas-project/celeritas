@@ -25,7 +25,7 @@ class BetheHeitlerModel final : public Model
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 

@@ -27,7 +27,7 @@ template<class D, class F>
 struct InteractionLauncherImpl
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using CoreRefNative = CoreRef<MemSpace::native>;
     //!@}
 

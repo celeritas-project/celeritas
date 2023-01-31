@@ -87,7 +87,7 @@ class KernelParamCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using dim_type = unsigned int;
     //!@}
 

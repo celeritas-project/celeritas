@@ -55,6 +55,7 @@ endif()
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
+    AssertIO.json.cc
     sys/DeviceIO.json.cc
     sys/KernelRegistryIO.json.cc
   )

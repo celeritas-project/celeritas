@@ -29,7 +29,7 @@ class RungeKuttaStepper
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = FieldStepperResult;
     //!@}
 

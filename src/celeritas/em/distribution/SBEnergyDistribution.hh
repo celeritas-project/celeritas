@@ -106,7 +106,7 @@ class SBEnergyDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SBData = NativeCRef<SeltzerBergerData>;
     using Energy = units::MevEnergy;
     using EnergySq = Quantity<UnitProduct<units::Mev, units::Mev>>;

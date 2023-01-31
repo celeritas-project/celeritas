@@ -7,11 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "corecel/io/OutputManager.hh"
 
+#include <exception>
+#include <regex>
 #include <sstream>
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"
 
@@ -49,6 +52,36 @@ class TestInterface final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
+// **IMPORTANT** this class cannot be `final` for exception nesting to work!
+// Its members can be, though.
+class MockKernelContextException : public RichContextException
+{
+  public:
+    MockKernelContextException(int th, int ev, int tr)
+        : thread_(th), event_(ev), track_(tr)
+    {
+    }
+
+    char const* type() const final { return "MockKernelContextException"; }
+
+    void output(JsonPimpl* json) const final
+    {
+#if CELERITAS_USE_JSON
+        json->obj["thread"] = thread_;
+        json->obj["event"] = event_;
+        json->obj["track"] = track_;
+#else
+        (void)sizeof(json);
+#endif
+    }
+
+  private:
+    int thread_{};
+    int event_{};
+    int track_{};
+};
+
+//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
@@ -59,9 +92,14 @@ class OutputManagerTest : public Test
 
     std::string to_string(OutputManager const& om)
     {
+        static const std::regex file_match(R"re("file":"[^"]+")re");
+        static const std::regex line_match(R"re("line":[0-9]+)re");
         std::ostringstream os;
         om.output(&os);
-        return os.str();
+        std::string result = os.str();
+        result = std::regex_replace(result, file_match, R"("file":"FILE")");
+        result = std::regex_replace(result, line_match, R"("line":123)");
+        return result;
     }
 };
 
@@ -123,23 +161,38 @@ TEST_F(OutputManagerTest, build_output)
 TEST_F(OutputManagerTest, exception_output)
 {
     OutputManager om;
+    auto exception_to_output = [&om](std::exception_ptr const& ep) {
+        om.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
+    };
 
-    try
-    {
-        CELER_VALIDATE(false, << "things went wrong");
-    }
-    catch (...)
-    {
-        om.insert(std::make_shared<celeritas::ExceptionOutput>(
-            std::current_exception()));
-    }
+    CELER_TRY_HANDLE(
+        CELER_VALIDATE(false, << "things went wrong"),
+        exception_to_output);
 
     std::string result = this->to_string(om);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_TRUE(result.find("\"what\":\"things went wrong\"")
-                    != std::string::npos)
-            << "actual output: " << result;
+        EXPECT_EQ(R"json({"result":{"exception":{"condition":"false","file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json", result);
+    }
+}
+
+TEST_F(OutputManagerTest, nested_exception_output)
+{
+    OutputManager om;
+    auto exception_to_output = [&om](std::exception_ptr const& ep) {
+        om.insert(std::make_shared<celeritas::ExceptionOutput>(ep));
+    };
+
+    CELER_TRY_HANDLE_CONTEXT(CELER_VALIDATE(false, << "things went wrong"),
+                             exception_to_output,
+                             MockKernelContextException(123, 2, 4567));
+
+
+    std::string result = this->to_string(om);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_EQ(R"json({"result":{"exception":{"condition":"false","context":{"event":2,"thread":123,"track":4567,"type":"MockKernelContextException"},"file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json", result);
+
     }
 }
 
