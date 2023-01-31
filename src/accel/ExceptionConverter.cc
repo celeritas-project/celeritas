@@ -16,6 +16,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -75,6 +76,19 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     try
     {
         std::rethrow_exception(eptr);
+    }
+    catch (RichContextException const& e)
+    {
+        CELER_LOG_LOCAL(critical)
+            << "The following error is from: " << e.what();
+        try
+        {
+            std::rethrow_if_nested(e);
+        }
+        catch (...)
+        {
+            return (*this)(std::current_exception());
+        }
     }
     catch (RuntimeError const& e)
     {

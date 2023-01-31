@@ -328,6 +328,7 @@ set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 celeritas_add_test(celeritas/global/AlongStep.test.cc
   ${_optional_geant4_env} NT 1)
+celeritas_add_test(celeritas/global/KernelContextException.test.cc NT 1)
 celeritas_add_test(celeritas/global/Stepper.test.cc
   GPU NT 4 ${_needs_geant4}
   FILTER
