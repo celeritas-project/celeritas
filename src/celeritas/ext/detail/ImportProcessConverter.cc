@@ -15,6 +15,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Element.hh>
 #include <G4EmParameters.hh>
 #include <G4Material.hh>
@@ -28,7 +29,6 @@
 #include <G4ProcessType.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
@@ -44,6 +44,10 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "../GeantConfig.hh"
+
+using CLHEP::cm;
+using CLHEP::cm2;
+using CLHEP::MeV;
 
 namespace celeritas
 {
