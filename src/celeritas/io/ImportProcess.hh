@@ -26,7 +26,8 @@ namespace celeritas
  */
 enum class ImportProcessType
 {
-    not_defined,
+    none,
+    not_defined [[deprecated]] = none,
     transportation,
     electromagnetic,
     optical,
@@ -51,7 +52,8 @@ enum class ImportProcessType
 enum class ImportProcessClass
 {
     // User-defined
-    unknown,
+    none,
+    unknown [[deprecated]] = none,
     // EM
     ion_ioni,
     msc,
@@ -80,7 +82,8 @@ enum class ImportProcessClass
  */
 enum class ImportModelClass
 {
-    unknown,
+    none,
+    unknown [[deprecated]] = none,
     bragg_ion,
     bethe_bloch,
     urban_msc,
@@ -147,9 +150,9 @@ struct ImportProcess
 
     explicit operator bool() const
     {
-        return process_type != ImportProcessType::not_defined
-               && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty();
+        return process_type != ImportProcessType::none
+               && process_class != ImportProcessClass::none && !models.empty()
+               && !tables.empty();
     }
 };
 

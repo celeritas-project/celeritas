@@ -52,7 +52,8 @@ ModelArray<bool> make_microxs_flag_array()
  */
 char const* to_cstring(ImportProcessType value)
 {
-    static char const* const strings[] = {"not_defined",
+    CELER_EXPECT(value < ImportProcessType::size_);
+    static char const* const strings[] = {"",
                                           "transportation",
                                           "electromagnetic",
                                           "optical",
@@ -65,8 +66,11 @@ char const* to_cstring(ImportProcessType value)
                                           "parallel",
                                           "phonon",
                                           "ucn"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
+    static_assert(static_cast<unsigned int>(ImportProcessType::size_)
+                          * sizeof(char const*)
+                      == sizeof(strings),
+                  "Enum strings are incorrect");
+
     return strings[static_cast<unsigned int>(value)];
 }
 
@@ -78,7 +82,8 @@ char const* to_cstring(ImportProcessType value)
  */
 char const* to_cstring(ImportProcessClass value)
 {
-    static char const* const strings[] = {"unknown",
+    CELER_EXPECT(value < ImportProcessClass::size_);
+    static char const* const strings[] = {"",
                                           "ion_ioni",
                                           "msc",
                                           "h_ioni",
@@ -94,10 +99,12 @@ char const* to_cstring(ImportProcessClass value)
                                           "annihilation",
                                           "mu_ioni",
                                           "mu_brems",
-                                          "mu_pair_prod",
-                                          "transportation"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
+                                          "mu_pair_prod"};
+    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
+                          * sizeof(char const*)
+                      == sizeof(strings),
+                  "Enum strings are incorrect");
+
     return strings[static_cast<unsigned int>(value)];
 }
 
@@ -109,7 +116,8 @@ char const* to_cstring(ImportProcessClass value)
  */
 char const* to_cstring(ImportModelClass value)
 {
-    static char const* const strings[] = {"unknown",
+    CELER_EXPECT(value < ImportModelClass::size_);
+    static char const* const strings[] = {"",
                                           "bragg_ion",
                                           "bethe_bloch",
                                           "urban_msc",
@@ -131,8 +139,11 @@ char const* to_cstring(ImportModelClass value)
                                           "mu_bethe_bloch",
                                           "mu_brems",
                                           "mu_pair_prod"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
+    static_assert(static_cast<unsigned int>(ImportModelClass::size_)
+                          * sizeof(char const*)
+                      == sizeof(strings),
+                  "Enum strings are incorrect");
+
     return strings[static_cast<unsigned int>(value)];
 }
 

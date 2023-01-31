@@ -53,15 +53,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
- * [See G4PhysicsVectorType.hh]
+ * Convert process type from Geant4 to Celeritas IO.
  */
 ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
 {
     switch (g4_process_type)
     {
         case G4ProcessType::fNotDefined:
-            return ImportProcessType::not_defined;
+            return ImportProcessType::none;
         case G4ProcessType::fTransportation:
             return ImportProcessType::transportation;
         case G4ProcessType::fElectromagnetic:
@@ -105,7 +104,7 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
     catch (celeritas::RuntimeError const&)
     {
         CELER_LOG(warning) << "Encountered unknown process '" << name << "'";
-        result = ImportProcessClass::unknown;
+        result = ImportProcessClass::none;
     }
     return result;
 }
@@ -148,7 +147,7 @@ ImportModelClass to_import_model(G4VEmModel const& model)
         static celeritas::TypeDemangler<G4VEmModel> demangle_model;
         CELER_LOG(warning) << "Encountered unknown model '" << name
                            << "' (RTTI: " << demangle_model(model) << ")";
-        return ImportModelClass::unknown;
+        return ImportModelClass::none;
     }
     return iter->second;
 }
