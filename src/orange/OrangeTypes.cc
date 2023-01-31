@@ -8,6 +8,7 @@
 #include "OrangeTypes.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -17,9 +18,8 @@ namespace celeritas
  */
 char const* to_cstring(SurfaceType value)
 {
-    CELER_EXPECT(value != SurfaceType::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<SurfaceType> const to_cstring_impl
+    {
         "px",
         "py",
         "pz",
@@ -42,12 +42,7 @@ char const* to_cstring(SurfaceType value)
 #endif
         "gq",
     };
-    static_assert(
-        static_cast<unsigned int>(SurfaceType::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

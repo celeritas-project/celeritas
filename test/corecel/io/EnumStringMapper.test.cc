@@ -45,6 +45,8 @@ TEST(EnumStringMapperTest, all)
     }
 }
 
+// The following instances should fail to compile.
+#if 0
 TEST(EnumStringMapperTest, compiler_error)
 {
     static EnumStringMapper<CeleritasLabs> const too_short{"argonne", "ornl"};
@@ -52,6 +54,7 @@ TEST(EnumStringMapperTest, compiler_error)
         "argonne", "ornl", "foo", "bar"};
     static EnumStringMapper<InvalidEnum> const no_size{"foo", "bar"};
 }
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace test

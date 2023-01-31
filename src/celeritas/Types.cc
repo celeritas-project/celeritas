@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Types.hh"
 
+#include "corecel/io/EnumStringMapper.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -15,9 +17,7 @@ namespace celeritas
  */
 char const* to_cstring(ActionOrder value)
 {
-    CELER_EXPECT(value != ActionOrder::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<ActionOrder> const to_cstring_impl{
         "start",
         "pre",
         "along",
@@ -26,12 +26,7 @@ char const* to_cstring(ActionOrder value)
         "post_post",
         "end",
     };
-    static_assert(
-        static_cast<unsigned int>(ActionOrder::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

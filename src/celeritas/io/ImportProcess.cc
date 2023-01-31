@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
@@ -52,26 +53,22 @@ ModelArray<bool> make_microxs_flag_array()
  */
 char const* to_cstring(ImportProcessType value)
 {
-    CELER_EXPECT(value < ImportProcessType::size_);
-    static char const* const strings[] = {"",
-                                          "transportation",
-                                          "electromagnetic",
-                                          "optical",
-                                          "hadronic",
-                                          "photolepton_hadron",
-                                          "decay",
-                                          "general",
-                                          "parameterisation",
-                                          "user_defined",
-                                          "parallel",
-                                          "phonon",
-                                          "ucn"};
-    static_assert(static_cast<unsigned int>(ImportProcessType::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportProcessType> const to_cstring_impl{
+        "",
+        "transportation",
+        "electromagnetic",
+        "optical",
+        "hadronic",
+        "photolepton_hadron",
+        "decay",
+        "general",
+        "parameterisation",
+        "user_defined",
+        "parallel",
+        "phonon",
+        "ucn",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,30 +79,26 @@ char const* to_cstring(ImportProcessType value)
  */
 char const* to_cstring(ImportProcessClass value)
 {
-    CELER_EXPECT(value < ImportProcessClass::size_);
-    static char const* const strings[] = {"",
-                                          "ion_ioni",
-                                          "msc",
-                                          "h_ioni",
-                                          "h_brems",
-                                          "h_pair_prod",
-                                          "coulomb_scat",
-                                          "e_ioni",
-                                          "e_brems",
-                                          "photoelectric",
-                                          "compton",
-                                          "conversion",
-                                          "rayleigh",
-                                          "annihilation",
-                                          "mu_ioni",
-                                          "mu_brems",
-                                          "mu_pair_prod"};
-    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportProcessClass> const to_cstring_impl{
+        "",
+        "ion_ioni",
+        "msc",
+        "h_ioni",
+        "h_brems",
+        "h_pair_prod",
+        "coulomb_scat",
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,35 +109,31 @@ char const* to_cstring(ImportProcessClass value)
  */
 char const* to_cstring(ImportModelClass value)
 {
-    CELER_EXPECT(value < ImportModelClass::size_);
-    static char const* const strings[] = {"",
-                                          "bragg_ion",
-                                          "bethe_bloch",
-                                          "urban_msc",
-                                          "icru_73_qo",
-                                          "wentzel_VI_uni",
-                                          "h_brems",
-                                          "h_pair_prod",
-                                          "e_coulomb_scattering",
-                                          "bragg",
-                                          "moller_bhabha",
-                                          "e_brems_sb",
-                                          "e_brems_lpm",
-                                          "e_plus_to_gg",
-                                          "livermore_photoelectric",
-                                          "klein_nishina",
-                                          "bethe_heitler",
-                                          "bethe_heitler_lpm",
-                                          "livermore_rayleigh",
-                                          "mu_bethe_bloch",
-                                          "mu_brems",
-                                          "mu_pair_prod"};
-    static_assert(static_cast<unsigned int>(ImportModelClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportModelClass> const to_cstring_impl{
+        "",
+        "bragg_ion",
+        "bethe_bloch",
+        "urban_msc",
+        "icru_73_qo",
+        "wentzel_VI_uni",
+        "h_brems",
+        "h_pair_prod",
+        "e_coulomb_scattering",
+        "bragg",
+        "moller_bhabha",
+        "e_brems_sb",
+        "e_brems_lpm",
+        "e_plus_to_gg",
+        "livermore_photoelectric",
+        "klein_nishina",
+        "bethe_heitler",
+        "bethe_heitler_lpm",
+        "livermore_rayleigh",
+        "mu_bethe_bloch",
+        "mu_brems",
+        "mu_pair_prod",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -153,9 +142,7 @@ char const* to_cstring(ImportModelClass value)
  */
 char const* to_geant_name(ImportProcessClass value)
 {
-    CELER_EXPECT(value != ImportProcessClass::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportProcessClass> const to_name_impl{
         "",  // unknown,
         "ionIoni",  // ion_ioni,
         "msc",  // msc,
@@ -174,12 +161,7 @@ char const* to_geant_name(ImportProcessClass value)
         "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
     };
-    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    return to_name_impl(value);
 }
 
 //---------------------------------------------------------------------------//
