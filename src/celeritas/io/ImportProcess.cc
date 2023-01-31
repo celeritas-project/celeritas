@@ -13,7 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
 {
@@ -192,7 +192,7 @@ char const* to_geant_name(ImportProcessClass value)
 ImportProcessClass geant_name_to_import_process_class(std::string const& s)
 {
     static auto const from_string
-        = StringEnumMap<ImportProcessClass>::from_cstring_func(
+        = StringEnumMapper<ImportProcessClass>::from_cstring_func(
             to_geant_name, "process class");
 
     return from_string(s);

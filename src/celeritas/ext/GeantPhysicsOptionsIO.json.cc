@@ -11,7 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 
@@ -93,8 +93,8 @@ char const* to_cstring(RelaxationSelection value)
 void from_json(nlohmann::json const& j, MscModelSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
-                                                              "msc model");
+        = StringEnumMapper<MscModelSelection>::from_cstring_func(to_cstring,
+                                                                 "msc model");
     value = from_string(j.get<std::string>());
 }
 
@@ -106,8 +106,8 @@ void to_json(nlohmann::json& j, MscModelSelection const& value)
 void from_json(nlohmann::json const& j, BremsModelSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
-                                                                "brems model");
+        = StringEnumMapper<BremsModelSelection>::from_cstring_func(
+            to_cstring, "brems model");
     value = from_string(j.get<std::string>());
 }
 
@@ -119,7 +119,7 @@ void to_json(nlohmann::json& j, BremsModelSelection const& value)
 void from_json(nlohmann::json const& j, RelaxationSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<RelaxationSelection>::from_cstring_func(
+        = StringEnumMapper<RelaxationSelection>::from_cstring_func(
             to_cstring, "atomic relaxation");
     value = from_string(j.get<std::string>());
 }
