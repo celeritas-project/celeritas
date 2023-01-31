@@ -88,6 +88,7 @@ struct ImportData
     std::vector<ImportElement> elements;
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess> processes;
+    std::vector<ImportMscModel> msc_models;
     std::vector<ImportVolume> volumes;
     ImportEmParameters em_params;
     ImportSBMap sb_data;

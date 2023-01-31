@@ -11,6 +11,7 @@
 // clang-format off
 #pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportProcess+;
+#pragma link C++ class celeritas::ImportMscModel+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::ImportMaterial+;

@@ -409,7 +409,7 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
     }
 
     CELER_ENSURE(process_);
-    return process_;
+    return std::move(process_);
 }
 
 //---------------------------------------------------------------------------//

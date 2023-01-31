@@ -150,8 +150,28 @@ struct ImportProcess
 
     explicit operator bool() const
     {
-        return process_type != ImportProcessType::size_
+        return particle_pdg != 0 && process_type != ImportProcessType::size_
                && process_class != ImportProcessClass::size_ && !models.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store imported data for multiple scattering.
+ */
+struct ImportMscModel
+{
+    static constexpr auto process_type = ImportProcessType::electromagnetic;
+    static constexpr auto process_class = ImportProcessClass::msc;
+
+    int particle_pdg{0};
+    ImportModelClass model{ImportModelClass::size_};
+    ImportPhysicsTable lambda_table;
+
+    explicit operator bool() const
+    {
+        return particle_pdg != 0 && model != ImportModelClass::size_
+               && lambda_table;
     }
 };
 

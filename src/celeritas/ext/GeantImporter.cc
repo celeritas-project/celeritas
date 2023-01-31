@@ -420,15 +420,17 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a populated \c ImportProcess vector.
  */
-std::vector<ImportProcess>
-store_processes(GeantImporter::DataSelection::Flags process_flags,
-                std::vector<ImportParticle> const& particles,
-                std::vector<ImportElement> const& elements,
-                std::vector<ImportMaterial> const& materials)
+auto store_processes(GeantImporter::DataSelection::Flags process_flags,
+                     std::vector<ImportParticle> const& particles,
+                     std::vector<ImportElement> const& elements,
+                     std::vector<ImportMaterial> const& materials)
+    -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
     ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
+    std::vector<ImportMscModel> msc_models;
+
     detail::ImportProcessConverter load_process(
         detail::TableSelection::minimal, materials, elements);
 
@@ -454,12 +456,30 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
             if (ImportProcess ip = load_process(*g4_particle_def, process))
             {
                 // Not an empty process, so it was not added in a previous loop
-                processes.push_back(std::move(ip));
+                if (ip.process_class != ImportProcessClass::msc)
+                {
+                    processes.push_back(std::move(ip));
+                }
+                else
+                {
+                    // Convert process to MSC
+                    CELER_ASSERT(ip.models.size() == ip.tables.size());
+                    for (auto i : range(ip.models.size()))
+                    {
+                        CELER_ASSERT(ip.tables[i].table_type
+                                     == ImportTableType::lambda);
+                        ImportMscModel imm;
+                        imm.particle_pdg = ip.particle_pdg;
+                        imm.model = std::move(ip.models[i]);
+                        imm.lambda_table = std::move(ip.tables[i]);
+                        msc_models.push_back(std::move(imm));
+                    }
+                }
             }
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-    return processes;
+    return {std::move(processes), std::move(msc_models)};
 }
 
 //---------------------------------------------------------------------------//
@@ -561,10 +581,13 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         import_data.particles = store_particles(selected.particles);
         import_data.elements = store_elements();
         import_data.materials = store_materials(selected.particles);
-        import_data.processes = store_processes(selected.processes,
-                                                import_data.particles,
-                                                import_data.elements,
-                                                import_data.materials);
+        // TODO: when moving to C++17, use a structured biding
+        auto processes_and_msc = store_processes(selected.processes,
+                                                 import_data.particles,
+                                                 import_data.elements,
+                                                 import_data.materials);
+        import_data.processes = std::move(processes_and_msc.first);
+        import_data.msc_models = std::move(processes_and_msc.second);
         import_data.volumes = store_volumes(world_);
         if (selected.processes & DataSelection::em)
         {
