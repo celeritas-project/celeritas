@@ -17,8 +17,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
+#include "../interactor/detail/PhysicsConstants.hh"
 #include "LPMCalculator.hh"
 
 namespace celeritas
@@ -37,7 +37,7 @@ class RBDiffXsCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using ElementData = RelBremElementData;
     //!@}
@@ -125,11 +125,12 @@ RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
     , total_energy_(value_as<units::MevEnergy>(energy)
                     + value_as<units::MevMass>(shared.electron_mass))
 {
-    real_type density_factor = material.electron_density() * migdal_constant();
+    real_type density_factor = material.electron_density()
+                               * detail::migdal_constant();
     density_corr_ = density_factor * ipow<2>(total_energy_);
 
     real_type lpm_energy = material.radiation_length()
-                           * value_as<MevPerCm>(lpm_constant());
+                           * value_as<detail::MevPerCm>(detail::lpm_constant());
     real_type lpm_threshold = lpm_energy * std::sqrt(density_factor);
     enable_lpm_ = (shared.enable_lpm && (total_energy_ > lpm_threshold));
     dielectric_suppression_ = shared.dielectric_suppression();

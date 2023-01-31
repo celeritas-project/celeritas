@@ -44,7 +44,7 @@ namespace celeritas
 class CombinedBremInteractor
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Momentum = units::MevMomentum;
     using ElementData = RelBremElementData;
@@ -69,31 +69,26 @@ class CombinedBremInteractor
   private:
     //// DATA ////
 
+    // SB and relativistic data
+    CombinedBremRef const& shared_;
     // Incident particle energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
     // Incident particle direction
-    const Momentum inc_momentum_;
+    Momentum const inc_momentum_;
     // Incident particle direction
     Real3 const& inc_direction_;
+    // Energy cutoffs
+    CutoffView const& cutoffs_;
     // Production cutoff for gammas
-    const Energy gamma_cutoff_;
+    Energy const gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
+    // Material properties
+    MaterialView const& material_;
     // Element in which interaction occurs
-    const ElementComponentId elcomp_id_;
+    ElementComponentId const elcomp_id_;
     // Incident particle flag for selecting XS correction factor
     bool const is_electron_;
-    // Flag for selecting the relativistic bremsstrahlung model
-    bool const is_relativistic_;
-
-    //// HELPER CLASSES ////
-
-    // A helper to Sample the photon energy from the relativistic model
-    RBEnergySampler rb_energy_sampler_;
-    // A helper to sample the photon energy from the SeltzerBerger model
-    SBEnergySampler sb_energy_sampler_;
-    // A helper to update the final state of the primary and the secondary
-    BremFinalStateHelper final_state_interaction_;
 };
 
 //---------------------------------------------------------------------------//
@@ -111,27 +106,16 @@ CombinedBremInteractor::CombinedBremInteractor(
     StackAllocator<Secondary>& allocate,
     MaterialView const& material,
     ElementComponentId const& elcomp_id)
-    : inc_energy_(particle.energy())
+    : shared_(shared)
+    , inc_energy_(particle.energy())
     , inc_momentum_(particle.momentum())
     , inc_direction_(direction)
+    , cutoffs_(cutoffs)
     , gamma_cutoff_(cutoffs.energy(shared.rb_data.ids.gamma))
     , allocate_(allocate)
+    , material_(material)
     , elcomp_id_(elcomp_id)
     , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
-    , is_relativistic_(particle.energy() > seltzer_berger_limit())
-    , rb_energy_sampler_(shared.rb_data, particle, cutoffs, material, elcomp_id)
-    , sb_energy_sampler_(shared.sb_differential_xs,
-                         particle,
-                         gamma_cutoff_,
-                         material,
-                         elcomp_id,
-                         shared.rb_data.electron_mass,
-                         is_electron_)
-    , final_state_interaction_(inc_energy_,
-                               inc_direction_,
-                               inc_momentum_,
-                               shared.rb_data.electron_mass,
-                               shared.rb_data.ids.gamma)
 {
     CELER_EXPECT(is_electron_
                  || particle.particle_id() == shared.rb_data.ids.positron);
@@ -145,6 +129,8 @@ CombinedBremInteractor::CombinedBremInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
 {
+    // TODO: reject this interaction before launching the kernel by using
+    // correct material-dependent lower bounds for the interaction
     if (gamma_cutoff_ > inc_energy_)
     {
         return Interaction::from_unchanged(inc_energy_, inc_direction_);
@@ -159,11 +145,37 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
     }
 
     // Sample the bremsstrahlung photon energy
-    Energy gamma_energy = (is_relativistic_) ? rb_energy_sampler_(rng)
-                                             : sb_energy_sampler_(rng);
+    Energy gamma_energy;
+    if (inc_energy_ > detail::seltzer_berger_limit())
+    {
+        detail::RBEnergySampler sample_energy{
+            shared_.rb_data, inc_energy_, cutoffs_, material_, elcomp_id_};
+        gamma_energy = sample_energy(rng);
+    }
+    else
+    {
+        detail::SBEnergySampler sample_energy{shared_.sb_differential_xs,
+                                              inc_energy_,
+                                              gamma_cutoff_,
+                                              material_,
+                                              elcomp_id_,
+                                              shared_.rb_data.electron_mass,
+                                              is_electron_};
+        gamma_energy = sample_energy(rng);
+    }
+
+    // Sample the bremsstrahlung photon energy to construct the final sampler
+    detail::BremFinalStateHelper sample_interaction(
+        inc_energy_,
+        inc_direction_,
+        inc_momentum_,
+        shared_.rb_data.electron_mass,
+        shared_.rb_data.ids.gamma,
+        gamma_energy,
+        secondaries);
 
     // Update kinematics of the final state and return this interaction
-    return final_state_interaction_(rng, gamma_energy, secondaries);
+    return sample_interaction(rng);
 }
 
 //---------------------------------------------------------------------------//

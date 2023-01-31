@@ -38,7 +38,7 @@ class ImportedProcesses
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ImportProcessId = OpaqueId<ImportProcess>;
     using key_type = std::pair<PDGNumber, ImportProcessClass>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
@@ -74,7 +74,7 @@ class ImportedProcessAdapter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using StepLimitBuilders = Process::StepLimitBuilders;
@@ -95,7 +95,7 @@ class ImportedProcessAdapter
                            std::initializer_list<PDGNumber> pdg_numbers);
 
     // Construct step limits from the given particle/material type
-    StepLimitBuilders step_limits(Applicability range) const;
+    StepLimitBuilders step_limits(Applicability applic) const;
 
     // Get the lambda table for the given particle ID
     inline ImportPhysicsTable const& get_lambda(ParticleId id) const;

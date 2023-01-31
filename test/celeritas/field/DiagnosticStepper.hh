@@ -25,7 +25,7 @@ class DiagnosticStepper
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = typename StepperT::result_type;
     using size_type = std::size_t;
     //!@}

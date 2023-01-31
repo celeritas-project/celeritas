@@ -35,7 +35,7 @@ class PhysicsTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Initializer_t = PhysicsTrackInitializer;
     using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
     using PhysicsStateRef = NativeRef<PhysicsStateData>;

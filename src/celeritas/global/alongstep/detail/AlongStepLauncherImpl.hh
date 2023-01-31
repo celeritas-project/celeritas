@@ -34,7 +34,7 @@ template<class M, class P, class E, class F>
 struct AlongStepLauncherImpl
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using CoreRefNative = CoreRef<MemSpace::native>;
     //!@}
 

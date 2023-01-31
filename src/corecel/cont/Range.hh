@@ -61,7 +61,7 @@ class Range
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using const_iterator = detail::range_iter<T>;
     using size_type = typename TraitsT::counter_type;
     using value_type = T;
@@ -157,7 +157,7 @@ class Count
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using const_iterator = detail::inf_range_iter<T>;
     using size_type = typename TraitsT::counter_type;
     using value_type = T;

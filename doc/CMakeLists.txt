@@ -61,6 +61,8 @@ set(DOXYGEN_PROJECT_LOGO
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
+set(DOXYGEN_VERBATIM_HEADERS NO)
+set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
@@ -140,7 +142,10 @@ set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
 if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}-dev")
+  math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+  set(Celeritas_SHORT_VERSION
+    "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
+  )
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
@@ -159,6 +164,14 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}

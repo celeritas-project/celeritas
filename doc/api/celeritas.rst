@@ -2,6 +2,8 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _api_celeritas:
+
 Celeritas
 =========
 
@@ -12,7 +14,11 @@ implementation for the Celeritas codebase, using components from the
 Fundamentals
 ------------
 
+.. _api_units:
+
 .. doxygennamespace:: units
+
+.. _api_constants:
 
 .. doxygennamespace:: constants
 
@@ -57,3 +63,31 @@ On-device access
 
 .. doxygenclass:: celeritas::PhysicsTrackView
 
+
+.. _celeritas_random:
+
+Random number distributions
+---------------------------
+
+.. doxygenclass:: celeritas::BernoulliDistribution
+   :members: none
+.. doxygenclass:: celeritas::DeltaDistribution
+   :members: none
+.. doxygenclass:: celeritas::ExponentialDistribution
+   :members: none
+.. doxygenclass:: celeritas::GammaDistribution
+   :members: none
+.. doxygenclass:: celeritas::IsotropicDistribution
+   :members: none
+.. doxygenclass:: celeritas::NormalDistribution
+   :members: none
+.. doxygenclass:: celeritas::PoissonDistribution
+   :members: none
+.. doxygenclass:: celeritas::RadialDistribution
+   :members: none
+.. doxygenclass:: celeritas::ReciprocalDistribution
+   :members: none
+.. doxygenclass:: celeritas::UniformBoxDistribution
+   :members: none
+.. doxygenclass:: celeritas::UniformRealDistribution
+   :members: none

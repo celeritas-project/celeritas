@@ -27,7 +27,7 @@ class Detector
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Params = DetectorParamsData;
     using State = DetectorStateData<celeritas::Ownership::reference,
                                     celeritas::MemSpace::native>;

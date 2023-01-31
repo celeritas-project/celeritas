@@ -142,6 +142,7 @@
 #    define CELER_ASSUME(COND) __assume(COND)
 #else
 #    define CELER_UNREACHABLE
+#    define CELER_ASSUME(COND) (void)sizeof(COND)
 #endif
 
 /*!
@@ -214,3 +215,27 @@
             HANDLE_EXCEPTION(std::current_exception()); \
         }                                               \
     } while (0)
+
+/*!
+ * \def CELER_TRY_HANDLE_CONTEXT
+ *
+ * Try the given statement, and if it fails, chain it into the given exception.
+ *
+ * The given \c CONTEXT_EXCEPTION must be an expression that yields an rvalue
+ * to a \c std::exception subclass that isn't \c final . The resulting chained
+ * exception will be passed into \c HANDLE_EXCEPTION for processing.
+ */
+#define CELER_TRY_HANDLE_CONTEXT(                         \
+    STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION)       \
+    CELER_TRY_HANDLE(                                     \
+        do {                                              \
+            try                                           \
+            {                                             \
+                STATEMENT;                                \
+            }                                             \
+            catch (...)                                   \
+            {                                             \
+                std::throw_with_nested(CONTEXT_EXCEPTION); \
+            }                                             \
+        } while (0),                                      \
+        HANDLE_EXCEPTION)

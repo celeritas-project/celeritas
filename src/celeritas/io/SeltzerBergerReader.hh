@@ -31,7 +31,7 @@ class SeltzerBergerReader
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = ImportSBTable;
     //!@}
 

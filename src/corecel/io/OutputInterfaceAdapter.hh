@@ -29,7 +29,7 @@ class OutputInterfaceAdapter final : public OutputInterface
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstT = std::shared_ptr<T const>;
     using SPThis = std::shared_ptr<OutputInterfaceAdapter<T>>;
     //!@}

@@ -101,7 +101,7 @@ class StackAllocator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = T;
     using result_type = value_type*;
     using Data = StackAllocatorData<T, Ownership::reference, MemSpace::native>;

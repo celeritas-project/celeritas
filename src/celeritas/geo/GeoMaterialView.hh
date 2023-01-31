@@ -19,7 +19,7 @@ class GeoMaterialView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using GeoMaterialData = NativeCRef<GeoMaterialParamsData>;
     //!@}
 

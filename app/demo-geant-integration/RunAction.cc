@@ -19,6 +19,7 @@
 #include "accel/ExceptionConverter.hh"
 
 #include "GlobalSetup.hh"
+#include "HitRootIO.hh"
 #include "NoFieldAlongStepFactory.hh"
 
 namespace demo_geant
@@ -104,6 +105,12 @@ void RunAction::EndOfRunAction(G4Run const*)
     {
         // Clear shared data and write
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
+    }
+
+    if (GlobalSetup::Instance()->GetWriteSDHits())
+    {
+        // Close ROOT output of sensitive hits
+        CELER_TRY_HANDLE(HitRootIO::Instance()->Close(), call_g4exception);
     }
 }
 

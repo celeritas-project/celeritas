@@ -54,6 +54,7 @@ list(APPEND SOURCES
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
   global/CoreParams.cc
+  global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
   grid/ValueGridBuilder.cc
@@ -71,6 +72,7 @@ list(APPEND SOURCES
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
+  phys/ParticleParamsOutput.cc
   phys/PhysicsParams.cc
   phys/PhysicsParamsOutput.cc
   phys/Process.cc

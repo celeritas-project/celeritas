@@ -44,7 +44,7 @@ class PolyEvaluator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = T;
     using argument_type = T;
     //!@}

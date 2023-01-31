@@ -129,7 +129,7 @@ enum class ImportModelClass
 struct ImportProcess
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     // One ImportPhysicsVector per element component
     using ElementPhysicsVectors = std::vector<ImportPhysicsVector>;
     // Vector spans over all materials for a given model

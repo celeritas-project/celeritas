@@ -34,7 +34,7 @@ class BernoulliDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = bool;
     //!@}
 

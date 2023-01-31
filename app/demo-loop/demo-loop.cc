@@ -42,6 +42,7 @@
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/io/RootStepWriter.hh"
+#include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParamsOutput.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/phys/PrimaryGenerator.hh"
@@ -103,6 +104,8 @@ void run(std::istream* is, OutputManager* output)
     {
         // Save diagnostic information
         CoreParams const& params = transport_ptr->params();
+        output->insert(
+            std::make_shared<ParticleParamsOutput>(params.particle()));
         output->insert(std::make_shared<PhysicsParamsOutput>(params.physics()));
         output->insert(
             std::make_shared<ActionRegistryOutput>(params.action_reg()));

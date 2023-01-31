@@ -31,7 +31,7 @@ class DeviceAllocation
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = std::size_t;
     using SpanBytes = Span<Byte>;
     using SpanConstBytes = Span<Byte const>;

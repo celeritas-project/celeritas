@@ -188,7 +188,7 @@ class Collection
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SpanT = typename CollectionTraitsT::SpanT;
     using SpanConstT = typename CollectionTraitsT::SpanConstT;
     using reference_type = typename CollectionTraitsT::reference_type;

@@ -92,6 +92,16 @@ result = subprocess.run([exe, '-'],
                         stdout=subprocess.PIPE)
 if result.returncode:
     print("fatal: run failed with error", result.returncode)
+    try:
+        j = json.loads(result.stdout.decode())
+    except:
+        pass
+    else:
+        outfilename = f'{run_name}.out.failed.json'
+        with open(outfilename, 'w') as f:
+            json.dump(j, f, indent=1)
+        print("Failure written to", outfilename, file=stderr)
+
     exit(result.returncode)
 
 print("Received {} bytes of data".format(len(result.stdout)), file=stderr)
@@ -99,7 +109,7 @@ out_text = result.stdout.decode()
 # Filter out spurious HepMC3 output
 out_text = out_text[out_text.find('\n{') + 1:]
 try:
-    result = json.loads(out_text)
+    j = json.loads(out_text)
 except json.decoder.JSONDecodeError as e:
     print("error: expected a JSON object but got the following stdout:")
     print(out_text)
@@ -108,9 +118,9 @@ except json.decoder.JSONDecodeError as e:
 
 outfilename = f'{run_name}.out.json'
 with open(outfilename, 'w') as f:
-    json.dump(result, f, indent=1)
+    json.dump(j, f, indent=1)
 print("Results written to", outfilename, file=stderr)
 
-time = result['result']['time'].copy()
+time = j['result']['time'].copy()
 time.pop('steps')
 print(json.dumps(time, indent=1))

@@ -28,10 +28,9 @@ iwyu_tool.py -p $1 -- \
 || echo "error: iwyu failed"
 
 
-SKIP_FORMAT=
 if ! (cd "${SCRIPT_DIR}" && git diff-files --quiet) ; then
   echo "warning: Git repository is dirty so patches will not be applied"
-  return 0
+  exit 0
 else
   fix_includes.py --nocomments -p $1 < $OUTFILE
 fi

@@ -52,6 +52,7 @@
 #    include "corecel/sys/KernelRegistry.hh"
 #    include "corecel/sys/KernelRegistryIO.json.hh"
 #    include "celeritas/global/ActionRegistryOutput.hh"
+#    include "celeritas/phys/ParticleParamsOutput.hh"
 #    include "celeritas/phys/PhysicsParamsOutput.hh"
 #endif
 
@@ -191,6 +192,8 @@ void SharedParams::Finalize()
         output.insert(std::make_shared<BuildOutput>());
 
         // Problem diagnostics
+        output.insert(
+            std::make_shared<ParticleParamsOutput>(params_->particle()));
         output.insert(
             std::make_shared<PhysicsParamsOutput>(params_->physics()));
         output.insert(

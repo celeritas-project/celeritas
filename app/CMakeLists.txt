@@ -335,9 +335,22 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: Geant4 integration
 #-----------------------------------------------------------------------------#
+function(celeritas_reflex_generate_dictionary)
+  # Inform ROOT scripts of include directories since it can't pull them through
+  # targets
+  include_directories(
+    "${PROJECT_SOURCE_DIR}/src"
+    "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration"
+    ${ROOT_INCLUDE_DIRS}
+    ${Geant4_INCLUDE_DIRS}
+    ${CLHEP_INCLUDE_DIRS}
+  )
+  reflex_generate_dictionary(${ARGN})
+endfunction()
 
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
-  add_executable(demo-geant-integration
+  set(_demo_geant_integration_src
     demo-geant-integration/demo-geant-integration.cc
     demo-geant-integration/ActionInitialization.cc
     demo-geant-integration/DetectorConstruction.cc
@@ -350,8 +363,23 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
     demo-geant-integration/SensitiveHit.cc
     demo-geant-integration/TrackingAction.cc
   )
+  set(_demo_geant_integration_libs Celeritas::accel)
+
+  if(CELERITAS_USE_ROOT)
+    celeritas_reflex_generate_dictionary(HitClasses
+      demo-geant-integration/HitClasses.hh
+      SELECTION demo-geant-integration/selection.xml
+    )
+    list(APPEND _demo_geant_integration_src
+      "${CMAKE_CURRENT_BINARY_DIR}/HitClasses.cxx"
+      demo-geant-integration/HitRootIO.cc
+    )
+    list(APPEND _demo_geant_integration_libs ROOT::Tree)
+  endif()
+
+  add_executable(demo-geant-integration ${_demo_geant_integration_src})
   celeritas_target_link_libraries(demo-geant-integration
-    Celeritas::accel
+    ${_demo_geant_integration_libs}
   )
   if(CELERITAS_BUILD_TESTS AND CELERITAS_USE_HepMC3)
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
@@ -371,7 +399,10 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       set(DEMO_EVENTS
         "${CMAKE_CURRENT_SOURCE_DIR}/data/ttbarbits-12evt-118prim.hepmc3")
     endif()
-
+    if(CELERITAS_USE_ROOT)
+      set(DEMO_ROOT_OPTIONS "/setup/rootBufferSize 128000
+/setup/writeSDHits true")
+    endif()
     configure_file(
       "demo-geant-integration/simple-cms-test.mac.in"
       "simple-cms-test.mac" @ONLY

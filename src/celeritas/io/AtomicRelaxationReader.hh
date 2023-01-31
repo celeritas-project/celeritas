@@ -23,7 +23,7 @@ class AtomicRelaxationReader
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = ImportAtomicRelaxation;
     //!@}
 
