@@ -509,15 +509,10 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     // Trapezoid
     else if (auto p = dynamic_cast<G4Trap const*>(shape))
     {
-        double theta;
-        double phi;
-        TrapParametersGetOriginalThetaAndPhi(*p, theta, phi);
-        // std::cerr << "TRAP " << p->GetName() << " Theta= " << theta
-        //           << " Phi= " << phi << "\n";
         unplaced_volume = GeoManager::MakeInstance<UnplacedTrapezoid>(
-            scale * TrapParametersGetZ(*p),
-            theta,
-            phi,
+            scale * p->GetZHalfLength(),
+            p->GetTheta(),
+            p->GetPhi(),
             scale * p->GetYHalfLength1(),
             scale * p->GetXHalfLength1(),
             scale * p->GetXHalfLength2(),

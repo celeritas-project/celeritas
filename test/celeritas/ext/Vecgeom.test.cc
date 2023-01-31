@@ -562,9 +562,9 @@ TEST_F(FourLevelsGeantTest, tracking)
         SCOPED_TRACE("Upward");
         auto result = this->track({-10, 10, 10}, {0, 0, 1});
         static char const* const expected_volumes[]
-            = {"Shape2", "Shape1", "World"};
+            = {"Shape2", "Shape1", "Envelope", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {5, 1, 8};
+        static const real_type expected_distances[] = {5, 1, 3, 5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
