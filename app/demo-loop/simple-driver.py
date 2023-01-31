@@ -63,12 +63,19 @@ if not use_device:
     # shorten to an unreasonably small number to reduce test time.
     max_steps = 256
 
+mctruth_filter = {
+    'event_id': -1,
+    'track_id': -1,
+    'parent_id': -1,
+}
+
 inp = {
     'use_device': use_device,
     'geometry_filename': geometry_filename,
     'physics_filename': physics_filename,
     'hepmc3_filename': hepmc3_filename,
     'mctruth_filename': rootout_filename,
+    'mctruth_filter': mctruth_filter,
     'seed': 12345,
     'max_num_tracks': num_tracks,
     'max_steps': max_steps,

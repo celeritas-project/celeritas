@@ -32,7 +32,9 @@ class CoreParams;
 namespace demo_loop
 {
 //---------------------------------------------------------------------------//
-//! Write when event ID matches and either track ID or parent ID matches
+/*!
+ * Write when event ID matches and either track ID or parent ID matches.
+ */
 struct MCTruthFilter
 {
     using size_type = celeritas::size_type;

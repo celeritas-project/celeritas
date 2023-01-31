@@ -124,7 +124,7 @@ void RootStepWriter::execute(StateHostRef const& steps)
             RSW_STORE(points[sp].pos, /* no getter */);
         }
 
-        if (filter_ && filter_(tstep_))
+        if (filter_(tstep_))
         {
             tstep_tree_->Fill();
         }

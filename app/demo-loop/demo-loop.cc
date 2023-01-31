@@ -125,27 +125,36 @@ void run(std::istream* is, OutputManager* output)
             run_args.mctruth_filename.c_str());
 
         std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
+
         if (run_args.mctruth_filter)
         {
             // Write if event ID matches (or is undefined) *and* either the
             // track ID or parent ID matches.
             rsw_filter = [opts = run_args.mctruth_filter](
                              RootStepWriter::TStepData const& step) {
-                auto matches = [](size_type step_id, size_type filter_id) {
+                auto matches = [](size_type step_attr_id, size_type filter_id) {
                     return filter_id == MCTruthFilter::unspecified()
-                           || step_id == filter_id;
+                           || step_attr_id == filter_id;
                 };
                 return (matches(step.event_id, opts.event_id)
                         && (matches(step.track_id, opts.track_id)
                             || matches(step.parent_id, opts.parent_id)));
             };
+
+            step_writer = std::make_shared<RootStepWriter>(
+                root_manager,
+                transport_ptr->params().particle(),
+                StepSelection::all(),
+                rsw_filter);
         }
 
-        step_writer = std::make_shared<RootStepWriter>(
-            root_manager,
-            transport_ptr->params().particle(),
-            StepSelection::all(),
-            rsw_filter);
+        else
+        {
+            step_writer = std::make_shared<RootStepWriter>(
+                root_manager,
+                transport_ptr->params().particle(),
+                StepSelection::all());
+        }
 
         step_collector = std::make_shared<StepCollector>(
             StepCollector::VecInterface{step_writer},

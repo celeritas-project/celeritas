@@ -11,6 +11,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "celeritas/ext/detail/RootUniquePtr.hh"
 #include "celeritas/io/RootFileManager.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -26,10 +27,8 @@ namespace celeritas
  * instead of a full struct, no dictionaries are needed for reading the output
  * file.
  *
- * The data can be filtered by defining a `RSWFilter`. This
- * `pair<TStepSelection, TStepData>` informs which data should be filtered
- * (TStepSelection booleans) and by what values (TStepData). If no filtering is
- * needed, simply pass a nullptr to the constructor.
+ * The data can be filtered by defining a `RSWFilter`. This `std::function` can
+ * be user-defined and expanded as needed.
  */
 class RootStepWriter final : public StepInterface
 {
@@ -77,11 +76,13 @@ class RootStepWriter final : public StepInterface
     //!@}
 
     // Construct with RootFileManager, ParticleParams, and data selection
-    // UPRSWFilter should be passed as a nullptr if all data should be stored
-    RootStepWriter(SPRootFileManager root_manager,
-                   SPParticleParams particle_params,
-                   StepSelection selection,
-                   RSWFilter filter);
+    // An optional RSWFilter can be passed as needed
+    RootStepWriter(
+        SPRootFileManager root_manager,
+        SPParticleParams particle_params,
+        StepSelection selection,
+        RSWFilter filter
+        = [](RootStepWriter::TStepData const&) { return true; });
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
