@@ -27,7 +27,9 @@ namespace celeritas
 enum class ImportProcessType
 {
     none,
+#ifndef SWIG
     not_defined [[deprecated]] = none,
+#endif
     transportation,
     electromagnetic,
     optical,
@@ -53,7 +55,9 @@ enum class ImportProcessClass
 {
     // User-defined
     none,
+#ifndef SWIG
     unknown [[deprecated]] = none,
+#endif
     // EM
     ion_ioni,
     msc,
@@ -83,7 +87,9 @@ enum class ImportProcessClass
 enum class ImportModelClass
 {
     none,
+#ifndef SWIG
     unknown [[deprecated]] = none,
+#endif
     bragg_ion,
     bethe_bloch,
     urban_msc,
