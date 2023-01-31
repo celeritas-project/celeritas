@@ -137,6 +137,7 @@ celeritas_add_device_test(corecel/data/StackAllocator)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
+celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc
