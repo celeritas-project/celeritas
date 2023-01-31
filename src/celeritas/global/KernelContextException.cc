@@ -124,7 +124,7 @@ void KernelContextException::output(JsonPimpl* json) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Save context to a JSON object.
+ * Populate properties during construction.
  */
 void KernelContextException::initialize(CoreTrackView const& core)
 {
