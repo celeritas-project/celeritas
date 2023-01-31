@@ -24,7 +24,7 @@ class CalculatorTestBase : public Test
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     using Data
         = Collection<real_type, Ownership::const_reference, MemSpace::host>;

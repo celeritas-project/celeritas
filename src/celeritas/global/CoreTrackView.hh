@@ -30,7 +30,7 @@ class CoreTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ParamsRef = NativeCRef<CoreParamsData>;
     using StateRef = NativeRef<CoreStateData>;
     //!@}

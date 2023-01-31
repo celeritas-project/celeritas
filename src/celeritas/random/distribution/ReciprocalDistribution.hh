@@ -37,7 +37,7 @@ class ReciprocalDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
     //!@}

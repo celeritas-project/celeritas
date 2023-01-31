@@ -7,7 +7,11 @@ set -x
 test -n "${OS}"
 test -n "${CMAKE_PRESET}"
 
-cd "$(dirname $0)"/../..
+if [ -z "${CELER_SOURCE_DIR}" ]; then
+  CELER_SOURCE_DIR="$(dirname $0)"/../..
+fi
+cd "${CELER_SOURCE_DIR}"
+CELER_SOURCE_DIR=$(pwd)
 ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 
 # Source environment script if necessary
@@ -50,9 +54,13 @@ ctest -T ${CTEST_TOOL} ${CTEST_ARGS}\
 # List XML files generated: jenkins will upload these later
 find Testing -name '*.xml'
   
+# Test examples against installed celeritas
+export CMAKE_PRESET
+export CELER_SOURCE_DIR
 if [ "${CMAKE_PRESET}" = "vecgeom-demos" ]; then
-  # Test installation
-  cd ../scripts/ci
   export LDFLAGS=-Wl,--no-as-needed # for Ubuntu with vecgeom?
-  exec ./test-installation.sh
+  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
+elif [ "${CMAKE_PRESET}" = "full-novg-ndebug" ] \
+  || [ "${CMAKE_PRESET}" = "hip-ndebug" ]  ; then
+  exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
 fi

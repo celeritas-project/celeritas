@@ -55,10 +55,8 @@ class PhysicsStepUtilsTest : public MockTestBase
         phys_state = PhysicsStateStore(this->physics()->host_ref(), 1);
     }
 
-    //!@{
     //! Random number generator
     RandomEngine& rng() { return rng_; }
-    //!@}
 
     PhysicsTrackView init_track(MaterialTrackView* mat,
                                 MaterialId mid,

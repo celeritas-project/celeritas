@@ -28,7 +28,7 @@ class CuHipRngEngine
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = unsigned int;
     using Initializer_t = CuHipRngInitializer;
     using StateRef = NativeRef<CuHipRngStateData>;
@@ -61,7 +61,7 @@ class GenerateCanonical<CuHipRngEngine, float>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = float;
     using result_type = real_type;
     //!@}
@@ -80,7 +80,7 @@ class GenerateCanonical<CuHipRngEngine, double>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = double;
     using result_type = real_type;
     //!@}

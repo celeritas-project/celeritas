@@ -39,7 +39,7 @@ class Span
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using element_type = T;
     using value_type = std::remove_cv_t<T>;
     using size_type = std::size_t;
@@ -92,13 +92,13 @@ class Span
     //// ACCESS ////
 
     //!@{
-    //! Iterators
+    //! \name Iterators
     CELER_CONSTEXPR_FUNCTION iterator begin() const { return s_.data; }
     CELER_CONSTEXPR_FUNCTION iterator end() const { return s_.data + s_.size; }
     //!@}
 
     //!@{
-    //! Element access
+    //! \name Element access
     CELER_CONSTEXPR_FUNCTION reference operator[](size_type i) const
     {
         return s_.data[i];
@@ -112,7 +112,7 @@ class Span
     //!@}
 
     //!@{
-    //! Observers
+    //! \name Observers
     CELER_CONSTEXPR_FUNCTION bool empty() const { return s_.size == 0; }
     CELER_CONSTEXPR_FUNCTION size_type size() const { return s_.size; }
     CELER_CONSTEXPR_FUNCTION size_type size_bytes() const
@@ -122,7 +122,7 @@ class Span
     //!@}
 
     //!@{
-    //! Subviews
+    //! \name Subviews
     template<std::size_t Count>
     CELER_FUNCTION Span<T, Count> first() const
     {

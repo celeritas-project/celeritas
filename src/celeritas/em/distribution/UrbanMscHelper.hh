@@ -30,7 +30,7 @@ class UrbanMscHelper
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using MaterialData = UrbanMscMaterialData;
     using UrbanMscRef = NativeCRef<UrbanMscData>;

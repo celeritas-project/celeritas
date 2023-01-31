@@ -46,7 +46,7 @@ class DeviceVector
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = T;
     using SpanT = Span<T>;
     using SpanConstT = Span<T const>;

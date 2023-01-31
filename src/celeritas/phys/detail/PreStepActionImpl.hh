@@ -17,7 +17,7 @@
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "../PhysicsStepUtils.hh"
+#include "../PhysicsStepUtils.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {

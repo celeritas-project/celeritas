@@ -26,6 +26,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the bremsstrahlung photon energy from the SeltzerBerger model.
@@ -34,7 +36,7 @@ class SBEnergySampler
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
     using SBTable = NativeCRef<SeltzerBergerTableData>;
@@ -43,7 +45,7 @@ class SBEnergySampler
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION SBEnergySampler(SBTable const& differential_xs,
-                                          ParticleTrackView const& particle,
+                                          Energy const& inc_energy,
                                           Energy const& gamma_cutoff,
                                           MaterialView const& material,
                                           ElementComponentId const& elcomp_id,
@@ -82,14 +84,14 @@ class SBEnergySampler
  */
 CELER_FUNCTION
 SBEnergySampler::SBEnergySampler(SBTable const& differential_xs,
-                                 ParticleTrackView const& particle,
+                                 Energy const& inc_energy,
                                  Energy const& gamma_cutoff,
                                  MaterialView const& material,
                                  ElementComponentId const& elcomp_id,
                                  Mass const& inc_mass,
                                  bool const is_electron)
     : differential_xs_(differential_xs)
-    , inc_energy_(particle.energy())
+    , inc_energy_(inc_energy)
     , gamma_cutoff_(gamma_cutoff)
     , material_(material)
     , elcomp_id_(elcomp_id)
@@ -143,4 +145,5 @@ CELER_FUNCTION auto SBEnergySampler::operator()(Engine& rng) -> Energy
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

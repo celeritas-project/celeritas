@@ -44,7 +44,7 @@ class InitTracksLauncher
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ParamsRef = CoreParamsData<Ownership::const_reference, M>;
     using StateRef = CoreStateData<Ownership::reference, M>;
     //!@}

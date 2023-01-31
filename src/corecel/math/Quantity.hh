@@ -82,7 +82,7 @@ class Quantity
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = ValueT;
     using unit_type = UnitT;
     using Unitless = detail::UnitlessQuantity<ValueT>;

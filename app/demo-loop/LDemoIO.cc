@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "corecel/cont/Array.json.hh"
+#include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"

@@ -142,6 +142,7 @@
 #    define CELER_ASSUME(COND) __assume(COND)
 #else
 #    define CELER_UNREACHABLE
+#    define CELER_ASSUME(COND) (void)sizeof(COND)
 #endif
 
 /*!

@@ -39,7 +39,7 @@ class MockProcess : public Process
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using BarnMicroXs = Quantity<units::Barn>;
     using VecApplicability = std::vector<Applicability>;
     using VecMicroXs = std::vector<BarnMicroXs>;

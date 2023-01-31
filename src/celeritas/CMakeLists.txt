@@ -72,6 +72,7 @@ list(APPEND SOURCES
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
   phys/ParticleParams.cc
+  phys/ParticleParamsOutput.cc
   phys/PhysicsParams.cc
   phys/PhysicsParamsOutput.cc
   phys/Process.cc

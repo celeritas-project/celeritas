@@ -32,7 +32,7 @@ class ProcessPrimariesLauncher
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using TrackInitStateRef = TrackInitStateData<Ownership::reference, M>;
     //!@}
 

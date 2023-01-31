@@ -29,11 +29,11 @@ namespace celeritas
    f(x; \alpha, \beta) = \frac{x^{\alpha - 1} e^{-x / \beta}}{\beta^\alpha
  \Gamma(\alpha)} \quad \mathrm{for}\  x > 0, \quad \alpha, \beta > 0
    \f]
- * The algorithm described in Marsaglia, G. and Tsang, W. W. "A simple method
+ * The algorithm described in <em>Marsaglia, G. and Tsang, W. W. "A simple method
  * for generating gamma variables". ACM Transactions on Mathematical Software.
- * 26, 3, 363–372 2000. is used here to generate gamma-distributed random
+ * 26, 3, 363–372 2000.</em> is used here to generate gamma-distributed random
  * variables. The steps are:
- *  1. Set \f$ d = \alpha - 1/3 $ and $ c = 1 / \sqrt{9d} \f$
+ *  1. Set \f$ d = \alpha - 1/3 \f$ and \f$ c = 1 / \sqrt{9d} \f$
  *  2. Generate random variates \f$ Z \sim N(0,1) \f$ and \f$ U \sim U(0,1) \f$
  *  3. Set \f$ v = (1 + cZ)^3 \f$
  *  4. If \f$ \log U < Z^2 / 2 + d(1 - v + \log v) \f$ return \f$ dv \f$.
@@ -50,7 +50,7 @@ class GammaDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
     //!@}

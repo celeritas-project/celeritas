@@ -10,7 +10,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/JsonPimpl.hh"
 #if CELERITAS_USE_JSON
-#    include "corecel/cont/Array.json.hh"
+#    include "corecel/cont/ArrayIO.json.hh"
 #    include "corecel/math/QuantityIO.json.hh"
 #endif
 

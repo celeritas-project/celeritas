@@ -40,7 +40,7 @@ class XorwowRngEngine
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = unsigned int;
     using StateRef = NativeRef<XorwowRngStateData>;
     //!@}
@@ -71,7 +71,7 @@ class GenerateCanonical<XorwowRngEngine, RealType>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using real_type = RealType;
     using result_type = RealType;
     //!@}

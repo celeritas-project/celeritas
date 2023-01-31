@@ -48,7 +48,7 @@ class GlobalTestBase : public Test
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     template<class T>
     using SP = std::shared_ptr<T>;
 

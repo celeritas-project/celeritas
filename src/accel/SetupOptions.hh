@@ -32,7 +32,6 @@ struct SDSetupOptions
     bool enabled{false};
     //! Skip steps that do not deposit energy locally
     bool ignore_zero_deposition{true};
-
     //! Save energy deposition
     bool energy_deposition{true};
     //! Set TouchableHandle for PreStepPoint

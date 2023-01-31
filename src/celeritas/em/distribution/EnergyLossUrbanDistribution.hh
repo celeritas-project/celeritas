@@ -48,7 +48,7 @@ class EnergyLossUrbanDistribution
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using FluctuationRef = NativeCRef<FluctuationData>;
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;

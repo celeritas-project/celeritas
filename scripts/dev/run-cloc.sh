@@ -21,7 +21,7 @@ function run_cloc() {
 
 cd $SOURCE_DIR
 comment "Library code"
-run_cloc --exclude-dir=app,generated,test $@
+run_cloc --exclude-dir=app,generated,scripts,test $@
 comment "Auto-generated code"
 run_cloc --match-d='generated' $@
 comment "App code"

@@ -32,7 +32,7 @@ class AtomicRelaxation
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     //!@}
 
