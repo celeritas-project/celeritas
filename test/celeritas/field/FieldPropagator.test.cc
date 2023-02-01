@@ -472,16 +472,17 @@ TEST_F(TwoBoxTest, electron_super_small_step)
         this->particle()->find(pdg::electron()), MevEnergy{2});
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
-    constexpr real_type delta = 1e-14;
-
+    for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
     {
         auto geo = this->init_geo({90, 90, 90}, {1, 0, 0});
-
-        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
-            field, driver_options, particle, &geo);
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(delta);
 
         EXPECT_DOUBLE_EQ(delta, result.distance);
+        EXPECT_EQ(1, stepper.count());
     }
 }
 
