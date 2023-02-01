@@ -151,8 +151,7 @@ struct ImportProcess
     explicit operator bool() const
     {
         return process_type != ImportProcessType::size_
-               && process_class != ImportProcessClass::size_ && !models.empty()
-               && !tables.empty();
+               && process_class != ImportProcessClass::size_ && !models.empty();
     }
 };
 

@@ -198,12 +198,14 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh"};
+                                               "rayleigh",
+                                               "annihilation"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
@@ -229,12 +231,14 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh"};
+                                               "rayleigh",
+                                               "annihilation"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",

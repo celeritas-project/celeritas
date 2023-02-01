@@ -342,21 +342,21 @@ TEST_F(UrbanMscTest, msc_scattering)
                                                                      : 'u');
     }
 
-    static double const expected_fstep[] = {0.0027916899999997,
-                                            0.134631648532277,
+    static double const expected_fstep[] = {0.00279169,
+                                            0.15497550035228,
                                             0.0376414,
-                                            0.0781632965764156,
-                                            0.00137047789888519,
-                                            9.65987190264274e-05,
-                                            0.000742152890009348,
-                                            3.1163160031423e-05};
+                                            0.078163867310103,
+                                            0.0013704878213315,
+                                            9.659931080008e-05,
+                                            0.00074215629579835,
+                                            3.1163160035577e-05};
     EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
-    static double const expected_angle[] = {0.000314741326035635,
-                                            0.738624667826603,
-                                            -0.145610123961716,
+    static double const expected_angle[] = {0.00031474130607916,
+                                            0.79003683103898,
+                                            -0.14560882721751,
                                             0,
-                                            -0.326505138945708,
-                                            0.0130719743269634,
+                                            -0.32650640360665,
+                                            0.013072020086723,
                                             0,
                                             0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
@@ -365,7 +365,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                                -7.1670542039709e-05,
                                                0,
                                                -9.11378237130022e-05,
-                                               9.7877513962823e-06,
+                                               9.78783890322556e-06,
                                                0,
                                                0};
     EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
