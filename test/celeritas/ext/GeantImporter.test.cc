@@ -135,6 +135,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                                "compton",
                                                "conversion",
                                                "rayleigh",
+                                               "annihilation",
                                                "mu_ioni",
                                                "mu_brems",
                                                "mu_pair_prod"};
@@ -148,6 +149,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
@@ -211,6 +213,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                                "compton",
                                                "conversion",
                                                "rayleigh",
+                                               "annihilation",
                                                "mu_ioni",
                                                "mu_brems",
                                                "mu_pair_prod"};
@@ -227,6 +230,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",

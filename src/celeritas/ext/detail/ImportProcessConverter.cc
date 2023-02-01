@@ -308,6 +308,7 @@ ImportProcessConverter::operator()(const G4ParticleDefinition& particle,
                          << "' (RTTI: " << demangle_process(process) << ")";
     }
 
+    CELER_ENSURE(process_);
     return process_;
 }
 

@@ -139,7 +139,7 @@ struct ImportProcess
     {
         return process_type != ImportProcessType::not_defined
                && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty();
+               && !models.empty();
     }
 };
 
