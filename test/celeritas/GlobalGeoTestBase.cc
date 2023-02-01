@@ -20,6 +20,20 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+struct GlobalGeoTestBase::LazyGeo
+{
+    std::string basename{};
+    SPConstGeo geo{};
+};
+
+class GlobalGeoTestBase::CleanupGeoEnvironment : public ::testing::Environment
+{
+  public:
+    void SetUp() override {}
+    void TearDown() override { GlobalGeoTestBase::reset_geometry(); }
+};
+
+//---------------------------------------------------------------------------//
 auto GlobalGeoTestBase::build_geometry() -> SPConstGeo
 {
     auto& lazy = GlobalGeoTestBase::lazy_geo();

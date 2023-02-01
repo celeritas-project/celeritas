@@ -19,6 +19,7 @@ namespace celeritas
 {
 struct ImportData;
 struct PhysicsParamsOptions;
+struct GeantPhysicsOptions;
 }  // namespace celeritas
 
 namespace celeritas
@@ -52,8 +53,6 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     //!@}
 
   protected:
-    virtual bool enable_fluctuation() const = 0;
-    virtual bool enable_msc() const = 0;
     virtual bool combined_brems() const = 0;
     virtual real_type secondary_stack_factor() const = 0;
 
@@ -66,9 +65,16 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     SPConstAction build_along_step() override;
 
     virtual PhysicsOptions build_physics_options() const;
+    virtual GeantPhysicsOptions build_geant_options() const;
 
-    // Access lazily (re)loaded static geant4 data
+    // Access lazily loaded static geant4 data
     ImportData const& imported_data() const;
+
+  private:
+    struct ImportHelper;
+    class CleanupGeantEnvironment;
+
+    static ImportHelper& import_helper();
 };
 
 //---------------------------------------------------------------------------//
