@@ -155,12 +155,6 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
     step(make_span(primaries));
 
     this->check_kce = [](KernelContextException const& e) {
-        if (!CELERITAS_USE_VECGEOM)
-        {
-            // Don't test this with vecgeom which has more assertions when
-            // acquiring data
-            EXPECT_STREQ("kernel context: thread 1 in 'test-kernel'", e.what());
-        }
         EXPECT_EQ(ThreadId{1}, e.thread());
         EXPECT_EQ(EventId{}, e.event());
         EXPECT_EQ(TrackId{}, e.track());
