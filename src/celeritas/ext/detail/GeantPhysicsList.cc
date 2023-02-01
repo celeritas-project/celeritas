@@ -8,6 +8,7 @@
 #include "GeantPhysicsList.hh"
 
 #include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
 #include <G4Electron.hh>
@@ -23,7 +24,6 @@
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4UrbanMscModel.hh>
 #include <G4WentzelVIModel.hh>
 #include <G4eCoulombScatteringModel.hh>

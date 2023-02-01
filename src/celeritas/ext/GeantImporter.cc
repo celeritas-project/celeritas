@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Element.hh>
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
@@ -35,7 +36,6 @@
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
 #include <G4String.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
 #include <G4VPhysicalVolume.hh>
@@ -56,6 +56,13 @@
 
 #include "detail/AllElementReader.hh"
 #include "detail/ImportProcessConverter.hh"
+
+using CLHEP::cm;
+using CLHEP::cm2;
+using CLHEP::cm3;
+using CLHEP::g;
+using CLHEP::MeV;
+using CLHEP::s;
 
 namespace celeritas
 {
