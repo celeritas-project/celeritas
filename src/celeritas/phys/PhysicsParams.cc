@@ -30,7 +30,6 @@
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/UniformGrid.hh"

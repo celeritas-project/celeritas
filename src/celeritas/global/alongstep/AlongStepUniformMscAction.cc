@@ -14,42 +14,16 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/em/msc/UrbanMscParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
-#include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/global/alongstep/AlongStepLauncher.hh"
 
 #include "AlongStepLauncher.hh"
 #include "detail/AlongStepUniformMsc.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct the along-step action from input parameters.
- */
-std::shared_ptr<AlongStepUniformMscAction>
-AlongStepUniformMscAction::from_params(ActionId id,
-                                       PhysicsParams const& physics,
-                                       UniformFieldParams const& field_params)
-{
-    // TODO: Super hacky!! This will be cleaned up later.
-    SPConstMsc msc;
-    for (auto mid : range(ModelId{physics.num_models()}))
-    {
-        msc = std::dynamic_pointer_cast<UrbanMscModel const>(
-            physics.model(mid));
-        if (msc)
-        {
-            // Found MSC
-            break;
-        }
-    }
-
-    return std::make_shared<AlongStepUniformMscAction>(
-        id, field_params, std::move(msc));
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with next action ID and optional energy loss parameters.

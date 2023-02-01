@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/alongstep/detail/UrbanMsc.hh
+//! \file celeritas/em/msc/UrbanMsc.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,9 +12,10 @@
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/em/distribution/UrbanMscScatter.hh"
-#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
-#include "celeritas/global/alongstep/AlongStep.hh"
+#include "celeritas/global/CoreTrackView.hh"
+
+#include "UrbanMscScatter.hh"
+#include "UrbanMscStepLimit.hh"
 
 namespace celeritas
 {
@@ -124,7 +125,9 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
         // TODO: this is already kinda sorta determined inside the
         // UrbanMscStepLimit calculation
         local->step_limit.step = msc_step_result.true_path;
-        local->step_limit.action = msc_params_.ids.action;
+        // XXX should we make this a separate "implicit" ID just for marking
+        // that MSC limited the range?
+        local->step_limit.action = phys.scalars().range_action();
     }
 }
 

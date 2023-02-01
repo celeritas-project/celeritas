@@ -1,12 +1,13 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/UrbanMscModel.cc
+//! \file celeritas/em/msc/UrbanMscParams.cc
 //---------------------------------------------------------------------------//
-#include "UrbanMscModel.hh"
+#include "UrbanMscParams.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <utility>
@@ -24,6 +25,7 @@
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -36,22 +38,43 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from model ID and other necessary data.
+ * Construct if Urban model is present, or else return nullptr.
  */
-UrbanMscModel::UrbanMscModel(ActionId id,
-                             ParticleParams const& particles,
-                             MaterialParams const& materials,
-                             ImportedProcessAdapter const& pdata)
+std::shared_ptr<UrbanMscParams>
+UrbanMscParams::from_import(ParticleParams const& particles,
+                            MaterialParams const& materials,
+                            ImportData const& import)
 {
-    CELER_EXPECT(id);
-    HostValue host_data;
+    auto is_urban = [](ImportMscModel const& imm) {
+        return imm.model == ImportModelClass::urban_msc;
+    };
+    if (!std::any_of(
+            import.msc_models.begin(), import.msc_models.end(), is_urban))
+    {
+        // No Urban MSC present
+        return nullptr;
+    }
+    return std::make_shared<UrbanMscParams>(
+        particles, materials, import.msc_models);
+}
 
-    host_data.ids.action = id;
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from cross section data and material properties.
+ */
+UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
+                               MaterialParams const& materials,
+                               VecImportMscModel const& mdata_vec)
+{
+    HostVal<UrbanMscData> host_data;
+
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
     CELER_VALIDATE(host_data.ids.electron && host_data.ids.positron,
-                   << "missing e-/e+ (required for " << this->description()
-                   << ")");
+                   << "missing e-/e+ (required for Urban MSC)");
+
+    // Save electron mass
+    host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // TODO: change IDs to a vector for all particles. This model should apply
     // to muons and charged hadrons as well
@@ -62,16 +85,44 @@ UrbanMscModel::UrbanMscModel(ActionId id,
                               "particles other than electron and positron";
     }
 
-    // Save electron mass
-    host_data.electron_mass = particles.get(host_data.ids.electron).mass();
+    // Filter MSC data by model and particle type
+    std::vector<ImportMscModel const*> urban_data(particles.size(), nullptr);
+    for (ImportMscModel const& imm : mdata_vec)
+    {
+        // Filter out other MSC models
+        if (imm.model != ImportModelClass::urban_msc)
+            continue;
+
+        // Filter out unused particles
+        PDGNumber pdg{imm.particle_pdg};
+        ParticleId pid = pdg ? particles.find(pdg) : ParticleId{};
+        if (!pid)
+            continue;
+
+        // Make sure the model data is unique
+        CELER_VALIDATE(!urban_data[pid.get()],
+                       << "duplicate " << to_cstring(imm.model)
+                       << " physics data for particle "
+                       << particles.id_to_label(pid));
+        urban_data[pid.get()] = &imm;
+    }
+
+    auto get_lambda = [&urban_data, &particles](ParticleId pid) {
+        CELER_ASSERT(pid < urban_data.size());
+        ImportMscModel const* imm = urban_data[pid.unchecked_get()];
+        CELER_VALIDATE(imm,
+                       << "missing Urban MSC physics data for particle "
+                       << particles.id_to_label(pid));
+        return &imm->lambda_table;
+    };
 
     {
         // Particle-dependent data
         Array<ParticleId, 2> const par_ids{
             {host_data.ids.electron, host_data.ids.positron}};
         Array<ImportPhysicsTable const*, 2> const xs_tables{{
-            &pdata.get_lambda(par_ids[0]),
-            &pdata.get_lambda(par_ids[1]),
+            get_lambda(par_ids[0]),
+            get_lambda(par_ids[1]),
         }};
         CELER_ASSERT(xs_tables[0]->x_units == ImportUnits::mev);
         CELER_ASSERT(xs_tables[0]->y_units == ImportUnits::cm_inv);
@@ -97,7 +148,7 @@ UrbanMscModel::UrbanMscModel(ActionId id,
             auto&& mat = materials.get(mat_id);
 
             // Build material-dependent data
-            mdata.push_back(UrbanMscModel::calc_material_data(mat));
+            mdata.push_back(UrbanMscParams::calc_material_data(mat));
 
             // Build particle-dependent data
             const real_type zeff = mat.zeff();
@@ -137,62 +188,17 @@ UrbanMscModel::UrbanMscModel(ActionId id,
 
 //---------------------------------------------------------------------------//
 /*!
- * Particle types and energy ranges that this model applies to.
- */
-auto UrbanMscModel::applicability() const -> SetApplicability
-{
-    Applicability electron_msc;
-    electron_msc.particle = this->host_ref().ids.electron;
-    electron_msc.lower = zero_quantity();
-    electron_msc.upper = units::MevEnergy{1e+8};
-
-    Applicability positron_msc = electron_msc;
-    positron_msc.particle = this->host_ref().ids.positron;
-
-    return {electron_msc, positron_msc};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the microscopic cross sections for the given particle and material.
- */
-auto UrbanMscModel::micro_xs(Applicability) const -> MicroXsBuilders
-{
-    // No cross sections for multiple scattering
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-//!@{
-/*!
- * No discrete interaction: it's integrated into along_step.
- */
-void UrbanMscModel::execute(CoreDeviceRef const&) const {}
-void UrbanMscModel::execute(CoreHostRef const&) const {}
-//!@}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId UrbanMscModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Build UrbanMsc data per material.
  *
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
 UrbanMscMaterialData
-UrbanMscModel::calc_material_data(MaterialView const& material_view)
+UrbanMscParams::calc_material_data(MaterialView const& material_view)
 {
     using PolyQuad = PolyEvaluator<double, 2>;
 
-    MaterialData data;
+    UrbanMscMaterialData data;
 
     double zeff = material_view.zeff();
 
@@ -219,6 +225,5 @@ UrbanMscModel::calc_material_data(MaterialView const& material_view)
 
     return data;
 }
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

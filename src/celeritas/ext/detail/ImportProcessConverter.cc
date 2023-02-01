@@ -354,8 +354,9 @@ ImportProcessConverter::~ImportProcessConverter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to this->process_ from a given particle and process and
- * return it. If the process was already returned, \c operator() will return an
+ * Load and return physics tables from a given particle and process.
+ *
+ * If the process was already returned, \c operator() will return an
  * empty object.
  */
 ImportProcess
@@ -573,17 +574,6 @@ void ImportProcessConverter::store_msc_process(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            if (i > 0)
-            {
-                // Index is beyond the code scope, which only includes one msc
-                // model. Skipping any further model for now
-                CELER_LOG(warning)
-                    << "Cannot store multiple scattering table for process "
-                    << process.GetProcessName() << ": skipping model "
-                    << process.GetModelByIndex(i)->GetName();
-                continue;
-            }
-
             process_.models.push_back(to_import_model(*model));
             this->add_table(model->GetCrossSectionTable(),
                             ImportTableType::lambda);

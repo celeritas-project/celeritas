@@ -13,7 +13,6 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -251,41 +250,6 @@ TEST_F(ProcessBuilderTest, gamma_conversion)
             {
                 EXPECT_TRUE(builders[elcomp_idx]);
             }
-        }
-    }
-}
-
-TEST_F(ProcessBuilderTest, msc)
-{
-    ProcessBuilder build_process(
-        this->import_data(), this->particle(), this->material(), Options{});
-    // Create process
-    auto process = build_process(IPC::msc);
-    EXPECT_PROCESS_TYPE(MultipleScatteringProcess, process.get());
-
-    // Test model
-    auto models = process->build_models(ActionIdIter{});
-    ASSERT_EQ(1, models.size());
-    ASSERT_TRUE(models.front());
-    EXPECT_EQ("msc-urban", models.front()->label());
-    auto all_applic = models.front()->applicability();
-    ASSERT_EQ(2, all_applic.size());
-    Applicability applic = *all_applic.begin();
-
-    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
-    {
-        // Test step limits
-        {
-            applic.material = mat_id;
-            auto builders = process->step_limits(applic);
-            EXPECT_FALSE(builders[VGT::macro_xs]);
-        }
-
-        // Test micro xs
-        for (auto const& model : models)
-        {
-            auto builders = model->micro_xs(applic);
-            EXPECT_TRUE(builders.empty());
         }
     }
 }

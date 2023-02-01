@@ -10,8 +10,10 @@
 #include <memory>
 #include <type_traits>
 
+#include "celeritas/em/msc/UrbanMscParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/ImportedProcessAdapter.hh"
 
 namespace demo_geant
 {
@@ -22,12 +24,12 @@ namespace demo_geant
 auto NoFieldAlongStepFactory::operator()(argument_type input) const
     -> result_type
 {
-    // Create along-step action
     return celeritas::AlongStepGeneralLinearAction::from_params(
         input.action_id,
         *input.material,
         *input.particle,
-        *input.physics,
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
         input.imported->em_params.energy_loss_fluct);
 }
 

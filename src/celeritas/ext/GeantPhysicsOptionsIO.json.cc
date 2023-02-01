@@ -46,6 +46,7 @@ char const* to_cstring(MscModelSelection value)
         "none",
         "urban",
         "wentzel_vi",
+        "all",
     };
     return to_cstring_impl(value);
 }
