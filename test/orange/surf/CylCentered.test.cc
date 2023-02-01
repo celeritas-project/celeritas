@@ -11,7 +11,9 @@
 #include <cmath>
 #include <vector>
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,6 +25,19 @@ namespace test
 
 using Intersections = CCylX::Intersections;
 using VecReal = std::vector<real_type>;
+
+real_type min_intersection(Intersections const& i)
+{
+    if (i[0] == 0 && i[1] == 0)
+        return no_intersection();
+    else if (i[0] == 0)
+        return i[1];
+    else if (i[1] == 0)
+        return i[0];
+    else if (i[0] < i[1])
+        return i[0];
+    return i[1];
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -98,6 +113,23 @@ TEST(TestCCylX, intersect)
 
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
+
+    // From inside, exactly along the axis
+    distances[0] = distances[1] = -1;
+    distances = cyl.calc_intersections(
+        Real3{0.123, 0.345, 0.456}, Real3{1, 0, 0}, SurfaceState::off);
+    EXPECT_EQ(no_intersection(), distances[0]);
+    EXPECT_EQ(no_intersection(), distances[1]);
+
+    // From inside, nearly along the axis
+    distances[0] = distances[1] = -1;
+    distances = cyl.calc_intersections(Real3{0.123, 0.345, 0.456},
+                                       Real3{9.99999999999408140e-01,
+                                             4.09517743700767399e-07,
+                                             1.00812588415826643e-06},
+                                       SurfaceState::off);
+    EXPECT_EQ(no_intersection(), distances[0]);
+    EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 }
 
 TEST(TestCCylX, intersect_from_surface)
@@ -285,7 +317,7 @@ TEST(TestCCylZ, calc_intersections_on_surface)
 
 // Fused multiply-add on some CPUs in opt mode can cause the results of
 // nearly-tangent cylinder checking to change.
-TEST(TestCCylZ, multi_intersect)
+TEST(TestCCylZ, multi_tangent_intersect)
 {
     constexpr int Y = static_cast<int>(Axis::y);
 
@@ -301,68 +333,93 @@ TEST(TestCCylZ, multi_intersect)
             Real3 pos{x, -10.0001 * v, 0};
             Real3 dir{0, v, 0};
 
-            Intersections d;
+            real_type d;
 
             // Transport to inside of cylinder
-            d = cyl.calc_intersections(pos, dir, SurfaceState::off);
-            ASSERT_NE(no_intersection(), d[0]);
-            all_first_distances.push_back(d[0]);
-            pos[Y] += d[0] * dir[Y];
+            d = min_intersection(
+                cyl.calc_intersections(pos, dir, SurfaceState::off));
+            ASSERT_NE(no_intersection(), d);
+            all_first_distances.push_back(d);
+            pos[Y] += d * dir[Y];
             all_y.push_back(pos[Y]);
 
             // Transport to other side of cylinder
-            d = cyl.calc_intersections(pos, dir, SurfaceState::on);
-            all_distances.push_back(d[0]);
-            ASSERT_NE(no_intersection(), d[0]);
-            pos[Y] += d[0] * dir[Y];
+            d = min_intersection(
+                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            all_distances.push_back(d);
+            if (d == no_intersection())
+                continue;
+
+            pos[Y] += d * dir[Y];
 
             // We're done
-            d = cyl.calc_intersections(pos, dir, SurfaceState::on);
-            EXPECT_EQ(no_intersection(), d[0]);
+            d = min_intersection(
+                cyl.calc_intersections(pos, dir, SurfaceState::on));
+            EXPECT_EQ(no_intersection(), d);
         }
     }
 
-    const real_type expected_all_first_distances[] = {9.99869,
-                                                      9.99869,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      0.0001,
-                                                      9.99869,
-                                                      9.99869};
+    // clang-format off
+    const real_type expected_all_first_distances[] = {9.99869, 9.99869, 0.0001,
+        0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 9.99869,
+        9.99869};
     EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
 
-    const real_type expected_all_y[] = {0.00141421,
-                                        -0.00141421,
-                                        10,
-                                        -10,
-                                        10,
-                                        -10,
-                                        10,
-                                        -10,
-                                        10,
-                                        -10,
-                                        0.00141421,
-                                        -0.00141421};
+    const real_type expected_all_y[] = {0.00141421, -0.00141421, 10, -10, 10,
+        -10, 10, -10, 10, -10, 0.00141421, -0.00141421};
     EXPECT_VEC_NEAR(expected_all_y, all_y, 1e-5);
 
-    const real_type expected_all_distances[] = {0.00282843,
-                                                0.00282843,
-                                                20,
-                                                20,
-                                                20,
-                                                20,
-                                                20,
-                                                20,
-                                                20,
-                                                20,
-                                                0.00282843,
-                                                0.00282843};
+    const real_type expected_all_distances[] = {0.00282843, 0.00282843, 20,
+        20, 20, 20, 20, 20, 20, 20, 0.00282843, 0.00282843};
     EXPECT_VEC_NEAR(expected_all_distances, all_distances, 1e-5);
+    // clang-format on
+}
+
+TEST(TestCCylZ, multi_along_intersect)
+{
+    CCylZ cyl(30.0);
+
+    VecReal all_first_distances;
+    VecReal all_errors;
+
+    for (real_type sqrt_eps : {1e-1, 1e-2, 1e-4, 1e-5, 1e-6, 1e-7})
+    {
+        real_type eps = ipow<2>(sqrt_eps);
+        for (Real3 const& orig_pos :
+             {Real3{7, 8, 9}, Real3{29, 0, 0}, Real3{30 - eps, 0, 0}})
+        {
+            for (Real3 dir : {
+                     Real3{0, 0, 1},
+                     Real3{eps, 0, 1},
+                     Real3{sqrt_eps, sqrt_eps, 1},
+                     Real3{0, sqrt_eps, 1},
+                 })
+            {
+                Real3 pos = orig_pos;
+                normalize_direction(&dir);
+
+                real_type d;
+
+                // Transport to inside of cylinder
+                d = min_intersection(
+                    cyl.calc_intersections(pos, dir, SurfaceState::off));
+                all_first_distances.push_back(d);
+                if (d == no_intersection())
+                    continue;
+
+                axpy(d, dir, &pos);
+
+                real_type boundary_error = std::hypot(pos[0], pos[1])
+                                           - real_type(30);
+                all_errors.push_back(
+                    boundary_error
+                    / (std::numeric_limits<real_type>::epsilon() * d));
+            }
+        }
+    }
+
+    PRINT_EXPECTED(all_first_distances);
+    PRINT_EXPECTED(all_errors);
 }
 
 //---------------------------------------------------------------------------//
