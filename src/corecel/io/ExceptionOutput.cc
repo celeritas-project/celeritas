@@ -16,47 +16,36 @@
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
+#include "corecel/AssertIO.json.hh"
 #endif
 
 namespace celeritas
 {
-#if CELERITAS_USE_JSON
 namespace
 {
 //---------------------------------------------------------------------------//
-template<class T>
-void details_to_json(nlohmann::json& j, T const& d)
+#if CELERITAS_USE_JSON
+void eptr_to_json(nlohmann::json&, std::exception_ptr const&);
+
+void try_nested_to_json(nlohmann::json& j, std::exception const& e)
 {
-    j["which"] = to_cstring(d.which);
-    if (d.condition)
+    try
     {
-        j["condition"] = d.condition;
+        std::rethrow_if_nested(e);
     }
-    if (d.file && d.file[0] != '\0')
+    catch (...)
     {
-        j["file"] = d.file;
-    }
-    if (d.line != 0)
-    {
-        j["line"] = d.line;
+        // Replace the output with the embedded (lower-level) exception
+        auto orig = std::move(j);
+        eptr_to_json(j, std::current_exception());
+        // Save the lower-level exception as context
+        j["context"] = std::move(orig);
     }
 }
-//---------------------------------------------------------------------------//
-}  // namespace
 
-void to_json(nlohmann::json& j, DebugErrorDetails const& d)
+void eptr_to_json(nlohmann::json& j, std::exception_ptr const& eptr)
 {
-    details_to_json(j, d);
-}
-
-void to_json(nlohmann::json& j, RuntimeErrorDetails const& d)
-{
-    j["what"] = d.what;
-    details_to_json(j, d);
-}
-
-void json_from_eptr(nlohmann::json& j, std::exception_ptr const& eptr)
-{
+    // Process the error pointer by rethrowing it and catching possible types
     try
     {
         std::rethrow_exception(eptr);
@@ -71,6 +60,12 @@ void json_from_eptr(nlohmann::json& j, std::exception_ptr const& eptr)
         j = e.details();
         j["type"] = "DebugError";
     }
+    catch (RichContextException const& e)
+    {
+        // Construct detailed info from a rich exception
+        j = e;
+        j["type"] = e.type();
+    }
     catch (std::exception const& e)
     {
         // Save unknown exception info
@@ -81,10 +76,23 @@ void json_from_eptr(nlohmann::json& j, std::exception_ptr const& eptr)
     {
         j = {{"type", "unknown"}};
     }
-}
 
-//---------------------------------------------------------------------------//
+    // Rethrow to process any chained exceptions
+    try
+    {
+        std::rethrow_exception(eptr);
+    }
+    catch (std::exception const& e)
+    {
+        try_nested_to_json(j, e);
+    }
+    catch (...)
+    {
+    }
+}
 #endif
+//---------------------------------------------------------------------------//
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -95,7 +103,7 @@ ExceptionOutput::ExceptionOutput(std::exception_ptr eptr)
     CELER_EXPECT(eptr);
 #if CELERITAS_USE_JSON
     output_ = std::make_unique<JsonPimpl>();
-    json_from_eptr(output_->obj, eptr);
+    eptr_to_json(output_->obj, eptr);
 #endif
 }
 

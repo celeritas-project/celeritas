@@ -1,32 +1,21 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/io/ImportParticle.hh
+//! \file corecel/AssertIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
+#include <nlohmann/json.hpp>
+#include "Assert.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Store particle data.
- *
- * \sa ImportData
- */
-struct ImportParticle
-{
-    std::string name;
-    int pdg{0};
-    double mass{0};  //!< [MeV]
-    double charge{0};  //!< [Multiple of electron charge]
-    double spin{0};  //!< [Multiple of hbar]
-    double lifetime{0};  //!< [s]
-    bool is_stable{false};
-};
+void to_json(nlohmann::json&, DebugErrorDetails const&);
+void to_json(nlohmann::json&, RuntimeErrorDetails const&);
+void to_json(nlohmann::json&, RichContextException const&);
 
 //---------------------------------------------------------------------------//
-}  // namespace celeritas
+} // namespace celeritas

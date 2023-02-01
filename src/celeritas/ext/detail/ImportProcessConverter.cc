@@ -15,6 +15,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Element.hh>
 #include <G4EmParameters.hh>
 #include <G4Material.hh>
@@ -28,7 +29,6 @@
 #include <G4ProcessType.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
@@ -45,6 +45,10 @@
 
 #include "../GeantConfig.hh"
 
+using CLHEP::cm;
+using CLHEP::cm2;
+using CLHEP::MeV;
+
 namespace celeritas
 {
 namespace detail
@@ -53,15 +57,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
- * [See G4PhysicsVectorType.hh]
+ * Convert process type from Geant4 to Celeritas IO.
  */
 ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
 {
     switch (g4_process_type)
     {
         case G4ProcessType::fNotDefined:
-            return ImportProcessType::not_defined;
+            return ImportProcessType::other;
         case G4ProcessType::fTransportation:
             return ImportProcessType::transportation;
         case G4ProcessType::fElectromagnetic:
@@ -105,7 +108,7 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
     catch (celeritas::RuntimeError const&)
     {
         CELER_LOG(warning) << "Encountered unknown process '" << name << "'";
-        result = ImportProcessClass::unknown;
+        result = ImportProcessClass::other;
     }
     return result;
 }
@@ -148,66 +151,9 @@ ImportModelClass to_import_model(G4VEmModel const& model)
         static celeritas::TypeDemangler<G4VEmModel> demangle_model;
         CELER_LOG(warning) << "Encountered unknown model '" << name
                            << "' (RTTI: " << demangle_model(model) << ")";
-        return ImportModelClass::unknown;
+        return ImportModelClass::other;
     }
     return iter->second;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Safely switch from \c G4PhysicsVectorType to \c ImportPhysicsVectorType .
- * [See G4PhysicsVectorType.hh]
- *
- * Geant4 v11 has a different set of G4PhysicsVectorType enums.
- */
-ImportPhysicsVectorType
-to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
-{
-    switch (g4_vector_type)
-    {
-#if CELERITAS_G4_V10
-        case T_G4PhysicsVector:
-            return ImportPhysicsVectorType::unknown;
-#endif
-        case T_G4PhysicsLinearVector:
-            return ImportPhysicsVectorType::linear;
-        case T_G4PhysicsLogVector:
-#if CELERITAS_G4_V10
-        case T_G4PhysicsLnVector:
-#endif
-            return ImportPhysicsVectorType::log;
-        case T_G4PhysicsFreeVector:
-#if CELERITAS_G4_V10
-        case T_G4PhysicsOrderedFreeVector:
-        case T_G4LPhysicsFreeVector:
-#endif
-            return ImportPhysicsVectorType::free;
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a multiplicative geant-natural-units constant to convert the units.
- */
-double units_to_scaling(ImportUnits units)
-{
-    switch (units)
-    {
-        case ImportUnits::none:
-            return 1;
-        case ImportUnits::cm_inv:
-            return cm;
-        case ImportUnits::cm_mev_inv:
-            return cm * MeV;
-        case ImportUnits::mev:
-            return 1 / MeV;
-        case ImportUnits::mev_per_cm:
-            return cm / MeV;
-        case ImportUnits::cm:
-            return 1 / cm;
-    }
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -255,6 +201,132 @@ G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
         = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
     CELER_ENSURE(particle);
     return *particle;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a multiplicative geant4-natural-units constant to convert the units.
+ */
+double units_to_scaling(ImportUnits units)
+{
+    switch (units)
+    {
+        case ImportUnits::none:
+            return 1;
+        case ImportUnits::cm_inv:
+            return cm;
+        case ImportUnits::cm_mev_inv:
+            return cm * MeV;
+        case ImportUnits::mev:
+            return 1 / MeV;
+        case ImportUnits::mev_per_cm:
+            return cm / MeV;
+        case ImportUnits::cm:
+            return 1 / cm;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert physics vector type from Geant4 to Celeritas IO.
+ *
+ * Geant4 v11 has a different set of G4PhysicsVectorType enums.
+ */
+ImportPhysicsVectorType
+to_import_physics_vector_type(G4PhysicsVectorType g4_vector_type)
+{
+    switch (g4_vector_type)
+    {
+#if CELERITAS_G4_V10
+        case T_G4PhysicsVector:
+            return ImportPhysicsVectorType::unknown;
+#endif
+        case T_G4PhysicsLinearVector:
+            return ImportPhysicsVectorType::linear;
+        case T_G4PhysicsLogVector:
+#if CELERITAS_G4_V10
+        case T_G4PhysicsLnVector:
+#endif
+            return ImportPhysicsVectorType::log;
+        case T_G4PhysicsFreeVector:
+#if CELERITAS_G4_V10
+        case T_G4PhysicsOrderedFreeVector:
+        case T_G4LPhysicsFreeVector:
+#endif
+            return ImportPhysicsVectorType::free;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Read values from a Geant4 physics table into an ImportTable.
+ */
+ImportPhysicsTable
+import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
+{
+    CELER_EXPECT(table_type != ImportTableType::size_);
+    ImportPhysicsTable table;
+    table.table_type = table_type;
+    switch (table_type)
+    {
+        case ImportTableType::dedx:
+        case ImportTableType::dedx_process:
+        case ImportTableType::dedx_subsec:
+        case ImportTableType::dedx_unrestricted:
+        case ImportTableType::ionization_subsec:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::mev_per_cm;
+            break;
+        case ImportTableType::csda_range:
+        case ImportTableType::range:
+        case ImportTableType::secondary_range:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm;
+            break;
+        case ImportTableType::inverse_range:
+            table.x_units = ImportUnits::cm;
+            table.y_units = ImportUnits::mev;
+            break;
+        case ImportTableType::lambda:
+        case ImportTableType::sublambda:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm_inv;
+            break;
+        case ImportTableType::lambda_prim:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::cm_mev_inv;
+            break;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    };
+
+    // Convert units
+    double x_scaling = units_to_scaling(table.x_units);
+    double y_scaling = units_to_scaling(table.y_units);
+
+    // Save physics vectors
+    for (auto const* g4vector : g4table)
+    {
+        ImportPhysicsVector import_vec;
+
+        // Populate ImportPhysicsVectors
+        import_vec.vector_type
+            = to_import_physics_vector_type(g4vector->GetType());
+        import_vec.x.reserve(g4vector->GetVectorLength());
+        import_vec.y.reserve(import_vec.x.size());
+
+        for (auto j : celeritas::range(g4vector->GetVectorLength()))
+        {
+            import_vec.x.push_back(g4vector->Energy(j) * x_scaling);
+            import_vec.y.push_back((*g4vector)[j] * y_scaling);
+        }
+        table.physics_vectors.push_back(std::move(import_vec));
+    }
+
+    return table;
 }
 
 //---------------------------------------------------------------------------//
@@ -545,64 +617,7 @@ void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
         return;
     }
 
-    ImportPhysicsTable table;
-    table.table_type = table_type;
-    switch (table_type)
-    {
-        case ImportTableType::dedx:
-        case ImportTableType::dedx_process:
-        case ImportTableType::dedx_subsec:
-        case ImportTableType::dedx_unrestricted:
-        case ImportTableType::ionization:
-        case ImportTableType::ionization_subsec:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_per_cm;
-            break;
-        case ImportTableType::csda_range:
-        case ImportTableType::range:
-        case ImportTableType::secondary_range:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm;
-            break;
-        case ImportTableType::inverse_range:
-            table.x_units = ImportUnits::cm;
-            table.y_units = ImportUnits::mev;
-            break;
-        case ImportTableType::lambda:
-        case ImportTableType::sublambda:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm_inv;
-            break;
-        case ImportTableType::lambda_prim:
-            table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm_mev_inv;
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    };
-
-    // Convert units
-    double x_scaling = units_to_scaling(table.x_units);
-    double y_scaling = units_to_scaling(table.y_units);
-
-    // Save physics vectors
-    for (auto const* g4vector : *g4table)
-    {
-        ImportPhysicsVector import_vec;
-
-        // Populate ImportPhysicsVectors
-        import_vec.vector_type
-            = to_import_physics_vector_type(g4vector->GetType());
-
-        for (auto j : celeritas::range(g4vector->GetVectorLength()))
-        {
-            import_vec.x.push_back(g4vector->Energy(j) * x_scaling);
-            import_vec.y.push_back((*g4vector)[j] * y_scaling);
-        }
-        table.physics_vectors.push_back(std::move(import_vec));
-    }
-
-    process_.tables.push_back(std::move(table));
+    process_.tables.push_back(import_table(*g4table, table_type));
 }
 
 //---------------------------------------------------------------------------//
@@ -616,7 +631,7 @@ void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
  * cm^2), and thus need to be converted into CDFs when imported into Celeritas.
  */
 ImportProcess::ModelMicroXS
-ImportProcessConverter::add_micro_xs(G4VEmModel& model)
+ImportProcessConverter::add_micro_xs(G4VEmModel& model) const
 {
     CELER_ASSERT(!materials_.empty());
 
@@ -716,9 +731,8 @@ ImportProcessConverter::add_micro_xs(G4VEmModel& model)
  * The energy grid is calculated in the same way as in
  * \c G4VEmModel::InitialiseElementSelectors(...) .
  */
-ImportPhysicsVector
-ImportProcessConverter::initialize_micro_xs_physics_vector(G4VEmModel& model,
-                                                           unsigned int mat_idx)
+ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
+    G4VEmModel& model, unsigned int mat_idx) const
 {
     auto const& material = materials_[mat_idx];
     CELER_ASSERT(!material.elements.empty());

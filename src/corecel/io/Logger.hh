@@ -11,10 +11,9 @@
 #include <utility>
 
 #include "corecel/io/Logger.hh"
-#include "corecel/io/detail/LoggerMessage.hh"
 
 #include "LoggerTypes.hh"
-#include "detail/LoggerMessage.hh"  // IWYU pragma: keep
+#include "detail/LoggerMessage.hh"  // IWYU pragma: export
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -70,13 +69,19 @@ class MpiCommunicator;
 class Logger
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Message = detail::LoggerMessage;
+    //!@}
+
+  public:
     // Construct with communicator (only rank zero is active) and handler
     Logger(MpiCommunicator const& comm,
            LogHandler handle,
            char const* level_env = nullptr);
 
     // Create a logger that flushes its contents when it destructs
-    inline detail::LoggerMessage operator()(Provenance prov, LogLevel lev);
+    inline Message operator()(Provenance prov, LogLevel lev);
 
     //! Set the minimum logging verbosity
     void level(LogLevel lev) { min_level_ = lev; }
@@ -93,7 +98,7 @@ class Logger
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Create a logger that flushes its contents when it destructs
-detail::LoggerMessage Logger::operator()(Provenance prov, LogLevel lev)
+auto Logger::operator()(Provenance prov, LogLevel lev) -> Message
 {
     LogHandler* handle = nullptr;
     if (handle_ && lev >= min_level_)
