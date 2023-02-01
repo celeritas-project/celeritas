@@ -64,7 +64,7 @@ ImportProcessType to_import_process_type(G4ProcessType g4_process_type)
     switch (g4_process_type)
     {
         case G4ProcessType::fNotDefined:
-            return ImportProcessType::none;
+            return ImportProcessType::other;
         case G4ProcessType::fTransportation:
             return ImportProcessType::transportation;
         case G4ProcessType::fElectromagnetic:
@@ -108,7 +108,7 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
     catch (celeritas::RuntimeError const&)
     {
         CELER_LOG(warning) << "Encountered unknown process '" << name << "'";
-        result = ImportProcessClass::none;
+        result = ImportProcessClass::other;
     }
     return result;
 }
@@ -151,7 +151,7 @@ ImportModelClass to_import_model(G4VEmModel const& model)
         static celeritas::TypeDemangler<G4VEmModel> demangle_model;
         CELER_LOG(warning) << "Encountered unknown model '" << name
                            << "' (RTTI: " << demangle_model(model) << ")";
-        return ImportModelClass::none;
+        return ImportModelClass::other;
     }
     return iter->second;
 }

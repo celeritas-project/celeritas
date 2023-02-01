@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include "corecel/Types.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
