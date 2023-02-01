@@ -252,7 +252,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
-    for (auto i : range(states_.level[init.other.thread_]))
+    for (auto i : range(states_.level[init.other.thread_] + 1))
     {
         auto lsa = this->make_lsa(thread_, LevelId{i});
         auto lsa_other = this->make_lsa(init.other.thread_, LevelId{i});
@@ -261,7 +261,8 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
         lsa.vol() = lsa_other.vol();
         lsa.pos() = lsa_other.pos();
-        lsa.dir() = lsa_other.dir();
+        lsa.dir() = init.dir;
+        lsa.universe() = lsa_other.universe();
         lsa.surf() = lsa_other.surf();
         lsa.sense() = lsa_other.sense();
         lsa.boundary() = lsa_other.boundary();
