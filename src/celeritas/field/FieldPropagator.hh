@@ -164,7 +164,14 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // extra.
         if (chord.length >= driver_.minimum_step())
         {
-            // Only update the direction if the chord length is nontrivial
+            // Only update the direction if the chord length is nontrivial.
+            // This is usually the case but might be skipped in two cases:
+            // - if the initial step is very small compared to the
+            //   magnitude of the position (which can result in a zero length
+            //   for the chord and NaNs for the direction)
+            // - in a high-curvature track where the remaining distance is just
+            //   barely above the remaining minimum step (in which case our
+            //   boundary test does lose some accuracy)
             geo_.set_dir(chord.dir);
         }
         auto linear_step
