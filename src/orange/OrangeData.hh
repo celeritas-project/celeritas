@@ -299,7 +299,7 @@ struct OrangeStateData
     // TODO: this is problem-dependent data and should eventually be removed
     // max_level defines the stride into the preceding pseudo-2D Collections
     // (pos, dir, ..., etc.)
-    size_type max_level;
+    size_type max_level{0};
 
     // Scratch space
     Items<Sense> temp_sense;  // [track][max_faces]
