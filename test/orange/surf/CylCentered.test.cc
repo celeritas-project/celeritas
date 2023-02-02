@@ -380,7 +380,6 @@ TEST(TestCCylZ, multi_along_intersect)
     CCylZ cyl(30.0);
 
     VecReal all_first_distances;
-    VecReal all_errors;
 
     for (real_type sqrt_eps : {1e-1, 1e-2, 1e-4, 1e-5, 1e-6, 1e-7})
     {
@@ -405,24 +404,26 @@ TEST(TestCCylZ, multi_along_intersect)
                 if (d == no_intersection())
                     continue;
 
+                // Move the solved distance and make sure we're close to the
+                // actual cylinder surface
                 axpy(d, dir, &pos);
                 real_type boundary_error = std::hypot(pos[0], pos[1])
                                            - real_type(30);
-                all_errors.push_back(
-                    boundary_error
-                    / (std::numeric_limits<real_type>::epsilon() * d));
 
-                EXPECT_LT(std::fabs(boundary_error), real_type(1))
-                    << "huge error " << boundary_error << " from " << orig_pos
-                    << " along " << dir << " with calculated distance " << d;
+                // Calculate relative to the distance traveled and floating
+                // point precision
+                real_type rel_error_ulp
+                    = boundary_error
+                      / (std::numeric_limits<real_type>::epsilon() * d);
+                EXPECT_LT(std::fabs(rel_error_ulp), 2000)
+                    << "large error " << boundary_error << " ("
+                    << rel_error_ulp << ") ULP from " << orig_pos << " along "
+                    << dir << " with calculated distance " << d;
             }
         }
     }
 
     constexpr real_type inf = no_intersection();
-
-    // For long distances we can overshoot or undershoot due to numerical
-    // error.
 
     // clang-format off
     static const double expected_all_first_distances[] = {inf, 2191.4760245467,
@@ -437,17 +438,9 @@ TEST(TestCCylZ, multi_along_intersect)
         768114.54300982, inf, inf, 9.99984331429e-06, 7.7459254135055, inf,
         inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf,
         inf, inf, inf, inf, inf, inf, inf, inf, inf};
-    static const double expected_all_errors[] = {52.063540153765,
-        -0.46230400035493, 3.3838561098844, 2.3998800089991, 0, 1.243610958517,
-        -15.999200059996, 0, 0, -645.19304347809, 25.058574704815,
-        50.290552485276, -29.443199854709, 1.7886888728781, 18.246365467577, 0,
-        -1599.8426904211, 0, 561.93151553504, -623.35388309947,
-        40.334088238136, -226.15209393773, 0, 0, -1706.6981779472,
-        -1316.4685033787, -122.50084953256, -477.61345405917, 0, 0};
     // clang-format on
 
     EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5);
-    EXPECT_VEC_NEAR(expected_all_errors, all_errors, 1e-2);
 }
 
 //---------------------------------------------------------------------------//
