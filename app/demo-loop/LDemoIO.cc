@@ -148,6 +148,13 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
     if (j.contains("mctruth_filename"))
     {
         j.at("mctruth_filename").get_to(v.mctruth_filename);
+    }
+    if (j.contains("mctruth_filter"))
+    {
+        CELER_VALIDATE(!v.mctruth_filename.empty(),
+                       << "MC truth filter can only be used with a valid ROOT "
+                          "MC truth output. Missing 'mctruth_filename' field");
+
         auto const& jfilter = j.at("mctruth_filter");
         jfilter.at("event_id").get_to(v.mctruth_filter.event_id);
         jfilter.at("track_id").get_to(v.mctruth_filter.track_id);

@@ -100,8 +100,8 @@ class RootStepWriter final : public StepInterface
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
 
-    // No filter selection is implemented
-    Filters filters() const final { return Filters{}; }
+    // No detector scoring selection is implemented
+    ScoringVolumes scoring_volumes() const final { return ScoringVolumes{}; }
 
   private:
     // Create steps tree based on selection_ booleans

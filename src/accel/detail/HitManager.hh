@@ -50,7 +50,7 @@ class HitManager final : public StepInterface
     ~HitManager();
 
     // Selection of data required for this interface
-    Filters filters() const final;
+    ScoringVolumes scoring_volumes() const final;
 
     // Selection of data required for this interface
     StepSelection selection() const final { return selection_; }

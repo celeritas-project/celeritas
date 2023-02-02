@@ -37,9 +37,9 @@ ExampleCalorimeters::ExampleCalorimeters(GeoParams const& geo,
 /*!
  * Map volume names to detector IDs and exclude tracks with no deposition.
  */
-auto ExampleCalorimeters::filters() const -> Filters
+auto ExampleCalorimeters::scoring_volumes() const -> ScoringVolumes
 {
-    Filters result;
+    ScoringVolumes result;
 
     for (auto didx : range<DetectorId::size_type>(detectors_.size()))
     {

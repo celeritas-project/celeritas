@@ -39,8 +39,8 @@ class StepInterface
     using MapVolumeDetector = std::map<VolumeId, DetectorId>;
     //@}
 
-    //! Filtering to apply to the gathered data for this step.
-    struct Filters
+    //! Detector scoring to apply to the gathered data for this step.
+    struct ScoringVolumes
     {
         //! Only select data from these volume IDs and map to detectors
         MapVolumeDetector detectors;
@@ -49,8 +49,8 @@ class StepInterface
     };
 
   public:
-    //! Selection of data required for this interface
-    virtual Filters filters() const = 0;
+    //! Detector scoring election required for this interface
+    virtual ScoringVolumes scoring_volumes() const = 0;
 
     //! Selection of data required for this interface
     virtual StepSelection selection() const = 0;
