@@ -125,9 +125,7 @@ CELER_FUNCTION void UrbanMsc::calc_step(CoreTrackView const& track,
         // TODO: this is already kinda sorta determined inside the
         // UrbanMscStepLimit calculation
         local->step_limit.step = msc_step_result.true_path;
-        // XXX should we make this a separate "implicit" ID just for marking
-        // that MSC limited the range?
-        local->step_limit.action = phys.scalars().range_action();
+        local->step_limit.action = phys.scalars().msc_action();
     }
 }
 
