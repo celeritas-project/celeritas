@@ -98,6 +98,25 @@
 #endif
 
 /*!
+ * \def CELER_DEPRECATED_POST
+ *
+ * Mark an enum or namespace as deprecated. Adding `[[deprecated]]` after an
+ * enum value is only supported in C++17 (and also causes SWIG < 4.1 to fail).
+ *
+ * \code
+   for (CELER_MAYBE_UNUSED int x : range(100))
+   {
+       do_noop();
+   }
+ * \endcode
+ */
+#if __cplusplus >= 201710L
+#    define CELER_DEPRECATED_POST [[deprecated]]
+#else
+#    define CELER_DEPRECATED_POST
+#endif
+
+/*!
  * \def CELER_UNREACHABLE
  *
  * Mark a point in code as being impossible to reach in normal execution.

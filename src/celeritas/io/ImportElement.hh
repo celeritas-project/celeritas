@@ -8,9 +8,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
-
-#include "corecel/Types.hh"
 
 namespace celeritas
 {
