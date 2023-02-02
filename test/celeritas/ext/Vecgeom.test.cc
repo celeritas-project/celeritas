@@ -492,9 +492,6 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
     {
         return std::make_shared<VecgeomParams>(this->get_world_volume());
     }
-
-    bool enable_fluctuation() const final { return false; }
-    bool enable_msc() const final { return false; }
 };
 
 //---------------------------------------------------------------------------//
