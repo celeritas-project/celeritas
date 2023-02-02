@@ -160,7 +160,7 @@ CylCentered<T>::calc_intersections(const Real3& pos,
     // 1 - \omega \dot e
     const real_type a = 1 - ipow<2>(dir[t_index()]);
 
-    if (a != 0)
+    if (a >= detail::QuadraticSolver::min_a())
     {
         const real_type u = pos[u_index()];
         const real_type v = pos[v_index()];
