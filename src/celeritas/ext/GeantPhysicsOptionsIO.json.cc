@@ -11,7 +11,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 
@@ -27,19 +28,12 @@ namespace
  */
 char const* to_cstring(BremsModelSelection value)
 {
-    CELER_EXPECT(value != BremsModelSelection::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<BremsModelSelection> const to_cstring_impl{
         "seltzer_berger",
         "relativistic",
         "all",
     };
-    static_assert(
-        static_cast<int>(BremsModelSelection::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -48,19 +42,12 @@ char const* to_cstring(BremsModelSelection value)
  */
 char const* to_cstring(MscModelSelection value)
 {
-    CELER_EXPECT(value != MscModelSelection::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<MscModelSelection> const to_cstring_impl{
         "none",
         "urban",
         "wentzel_vi",
     };
-    static_assert(
-        static_cast<int>(MscModelSelection::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -69,19 +56,12 @@ char const* to_cstring(MscModelSelection value)
  */
 char const* to_cstring(RelaxationSelection value)
 {
-    CELER_EXPECT(value != RelaxationSelection::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<RelaxationSelection> const to_cstring_impl{
         "none",
         "radiative",
         "all",
     };
-    static_assert(
-        static_cast<int>(RelaxationSelection::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -93,8 +73,8 @@ char const* to_cstring(RelaxationSelection value)
 void from_json(nlohmann::json const& j, MscModelSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<MscModelSelection>::from_cstring_func(to_cstring,
-                                                              "msc model");
+        = StringEnumMapper<MscModelSelection>::from_cstring_func(to_cstring,
+                                                                 "msc model");
     value = from_string(j.get<std::string>());
 }
 
@@ -106,8 +86,8 @@ void to_json(nlohmann::json& j, MscModelSelection const& value)
 void from_json(nlohmann::json const& j, BremsModelSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<BremsModelSelection>::from_cstring_func(to_cstring,
-                                                                "brems model");
+        = StringEnumMapper<BremsModelSelection>::from_cstring_func(
+            to_cstring, "brems model");
     value = from_string(j.get<std::string>());
 }
 
@@ -119,7 +99,7 @@ void to_json(nlohmann::json& j, BremsModelSelection const& value)
 void from_json(nlohmann::json const& j, RelaxationSelection& value)
 {
     static auto const from_string
-        = StringEnumMap<RelaxationSelection>::from_cstring_func(
+        = StringEnumMapper<RelaxationSelection>::from_cstring_func(
             to_cstring, "atomic relaxation");
     value = from_string(j.get<std::string>());
 }
