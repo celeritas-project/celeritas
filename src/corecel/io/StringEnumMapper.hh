@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/StringEnumMap.hh
+//! \file corecel/io/StringEnumMapper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,14 +30,14 @@ namespace celeritas
 void from_json(const nlohmann::json& j, GeantSetupOptions& opts)
 {
     static auto gspl_from_string
-        = StringEnumMap<PhysicsList>::from_cstring_func(
+        = StringEnumMapper<PhysicsList>::from_cstring_func(
             to_cstring, "physics list");
     opts.physics = gspl_from_string(j.at("physics").get<std::string>());
 }
    \endcode
  */
 template<class T>
-class StringEnumMap
+class StringEnumMapper
 {
     static_assert(std::is_enum<T>::value, "not an enum type");
     static_assert(static_cast<int>(T::size_) >= 0, "invalid enum type");
@@ -50,13 +50,13 @@ class StringEnumMap
 
   public:
     // Construct from a "to_cstring" function pointer
-    static inline StringEnumMap<T>
+    static inline StringEnumMapper<T>
     from_cstring_func(EnumCStringFuncPtr, char const* desc = nullptr);
 
     // Construct with a function that takes an enum and returns a stringlike
     template<class U>
-    explicit inline StringEnumMap(U&& enum_to_string,
-                                  char const* desc = nullptr);
+    explicit inline StringEnumMapper(U&& enum_to_string,
+                                     char const* desc = nullptr);
 
     // Convert from a string
     inline T operator()(std::string const& s) const;
@@ -73,11 +73,11 @@ class StringEnumMap
  * Construct using a \c to_cstring function.
  */
 template<class T>
-StringEnumMap<T>
-StringEnumMap<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
+StringEnumMapper<T>
+StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
 {
     CELER_EXPECT(fp);
-    return StringEnumMap<T>{fp, desc};
+    return StringEnumMapper<T>{fp, desc};
 }
 
 //---------------------------------------------------------------------------//
@@ -88,7 +88,7 @@ StringEnumMap<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
  */
 template<class T>
 template<class U>
-StringEnumMap<T>::StringEnumMap(U&& enum_to_string, char const* desc)
+StringEnumMapper<T>::StringEnumMapper(U&& enum_to_string, char const* desc)
     : description_(desc)
 {
     map_.reserve(static_cast<std::size_t>(T::size_));
@@ -104,7 +104,7 @@ StringEnumMap<T>::StringEnumMap(U&& enum_to_string, char const* desc)
  * Convert a string to the corresponding enum.
  */
 template<class T>
-T StringEnumMap<T>::operator()(std::string const& s) const
+T StringEnumMapper<T>::operator()(std::string const& s) const
 {
     auto result = map_.find(s);
     CELER_VALIDATE(result != map_.end(),

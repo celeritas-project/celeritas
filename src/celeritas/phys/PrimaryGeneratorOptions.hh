@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 #include "PDGNumber.hh"
 

@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include "corecel/Types.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -22,12 +20,12 @@ namespace celeritas
 struct ImportParticle
 {
     std::string name;
-    int pdg;
-    double mass;  //!< [MeV]
-    double charge;  //!< [Multiple of electron charge]
-    double spin;  //!< [Multiple of hbar]
-    double lifetime;  //!< [s]
-    bool is_stable;
+    int pdg{0};
+    double mass{0};  //!< [MeV]
+    double charge{0};  //!< [Multiple of electron charge]
+    double spin{0};  //!< [Multiple of hbar]
+    double lifetime{0};  //!< [s]
+    bool is_stable{false};
 };
 
 //---------------------------------------------------------------------------//

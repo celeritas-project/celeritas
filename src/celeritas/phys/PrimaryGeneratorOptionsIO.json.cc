@@ -14,7 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
@@ -30,19 +31,12 @@ namespace
  */
 char const* to_cstring(DistributionSelection value)
 {
-    CELER_EXPECT(value != DistributionSelection::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<DistributionSelection> const to_cstring_impl{
         "delta",
         "isotropic",
         "box",
     };
-    static_assert(
-        static_cast<int>(DistributionSelection::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -54,7 +48,7 @@ char const* to_cstring(DistributionSelection value)
 void from_json(nlohmann::json const& j, DistributionSelection& value)
 {
     static auto from_string
-        = StringEnumMap<DistributionSelection>::from_cstring_func(
+        = StringEnumMapper<DistributionSelection>::from_cstring_func(
             to_cstring, "distribution type");
     value = from_string(j.get<std::string>());
 }

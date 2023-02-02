@@ -20,7 +20,7 @@
 #include "corecel/cont/Label.hh"
 #include "corecel/cont/LabelIO.json.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/StringEnumMapper.hh"
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/construct/OrangeInput.hh"
@@ -36,8 +36,8 @@ namespace
 SurfaceType to_surface_type(std::string const& s)
 {
     static auto const from_string
-        = StringEnumMap<SurfaceType>::from_cstring_func(to_cstring,
-                                                        "surface type");
+        = StringEnumMapper<SurfaceType>::from_cstring_func(to_cstring,
+                                                           "surface type");
     return from_string(s);
 }
 
