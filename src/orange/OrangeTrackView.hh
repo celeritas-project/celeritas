@@ -130,7 +130,7 @@ class OrangeTrackView
 
     //// HELPER FUNCTIONS ////
 
-    // Iterative over layers to find the next step
+    // Iterate over layers to find the next step
     inline CELER_FUNCTION void find_next_step_impl(double max_step);
 
     // Create a local tracker

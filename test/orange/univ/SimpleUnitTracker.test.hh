@@ -82,7 +82,7 @@ struct InitializingLauncher
 
         // Update state with post-initialization result
 
-        // TODO: for multiuniverses tests, we acutally have to iterative
+        // TODO: for multiuniverses tests, we actually have to iterate
         // through daughter universes to assign the level and volume
         LevelStateAccessor lsa(&states, tid, LevelId{0});
         lsa.vol() = init.volume;

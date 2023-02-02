@@ -322,7 +322,7 @@ struct OrangeStateData
             && surf.size() == pos.size()
             && sense.size() == pos.size()
             && boundary.size() == pos.size()
-            && max_level
+            && max_level > 0
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()

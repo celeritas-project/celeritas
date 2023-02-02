@@ -309,7 +309,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
         LevelStateAccessor lsa(&host, thread_id, LevelId{0});
         auto vol = lsa.vol();
 
-        if (vol.unchecked_get() < counts.size())
+        if (vol < counts.size())
         {
             ++counts[vol.unchecked_get()];
         }
