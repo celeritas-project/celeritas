@@ -38,7 +38,7 @@ class ImportedProcesses
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ImportProcessId = OpaqueId<ImportProcess>;
     using key_type = std::pair<PDGNumber, ImportProcessClass>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
@@ -74,7 +74,7 @@ class ImportedProcessAdapter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using StepLimitBuilders = Process::StepLimitBuilders;

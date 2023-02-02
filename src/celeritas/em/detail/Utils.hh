@@ -32,7 +32,7 @@ class MaxSecondariesCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Energy = units::MevEnergy;
     using Values = HostCRef<AtomicRelaxParamsData>;
     //!@}
@@ -69,7 +69,7 @@ class MaxStackSizeCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Values = HostCRef<AtomicRelaxParamsData>;
     //!@}
 

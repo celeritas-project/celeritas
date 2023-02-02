@@ -41,7 +41,7 @@ class ActionRegistry
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using SPConstAction = std::shared_ptr<ActionInterface const>;
     //!@}
 

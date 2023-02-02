@@ -28,7 +28,7 @@ class MpiCommunicator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MpiComm = detail::MpiComm;
     //!@}
 

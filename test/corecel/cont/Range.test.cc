@@ -214,10 +214,6 @@ TEST(RangeTest, enum_step)
     EXPECT_TRUE((std::is_same<std::underlying_type<pokemon::Pokemon>::type,
                               unsigned int>::value));
 
-    /*!
-     * The following should fail to compile because enums cannot be added to
-     * ints.
-     */
     std::vector<int> vals;
     for (auto p : range(pokemon::size_).step(3u))
     {
@@ -253,7 +249,8 @@ TEST(RangeTest, enum_classes)
     EXPECT_VEC_EQ((VecInt{0, 2}), vals);
 
     /*!
-     * The following should fail because the enum doesn't have a size_ member.
+     * The following should fail to compile because the enum doesn't have a
+     * size_ member.
      *
      * \verbatim
      * ../src/base/detail/RangeImpl.hh:61:24: error: no member named 'size_' in

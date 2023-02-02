@@ -20,7 +20,7 @@ class LinearPropagator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = Propagation;
     //!@}
 

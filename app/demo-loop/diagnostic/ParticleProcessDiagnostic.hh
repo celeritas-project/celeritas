@@ -44,7 +44,7 @@ class ParticleProcessDiagnostic : public Diagnostic<M>
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using Items = celeritas::Collection<size_type, Ownership::value, M>;
     using ParamsRef = celeritas::CoreParamsData<Ownership::const_reference, M>;
@@ -90,7 +90,7 @@ class ParticleProcessLauncher
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using size_type = celeritas::size_type;
     using ThreadId = celeritas::ThreadId;
     using ItemsRef = celeritas::Collection<size_type, Ownership::reference, M>;
@@ -152,6 +152,7 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
     // interactions (indexed as model_id * num_particles + particle_id)
     size_type size = particles_->size() * physics_->num_models();
     resize(&counts_, size);
+    celeritas::fill(size_type(0), &counts_);
 }
 
 //---------------------------------------------------------------------------//

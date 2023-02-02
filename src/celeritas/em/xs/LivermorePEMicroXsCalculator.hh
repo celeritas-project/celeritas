@@ -27,7 +27,7 @@ class LivermorePEMicroXsCalculator
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using XsUnits = LivermoreSubshell::XsUnits;
     using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
     //!@}

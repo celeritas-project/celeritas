@@ -47,7 +47,7 @@ class Device
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using MapStrInt = std::map<std::string, int>;
     //!@}
 

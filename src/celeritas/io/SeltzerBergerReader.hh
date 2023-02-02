@@ -9,7 +9,6 @@
 
 #include <string>
 
-#include "corecel/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "ImportSBTable.hh"
@@ -31,7 +30,7 @@ class SeltzerBergerReader
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = ImportSBTable;
     //!@}
 

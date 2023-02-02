@@ -24,7 +24,7 @@ class ImageTrackView
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ThreadId = celeritas::ThreadId;
     using Real3 = celeritas::Real3;
     using real_type = celeritas::real_type;

@@ -72,6 +72,7 @@ CC_TEMPLATE = CLIKE_TOP + """\
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/TrackLauncher.hh"
 #include "../detail/{clsname}Impl.hh" // IWYU pragma: associated
 
@@ -88,7 +89,10 @@ void {clsname}::execute(CoreHostRef const& data) const
     #pragma omp parallel for
     for (size_type i = 0; i < data.states.size(); ++i)
     {{
-        CELER_TRY_HANDLE(launch(ThreadId{{i}}), capture_exception);
+        CELER_TRY_HANDLE_CONTEXT(
+            launch(ThreadId{{i}}),
+            capture_exception,
+            KernelContextException(data, ThreadId{{i}}, this->label()));
     }}
     log_and_rethrow(std::move(capture_exception));
 }}

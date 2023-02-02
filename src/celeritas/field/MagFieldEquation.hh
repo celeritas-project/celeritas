@@ -36,7 +36,7 @@ class MagFieldEquation
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using Field_t = FieldT;
     //!@}
 

@@ -29,7 +29,7 @@ class SoftEqual
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = RealType;
     //!@}
 
@@ -73,7 +73,7 @@ class SoftZero
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using argument_type = RealType;
     using value_type = RealType;
     //!@}

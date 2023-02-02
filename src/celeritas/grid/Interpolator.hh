@@ -65,7 +65,7 @@ class Interpolator
 {
   public:
     //!@{
-    //! Public type aliases
+    //! \name Type aliases
     using real_type = T;
     using Point = Array<T, 2>;
     //!@}

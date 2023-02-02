@@ -31,7 +31,7 @@ namespace test
 class CMSFieldMapReader
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using result_type = FieldMapInput;
     //!@}
 

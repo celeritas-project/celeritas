@@ -81,7 +81,7 @@ class DiagnosticActionAdapter final : public ExplicitActionInterface
     }
 
     //!@{
-    //! Action interface
+    //! \name Action interface
     ActionId action_id() const final { return id_; }
     std::string label() const final { return "diagnostics"; }
     std::string description() const final

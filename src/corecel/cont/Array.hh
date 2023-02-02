@@ -21,7 +21,7 @@ namespace celeritas
  * This isn't fully standards-compliant with std::array: there's no support for
  * N=0 for example. Additionally it uses the native celeritas \c size_type,
  * even though this has *no* effect on generated code for values of N inside
- * the range the size capacity.
+ * the range of \c size_type.
  */
 template<class T, ::celeritas::size_type N>
 struct Array

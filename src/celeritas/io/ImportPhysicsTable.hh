@@ -43,6 +43,7 @@ enum class ImportTableType
     lambda,  //!< Macroscopic cross section
     sublambda,  //!< For subcutoff regions
     lambda_prim,  //!< Cross section scaled by energy
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -57,6 +58,7 @@ enum class ImportUnits
     cm,  //!< Range [cm]
     cm_inv,  //!< Macroscopic xs [1/cm]
     cm_mev_inv,  //!< Macroscopic xs divided by energy [1/cm-MeV]
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -65,10 +67,15 @@ enum class ImportUnits
  */
 struct ImportPhysicsTable
 {
-    ImportTableType table_type;
+    ImportTableType table_type{ImportTableType::size_};
     ImportUnits x_units{ImportUnits::none};
     ImportUnits y_units{ImportUnits::none};
     std::vector<ImportPhysicsVector> physics_vectors;
+
+    explicit operator bool() const
+    {
+        return table_type != ImportTableType::size_ && !physics_vectors.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//

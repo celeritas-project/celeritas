@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Macros.hh"
 // IWYU pragma: begin_exports
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
@@ -26,7 +27,8 @@ namespace celeritas
  */
 enum class ImportProcessType
 {
-    not_defined,
+    other,
+    not_defined CELER_DEPRECATED_POST = other,
     transportation,
     electromagnetic,
     optical,
@@ -50,8 +52,8 @@ enum class ImportProcessType
  */
 enum class ImportProcessClass
 {
-    // User-defined
-    unknown,
+    other,
+    unknown CELER_DEPRECATED_POST = other,
     // EM
     ion_ioni,
     msc,
@@ -80,7 +82,8 @@ enum class ImportProcessClass
  */
 enum class ImportModelClass
 {
-    unknown,
+    other,
+    unknown CELER_DEPRECATED_POST = other,
     bragg_ion,
     bethe_bloch,
     urban_msc,
@@ -129,7 +132,7 @@ enum class ImportModelClass
 struct ImportProcess
 {
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     // One ImportPhysicsVector per element component
     using ElementPhysicsVectors = std::vector<ImportPhysicsVector>;
     // Vector spans over all materials for a given model
@@ -138,8 +141,8 @@ struct ImportProcess
 
     int particle_pdg{0};
     int secondary_pdg{0};
-    ImportProcessType process_type;
-    ImportProcessClass process_class;
+    ImportProcessType process_type{ImportProcessType::size_};
+    ImportProcessClass process_class{ImportProcessClass::size_};
     std::vector<ImportModelClass> models;
     // TODO: map from ImportTableType
     std::vector<ImportPhysicsTable> tables;
@@ -147,9 +150,8 @@ struct ImportProcess
 
     explicit operator bool() const
     {
-        return process_type != ImportProcessType::not_defined
-               && process_class != ImportProcessClass::unknown
-               && !models.empty() && !tables.empty();
+        return process_type != ImportProcessType::size_
+               && process_class != ImportProcessClass::size_ && !models.empty();
     }
 };
 

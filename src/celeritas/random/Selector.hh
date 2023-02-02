@@ -50,7 +50,7 @@ class Selector
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using value_type = T;
 #if __cplusplus < 201703L
     using real_type = typename std::result_of<F(value_type)>::type;

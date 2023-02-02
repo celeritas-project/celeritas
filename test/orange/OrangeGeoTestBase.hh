@@ -36,7 +36,7 @@ class OrangeGeoTestBase : public Test
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using HostStateRef = OrangeStateData<Ownership::reference, MemSpace::host>;
     using Params = OrangeParams;
     //!@}

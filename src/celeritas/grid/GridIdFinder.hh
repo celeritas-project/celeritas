@@ -37,7 +37,7 @@ class GridIdFinder
 
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using argument_type = KeyQuantity;
     using result_type = ValueId;
 

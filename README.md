@@ -19,8 +19,8 @@ doc` (user) or `ninja doxygen` (developer). A continuously updated version of
 the [static Celeritas user documentation][rtd] (without API documentation) is
 hosted on `readthedocs.io`.
 
-[user-docs]: https://celeritas-project.github.io/celeritas/user/index.html)
-[dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html)
+[user-docs]: https://celeritas-project.github.io/celeritas/user/index.html
+[dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html
 [rtd]: https://celeritas.readthedocs.io/en/latest/
 
 # Installation for applications

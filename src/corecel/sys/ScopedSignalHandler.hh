@@ -58,7 +58,7 @@ class ScopedSignalHandler
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using signal_type = int;
     //!@}
 

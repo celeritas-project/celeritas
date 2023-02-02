@@ -41,7 +41,7 @@ class ValueGridInserter
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using RealCollection
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using XsGridCollection

@@ -35,7 +35,7 @@ class SimpleUnitTracker
 {
   public:
     //!@{
-    //! Type aliases
+    //! \name Type aliases
     using ParamsRef = NativeCRef<OrangeParamsData>;
     using Initialization = detail::Initialization;
     using Intersection = detail::Intersection;

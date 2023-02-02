@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/io/StringEnumMap.test.cc
+//! \file corecel/io/StringEnumMapper.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 #include <algorithm>
 #include <cctype>
@@ -43,9 +43,9 @@ char const* to_cstring(SomeOtherEnum);
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(StringEnumMapTest, from_cstring)
+TEST(StringEnumMapperTest, from_cstring)
 {
-    auto from_string = StringEnumMap<CeleritasLabs>::from_cstring_func(
+    auto from_string = StringEnumMapper<CeleritasLabs>::from_cstring_func(
         to_cstring, "lab name");
 
     EXPECT_EQ(CeleritasLabs::argonne, from_string("argonne"));
@@ -54,7 +54,7 @@ TEST(StringEnumMapTest, from_cstring)
     EXPECT_THROW(from_string("inl"), RuntimeError);
 }
 
-TEST(StringEnumMapTest, from_generic)
+TEST(StringEnumMapperTest, from_generic)
 {
     auto capstring = [](CeleritasLabs lab) -> std::string {
         std::string temp = to_cstring(lab);
@@ -65,7 +65,7 @@ TEST(StringEnumMapTest, from_generic)
         return temp;
     };
 
-    StringEnumMap<CeleritasLabs> from_string(capstring);
+    StringEnumMapper<CeleritasLabs> from_string(capstring);
 
     EXPECT_EQ(CeleritasLabs::argonne, from_string("ARGONNE"));
     EXPECT_EQ(CeleritasLabs::fermilab, from_string("FERMILAB"));
