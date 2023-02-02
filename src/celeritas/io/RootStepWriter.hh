@@ -121,7 +121,7 @@ class RootStepWriter final : public StepInterface
 inline RootStepWriter::RootStepWriter(SPRootFileManager,
                                       SPParticleParams,
                                       StepSelection,
-                                      UPRSWFilter)
+                                      RSWFilter)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
