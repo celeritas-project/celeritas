@@ -21,8 +21,6 @@ class TestEm15Base : public GeantTestBase
 {
   protected:
     char const* geometry_basename() const override { return "testem15"; }
-    bool combined_brems() const override { return false; }
-    real_type secondary_stack_factor() const override { return 3.0; }
 };
 
 //---------------------------------------------------------------------------//

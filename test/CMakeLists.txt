@@ -231,6 +231,7 @@ celeritas_add_library(testcel_celeritas
   celeritas/GeantTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
+  celeritas/ImportedDataTestBase.cc
   celeritas/MockTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc

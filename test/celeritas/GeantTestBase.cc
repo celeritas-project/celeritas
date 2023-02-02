@@ -11,29 +11,12 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/io/Logger.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/process/BremsstrahlungProcess.hh"
-#include "celeritas/em/process/ComptonProcess.hh"
-#include "celeritas/em/process/EIonizationProcess.hh"
-#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
-#include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/io/ImportedElementalMapLoader.hh"
-#include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/PhysicsParams.hh"
-#include "celeritas/random/RngParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 namespace celeritas
@@ -122,84 +105,6 @@ G4VPhysicalVolume const* GeantTestBase::get_world_volume()
 //---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_material() -> SPConstMaterial
-{
-    return MaterialParams::from_import(this->imported_data());
-}
-
-//---------------------------------------------------------------------------//
-auto GeantTestBase::build_geomaterial() -> SPConstGeoMaterial
-{
-    return GeoMaterialParams::from_import(
-        this->imported_data(), this->geometry(), this->material());
-}
-
-//---------------------------------------------------------------------------//
-auto GeantTestBase::build_particle() -> SPConstParticle
-{
-    return ParticleParams::from_import(this->imported_data());
-}
-
-//---------------------------------------------------------------------------//
-auto GeantTestBase::build_cutoff() -> SPConstCutoff
-{
-    return CutoffParams::from_import(
-        this->imported_data(), this->particle(), this->material());
-}
-
-//---------------------------------------------------------------------------//
-auto GeantTestBase::build_physics() -> SPConstPhysics
-{
-    PhysicsParams::Input input;
-    input.materials = this->material();
-    input.particles = this->particle();
-    input.options = this->build_physics_options();
-    input.action_registry = this->action_reg().get();
-
-    BremsstrahlungProcess::Options brem_options;
-    brem_options.combined_model = this->combined_brems();
-    brem_options.enable_lpm = true;
-    brem_options.use_integral_xs = true;
-
-    GammaConversionProcess::Options conv_options;
-    conv_options.enable_lpm = true;
-
-    EPlusAnnihilationProcess::Options epgg_options;
-    epgg_options.use_integral_xs = true;
-
-    EIonizationProcess::Options ioni_options;
-    ioni_options.use_integral_xs = true;
-
-    auto process_data
-        = std::make_shared<ImportedProcesses>(this->imported_data().processes);
-    input.processes.push_back(
-        std::make_shared<ComptonProcess>(input.particles, process_data));
-    input.processes.push_back(std::make_shared<PhotoelectricProcess>(
-        input.particles,
-        input.materials,
-        process_data,
-        make_imported_element_loader(this->imported_data().livermore_pe_data)));
-    input.processes.push_back(std::make_shared<GammaConversionProcess>(
-        input.particles, process_data, conv_options));
-    input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-        input.particles, epgg_options));
-    input.processes.push_back(std::make_shared<EIonizationProcess>(
-        input.particles, process_data, ioni_options));
-    input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
-        input.particles,
-        input.materials,
-        process_data,
-        make_imported_element_loader(this->imported_data().sb_data),
-        brem_options));
-    if (this->build_geant_options().msc != MscModelSelection::none)
-    {
-        input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
-            input.particles, input.materials, process_data));
-    }
-    return std::make_shared<PhysicsParams>(std::move(input));
-}
-
-//---------------------------------------------------------------------------//
 auto GeantTestBase::build_init() -> SPConstTrackInit
 {
     TrackInitParams::Input input;
@@ -229,18 +134,11 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_physics_options() const -> PhysicsOptions
-{
-    PhysicsOptions options;
-    options.secondary_stack_factor = this->secondary_stack_factor();
-    return options;
-}
-
-//---------------------------------------------------------------------------//
 auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
 {
     GeantPhysicsOptions options;
     options.em_bins_per_decade = 14;
+    options.rayleigh_scattering = false;
     return options;
 }
 

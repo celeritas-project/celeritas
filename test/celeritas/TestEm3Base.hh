@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
 
 #include "GeantTestBase.hh"
 
@@ -25,8 +25,13 @@ class TestEm3Base : public GeantTestBase
 {
   protected:
     char const* geometry_basename() const override { return "testem3-flat"; }
-    bool combined_brems() const override { return true; }
-    real_type secondary_stack_factor() const override { return 3.0; }
+
+    ProcessBuilderOptions build_process_options() const override
+    {
+        ProcessBuilderOptions opts = GeantTestBase::build_process_options();
+        opts.brem_combined = true;
+        return opts;
+    }
 };
 
 //---------------------------------------------------------------------------//

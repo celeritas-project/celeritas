@@ -6,6 +6,7 @@
 //! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 

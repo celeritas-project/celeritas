@@ -495,8 +495,6 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
     bool enable_fluctuation() const final { return false; }
     bool enable_msc() const final { return false; }
-    bool combined_brems() const final { return false; }
-    real_type secondary_stack_factor() const final { return 0; }
 };
 
 //---------------------------------------------------------------------------//
