@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ImportPhysicsTable.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -17,7 +17,7 @@ namespace celeritas
  */
 char const* to_cstring(ImportTableType value)
 {
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportTableType> const to_cstring_impl{
         "dedx",
         "dedx_process",
         "dedx_subsec",
@@ -32,9 +32,7 @@ char const* to_cstring(ImportTableType value)
         "sublambda",
         "lambda_prim",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -43,7 +41,7 @@ char const* to_cstring(ImportTableType value)
  */
 char const* to_cstring(ImportUnits value)
 {
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportUnits> const to_cstring_impl{
         "unitless",
         "MeV",
         "MeV/cm",
@@ -51,9 +49,7 @@ char const* to_cstring(ImportUnits value)
         "1/cm",
         "1/cm-MeV",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

@@ -137,12 +137,13 @@ celeritas_add_device_test(corecel/data/StackAllocator)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
+celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputManager.test.cc
   LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(corecel/io/Repr.test.cc)
-celeritas_add_test(corecel/io/StringEnumMap.test.cc)
+celeritas_add_test(corecel/io/StringEnumMapper.test.cc)
 celeritas_add_test(corecel/io/StringUtils.test.cc)
 
 # Math
