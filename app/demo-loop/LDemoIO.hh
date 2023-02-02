@@ -38,10 +38,12 @@ namespace demo_loop
 struct MCTruthFilter
 {
     using size_type = celeritas::size_type;
+
     static constexpr size_type unspecified()
     {
         return static_cast<size_type>(-1);
     }
+
     size_type event_id = unspecified();
     size_type track_id = unspecified();
     size_type parent_id = unspecified();

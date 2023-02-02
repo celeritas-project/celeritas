@@ -33,11 +33,13 @@ namespace celeritas
 class RootStepWriter final : public StepInterface
 {
   public:
+    // Unspecified opaque id
     static constexpr size_type unspecified()
     {
         return static_cast<size_type>(-1);
     }
 
+    // Unspecified array (dir and pos)
     static constexpr std::array<real_type, 3> unspecified_array()
     {
         return std::array<real_type, 3>{0, 0, 0};
@@ -75,8 +77,7 @@ class RootStepWriter final : public StepInterface
     using RSWFilter = std::function<bool(TStepData const&)>;
     //!@}
 
-    // Construct with RootFileManager, ParticleParams, and data selection
-    // An optional RSWFilter can be passed as needed
+    // Construct with *optional* RSWFilter
     RootStepWriter(
         SPRootFileManager root_manager,
         SPParticleParams particle_params,
