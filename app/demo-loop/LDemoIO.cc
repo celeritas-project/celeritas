@@ -153,14 +153,16 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
     }
     if (j.contains("mctruth_filter"))
     {
-        CELER_VALIDATE(!v.mctruth_filename.empty(),
-                       << "MC truth filter can only be used with a valid ROOT "
-                          "MC truth output. Missing 'mctruth_filename' field");
-
         auto const& jfilter = j.at("mctruth_filter");
         jfilter.at("event_id").get_to(v.mctruth_filter.event_id);
         jfilter.at("track_id").get_to(v.mctruth_filter.track_id);
         jfilter.at("parent_id").get_to(v.mctruth_filter.parent_id);
+        if (v.mctruth_filter)
+        {
+            CELER_VALIDATE(!v.mctruth_filename.empty(),
+                           << "A valid MC truth filter can only be used with "
+                              "a valid ROOT MC truth output");
+        }
     }
     if (j.contains("primary_gen_options"))
     {
