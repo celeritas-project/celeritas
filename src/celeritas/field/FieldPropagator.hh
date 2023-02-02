@@ -162,7 +162,18 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         // Do a detailed check boundary check from the start position toward
         // the substep end point. Travel to the end of the chord, plus a little
         // extra.
-        geo_.set_dir(chord.dir);
+        if (chord.length >= driver_.minimum_step())
+        {
+            // Only update the direction if the chord length is nontrivial.
+            // This is usually the case but might be skipped in two cases:
+            // - if the initial step is very small compared to the
+            //   magnitude of the position (which can result in a zero length
+            //   for the chord and NaNs for the direction)
+            // - in a high-curvature track where the remaining distance is just
+            //   barely above the remaining minimum step (in which case our
+            //   boundary test does lose some accuracy)
+            geo_.set_dir(chord.dir);
+        }
         auto linear_step
             = geo_.find_next_step(chord.length + driver_.delta_intersection());
         if (!linear_step.boundary)

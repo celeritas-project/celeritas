@@ -61,11 +61,10 @@ inline CELER_FUNCTION Chord make_chord(const Real3& src, const Real3& dst)
     {
         result.dir[i] = dst[i] - src[i];
     }
-    result.length        = norm(result.dir);
-    const real_type norm = 1 / result.length;
+    result.length = norm(result.dir);
     for (int i = 0; i < 3; ++i)
     {
-        result.dir[i] *= norm;
+        result.dir[i] /= result.length;
     }
     return result;
 }
