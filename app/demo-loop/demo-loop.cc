@@ -67,22 +67,32 @@ namespace
  * `RootStepWriter` filter.
  *
  * Write if event ID matches (or is undefined) *and* either the track ID or
- * parent ID matches.
+ * parent ID matches. If all fields are unspecified (-1), all steps are stored.
  */
 std::function<bool(RootStepWriter::TStepData const&)>
 RootStepWriterFilter(LDemoArgs args)
 {
     std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
-    rsw_filter
-        = [opts = args.mctruth_filter](RootStepWriter::TStepData const& step) {
-              auto matches = [](size_type step_attr_id, size_type filter_id) {
-                  return filter_id == MCTruthFilter::unspecified()
-                         || step_attr_id == filter_id;
-              };
-              return (matches(step.event_id, opts.event_id)
-                      && (matches(step.track_id, opts.track_id)
-                          || matches(step.parent_id, opts.parent_id)));
-          };
+
+    if (args.mctruth_filter)
+    {
+        rsw_filter = [opts = args.mctruth_filter](
+                         RootStepWriter::TStepData const& step) {
+            auto matches = [](size_type step_attr_id, size_type filter_id) {
+                return filter_id == MCTruthFilter::unspecified()
+                       || step_attr_id == filter_id;
+            };
+            return (matches(step.event_id, opts.event_id)
+                    && (matches(step.track_id, opts.track_id)
+                        || matches(step.parent_id, opts.parent_id)));
+        };
+    }
+
+    else
+    {
+        // No filtering; store all the data
+        rsw_filter = [](RootStepWriter::TStepData const&) { return true; };
+    }
 
     return rsw_filter;
 }
@@ -151,23 +161,12 @@ void run(std::istream* is, OutputManager* output)
             root_manager = std::make_shared<RootFileManager>(
                 run_args.mctruth_filename.c_str());
 
-            if (run_args.mctruth_filter)
-            {
-                // Construct RootStepWriter with filter
-                step_writer = std::make_shared<RootStepWriter>(
-                    root_manager,
-                    transport_ptr->params().particle(),
-                    StepSelection::all(),
-                    RootStepWriterFilter(run_args));
-            }
-            else
-            {
-                // No filtering used
-                step_writer = std::make_shared<RootStepWriter>(
-                    root_manager,
-                    transport_ptr->params().particle(),
-                    StepSelection::all());
-            }
+            // Construct RootStepWriter with optional filter
+            step_writer = std::make_shared<RootStepWriter>(
+                root_manager,
+                transport_ptr->params().particle(),
+                StepSelection::all(),
+                RootStepWriterFilter(run_args));
 
             step_collector = std::make_shared<StepCollector>(
                 StepCollector::VecInterface{step_writer},
