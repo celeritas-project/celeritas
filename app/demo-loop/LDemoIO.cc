@@ -87,6 +87,17 @@ auto get_all_process_classes(std::vector<ImportProcess> const& processes)
 }
 
 //---------------------------------------------------------------------------//
+//! Get optional values from json.
+template<class T>
+void get_optional(nlohmann::json const& j, char const* key, T& value)
+{
+    if (j.contains(key))
+    {
+        j.at(key).get_to(value);
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -154,9 +165,10 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
     if (j.contains("mctruth_filter"))
     {
         auto const& jfilter = j.at("mctruth_filter");
-        jfilter.at("event_id").get_to(v.mctruth_filter.event_id);
-        jfilter.at("track_id").get_to(v.mctruth_filter.track_id);
-        jfilter.at("parent_id").get_to(v.mctruth_filter.parent_id);
+        get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
+        get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
+        get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
+
         if (v.mctruth_filter)
         {
             CELER_VALIDATE(!v.mctruth_filename.empty(),

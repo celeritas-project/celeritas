@@ -41,21 +41,34 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct writer with RootFileManager, ParticleParams (to convert particle
- * id to pdg), and the selection of data to be tallied.
+ * Construct writer without data filtering.
+ */
+RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
+                               SPParticleParams particle_params,
+                               StepSelection selection)
+    : StepInterface()
+    , root_manager_(root_manager)
+    , particles_(particle_params)
+    , selection_(selection)
+    , filter_([](RootStepWriter::TStepData const&) { return true; })
+{
+    CELER_EXPECT(root_manager_);
+    this->make_tree();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct writer with user-defined data filtering.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
                                StepSelection selection,
                                RSWFilter filter)
-    : StepInterface()
-    , root_manager_(root_manager)
-    , particles_(particle_params)
-    , selection_(selection)
-    , filter_(filter)
+    : RootStepWriter(std::move(root_manager),
+                     std::move(particle_params),
+                     std::move(selection))
 {
-    CELER_EXPECT(root_manager_);
-    this->make_tree();
+    filter_ = filter;
 }
 
 //---------------------------------------------------------------------------//

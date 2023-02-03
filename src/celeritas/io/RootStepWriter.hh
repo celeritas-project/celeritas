@@ -33,16 +33,10 @@ namespace celeritas
 class RootStepWriter final : public StepInterface
 {
   public:
-    // Unspecified opaque id
+    // Unspecified step attribute data value
     static constexpr size_type unspecified()
     {
         return static_cast<size_type>(-1);
-    }
-
-    // Unspecified array (dir and pos)
-    static constexpr std::array<real_type, 3> unspecified_array()
-    {
-        return std::array<real_type, 3>{0, 0, 0};
     }
 
     //! Truth step point data; Naming convention must match StepPointStateData
@@ -51,8 +45,8 @@ class RootStepWriter final : public StepInterface
         size_type volume_id = unspecified();
         real_type energy = unspecified();  //!< [MeV]
         real_type time = unspecified();  //!< [s]
-        std::array<real_type, 3> pos = unspecified_array();  //!< [cm]
-        std::array<real_type, 3> dir = unspecified_array();
+        std::array<real_type, 3> pos{0, 0, 0};  //!< [cm]
+        std::array<real_type, 3> dir{0, 0, 0};
     };
 
     //! Truth step data; Naming convention must match StepStateData
@@ -77,13 +71,16 @@ class RootStepWriter final : public StepInterface
     using RSWFilter = std::function<bool(TStepData const&)>;
     //!@}
 
-    // Construct with *optional* RSWFilter
-    RootStepWriter(
-        SPRootFileManager root_manager,
-        SPParticleParams particle_params,
-        StepSelection selection,
-        RSWFilter filter
-        = [](RootStepWriter::TStepData const&) { return true; });
+    // Construct without filtering
+    RootStepWriter(SPRootFileManager root_manager,
+                   SPParticleParams particle_params,
+                   StepSelection selection);
+
+    // Construct with filtering
+    RootStepWriter(SPRootFileManager root_manager,
+                   SPParticleParams particle_params,
+                   StepSelection selection,
+                   RSWFilter filter);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
