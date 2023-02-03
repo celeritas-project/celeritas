@@ -161,8 +161,10 @@ struct ImportProcess
  */
 struct ImportMscModel
 {
+#ifndef SWIG
     static constexpr auto process_type = ImportProcessType::electromagnetic;
     static constexpr auto process_class = ImportProcessClass::msc;
+#endif
 
     int particle_pdg{0};
     ImportModelClass model{ImportModelClass::size_};
