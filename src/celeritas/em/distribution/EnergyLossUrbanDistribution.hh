@@ -350,7 +350,7 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
         // which the energy loss is sampled for each collision (Eq. 20)
         UniformRealDistribution<real_type> sample_fraction(
             alpha / energy_ratio, 1);
-        for (CELER_MAYBE_UNUSED int i : range(n))
+        for ([[maybe_unused]] int i : range(n))
         {
             result += alpha * e_0 / sample_fraction(rng);
         }

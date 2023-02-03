@@ -155,7 +155,7 @@ set(DOXYGEN_XML_PROGRAMLISTING NO)
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
-  CELER_MAYBE_UNUSED CFIF_)
+  [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 # Only process top two levels (no detail, generated)
