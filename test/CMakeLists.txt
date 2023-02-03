@@ -155,7 +155,6 @@ celeritas_add_device_test(corecel/math/NumericLimits)
 celeritas_add_test(corecel/math/Quantity.test.cc
   LINK_LIBRARIES ${_optional_json_link})
 celeritas_add_test(corecel/math/SoftEqual.test.cc)
-celeritas_add_test(corecel/math/VectorUtils.test.cc)
 
 # Sys
 set(CELERITASTEST_PREFIX corecel/sys)
@@ -371,6 +370,7 @@ celeritas_add_test(celeritas/grid/TwodGridCalculator.test.cc)
 celeritas_add_test(celeritas/grid/UniformGrid.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridBuilder.test.cc)
 celeritas_add_test(celeritas/grid/ValueGridInserter.test.cc)
+celeritas_add_test(celeritas/grid/VectorUtils.test.cc)
 celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 
 #-------------------------------------#

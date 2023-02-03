@@ -29,7 +29,6 @@ list(APPEND SOURCES
   io/StringUtils.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
-  math/VectorUtils.cc
   sys/Device.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
