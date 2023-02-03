@@ -305,7 +305,6 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     {
         auto thread_id = ThreadId{i};
         // TODO Update for multiple universes
-        // LevelStateAccessor lsa(&host, thread_id)
         LevelStateAccessor lsa(&host, thread_id, LevelId{0});
         auto vol = lsa.vol();
 

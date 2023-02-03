@@ -31,6 +31,10 @@ class LevelStateAccessor
                                                       ThreadId thread_id,
                                                       LevelId level_id);
 
+    // Copy data from another LSA
+    inline CELER_FUNCTION LevelStateAccessor&
+    operator=(LevelStateAccessor const& other);
+
     //// ACCESSORS ////
 
     CELER_FUNCTION VolumeId& vol()
@@ -123,6 +127,24 @@ LevelStateAccessor::LevelStateAccessor(StateRef const* states,
     : states_(states)
     , index_(thread_id.get() * states_->max_level + level_id.get())
 {
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy data from another LSA
+ */
+CELER_FUNCTION LevelStateAccessor&
+LevelStateAccessor::operator=(LevelStateAccessor const& other)
+{
+    this->vol() = other.vol();
+    this->pos() = other.pos();
+    this->dir() = other.dir();
+    this->universe() = other.universe();
+    this->surf() = other.surf();
+    this->sense() = other.sense();
+    this->boundary() = other.boundary();
+
+    return *this;
 }
 
 //---------------------------------------------------------------------------//
