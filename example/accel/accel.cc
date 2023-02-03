@@ -39,6 +39,7 @@
 #include <accel/Logger.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
+#include <celeritas/em/msc/UrbanMscParams.hh>
 #include <celeritas/global/alongstep/AlongStepGeneralLinearAction.hh>
 #include <celeritas/io/ImportData.hh>
 #include <corecel/Macros.hh>
@@ -64,7 +65,8 @@ make_nofield_along_step(celeritas::AlongStepFactoryInput const& input)
         input.action_id,
         *input.material,
         *input.particle,
-        *input.physics,
+        celeritas::UrbanMscParams::from_import(
+            *input.particle, *input.material, *input.imported),
         input.imported->em_params.energy_loss_fluct);
 }
 
