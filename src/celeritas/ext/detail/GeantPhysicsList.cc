@@ -256,7 +256,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         auto process = std::make_unique<G4eMultipleScattering>();
 
-        if (options_.msc == MscModelSelection::urban)
+        if (options_.msc == MscModelSelection::urban
+            || options_.msc == MscModelSelection::all)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
             model->SetHighEnergyLimit(msc_energy_limit);
@@ -266,7 +267,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
                                 "G4UrbanMscModel";
         }
 
-        if (options_.msc == MscModelSelection::wentzel_vi)
+        if (options_.msc == MscModelSelection::wentzel_vi
+            || options_.msc == MscModelSelection::all)
         {
             auto model = std::make_unique<G4WentzelVIModel>();
             model->SetLowEnergyLimit(msc_energy_limit);

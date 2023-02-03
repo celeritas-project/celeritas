@@ -30,7 +30,6 @@
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/UniformGrid.hh"
@@ -89,6 +88,13 @@ PhysicsParams::PhysicsParams(Input inp)
             action_reg.next_id(), "pre-step", "beginning of step physics");
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
+
+        auto msc_action = make_shared<ImplicitPhysicsAction>(
+            action_reg.next_id(),
+            "msc-range",
+            "range limitation due to multiple scattering");
+        action_reg.insert(msc_action);
+        msc_action_ = std::move(msc_action);
 
         auto range_action = make_shared<ImplicitPhysicsAction>(
             action_reg.next_id(),
@@ -474,10 +480,7 @@ void PhysicsParams::build_xs(Options const& opts,
                 CELER_VALIDATE(
                     std::any_of(builders.begin(),
                                 builders.end(),
-                                [](UPGridBuilder const& p) { return bool(p); })
-                        // TODO: super hack since MSC doesn't have any sampled
-                        // or along-step interaction: fix while refactoring
-                        || proc.label() == "Multiple scattering",
+                                [](UPGridBuilder const& p) { return bool(p); }),
                     << "process '" << proc.label()
                     << "' has neither interaction nor energy loss (it must "
                        "have at least one)");

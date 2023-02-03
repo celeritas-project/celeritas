@@ -144,6 +144,15 @@ struct NoData
 {
 };
 
+//! Within-kernel state for step limits and action
+struct AlongStepLocalState
+{
+    //! Final step limit (true path length) and action
+    StepLimit step_limit;
+    //! Smooth (straight/curved) step movement without accounting for MSC
+    real_type geo_step{};
+};
+
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//

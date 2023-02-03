@@ -16,6 +16,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -272,6 +273,8 @@ TransporterInput load_input(LDemoArgs const& args)
     }
 
     bool eloss = imported_data.em_params.energy_loss_fluct;
+    auto msc = UrbanMscParams::from_import(
+        *params.particle, *params.material, imported_data);
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
@@ -279,7 +282,7 @@ TransporterInput load_input(LDemoArgs const& args)
             params.action_reg->next_id(),
             *params.material,
             *params.particle,
-            *params.physics,
+            msc,
             eloss);
         params.action_reg->insert(along_step);
     }
@@ -298,8 +301,8 @@ TransporterInput load_input(LDemoArgs const& args)
             f *= units::tesla;
         }
 
-        auto along_step = AlongStepUniformMscAction::from_params(
-            params.action_reg->next_id(), *params.physics, field_params);
+        auto along_step = std::make_shared<AlongStepUniformMscAction>(
+            params.action_reg->next_id(), field_params, msc);
         CELER_ASSERT(along_step->field() != LDemoArgs::no_field());
         params.action_reg->insert(along_step);
     }

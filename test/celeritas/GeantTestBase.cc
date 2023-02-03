@@ -11,6 +11,7 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/io/Logger.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -117,11 +118,13 @@ auto GeantTestBase::build_init() -> SPConstTrackInit
 auto GeantTestBase::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
+    auto msc = UrbanMscParams::from_import(
+        *this->particle(), *this->material(), this->imported_data());
     auto result = AlongStepGeneralLinearAction::from_params(
         action_reg.next_id(),
         *this->material(),
         *this->particle(),
-        *this->physics(),
+        msc,
         this->imported_data().em_params.energy_loss_fluct);
     CELER_ASSERT(result);
     CELER_ASSERT(result->has_fluct()
