@@ -119,7 +119,6 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::conversion, &ProcessBuilder::build_conversion},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
-        {IPC::msc, &ProcessBuilder::build_msc},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
     };
@@ -136,12 +135,6 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         CELER_ENSURE(result);
         return result;
     }
-}
-
-//---------------------------------------------------------------------------//
-auto ProcessBuilder::build_msc() -> SPProcess
-{
-    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
