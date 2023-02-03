@@ -6,6 +6,7 @@
 //! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -30,8 +31,13 @@ class KnAlongStepTest : public SimpleTestBase, public AlongStepTestBase
 class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
 {
   public:
-    bool enable_msc() const override { return msc_; }
-    bool enable_fluctuation() const override { return fluct_; }
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
+        return opts;
+    }
 
     bool msc_{false};
     bool fluct_{true};

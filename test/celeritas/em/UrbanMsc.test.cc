@@ -9,24 +9,18 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
-#include "corecel/data/Ref.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/em/distribution/UrbanMscScatter.hh"
 #include "celeritas/em/distribution/UrbanMscStepLimit.hh"
 #include "celeritas/em/model/UrbanMscModel.hh"
-#include "celeritas/em/process/EIonizationProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/RangeCalculator.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
-#include "celeritas/phys/Model.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/track/SimData.hh"
@@ -56,101 +50,74 @@ using SimStateRef = NativeRef<SimStateData>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class UrbanMscTest : public GlobalGeoTestBase
+class UrbanMscTest : public RootTestBase
 {
   protected:
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-    using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParticleStateStore
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
-    using PhysicsParamsHostRef = HostCRef<PhysicsParamsData>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
+    using SimStateStore = CollectionStateStore<SimStateData, MemSpace::host>;
 
   protected:
-    char const* geometry_basename() const override
-    {
-        return "four-steel-slabs";
-    }
+    char const* geometry_basename() const final { return "four-steel-slabs"; }
 
     void SetUp() override
     {
-        ScopedRootErrorHandler scoped_root_error_;
+        const auto& physics = *this->physics();
+        // Find MSC model
+        for (auto mid : range(ModelId{physics.num_models()}))
+        {
+            msc_model_ = std::dynamic_pointer_cast<UrbanMscModel const>(
+                physics.model(mid));
+            if (msc_model_)
+            {
+                // Found MSC
+                break;
+            }
+        }
+        ASSERT_TRUE(msc_model_);
 
-        RootImporter import_from_root(
-            this->test_data_path("celeritas", "four-steel-slabs.root").c_str());
-        import_data_ = import_from_root();
-        processes_data_ = std::make_shared<ImportedProcesses>(
-            std::move(import_data_.processes));
-        CELER_ASSERT(processes_data_->size() > 0);
-
-        // Make one state per particle
-        auto state_size = this->particle()->size();
-
-        params_ref_ = this->physics()->host_ref();
+        // Allocate particle state
+        auto state_size = 1;
         physics_state_
-            = PhysicsStateStore(this->physics()->host_ref(), state_size);
+            = PhysicsStateStore(physics.host_ref(), state_size);
         particle_state_
             = ParticleStateStore(this->particle()->host_ref(), state_size);
-        geo_state_ = GeoStateStore(this->geometry()->host_ref(), 1);
+        geo_state_ = GeoStateStore(this->geometry()->host_ref(), state_size);
+        sim_state_ = SimStateStore(state_size);
     }
 
-    SPConstParticle build_particle() override
-    {
-        return ParticleParams::from_import(import_data_);
-    }
-
-    SPConstMaterial build_material() override
-    {
-        return MaterialParams::from_import(import_data_);
-    }
-
-    SPConstPhysics build_physics() override
-    {
-        PhysicsParams::Input input;
-        input.particles = this->particle();
-        input.materials = this->material();
-
-        // Add EIonizationProcess and MultipleScatteringProcess
-        EIonizationProcess::Options ioni_options;
-        ioni_options.use_integral_xs = true;
-        input.processes.push_back(std::make_shared<EIonizationProcess>(
-            this->particle(), processes_data_, ioni_options));
-        input.processes.push_back(std::make_shared<MultipleScatteringProcess>(
-            this->particle(), this->material(), processes_data_));
-
-        // Add action manager
-        input.action_registry = this->action_reg().get();
-
-        return std::make_shared<PhysicsParams>(std::move(input));
-    }
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
     SPConstAction build_along_step() override { CELER_ASSERT_UNREACHABLE(); }
 
-    SPConstGeoMaterial build_geomaterial() override
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
-    SPConstCutoff build_cutoff() override { CELER_ASSERT_UNREACHABLE(); }
-
-    // Make physics track view
+    // Initialize a track
     PhysicsTrackView
     make_track_view(PDGNumber pdg, MaterialId mid, MevEnergy energy)
     {
+        CELER_EXPECT(pdg);
         CELER_EXPECT(mid);
+        CELER_EXPECT(energy > zero_quantity());
 
         auto pid = this->particle()->find(pdg);
         CELER_ASSERT(pid);
-        CELER_ASSERT(pid.get() < physics_state_.size());
-        ThreadId tid((pid.get() + 1) % physics_state_.size());
+        const ThreadId tid{0};
 
-        this->set_inc_particle(pdg::electron(), energy);
+        // Initialize particle
+        {
+            ParticleTrackView par{
+                this->particle()->host_ref(), particle_state_.ref(), tid};
+            ParticleTrackView::Initializer_t init;
+            init.particle_id = pid;
+            init.energy = energy;
+            par = init;
+        }
 
-        // Construct and initialize
+        // Initialize physics
         PhysicsTrackView phys_view(
-            params_ref_, physics_state_.ref(), pid, mid, tid);
+            this->physics()->host_ref(), physics_state_.ref(), pid, mid, tid);
         phys_view = PhysicsTrackInitializer{};
 
         // Calculate and store the energy loss (dedx) range limit
@@ -163,83 +130,43 @@ class UrbanMscTest : public GlobalGeoTestBase
         return phys_view;
     }
 
-    //! Make geometry track view
-    GeoTrackView make_geo_track_view()
-    {
-        return GeoTrackView(
-            this->geometry()->host_ref(), geo_state_.ref(), ThreadId(0));
-    }
+  protected:
+    std::shared_ptr<UrbanMscModel const> msc_model_;
 
-    void set_inc_particle(PDGNumber pdg, MevEnergy energy)
-    {
-        CELER_EXPECT(this->particle());
-        CELER_EXPECT(pdg);
-        CELER_EXPECT(energy >= zero_quantity());
-
-        // Construct track view
-        part_view_ = std::make_shared<ParticleTrackView>(
-            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0});
-
-        // Initialize
-        ParticleTrackView::Initializer_t init;
-        init.particle_id = this->particle()->find(pdg);
-        init.energy = energy;
-        *part_view_ = init;
-    }
-
-    RandomEngine& rng()
-    {
-        rng_.reset_count();
-        return rng_;
-    }
-
-    ImportData import_data_;
-    SPConstImported processes_data_;
-
-    PhysicsParamsHostRef params_ref_;
     PhysicsStateStore physics_state_;
     ParticleStateStore particle_state_;
     GeoStateStore geo_state_;
-
-    // Views
-    std::shared_ptr<ParticleTrackView> part_view_;
-    RandomEngine rng_;
+    SimStateStore sim_state_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(UrbanMscTest, msc_scattering)
+TEST_F(UrbanMscTest, coeff_data)
 {
-    // Views
-    GeoTrackView geo_view = this->make_geo_track_view();
-    const MaterialView material_view = this->material()->get(MaterialId{1});
-
-    // Create the model
-    std::shared_ptr<UrbanMscModel> model = std::make_shared<UrbanMscModel>(
-        ActionId{0},
-        *this->particle(),
-        *this->material(),
-        ImportedProcessAdapter{processes_data_,
-                               this->particle(),
-                               ImportProcessClass::msc,
-                               {pdg::electron(), pdg::positron()}});
+    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
+    ASSERT_TRUE(mid);
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    UrbanMscMaterialData const& msc_
-        = model->host_ref().material_data[material_view.material_id()];
+    UrbanMscMaterialData const& msc = msc_model_->host_ref().material_data[mid];
 
-    EXPECT_DOUBLE_EQ(msc_.coeffth1, 0.97326969977637379);
-    EXPECT_DOUBLE_EQ(msc_.coeffth2, 0.044188139325421663);
-    EXPECT_DOUBLE_EQ(msc_.d[0], 1.6889578380303167);
-    EXPECT_DOUBLE_EQ(msc_.d[1], 2.745018223507488);
-    EXPECT_DOUBLE_EQ(msc_.d[2], -2.2531516772497562);
-    EXPECT_DOUBLE_EQ(msc_.d[3], 0.052696806851297018);
-    EXPECT_DOUBLE_EQ(msc_.stepmin_a, 1e3 * 4.4449610414595817);
-    EXPECT_DOUBLE_EQ(msc_.stepmin_b, 1e3 * 1.5922149179564158);
-    EXPECT_DOUBLE_EQ(msc_.d_over_r, 0.64474963087322135);
-    EXPECT_DOUBLE_EQ(msc_.d_over_r_mh, 1.1248191999999999);
+    EXPECT_SOFT_EQ(msc.coeffth1, 0.97326969977637379);
+    EXPECT_SOFT_EQ(msc.coeffth2, 0.044188139325421663);
+    EXPECT_SOFT_EQ(msc.d[0], 1.6889578380303167);
+    EXPECT_SOFT_EQ(msc.d[1], 2.745018223507488);
+    EXPECT_SOFT_EQ(msc.d[2], -2.2531516772497562);
+    EXPECT_SOFT_EQ(msc.d[3], 0.052696806851297018);
+    EXPECT_SOFT_EQ(msc.stepmin_a, 1e3 * 4.4449610414595817);
+    EXPECT_SOFT_EQ(msc.stepmin_b, 1e3 * 1.5922149179564158);
+    EXPECT_SOFT_EQ(msc.d_over_r, 0.64474963087322135);
+    EXPECT_SOFT_EQ(msc.d_over_r_mh, 1.1248191999999999);
+}
+
+TEST_F(UrbanMscTest, msc_scattering)
+{
+    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
+    ASSERT_TRUE(mid);
 
     // Test the step limitation algorithm and the msc sample scattering
     MscStep step_result;
@@ -254,13 +181,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                        0.102364,
                                        0.0465336,
                                        0.00708839};
-
     constexpr unsigned int nsamples = std::end(energy) - std::begin(energy);
-
-    // Mock SimStateData
-    SimStateValue states_ref;
-    auto sim_state_data = make_builder(&states_ref.state);
-    sim_state_data.reserve(nsamples);
 
     // Calculate range instead of hardcoding to ensure step and range values
     // are bit-for-bit identical when range limits the step. The first three
@@ -271,30 +192,26 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     for (unsigned int i : range(nsamples))
     {
-        SimTrackState state = {TrackId{i},
-                               TrackId{i},
-                               EventId{1},
-                               i % 2,
-                               0,
-                               TrackStatus::alive,
-                               StepLimit{}};
-        sim_state_data.push_back(state);
-
         if (step[i] == step_is_range)
         {
             PhysicsTrackView phys = this->make_track_view(
-                pdg::electron(), MaterialId{1}, MevEnergy{energy[i]});
+                pdg::electron(), mid, MevEnergy{energy[i]});
             step[i] = phys.dedx_range();
         }
     }
-    SimStateRef const& states = make_ref(states_ref);
-    SimTrackView sim_track_view(states, ThreadId{0});
+
+    SimTrackView sim_track_view(sim_state_.ref(), ThreadId{0});
+    sim_track_view = {};
+    ParticleTrackView par_track_view{
+        this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+    GeoTrackView geo_view(
+        this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+    MaterialView material_view = this->material()->get(mid);
 
     ASSERT_EQ(nsamples, step.size());
-    EXPECT_EQ(nsamples, sim_state_data.size());
     EXPECT_EQ(0, sim_track_view.num_steps());
 
-    RandomEngine& rng_engine = this->rng();
+    RandomEngine rng;
     std::vector<double> fstep;
     std::vector<double> angle;
     std::vector<double> displace;
@@ -308,27 +225,27 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         MevEnergy inc_energy = MevEnergy{energy[i]};
         PhysicsTrackView phys = this->make_track_view(
-            pdg::electron(), MaterialId{1}, inc_energy);
+            pdg::electron(), mid, inc_energy);
 
-        UrbanMscStepLimit step_limiter(model->host_ref(),
-                                       *part_view_,
+        UrbanMscStepLimit calc_limit(msc_model_->host_ref(),
+                                       par_track_view,
                                        &phys,
                                        material_view.material_id(),
                                        geo_view.is_on_boundary(),
                                        geo_view.find_safety(),
                                        step[i]);
 
-        step_result = step_limiter(rng_engine);
+        step_result = calc_limit(rng);
 
-        UrbanMscScatter scatter(model->host_ref(),
-                                *part_view_,
+        UrbanMscScatter scatter(msc_model_->host_ref(),
+                                par_track_view,
                                 &geo_view,
                                 phys,
                                 material_view,
                                 step_result,
                                 /* geo_limited = */ false);
 
-        sample_result = scatter(rng_engine);
+        sample_result = scatter(rng);
 
         fstep.push_back(sample_result.step_length);
         angle.push_back(sample_result.action != Action::unchanged
@@ -373,6 +290,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
     EXPECT_VEC_EQ(expected_action, action);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

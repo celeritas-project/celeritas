@@ -11,32 +11,23 @@
 
 #include "celeritas/Types.hh"
 
-#include "GlobalGeoTestBase.hh"
+#include "ImportedDataTestBase.hh"
 
 class G4VPhysicalVolume;
 
 namespace celeritas
 {
-struct ImportData;
-struct PhysicsParamsOptions;
-}  // namespace celeritas
+//---------------------------------------------------------------------------//
+struct GeantPhysicsOptions;
 
-namespace celeritas
-{
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Test harness for simple Geant4 testem3-like problems.
+ * Test harness for loading problem data through Geant4.
  */
-class GeantTestBase : virtual public GlobalGeoTestBase
+class GeantTestBase : public ImportedDataTestBase
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using PhysicsOptions = PhysicsParamsOptions;
-    //!@}
-
   public:
     //!@{
     //! Whether the Geant4 configuration match a certain machine
@@ -52,23 +43,19 @@ class GeantTestBase : virtual public GlobalGeoTestBase
     //!@}
 
   protected:
-    virtual bool enable_fluctuation() const = 0;
-    virtual bool enable_msc() const = 0;
-    virtual bool combined_brems() const = 0;
-    virtual real_type secondary_stack_factor() const = 0;
+    virtual GeantPhysicsOptions build_geant_options() const;
 
-    SPConstMaterial build_material() override;
-    SPConstGeoMaterial build_geomaterial() override;
-    SPConstParticle build_particle() override;
-    SPConstCutoff build_cutoff() override;
-    SPConstPhysics build_physics() override;
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
 
-    virtual PhysicsOptions build_physics_options() const;
+    // Access lazily loaded static geant4 data
+    ImportData const& imported_data() const final;
 
-    // Access lazily (re)loaded static geant4 data
-    ImportData const& imported_data() const;
+  private:
+    struct ImportHelper;
+    class CleanupGeantEnvironment;
+
+    static ImportHelper& import_helper();
 };
 
 //---------------------------------------------------------------------------//

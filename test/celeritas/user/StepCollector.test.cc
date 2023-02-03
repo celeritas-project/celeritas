@@ -72,9 +72,6 @@ class KnCaloTest : public KnStepCollectorTestBase, public CaloTestBase
 class TestEm3CollectorTestBase : public TestEm3Base,
                                  virtual public StepCollectorTestBase
 {
-    //! Use MSC
-    bool enable_msc() const override { return true; }
-
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
@@ -83,7 +80,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         auto result = AlongStepUniformMscAction::from_params(
             action_reg.next_id(), *this->physics(), field_params);
         CELER_ASSERT(result);
-        CELER_ASSERT(result->has_msc() == this->enable_msc());
+        CELER_ASSERT(result->has_msc());
         action_reg.insert(result);
         return result;
     }

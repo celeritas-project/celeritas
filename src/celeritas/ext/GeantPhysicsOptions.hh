@@ -78,5 +78,20 @@ struct GeantPhysicsOptions
     real_type linear_loss_limit{0.01};
 };
 
+//! Equality operator, mainly for test harness
+// TODO: when we require C++20, use `friend bool operator==(...) = default;`
+constexpr bool
+operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
+{
+    return a.coulomb_scattering == b.coulomb_scattering
+           && a.rayleigh_scattering == b.rayleigh_scattering
+           && a.eloss_fluctuation == b.eloss_fluctuation && a.lpm == b.lpm
+           && a.integral_approach == b.integral_approach && a.brems == b.brems
+           && a.msc == b.msc && a.relaxation == b.relaxation
+           && a.em_bins_per_decade == b.em_bins_per_decade
+           && a.min_energy == b.min_energy && a.max_energy == b.max_energy
+           && a.linear_loss_limit == b.linear_loss_limit;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
