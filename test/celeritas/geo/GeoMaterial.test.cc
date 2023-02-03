@@ -6,16 +6,13 @@
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/GlobalGeoTestBase.hh"
-#include "celeritas/OnlyGeoTestBase.hh"
-#include "celeritas/ext/RootImporter.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
 
@@ -27,48 +24,13 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeoMaterialTest : public GlobalGeoTestBase, public OnlyGeoTestBase
+class GeoMaterialTest : public RootTestBase
 {
+  public:
     char const* geometry_basename() const override { return "simple-cms"; }
 
-    SPConstMaterial build_material() override
-    {
-        return MaterialParams::from_import(data_);
-    }
-
-    SPConstGeoMaterial build_geomaterial() override
-    {
-        // Create geometry/material coupling
-        GeoMaterialParams::Input input;
-        input.geometry = this->geometry();
-        input.materials = this->material();
-        input.volume_to_mat.resize(data_.volumes.size());
-        input.volume_labels.resize(data_.volumes.size());
-
-        for (auto const vol_idx : range(data_.volumes.size()))
-        {
-            ImportVolume const& volume = data_.volumes[vol_idx];
-
-            input.volume_to_mat[vol_idx] = MaterialId{volume.material_id};
-            input.volume_labels[vol_idx] = Label::from_geant(volume.name);
-        }
-        return std::make_shared<GeoMaterialParams>(std::move(input));
-    }
-
-    void SetUp() override
-    {
-        // Load ROOT file
-        // The simple-cms.root has no ImportData processes stored. Process data
-        // is not used and increases the file size by > 5x.
-        std::string root_file
-            = this->test_data_path("celeritas", "simple-cms.root");
-        data_ = RootImporter(root_file.c_str())();
-    }
-
-  private:
-    ImportData data_;
-
-    ScopedRootErrorHandler scoped_root_error;
+    SPConstTrackInit build_init() final { CELER_ASSERT_UNREACHABLE(); }
+    SPConstAction build_along_step() final { CELER_ASSERT_UNREACHABLE(); }
 };
 
 //---------------------------------------------------------------------------//
@@ -107,6 +69,7 @@ TEST_F(GeoMaterialTest, host)
         = {"vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
     EXPECT_VEC_EQ(expected_materials, materials);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

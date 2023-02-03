@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ProcessBuilder.hh"
 
+#include <set>
 #include <unordered_map>
 #include <utility>
 
@@ -29,6 +30,21 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Get an ordered set of all available processes.
+ */
+auto ProcessBuilder::get_all_process_classes(
+    std::vector<ImportProcess> const& processes) -> std::set<IPC>
+{
+    std::set<ImportProcessClass> result;
+    for (auto const& p : processes)
+    {
+        result.insert(p.process_class);
+    }
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct imported process data.

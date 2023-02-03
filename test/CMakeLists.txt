@@ -232,7 +232,9 @@ celeritas_add_library(testcel_celeritas
   celeritas/GeantTestBase.cc
   celeritas/GlobalTestBase.cc
   celeritas/GlobalGeoTestBase.cc
+  celeritas/ImportedDataTestBase.cc
   celeritas/MockTestBase.cc
+  celeritas/RootTestBase.cc
   celeritas/SimpleTestBase.cc
   celeritas/global/AlongStepTestBase.cc
   celeritas/global/StepperTestBase.cc
@@ -327,16 +329,32 @@ celeritas_add_test(celeritas/geo/GeoMaterial.test.cc
 # Global
 set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
+
+if(CELERITAS_USE_Geant4)
+  set(_filter
+    FILTER
+      "KnAlongStepTest.*"
+      "Em3AlongStepTest.nofluct_nomsc"
+      "Em3AlongStepTest.msc_nofluct"
+      "Em3AlongStepTest.fluct_nomsc"
+  )
+else()
+  set(_filter)
+endif()
 celeritas_add_test(celeritas/global/AlongStep.test.cc
-  ${_optional_geant4_env} NT 1)
+  NT 1 ${_optional_geant4_env} ${_filter}
+)
 celeritas_add_test(celeritas/global/KernelContextException.test.cc NT 1
-  LINK_LIBRARIES ${_optional_json_link})
+  LINK_LIBRARIES ${_optional_json_link}
+)
 celeritas_add_test(celeritas/global/Stepper.test.cc
   GPU NT 4 ${_needs_geant4}
   FILTER
     # NOTE: these can be run in the same invocation once Geant4 reload works
-    "TestEm3*"
-    "TestEm15FieldTest.*"
+    "TestEm3NoMsc.*"
+    "TestEm3Msc.*"
+    "TestEm3MscNofluct.*"
+    "TestEm15Field.*"
 )
 
 #-------------------------------------#

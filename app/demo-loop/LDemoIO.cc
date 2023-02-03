@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LDemoIO.hh"
 
-#include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -73,19 +72,6 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-//! Get the set of all process classes in the input
-auto get_all_process_classes(std::vector<ImportProcess> const& processes)
-    -> decltype(auto)
-{
-    std::set<ImportProcessClass> result;
-    for (auto const& p : processes)
-    {
-        result.insert(p.process_class);
-    }
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 //! Get optional values from json.
 template<class T>
@@ -308,10 +294,8 @@ TransporterInput load_input(LDemoArgs const& args)
 
             ProcessBuilder build_process(
                 imported_data, params.particle, params.material, opts);
-            // TODO: there's got to be a cleaner way to get the set of all
-            // processes: maybe better to change how the ImportData is
-            // structured
-            for (auto p : get_all_process_classes(imported_data.processes))
+            for (auto p : ProcessBuilder::get_all_process_classes(
+                     imported_data.processes))
             {
                 input.processes.push_back(build_process(p));
                 CELER_ASSERT(input.processes.back());
