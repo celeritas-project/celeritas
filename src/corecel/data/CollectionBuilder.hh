@@ -171,7 +171,7 @@ void CollectionBuilder<T, M, I>::resize(size_type size)
 {
     CELER_EXPECT(this->storage().empty());
     this->storage() = StorageT(size);
-    if (CELERITAS_DEBUG && M == MemSpace::host)
+    if constexpr (CELERITAS_DEBUG && M == MemSpace::host)
     {
         // Fill with invalid values to help with debugging on host
         detail::fill_invalid(&col_);

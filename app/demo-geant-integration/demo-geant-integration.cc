@@ -46,8 +46,12 @@ void run(std::string const& macro_filename)
     CLHEP::HepRandom::setTheSeed(0xcf39c1fa9a6e29bcul);
 
     std::unique_ptr<G4RunManager> run_manager;
-#if CELERITAS_G4_V10
-    if (CELERITAS_G4_MT)
+    if constexpr (!CELERITAS_G4_V10)
+    {
+        run_manager.reset(G4RunManagerFactory::CreateRunManager(
+            CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
+    }
+    else if constexpr (CELERITAS_G4_MT)
     {
         run_manager = std::make_unique<G4MTRunManager>();
     }
@@ -55,10 +59,6 @@ void run(std::string const& macro_filename)
     {
         run_manager = std::make_unique<G4RunManager>();
     }
-#else
-    run_manager.reset(G4RunManagerFactory::CreateRunManager(
-        CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
-#endif
     CELER_ASSERT(run_manager);
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
     CELER_LOG(info) << "Run manager type: "
