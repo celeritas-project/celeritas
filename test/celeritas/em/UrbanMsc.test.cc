@@ -12,7 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/RootTestBase.hh"
-#include "celeritas/em/msc/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/UrbanMscScatter.hh"
 #include "celeritas/em/msc/UrbanMscStepLimit.hh"
 #include "celeritas/geo/GeoData.hh"

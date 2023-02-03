@@ -8,7 +8,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "corecel/cont/Span.hh"
-#include "celeritas/em/msc/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"

@@ -39,7 +39,7 @@
 #include <accel/Logger.hh>
 #include <accel/SetupOptions.hh>
 #include <accel/SharedParams.hh>
-#include <celeritas/em/msc/UrbanMscParams.hh>
+#include <celeritas/em/UrbanMscParams.hh>
 #include <celeritas/global/alongstep/AlongStepGeneralLinearAction.hh>
 #include <celeritas/io/ImportData.hh>
 #include <corecel/Macros.hh>

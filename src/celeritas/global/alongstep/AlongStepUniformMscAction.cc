@@ -14,7 +14,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "celeritas/em/msc/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/global/alongstep/AlongStepLauncher.hh"

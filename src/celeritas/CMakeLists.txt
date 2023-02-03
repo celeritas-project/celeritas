@@ -29,6 +29,7 @@ list(APPEND SOURCES
   Types.cc
   em/AtomicRelaxationParams.cc
   em/FluctuationParams.cc
+  em/UrbanMscParams.cc
   em/detail/Utils.cc
   em/model/BetheHeitlerModel.cc
   em/model/CombinedBremModel.cc
@@ -40,7 +41,6 @@ list(APPEND SOURCES
   em/model/RayleighModel.cc
   em/model/RelativisticBremModel.cc
   em/model/SeltzerBergerModel.cc
-  em/msc/UrbanMscParams.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/EIonizationProcess.cc

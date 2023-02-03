@@ -10,7 +10,7 @@
 #include <memory>
 #include <type_traits>
 
-#include "celeritas/em/msc/UrbanMscParams.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
