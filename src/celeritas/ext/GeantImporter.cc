@@ -462,7 +462,7 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
                 }
                 else
                 {
-                    // Convert process to MSC
+                    // Unfold process to MSC models
                     CELER_ASSERT(ip.models.size() == ip.tables.size());
                     for (auto i : range(ip.models.size()))
                     {
@@ -581,7 +581,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         import_data.particles = store_particles(selected.particles);
         import_data.elements = store_elements();
         import_data.materials = store_materials(selected.particles);
-        // TODO: when moving to C++17, use a structured biding
+        // TODO: when moving to C++17, use a structured binding
         auto processes_and_msc = store_processes(selected.processes,
                                                  import_data.particles,
                                                  import_data.elements,
