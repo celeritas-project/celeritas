@@ -61,6 +61,7 @@ list(APPEND SOURCES
   grid/ValueGridInserter.cc
   grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
+  io/ImportModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -103,6 +104,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
+    ext/detail/ImportModelConverter.cc
     ext/detail/ImportProcessConverter.cc
   )
   target_link_libraries(celeritas_geant4

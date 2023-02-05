@@ -46,7 +46,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
                             ImportData const& import)
 {
     auto is_urban = [](ImportMscModel const& imm) {
-        return imm.model == ImportModelClass::urban_msc;
+        return imm.model_class == ImportModelClass::urban_msc;
     };
     if (!std::any_of(
             import.msc_models.begin(), import.msc_models.end(), is_urban))
@@ -90,7 +90,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     for (ImportMscModel const& imm : mdata_vec)
     {
         // Filter out other MSC models
-        if (imm.model != ImportModelClass::urban_msc)
+        if (imm.model_class != ImportModelClass::urban_msc)
             continue;
 
         // Filter out unused particles
@@ -101,7 +101,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
         // Make sure the model data is unique
         CELER_VALIDATE(!urban_data[pid.get()],
-                       << "duplicate " << to_cstring(imm.model)
+                       << "duplicate " << to_cstring(imm.model_class)
                        << " physics data for particle "
                        << particles.id_to_label(pid));
         urban_data[pid.get()] = &imm;

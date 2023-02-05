@@ -286,6 +286,11 @@ std::vector<ImportElement> store_elements()
 //---------------------------------------------------------------------------//
 /*!
  * Return a populated \c ImportMaterial vector.
+ *
+ * TODO: there seems to be an inconsitency between "materials" (index in the
+ * global material table) and "material cut couple" (which is what we're
+ * defining here?) Maybe we need another level of indirection for material and
+ * material+cutoff values?
  */
 std::vector<ImportMaterial>
 store_materials(GeantImporter::DataSelection::Flags particle_flags)
@@ -335,19 +340,21 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     }
 
     // Loop over material data
-    for (unsigned int i : range(g4production_cuts_table.GetTableSize()))
+    for (auto i : range(materials.size()))
     {
         // Fetch material, element, and production cuts lists
-        auto const& g4material_cuts_couple
+        auto const* g4material_cuts_couple
             = g4production_cuts_table.GetMaterialCutsCouple(i);
-        auto const& g4material = g4material_cuts_couple->GetMaterial();
-        auto const& g4elements = g4material->GetElementVector();
-        auto const& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
+        auto const* g4material = g4material_cuts_couple->GetMaterial();
+        auto const* g4elements = g4material->GetElementVector();
+        auto const* g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
 
         CELER_ASSERT(g4material_cuts_couple);
         CELER_ASSERT(g4material);
         CELER_ASSERT(g4elements);
         CELER_ASSERT(g4prod_cuts);
+        CELER_ASSERT(
+            static_cast<std::size_t>(g4material_cuts_couple->GetIndex()) == i);
 
         // Populate material information
         ImportMaterial material;
@@ -405,10 +412,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
                   });
 
         // Add material to vector
-        unsigned int const material_id = g4material_cuts_couple->GetIndex();
-        CELER_ASSERT(material_id < materials.size());
-        CELER_ASSERT(material_id == i);
-        materials[material_id] = material;
+        materials[i] = material;
     }
 
     CELER_LOG(debug) << "Loaded " << materials.size() << " materials";
@@ -470,7 +474,7 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
                                      == ImportTableType::lambda);
                         ImportMscModel imm;
                         imm.particle_pdg = ip.particle_pdg;
-                        imm.model = std::move(ip.models[i]);
+                        imm.model_class = ip.models[i].model_class;
                         imm.lambda_table = std::move(ip.tables[i]);
                         msc_models.push_back(std::move(imm));
                     }

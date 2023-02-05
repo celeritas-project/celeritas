@@ -198,48 +198,70 @@ void print_process(ImportProcess const& proc,
          << particles.id_to_label(particles.find(PDGNumber{proc.particle_pdg}))
          << " " << to_cstring(proc.process_class) << "\n\n";
 
-    cout << "Models: "
-         << join(proc.models.begin(),
-                 proc.models.end(),
-                 ", ",
-                 [](ImportModelClass im) { return to_cstring(im); })
-         << "\n\n";
-
-    cout << "### Microscopic cross-sections\n\n";
-
-    for (auto const& iter : proc.micro_xs)
+    if (proc.tables.empty())
     {
-        // Print models
-        cout << to_cstring(iter.first) << "\n";
+        cout << "**No macroscopic cross sections**\n\n";
+    }
 
-        auto const& micro_xs = iter.second;
-        for (size_type mat_id = 0; mat_id < micro_xs.size(); mat_id++)
+    for (ImportModel const& model : proc.models)
+    {
+        cout << "### Model: " << to_cstring(model.model_class)
+             << "\n"
+                "\n"
+                "Energy grids per material: \n\n"
+                "| Material             | Size  | Endpoints (MeV) |\n"
+                "| -------------------- | ----- | "
+                "----------------------------- |\n";
+
+        for (auto m : range(model.materials.size()))
         {
-            // Print materials
-            cout << "\n- " << materials[mat_id].name << "\n\n";
-            cout << "| Element       | Size  | Endpoints (MeV, cm^2) |\n"
-                 << "| ------------- | ----- | "
-                    "-----------------------------------------------------"
-                    "------- "
-                    "|\n";
+            auto const& energy = model.materials[m].energy;
+            CELER_ASSERT(!energy.empty());
+            cout << "| " << setw(20) << std::left << materials[m].name << " | "
+                 << setw(5) << energy.size() << " | " << setprecision(3)
+                 << setw(12) << setprecision(3) << setw(12) << energy.front()
+                 << " -> " << setprecision(3) << setw(12) << energy.back()
+                 << " |\n";
+        }
+        cout << "\n\n";
 
-            auto const& elem_phys_vectors = micro_xs[mat_id];
-
-            for (auto i : celeritas::range(elem_phys_vectors.size()))
-            {
-                // Print elements and their physics vectors
-                auto const& physvec = elem_phys_vectors[i];
-                cout << "| " << setw(13) << std::left << elements[i].name
-                     << " | " << setw(5) << physvec.x.size() << " | ("
-                     << setprecision(3) << setw(12) << physvec.x.front()
-                     << ", " << setprecision(3) << setw(12)
-                     << physvec.y.front() << ") -> (" << setprecision(3)
-                     << setw(12) << physvec.x.back() << ", " << setprecision(3)
-                     << setw(12) << physvec.y.back() << ") |\n";
-            }
+        if (std::all_of(model.materials.begin(),
+                        model.materials.end(),
+                        [](ImportModelMaterial const& imm) {
+                            return imm.micro_xs.empty();
+                        }))
+        {
+            cout << "**No microscopic cross sections**\n\n";
+            continue;
         }
 
-        cout << "\n------\n\n";
+        cout << "Microscopic cross sections:\n\n"
+                "| Material             | Element       | Endpoints (bn) |\n"
+                "| -------------------- | ------------- | "
+                "----------------------------- |\n";
+
+        for (auto m : range(model.materials.size()))
+        {
+            using celeritas::units::barn;
+
+            auto const& xs = model.materials[m].micro_xs;
+
+            for (auto i : celeritas::range(xs.size()))
+            {
+                cout << "| " << setw(20) << std::left
+                     << (i == 0 ? materials[m].name : std::string{}) << " | "
+                     << setw(13) << std::left << elements[i].name << " | "
+                     << setprecision(3) << setw(12) << xs[i].front() / barn
+                     << " -> " << setprecision(3) << setw(12)
+                     << xs[i].back() / barn << " |\n";
+            }
+        }
+        cout << endl;
+    }
+
+    if (proc.tables.empty())
+    {
+        return;
     }
 
     cout << "### Macroscopic cross-sections\n";
@@ -292,11 +314,12 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
 
         cout << "| " << setw(14) << to_cstring(proc.process_class) << " | "
              << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(25)
-             << to_string(
-                    join(proc.models.begin(),
-                         proc.models.end(),
-                         ", ",
-                         [](ImportModelClass im) { return to_cstring(im); }))
+             << to_string(join(proc.models.begin(),
+                               proc.models.end(),
+                               ", ",
+                               [](ImportModel const& im) {
+                                   return to_cstring(im.model_class);
+                               }))
              << " | " << setw(31)
              << to_string(join(proc.tables.begin(),
                                proc.tables.end(),
@@ -511,6 +534,10 @@ int main(int argc, char* argv[])
         CELER_LOG(critical) << "Assertion failure: " << e.what();
         return EXIT_FAILURE;
     }
+
+    cout << "Contents of `" << argv[1]
+         << "`\n\n"
+            "-----\n\n";
 
     auto const&& particle_params = ParticleParams::from_import(data);
 

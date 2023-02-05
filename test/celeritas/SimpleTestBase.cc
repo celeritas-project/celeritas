@@ -100,7 +100,15 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
     compton_data.secondary_pdg = pdg::electron().get();
     compton_data.process_type = ImportProcessType::electromagnetic;
     compton_data.process_class = ImportProcessClass::compton;
-    compton_data.models = {ImportModelClass::klein_nishina};
+    {
+        ImportModel kn_model;
+        kn_model.model_class = ImportModelClass::klein_nishina;
+        kn_model.materials.resize(this->material()->size());
+        for (ImportModelMaterial& imm : kn_model.materials)
+        {
+            imm.energy = {1e-4, 1e8};
+        }
+    }
     {
         ImportPhysicsTable lambda;
         lambda.table_type = ImportTableType::lambda;
