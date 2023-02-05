@@ -364,17 +364,16 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
                                    G4VProcess const& process)
 {
     // Check for duplicate processes
-    auto iter_inserted = written_processes_.insert({&process, {&particle}});
+    auto [prev, inserted] = written_processes_.insert({&process, {&particle}});
 
-    if (!iter_inserted.second)
+    if (!inserted)
     {
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
-        PrevProcess const& prev = iter_inserted.first->second;
         CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
                          << "' (RTTI: " << demangle_process(process)
                          << ") for particle " << particle.GetParticleName()
                          << ": duplicate of particle "
-                         << prev.particle->GetParticleName();
+                         << prev->second.particle->GetParticleName();
         return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
@@ -595,15 +594,19 @@ void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
     }
 
     // Check for duplicate tables
-    auto iter_inserted = written_tables_.insert(
+    auto [prev, inserted] = written_tables_.insert(
         {g4table, {process_.particle_pdg, process_.process_class, table_type}});
 
-    CELER_LOG(debug)
-        << (iter_inserted.second ? "Saving" : "Skipping duplicate")
-        << " physics table " << process_.particle_pdg << '.'
-        << to_cstring(process_.process_class) << '.' << to_cstring(table_type);
-    if (!iter_inserted.second)
+    CELER_LOG(debug) << (inserted ? "Saving" : "Skipping duplicate")
+                     << " physics table " << process_.particle_pdg << '.'
+                     << to_cstring(process_.process_class) << '.'
+                     << to_cstring(table_type);
+    if (!inserted)
     {
+        CELER_LOG(debug) << "PreviousExisting table was at"
+                         << prev->second.particle_pdg << '.'
+                         << to_cstring(prev->second.process_class) << '.'
+                         << to_cstring(prev->second.table_type);
         return;
     }
 

@@ -92,12 +92,12 @@ GeoMaterialParams::GeoMaterialParams(Input input)
         std::set<Label> duplicates;
         for (auto idx : range(input.volume_to_mat.size()))
         {
-            auto iter_inserted
+            auto [prev, inserted]
                 = lab_to_id.insert({std::move(input.volume_labels[idx]),
                                     input.volume_to_mat[idx]});
-            if (!iter_inserted.second)
+            if (!inserted)
             {
-                duplicates.insert(iter_inserted.first->first);
+                duplicates.insert(prev->first);
             }
         }
         CELER_VALIDATE(duplicates.empty(),
