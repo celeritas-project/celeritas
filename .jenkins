@@ -6,15 +6,15 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('valgrind') {
+        stage('clang-minimal') {
           agent {
             docker {
-              image 'celeritas/ci-bionic-minimal:2021-12-17'
-              // Note: this image does not require CUDA
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              // Note: this image does not require CUDA or HIP
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-minimal valgrind'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minimal'
           }
           post {
             always {
