@@ -68,8 +68,8 @@ StepCollector::StepCollector(VecInterface callbacks,
                            << "step interface doesn't collect any data");
             selection |= this_selection;
 
-            auto const&& scoring = sp_interface->scoring_volumes();
-            for (auto const& kv : scoring.detectors)
+            auto const&& filters = sp_interface->filters();
+            for (auto const& kv : filters.detectors)
             {
                 // Map detector volumes, asserting uniqueness
                 CELER_ASSERT(kv.first);
@@ -85,9 +85,9 @@ StepCollector::StepCollector(VecInterface callbacks,
 
             // Filter out zero-energy steps/tracks only if all detectors agree
             nonzero_energy_deposition = nonzero_energy_deposition
-                                        && scoring.nonzero_energy_deposition;
+                                        && filters.nonzero_energy_deposition;
 
-            auto this_has_detectors = scoring.detectors.empty()
+            auto this_has_detectors = filters.detectors.empty()
                                           ? HasDetectors::none
                                           : HasDetectors::all;
             if (has_detectors == HasDetectors::unknown)

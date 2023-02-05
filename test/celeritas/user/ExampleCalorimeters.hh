@@ -34,7 +34,7 @@ class ExampleCalorimeters final : public StepInterface
                         std::vector<std::string> const& volumes);
 
     // Filter data being gathered
-    ScoringVolumes scoring_volumes() const final;
+    Filters filters() const final;
 
     // Return flags corresponding to the "Step" above
     StepSelection selection() const final;

@@ -38,7 +38,7 @@ class ExampleMctruth final : public StepInterface
 
   public:
     //! Selection of data required for this interface
-    ScoringVolumes scoring_volumes() const final { return {}; }
+    Filters filters() const final { return {}; }
 
     // Return flags corresponding to the "Step" above
     StepSelection selection() const final;

@@ -27,8 +27,8 @@ namespace celeritas
  * instead of a full struct, no dictionaries are needed for reading the output
  * file.
  *
- * The data can be filtered by defining a `RSWFilter`. This `std::function` can
- * be user-defined and expanded as needed.
+ * The step data that is written to the ROOT file can be filtered by providing
+ * a user-defined `WriteFilter` function.
  */
 class RootStepWriter final : public StepInterface
 {
@@ -68,19 +68,19 @@ class RootStepWriter final : public StepInterface
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using SPParticleParams = std::shared_ptr<ParticleParams const>;
-    using RSWFilter = std::function<bool(TStepData const&)>;
+    using WriteFilter = std::function<bool(TStepData const&)>;
     //!@}
 
-    // Construct without filtering
+    // Construct and store all step data
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection);
 
-    // Construct with filtering
+    // Construct with step data writer filter
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection,
-                   RSWFilter filter);
+                   WriteFilter filter);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);
@@ -97,8 +97,8 @@ class RootStepWriter final : public StepInterface
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
 
-    // No detector scoring selection is implemented
-    ScoringVolumes scoring_volumes() const final { return ScoringVolumes{}; }
+    // No detector filtering selection is implemented
+    Filters filters() const final { return {}; }
 
   private:
     // Create steps tree based on selection_ booleans
@@ -118,7 +118,7 @@ class RootStepWriter final : public StepInterface
 inline RootStepWriter::RootStepWriter(SPRootFileManager,
                                       SPParticleParams,
                                       StepSelection,
-                                      RSWFilter)
+                                      WriteFilter)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

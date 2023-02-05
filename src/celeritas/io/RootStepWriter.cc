@@ -63,7 +63,7 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
                                StepSelection selection,
-                               RSWFilter filter)
+                               WriteFilter filter)
     : RootStepWriter(std::move(root_manager),
                      std::move(particle_params),
                      std::move(selection))

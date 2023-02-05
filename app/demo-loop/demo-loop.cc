@@ -232,7 +232,7 @@ void run(std::istream* is, OutputManager* output)
 
     if (root_manager)
     {
-        // Write ROOT file to disk
+        // Write MC truth ROOT file to disk
         root_manager->write();
     }
 }
