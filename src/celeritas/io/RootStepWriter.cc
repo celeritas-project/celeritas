@@ -41,16 +41,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct writer without data filtering.
+ * Construct writer with user-defined data filtering.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
-                               StepSelection selection)
+                               StepSelection selection,
+                               WriteFilter filter)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
-    , filter_([](RootStepWriter::TStepData const&) { return true; })
+    , filter_(filter)
+
 {
     CELER_EXPECT(root_manager_);
     this->make_tree();
@@ -58,17 +60,17 @@ RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct writer with user-defined data filtering.
+ * Construct writer without data filtering.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
-                               StepSelection selection,
-                               WriteFilter filter)
+                               StepSelection selection)
     : RootStepWriter(std::move(root_manager),
                      std::move(particle_params),
-                     std::move(selection))
+                     std::move(selection),
+                     [](RootStepWriter::TStepData const&) { return true; })
+
 {
-    filter_ = filter;
 }
 
 //---------------------------------------------------------------------------//

@@ -159,8 +159,8 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
         if (v.mctruth_filter)
         {
             CELER_VALIDATE(!v.mctruth_filename.empty(),
-                           << "A valid MC truth filter can only be used with "
-                              "a valid ROOT MC truth output");
+                           << "missing 'mctruth_filename' when "
+                              "'mctruth_filter' was specified");
         }
     }
     if (j.contains("primary_gen_options"))

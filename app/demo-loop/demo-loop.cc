@@ -79,7 +79,7 @@ bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
  * are stored.
  */
 std::function<bool(RootStepWriter::TStepData const&)>
-root_step_writer_filter(LDemoArgs args)
+make_root_step_writer_filter(LDemoArgs const& args)
 {
     std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
 
@@ -92,7 +92,6 @@ root_step_writer_filter(LDemoArgs args)
                         || rsw_filter_match(step.parent_id, opts.parent_id)));
         };
     }
-
     else
     {
         // No filtering; store all the data
@@ -108,7 +107,7 @@ root_step_writer_filter(LDemoArgs args)
  * data to the ROOT file when a valid ROOT MC truth file is provided.
  */
 std::shared_ptr<RootFileManager>
-init_root_mctruth_output(LDemoArgs run_args,
+init_root_mctruth_output(LDemoArgs const& run_args,
                          TransporterBase const* transport_ptr)
 {
     std::shared_ptr<RootFileManager> root_manager;
@@ -124,11 +123,11 @@ init_root_mctruth_output(LDemoArgs run_args,
 
     root_manager
         = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
-    auto step_writer
-        = std::make_shared<RootStepWriter>(root_manager,
-                                           transport_ptr->params().particle(),
-                                           StepSelection::all(),
-                                           root_step_writer_filter(run_args));
+    auto step_writer = std::make_shared<RootStepWriter>(
+        root_manager,
+        transport_ptr->params().particle(),
+        StepSelection::all(),
+        make_root_step_writer_filter(run_args));
     auto step_collector = std::make_shared<StepCollector>(
         StepCollector::VecInterface{step_writer},
         transport_ptr->params().geometry(),

@@ -71,16 +71,16 @@ class RootStepWriter final : public StepInterface
     using WriteFilter = std::function<bool(TStepData const&)>;
     //!@}
 
-    // Construct and store all step data
-    RootStepWriter(SPRootFileManager root_manager,
-                   SPParticleParams particle_params,
-                   StepSelection selection);
-
     // Construct with step data writer filter
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection,
                    WriteFilter filter);
+
+    // Construct and store all step data
+    RootStepWriter(SPRootFileManager root_manager,
+                   SPParticleParams particle_params,
+                   StepSelection selection);
 
     // Set number of entries stored in memory before being flushed to disk
     void set_auto_flush(long num_entries);

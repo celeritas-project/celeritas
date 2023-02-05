@@ -48,7 +48,7 @@ struct MCTruthFilter
     size_type track_id = unspecified();
     size_type parent_id = unspecified();
 
-    explicit operator bool()
+    explicit operator bool() const
     {
         return event_id != unspecified() || track_id != unspecified()
                || parent_id != unspecified();
