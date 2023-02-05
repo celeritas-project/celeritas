@@ -28,6 +28,7 @@ enum class MscModelSelection
     none,
     urban,
     wentzel_vi,
+    all,
     size_
 };
 

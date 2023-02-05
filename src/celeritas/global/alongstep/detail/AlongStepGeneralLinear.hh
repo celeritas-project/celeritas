@@ -9,10 +9,10 @@
 
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"
 
 #include "AlongStepNeutral.hh"
 #include "EnergyLossFluctApplier.hh"
-#include "UrbanMsc.hh"
 
 namespace celeritas
 {

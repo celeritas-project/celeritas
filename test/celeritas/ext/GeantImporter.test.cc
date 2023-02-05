@@ -106,6 +106,10 @@ auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
         pclass.insert(p.process_class);
         mclass.insert(p.models.begin(), p.models.end());
     }
+    for (auto const& m : data.msc_models)
+    {
+        mclass.insert(m.model);
+    }
     s.processes = to_vec_string(pclass.begin(), pclass.end());
     s.models = to_vec_string(mclass.begin(), mclass.end());
     return s;
@@ -192,8 +196,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
 
     static char const* expected_particles[] = {"e+", "e-", "gamma"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"msc",
-                                               "e_ioni",
+    static char const* expected_processes[] = {"e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",
@@ -225,8 +228,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 
     static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"msc",
-                                               "e_ioni",
+    static char const* expected_processes[] = {"e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",

@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
@@ -17,7 +18,6 @@
 
 #include "AlongStepNeutral.hh"
 #include "EnergyLossApplier.hh"
-#include "UrbanMsc.hh"
 
 namespace celeritas
 {

@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
@@ -130,10 +131,13 @@ class TestEm15Field : public TestEm15Base, public StepperTestBase
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1e-3 * units::tesla};
-        auto result = AlongStepUniformMscAction::from_params(
-            action_reg.next_id(), *this->physics(), field_params);
-        CELER_ASSERT(result);
-        CELER_ASSERT(result->has_msc() == true);
+
+        auto msc = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+        CELER_ASSERT(msc);
+
+        auto result = std::make_shared<AlongStepUniformMscAction>(
+            action_reg.next_id(), field_params, msc);
         action_reg.insert(result);
         return result;
     }
@@ -323,7 +327,6 @@ TEST_F(TestEm3Msc, setup)
         "Positron annihiliation",
         "Electron/positron ionization",
         "Bremsstrahlung",
-        "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
@@ -336,7 +339,6 @@ TEST_F(TestEm3Msc, setup)
         "annihil-2-gamma",
         "ioni-moller-bhabha",
         "brems-combined",
-        "msc-urban",
         "geo-boundary",
         "dummy-action",
     };
@@ -492,7 +494,6 @@ TEST_F(TestEm15Field, setup)
         "Positron annihiliation",
         "Electron/positron ionization",
         "Bremsstrahlung",
-        "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
@@ -506,7 +507,6 @@ TEST_F(TestEm15Field, setup)
         "ioni-moller-bhabha",
         "brems-sb",
         "brems-rel",
-        "msc-urban",
         "geo-boundary",
         "dummy-action",
     };

@@ -70,31 +70,33 @@ TEST_F(PhysicsParamsTest, accessors)
         model_desc.push_back(m.description());
     }
 
-    static const std::string expected_model_names[] = {"mock-model-4",
-                                                       "mock-model-5",
-                                                       "mock-model-6",
-                                                       "mock-model-7",
-                                                       "mock-model-8",
-                                                       "mock-model-9",
-                                                       "mock-model-10",
-                                                       "mock-model-11",
-                                                       "mock-model-12",
-                                                       "mock-model-13",
-                                                       "mock-model-14"};
+    static const std::string expected_model_names[] = {
+        "mock-model-1",
+        "mock-model-2",
+        "mock-model-3",
+        "mock-model-4",
+        "mock-model-5",
+        "mock-model-6",
+        "mock-model-7",
+        "mock-model-8",
+        "mock-model-9",
+        "mock-model-10",
+        "mock-model-11",
+    };
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
     static const std::string expected_model_desc[]
-        = {"MockModel(4, p=0, emin=1e-06, emax=100)",
-           "MockModel(5, p=1, emin=1, emax=100)",
-           "MockModel(6, p=0, emin=1e-06, emax=100)",
-           "MockModel(7, p=1, emin=0.001, emax=1)",
-           "MockModel(8, p=1, emin=1, emax=10)",
-           "MockModel(9, p=1, emin=10, emax=100)",
-           "MockModel(10, p=2, emin=0.001, emax=1)",
-           "MockModel(11, p=2, emin=1, emax=100)",
-           "MockModel(12, p=1, emin=0.001, emax=10)",
-           "MockModel(13, p=2, emin=0.001, emax=10)",
-           "MockModel(14, p=3, emin=1e-05, emax=10)"};
+        = {"MockModel(1, p=0, emin=1e-06, emax=100)",
+           "MockModel(2, p=1, emin=1, emax=100)",
+           "MockModel(3, p=0, emin=1e-06, emax=100)",
+           "MockModel(4, p=1, emin=0.001, emax=1)",
+           "MockModel(5, p=1, emin=1, emax=10)",
+           "MockModel(6, p=1, emin=10, emax=100)",
+           "MockModel(7, p=2, emin=0.001, emax=1)",
+           "MockModel(8, p=2, emin=1, emax=100)",
+           "MockModel(9, p=1, emin=0.001, emax=10)",
+           "MockModel(10, p=2, emin=0.001, emax=10)",
+           "MockModel(11, p=3, emin=1e-05, emax=10)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
@@ -127,8 +129,9 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"models":[{"label":"mock-model-4","process":0},{"label":"mock-model-5","process":0},{"label":"mock-model-6","process":1},{"label":"mock-model-7","process":2},{"label":"mock-model-8","process":2},{"label":"mock-model-9","process":2},{"label":"mock-model-10","process":3},{"label":"mock-model-11","process":3},{"label":"mock-model-12","process":4},{"label":"mock-model-13","process":4},{"label":"mock-model-14","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":35}})json",
-            to_string(out));
+            R"json({"models":[{"label":"mock-model-1","process":0},{"label":"mock-model-2","process":0},{"label":"mock-model-3","process":1},{"label":"mock-model-4","process":2},{"label":"mock-model-5","process":2},{"label":"mock-model-6","process":2},{"label":"mock-model-7","process":3},{"label":"mock-model-8","process":3},{"label":"mock-model-9","process":4},{"label":"mock-model-10","process":4},{"label":"mock-model-11","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":35}})json",
+            to_string(out))
+            << "R\"json(" << to_string(out) << ")json";
     }
 }
 

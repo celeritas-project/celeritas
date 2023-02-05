@@ -18,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * UrbanMscModel settable parameters and default values.
+ * Settable parameters and default values for Urban multiple scattering.
  *
  * \f$ \tau = t/\lambda \f$ where t is the true path length and \f$ \lambda \f$
  * is the mean free path of the multiple scattering. The range and safety
@@ -92,19 +92,18 @@ struct UrbanMscMaterialData
 //---------------------------------------------------------------------------//
 /*!
  * Physics IDs for MSC.
+ *
+ * TODO these will probably be changed to a map over all particle IDs.
  */
 struct UrbanMscIds
 {
-    // TODO: remove when this is no longer a model
-    ActionId action;
-    // TODO: change to a bitset based on particle ID when we add muons, hadrons
     ParticleId electron;
     ParticleId positron;
 
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron;
+        return electron && positron;
     }
 };
 
@@ -151,7 +150,7 @@ struct UrbanMscData
 
     //// DATA ////
 
-    //! Type-free IDs
+    //! Particle IDs
     UrbanMscIds ids;
     //! Mass of of electron in MeV
     units::MevMass electron_mass;

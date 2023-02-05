@@ -18,7 +18,6 @@
 #include "celeritas/em/process/EIonizationProcess.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/io/ImportData.hh"
@@ -100,6 +99,7 @@ ProcessBuilder::~ProcessBuilder() = default;
  * Construct a \c Process from a given processs class.
  *
  * This may return a null process (with a warning) if the user specifically
+ * requests that the process be omitted.
  */
 auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
 {
@@ -119,7 +119,6 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::conversion, &ProcessBuilder::build_conversion},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
-        {IPC::msc, &ProcessBuilder::build_msc},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
     };
@@ -136,13 +135,6 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         CELER_ENSURE(result);
         return result;
     }
-}
-
-//---------------------------------------------------------------------------//
-auto ProcessBuilder::build_msc() -> SPProcess
-{
-    return std::make_shared<MultipleScatteringProcess>(
-        this->particle(), this->material(), this->imported());
 }
 
 //---------------------------------------------------------------------------//

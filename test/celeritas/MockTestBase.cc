@@ -206,7 +206,7 @@ auto MockTestBase::build_along_step() -> SPConstAction
         = AlongStepGeneralLinearAction::from_params(action_reg.next_id(),
                                                     *this->material(),
                                                     *this->particle(),
-                                                    *this->physics(),
+                                                    nullptr,
                                                     false);
     CELER_ASSERT(result);
     CELER_ASSERT(!result->has_fluct());

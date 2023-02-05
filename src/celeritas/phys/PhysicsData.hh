@@ -235,13 +235,19 @@ struct PhysicsParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_particle_processes > 0 && model_to_action >= 3
+        return max_particle_processes > 0 && model_to_action >= 4
                && num_models > 0 && min_range > 0 && max_step_over_range > 0
                && min_eprime_over_e > 0
                && value_as<Energy>(eloss_calc_limit) > 0
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action));
+    }
+
+    //! Stop early due to MSC limitation
+    CELER_FORCEINLINE_FUNCTION ActionId msc_action() const
+    {
+        return ActionId{model_to_action - 4};
     }
 
     //! Stop early due to range limitation

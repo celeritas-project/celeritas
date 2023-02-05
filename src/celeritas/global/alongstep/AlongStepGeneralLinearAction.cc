@@ -16,7 +16,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/KernelContextException.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -34,7 +34,7 @@ std::shared_ptr<AlongStepGeneralLinearAction>
 AlongStepGeneralLinearAction::from_params(ActionId id,
                                           MaterialParams const& materials,
                                           ParticleParams const& particles,
-                                          PhysicsParams const& physics,
+                                          SPConstMsc const& msc,
                                           bool eloss_fluctuation)
 {
     SPConstFluctuations fluct;
@@ -43,21 +43,8 @@ AlongStepGeneralLinearAction::from_params(ActionId id,
         fluct = std::make_shared<FluctuationParams>(particles, materials);
     }
 
-    // Super hacky!! This will be cleaned up later.
-    SPConstMsc msc;
-    for (auto mid : range(ModelId{physics.num_models()}))
-    {
-        msc = std::dynamic_pointer_cast<UrbanMscModel const>(
-            physics.model(mid));
-        if (msc)
-        {
-            // Found MSC
-            break;
-        }
-    }
-
     return std::make_shared<AlongStepGeneralLinearAction>(
-        id, std::move(fluct), std::move(msc));
+        id, std::move(fluct), msc);
 }
 
 //---------------------------------------------------------------------------//

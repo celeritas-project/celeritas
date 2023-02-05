@@ -5,22 +5,24 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/UrbanMsc.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas/em/msc/UrbanMsc.hh"
+
 #include <random>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/RootTestBase.hh"
-#include "celeritas/em/distribution/UrbanMscScatter.hh"
-#include "celeritas/em/distribution/UrbanMscStepLimit.hh"
-#include "celeritas/em/model/UrbanMscModel.hh"
+#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/msc/UrbanMscScatter.hh"
+#include "celeritas/em/msc/UrbanMscStepLimit.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleData.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/track/SimData.hh"
@@ -54,6 +56,7 @@ class UrbanMscTest : public RootTestBase
 {
   protected:
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+
     using PhysicsStateStore
         = CollectionStateStore<PhysicsStateData, MemSpace::host>;
     using ParticleStateStore
@@ -66,24 +69,15 @@ class UrbanMscTest : public RootTestBase
 
     void SetUp() override
     {
-        const auto& physics = *this->physics();
-        // Find MSC model
-        for (auto mid : range(ModelId{physics.num_models()}))
-        {
-            msc_model_ = std::dynamic_pointer_cast<UrbanMscModel const>(
-                physics.model(mid));
-            if (msc_model_)
-            {
-                // Found MSC
-                break;
-            }
-        }
-        ASSERT_TRUE(msc_model_);
+        // Load MSC data
+        msc_params_ = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+        ASSERT_TRUE(msc_params_);
 
         // Allocate particle state
         auto state_size = 1;
         physics_state_
-            = PhysicsStateStore(physics.host_ref(), state_size);
+            = PhysicsStateStore(this->physics()->host_ref(), state_size);
         particle_state_
             = ParticleStateStore(this->particle()->host_ref(), state_size);
         geo_state_ = GeoStateStore(this->geometry()->host_ref(), state_size);
@@ -131,7 +125,7 @@ class UrbanMscTest : public RootTestBase
     }
 
   protected:
-    std::shared_ptr<UrbanMscModel const> msc_model_;
+    std::shared_ptr<UrbanMscParams const> msc_params_;
 
     PhysicsStateStore physics_state_;
     ParticleStateStore particle_state_;
@@ -149,7 +143,8 @@ TEST_F(UrbanMscTest, coeff_data)
     ASSERT_TRUE(mid);
 
     // Check MscMaterialDara for the current material (G4_STAINLESS-STEEL)
-    UrbanMscMaterialData const& msc = msc_model_->host_ref().material_data[mid];
+    UrbanMscMaterialData const& msc
+        = msc_params_->host_ref().material_data[mid];
 
     EXPECT_SOFT_EQ(msc.coeffth1, 0.97326969977637379);
     EXPECT_SOFT_EQ(msc.coeffth2, 0.044188139325421663);
@@ -227,17 +222,17 @@ TEST_F(UrbanMscTest, msc_scattering)
         PhysicsTrackView phys = this->make_track_view(
             pdg::electron(), mid, inc_energy);
 
-        UrbanMscStepLimit calc_limit(msc_model_->host_ref(),
-                                       par_track_view,
-                                       &phys,
-                                       material_view.material_id(),
-                                       geo_view.is_on_boundary(),
-                                       geo_view.find_safety(),
-                                       step[i]);
+        UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
+                                     par_track_view,
+                                     &phys,
+                                     material_view.material_id(),
+                                     geo_view.is_on_boundary(),
+                                     geo_view.find_safety(),
+                                     step[i]);
 
         step_result = calc_limit(rng);
 
-        UrbanMscScatter scatter(msc_model_->host_ref(),
+        UrbanMscScatter scatter(msc_params_->host_ref(),
                                 par_track_view,
                                 &geo_view,
                                 phys,
