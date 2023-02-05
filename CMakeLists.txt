@@ -210,7 +210,8 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
-  find_package(SWIG 4.0 REQUIRED)
+  # Note: 4.1 is required for C++17 parsing
+  find_package(SWIG 4.1 REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)
