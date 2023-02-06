@@ -103,7 +103,7 @@ void barrier(MpiCommunicator const& comm)
  */
 template<class T, std::size_t N>
 void allreduce(MpiCommunicator const& comm,
-               CELER_MAYBE_UNUSED Operation op,
+               [[maybe_unused]] Operation op,
                Span<const T, N> src,
                Span<T, N> dst)
 {
@@ -129,8 +129,8 @@ void allreduce(MpiCommunicator const& comm,
  */
 template<class T, std::size_t N>
 void allreduce(MpiCommunicator const& comm,
-               CELER_MAYBE_UNUSED Operation op,
-               CELER_MAYBE_UNUSED Span<T, N> data)
+               [[maybe_unused]] Operation op,
+               [[maybe_unused]] Span<T, N> data)
 {
     if (!comm)
         return;

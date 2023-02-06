@@ -189,7 +189,7 @@ void SeltzerBergerModel::append_table(ElementView const& element,
         // Save it!
         argmax[i] = max_el;
 
-        if (CELERITAS_DEBUG)
+        if constexpr (CELERITAS_DEBUG)
         {
             using Energy = units::MevEnergy;
 

@@ -138,7 +138,7 @@ ImportMaterialState to_material_state(G4State const& g4_material_state)
     switch (g4_material_state)
     {
         case G4State::kStateUndefined:
-            return ImportMaterialState::not_defined;
+            return ImportMaterialState::other;
         case G4State::kStateSolid:
             return ImportMaterialState::solid;
         case G4State::kStateLiquid:

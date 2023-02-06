@@ -34,7 +34,7 @@ std::size_t hash_combine(Args const&... args)
 {
     // Construct a hasher and initialize
     std::size_t result;
-    CELER_MAYBE_UNUSED auto hash_fnv = detail::make_fast_hasher(&result);
+    [[maybe_unused]] auto hash_fnv = detail::make_fast_hasher(&result);
 
     // Hash each one of the arguments sequentially by expanding into an unused
     // initializer list.

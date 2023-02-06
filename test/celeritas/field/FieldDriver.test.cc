@@ -121,7 +121,7 @@ TEST_F(FieldDriverTest, revolutions)
             = {test_params.radius, 0, (nr + 1) * test_params.delta_z};
 
         // Travel hstep for num_steps times in the field
-        for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
+        for ([[maybe_unused]] int j : range(test_params.nsteps))
         {
             auto end = driver.advance(hstep, y);
             total_step_length += end.step;
@@ -165,7 +165,7 @@ TEST_F(FieldDriverTest, accurate_advance)
         OdeState y_accurate = y;
 
         // Travel hstep for num_steps times in the field
-        for (CELER_MAYBE_UNUSED int j : range(test_params.nsteps))
+        for ([[maybe_unused]] int j : range(test_params.nsteps))
         {
             auto end = driver.accurate_advance(hstep, y_accurate, .001);
 

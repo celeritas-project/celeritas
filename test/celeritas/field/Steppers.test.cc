@@ -92,7 +92,7 @@ class SteppersTest : public Test
             {
                 // Travel hstep for num_steps times in the field
                 expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1.0e-6;
-                for (CELER_MAYBE_UNUSED int j : range(param.nsteps))
+                for ([[maybe_unused]] int j : range(param.nsteps))
                 {
                     FieldStepperResult result = stepper(hstep, y);
                     y = result.end_state;

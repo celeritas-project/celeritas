@@ -72,12 +72,12 @@ auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
 
     // Insert value and ordering. Note that since the elements are never
     // erased, pointers to the keys are guaranteed to always be valid.
-    auto iter_inserted = vars_.emplace(key, std::move(value));
-    CELER_ASSERT(iter_inserted.second);
-    ordered_.push_back(std::ref(*iter_inserted.first));
+    auto [iter, inserted] = vars_.emplace(key, std::move(value));
+    CELER_ASSERT(inserted);
+    ordered_.push_back(std::ref(*iter));
 
     CELER_ENSURE(ordered_.size() == vars_.size());
-    return iter_inserted.first->second;
+    return iter->second;
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -87,10 +87,10 @@ auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
  */
 void Environment::insert(value_type const& value)
 {
-    auto iter_inserted = vars_.insert(value);
-    if (iter_inserted.second)
+    auto [iter, inserted] = vars_.insert(value);
+    if (inserted)
     {
-        ordered_.push_back(std::ref(*iter_inserted.first));
+        ordered_.push_back(std::ref(*iter));
     }
     CELER_ENSURE(ordered_.size() == vars_.size());
 }

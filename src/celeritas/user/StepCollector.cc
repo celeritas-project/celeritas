@@ -73,14 +73,14 @@ StepCollector::StepCollector(VecInterface callbacks,
             {
                 // Map detector volumes, asserting uniqueness
                 CELER_ASSERT(kv.first);
-                auto iter_inserted = detector_map.insert(kv);
-                CELER_VALIDATE(iter_inserted.second,
+                auto [prev, inserted] = detector_map.insert(kv);
+                CELER_VALIDATE(inserted,
                                << "multiple step interfaces map single volume "
                                   "to a detector ('"
-                               << geo->id_to_label(iter_inserted.first->first)
-                               << "' -> " << iter_inserted.first->second.get()
-                               << " and '" << geo->id_to_label(kv.first)
-                               << "' -> " << kv.second.get() << ')');
+                               << geo->id_to_label(prev->first) << "' -> "
+                               << prev->second.get() << " and '"
+                               << geo->id_to_label(kv.first) << "' -> "
+                               << kv.second.get() << ')');
             }
 
             // Filter out zero-energy steps/tracks only if all detectors agree

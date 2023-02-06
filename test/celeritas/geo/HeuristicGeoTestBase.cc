@@ -41,7 +41,7 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
     HeuristicGeoLauncher launch{params, state.ref()};
     for (auto tid : range(ThreadId{num_states}))
     {
-        for (CELER_MAYBE_UNUSED auto step : range(num_steps))
+        for ([[maybe_unused]] auto step : range(num_steps))
         {
             launch(tid);
         }
@@ -84,7 +84,7 @@ void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
     StateStore<MemSpace::device> state{
         this->build_test_params<MemSpace::host>(), num_states};
 
-    for (CELER_MAYBE_UNUSED auto step : range(num_steps))
+    for ([[maybe_unused]] auto step : range(num_steps))
     {
         heuristic_test_launch(params, state.ref());
     }

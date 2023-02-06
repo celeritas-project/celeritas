@@ -1061,9 +1061,9 @@ TEST_F(LayersTest, revolutions_through_layers)
     int icross = 0;
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
+    for ([[maybe_unused]] int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
+        for ([[maybe_unused]] auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;
@@ -1108,9 +1108,9 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
+    for ([[maybe_unused]] int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
+        for ([[maybe_unused]] auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;

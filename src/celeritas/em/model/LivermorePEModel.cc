@@ -130,7 +130,7 @@ void LivermorePEModel::append_element(ImportLivermorePE const& inp,
                                       HostXsData* xs) const
 {
     CELER_EXPECT(!inp.shells.empty());
-    if (CELERITAS_DEBUG)
+    if constexpr (CELERITAS_DEBUG)
     {
         CELER_EXPECT(inp.thresh_lo <= inp.thresh_hi);
         for (auto const& shell : inp.shells)

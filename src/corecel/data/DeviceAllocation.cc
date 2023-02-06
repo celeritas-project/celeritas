@@ -56,7 +56,7 @@ void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 //---------------------------------------------------------------------------//
 //! Deleter frees hip data
 void DeviceAllocation::DeviceFreeDeleter::operator()(
-    CELER_MAYBE_UNUSED Byte* ptr) const
+    [[maybe_unused]] Byte* ptr) const
 {
     CELER_DEVICE_CALL_PREFIX(Free(ptr));
 }

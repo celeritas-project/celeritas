@@ -27,7 +27,7 @@ TEST(ExponentialDistributionTest, all)
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double x = sample(rng);
         ASSERT_GE(x, 0.0);

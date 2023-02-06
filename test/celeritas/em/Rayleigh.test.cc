@@ -174,7 +174,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 
         // Produce num_samples from the original/incident photon
         real_type sum_angle = 0;
-        for (CELER_MAYBE_UNUSED auto i : range(num_samples))
+        for ([[maybe_unused]] auto i : range(num_samples))
         {
             Interaction result = interact(rng_engine);
             SCOPED_TRACE(result);
