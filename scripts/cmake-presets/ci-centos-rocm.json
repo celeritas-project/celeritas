@@ -45,7 +45,7 @@
       "inherits": "base"
     },
     {
-      "name": "minimal",
+      "name": "minitest",
       "description": "Build without any dependencies but JSON/Googletest",
       "inherits": "base",
       "cacheVariables": {

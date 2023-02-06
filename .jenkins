@@ -6,7 +6,7 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('clang-minimal') {
+        stage('clang-minitest') {
           agent {
             docker {
               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
@@ -14,7 +14,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minimal'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minitest'
           }
           post {
             always {
