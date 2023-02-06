@@ -131,51 +131,65 @@ void print_materials(std::vector<ImportMaterial>& materials,
     //// PRINT CUTOFF LIST ///
 
     cout << R"gfm(
-## Cutoffs per material
+## Cutoffs
 
-| Material ID | Name                            | Cutoffs [MeV, cm]               |
-| ----------- | ------------------------------- | ------------------------------- |
+| Material                   | Particle  | Energy [MeV] | Range [cm] |
+| -------------------------- | --------- | ------------ | ---------- |
 )gfm";
-
-    std::map<int, std::string> pdg_label;
-    for (auto particle_id : range(ParticleId{particles.size()}))
-    {
-        int const pdg = particles.id_to_pdg(particle_id).get();
-        auto const& label = particles.id_to_label(particle_id);
-        pdg_label.insert({pdg, label});
-    }
 
     for (unsigned int material_id : range(materials.size()))
     {
         bool is_first_line = true;
         auto const& material = materials[material_id];
 
-        for (auto const& cutoff_key : material.pdg_cutoffs)
+        for (auto const& [pdg, cuts] : material.pdg_cutoffs)
         {
-            auto iter = pdg_label.find(cutoff_key.first);
-            if (iter == pdg_label.end())
-                continue;
-
-            const std::string label = iter->second;
-            const std::string str_cuts
-                = label + ": " + std::to_string(cutoff_key.second.energy)
-                  + ", " + std::to_string(cutoff_key.second.range);
-
             if (is_first_line)
             {
-                cout << "| " << setw(11) << material_id << " | " << setw(31)
-                     << material.name << " | " << setw(31) << str_cuts
-                     << " |\n";
+                cout << "| " << std::right << setw(4) << material_id << ": "
+                     << setw(20) << material.name;
                 is_first_line = false;
             }
             else
             {
-                cout << "|             |                                 | "
-                     << setw(31) << str_cuts << " |\n";
+                cout << "| " << setw(4) << ' ' << "  " << setw(20) << ' ';
             }
+
+            auto pdef_id = particles.find(PDGNumber{pdg});
+            CELER_ASSERT(pdef_id);
+            cout << " | " << setw(9) << particles.id_to_label(pdef_id) << " | "
+                 << setw(12) << cuts.energy << " | " << setw(10) << cuts.range
+                 << " |\n";
         }
     }
     cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print a physics table.
+ */
+void print_table(ImportPhysicsTable const& table)
+{
+    cout << to_cstring(table.table_type) << ":\n\n";
+
+    cout << "| Type          | Size  | Endpoints ("
+         << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
+         << ") |\n"
+         << "| ------------- | ----- | "
+            "------------------------------------------------------------ "
+            "|\n";
+
+    for (auto const& physvec : table.physics_vectors)
+    {
+        cout << "| " << setw(13) << std::left
+             << to_cstring(physvec.vector_type) << " | " << setw(5)
+             << physvec.x.size() << " | (" << setprecision(3) << setw(12)
+             << physvec.x.front() << ", " << setprecision(3) << setw(12)
+             << physvec.y.front() << ") -> (" << setprecision(3) << setw(12)
+             << physvec.x.back() << ", " << setprecision(3) << setw(12)
+             << physvec.y.back() << ") |\n";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -187,16 +201,9 @@ void print_process(ImportProcess const& proc,
                    std::vector<ImportElement> const& elements,
                    ParticleParams const& particles)
 {
-    if (proc.process_type != ImportProcessType::electromagnetic)
-    {
-        CELER_LOG(warning) << "Skipping non-EM process "
-                           << to_cstring(proc.process_class)
-                           << " for particle  " << proc.particle_pdg;
-    }
-
-    cout << "## "
-         << particles.id_to_label(particles.find(PDGNumber{proc.particle_pdg}))
-         << " " << to_cstring(proc.process_class) << "\n\n";
+    auto pdef_id = particles.find(PDGNumber{proc.particle_pdg});
+    cout << "## Process: " << to_cstring(proc.process_class) << " ("
+         << particles.id_to_label(pdef_id) << ")\n\n";
 
     if (proc.tables.empty())
     {
@@ -209,9 +216,10 @@ void print_process(ImportProcess const& proc,
              << "\n"
                 "\n"
                 "Energy grids per material: \n\n"
-                "| Material             | Size  | Endpoints (MeV) |\n"
+                "| Material             | Size  | Endpoints (MeV)             "
+                " |\n"
                 "| -------------------- | ----- | "
-                "----------------------------- |\n";
+                "---------------------------- |\n";
 
         for (auto m : range(model.materials.size()))
         {
@@ -264,29 +272,21 @@ void print_process(ImportProcess const& proc,
         return;
     }
 
-    cout << "### Macroscopic cross-sections\n";
+    cout << "### Macroscopic cross-sections\n\n";
 
+    bool is_first{true};
     for (auto const& table : proc.tables)
     {
-        cout << "\n------\n\n" << to_cstring(table.table_type) << ":\n\n";
-
-        cout << "| Type          | Size  | Endpoints ("
-             << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
-             << ") |\n"
-             << "| ------------- | ----- | "
-                "------------------------------------------------------------ "
-                "|\n";
-
-        for (auto const& physvec : table.physics_vectors)
+        if (!is_first)
         {
-            cout << "| " << setw(13) << std::left
-                 << to_cstring(physvec.vector_type) << " | " << setw(5)
-                 << physvec.x.size() << " | (" << setprecision(3) << setw(12)
-                 << physvec.x.front() << ", " << setprecision(3) << setw(12)
-                 << physvec.y.front() << ") -> (" << setprecision(3)
-                 << setw(12) << physvec.x.back() << ", " << setprecision(3)
-                 << setw(12) << physvec.y.back() << ") |\n";
+            cout << "\n------\n\n";
         }
+        else
+        {
+            is_first = false;
+        }
+
+        print_table(table);
     }
     cout << endl;
 }
@@ -336,6 +336,30 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
     {
         print_process(proc, data.materials, data.elements, particles);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print stored data for multiple scattering models.
+ */
+void print_msc_models(ImportData const& data, ParticleParams const& particles)
+{
+    auto const& models = data.msc_models;
+    CELER_LOG(info) << "Loaded " << models.size() << " MSC models";
+
+    cout << "\n"
+            "# MSC models\n\n";
+
+    for (ImportMscModel const& m : models)
+    {
+        auto pdef_id = particles.find(PDGNumber{m.particle_pdg});
+        CELER_ASSERT(pdef_id);
+        cout << "## " << particles.id_to_label(pdef_id) << " "
+             << to_cstring(m.model_class) << "\n\n";
+
+        print_table(m.lambda_table);
+    }
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -545,6 +569,7 @@ int main(int argc, char* argv[])
     print_elements(data.elements);
     print_materials(data.materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
+    print_msc_models(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
     print_sb_data(data.sb_data);
