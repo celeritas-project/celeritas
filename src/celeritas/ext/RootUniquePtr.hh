@@ -3,7 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootUniquePtr.hh
+//! \file celeritas/ext/RootUniquePtr.hh
+//! \brief Helpers to prevent ROOT from propagating to downstream code.
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,35 +13,51 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
-// Forward-declare ROOT; Expand as needed
-class TFile;
-class TTree;
-class TBranch;
-
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Helper to prevent ROOT from propagating to downstream code.
+/*!
+ * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
+ * classes.
+ */
 template<class T>
-struct RootDeleter
+struct RootWritableDeleter
 {
-    void operator()(T*) const;
+    void operator()(T* ptr);
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Custom deleter to avoid propagating any dependency-specific implementation
+ * downstream the code.
+ */
 template<class T>
-using RootUniquePtr = std::unique_ptr<T, RootDeleter<T>>;
+struct ExternDeleter
+{
+    void operator()(T* ptr);
+};
+
+//---------------------------------------------------------------------------//
+// Type aliases
+template<class T>
+using UPRootWritable = std::unique_ptr<T, RootWritableDeleter<T>>;
+template<class T>
+using UPExtern = std::unique_ptr<T, ExternDeleter<T>>;
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 template<class T>
-inline void RootDeleter<T>::operator()(T*) const
+void RootWritableDeleter<T>::operator()(T*)
+{
+    CELER_NOT_CONFIGURED("ROOT");
+}
+
+template<class T>
+void ExternDeleter<T>::operator()(T*)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

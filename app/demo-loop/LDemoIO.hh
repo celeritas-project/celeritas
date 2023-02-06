@@ -102,7 +102,7 @@ void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);
 
 // Store LDemoArgs to ROOT file when ROOT is available
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& args);
+void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs);
 
 // Store CoreParams to ROOT file when ROOT is available
 void to_root(celeritas::RootFileManager& root_manager,

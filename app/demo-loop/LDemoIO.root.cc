@@ -50,9 +50,8 @@ void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs)
 
     // TODO Add magnetic field information?
 
-    // Fill tree and write it to file
+    // Fill tree (writing happens at destruction)
     tree_input->Fill();
-    tree_input->Write();
 }
 
 //---------------------------------------------------------------------------//
@@ -90,8 +89,7 @@ void to_root(celeritas::RootFileManager& root_manager,
      * tree->GetLeaf("action_label")->GetValue();
      */
     tree_params->Branch("action_labels", &action_labels);
-    tree_params->Fill();
-    tree_params->Write();
+    tree_params->Fill();  // Writing happens at destruction
 }
 
 //---------------------------------------------------------------------------//
