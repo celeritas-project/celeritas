@@ -328,7 +328,7 @@ TEST_F(TrackInitSecondaryTest, secondaries)
     EXPECT_EQ(num_primaries, core_data.states.init.initializers.size());
 
     const size_type num_iter = 16;
-    for (CELER_MAYBE_UNUSED size_type i : range(num_iter))
+    for ([[maybe_unused]] size_type i : range(num_iter))
     {
         // All queued initializers are converted to tracks
         initialize_tracks(core_data);

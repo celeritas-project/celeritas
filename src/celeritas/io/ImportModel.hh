@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#include "corecel/Macros.hh"
-
 #include "ImportPhysicsTable.hh"
 
 namespace celeritas
@@ -24,7 +22,7 @@ namespace celeritas
 enum class ImportModelClass
 {
     other,
-    unknown CELER_DEPRECATED_POST = other,
+    unknown [[deprecated]] = other,
     bragg_ion,
     bethe_bloch,
     urban_msc,

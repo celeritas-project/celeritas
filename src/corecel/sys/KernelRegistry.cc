@@ -22,7 +22,7 @@ namespace
 //---------------------------------------------------------------------------//
 bool determine_profiling()
 {
-    if (CELERITAS_DEBUG)
+    if constexpr (CELERITAS_DEBUG)
     {
         return true;
     }

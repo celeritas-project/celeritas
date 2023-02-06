@@ -46,7 +46,7 @@ class CurandTest : public Test
 
         double sum = 0;
         double sum2 = 0;
-        for (CELER_MAYBE_UNUSED auto i : range(test_params.nsamples))
+        for ([[maybe_unused]] auto i : range(test_params.nsamples))
         {
             double u01 = curand_uniform(&devStates);
             sum += u01;
@@ -94,7 +94,7 @@ TEST_F(CurandTest, std_mt19937_host)
 
     double sum = 0;
     double sum2 = 0;
-    for (CELER_MAYBE_UNUSED auto i : range(test_params.nsamples))
+    for ([[maybe_unused]] auto i : range(test_params.nsamples))
     {
         double u01 = generate_canonical<double>(rng);
         sum += u01;

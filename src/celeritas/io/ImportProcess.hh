@@ -29,7 +29,7 @@ namespace celeritas
 enum class ImportProcessType
 {
     other,
-    not_defined CELER_DEPRECATED_POST = other,
+    not_defined [[deprecated]] = other,
     transportation,
     electromagnetic,
     optical,
@@ -54,7 +54,7 @@ enum class ImportProcessType
 enum class ImportProcessClass
 {
     other,
-    unknown CELER_DEPRECATED_POST = other,
+    unknown [[deprecated]] = other,
     // EM
     ion_ioni,
     msc,
