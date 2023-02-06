@@ -344,13 +344,13 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
         // \f$ n_3 - n_A \f$, where \f$ n_3 \f$ is the number of ionizations
         // and \f$ n_A \f$ is the number of ionizations in the energy interval
         // in which the fast sampling from a Gaussian is used
-        int n = PoissonDistribution<real_type>(xs_ion_ - mean_num_coll)(rng);
+        PoissonDistribution<real_type> sample_num_ioni(xs_ion_ - mean_num_coll);
 
         // Add the contribution from ionizations in the energy interval in
         // which the energy loss is sampled for each collision (Eq. 20)
         UniformRealDistribution<real_type> sample_fraction(
             alpha / energy_ratio, 1);
-        for ([[maybe_unused]] int i : range(n))
+        for (auto n = sample_num_ioni(rng); n > 0; --n)
         {
             result += alpha * e_0 / sample_fraction(rng);
         }
