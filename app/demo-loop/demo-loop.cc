@@ -63,7 +63,7 @@ using namespace celeritas;
 namespace
 {
 //---------------------------------------------------------------------------//
-//! `RootStepWriterFitler` helper function.
+//! `RootStepWriterFilter` helper function.
 bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
 {
     return filter_id == MCTruthFilter::unspecified()
@@ -74,9 +74,8 @@ bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
 /*!
  * `RootStepWriter` filter.
  *
- * Write if event ID matches (or is undefined) *and* either the track ID or
- * parent ID matches. If no fields are specified or are set to -1, all steps
- * are stored.
+ * Write if any combination of event ID, track ID, and/or parent ID match. If
+ * no fields are specified or are set to -1, all steps are stored.
  */
 std::function<bool(RootStepWriter::TStepData const&)>
 make_root_step_writer_filter(LDemoArgs const& args)
@@ -88,8 +87,8 @@ make_root_step_writer_filter(LDemoArgs const& args)
         rsw_filter = [opts = args.mctruth_filter](
                          RootStepWriter::TStepData const& step) {
             return (rsw_filter_match(step.event_id, opts.event_id)
-                    && (rsw_filter_match(step.track_id, opts.track_id)
-                        || rsw_filter_match(step.parent_id, opts.parent_id)));
+                    && rsw_filter_match(step.track_id, opts.track_id)
+                    && rsw_filter_match(step.parent_id, opts.parent_id));
         };
     }
     else

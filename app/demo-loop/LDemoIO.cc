@@ -94,8 +94,6 @@ void to_json(nlohmann::json& j, LDemoArgs const& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
                        {"physics_filename", v.physics_filename},
-                       {"hepmc3_filename", v.hepmc3_filename},
-                       {"mctruth_filename", v.mctruth_filename},
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
