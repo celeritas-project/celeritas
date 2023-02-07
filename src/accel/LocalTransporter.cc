@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <csignal>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
@@ -15,6 +16,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
@@ -140,6 +142,9 @@ void LocalTransporter::Flush()
         << "Transporting " << buffer_.size() << " tracks from event "
         << event_id_.unchecked_get() + 1 << " with Celeritas";
 
+    // Abort cleanly for interrupt and user-defined signals
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
     buffer_.clear();
@@ -155,6 +160,8 @@ void LocalTransporter::Flush()
 
         track_counts = (*step_)();
         ++step_iters;
+
+        CELER_VALIDATE(!interrupted(), << "caught interrupt signal");
     }
 }
 
