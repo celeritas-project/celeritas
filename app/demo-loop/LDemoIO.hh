@@ -44,13 +44,13 @@ struct MCTruthFilter
         return static_cast<size_type>(-1);
     }
 
+    std::vector<size_type> track_id;
     size_type event_id = unspecified();
-    size_type track_id = unspecified();
     size_type parent_id = unspecified();
 
     explicit operator bool() const
     {
-        return event_id != unspecified() || track_id != unspecified()
+        return !track_id.empty() || event_id != unspecified()
                || parent_id != unspecified();
     }
 };

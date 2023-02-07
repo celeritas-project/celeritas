@@ -63,11 +63,34 @@ using namespace celeritas;
 namespace
 {
 //---------------------------------------------------------------------------//
-//! `RootStepWriterFilter` helper function.
+/*!
+ *`RootStepWriterFilter` helper functions.
+ */
 bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
 {
     return filter_id == MCTruthFilter::unspecified()
            || step_attr_id == filter_id;
+}
+
+bool rsw_filter_match(size_type step_trk_id, std::vector<size_type> vec_trk_id)
+{
+    if (vec_trk_id.empty())
+    {
+        // No track ID filter specified
+        return true;
+    }
+    else
+    {
+        // Verify if step track ID matches with one of the IDs in the filter
+        for (auto const& id : vec_trk_id)
+        {
+            if (id == step_trk_id)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 //---------------------------------------------------------------------------//
