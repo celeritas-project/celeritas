@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ImportModelConverter.cc
+//! \file celeritas/ext/detail/GeantModelImporter.cc
 //---------------------------------------------------------------------------//
-#include "ImportModelConverter.hh"
+#include "GeantModelImporter.hh"
 
 #include <unordered_map>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -110,9 +110,9 @@ G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
 /*!
  * Construct with materials, primary, and secondary.
  */
-ImportModelConverter::ImportModelConverter(VecMaterial const& materials,
-                                           PDGNumber particle,
-                                           PDGNumber secondary)
+GeantModelImporter::GeantModelImporter(VecMaterial const& materials,
+                                       PDGNumber particle,
+                                       PDGNumber secondary)
     : materials_(materials), particle_(particle), secondary_(secondary)
 {
     CELER_EXPECT(particle_);
@@ -129,7 +129,7 @@ ImportModelConverter::ImportModelConverter(VecMaterial const& materials,
  *   energy grid is calculated and cross sections are evaluated for those grid
  *   points.
  */
-ImportModel ImportModelConverter::operator()(G4VEmModel const& model) const
+ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 {
     ImportModel result;
     result.model_class = to_import_model(model);
@@ -189,10 +189,10 @@ ImportModel ImportModelConverter::operator()(G4VEmModel const& model) const
  * \c G4VEmModel::InitialiseElementSelectors reduces the number of grid points
  * by a factor of 6 compared to the regular cross section (lambda) grid.
  */
-void ImportModelConverter::calc_micro_xs(G4VEmModel& model,
-                                         G4Material const& g4mat,
-                                         double secondary_cutoff,
-                                         ImportModelMaterial* result) const
+void GeantModelImporter::calc_micro_xs(G4VEmModel& model,
+                                       G4Material const& g4mat,
+                                       double secondary_cutoff,
+                                       ImportModelMaterial* result) const
 {
     CELER_EXPECT(g4mat.GetElementVector());
     CELER_EXPECT(secondary_cutoff >= 0);
@@ -252,7 +252,7 @@ void ImportModelConverter::calc_micro_xs(G4VEmModel& model,
 /*!
  * Get the energy cutoff for secondary production (in ImportMaterial units!).
  */
-double ImportModelConverter::get_cutoff(size_type mat_idx) const
+double GeantModelImporter::get_cutoff(size_type mat_idx) const
 {
     CELER_EXPECT(mat_idx < materials_.size());
     if (!secondary_)

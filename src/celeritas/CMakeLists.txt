@@ -104,8 +104,8 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
-    ext/detail/ImportModelConverter.cc
-    ext/detail/ImportProcessConverter.cc
+    ext/detail/GeantModelImporter.cc
+    ext/detail/GeantProcessImporter.cc
   )
   target_link_libraries(celeritas_geant4
     PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}

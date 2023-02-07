@@ -55,7 +55,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/AllElementReader.hh"
-#include "detail/ImportProcessConverter.hh"
+#include "detail/GeantProcessImporter.hh"
 
 using CLHEP::cm;
 using CLHEP::cm2;
@@ -435,7 +435,7 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
 
-    detail::ImportProcessConverter load_process(
+    detail::GeantProcessImporter load_process(
         detail::TableSelection::minimal, materials, elements);
 
     for (auto const& p : particles)

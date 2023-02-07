@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ImportProcessConverter.cc
+//! \file celeritas/ext/detail/GeantProcessImporter.cc
 //---------------------------------------------------------------------------//
-#include "ImportProcessConverter.hh"
+#include "GeantProcessImporter.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -35,7 +35,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "../GeantConfig.hh"
-#include "ImportModelConverter.hh"
+#include "GeantModelImporter.hh"
 
 using CLHEP::cm;
 using CLHEP::cm2;
@@ -238,7 +238,7 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
 /*!
  * Construct with a selected list of tables.
  */
-ImportProcessConverter::ImportProcessConverter(
+GeantProcessImporter::GeantProcessImporter(
     TableSelection which_tables,
     std::vector<ImportMaterial> const& materials,
     std::vector<ImportElement> const& elements)
@@ -252,7 +252,7 @@ ImportProcessConverter::ImportProcessConverter(
 /*!
  * Default destructor.
  */
-ImportProcessConverter::~ImportProcessConverter() = default;
+GeantProcessImporter::~GeantProcessImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -262,8 +262,8 @@ ImportProcessConverter::~ImportProcessConverter() = default;
  * empty object.
  */
 ImportProcess
-ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
-                                   G4VProcess const& process)
+GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
+                                 G4VProcess const& process)
 {
     // Check for duplicate processes
     auto [prev, inserted] = written_processes_.insert({&process, {&particle}});
@@ -328,7 +328,7 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
  * classes that have the same interface.
  */
 template<class T>
-void ImportProcessConverter::store_common_process(T const& process)
+void GeantProcessImporter::store_common_process(T const& process)
 {
     static_assert(std::is_base_of<G4VProcess, T>::value,
                   "process must be a G4VProcess");
@@ -344,13 +344,13 @@ void ImportProcessConverter::store_common_process(T const& process)
 /*!
  * Store EM cross section tables for the current process.
  */
-void ImportProcessConverter::store_em_process(G4VEmProcess const& process)
+void GeantProcessImporter::store_em_process(G4VEmProcess const& process)
 {
     this->store_common_process(process);
 
-    ImportModelConverter convert_model(materials_,
-                                       PDGNumber{process_.particle_pdg},
-                                       PDGNumber{process_.secondary_pdg});
+    GeantModelImporter convert_model(materials_,
+                                     PDGNumber{process_.particle_pdg},
+                                     PDGNumber{process_.secondary_pdg});
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
@@ -375,7 +375,7 @@ void ImportProcessConverter::store_em_process(G4VEmProcess const& process)
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-void ImportProcessConverter::store_eloss_process(
+void GeantProcessImporter::store_eloss_process(
     G4VEnergyLossProcess const& process)
 {
     this->store_common_process(process);
@@ -386,9 +386,9 @@ void ImportProcessConverter::store_eloss_process(
     // TODO: when we drop support for Geant4 10 we can use a template to
     // move this into store_common_process...
 
-    ImportModelConverter convert_model(materials_,
-                                       PDGNumber{process_.particle_pdg},
-                                       PDGNumber{process_.secondary_pdg});
+    GeantModelImporter convert_model(materials_,
+                                     PDGNumber{process_.particle_pdg},
+                                     PDGNumber{process_.secondary_pdg});
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
         process_.models.push_back(convert_model(*process.GetModelByIndex(i)));
@@ -452,10 +452,9 @@ void ImportProcessConverter::store_eloss_process(
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
  */
-void ImportProcessConverter::store_msc_process(
-    G4VMultipleScattering const& process)
+void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& process)
 {
-    ImportModelConverter convert_model(
+    GeantModelImporter convert_model(
         materials_, PDGNumber{process_.particle_pdg}, PDGNumber{});
 
 #if CELERITAS_G4_V10
@@ -477,8 +476,8 @@ void ImportProcessConverter::store_msc_process(
 /*!
  * Write data from a Geant4 physics table if available.
  */
-void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
-                                       ImportTableType table_type)
+void GeantProcessImporter::add_table(G4PhysicsTable const* g4table,
+                                     ImportTableType table_type)
 {
     if (!g4table)
     {

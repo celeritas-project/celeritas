@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ImportModelConverter.hh
+//! \file celeritas/ext/detail/GeantModelImporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,7 +26,7 @@ namespace detail
 /*!
  * Convert models for a single process.
  */
-class ImportModelConverter
+class GeantModelImporter
 {
   public:
     //!@{
@@ -36,9 +36,9 @@ class ImportModelConverter
 
   public:
     // Construct with materials, primary, and secondary
-    ImportModelConverter(VecMaterial const& materials,
-                         PDGNumber particle,
-                         PDGNumber secondary);
+    GeantModelImporter(VecMaterial const& materials,
+                       PDGNumber particle,
+                       PDGNumber secondary);
 
     ImportModel operator()(G4VEmModel const& model) const;
 
