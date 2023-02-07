@@ -108,6 +108,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         {
             imm.energy = {1e-4, 1e8};
         }
+        compton_data.models.push_back(std::move(kn_model));
     }
     {
         ImportPhysicsTable lambda;

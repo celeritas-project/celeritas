@@ -53,10 +53,12 @@ enum class ImportModelClass
  *
  * Microscopic cross-section data are stored in the element-selector physics
  * vector is in cm^2. They will not be present for all model types, as some
- * models only do on-the-fly calculation. The \c needs_micro_xs function
- * indicates which models should store the cross section data.
+ * models only do on-the-fly calculation (e.g., photoelectric effect) or don't
+ * depend on elemental interactions (e.g., compton scattering). The \c
+ * needs_micro_xs function indicates which models should store the cross
+ * section data.
  *
- * The energy grid's boundaries determines the model's energy bounds and will
+ * The energy grid's boundaries determine the model's energy bounds and will
  * always be set.
  */
 struct ImportModelMaterial
