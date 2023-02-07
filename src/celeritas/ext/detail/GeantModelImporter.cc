@@ -9,11 +9,8 @@
 
 #include <unordered_map>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4Element.hh>
 #include <G4EmParameters.hh>
-#include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
-#include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4VEmModel.hh>
@@ -24,8 +21,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/grid/VectorUtils.hh"
 
-using CLHEP::cm2;
-using CLHEP::MeV;
+#include "GeantMicroXsCalculator.hh"
 
 namespace celeritas
 {
@@ -142,12 +138,13 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
         G4Material const& g4mat = get_g4material(mat_idx);
 
         // Calculate lower and upper energy bounds
+        double cutoff = this->get_cutoff(mat_idx);
         double min_energy
             = std::max(model.LowEnergyLimit(),
                        const_cast<G4VEmModel&>(model).MinPrimaryEnergy(
-                           &g4mat, g4particle_, this->get_cutoff(mat_idx)))
-              / MeV;
-        double max_energy = model.HighEnergyLimit() / MeV;
+                           &g4mat, g4particle_, cutoff))
+              / CLHEP::MeV;
+        double max_energy = model.HighEnergyLimit() / CLHEP::MeV;
         CELER_ASSERT(0 <= min_energy);
         CELER_ASSERT(min_energy < max_energy);
 
@@ -166,10 +163,9 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
             model_mat.energy = logspace(
                 min_energy, max_energy, std::max<size_type>(3, num_bins));
 
-            this->calc_micro_xs(const_cast<G4VEmModel&>(model),
-                                g4mat,
-                                this->get_cutoff(mat_idx),
-                                &model_mat);
+            // Calculate cross sections
+            GeantMicroXsCalculator calc_xs(model, *g4particle_, g4mat, cutoff);
+            calc_xs(model_mat.energy, &model_mat.micro_xs);
         }
         else
         {
@@ -180,72 +176,6 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 
     CELER_ENSURE(result);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Fill microscopic cross sections for elements in a material.
- *
- * \c G4VEmModel::InitialiseElementSelectors reduces the number of grid points
- * by a factor of 6 compared to the regular cross section (lambda) grid.
- */
-void GeantModelImporter::calc_micro_xs(G4VEmModel& model,
-                                       G4Material const& g4mat,
-                                       double secondary_cutoff,
-                                       ImportModelMaterial* result) const
-{
-    CELER_EXPECT(g4mat.GetElementVector());
-    CELER_EXPECT(secondary_cutoff >= 0);
-    CELER_EXPECT(result && result->energy.size() >= 2);
-
-    std::vector<G4Element const*> const& elements = *g4mat.GetElementVector();
-    std::vector<double> const& energy_grid = result->energy;
-
-    // Resize microscopic cross sections for all elements
-    result->micro_xs.resize(elements.size());
-    for (auto& mxs_vec : result->micro_xs)
-    {
-        mxs_vec.resize(energy_grid.size());
-    }
-
-    // Outer loop over energy to reduce material setup calls
-    for (auto energy_idx : range(energy_grid.size()))
-    {
-        double const energy = energy_grid[energy_idx];
-        model.SetupForMaterial(g4particle_, &g4mat, energy);
-
-        // Inner loop over elements
-        for (auto elcomp_idx : range(elements.size()))
-        {
-            G4Element const& g4el = *elements[elcomp_idx];
-
-            // Calculate microscopic cross-section
-            double xs = model.ComputeCrossSectionPerAtom(
-                g4particle_, &g4el, energy, secondary_cutoff, energy);
-
-            // Convert to celeritas units and clamp to zero
-            result->micro_xs[elcomp_idx][energy_idx] = std::max(0.0, xs / cm2);
-        }
-    }
-
-    for (std::vector<double>& xs : result->micro_xs)
-    {
-        // Avoid cross-section vectors starting or ending with zero values.
-        // Geant4 simply uses the next/previous bin value when the vector's
-        // front/back are zero. This probably isn't correct but it replicates
-        // Geant4's behavior.
-        if (xs[0] == 0.0)
-        {
-            xs[0] = xs[1];
-        }
-
-        auto const last_idx = xs.size() - 1;
-        if (xs[last_idx] == 0.0)
-        {
-            // Cross-section ends with zero, use previous bin value
-            xs[last_idx] = xs[last_idx - 1];
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//

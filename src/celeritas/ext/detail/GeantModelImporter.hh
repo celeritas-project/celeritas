@@ -50,10 +50,6 @@ class GeantModelImporter
     G4ParticleDefinition const* g4particle_{nullptr};
 
     //// FUNCTIONS ////
-    void calc_micro_xs(G4VEmModel& model,
-                       G4Material const& g4mat,
-                       double secondary_cutoff,
-                       ImportModelMaterial* result) const;
     double get_cutoff(size_type mat_idx) const;
 };
 

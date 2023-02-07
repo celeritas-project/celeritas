@@ -106,6 +106,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantPhysicsList.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantMicroXsCalculator.cc
   )
   target_link_libraries(celeritas_geant4
     PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}
