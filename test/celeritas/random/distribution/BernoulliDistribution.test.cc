@@ -26,7 +26,7 @@ TEST(BernoulliDistributionTest, single_constructor)
     EXPECT_SOFT_EQ(0.25, quarter_true.p());
 
     int num_true = 0;
-    for (CELER_MAYBE_UNUSED auto i : range(1000))
+    for ([[maybe_unused]] auto i : range(1000))
     {
         if (quarter_true(rng))
         {

@@ -31,7 +31,7 @@ TEST(PoissonDistributionTest, bin_small)
     DiagnosticRngEngine<std::mt19937> rng;
 
     std::map<int, int> sample_to_count;
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         auto k = sample_poisson(rng);
         ++sample_to_count[k];
@@ -64,7 +64,7 @@ TEST(PoissonDistributionTest, bin_large)
     DiagnosticRngEngine<std::mt19937> rng;
 
     std::map<int, int> sample_to_count;
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         auto k = sample_poisson(rng);
         ++sample_to_count[k];

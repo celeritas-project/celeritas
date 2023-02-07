@@ -40,7 +40,7 @@ MatterState to_matter_state(ImportMaterialState state)
 {
     switch (state)
     {
-        case ImportMaterialState::not_defined:
+        case ImportMaterialState::other:
             return MatterState::unspecified;
         case ImportMaterialState::solid:
             return MatterState::solid;

@@ -28,23 +28,25 @@ inline CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y);
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<class T, size_type N>
-inline CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y);
+[[nodiscard]] inline CELER_FUNCTION T dot_product(Array<T, N> const& x,
+                                                  Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<class T>
-inline CELER_FUNCTION Array<T, 3>
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
 cross_product(Array<T, 3> const& x, Array<T, 3> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) norm of a vector
 template<class T, size_type N>
-inline CELER_FUNCTION T norm(Array<T, N> const& vec);
+[[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidian (2) distance between two points
 template<class T, size_type N>
-inline CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y);
+[[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
+                                               Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Divide the given vector by its Euclidian norm
@@ -54,12 +56,13 @@ inline CELER_FUNCTION void normalize_direction(Array<T, 3>* direction);
 //---------------------------------------------------------------------------//
 // Calculate a cartesian unit vector from spherical coordinates
 template<class T>
-inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi);
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
+from_spherical(T costheta, T phi);
 
 //---------------------------------------------------------------------------//
 // Rotate the direction 'dir' according to the reference rotation axis 'rot'
 template<class T>
-inline CELER_FUNCTION Array<T, 3>
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
 rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
 
 //---------------------------------------------------------------------------//

@@ -27,7 +27,7 @@ TEST(ReciprocalDistributionTest, bin)
     std::mt19937 rng;
 
     std::vector<int> counters(10);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double r = sample_recip(rng);
         ASSERT_GE(r, min);

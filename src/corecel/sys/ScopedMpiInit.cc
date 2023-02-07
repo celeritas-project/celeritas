@@ -39,7 +39,7 @@ ScopedMpiInit::ScopedMpiInit(int* argc, char*** argv)
     switch (ScopedMpiInit::status())
     {
         case Status::disabled: {
-            if (CELERITAS_USE_MPI)
+            if constexpr (CELERITAS_USE_MPI)
             {
                 CELER_LOG(info) << "Disabling MPI support since the "
                                    "'CELER_DISABLE_PARALLEL' environment "

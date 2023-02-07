@@ -227,12 +227,6 @@ void run(std::istream* is, OutputManager* output)
     // to use this ugly "global" hack
     output->insert(OutputInterfaceAdapter<TransporterResult>::from_rvalue_ref(
         OutputInterface::Category::result, "*", std::move(result)));
-
-    if (root_manager)
-    {
-        // Write MC truth ROOT file to disk
-        root_manager->write();
-    }
 }
 }  // namespace
 
