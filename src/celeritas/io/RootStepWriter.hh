@@ -26,17 +26,58 @@ namespace celeritas
  * entry a step. Since the ROOT data is stored in branches with primitive types
  * instead of a full struct, no dictionaries are needed for reading the output
  * file.
+ *
+ * The step data that is written to the ROOT file can be filtered by providing
+ * a user-defined `WriteFilter` function.
  */
 class RootStepWriter final : public StepInterface
 {
+  public:
+    // Unspecified step attribute data value
+    static constexpr size_type unspecified()
+    {
+        return static_cast<size_type>(-1);
+    }
+
+    //! Truth step point data; Naming convention must match StepPointStateData
+    struct TStepPoint
+    {
+        size_type volume_id = unspecified();
+        real_type energy = unspecified();  //!< [MeV]
+        real_type time = unspecified();  //!< [s]
+        std::array<real_type, 3> pos{0, 0, 0};  //!< [cm]
+        std::array<real_type, 3> dir{0, 0, 0};
+    };
+
+    //! Truth step data; Naming convention must match StepStateData
+    struct TStepData
+    {
+        size_type event_id = unspecified();
+        size_type track_id = unspecified();
+        size_type parent_id = unspecified();
+        size_type action_id = unspecified();
+        size_type track_step_count = unspecified();
+        int particle = unspecified();  //!< PDG number
+        real_type energy_deposition = unspecified();  //!< [MeV]
+        real_type step_length = unspecified();  //!< [cm]
+        EnumArray<StepPoint, TStepPoint> points;
+    };
+
   public:
     //!@{
     //! \name Type aliases
     using SPRootFileManager = std::shared_ptr<RootFileManager>;
     using SPParticleParams = std::shared_ptr<ParticleParams const>;
+    using WriteFilter = std::function<bool(TStepData const&)>;
     //!@}
 
-    // Construct with RootFileManager, ParticleParams, and data selection
+    // Construct with step data writer filter
+    RootStepWriter(SPRootFileManager root_manager,
+                   SPParticleParams particle_params,
+                   StepSelection selection,
+                   WriteFilter filter);
+
+    // Construct and store all step data
     RootStepWriter(SPRootFileManager root_manager,
                    SPParticleParams particle_params,
                    StepSelection selection);
@@ -56,54 +97,28 @@ class RootStepWriter final : public StepInterface
     // Selection of data to be stored
     StepSelection selection() const final { return selection_; }
 
-    // No filter selection is implemented
-    Filters filters() const final { return Filters{}; }
+    // No detector filtering selection is implemented
+    Filters filters() const final { return {}; }
 
   private:
     // Create steps tree based on selection_ booleans
     void make_tree();
 
   private:
-    //// TYPES ////
-
-    // Truth step point data; Naming convention *must* match StepPointStateData
-    struct TStepPoint
-    {
-        int volume_id;
-        double energy;  //!< [MeV]
-        double time;  //!< [s]
-        std::array<double, 3> pos;  //!< [cm]
-        std::array<double, 3> dir;
-    };
-
-    // Full truth step data; Naming convention *must* match StepStateData
-    struct TStepData
-    {
-        int event_id;
-        int track_id;
-        int parent_id;
-        int action_id;
-        int track_step_count;
-        int particle;  //!< PDG number
-        double energy_deposition;  //!< [MeV]
-        double step_length;  //!< [cm]
-        EnumArray<StepPoint, TStepPoint> points;
-    };
-
-    //// DATA ////
-
     SPRootFileManager root_manager_;
     SPParticleParams particles_;
     StepSelection selection_;
     UPRootWritable<TTree> tstep_tree_;
     TStepData tstep_;  // Members are used as refs of the TTree branches
+    std::function<bool(TStepData const&)> filter_;
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
 inline RootStepWriter::RootStepWriter(SPRootFileManager,
                                       SPParticleParams,
-                                      StepSelection)
+                                      StepSelection,
+                                      WriteFilter)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

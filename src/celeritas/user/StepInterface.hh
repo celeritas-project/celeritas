@@ -49,7 +49,7 @@ class StepInterface
     };
 
   public:
-    //! Selection of data required for this interface
+    //! Detector filtering required for this interface
     virtual Filters filters() const = 0;
 
     //! Selection of data required for this interface

@@ -11,6 +11,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
+#include "corecel/Assert.hh"
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -39,19 +41,36 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct writer with RootFileManager, ParticleParams (to convert particle
- * id to pdg), and the selection of data to be tallied.
+ * Construct writer with user-defined data filtering.
  */
 RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
                                SPParticleParams particle_params,
-                               StepSelection selection)
+                               StepSelection selection,
+                               WriteFilter filter)
     : StepInterface()
     , root_manager_(root_manager)
     , particles_(particle_params)
     , selection_(selection)
+    , filter_(filter)
+
 {
     CELER_EXPECT(root_manager_);
     this->make_tree();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct writer without data filtering.
+ */
+RootStepWriter::RootStepWriter(SPRootFileManager root_manager,
+                               SPParticleParams particle_params,
+                               StepSelection selection)
+    : RootStepWriter(std::move(root_manager),
+                     std::move(particle_params),
+                     std::move(selection),
+                     [](RootStepWriter::TStepData const&) { return true; })
+
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -120,7 +139,10 @@ void RootStepWriter::execute(StateHostRef const& steps)
             RSW_STORE(points[sp].pos, /* no getter */);
         }
 
-        tstep_tree_->Fill();
+        if (filter_(tstep_))
+        {
+            tstep_tree_->Fill();
+        }
     }
 
 #undef RSW_STORE

@@ -64,6 +64,102 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
+ *`RootStepWriterFilter` helper functions.
+ */
+bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
+{
+    return filter_id == MCTruthFilter::unspecified()
+           || step_attr_id == filter_id;
+}
+
+bool rsw_filter_match(size_type step_trk_id,
+                      std::vector<size_type> const& vec_trk_id)
+{
+    if (vec_trk_id.empty())
+    {
+        // No track ID filter specified
+        return true;
+    }
+    else
+    {
+        auto iter
+            = std::find(vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
+        // True if step track ID is in the list of IDs
+        return iter != vec_trk_id.end();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * `RootStepWriter` filter.
+ *
+ * Write if any combination of event ID, track ID, and/or parent ID match. If
+ * no fields are specified or are set to -1, all steps are stored.
+ */
+std::function<bool(RootStepWriter::TStepData const&)>
+make_root_step_writer_filter(LDemoArgs const& args)
+{
+    std::function<bool(RootStepWriter::TStepData const&)> rsw_filter;
+
+    if (args.mctruth_filter)
+    {
+        rsw_filter = [opts = args.mctruth_filter](
+                         RootStepWriter::TStepData const& step) {
+            return (rsw_filter_match(step.event_id, opts.event_id)
+                    && rsw_filter_match(step.track_id, opts.track_id)
+                    && rsw_filter_match(step.parent_id, opts.parent_id));
+        };
+    }
+    else
+    {
+        // No filtering; store all the data
+        rsw_filter = [](RootStepWriter::TStepData const&) { return true; };
+    }
+
+    return rsw_filter;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize `RootFileManager`, set up step data collection, and write input
+ * data to the ROOT file when a valid ROOT MC truth file is provided.
+ */
+std::shared_ptr<RootFileManager>
+init_root_mctruth_output(LDemoArgs const& run_args,
+                         TransporterBase const* transport_ptr)
+{
+    std::shared_ptr<RootFileManager> root_manager;
+
+    if (run_args.mctruth_filename.empty())
+    {
+        // return uninitialized root manager
+        return root_manager;
+    }
+
+    CELER_LOG(info) << "Writing ROOT MC truth output at "
+                    << run_args.mctruth_filename;
+
+    root_manager
+        = std::make_shared<RootFileManager>(run_args.mctruth_filename.c_str());
+    auto step_writer = std::make_shared<RootStepWriter>(
+        root_manager,
+        transport_ptr->params().particle(),
+        StepSelection::all(),
+        make_root_step_writer_filter(run_args));
+    auto step_collector = std::make_shared<StepCollector>(
+        StepCollector::VecInterface{step_writer},
+        transport_ptr->params().geometry(),
+        transport_ptr->params().action_reg().get());
+
+    // Store input and CoreParams data
+    to_root(*root_manager, run_args);
+    to_root(*root_manager, transport_ptr->params());
+
+    return root_manager;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Run, launch, and output.
  */
 void run(std::istream* is, OutputManager* output)
@@ -111,33 +207,8 @@ void run(std::istream* is, OutputManager* output)
             std::make_shared<ActionRegistryOutput>(params.action_reg()));
     }
 
-    // Save results to ROOT MC truth output file when possible
-    std::shared_ptr<RootFileManager> root_manager;
-    std::shared_ptr<StepCollector> step_collector;
-    std::shared_ptr<RootStepWriter> step_writer;
-
-    if (!run_args.mctruth_filename.empty())
-    {
-        CELER_LOG(info) << "Writing ROOT MC truth output at "
-                        << run_args.mctruth_filename;
-
-        root_manager = std::make_shared<RootFileManager>(
-            run_args.mctruth_filename.c_str());
-
-        step_writer = std::make_shared<RootStepWriter>(
-            root_manager,
-            transport_ptr->params().particle(),
-            StepSelection::all());
-
-        step_collector = std::make_shared<StepCollector>(
-            StepCollector::VecInterface{step_writer},
-            transport_ptr->params().geometry(),
-            transport_ptr->params().action_reg().get());
-
-        // Store input and CoreParams data
-        to_root(*root_manager, run_args);
-        to_root(*root_manager, transport_ptr->params());
-    }
+    // Initialize RootFileManager and store input data if requested
+    auto root_manager = init_root_mctruth_output(run_args, transport_ptr.get());
 
     // Run all the primaries
     TransporterResult result;
