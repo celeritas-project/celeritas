@@ -32,6 +32,28 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<>
+struct ReprTraits<G4ThreeVector>
+{
+    using value_type = std::decay_t<G4ThreeVector>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        os << "G4ThreeVector";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
+
+    static void print_value(std::ostream& os, G4ThreeVector const& vec)
+    {
+        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
+    }
+};
+
 namespace detail
 {
 namespace
@@ -255,9 +277,11 @@ bool HitProcessor::update_touchable(Real3 const& pos,
     }
 
     // We may be accidentally in the old volume and crossing into
-    // the new one: try crossing the edge
+    // the new one: try crossing the edge. Use a fairly loose tolerance since
+    // there may be small differences between the Geant4 and VecGeom
+    // representations of the geometry.
     double safety_distance{-1};
-    constexpr double max_step = 1 * CLHEP::um;
+    constexpr double max_step = 1 * CLHEP::mm;
     double step = navi_->ComputeStep(g4pos, g4dir, max_step, safety_distance);
     if (step < max_step)
     {
@@ -266,9 +290,9 @@ bool HitProcessor::update_touchable(Real3 const& pos,
         {
             // Warn only if the step is nontrivial
             CELER_LOG(warning)
-                << "Bumping navigation state by " << repr(step / CLHEP::cm)
-                << "cm because the pre-step point at " << repr(pos)
-                << " [cm] along " << repr(dir)
+                << "Bumping navigation state by " << repr(step / CLHEP::mm)
+                << " [mm] because the pre-step point at " << repr(g4pos)
+                << " [mm] along " << repr(dir)
                 << " is expected to be in logical volume '" << lv->GetName()
                 << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
                 << PrintableNavHistory{touchable};
@@ -289,13 +313,13 @@ bool HitProcessor::update_touchable(Real3 const& pos,
         // No nearby crossing found
         CELER_LOG(warning)
             << "Failed to bump navigation state up to a distance of "
-            << max_step / CLHEP::cm << " [cm]";
+            << max_step / CLHEP::mm << " [mm]";
     }
 
     if (CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
     {
         CELER_LOG(error)
-            << "expected step point at " << repr(pos) << " [cm] along "
+            << "expected step point at " << repr(g4pos) << " [mm] along "
             << repr(dir) << " to be in logical volume '" << lv->GetName()
             << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
             << PrintableNavHistory{touchable}
