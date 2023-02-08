@@ -335,20 +335,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # DEMO: Geant4 integration
 #-----------------------------------------------------------------------------#
-function(celeritas_reflex_generate_dictionary)
-  # Inform ROOT scripts of include directories since it can't pull them through
-  # targets
-  include_directories(
-    "${PROJECT_SOURCE_DIR}/src"
-    "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration"
-    ${ROOT_INCLUDE_DIRS}
-    ${Geant4_INCLUDE_DIRS}
-    ${CLHEP_INCLUDE_DIRS}
-  )
-  reflex_generate_dictionary(${ARGN})
-endfunction()
-
 if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   set(_demo_geant_integration_src
     demo-geant-integration/demo-geant-integration.cc
@@ -366,12 +352,26 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
   set(_demo_geant_integration_libs Celeritas::accel)
 
   if(CELERITAS_USE_ROOT)
-    celeritas_reflex_generate_dictionary(HitClasses
-      demo-geant-integration/HitClasses.hh
-      SELECTION demo-geant-integration/selection.xml
+    include_directories(
+      # root_generate_dictionary can not handle the '$<INSTALL_INTERFACE:include>'
+      # part of the Celeritas::corecel target's include, so we can not use it in
+      # the 'DEPENDENCIES' property.
+      "${CELERITAS_HEADER_CONFIG_DIRECTORY}"
+      "${PROJECT_SOURCE_DIR}/src"
+      # The include directory are attached to the Geant4 target through INTERFACE_INCLUDE_DIRECTORIES
+      # which is not looked at by root_generate_dictionary.
+      ${Geant4_INCLUDE_DIRS}
+    )
+    root_generate_dictionary(HitClassesRootInterfaces
+      ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/HitRootIO.hh
+      ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/SensitiveHit.hh
+      NOINSTALL
+      MODULE demo-geant-integration
+      # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
+      LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/HitClassesLinkDef.h"
     )
     list(APPEND _demo_geant_integration_src
-      "${CMAKE_CURRENT_BINARY_DIR}/HitClasses.cxx"
+      "${CMAKE_CURRENT_BINARY_DIR}/HitClassesRootInterfaces.cxx"
       demo-geant-integration/HitRootIO.cc
     )
     list(APPEND _demo_geant_integration_libs ROOT::Tree)
