@@ -24,6 +24,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -53,6 +54,35 @@ inline double convert_to_geant(units::MevEnergy const& energy, double units)
 {
     CELER_EXPECT(units == CLHEP::MeV);
     return energy.value() * CLHEP::MeV;
+}
+
+//---------------------------------------------------------------------------//
+struct PrintableNavHistory
+{
+    G4VTouchable* touch{nullptr};
+};
+
+std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
+{
+    CELER_EXPECT(pnh.touch);
+    os << '{';
+
+    G4VTouchable& touch = *pnh.touch;
+    for (int depth : range(touch.GetHistoryDepth()))
+    {
+        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        CELER_ASSERT(vol);
+        G4LogicalVolume* lv = vol->GetLogicalVolume();
+        CELER_ASSERT(lv);
+        if (depth != 0)
+        {
+            os << " -> ";
+        }
+        os << "{pv='" << vol->GetName() << "', lv=" << lv->GetInstanceID()
+           << "='" << lv->GetName() << "'}";
+    }
+    os << '}';
+    return os;
 }
 
 //---------------------------------------------------------------------------//
@@ -171,23 +201,36 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         }
 #undef HP_SET
 
+        G4LogicalVolume* lv
+            = detector_volumes_[out.detector[i].unchecked_get()];
+
         if (navi_)
         {
+            G4VTouchable* touchable = touch_handle_();
             // Locate pre-step point
             navi_->LocateGlobalPointAndUpdateTouchable(
                 points[StepPoint::pre]->GetPosition(),
-                touch_handle_(),
+                touchable,
                 /* relative_search = */ false);
-            // TODO: can we be sure we're in the right volume on the first step
-            // inside?
+
+            G4VPhysicalVolume* pv = touchable->GetVolume(0);
+            CELER_ASSERT(pv);
+            if (CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
+            {
+                CELER_LOG(warning)
+                << "expected navigation to put particle at "
+                << repr(out.points[StepPoint::pre].pos[i]) << " [cm] along "
+                << repr(out.points[StepPoint::pre].dir[i])
+                << " to be in logical volume '" << lv->GetName() << "' (ID "
+                << lv->GetInstanceID()
+                << ") but it is in: " << PrintableNavHistory{touchable};
+            }
         }
 
         // Hit sensitive detector (NOTE: GetSensitiveDetector returns a
         // thread-local object from a global object.)
         CELER_ASSERT(out.detector[i] < detector_volumes_.size());
-        G4VSensitiveDetector* sd
-            = detector_volumes_[out.detector[i].unchecked_get()]
-                  ->GetSensitiveDetector();
+        G4VSensitiveDetector* sd = lv->GetSensitiveDetector();
         CELER_ASSERT(sd);
         sd->Hit(step_.get());
     }
