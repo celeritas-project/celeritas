@@ -59,15 +59,11 @@ class RayleighInteractorTest : public InteractorHostTestBase
 
         // Imported process data needed to construct the model (with empty
         // physics tables, which are not needed for the interactor)
-        std::vector<ImportProcess> imported{
-            {22,
-             0,
-             ImportProcessType::electromagnetic,
-             ImportProcessClass::rayleigh,
-             {ImportModelClass::livermore_rayleigh},
-             {},
-             {}}};
-        this->set_imported_processes(imported);
+        this->set_imported_processes({this->make_import_process(
+            pdg::gamma(),
+            {},
+            ImportProcessClass::rayleigh,
+            {ImportModelClass::livermore_rayleigh})});
 
         // Construct RayleighModel and save the host data reference
         model_ = std::make_shared<RayleighModel>(ActionId{0},

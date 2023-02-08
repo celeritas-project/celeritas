@@ -58,24 +58,18 @@ class CombinedBremTest : public InteractorHostTestBase
         std::string data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        // Imported process data needed to construct the model (with empty
-        // physics tables, which are not needed for the interactor)
-        std::vector<ImportProcess> imported{
-            {11,
-             22,
-             ImportProcessType::electromagnetic,
-             ImportProcessClass::e_brems,
-             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
-             {},
-             {}},
-            {-11,
-             22,
-             ImportProcessType::electromagnetic,
-             ImportProcessClass::e_brems,
-             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
-             {},
-             {}}};
-        this->set_imported_processes(imported);
+        // Create mock import data
+        {
+            ImportProcess ip_electron = this->make_import_process(
+                pdg::electron(),
+                pdg::gamma(),
+                ImportProcessClass::e_brems,
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+            ImportProcess ip_positron = ip_electron;
+            ip_positron.particle_pdg = pdg::positron().get();
+            this->set_imported_processes(
+                {std::move(ip_electron), std::move(ip_positron)});
+        }
 
         // Construct SeltzerBergerModel and set host data
         model_ = std::make_shared<CombinedBremModel>(ActionId{0},

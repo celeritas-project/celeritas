@@ -38,7 +38,7 @@ char const* to_cstring(ImportTableType value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the string value for units.
+ * Get a printable label for units.
  */
 char const* to_cstring(ImportUnits value)
 {
@@ -49,6 +49,7 @@ char const* to_cstring(ImportUnits value)
         "cm",
         "1/cm",
         "1/cm-MeV",
+        "cm^2",
     };
     return to_cstring_impl(value);
 }

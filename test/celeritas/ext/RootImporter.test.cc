@@ -152,7 +152,8 @@ TEST_F(RootImporterTest, processes)
 
     EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
     ASSERT_EQ(1, ioni->models.size());
-    EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
+    EXPECT_EQ(ImportModelClass::moller_bhabha,
+              ioni->models.front().model_class);
 }
 
 //---------------------------------------------------------------------------//
