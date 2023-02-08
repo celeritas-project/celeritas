@@ -206,10 +206,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
         if (navi_)
         {
+            CELER_ASSERT(!out.points[StepPoint::pre].dir.empty());
             G4VTouchable* touchable = touch_handle_();
             // Locate pre-step point
             navi_->LocateGlobalPointAndUpdateTouchable(
                 points[StepPoint::pre]->GetPosition(),
+                convert_to_geant(out.points[StepPoint::pre].dir[i], 1),
                 touchable,
                 /* relative_search = */ false);
 
