@@ -72,7 +72,8 @@ bool rsw_filter_match(size_type step_attr_id, size_type filter_id)
            || step_attr_id == filter_id;
 }
 
-bool rsw_filter_match(size_type step_trk_id, std::vector<size_type> vec_trk_id)
+bool rsw_filter_match(size_type step_trk_id,
+                      std::vector<size_type> const& vec_trk_id)
 {
     if (vec_trk_id.empty())
     {
@@ -81,15 +82,10 @@ bool rsw_filter_match(size_type step_trk_id, std::vector<size_type> vec_trk_id)
     }
     else
     {
-        // Verify if step track ID matches with one of the IDs in the filter
-        for (auto const& id : vec_trk_id)
-        {
-            if (id == step_trk_id)
-            {
-                return true;
-            }
-        }
-        return false;
+        auto iter
+            = std::find(vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
+        // True if step track ID is in the list of IDs
+        return iter != vec_trk_id.end();
     }
 }
 
