@@ -217,6 +217,34 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
             G4VPhysicalVolume* pv = touchable->GetVolume(0);
             CELER_ASSERT(pv);
+
+            if (CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
+            {
+                // We may be accidentally in the old volume and crossing into
+                // the new one: try crossing the edge
+                double safety_distance{-1};
+                constexpr double max_step = 1e-6 / CLHEP::cm;
+
+                double step = navi_->ComputeStep(
+                    points[StepPoint::pre]->GetPosition(),
+                    convert_to_geant(out.points[StepPoint::pre].dir[i], 1),
+                    max_step,
+                    safety_distance);
+                if (step < max_step)
+                {
+                    CELER_LOG(debug) << "Bumped navigation state out of "
+                                     << PrintableNavHistory{touchable};
+
+                    navi_->SetGeometricallyLimitedStep();
+                    navi_->LocateGlobalPointAndUpdateTouchable(
+                        points[StepPoint::pre]->GetPosition(),
+                        convert_to_geant(out.points[StepPoint::pre].dir[i], 1),
+                        touchable,
+                        /* relative_search = */ true);
+                    pv = touchable->GetVolume(0);
+                }
+            }
+
             if (CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
             {
                 CELER_LOG(warning)
