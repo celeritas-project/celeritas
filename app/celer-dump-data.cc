@@ -131,51 +131,65 @@ void print_materials(std::vector<ImportMaterial>& materials,
     //// PRINT CUTOFF LIST ///
 
     cout << R"gfm(
-## Cutoffs per material
+## Cutoffs
 
-| Material ID | Name                            | Cutoffs [MeV, cm]               |
-| ----------- | ------------------------------- | ------------------------------- |
+| Material                   | Particle  | Energy [MeV] | Range [cm] |
+| -------------------------- | --------- | ------------ | ---------- |
 )gfm";
-
-    std::map<int, std::string> pdg_label;
-    for (auto particle_id : range(ParticleId{particles.size()}))
-    {
-        int const pdg = particles.id_to_pdg(particle_id).get();
-        auto const& label = particles.id_to_label(particle_id);
-        pdg_label.insert({pdg, label});
-    }
 
     for (unsigned int material_id : range(materials.size()))
     {
         bool is_first_line = true;
         auto const& material = materials[material_id];
 
-        for (auto const& cutoff_key : material.pdg_cutoffs)
+        for (auto const& [pdg, cuts] : material.pdg_cutoffs)
         {
-            auto iter = pdg_label.find(cutoff_key.first);
-            if (iter == pdg_label.end())
-                continue;
-
-            const std::string label = iter->second;
-            const std::string str_cuts
-                = label + ": " + std::to_string(cutoff_key.second.energy)
-                  + ", " + std::to_string(cutoff_key.second.range);
-
             if (is_first_line)
             {
-                cout << "| " << setw(11) << material_id << " | " << setw(31)
-                     << material.name << " | " << setw(31) << str_cuts
-                     << " |\n";
+                cout << "| " << std::right << setw(4) << material_id << ": "
+                     << setw(20) << material.name;
                 is_first_line = false;
             }
             else
             {
-                cout << "|             |                                 | "
-                     << setw(31) << str_cuts << " |\n";
+                cout << "| " << setw(4) << ' ' << "  " << setw(20) << ' ';
             }
+
+            auto pdef_id = particles.find(PDGNumber{pdg});
+            CELER_ASSERT(pdef_id);
+            cout << " | " << setw(9) << particles.id_to_label(pdef_id) << " | "
+                 << setw(12) << cuts.energy << " | " << setw(10) << cuts.range
+                 << " |\n";
         }
     }
     cout << endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print a physics table.
+ */
+void print_table(ImportPhysicsTable const& table)
+{
+    cout << to_cstring(table.table_type) << ":\n\n";
+
+    cout << "| Type          | Size  | Endpoints ("
+         << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
+         << ") |\n"
+         << "| ------------- | ----- | "
+            "------------------------------------------------------------ "
+            "|\n";
+
+    for (auto const& physvec : table.physics_vectors)
+    {
+        cout << "| " << setw(13) << std::left
+             << to_cstring(physvec.vector_type) << " | " << setw(5)
+             << physvec.x.size() << " | (" << setprecision(3) << setw(12)
+             << physvec.x.front() << ", " << setprecision(3) << setw(12)
+             << physvec.y.front() << ") -> (" << setprecision(3) << setw(12)
+             << physvec.x.back() << ", " << setprecision(3) << setw(12)
+             << physvec.y.back() << ") |\n";
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -187,84 +201,92 @@ void print_process(ImportProcess const& proc,
                    std::vector<ImportElement> const& elements,
                    ParticleParams const& particles)
 {
-    if (proc.process_type != ImportProcessType::electromagnetic)
+    auto pdef_id = particles.find(PDGNumber{proc.particle_pdg});
+    cout << "## Process: " << to_cstring(proc.process_class) << " ("
+         << particles.id_to_label(pdef_id) << ")\n\n";
+
+    if (proc.tables.empty())
     {
-        CELER_LOG(warning) << "Skipping non-EM process "
-                           << to_cstring(proc.process_class)
-                           << " for particle  " << proc.particle_pdg;
+        cout << "**No macroscopic cross sections**\n\n";
     }
 
-    cout << "## "
-         << particles.id_to_label(particles.find(PDGNumber{proc.particle_pdg}))
-         << " " << to_cstring(proc.process_class) << "\n\n";
-
-    cout << "Models: "
-         << join(proc.models.begin(),
-                 proc.models.end(),
-                 ", ",
-                 [](ImportModelClass im) { return to_cstring(im); })
-         << "\n\n";
-
-    cout << "### Microscopic cross-sections\n\n";
-
-    for (auto const& iter : proc.micro_xs)
+    for (ImportModel const& model : proc.models)
     {
-        // Print models
-        cout << to_cstring(iter.first) << "\n";
+        cout << "### Model: " << to_cstring(model.model_class)
+             << "\n"
+                "\n"
+                "Energy grids per material: \n\n"
+                "| Material             | Size  | Endpoints (MeV)             "
+                " |\n"
+                "| -------------------- | ----- | "
+                "---------------------------- |\n";
 
-        auto const& micro_xs = iter.second;
-        for (size_type mat_id = 0; mat_id < micro_xs.size(); mat_id++)
+        for (auto m : range(model.materials.size()))
         {
-            // Print materials
-            cout << "\n- " << materials[mat_id].name << "\n\n";
-            cout << "| Element       | Size  | Endpoints (MeV, cm^2) |\n"
-                 << "| ------------- | ----- | "
-                    "-----------------------------------------------------"
-                    "------- "
-                    "|\n";
+            auto const& energy = model.materials[m].energy;
+            CELER_ASSERT(!energy.empty());
+            cout << "| " << setw(20) << std::left << materials[m].name << " | "
+                 << setw(5) << energy.size() << " | " << setprecision(3)
+                 << setw(12) << setprecision(3) << setw(12) << energy.front()
+                 << " -> " << setprecision(3) << setw(12) << energy.back()
+                 << " |\n";
+        }
+        cout << "\n\n";
 
-            auto const& elem_phys_vectors = micro_xs[mat_id];
+        if (std::all_of(model.materials.begin(),
+                        model.materials.end(),
+                        [](ImportModelMaterial const& imm) {
+                            return imm.micro_xs.empty();
+                        }))
+        {
+            cout << "**No microscopic cross sections**\n\n";
+            continue;
+        }
 
-            for (auto i : celeritas::range(elem_phys_vectors.size()))
+        cout << "Microscopic cross sections:\n\n"
+                "| Material             | Element       | Endpoints (bn) |\n"
+                "| -------------------- | ------------- | "
+                "----------------------------- |\n";
+
+        for (auto m : range(model.materials.size()))
+        {
+            using celeritas::units::barn;
+
+            auto const& xs = model.materials[m].micro_xs;
+
+            for (auto i : celeritas::range(xs.size()))
             {
-                // Print elements and their physics vectors
-                auto const& physvec = elem_phys_vectors[i];
-                cout << "| " << setw(13) << std::left << elements[i].name
-                     << " | " << setw(5) << physvec.x.size() << " | ("
-                     << setprecision(3) << setw(12) << physvec.x.front()
-                     << ", " << setprecision(3) << setw(12)
-                     << physvec.y.front() << ") -> (" << setprecision(3)
-                     << setw(12) << physvec.x.back() << ", " << setprecision(3)
-                     << setw(12) << physvec.y.back() << ") |\n";
+                cout << "| " << setw(20) << std::left
+                     << (i == 0 ? materials[m].name : std::string{}) << " | "
+                     << setw(13) << std::left << elements[i].name << " | "
+                     << setprecision(3) << setw(12) << xs[i].front() / barn
+                     << " -> " << setprecision(3) << setw(12)
+                     << xs[i].back() / barn << " |\n";
             }
         }
-
-        cout << "\n------\n\n";
+        cout << endl;
     }
 
-    cout << "### Macroscopic cross-sections\n";
+    if (proc.tables.empty())
+    {
+        return;
+    }
 
+    cout << "### Macroscopic cross-sections\n\n";
+
+    bool is_first{true};
     for (auto const& table : proc.tables)
     {
-        cout << "\n------\n\n" << to_cstring(table.table_type) << ":\n\n";
-
-        cout << "| Type          | Size  | Endpoints ("
-             << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
-             << ") |\n"
-             << "| ------------- | ----- | "
-                "------------------------------------------------------------ "
-                "|\n";
-
-        for (auto const& physvec : table.physics_vectors)
+        if (!is_first)
         {
-            cout << "| " << setw(13) << std::left
-                 << to_cstring(physvec.vector_type) << " | " << setw(5)
-                 << physvec.x.size() << " | (" << setprecision(3) << setw(12)
-                 << physvec.x.front() << ", " << setprecision(3) << setw(12)
-                 << physvec.y.front() << ") -> (" << setprecision(3)
-                 << setw(12) << physvec.x.back() << ", " << setprecision(3)
-                 << setw(12) << physvec.y.back() << ") |\n";
+            cout << "\n------\n\n";
         }
+        else
+        {
+            is_first = false;
+        }
+
+        print_table(table);
     }
     cout << endl;
 }
@@ -292,11 +314,12 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
 
         cout << "| " << setw(14) << to_cstring(proc.process_class) << " | "
              << setw(13) << particles.id_to_label(pdef_id) << " | " << setw(25)
-             << to_string(
-                    join(proc.models.begin(),
-                         proc.models.end(),
-                         ", ",
-                         [](ImportModelClass im) { return to_cstring(im); }))
+             << to_string(join(proc.models.begin(),
+                               proc.models.end(),
+                               ", ",
+                               [](ImportModel const& im) {
+                                   return to_cstring(im.model_class);
+                               }))
              << " | " << setw(31)
              << to_string(join(proc.tables.begin(),
                                proc.tables.end(),
@@ -313,6 +336,30 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
     {
         print_process(proc, data.materials, data.elements, particles);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print stored data for multiple scattering models.
+ */
+void print_msc_models(ImportData const& data, ParticleParams const& particles)
+{
+    auto const& models = data.msc_models;
+    CELER_LOG(info) << "Loaded " << models.size() << " MSC models";
+
+    cout << "\n"
+            "# MSC models\n\n";
+
+    for (ImportMscModel const& m : models)
+    {
+        auto pdef_id = particles.find(PDGNumber{m.particle_pdg});
+        CELER_ASSERT(pdef_id);
+        cout << "## " << particles.id_to_label(pdef_id) << " "
+             << to_cstring(m.model_class) << "\n\n";
+
+        print_table(m.lambda_table);
+    }
+    cout << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -512,12 +559,17 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    cout << "Contents of `" << argv[1]
+         << "`\n\n"
+            "-----\n\n";
+
     auto const&& particle_params = ParticleParams::from_import(data);
 
     print_particles(*particle_params);
     print_elements(data.elements);
     print_materials(data.materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
+    print_msc_models(data, *particle_params);
     print_volumes(data.volumes, data.materials);
     print_em_params(data.em_params);
     print_sb_data(data.sb_data);

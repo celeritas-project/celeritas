@@ -35,12 +35,11 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct ImportProcess;
 class ParticleTrackView;
 class MaterialTrackView;
-}  // namespace celeritas
 
-namespace celeritas
-{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -68,6 +67,13 @@ class InteractorHostTestBase : public Test
     InteractorHostTestBase();
     ~InteractorHostTestBase();
     //!@}
+
+    // Helper to make dummy ImportProcess
+    ImportProcess
+    make_import_process(PDGNumber particle,
+                        PDGNumber secondary,
+                        ImportProcessClass ipc,
+                        std::vector<ImportModelClass> models) const;
 
     //!@{
     //! Set and get material properties

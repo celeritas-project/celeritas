@@ -62,6 +62,7 @@ enum class ImportUnits
     cm,  //!< Range [cm]
     cm_inv,  //!< Macroscopic xs [1/cm]
     cm_mev_inv,  //!< Macroscopic xs divided by energy [1/cm-MeV]
+    cm_2,  //!< Microscopic cross section [cm^2]
     size_
 };
 

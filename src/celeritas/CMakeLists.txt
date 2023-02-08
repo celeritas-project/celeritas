@@ -59,7 +59,9 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridData.cc
   grid/ValueGridInserter.cc
+  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
+  io/ImportModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -102,7 +104,9 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
-    ext/detail/ImportProcessConverter.cc
+    ext/detail/GeantModelImporter.cc
+    ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantMicroXsCalculator.cc
   )
   target_link_libraries(celeritas_geant4
     PRIVATE Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES}
