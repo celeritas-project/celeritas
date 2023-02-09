@@ -15,44 +15,40 @@
 
 namespace celeritas
 {
-namespace
-{
-bool determine_use_color(FILE* stream)
-{
-    std::string const& color_str = celeritas::getenv("GTEST_COLOR");
-    if (color_str == "0")
-    {
-        // GTEST_COLOR explicitly disables color
-        return false;
-    }
-    else if (!color_str.empty())
-    {
-        // GTEST_COLOR explicitly enables color
-        return true;
-    }
-
-    if (isatty(fileno(stream)))
-    {
-        // Given stream says it's a "terminal" i.e. user-facing
-        std::string const& term_str = celeritas::getenv("TERM");
-        if (term_str.find("xterm") != std::string::npos)
-        {
-            // 'xterm' is in the TERM type, so assume it uses colors
-            return true;
-        }
-    }
-
-    return false;
-}
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Whether colors are enabled (currently read-only).
  */
 bool use_color()
 {
-    const static bool result = determine_use_color(stderr);
+    const static bool result = [] {
+        FILE* stream = stderr;
+        std::string const& color_str = celeritas::getenv("GTEST_COLOR");
+        if (color_str == "0")
+        {
+            // GTEST_COLOR explicitly disables color
+            return false;
+        }
+        else if (!color_str.empty())
+        {
+            // GTEST_COLOR explicitly enables color
+            return true;
+        }
+
+        if (isatty(fileno(stream)))
+        {
+            // Given stream says it's a "terminal" i.e. user-facing
+            std::string const& term_str = celeritas::getenv("TERM");
+            if (term_str.find("xterm") != std::string::npos)
+            {
+                // 'xterm' is in the TERM type, so assume it uses colors
+                return true;
+            }
+        }
+
+        return false;
+    }();
+
     return result;
 }
 
