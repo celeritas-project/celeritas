@@ -10,6 +10,7 @@
 #include <atomic>
 #include <string>
 
+#include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/KernelAttributes.hh"
 
@@ -39,7 +40,13 @@ void to_json(nlohmann::json& j, KernelRegistry const& kr)
             {"max_blocks_per_cu", md.attributes.max_blocks_per_cu},
             {"max_warps_per_eu", md.attributes.max_warps_per_eu},
             {"occupancy", md.attributes.occupancy},
+            {"heap_size", md.attributes.heap_size},
+            {"print_buffer_size", md.attributes.print_buffer_size},
         }));
+        if constexpr (CELERITAS_USE_CUDA)
+        {
+            j.back()["stack_size"] = md.attributes.stack_size;
+        }
         if (write_profiling)
         {
             j.back()["num_launches"]
