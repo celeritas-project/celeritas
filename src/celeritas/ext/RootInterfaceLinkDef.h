@@ -6,7 +6,7 @@
 //! \file celeritas/ext/RootInterfaceLinkDef.h
 //! \brief Define the classes added to the ROOT dictionary
 //---------------------------------------------------------------------------//
-#ifdef __CINT__
+#ifdef __ROOTCLING__
 
 // clang-format off
 #pragma link C++ class celeritas::ImportParticle+;
