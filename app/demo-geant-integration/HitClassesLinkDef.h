@@ -1,3 +1,11 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file app/demo-geant-integration/HitClassesLinkDef.h
+//! \brief Define the classes added to the ROOT dictionary for app/demo-geant-integration
+//---------------------------------------------------------------------------//
 #ifdef __ROOTCLING__
 #pragma link C++ class G4VHit+;
 #pragma link C++ class G4ThreeVector+;
