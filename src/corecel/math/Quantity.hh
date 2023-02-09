@@ -69,6 +69,17 @@ struct UnitlessQuantity
  * system, use the \c quantity free function rather than \c .value() in order
  * to guarantee consistency of units between source and destination.
  *
+ * An example unit class would be:
+ * \code
+    struct DozenUnit
+    {
+        static constexpr int value() { return 12; }
+        static constexpr char const* label() { return "dozen"; }
+    };
+   \endcode
+ *
+ * The label is used solely for outputting to JSON.
+ *
  * \note The Quantity is designed to be a simple "strong type" class, not a
  * complex mathematical class. To operate on quantities, you must use
  `value_as`
