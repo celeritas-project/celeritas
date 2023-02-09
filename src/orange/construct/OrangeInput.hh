@@ -113,7 +113,7 @@ struct OrangeInput
     // or maybe std::variant when we require C++17
 
     //! Whether the unit definition is valid
-    explicit operator bool() const { return !units.empty() && max_level; }
+    explicit operator bool() const { return !units.empty() && max_level > 0; }
 };
 
 //---------------------------------------------------------------------------//

@@ -570,7 +570,6 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
 {
     // The univese the particle is currently within
-
     auto current_level_lsa = this->make_lsa();
     auto const& current_uid = current_level_lsa.universe();
 
