@@ -32,6 +32,8 @@ list(APPEND SOURCES
   sys/Device.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
+  sys/MemRegistry.cc
+  sys/ScopedMem.cc
   sys/MpiCommunicator.cc
   sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
