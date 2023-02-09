@@ -361,12 +361,15 @@ if(CELERITAS_BUILD_DEMOS AND CELERITAS_USE_Geant4)
       # The include directory are attached to the Geant4 target through INTERFACE_INCLUDE_DIRECTORIES
       # which is not looked at by root_generate_dictionary.
       ${Geant4_INCLUDE_DIRS}
+      ${CLHEP_INCLUDE_DIRS}
     )
     root_generate_dictionary(HitClassesRootInterfaces
       ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/HitRootIO.hh
       ${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/SensitiveHit.hh
       NOINSTALL
       MODULE demo-geant-integration
+      # TODO Uncomment this line and remove the include_directories when
+      # the minimal required ROOT version is v6.28/02 or later.
       # DEPENDENCIES ${Geant4_LIBRARIES} Celeritas::accel Celeritas::corecel
       LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/demo-geant-integration/HitClassesLinkDef.h"
     )
