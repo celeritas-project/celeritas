@@ -194,7 +194,9 @@ void VecgeomParams::build_tracking()
         // more exactly copy) to `celeritas::activate_device` as the latest
         // cudaDeviceSetLimit 'wins'.
         if constexpr (CELERITAS_DEBUG)
-          set_cuda_stack_size(16384);
+        {
+            set_cuda_stack_size(16384);
+        }
 
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
