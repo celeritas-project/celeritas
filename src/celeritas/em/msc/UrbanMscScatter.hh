@@ -49,6 +49,7 @@ class UrbanMscScatter
                                           PhysicsTrackView const& physics,
                                           MaterialView const& material,
                                           MscStep const& input,
+                                          real_type phys_step,
                                           bool const geo_limited);
 
     // Sample the final true step length, position and direction by msc
@@ -150,6 +151,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                                  PhysicsTrackView const& physics,
                                  MaterialView const& material,
                                  MscStep const& input,
+                                 real_type phys_step,
                                  bool const geo_limited)
     : inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(geometry->dir())
@@ -178,7 +180,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                                   input.true_path, geom_path_, input.alpha);
 
     // Protect against a wrong true -> geom -> true transformation
-    true_path_ = min<real_type>(true_path_, input.phys_step);
+    true_path_ = min<real_type>(true_path_, phys_step);
     CELER_ASSERT(true_path_ >= geom_path_);
 
     skip_sampling_ = true;

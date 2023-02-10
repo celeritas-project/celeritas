@@ -165,8 +165,6 @@ template<class Engine>
 CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
     MscStep result;
-
-    result.phys_step = phys_step_;
     result.true_path = phys_step_;
 
     // The case for a very small step or the lower limit for the linear

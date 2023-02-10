@@ -74,7 +74,6 @@ struct Interaction
 struct MscStep
 {
     bool is_displaced{true};  //!< Flag for the lateral displacement
-    real_type phys_step{};  //!< Step length from physics processes
     real_type true_path{};  //!< True path length due to the msc
     real_type geom_path{};  //!< Geometrical path length
     real_type alpha{-1};  //!< An effecive mfp rate by distance
