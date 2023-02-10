@@ -191,9 +191,6 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
 template<class Engine>
 CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 {
-    MscStep result;
-    result.true_path = phys_step_;
-
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
     if (skip_displacement_)
@@ -210,14 +207,15 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 
     // The step limit
     real_type limit = range_;
-    if (limit > safety_)
+    if (range_ > safety_)
     {
         limit = max<real_type>(msc_range_.range_fact * msc_range_.range_init,
                                params_.safety_fact * safety_);
     }
     limit = max<real_type>(limit, msc_range_.limit_min);
 
-    if (limit < result.true_path)
+    real_type true_path = phys_step_;
+    if (limit < phys_step_)
     {
         // Randomize the limit if this step should be determined by msc
         real_type sampled_limit = msc_range_.limit_min;
@@ -228,11 +226,13 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
             sampled_limit = sample_gauss(rng);
             sampled_limit = max<real_type>(sampled_limit, msc_range_.limit_min);
         }
-        result.true_path = min<real_type>(result.true_path, sampled_limit);
+        true_path = min<real_type>(phys_step_, sampled_limit);
     }
 
+    MscStep result;
     {
-        auto temp = this->calc_geom_path(result.true_path);
+        result.true_path = true_path;
+        auto temp = this->calc_geom_path(true_path);
         result.geom_path = temp.geom_path;
         result.alpha = temp.alpha;
     }
