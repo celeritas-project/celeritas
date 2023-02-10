@@ -50,7 +50,7 @@ class UrbanMscHelper
     // TODO: the following methods are used only by MscStepLimit
 
     // The total energy loss over a given step length
-    inline CELER_FUNCTION Energy calc_eloss(real_type step) const;
+    inline CELER_FUNCTION Energy calc_stopping_energy(real_type step) const;
 
     // The kinetic energy at the end of a given step length corrected by dedx
     inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
@@ -120,14 +120,16 @@ CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the total energy loss over a given step length.
+ * Calculate the energy of a track that is stopped after the given step.
+ *
+ * This is an exact value based on the range claculation.
  */
-CELER_FUNCTION auto UrbanMscHelper::calc_eloss(real_type step) const -> Energy
+CELER_FUNCTION auto UrbanMscHelper::calc_stopping_energy(real_type step) const -> Energy
 {
-    auto calc_energy
+    auto range_to_energy
         = physics_.make_calculator<InverseRangeCalculator>(range_gid_);
 
-    return calc_energy(step);
+    return range_to_energy(step);
 }
 
 //---------------------------------------------------------------------------//
@@ -149,7 +151,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     else
     {
         // Longer step is calculated exactly with inverse range
-        return this->calc_eloss(range - step);
+        return this->calc_stopping_energy(range - step);
     }
 }
 

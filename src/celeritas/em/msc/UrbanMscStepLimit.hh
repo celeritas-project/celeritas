@@ -249,7 +249,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
  *     \lambda_{1} (t) = \lambda_{10} (1 - \alpha t)
  * \f]
  * where \f$ \alpha = \frac{\lambda_{10} - \lambda_{11}}{t\lambda_{10}} \f$
- * or  \f$ \alpha = 1/r_0 \f$ in a simpler form with the range \f$ r_o \f$
+ * or  \f$ \alpha = 1/r_0 \f$ in a simpler form with the range \f$ r_0 \f$
  * if the kinetic energy of the particle is below its mass -
  * \f$ \lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
  * at the start (end) of the step, respectively.
@@ -272,9 +272,11 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
         return result;
     }
 
+    // tau = number of mean free paths to collision
     real_type tau = true_path / lambda_;
     if (tau <= params_.tau_small)
     {
+        // Very small distance to collision
         result.geom_path = min<real_type>(true_path, lambda_);
     }
     else if (true_path < range_ * shared_.params.dtrl())
@@ -287,6 +289,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     else if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
              || true_path == range_)
     {
+        // Low energy or range-limited step
         result.alpha = 1 / range_;
         real_type w = 1 + 1 / (result.alpha * lambda_);
 
@@ -298,12 +301,17 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     }
     else
     {
+        // Calculate the energy at the end of a physics-limited step
         real_type rfinal
             = max<real_type>(range_ - true_path, real_type(0.01) * range_);
-        Energy loss = helper_.calc_eloss(rfinal);
-        real_type lambda1 = helper_.calc_msc_mfp(loss);
+        Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
+        real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
 
+        // Calculate the geometric path assuming the cross section is linear
+        // between the start and end energy.
+        // Eq 8.10+1
         result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
+        // Eq 8.10 with simplifications
         real_type w = 1 + 1 / (result.alpha * lambda_);
         result.geom_path = (1 - fastpow(lambda1 / lambda_, w))
                            / (result.alpha * w);
