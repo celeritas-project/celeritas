@@ -271,7 +271,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     // Do the true path -> geom path transformation
     GeomPathAlpha result;
     result.geom_path = true_path;
-    result.alpha = -1;
+    result.alpha = MscStep::tiny_step_alpha();
 
     if (true_path < shared_.params.min_step())
     {
@@ -318,6 +318,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
         // between the start and end energy.
         // Eq 8.10+1
         result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
+        CELER_ASSERT(result.alpha != MscStep::tiny_step_alpha());
         // Eq 8.10 with simplifications
         real_type w = 1 + 1 / (result.alpha * lambda_);
         result.geom_path = (1 - fastpow(lambda1 / lambda_, w))

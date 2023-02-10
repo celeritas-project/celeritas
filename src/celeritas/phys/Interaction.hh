@@ -67,16 +67,25 @@ struct Interaction
  * Step lengths and properties needed to apply multiple scattering.
  *
  * \todo Document and/or refactor into a class that hides details:
- * - alpha < 0 ? "true path is very small" (true path scaling changes)
+ * - alpha == tiny_step_alpha() -> "true path is very small"
  * - is_displaced == false ? limit_min is unchanged and alpha < 0
  * - true_step >= geom_path
+ *
+ * The value \f$ \alpha \f$ is used in the approximation of the MSC
+ * transport cross section as a linear function over the current step. It is
+ * the negative slope of the transport MFP from start to stop, divided by the
+ * starting MFP. (Since MFP decreases with decreasing energy over the step,
+ * alpha should always be positive.)
  */
 struct MscStep
 {
+    //! Flag for
+    static constexpr real_type tiny_step_alpha() { return -1; }
+
     bool is_displaced{true};  //!< Flag for the lateral displacement
-    real_type true_path{};  //!< True path length due to the msc
-    real_type geom_path{};  //!< Geometrical path length
-    real_type alpha{-1};  //!< An effecive mfp rate by distance
+    real_type true_path{};  //!< True path length due to the msc [cm]
+    real_type geom_path{};  //!< Geometrical path length [cm]
+    real_type alpha = tiny_step_alpha();  //!< scaled MFP slope [cm^-1]
 };
 
 //---------------------------------------------------------------------------//
