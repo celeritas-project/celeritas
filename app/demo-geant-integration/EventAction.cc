@@ -30,6 +30,8 @@ EventAction::EventAction(SPTransporter transport) : transport_(transport) {}
  */
 void EventAction::BeginOfEventAction(G4Event const* event)
 {
+    CELER_LOG_LOCAL(debug) << "Starting event " << event->GetEventID();
+
     // Set event ID in local transporter
     celeritas::ExceptionConverter call_g4exception{"celer0002"};
     CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
@@ -53,6 +55,8 @@ void EventAction::EndOfEventAction(G4Event const* event)
         // Write sensitive hits
         HitRootIO::Instance()->WriteHits(event);
     }
+
+    CELER_LOG_LOCAL(debug) << "Finished event " << event->GetEventID();
 }
 
 //---------------------------------------------------------------------------//

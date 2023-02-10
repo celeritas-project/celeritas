@@ -140,7 +140,7 @@ void LocalTransporter::Flush()
 
     CELER_LOG_LOCAL(info)
         << "Transporting " << buffer_.size() << " tracks from event "
-        << event_id_.unchecked_get() + 1 << " with Celeritas";
+        << event_id_.unchecked_get() << " with Celeritas";
 
     // Abort cleanly for interrupt and user-defined signals
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
