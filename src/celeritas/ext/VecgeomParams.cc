@@ -181,6 +181,23 @@ void VecgeomParams::build_tracking()
 #if CELERITAS_USE_CUDA
         auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
 
+        // Insure that kernels, for which the compiler is not able to determine
+        // the total stack usage, have enough stack reserved.
+        // See https://github.com/celeritas-project/celeritas/issues/614 for
+        // a more detailed discussion.
+        // Experimentally, this seems to be needed only in the following cases.
+        // (a stricter condition could have been
+        //   if use_vecgeom && (compiled without -O2 || CELERITAS_DEBUG)
+        //      || (CELERITAS_DEBUG && compiled with -g)
+        // with the 2nd part being usefull only if vulnerable kernels start
+        // appearing in the build; for this second part we ought to move (or
+        // more exactly copy) to `celeritas::activate_device` as the latest
+        // cudaDeviceSetLimit 'wins'.
+        if constexpr (CELERITAS_DEBUG)
+        {
+            set_cuda_stack_size(16384);
+        }
+
         CELER_LOG(debug) << "Converting to CUDA geometry";
         {
             ScopedTimeAndRedirect time_and_output_("vecgeom::CudaManager");
