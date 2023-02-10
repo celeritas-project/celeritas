@@ -78,9 +78,9 @@ class OrangeTrackView
     //// ACCESSORS ////
 
     // The current position
-    CELER_FORCEINLINE_FUNCTION const Real3 pos() const;
+    CELER_FORCEINLINE_FUNCTION Real3 const& pos() const;
     // The current direction
-    CELER_FORCEINLINE_FUNCTION const Real3 dir() const;
+    CELER_FORCEINLINE_FUNCTION Real3 const& dir() const;
     // The current volume ID (null if outside)
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
     // The current surface ID
@@ -145,17 +145,17 @@ class OrangeTrackView
     inline CELER_FUNCTION detail::LocalState
     make_local_state(LevelId level) const;
 
-    // Whether the next distance-to-boundary has been found
-    CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
-
-    // Invalidate the next distance-to-boundary
-    CELER_FORCEINLINE_FUNCTION void clear_next_step();
-
     // Make a LevelStateAccessor for the current thread and level
     CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa() const;
 
     // Make a LevelStateAccessor for the current thread and a given level
     CELER_FORCEINLINE_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
+
+    // Whether the next distance-to-boundary has been found
+    CELER_FORCEINLINE_FUNCTION bool has_next_step() const;
+
+    // Invalidate the next distance-to-boundary
+    CELER_FORCEINLINE_FUNCTION void clear_next_step();
 };
 
 //---------------------------------------------------------------------------//
@@ -273,7 +273,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 /*!
  * The current position.
  */
-CELER_FUNCTION const Real3 OrangeTrackView::pos() const
+CELER_FUNCTION Real3 const& OrangeTrackView::pos() const
 {
     return this->make_lsa().pos();
 }
@@ -282,7 +282,7 @@ CELER_FUNCTION const Real3 OrangeTrackView::pos() const
 /*!
  * The current direction.
  */
-CELER_FUNCTION const Real3 OrangeTrackView::dir() const
+CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 {
     return this->make_lsa().dir();
 }
@@ -569,27 +569,16 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
  */
 CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
 {
-    // The univese the particle is currently within
-
-    auto current_level_lsa = this->make_lsa();
-    auto const& current_uid = current_level_lsa.universe();
-
-    // The uid we are iteratively checking for nearest intersection
-    UniverseId check_uid;
-
-    // The next uid we will check
-    UniverseId next_check_uid = top_universe_id();
-
-    auto min_step = max_step;
-    celeritas::detail::OnSurface min_surface_local;
     UniverseId min_uid;
+    celeritas::detail::OnSurface min_surface_local;
+    auto min_step = max_step;
 
-    size_type level = 0;
-
-    do
+    // Find the nearest intersection from level 0 to current level inclusive,
+    // prefering the higher level (i.e., lowest uid)
+    for (auto level : range(states_.level[thread_] + 1))
     {
-        check_uid = next_check_uid;
-        auto tracker = this->make_tracker(check_uid);
+        auto lsa = this->make_lsa(LevelId{level});
+        auto tracker = this->make_tracker(lsa.universe());
         auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
                                        max_step);
 
@@ -597,28 +586,23 @@ CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
         {
             min_step = isect.distance;
             min_surface_local = isect.surface;
-            min_uid = check_uid;
+            min_uid = lsa.universe();
         }
-
-        auto lsa = this->make_lsa(LevelId{level});
-        next_check_uid = params_.volume_records[lsa.vol()].daughter;
-        ++level;
-    } while (check_uid != current_uid);
+    }
 
     next_step_ = min_step;
 
-    // convert local to global surface
-    detail::UnitIndexer ui(params_.unit_indexer_data);
-
+    // If there is a valid next surface, convert it from local to global
     if (min_uid)
     {
+        detail::UnitIndexer ui(params_.unit_indexer_data);
         next_surface_ = celeritas::detail::OnSurface(
             ui.global_surface(min_uid, min_surface_local.id()),
             min_surface_local.unchecked_sense());
     }
     else
     {
-        next_surface_ = min_surface_local;
+        next_surface_ = {};
     }
 }
 
@@ -636,8 +620,9 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
         return real_type{0};
     }
 
-    auto tracker = this->make_tracker(UniverseId{0});
-    return tracker.safety(this->pos(), this->volume_id());
+    CELER_ASSERT(lsa.universe() == UniverseId{0});
+    auto tracker = this->make_tracker(lsa.universe());
+    return tracker.safety(lsa.pos(), lsa.vol());
 }
 
 //---------------------------------------------------------------------------//

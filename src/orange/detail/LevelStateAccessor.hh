@@ -127,6 +127,7 @@ LevelStateAccessor::LevelStateAccessor(StateRef const* states,
     : states_(states)
     , index_(thread_id.get() * states_->max_level + level_id.get())
 {
+    CELER_EXPECT(level_id < states->max_level);
 }
 
 //---------------------------------------------------------------------------//
