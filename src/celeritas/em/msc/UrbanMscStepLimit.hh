@@ -81,11 +81,14 @@ class UrbanMscStepLimit
     // Urban MSC range properties
     MscRange msc_range_;
 
-    bool on_boundary_{};
+    // Transport mean free path
     real_type lambda_{};
+    // Physics step length
     real_type phys_step_{};
     // Mean slowing-down distance from current energy to zero
     real_type range_{};
+    // Whether to skip sampling and just return the original physics step
+    bool skip_displacement_{false};
 
     //// HELPER TYPES ////
 
@@ -132,20 +135,44 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     , msc_(shared_.material_data[matid])
     , helper_(shared, particle, physics_)
     , msc_range_(physics_.msc_range())
-    , on_boundary_(on_boundary)
+    , lambda_{helper_.calc_msc_mfp(Energy{inc_energy_})}
     , phys_step_(phys_step)
     , range_(physics_.dedx_range())
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(safety_ >= 0);
+    CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(phys_step > 0);
+    CELER_EXPECT(phys_step_ <= range_);
 
-    // Mean free path for MSC at current energy
-    lambda_ = helper_.calc_msc_mfp(Energy{inc_energy_});
+    if (phys_step_ < shared_.params.limit_min_fix())
+    {
+        // Very short step: don't displace
+        skip_displacement_ = true;
+    }
+    else if (range_ * msc_.d_over_r < safety_)
+    {
+        // Potential step length is shorter than potential boundary distance
+        // NOTE: use d_over_r_mh for muons and charged hadrons
+        skip_displacement_ = true;
+    }
+    else if (!msc_range_ || on_boundary)
+    {
+        // Initialize MSC range cache on the first step in a volume
+        msc_range_.range_fact = params_.range_fact;
+        msc_range_.range_init = max<real_type>(range_, lambda_);
+        if (lambda_ > params_.lambda_limit)
+        {
+            msc_range_.range_fact
+                *= (real_type(0.75)
+                    + real_type(0.25) * lambda_ / params_.lambda_limit);
+        }
+        msc_range_.limit_min = this->calc_limit_min();
 
-    // The slowing down range should already have been applied as a step limit
-    CELER_ENSURE(range_ >= phys_step_);
+        // Store persistent range properties within this tracking volume
+        physics_.msc_range(msc_range_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -169,36 +196,18 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
 
     // The case for a very small step or the lower limit for the linear
     // distance that e-/e+ can travel is far from the geometry boundary
-    // NOTE: use d_over_r_mh for muons and charged hadrons
-    if (result.true_path < shared_.params.limit_min_fix()
-        || range_ * msc_.d_over_r < safety_)
+    if (skip_displacement_)
     {
+        MscStep result;
         result.is_displaced = false;
-        auto temp = this->calc_geom_path(result.true_path);
-        result.geom_path = temp.geom_path;
-
+        result.true_path = phys_step_;
+        result.geom_path = this->calc_geom_path(phys_step_).geom_path;
         return result;
     }
 
     // Step limitation algorithm: UseSafety (the default)
     // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
 
-    // Initialisation at the first step or at the boundary
-    if (!msc_range_ || on_boundary_)
-    {
-        msc_range_.range_fact = params_.range_fact;
-        msc_range_.range_init = max<real_type>(range_, lambda_);
-        if (lambda_ > params_.lambda_limit)
-        {
-            msc_range_.range_fact
-                *= (real_type(0.75)
-                    + real_type(0.25) * lambda_ / params_.lambda_limit);
-        }
-        msc_range_.limit_min = this->calc_limit_min();
-
-        // Store persistent range properties within this tracking volume
-        physics_.msc_range(msc_range_);
-    }
     // The step limit
     real_type limit = range_;
     if (limit > safety_)

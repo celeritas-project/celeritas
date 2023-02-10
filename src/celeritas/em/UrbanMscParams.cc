@@ -200,7 +200,7 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
 
     UrbanMscMaterialData data;
 
-    double zeff = material_view.zeff();
+    double const zeff = material_view.zeff();
 
     // Correction in the (modified Highland-Lynch-Dahl) theta_0 formula
     double const z16 = fastpow(zeff, 1.0 / 6.0);
@@ -221,8 +221,12 @@ UrbanMscParams::calc_material_data(MaterialView const& material_view)
 
     // Parameters for the maximum distance that particles can travel
     data.d_over_r = 9.6280e-1 - 8.4848e-2 * std::sqrt(zeff) + 4.3769e-3 * zeff;
+    // XXX there must be another scaling factor missing here: how can the step
+    // length be greater than the range?
     data.d_over_r_mh = 1.15 - 9.76e-4 * zeff;
 
+    CELER_ENSURE(0 < data.d_over_r && data.d_over_r <= 1);
+    CELER_ENSURE(0 < data.d_over_r_mh);
     return data;
 }
 //---------------------------------------------------------------------------//
