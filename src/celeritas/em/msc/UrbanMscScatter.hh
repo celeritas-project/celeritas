@@ -183,11 +183,10 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     true_path_ = min<real_type>(true_path_, phys_step);
     CELER_ASSERT(true_path_ >= geom_path_);
 
-    skip_sampling_ = [this, &shared]{
-        if (true_path_ >= range_)
+    skip_sampling_ = [this]{
+        if (true_path_ == range_)
         {
             // Range-limited step
-            // TODO: should be a hard equality
             return true;
         }
         CELER_ASSERT(true_path_ < range_);
@@ -203,11 +202,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         if (Energy{end_energy_} < params_.min_sampling_energy())
         {
             // Ending energy is very low
-            return true;
-        }
-        if (true_path_ <= shared.params.limit_min_fix())
-        {
-            // TODO this is redundant with the earlier geometry check
             return true;
         }
         if (true_path_ <= lambda_ * params_.tau_small)
