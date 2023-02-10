@@ -22,6 +22,7 @@ char const* to_cstring(ImportTableType value)
         "lambda_prim",
         "dedx",
         "range",
+        "msc_xs",
 
         "dedx_process",
         "dedx_unrestricted",
@@ -49,6 +50,7 @@ char const* to_cstring(ImportUnits value)
         "cm",
         "1/cm",
         "1/cm-MeV",
+        "MeV^2/cm",
         "cm^2",
     };
     return to_cstring_impl(value);

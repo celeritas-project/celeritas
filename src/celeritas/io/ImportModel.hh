@@ -108,12 +108,12 @@ struct ImportMscModel
 {
     int particle_pdg{0};
     ImportModelClass model_class{ImportModelClass::size_};
-    ImportPhysicsTable lambda_table;
+    ImportPhysicsTable xs_table;
 
     explicit operator bool() const
     {
         return particle_pdg != 0 && model_class != ImportModelClass::size_
-               && lambda_table;
+               && xs_table;
     }
 };
 

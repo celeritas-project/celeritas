@@ -78,7 +78,8 @@ class UrbanMscHelper
 
     // Data for this particle + material
     UrbanMscParMatData const& pmdata_;
-    XsCalculator calc_msc_xs_;
+    // Calculate the transport cross section with a factor of E^2 built in
+    XsCalculator calc_scaled_xs_;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +97,7 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
     , dtrl_(shared.params.dtrl())
     , pmdata_(shared.par_mat_data[shared.at(physics.material_id(),
                                             particle.particle_id())])
-    , calc_msc_xs_(pmdata_.xs, shared.reals)
+    , calc_scaled_xs_(pmdata_.xs, shared.reals)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
@@ -112,7 +113,7 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
  */
 CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
-    real_type xsec = calc_msc_xs_(energy) / ipow<2>(energy.value());
+    real_type xsec = calc_scaled_xs_(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0);
     return 1 / xsec;
 }
