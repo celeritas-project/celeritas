@@ -107,13 +107,13 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         urban_data[pid.get()] = &imm;
     }
 
-    auto get_lambda = [&urban_data, &particles](ParticleId pid) {
+    auto get_scaled_xs = [&urban_data, &particles](ParticleId pid) {
         CELER_ASSERT(pid < urban_data.size());
         ImportMscModel const* imm = urban_data[pid.unchecked_get()];
         CELER_VALIDATE(imm,
                        << "missing Urban MSC physics data for particle "
                        << particles.id_to_label(pid));
-        return &imm->lambda_table;
+        return &imm->xs_table;
     };
 
     {
@@ -121,13 +121,13 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         Array<ParticleId, 2> const par_ids{
             {host_data.ids.electron, host_data.ids.positron}};
         Array<ImportPhysicsTable const*, 2> const xs_tables{{
-            get_lambda(par_ids[0]),
-            get_lambda(par_ids[1]),
+            get_scaled_xs(par_ids[0]),
+            get_scaled_xs(par_ids[1]),
         }};
         CELER_ASSERT(xs_tables[0]->x_units == ImportUnits::mev);
-        CELER_ASSERT(xs_tables[0]->y_units == ImportUnits::cm_inv);
+        CELER_ASSERT(xs_tables[0]->y_units == ImportUnits::mev_2_per_cm);
         CELER_ASSERT(xs_tables[1]->x_units == ImportUnits::mev);
-        CELER_ASSERT(xs_tables[1]->y_units == ImportUnits::cm_inv);
+        CELER_ASSERT(xs_tables[1]->y_units == ImportUnits::mev_2_per_cm);
 
         // Coefficients for scaled Z
         static Array<double, 2> const a_coeff{{0.87, 0.70}};

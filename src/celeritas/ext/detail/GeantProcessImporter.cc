@@ -115,19 +115,24 @@ double units_to_scaling(ImportUnits units)
     {
         case ImportUnits::none:
             return 1;
-        case ImportUnits::cm_inv:
-            return cm;
-        case ImportUnits::cm_mev_inv:
-            return cm * MeV;
         case ImportUnits::mev:
             return 1 / MeV;
         case ImportUnits::mev_per_cm:
             return cm / MeV;
         case ImportUnits::cm:
             return 1 / cm;
-        default:
+        case ImportUnits::cm_inv:
+            return cm;
+        case ImportUnits::cm_mev_inv:
+            return cm * MeV;
+        case ImportUnits::mev_2_per_cm:
+            return cm / (MeV * MeV);
+        case ImportUnits::cm_2:
+            return 1 / (cm * cm);
+        case ImportUnits::size_:
             CELER_ASSERT_UNREACHABLE();
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -200,6 +205,10 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
         case ImportTableType::lambda_prim:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_mev_inv;
+            break;
+        case ImportTableType::msc_xs:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::mev_2_per_cm;
             break;
         default:
             CELER_ASSERT_UNREACHABLE();
@@ -343,6 +352,9 @@ void GeantProcessImporter::store_common_process(T const& process)
 //---------------------------------------------------------------------------//
 /*!
  * Store EM cross section tables for the current process.
+ *
+ * Cross sections are calculated in G4EmModelManager::FillLambdaVector by
+ * calling G4VEmModel::CrossSection .
  */
 void GeantProcessImporter::store_em_process(G4VEmProcess const& process)
 {
@@ -445,12 +457,16 @@ void GeantProcessImporter::store_eloss_process(
 
 //---------------------------------------------------------------------------//
 /*!
- * Store multiple scattering XS tables to this->process_.
+ * Store multiple scattering XS tables to the process data.
  *
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
+ *
+ * The cross sections are stored with an extra factor of E^2 multiplied in.
+ * They're calculated in G4LossTableBuilder::BuildTableForModel which calls
+ * G4VEmModel::Value.
  */
 void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& process)
 {
@@ -467,7 +483,7 @@ void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& proces
         {
             process_.models.push_back(convert_model(*model));
             this->add_table(model->GetCrossSectionTable(),
-                            ImportTableType::lambda);
+                            ImportTableType::msc_xs);
         }
     }
 }

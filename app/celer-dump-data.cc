@@ -357,7 +357,7 @@ void print_msc_models(ImportData const& data, ParticleParams const& particles)
         cout << "## " << particles.id_to_label(pdef_id) << " "
              << to_cstring(m.model_class) << "\n\n";
 
-        print_table(m.lambda_table);
+        print_table(m.xs_table);
     }
     cout << endl;
 }
