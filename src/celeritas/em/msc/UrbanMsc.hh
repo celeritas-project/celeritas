@@ -100,13 +100,16 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
 {
     CELER_EXPECT(msc_params_);
 
-    auto particle = track.make_particle_view();
     auto geo = track.make_geo_view();
     auto phys = track.make_physics_view();
 
-    // Sample multiple scattering step length
+    // Save physics step for later
     phys_step_ = local->step_limit.step;
-    UrbanMscStepLimit msc_step_limit(msc_params_,
+
+    // Sample multiple scattering step length
+    auto msc_step_result = [&] {
+        auto particle = track.make_particle_view();
+        UrbanMscStepLimit calc_limit(msc_params_,
                                      particle,
                                      &phys,
                                      track.make_material_view().material_id(),
@@ -114,8 +117,11 @@ UrbanMsc::calc_step(CoreTrackView const& track, AlongStepLocalState* local)
                                      geo.find_safety(),
                                      phys_step_);
 
-    auto rng = track.make_rng_engine();
-    auto msc_step_result = msc_step_limit(rng);
+        auto rng = track.make_rng_engine();
+        return calc_limit(rng);
+    }();
+    CELER_ASSERT(msc_step_result.geom_path > 0);
+    CELER_ASSERT(msc_step_result.true_path >= msc_step_result.geom_path);
     track.make_physics_step_view().msc_step(msc_step_result);
 
     // Use "straight line" path calculated for geometry step

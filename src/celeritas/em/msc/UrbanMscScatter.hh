@@ -183,15 +183,40 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     true_path_ = min<real_type>(true_path_, phys_step);
     CELER_ASSERT(true_path_ >= geom_path_);
 
-    skip_sampling_ = true;
-    if (true_path_ < range_ && true_path_ > params_.geom_limit)
-    {
+    skip_sampling_ = [this, &shared]{
+        if (true_path_ >= range_)
+        {
+            // Range-limited step
+            // TODO: should be a hard equality
+            return true;
+        }
+        CELER_ASSERT(true_path_ < range_);
+        if (true_path_ < params_.geom_limit)
+        {
+            // Very small step
+            return true;
+        }
+
+        // Lazy calculation of end energy
         end_energy_ = value_as<Energy>(helper_.calc_end_energy(true_path_));
-        skip_sampling_
-            = (end_energy_ < value_as<Energy>(params_.min_sampling_energy())
-               || true_path_ <= shared.params.limit_min_fix()
-               || true_path_ < lambda_ * params_.tau_small);
-    }
+
+        if (Energy{end_energy_} < params_.min_sampling_energy())
+        {
+            // Ending energy is very low
+            return true;
+        }
+        if (true_path_ <= shared.params.limit_min_fix())
+        {
+            // TODO this is redundant with the earlier geometry check
+            return true;
+        }
+        if (true_path_ <= lambda_ * params_.tau_small)
+        {
+            // Very small MFP travelled
+            return true;
+        }
+        return false;
+    }();
 }
 
 //---------------------------------------------------------------------------//
