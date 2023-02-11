@@ -199,7 +199,8 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
             = {0.995881993983801, -0.0107323420361051, 0.0900215023939723};
         inp.phys_mfp = 0.469519866261640;
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.0499189990540797, result.step, 1e-8);
+        // Distance to interaction = 0.0499189990540797
+        EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
         EXPECT_EQ("geo-boundary", result.action);
     }
 }
