@@ -132,6 +132,7 @@ double units_to_scaling(ImportUnits units)
         case ImportUnits::size_:
             CELER_ASSERT_UNREACHABLE();
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
