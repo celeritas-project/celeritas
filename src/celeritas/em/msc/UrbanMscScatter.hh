@@ -183,7 +183,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     true_path_ = min<real_type>(true_path_, phys_step);
     CELER_ASSERT(true_path_ >= geom_path_);
 
-    skip_sampling_ = [this]{
+    skip_sampling_ = [this] {
         if (true_path_ == range_)
         {
             // Range-limited step

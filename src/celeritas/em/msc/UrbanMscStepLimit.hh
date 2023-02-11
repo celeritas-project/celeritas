@@ -203,9 +203,6 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
     }
 
     // Step limitation algorithm: UseSafety (the default)
-    // TODO: add options for other algorithms (see G4MscStepLimitType.hh)
-
-    // The step limit
     real_type limit = range_;
     if (range_ > safety_)
     {
@@ -270,12 +267,12 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
 {
     // Do the true path -> geom path transformation
     GeomPathAlpha result;
-    result.geom_path = true_path;
     result.alpha = MscStep::tiny_step_alpha();
 
     if (true_path < shared_.params.min_step())
     {
-        // geometrical path length = true path length for a very small step
+        // Geometrical path length = true path length for a very small step
+        result.geom_path = true_path;
         return result;
     }
 
@@ -325,7 +322,9 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
                            / (result.alpha * w);
     }
 
+    // Limit step to 1 MFP (not needed for first two conditionals above)
     result.geom_path = min<real_type>(result.geom_path, lambda_);
+
     return result;
 }
 
