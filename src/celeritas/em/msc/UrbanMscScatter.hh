@@ -665,7 +665,7 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
         if (alpha == MscStep::tiny_step_alpha())
         {
             // For cases that the true path is very small compared to either
-            // the mean free path or the range
+            // the mean free path or the range, assume a constant cross section
             length = -lambda_ * std::log(1 - geom_path / lambda_);
         }
         else

@@ -273,7 +273,7 @@ TEST_F(UrbanMscTest, msc_scattering)
                                             0,
                                             0};
     EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
-    static double const expected_displace[] = {8.19862035797085e-06,
+    static double const expected_displace[] = {8.19862035150528e-06,
                                                9.7530617641316e-05,
                                                -7.1670542039709e-05,
                                                0,

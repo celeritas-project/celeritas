@@ -279,10 +279,9 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     }
     else if (true_path < range_ * shared_.params.dtrl())
     {
-        // XXX use expm1 instead?
-        result.geom_path = (tau < params_.tau_limit)
-                               ? true_path * (1 - tau / 2)
-                               : lambda_ * (1 - std::exp(-tau));
+        // Small enough distance to assume cross section is constant
+        // over the step: z = lambda * (1 - exp(-tau))
+        result.geom_path = -lambda_ * std::expm1(-tau);
     }
     else if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
              || true_path == range_)
