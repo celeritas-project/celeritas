@@ -66,6 +66,12 @@ struct UrbanMscParameters
     {
         return units::MevEnergy{1e-6};
     }
+
+    //! The lower bound of energy to scale the minimum true path length limit
+    static CELER_CONSTEXPR_FUNCTION Energy min_scaling_energy()
+    {
+        return units::MevEnergy(5e-3);
+    }
 };
 
 //---------------------------------------------------------------------------//

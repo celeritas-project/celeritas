@@ -105,12 +105,6 @@ class UrbanMscStepLimit
 
     // Calculate the minimum of the true path length limit
     inline CELER_FUNCTION real_type calc_limit_min() const;
-
-    //! The lower bound of energy to scale the mininum true path length limit
-    static CELER_CONSTEXPR_FUNCTION Energy tlow()
-    {
-        return units::MevEnergy(5e-3);
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -324,7 +318,6 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
 
     // Limit step to 1 MFP (not needed for first two conditionals above)
     result.geom_path = min<real_type>(result.geom_path, lambda_);
-
     return result;
 }
 
@@ -343,11 +336,12 @@ CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min() const
     // Scale based on particle type and effective atomic number
     xm *= helper_.scaled_zeff();
 
-    if (inc_energy_ < value_as<Energy>(this->tlow()))
+    if (inc_energy_ < value_as<Energy>(shared_.params.min_scaling_energy()))
     {
         // Energy is below a pre-defined limit
         xm *= (real_type(0.5)
-               + real_type(0.5) * inc_energy_ / value_as<Energy>(this->tlow()));
+               + real_type(0.5) * inc_energy_
+                     / value_as<Energy>(shared_.params.min_scaling_energy()));
     }
 
     return max<real_type>(xm, shared_.params.limit_min_fix());
