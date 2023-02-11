@@ -79,8 +79,8 @@ struct Interaction
  */
 struct MscStep
 {
-    //! Flag for
-    static constexpr real_type tiny_step_alpha() { return -1; }
+    //! Flag for whether a very small step length took place
+    static CELER_CONSTEXPR_FUNCTION real_type tiny_step_alpha() { return -1; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
     real_type true_path{};  //!< True path length due to the msc [cm]
