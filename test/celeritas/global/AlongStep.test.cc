@@ -34,11 +34,13 @@ class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
     GeantPhysicsOptions build_geant_options() const override
     {
         auto opts = TestEm3Base::build_geant_options();
+        opts.em_bins_per_decade = bpd_;
         opts.eloss_fluctuation = fluct_;
         opts.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
         return opts;
     }
 
+    size_type bpd_{14};
     bool msc_{false};
     bool fluct_{true};
 };
@@ -171,6 +173,34 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3);
         EXPECT_SOFT_EQ(3.3396076266578e-15, result.time);
         EXPECT_SOFT_NEAR(0.00010000053338476, result.step, 1e-8);
+        EXPECT_EQ("geo-boundary", result.action);
+    }
+}
+
+TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
+{
+    msc_ = true;
+    fluct_ = false;
+    bpd_ = 56;
+
+    size_type num_tracks = 1024;
+    Input inp;
+    {
+        // Even though the MSC cross section decreases with increasing energy,
+        // on a finer energy grid the discontinuity in the positron cross
+        // section means the cross section could have a *positive* slope just
+        // above 10 MeV.
+        SCOPED_TRACE("positron wth MSC cross section near discontinuity");
+        inp.particle_id = this->particle()->find(pdg::positron());
+        inp.energy = MevEnergy{10.6026777729432};
+        inp.position
+            = {-3.81588975039638, 0.0396989319776775, -0.0362911231520308};
+        inp.direction
+            = {0.995881993983801, -0.0107323420361051, 0.0900215023939723};
+        inp.phys_mfp = 0.469519866261640;
+        auto result = this->run(inp, num_tracks);
+        // Distance to interaction = 0.0499189990540797
+        EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
         EXPECT_EQ("geo-boundary", result.action);
     }
 }
