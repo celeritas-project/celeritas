@@ -303,7 +303,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 {
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    real_type result = 1;
 
     real_type lambda_end = helper_.calc_msc_mfp(Energy{end_energy_});
 
@@ -314,7 +313,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
     if (tau_ >= params_.tau_big)
     {
-        result = UniformRealDistribution<real_type>(-1, 1)(rng);
+        return UniformRealDistribution<real_type>(-1, 1)(rng);
     }
     else if (tau_ >= params_.tau_small)
     {
@@ -342,7 +341,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         real_type theta2 = ipow<2>(theta0);
         if (theta2 < params_.tau_small)
         {
-            return result;
+            return 1;
         }
 
         if (theta0 > constants::pi / 6)
@@ -383,7 +382,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
         if (xmean1 <= real_type(0.999) * xmean)
         {
-            result = this->simple_scattering(rng, xmean, x2mean);
+            return this->simple_scattering(rng, xmean, x2mean);
         }
 
         // From continuity of derivatives
@@ -408,7 +407,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
             {
                 // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
                 UniformRealDistribution<real_type> sample_inner(ea, 1);
-                result = 1 + std::log(sample_inner(rng)) * x;
+                return 1 + std::log(sample_inner(rng)) * x;
             }
             else
             {
@@ -417,13 +416,13 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
                 if (var < real_type(0.01) * d)
                 {
                     var /= (d * (c - 1));
-                    result = -1
+                    return -1
                              + var * (1 - real_type(0.5) * var * c)
                                    * (2 + (c - xsi) * x);
                 }
                 else
                 {
-                    result = x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
+                    return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
                              + 1;
                 }
             }
@@ -431,10 +430,9 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
         else
         {
             // Sample \f$ \cos\theta \f$ from \f$ g_3(\cos\theta) \f$
-            result = UniformRealDistribution<real_type>(-1, 1)(rng);
+            return UniformRealDistribution<real_type>(-1, 1)(rng);
         }
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
