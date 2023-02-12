@@ -52,14 +52,16 @@ class UrbanMscHelper
     // The total energy loss over a given step length
     inline CELER_FUNCTION Energy calc_stopping_energy(real_type step) const;
 
-    // The kinetic energy at the end of a given step length corrected by dedx
-    inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
-
     //! Step limit scaling based on atomic number and particle type
     CELER_FUNCTION real_type scaled_zeff() const
     {
         return pmdata_.scaled_zeff;
     }
+
+    // TODO: the following methods are used only by MscScatter
+
+    // The kinetic energy at the end of a given step length corrected by dedx
+    inline CELER_FUNCTION Energy calc_end_energy(real_type step) const;
 
   private:
     //// DATA ////
@@ -142,7 +144,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
     real_type range = physics_.dedx_range();
     if (step <= range * dtrl_)
     {
-        // Short step can be approximated with linear extrapolation.
+        // Assume constant energy loss rate over the step
         real_type dedx = physics_.make_calculator<EnergyLossCalculator>(
             eloss_gid_)(Energy{inc_energy_});
 
