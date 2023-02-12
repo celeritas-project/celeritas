@@ -313,127 +313,129 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
 
     if (tau_ >= params_.tau_big)
     {
+        // Long mean free path: exiting direction is isotropic
         return UniformRealDistribution<real_type>(-1, 1)(rng);
     }
-    else if (tau_ >= params_.tau_small)
+    else if (tau_ < params_.tau_small)
     {
-        // Sample the mean distribution of the scattering angle, cos(theta)
+        // Small mean free path: forward scatter
+        return 1;
+    }
 
-        // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
-        real_type xmean = std::exp(-tau_);
-        real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
+    // Sample the mean distribution of the scattering angle, cos(theta)
 
-        // Too large step of the low energy particle
-        if (end_energy_ < real_type(0.5) * inc_energy_)
+    // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
+    real_type xmean = std::exp(-tau_);
+    real_type x2mean = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
+
+    // Too large step of the low energy particle
+    if (end_energy_ < real_type(0.5) * inc_energy_)
+    {
+        return this->simple_scattering(rng, xmean, x2mean);
+    }
+
+    // Check for extreme small steps
+    real_type tsmall = min<real_type>(limit_min, params_.lambda_limit);
+    bool small_step = (true_path < tsmall);
+
+    real_type theta0 = (small_step) ? std::sqrt(true_path / tsmall)
+                                          * this->compute_theta0(tsmall)
+                                    : this->compute_theta0(true_path);
+
+    // Protect for very small angles
+    real_type theta2 = ipow<2>(theta0);
+    if (theta2 < params_.tau_small)
+    {
+        return 1;
+    }
+
+    if (theta0 > constants::pi / 6)
+    {
+        // theta0 > theta0_max
+        return this->simple_scattering(rng, xmean, x2mean);
+    }
+
+    real_type x = theta2 * (1 - theta2 / 12);
+    if (theta2 > real_type(0.01))
+    {
+        x = ipow<2>(2 * std::sin(real_type(0.5) * theta0));
+    }
+
+    // Evaluate parameters for the tail distribution
+    real_type u
+        = fastpow(small_step ? tsmall / lambda_ : tau_, 1 / real_type(6));
+    real_type xsi = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
+                    + msc_.d[3]
+                          * std::log(true_path / (tau_ * rad_length_));
+
+    // The tail should not be too big
+    xsi = max<real_type>(xsi, real_type(1.9));
+
+    real_type c = xsi;
+    if (std::fabs(xsi - 3) < real_type(0.001))
+    {
+        c = real_type(3.001);
+    }
+    else if (std::fabs(xsi - 2) < real_type(0.001))
+    {
+        c = real_type(2.001);
+    }
+
+    real_type ea = std::exp(-xsi);
+    // Mean of cos\theta computed from the distribution g_1(cos\theta)
+    real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
+
+    if (xmean1 <= real_type(0.999) * xmean)
+    {
+        return this->simple_scattering(rng, xmean, x2mean);
+    }
+
+    // From continuity of derivatives
+    real_type b1 = 2 + (c - xsi) * x;
+    real_type d = fastpow(c * x / b1, c - 1);
+    real_type x0 = 1 - xsi * x;
+
+    // Mean of cos\theta computed from the distribution g_2(cos\theta)
+    real_type xmean2 = (x0 + d - (c * x - b1 * d) / (c - 2)) / (1 - d);
+
+    real_type f2x0 = (c - 1) / (c * (1 - d));
+    real_type prob = f2x0 / (ea / (1 - ea) + f2x0);
+
+    // Eq. 8.14 in the PRM: note that can be greater than 1
+    real_type qprob = xmean / (prob * xmean1 + (1 - prob) * xmean2);
+
+    // Sampling of cos(theta)
+    if (generate_canonical(rng) >= qprob)
+    {
+        // Sample \f$ \cos\theta \f$ from \f$ g_3(\cos\theta) \f$
+        return UniformRealDistribution<real_type>(-1, 1)(rng);
+    }
+
+    // Note: prob is sometime a little greater than one
+    if (generate_canonical(rng) < prob)
+    {
+        // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
+        UniformRealDistribution<real_type> sample_inner(ea, 1);
+        return 1 + std::log(sample_inner(rng)) * x;
+    }
+    else
+    {
+        // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
+        real_type var = (1 - d) * generate_canonical(rng);
+        if (var < real_type(0.01) * d)
         {
-            return this->simple_scattering(rng, xmean, x2mean);
-        }
-
-        // Check for extreme small steps
-        real_type tsmall = min<real_type>(limit_min, params_.lambda_limit);
-        bool small_step = (true_path < tsmall);
-
-        real_type theta0 = (small_step) ? std::sqrt(true_path / tsmall)
-                                              * this->compute_theta0(tsmall)
-                                        : this->compute_theta0(true_path);
-
-        // Protect for very small angles
-        real_type theta2 = ipow<2>(theta0);
-        if (theta2 < params_.tau_small)
-        {
-            return 1;
-        }
-
-        if (theta0 > constants::pi / 6)
-        {
-            // theta0 > theta0_max
-            return this->simple_scattering(rng, xmean, x2mean);
-        }
-
-        real_type x = theta2 * (1 - theta2 / 12);
-        if (theta2 > real_type(0.01))
-        {
-            x = ipow<2>(2 * std::sin(real_type(0.5) * theta0));
-        }
-
-        // Evaluate parameters for the tail distribution
-        real_type u
-            = fastpow(small_step ? tsmall / lambda_ : tau_, 1 / real_type(6));
-        real_type xsi = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
-                        + msc_.d[3]
-                              * std::log(true_path / (tau_ * rad_length_));
-
-        // The tail should not be too big
-        xsi = max<real_type>(xsi, real_type(1.9));
-
-        real_type c = xsi;
-        if (std::fabs(xsi - 3) < real_type(0.001))
-        {
-            c = real_type(3.001);
-        }
-        else if (std::fabs(xsi - 2) < real_type(0.001))
-        {
-            c = real_type(2.001);
-        }
-
-        real_type ea = std::exp(-xsi);
-        // Mean of cos\theta computed from the distribution g_1(cos\theta)
-        real_type xmean1 = 1 - (1 - (1 + xsi) * ea) * x / (1 - ea);
-
-        if (xmean1 <= real_type(0.999) * xmean)
-        {
-            return this->simple_scattering(rng, xmean, x2mean);
-        }
-
-        // From continuity of derivatives
-        real_type b1 = 2 + (c - xsi) * x;
-        real_type d = fastpow(c * x / b1, c - 1);
-        real_type x0 = 1 - xsi * x;
-
-        // Mean of cos\theta computed from the distribution g_2(cos\theta)
-        real_type xmean2 = (x0 + d - (c * x - b1 * d) / (c - 2)) / (1 - d);
-
-        real_type f2x0 = (c - 1) / (c * (1 - d));
-        real_type prob = f2x0 / (ea / (1 - ea) + f2x0);
-
-        // Eq. 8.14 in the PRM: note that can be greater than 1
-        real_type qprob = xmean / (prob * xmean1 + (1 - prob) * xmean2);
-
-        // Sampling of cos(theta)
-        if (generate_canonical(rng) < qprob)
-        {
-            // Note: prob is sometime a little greater than one
-            if (generate_canonical(rng) < prob)
-            {
-                // Sample \f$ \cos\theta \f$ from \f$ g_1(\cos\theta) \f$
-                UniformRealDistribution<real_type> sample_inner(ea, 1);
-                return 1 + std::log(sample_inner(rng)) * x;
-            }
-            else
-            {
-                // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
-                real_type var = (1 - d) * generate_canonical(rng);
-                if (var < real_type(0.01) * d)
-                {
-                    var /= (d * (c - 1));
-                    return -1
-                             + var * (1 - real_type(0.5) * var * c)
-                                   * (2 + (c - xsi) * x);
-                }
-                else
-                {
-                    return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
-                             + 1;
-                }
-            }
+            var /= (d * (c - 1));
+            return -1
+                + var * (1 - real_type(0.5) * var * c)
+                * (2 + (c - xsi) * x);
         }
         else
         {
-            // Sample \f$ \cos\theta \f$ from \f$ g_3(\cos\theta) \f$
-            return UniformRealDistribution<real_type>(-1, 1)(rng);
+            return x * (c - xsi - c * fastpow(var + d, -1 / (c - 1)))
+                + 1;
         }
     }
-}
+    }
 
 //---------------------------------------------------------------------------//
 /*!
