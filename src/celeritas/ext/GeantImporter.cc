@@ -471,11 +471,11 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
                     for (auto i : range(ip.models.size()))
                     {
                         CELER_ASSERT(ip.tables[i].table_type
-                                     == ImportTableType::lambda);
+                                     == ImportTableType::msc_xs);
                         ImportMscModel imm;
                         imm.particle_pdg = ip.particle_pdg;
                         imm.model_class = ip.models[i].model_class;
-                        imm.lambda_table = std::move(ip.tables[i]);
+                        imm.xs_table = std::move(ip.tables[i]);
                         msc_models.push_back(std::move(imm));
                     }
                 }
