@@ -66,12 +66,6 @@ struct UrbanMscParameters
     {
         return units::MevEnergy{1e-6};
     }
-
-    //! Use a small step approximation for the path length correction
-    static CELER_CONSTEXPR_FUNCTION real_type small_step_transformation()
-    {
-        return -1;
-    }
 };
 
 //---------------------------------------------------------------------------//

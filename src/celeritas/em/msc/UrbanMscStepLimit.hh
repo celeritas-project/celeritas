@@ -274,7 +274,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     // Do the true path -> geom path transformation
     GeomPathAlpha result;
     result.geom_path = true_path;
-    result.alpha = params_.small_step_transformation();
+    result.alpha = MscStep::small_step_alpha();
 
     if (true_path < shared_.params.min_step())
     {
