@@ -67,8 +67,10 @@ struct Interaction
  * Step lengths and properties needed to apply multiple scattering.
  *
  * \todo Document and/or refactor into a class that hides details:
- * - alpha == tiny_step_alpha() -> "true path is very small"
- * - is_displaced == false ? limit_min is unchanged and alpha < 0
+ * - alpha == small_step_alpha() ? "true path is very small" (true path scaling
+ *   changes)
+ * - is_displaced == false ? limit_min is unchanged and alpha ==
+ *   small_step_alpha()
  * - true_step >= geom_path
  *
  * The value \f$ \alpha \f$ is used in the approximation of the MSC
@@ -79,13 +81,13 @@ struct Interaction
  */
 struct MscStep
 {
-    //! Flag for whether a very small step length took place
-    static CELER_CONSTEXPR_FUNCTION real_type tiny_step_alpha() { return -1; }
+    //! Use a small step approximation for the path length correction
+    static CELER_CONSTEXPR_FUNCTION real_type small_step_alpha() { return -1; }
 
     bool is_displaced{true};  //!< Flag for the lateral displacement
-    real_type true_path{};  //!< True path length due to the msc [cm]
+    real_type true_path{};  //!< True path length due to the msc  [cm]
     real_type geom_path{};  //!< Geometrical path length [cm]
-    real_type alpha = tiny_step_alpha();  //!< scaled MFP slope [cm^-1]
+    real_type alpha = small_step_alpha();  //!< Scaled MFP slope [cm^-1]
 };
 
 //---------------------------------------------------------------------------//
