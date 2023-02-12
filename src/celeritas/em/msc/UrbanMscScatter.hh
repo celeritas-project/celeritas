@@ -70,21 +70,19 @@ class UrbanMscScatter
     MscParameters const& params_;
     // Urban MSC material data
     MaterialData const& msc_;
-    // Urban MSC helper class
-    UrbanMscHelper helper_;
     // Average atomic number (used only if positron)
     real_type const zeff_;
 
     // Results from UrbanMSCStepLimit
     bool is_displaced_;
     real_type geom_path_;
+    real_type true_path_;
     real_type limit_min_;
     // Geomtry track view
     GeoTrackView& geometry_;
 
     real_type end_energy_;
-    real_type lambda_;
-    real_type true_path_;
+    real_type lambda_{0};
     bool skip_sampling_;
 
     // Internal state
@@ -115,7 +113,7 @@ class UrbanMscScatter
     template<class Engine>
     inline CELER_FUNCTION real_type sample_cos_theta(Engine& rng,
                                                      real_type true_path,
-                                                     real_type limit_min);
+                                                     real_type limit_min) const;
 
     // Sample consine(theta) with a large angle scattering
     template<class Engine>
@@ -161,35 +159,41 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , mass_(value_as<Mass>(shared.electron_mass))
     , params_(shared.params)
     , msc_(shared.material_data[material.material_id()])
-    , helper_(shared, particle, physics)
     , zeff_(material.zeff())
     , is_displaced_(input.is_displaced && !geo_limited)
     , geom_path_(input.geom_path)
+    , true_path_(input.true_path)
     , limit_min_(physics.msc_range().limit_min)
     , geometry_(*geometry)
 {
     CELER_EXPECT(particle.particle_id() == shared.ids.electron
                  || particle.particle_id() == shared.ids.positron);
+    CELER_EXPECT(input.true_path >= geom_path_);
     CELER_EXPECT(geom_path_ > 0);
+    CELER_EXPECT(true_path_ <= range_);
 
-    lambda_ = helper_.calc_msc_mfp(Energy{inc_energy_});
+    // MFP must be calculated before calc_true_path
+    UrbanMscHelper helper(shared, particle, physics);
+    lambda_ = helper.calc_msc_mfp(Energy{inc_energy_});
+    CELER_ASSERT(lambda_ > 0);
 
-    // Convert the geometry path length to the true path length if needed
-    true_path_ = !geo_limited ? input.true_path
-                              : this->calc_true_path(
-                                  input.true_path, geom_path_, input.alpha);
-
-    // Protect against a wrong true -> geom -> true transformation
-    true_path_ = min<real_type>(true_path_, phys_step);
+    if (geo_limited)
+    {
+        // Reduce the true path length from the physics-based value to one
+        // based on the (shorter) geometry path
+        true_path_
+            = this->calc_true_path(input.true_path, geom_path_, input.alpha);
+        // Protect against a wrong true -> geom -> true transformation
+        true_path_ = min<real_type>(true_path_, phys_step);
+    }
     CELER_ASSERT(true_path_ >= geom_path_);
 
-    skip_sampling_ = [this] {
+    skip_sampling_ = [this, &helper] {
         if (true_path_ == range_)
         {
             // Range-limited step
             return true;
         }
-        CELER_ASSERT(true_path_ < range_);
         if (true_path_ < params_.geom_limit)
         {
             // Very small step
@@ -197,7 +201,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
 
         // Lazy calculation of end energy
-        end_energy_ = value_as<Energy>(helper_.calc_end_energy(true_path_));
+        end_energy_ = value_as<Energy>(helper.calc_end_energy(true_path_));
 
         if (Energy{end_energy_} < params_.min_sampling_energy())
         {
@@ -211,6 +215,23 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
         return false;
     }();
+
+    if (!skip_sampling_)
+    {
+        // Calculate number of mean free paths traveled
+        tau_ = true_path_ / [this, &helper] {
+            // Calculate the average MFP assuming the cross section varies
+            // linearly over the step
+            real_type lambda_end = helper.calc_msc_mfp(Energy{end_energy_});
+            if (std::fabs(lambda_ - lambda_end) < lambda_ * real_type(0.01))
+            {
+                // Cross section is almost constant over the step: avoid
+                // numerical explosion
+                return lambda_;
+            }
+            return (lambda_ - lambda_end) / std::log(lambda_ / lambda_end);
+        }();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -232,7 +253,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
                 MscInteraction::Action::unchanged};
     }
 
-    // Sample polar angle and update tau_
+    // Sample polar angle
     real_type costheta = this->sample_cos_theta(rng, true_path_, limit_min_);
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
@@ -297,19 +318,10 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
  * for large \f$\theta\f$, if \f$b \approx 1\f$ and \f$d\f$ is not far from 2.
  */
 template<class Engine>
-CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng,
-                                                           real_type true_path,
-                                                           real_type limit_min)
+CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(
+    Engine& rng, real_type true_path, real_type limit_min) const
 {
     using PolyQuad = PolyEvaluator<real_type, 2>;
-
-
-    real_type lambda_end = helper_.calc_msc_mfp(Energy{end_energy_});
-
-    tau_ = true_path
-           / ((std::fabs(lambda_ - lambda_end) > lambda_ * real_type(0.01))
-                  ? (lambda_ - lambda_end) / std::log(lambda_ / lambda_end)
-                  : lambda_);
 
     if (tau_ >= params_.tau_big)
     {
@@ -649,6 +661,7 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
                                           real_type geom_path,
                                           real_type alpha) const
 {
+    CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(geom_path <= true_path);
     if (geom_path < params_.min_step())
     {
