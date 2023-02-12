@@ -251,7 +251,11 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
         else if (tau_ < params_.tau_big)
         {
-            CELER_ASSERT(limit_min_ > 0);
+            // TODO: if displacement is disabled (because of being near the
+            // boundary or having a short step) then limit_min_ will be zero,
+            // and some corrections will not be applied.
+            // CELER_ASSERT(limit_min_ > 0);
+
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
             x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
