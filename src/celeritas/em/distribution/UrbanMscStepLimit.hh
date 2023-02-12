@@ -254,6 +254,16 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> MscStep
  * \f$ \lambda_{10} (\lambda_{11}) \f$ denotes the value of \f$\lambda_{1}\f$
  * at the start (end) of the step, respectively.
  *
+ * Since the MSC cross section decreases as the energy increases, \f$
+ * \lambda_{10} \f$ will be larger than \f$ \lambda_{11} \f$ and \f$ \alpha \f$
+ * will be positive. However, in the Geant4 Urban MSC model, different methods
+ * are used to calculate the cross section above and below 10 MeV. In the
+ * higher energy region the cross sections are identical for electrons and
+ * positrons, resulting in a discontinuity in the positron cross section at 10
+ * MeV. This means on fine energy grids it's possible for the cross section to
+ * be *increasing* with energy just above the 10 MeV threshold and therefore
+ * for \f$ \alpha \f$ is negative.
+ *
  * \note This performs the same method as in ComputeGeomPathLength of
  * G4UrbanMscModel of the Geant4 10.7 release.
  */
@@ -264,7 +274,7 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     // Do the true path -> geom path transformation
     GeomPathAlpha result;
     result.geom_path = true_path;
-    result.alpha = -1;
+    result.alpha = MscStep::small_step_alpha();
 
     if (true_path < shared_.params.min_step())
     {
