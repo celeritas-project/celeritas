@@ -48,11 +48,11 @@ namespace detail
  */
 GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 {
-    // Set EM options
+    // Set EM options using limits from G4EmParameters
     auto& em_parameters = *G4EmParameters::Instance();
-    CELER_VALIDATE(options_.em_bins_per_decade > 0,
+    CELER_VALIDATE(options_.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
-                   << options.em_bins_per_decade << " (must be positive)");
+                   << options.em_bins_per_decade << " (must be at least 5)");
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);

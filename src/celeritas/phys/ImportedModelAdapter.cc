@@ -89,7 +89,9 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
                                  [this](ImportModel const& m) {
                                      return m.model_class == this->model_class_;
                                  });
-    CELER_ASSERT(mod_iter != import_process.models.end());
+    CELER_VALIDATE(mod_iter != import_process.models.end(),
+                   << "missing microscopic cross sections for "
+                   << to_cstring(model_class_));
     CELER_ASSERT(applic.material < mod_iter->materials.size());
     ImportModelMaterial const& imm
         = mod_iter->materials[applic.material.unchecked_get()];
