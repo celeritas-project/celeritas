@@ -636,7 +636,7 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
     // NOTE: add && !insideskin if the UseDistanceToBoundary algorithm is used
     if (geom_path > lambda_ * params_.tau_small)
     {
-        if (alpha < 0)
+        if (alpha == MscStep::small_step_alpha())
         {
             // For cases that the true path is very small compared to either
             // the mean free path or the range
