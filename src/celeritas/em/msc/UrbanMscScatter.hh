@@ -382,20 +382,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
     CELER_EXPECT(xmean_ > 0 && x2mean_ > 0);
 
-    real_type x = [this] {
-        real_type theta0_sq = ipow<2>(theta0_);
-        if (theta0_sq > real_type(0.01))
-        {
-            return ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
-        }
-        else
-        {
-            // Second-order Taylor expansion of (2 * sin(theta/2))^2
-            // TODO I don't think the `sin` expression is unstable so this
-            // should be removed for simplicity
-            return theta0_sq * (1 - theta0_sq / 12);
-        }
-    }();
+    real_type const x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
 
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
