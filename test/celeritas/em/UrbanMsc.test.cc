@@ -34,20 +34,46 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
 //---------------------------------------------------------------------------//
+TEST(UrbanPositronCorrectorTest, all)
+{
+    UrbanPositronCorrector calc_h{1.0};
+    UrbanPositronCorrector calc_w{74.0};
 
-using VGT = ValueGridType;
-using MevEnergy = units::MevEnergy;
-using Action = MscInteraction::Action;
+    std::vector<real_type> actual_h;
+    std::vector<real_type> actual_w;
+    for (real_type y :
+         {1e-3, 1e-2, 0.4, 0.5, 0.6, 1.0, 1.5, 2., 10., 1e2, 1e3, 1e6})
+    {
+        actual_h.push_back(calc_h(y));
+        actual_w.push_back(calc_w(y));
+    }
 
-using GeoParamsCRefDevice = DeviceCRef<GeoParamsData>;
-using GeoStateRefDevice = DeviceRef<GeoStateData>;
+    // clang-format off
+    static const double expected_h[] = {1.378751990475, 1.3787519983432,
+        1.3813527280086, 1.3825378340463, 1.3834564182635, 1.3856807011387,
+        1.3865656925136, 1.3865681880571, 1.3876210627429, 1.3882415266217,
+        1.3882507402225, 1.3882508352478};
+    static const double expected_w[] = {0.21482671339734,
+        0.4833017838367, 0.70738388881252, 0.70471228941815, 0.7026415135041,
+        0.69762728474033, 0.69563878645763, 0.69577660924627, 0.75392431413533,
+        0.78819102317998, 0.78869986791365, 0.78870511592834};
+    // clang-format on
+    EXPECT_VEC_SOFT_EQ(expected_h, actual_h);
+    EXPECT_VEC_SOFT_EQ(expected_w, actual_w);
+}
 
-using SimStateValue = HostVal<SimStateData>;
-using SimStateRef = NativeRef<SimStateData>;
+//---------------------------------------------------------------------------//
+}
+}
 
+
+namespace test
+{
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -63,6 +89,9 @@ class UrbanMscTest : public RootTestBase
         = CollectionStateStore<ParticleStateData, MemSpace::host>;
     using GeoStateStore = CollectionStateStore<GeoStateData, MemSpace::host>;
     using SimStateStore = CollectionStateStore<SimStateData, MemSpace::host>;
+    using MevEnergy = units::MevEnergy;
+
+    using Action = MscInteraction::Action;
 
   protected:
     char const* geometry_basename() const final { return "four-steel-slabs"; }
@@ -116,7 +145,7 @@ class UrbanMscTest : public RootTestBase
 
         // Calculate and store the energy loss (dedx) range limit
         auto ppid = phys_view.eloss_ppid();
-        auto grid_id = phys_view.value_grid(VGT::range, ppid);
+        auto grid_id = phys_view.value_grid(ValueGridType::range, ppid);
         auto calc_range = phys_view.make_calculator<RangeCalculator>(grid_id);
         real_type range = calc_range(energy);
         phys_view.dedx_range(range);

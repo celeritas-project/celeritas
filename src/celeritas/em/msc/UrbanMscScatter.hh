@@ -20,6 +20,7 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "detail/UrbanPositronCorrector.hh"
 
 #include "UrbanMscHelper.hh"
 
@@ -121,9 +122,6 @@ class UrbanMscScatter
 
     // Calculate the theta0 of the Highland formula
     inline CELER_FUNCTION real_type compute_theta0() const;
-
-    // Calculate the correction on theta0 for positrons
-    inline CELER_FUNCTION real_type calc_positron_correction(real_type tau) const;
 
     // Calculate the length of the displacement (using geometry safety)
     inline CELER_FUNCTION real_type calc_displacement_length(real_type rmax2);
@@ -522,8 +520,8 @@ real_type UrbanMscScatter::compute_theta0() const
     // Correction for the positron
     if (is_positron_)
     {
-        y *= this->calc_positron_correction(
-            std::sqrt(inc_energy_ * end_energy_) / mass_);
+        detail::UrbanPositronCorrector calc_correction{zeff_};
+        y *= calc_correction(std::sqrt(inc_energy_ * end_energy_) / mass_);
     }
 
     // TODO for hadrons: multiply abs(charge)
@@ -545,52 +543,6 @@ real_type UrbanMscScatter::compute_theta0() const
 
     CELER_ENSURE(theta0 >= 0);
     return theta0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the correction on theta0 for positrons.
- *
- * \param tau (incident energy * energy at the end of step)/electron_mass.
- *            (NOT the number of mean free paths in this step)
- */
-CELER_FUNCTION real_type
-UrbanMscScatter::calc_positron_correction(real_type tau) const
-{
-    using PolyLin = PolyEvaluator<real_type, 1>;
-    using PolyQuad = PolyEvaluator<real_type, 2>;
-
-    real_type corr;
-
-    constexpr real_type xl = 0.6;
-    constexpr real_type xh = 0.9;
-    constexpr real_type e = 113;
-
-    real_type x = std::sqrt(tau * (tau + 2) / ipow<2>(tau + 1));
-    real_type a = PolyLin(0.994, -4.08e-3)(zeff_);
-    real_type b = PolyQuad(7.16, 52.6, 365)(1 / zeff_);
-    real_type c = PolyLin(1, -4.47e-3)(zeff_);
-    real_type d = real_type(1.21e-3) * zeff_;
-    if (x < xl)
-    {
-        corr = a * (1 - std::exp(-b * x));
-    }
-    else if (x > xh)
-    {
-        corr = c + d * std::exp(e * (x - 1));
-    }
-    else
-    {
-        real_type yl = a * (1 - std::exp(-b * xl));
-        real_type yh = c + d * std::exp(e * (xh - 1));
-        real_type y0 = (yh - yl) / (xh - xl);
-        real_type y1 = yl - y0 * xl;
-        corr = y0 * x + y1;
-    }
-
-    corr *= PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff_);
-
-    return corr;
 }
 
 //---------------------------------------------------------------------------//
