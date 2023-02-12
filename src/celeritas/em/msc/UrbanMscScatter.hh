@@ -88,6 +88,7 @@ class UrbanMscScatter
     real_type tau_{0};
     real_type xmean_{0};
     real_type x2mean_{0};
+    real_type theta0_{-1};
 
     //// COMMON PROPERTIES ////
 
@@ -119,7 +120,7 @@ class UrbanMscScatter
     inline CELER_FUNCTION real_type simple_scattering(Engine& rng) const;
 
     // Calculate the theta0 of the Highland formula
-    inline CELER_FUNCTION real_type compute_theta0(real_type true_path) const;
+    inline CELER_FUNCTION real_type compute_theta0() const;
 
     // Calculate the correction on theta0 for positrons
     inline CELER_FUNCTION real_type calc_positron_correction(real_type tau) const;
@@ -168,6 +169,8 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     CELER_EXPECT(input.true_path >= geom_path_);
     CELER_EXPECT(geom_path_ > 0);
     CELER_EXPECT(true_path_ <= range_);
+    CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
+                 || !is_displaced_);
 
     // MFP must be calculated before calc_true_path
     UrbanMscHelper helper(shared, particle, physics);
@@ -248,9 +251,16 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
         }
         else if (tau_ < params_.tau_big)
         {
+            CELER_ASSERT(limit_min_ > 0);
             // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
             xmean_ = std::exp(-tau_);
             x2mean_ = (1 + 2 * std::exp(real_type(-2.5) * tau_)) / 3;
+            // MSC "true path" step limit
+            limit_min_ = min(limit_min_, params_.lambda_limit);
+
+            // TODO: theta0_ calculation could be done externally, eliminating
+            // many of the class member data
+            theta0_ = this->compute_theta0();
         }
     }
 }
@@ -283,15 +293,22 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
             // already skip sampling for true_path / lambda <= tau_small
             return real_type{1};
         }
+        if (ipow<2>(theta0_) < params_.tau_small)
+        {
+            // Very small outgoing angular distribution
+            return real_type{1};
+        }
         if (tau_ >= params_.tau_big)
         {
             // Long mean free path: exiting direction is isotropic
             UniformRealDistribution<real_type> sample_isotropic(-1, 1);
             return sample_isotropic(rng);
         }
-        if (end_energy_ < real_type(0.5) * inc_energy_)
+        if (end_energy_ < real_type(0.5) * inc_energy_
+            || theta0_ > constants::pi / 6)
         {
-            // Large energy loss over the step
+            // Large energy loss over the step or large angle distribution
+            // width
             return this->simple_scattering(rng);
         }
         return this->sample_cos_theta(rng);
@@ -364,54 +381,36 @@ template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
     CELER_EXPECT(xmean_ > 0 && x2mean_ > 0);
-    using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    // Check for extreme small steps
-    real_type tsmall = min<real_type>(limit_min_, params_.lambda_limit);
-    bool small_step = (true_path_ < tsmall);
-
-    real_type theta0 = (small_step) ? std::sqrt(true_path_ / tsmall)
-                                          * this->compute_theta0(tsmall)
-                                    : this->compute_theta0(true_path_);
-
-    // Protect for very small angles
-    real_type theta2 = ipow<2>(theta0);
-    if (theta2 < params_.tau_small)
-    {
-        return 1;
-    }
-
-    if (theta0 > constants::pi / 6)
-    {
-        // theta0 > theta0_max
-        return this->simple_scattering(rng);
-    }
-
-    real_type x = theta2 * (1 - theta2 / 12);
-    if (theta2 > real_type(0.01))
-    {
-        x = ipow<2>(2 * std::sin(real_type(0.5) * theta0));
-    }
+    real_type x = [this] {
+        real_type theta0_sq = ipow<2>(theta0_);
+        if (theta0_sq > real_type(0.01))
+        {
+            return ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
+        }
+        else
+        {
+            // Second-order Taylor expansion of (2 * sin(theta/2))^2
+            // TODO I don't think the `sin` expression is unstable so this
+            // should be removed for simplicity
+            return theta0_sq * (1 - theta0_sq / 12);
+        }
+    }();
 
     // Evaluate parameters for the tail distribution
-    real_type u
-        = fastpow(small_step ? tsmall / lambda_ : tau_, 1 / real_type(6));
-    real_type xsi = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
-                    + msc_.d[3]
-                          * std::log(true_path_ / (tau_ * rad_length_));
+    real_type xsi = [this] {
+        using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    // The tail should not be too big
-    xsi = max<real_type>(xsi, real_type(1.9));
-
-    real_type c = xsi;
-    if (std::fabs(xsi - 3) < real_type(0.001))
-    {
-        c = real_type(3.001);
-    }
-    else if (std::fabs(xsi - 2) < real_type(0.001))
-    {
-        c = real_type(2.001);
-    }
+        real_type maxtau = true_path_ < limit_min_ ? limit_min_ / lambda_
+                                                   : tau_;
+        real_type u = fastpow(maxtau, 1 / real_type(6));
+        // 0 < u <= sqrt(2) when params_.tau_big == 8
+        real_type result = PolyQuad(msc_.d[0], msc_.d[1], msc_.d[2])(u)
+                           + msc_.d[3]
+                                 * std::log(true_path_ / (tau_ * rad_length_));
+        // The tail should not be too big
+        return max(result, real_type(1.9));
+    }();
 
     real_type ea = std::exp(-xsi);
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
@@ -423,6 +422,17 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     }
 
     // From continuity of derivatives
+    real_type c = [xsi] {
+        if (std::fabs(xsi - 3) < real_type(0.001))
+        {
+            return real_type(3.001);
+        }
+        else if (std::fabs(xsi - 2) < real_type(0.001))
+        {
+            return real_type(2.001);
+        }
+        return xsi;
+    }();
     real_type b1 = 2 + (c - xsi) * x;
     real_type d = fastpow(c * x / b1, c - 1);
     real_type x0 = 1 - xsi * x;
@@ -435,7 +445,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     // Eq. 8.14 in the PRM: note that can be greater than 1
     real_type qprob = xmean_ / (prob * xmean_1 + (1 - prob) * xmean_2);
-
     // Sampling of cos(theta)
     if (generate_canonical(rng) >= qprob)
     {
@@ -498,7 +507,9 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the width of an approximate Gaussian projected angle distribution
- * using a modified Highland-Lynch-Dahl formula. All particles take the width
+ * using a modified Highland-Lynch-Dahl formula.
+ *
+ * All particles take the width
  * of the central part from a parameterization similar to the original Highland
  * formula, Particle Physics Booklet, July 2002, eq. 26.10.
  * \f[
@@ -512,28 +523,36 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(
  * \param true_path the true step length.
  */
 CELER_FUNCTION
-real_type UrbanMscScatter::compute_theta0(real_type true_path) const
+real_type UrbanMscScatter::compute_theta0() const
 {
-    real_type invbetacp
-        = std::sqrt((inc_energy_ + mass_) * (end_energy_ + mass_)
-                    / (inc_energy_ * (inc_energy_ + 2 * mass_) * end_energy_
-                       * (end_energy_ + 2 * mass_)));
+    real_type true_path = max(limit_min_, true_path_);
     real_type y = true_path / rad_length_;
 
     // Correction for the positron
     if (is_positron_)
     {
-        real_type tau = std::sqrt(inc_energy_ * end_energy_) / mass_;
-        y *= this->calc_positron_correction(tau);
+        y *= this->calc_positron_correction(
+            std::sqrt(inc_energy_ * end_energy_) / mass_);
     }
 
     // TODO for hadrons: multiply abs(charge)
+    real_type invbetacp
+        = std::sqrt((inc_energy_ + mass_) * (end_energy_ + mass_)
+                    / (inc_energy_ * (inc_energy_ + 2 * mass_) * end_energy_
+                       * (end_energy_ + 2 * mass_)));
     real_type theta0 = value_as<Energy>(c_highland()) * std::sqrt(y)
                        * invbetacp;
 
     // Correction factor from e- scattering data
     theta0 *= (msc_.coeffth1 + msc_.coeffth2 * std::log(y));
 
+    if (true_path_ < limit_min_)
+    {
+        // Correct for non-MSC-limited path lengths
+        theta0 *= std::sqrt(true_path_ / limit_min_);
+    }
+
+    CELER_ENSURE(theta0 >= 0);
     return theta0;
 }
 
@@ -542,6 +561,7 @@ real_type UrbanMscScatter::compute_theta0(real_type true_path) const
  * Calculate the correction on theta0 for positrons.
  *
  * \param tau (incident energy * energy at the end of step)/electron_mass.
+ *            (NOT the number of mean free paths in this step)
  */
 CELER_FUNCTION real_type
 UrbanMscScatter::calc_positron_correction(real_type tau) const
