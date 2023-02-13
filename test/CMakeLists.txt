@@ -332,7 +332,7 @@ celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 if(CELERITAS_USE_Geant4)
   set(_filter
     FILTER
-      "KnAlongStepTest.*"
+      "-Em3*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
       "Em3AlongStepTest.msc_nofluct_finegrid"

@@ -96,10 +96,16 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     // Update track's lab-frame time using the beginning-of-step speed
     {
         auto particle = track.make_particle_view();
+        CELER_ASSERT(!particle.is_stopped());
         real_type speed = native_value_from(particle.speed());
-        CELER_ASSERT(speed > 0);
-        real_type delta_time = local.step_limit.step / speed;
-        sim.add_time(delta_time);
+        CELER_ASSERT(speed >= 0);
+        if (speed > 0)
+        {
+            // For very small energies (< numeric_limits<real_type>::epsilon)
+            // the calculated speed can be zero.
+            real_type delta_time = local.step_limit.step / speed;
+            sim.add_time(delta_time);
+        }
     }
 
     apply_eloss(track, &local.step_limit);
