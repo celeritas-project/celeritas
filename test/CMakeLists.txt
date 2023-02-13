@@ -335,6 +335,7 @@ if(CELERITAS_USE_Geant4)
       "KnAlongStepTest.*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
+      "Em3AlongStepTest.msc_nofluct_finegrid"
       "Em3AlongStepTest.fluct_nomsc"
   )
 else()
