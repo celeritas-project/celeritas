@@ -149,19 +149,24 @@ auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
 // Lazily set up and load geant4
 auto GeantTestBase::imported_data() const -> ImportData const&
 {
+    GeantPhysicsOptions opts = this->build_geant_options();
     ImportHelper& i = GeantTestBase::import_helper();
     if (!i.import)
     {
         i.geometry_basename = this->geometry_basename();
-        i.options = this->build_geant_options();
+        i.options = opts;
         std::string gdml_inp = this->test_data_path(
             "celeritas", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
         i.imported = (*i.import)();
+        i.options.verbose = false;
     }
     else
     {
+        // Verbosity change is allowable
+        opts.verbose = false;
+
         static char const explanation[]
             = " (Geant4 cannot be set up twice in one execution: see issue "
               "#462)";
@@ -170,7 +175,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
                        << this->geometry_basename() << "' when another '"
                        << i.geometry_basename << "' was already set up"
                        << explanation);
-        CELER_VALIDATE(this->build_geant_options() == i.options,
+        CELER_VALIDATE(opts == i.options,
                        << "cannot change physics options after "
                        << explanation);
     }
