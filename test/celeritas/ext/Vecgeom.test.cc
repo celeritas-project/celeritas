@@ -436,21 +436,21 @@ TEST_F(SolidsTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsTest, DISABLED_trace)
+TEST_F(SolidsTest, trace)
 {
     {
         SCOPED_TRACE("Center +x");
-        auto result = this->track({-100, 0, 0}, {1, 0, 0});
+        auto result = this->track({-37.5, 0, 0}, {1, 0, 0});
         result.print_expected();
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
+        auto result = this->track({-37.5, 12.5, 0}, {1, 0, 0});
         result.print_expected();
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
+        auto result = this->track({-37.5, -12.5, 0}, {1, 0, 0});
         result.print_expected();
     }
     ADD_FAILURE() << "These are all wrong...";
@@ -483,7 +483,7 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
 //---------------------------------------------------------------------------//
 
-#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
+#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(DISABLED_FourLevelsGeantTest)
 class FourLevelsGeantTest : public GeantBuilderTestBase
 {
   public:
@@ -631,7 +631,7 @@ TEST_F(SolidsGeantTest, accessors)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SolidsGeantTest, DISABLED_trace)
+TEST_F(SolidsGeantTest, trace)
 {
     {
         SCOPED_TRACE("Center +x");

@@ -33,32 +33,32 @@ acceptance of all terms of the Geant4 Software license.
   <constant name="TWOPI" value="2.*pi"/>
   <rotation name="identity" x="0" y="0" z="0"/>
   <position name="center"   x="0" y="0" z="0"/>
-  <position name="posBool1"   x="0" y="125"/>
-  <position name="posTetrah1" x="0" y="-125"/>
+  <position name="posBool1"   x="0" y="125" z="0"/>
+  <position name="posTetrah1" x="0" y="-125" z="0"/>
 
-  <position name="posTube100" x="-125" y=" 125"/>
-  <position name="posCone1"   x="-125"/>
-  <position name="posTrap1"   x="-125" y="-125"/>
-  <position name="posTorus1"  x=" 125" y=" 125"/>
-  <position name="posSphere1" x=" 125"/>
-  <position name="posOrb1"    x=" 125" y="-125"/>
+  <position name="posTube100" x="-125" y=" 125" z="0"/>
+  <position name="posCone1"   x="-125" y="0" z="0"/>
+  <position name="posTrap1"   x="-125" y="-125" z="0"/>
+  <position name="posTorus1"  x=" 125" y=" 125" z="0"/>
+  <position name="posSphere1" x=" 125" y="0" z="0"/>
+  <position name="posOrb1"    x=" 125" y="-125" z="0"/>
 
-  <position name="posPara1"      x="-250" y=" 125"/>
-  <position name="posTrd1"       x="-250"/>
-  <position name="posArb8a"      x="-250" y="-125"/>
-  <position name="posHype1"      x=" 250" y=" 125"/>
-  <position name="posPolycone1"  x=" 250"/>
-  <position name="posGenPocone1" x=" 250" y="-125"/>
+  <position name="posPara1"      x="-250" y=" 125" z="0"/>
+  <position name="posTrd1"       x="-250" y="0" z="0"/>
+  <position name="posArb8a"      x="-250" y="-125" z="0"/>
+  <position name="posHype1"      x=" 250" y=" 125" z="0"/>
+  <position name="posPolycone1"  x=" 250" y="0" z="0"/>
+  <position name="posGenPocone1" x=" 250" y="-125" z="0"/>
 
-  <position name="posTessel1"    x=" 375" y="125"/>
-  <position name="posPolyhedr1"  x=" 375"/>
-  <position name="posGenPohedr1" x=" 375" y="-125"/>
-  <position name="posParab1"     x="-375"/>
-  <position name="posArb8b"      x="-375" y="-125"/>
+  <position name="posTessel1"    x=" 375" y="125" z="0"/>
+  <position name="posPolyhedr1"  x=" 375" y="0" z="0"/>
+  <position name="posGenPohedr1" x=" 375" y="-125" z="0"/>
+  <position name="posParab1"     x="-375" y="0" z="0"/>
+  <position name="posArb8b"      x="-375" y="-125" z="0"/>
 
-  <position name="posEllcone1" x=" 500" y=" 125"/>
-  <position name="posEllipso1" x=" 500"/>
-  <position name="posEllTube1" x=" 500" y="-125"/>
+  <position name="posEllcone1" x=" 500" y=" 125" z="0"/>
+  <position name="posEllipso1" x=" 500" y="0" z="0"/>
+  <position name="posEllTube1" x=" 500" y="-125" z="0"/>
 
   <position name="v0" unit="mm" x=" 400" y=" 400" z="-500"/>
   <position name="v1" unit="mm" x="-400" y=" 400" z="-500"/>
@@ -72,9 +72,9 @@ acceptance of all terms of the Geant4 Software license.
 
   <quantity name="ro" type="density" unit="g/cm3" value="1234.00"/>
   <quantity name="sizeoft500" type="length" unit="mm" value="500.0"/>
-  <quantity name="wextent" type="length" value="10000.0" unit="mm"/>
-  <position name="shiftbysizeoft500" x="500.0"/>
-  <position name="unionidentitypos" x="25."/>
+  <quantity name="wextent" type="length" value="2000.0" unit="mm"/>
+  <position name="shiftbysizeoft500" x="500.0" y="0" z="0"/>
+  <position name="unionidentitypos" x="25." y="0" z="0"/>
  </define>
 
  <materials>
