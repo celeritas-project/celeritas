@@ -252,7 +252,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 
     for (auto i : range(states_.level[init.other.thread_] + 1))
     {
-        // Copy all data accessed via LSA, except dir, which is set via init
+        // Copy all data accessed via LSA
         auto lsa = this->make_lsa(LevelId{i});
         lsa = init.other.make_lsa(LevelId{i});
         lsa.dir() = init.dir;
@@ -580,7 +580,7 @@ CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
         auto lsa = this->make_lsa(LevelId{level});
         auto tracker = this->make_tracker(lsa.universe());
         auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
-                                       max_step);
+                                       min_step);
 
         if (isect.distance < min_step)
         {

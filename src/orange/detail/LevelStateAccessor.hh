@@ -27,9 +27,9 @@ class LevelStateAccessor
 
   public:
     // Construct from states and indices
-    explicit inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
-                                                      ThreadId thread_id,
-                                                      LevelId level_id);
+    inline CELER_FUNCTION LevelStateAccessor(StateRef const* states,
+                                             ThreadId thread_id,
+                                             LevelId level_id);
 
     // Copy data from another LSA
     inline CELER_FUNCTION LevelStateAccessor&
@@ -110,8 +110,8 @@ class LevelStateAccessor
     }
 
   private:
-    StateRef const* states_;
-    const size_type index_;
+    StateRef const* const states_;
+    size_type const index_;
 };
 
 //---------------------------------------------------------------------------//
