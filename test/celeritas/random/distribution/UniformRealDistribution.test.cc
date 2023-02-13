@@ -53,7 +53,7 @@ TEST_F(UniformRealDistributionTest, bin)
     UniformRealDistribution<> sample_uniform{min, max};
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double r = sample_uniform(rng);
         ASSERT_GE(r, min);

@@ -33,6 +33,30 @@ namespace demo_loop
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Write when event ID matches and either track ID or parent ID matches.
+ */
+struct MCTruthFilter
+{
+    using size_type = celeritas::size_type;
+
+    static constexpr size_type unspecified()
+    {
+        return static_cast<size_type>(-1);
+    }
+
+    std::vector<size_type> track_id;
+    size_type event_id = unspecified();
+    size_type parent_id = unspecified();
+
+    explicit operator bool() const
+    {
+        return !track_id.empty() || event_id != unspecified()
+               || parent_id != unspecified();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Input for a single run.
  */
 struct LDemoArgs
@@ -48,6 +72,9 @@ struct LDemoArgs
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
     std::string hepmc3_filename;  //!< Path to HepMC3 event data
     std::string mctruth_filename;  //!< Path to ROOT MC truth event data
+
+    // Optional filter for ROOT MC truth data
+    MCTruthFilter mctruth_filter;
 
     // Optional setup options for generating primaries programmatically
     celeritas::PrimaryGeneratorOptions primary_gen_options;
@@ -102,7 +129,7 @@ void to_json(nlohmann::json& j, LDemoArgs const& value);
 void from_json(nlohmann::json const& j, LDemoArgs& value);
 
 // Store LDemoArgs to ROOT file when ROOT is available
-void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& args);
+void to_root(celeritas::RootFileManager& root_manager, LDemoArgs const& cargs);
 
 // Store CoreParams to ROOT file when ROOT is available
 void to_root(celeritas::RootFileManager& root_manager,

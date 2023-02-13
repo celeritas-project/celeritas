@@ -1,22 +1,35 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/VectorUtils.hh
-//! \brief Helper functions for std::vector
+//! \file celeritas/RootTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
-#include "corecel/Types.hh"
+#include "ImportedDataTestBase.hh"
 
 namespace celeritas
 {
+namespace test
+{
 //---------------------------------------------------------------------------//
-// Return evenly spaced numbers over a specific interval
-std::vector<real_type> linspace(real_type start, real_type stop, size_type n);
+/*!
+ * Test harness for loading problem data from a ROOT file
+ */
+class RootTestBase : public ImportedDataTestBase
+{
+  protected:
+    // Access lazily loaded static ROOT data
+    ImportData const& imported_data() const final;
+
+  private:
+    struct ImportHelper;
+    class CleanupGeantEnvironment;
+
+    static ImportHelper& import_helper();
+};
 
 //---------------------------------------------------------------------------//
+}  // namespace test
 }  // namespace celeritas

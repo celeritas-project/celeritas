@@ -19,7 +19,7 @@
 
 namespace celeritas
 {
-class UrbanMscModel;
+class UrbanMscParams;
 class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
@@ -39,7 +39,7 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     //!@{
     //! \name Type aliases
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
-    using SPConstMsc = std::shared_ptr<UrbanMscModel const>;
+    using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     //!@}
 
   public:
@@ -47,7 +47,7 @@ class AlongStepGeneralLinearAction final : public ExplicitActionInterface
     from_params(ActionId id,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
-                PhysicsParams const& physics,
+                SPConstMsc const& msc,
                 bool eloss_fluctuation);
 
     // Construct with next action ID, and optional EM energy fluctuation

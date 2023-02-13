@@ -16,12 +16,12 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/VectorUtils.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "diagnostic/Diagnostic.hh"

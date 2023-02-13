@@ -9,6 +9,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "JsonPimpl.hh"
 #if CELERITAS_USE_JSON
@@ -25,20 +26,13 @@ namespace celeritas
  */
 char const* to_cstring(Category value)
 {
-    CELER_EXPECT(value != Category::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<Category> const to_cstring_impl{
         "input",
         "result",
         "system",
         "internal",
     };
-    static_assert(
-        static_cast<unsigned int>(Category::size_) * sizeof(char const*)
-            == sizeof(strings),
-        "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

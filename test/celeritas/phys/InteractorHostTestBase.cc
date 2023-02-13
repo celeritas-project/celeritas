@@ -104,6 +104,42 @@ InteractorHostTestBase::~InteractorHostTestBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Helper to make dummy ImportProcess data .
+ */
+ImportProcess InteractorHostTestBase::make_import_process(
+    PDGNumber particle,
+    PDGNumber secondary,
+    ImportProcessClass ipc,
+    std::vector<ImportModelClass> models) const
+{
+    CELER_EXPECT(particle);
+    CELER_EXPECT(material_params_);
+    CELER_EXPECT(!models.empty());
+    ImportProcess result;
+    result.particle_pdg = particle.get();
+    result.secondary_pdg = secondary ? secondary.get() : 0;
+    result.process_type = ImportProcessType::electromagnetic;
+    result.process_class = ipc;
+
+    for (auto& mcls : models)
+    {
+        ImportModel m;
+        m.model_class = mcls;
+        m.materials.resize(material_params_->num_materials());
+        for (ImportModelMaterial& imm : m.materials)
+        {
+            imm.energy = {0, 1e12};
+        }
+        CELER_ASSERT(m);
+        result.models.push_back(std::move(m));
+    }
+
+    CELER_ENSURE(result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set particle parameters.
  */
 void InteractorHostTestBase::set_material_params(MaterialParams::Input inp)

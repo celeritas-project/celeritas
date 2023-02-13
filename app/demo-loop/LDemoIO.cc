@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "LDemoIO.hh"
 
-#include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -17,6 +16,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Units.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -74,16 +74,14 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-//! Get the set of all process classes in the input
-auto get_all_process_classes(std::vector<ImportProcess> const& processes)
-    -> decltype(auto)
+//! Get optional values from json.
+template<class T>
+void get_optional(nlohmann::json const& j, char const* key, T& value)
 {
-    std::set<ImportProcessClass> result;
-    for (auto const& p : processes)
+    if (j.contains(key))
     {
-        result.insert(p.process_class);
+        j.at(key).get_to(value);
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -148,6 +146,20 @@ void from_json(nlohmann::json const& j, LDemoArgs& v)
     if (j.contains("mctruth_filename"))
     {
         j.at("mctruth_filename").get_to(v.mctruth_filename);
+    }
+    if (j.contains("mctruth_filter"))
+    {
+        auto const& jfilter = j.at("mctruth_filter");
+        get_optional(jfilter, "event_id", v.mctruth_filter.event_id);
+        get_optional(jfilter, "track_id", v.mctruth_filter.track_id);
+        get_optional(jfilter, "parent_id", v.mctruth_filter.parent_id);
+
+        if (v.mctruth_filter)
+        {
+            CELER_VALIDATE(!v.mctruth_filename.empty(),
+                           << "missing 'mctruth_filename' when "
+                              "'mctruth_filter' was specified");
+        }
     }
     if (j.contains("primary_gen_options"))
     {
@@ -281,10 +293,8 @@ TransporterInput load_input(LDemoArgs const& args)
 
             ProcessBuilder build_process(
                 imported_data, params.particle, params.material, opts);
-            // TODO: there's got to be a cleaner way to get the set of all
-            // processes: maybe better to change how the ImportData is
-            // structured
-            for (auto p : get_all_process_classes(imported_data.processes))
+            for (auto p : ProcessBuilder::get_all_process_classes(
+                     imported_data.processes))
             {
                 input.processes.push_back(build_process(p));
                 CELER_ASSERT(input.processes.back());
@@ -295,6 +305,8 @@ TransporterInput load_input(LDemoArgs const& args)
     }
 
     bool eloss = imported_data.em_params.energy_loss_fluct;
+    auto msc = UrbanMscParams::from_import(
+        *params.particle, *params.material, imported_data);
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
@@ -302,7 +314,7 @@ TransporterInput load_input(LDemoArgs const& args)
             params.action_reg->next_id(),
             *params.material,
             *params.particle,
-            *params.physics,
+            msc,
             eloss);
         params.action_reg->insert(along_step);
     }
@@ -321,8 +333,8 @@ TransporterInput load_input(LDemoArgs const& args)
             f *= units::tesla;
         }
 
-        auto along_step = AlongStepUniformMscAction::from_params(
-            params.action_reg->next_id(), *params.physics, field_params);
+        auto along_step = std::make_shared<AlongStepUniformMscAction>(
+            params.action_reg->next_id(), field_params, msc);
         CELER_ASSERT(along_step->field() != LDemoArgs::no_field());
         params.action_reg->insert(along_step);
     }

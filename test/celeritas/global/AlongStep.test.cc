@@ -6,9 +6,11 @@
 //! \file celeritas/global/AlongStep.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "../MockTestBase.hh"
 #include "../SimpleTestBase.hh"
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
@@ -23,16 +25,26 @@ namespace test
 
 class KnAlongStepTest : public SimpleTestBase, public AlongStepTestBase
 {
-  public:
+};
+
+class MockAlongStepTest : public MockTestBase, public AlongStepTestBase
+{
 };
 
 #define Em3AlongStepTest TEST_IF_CELERITAS_GEANT(Em3AlongStepTest)
 class Em3AlongStepTest : public TestEm3Base, public AlongStepTestBase
 {
   public:
-    bool enable_msc() const override { return msc_; }
-    bool enable_fluctuation() const override { return fluct_; }
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.em_bins_per_decade = bpd_;
+        opts.eloss_fluctuation = fluct_;
+        opts.msc = msc_ ? MscModelSelection::urban : MscModelSelection::none;
+        return opts;
+    }
 
+    size_type bpd_{14};
     bool msc_{false};
     bool fluct_{true};
 };
@@ -75,6 +87,52 @@ TEST_F(KnAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(3.3386159562990149e-14, result.time);
         EXPECT_SOFT_EQ(0.0010008918838569024, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+}
+
+TEST_F(MockAlongStepTest, basic)
+{
+    size_type num_tracks = 10;
+    Input inp;
+    inp.particle_id = this->particle()->find("celeriton");
+    {
+        inp.energy = MevEnergy{1};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0.29312, result.eloss);
+        EXPECT_SOFT_EQ(0.48853333333333, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.881667426791e-11, result.time);
+        EXPECT_SOFT_EQ(0.48853333333333, result.step);
+        EXPECT_EQ("eloss-range", result.action);
+    }
+    {
+        inp.energy = MevEnergy{1e-6};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(1e-06, result.eloss);
+        EXPECT_SOFT_EQ(5.2704627669473e-05, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.2431209185653e-12, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-05, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        inp.energy = MevEnergy{1e-12};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(1e-12, result.eloss);
+        EXPECT_SOFT_EQ(5.2704627669473e-08, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.2430647328325e-12, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-08, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        inp.energy = MevEnergy{1e-18};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(0, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
 }
@@ -151,7 +209,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 1e-3);
         EXPECT_SOFT_EQ(5.3240431819014e-12, result.time);
         EXPECT_SOFT_EQ(0.1502064087009, result.step);
-        EXPECT_EQ("msc-urban", result.action);
+        EXPECT_EQ("msc-range", result.action);
     }
     {
         SCOPED_TRACE("electron very near (1um) boundary");
@@ -165,6 +223,34 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3);
         EXPECT_SOFT_EQ(3.3396076266578e-15, result.time);
         EXPECT_SOFT_NEAR(0.00010000053338476, result.step, 1e-8);
+        EXPECT_EQ("geo-boundary", result.action);
+    }
+}
+
+TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
+{
+    msc_ = true;
+    fluct_ = false;
+    bpd_ = 56;
+
+    size_type num_tracks = 1024;
+    Input inp;
+    {
+        // Even though the MSC cross section decreases with increasing energy,
+        // on a finer energy grid the discontinuity in the positron cross
+        // section means the cross section could have a *positive* slope just
+        // above 10 MeV.
+        SCOPED_TRACE("positron wth MSC cross section near discontinuity");
+        inp.particle_id = this->particle()->find(pdg::positron());
+        inp.energy = MevEnergy{10.6026777729432};
+        inp.position
+            = {-3.81588975039638, 0.0396989319776775, -0.0362911231520308};
+        inp.direction
+            = {0.995881993983801, -0.0107323420361051, 0.0900215023939723};
+        inp.phys_mfp = 0.469519866261640;
+        auto result = this->run(inp, num_tracks);
+        // Distance to interaction = 0.0499189990540797
+        EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
         EXPECT_EQ("geo-boundary", result.action);
     }
 }

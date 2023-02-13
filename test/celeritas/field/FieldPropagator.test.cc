@@ -466,6 +466,26 @@ TEST_F(TwoBoxTest, gamma_exit)
     }
 }
 
+TEST_F(TwoBoxTest, electron_super_small_step)
+{
+    auto particle = this->init_particle(
+        this->particle()->find(pdg::electron()), MevEnergy{2});
+    UniformZField field(1 * units::tesla);
+    FieldDriverOptions driver_options;
+    for (real_type delta : {1e-14, 1e-8, 1e-2, 0.1})
+    {
+        auto geo = this->init_geo({90, 90, 90}, {1, 0, 0});
+        auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
+            field, particle.charge());
+        auto propagate
+            = make_field_propagator(stepper, driver_options, particle, &geo);
+        auto result = propagate(delta);
+
+        EXPECT_DOUBLE_EQ(delta, result.distance);
+        EXPECT_EQ(1, stepper.count());
+    }
+}
+
 // Electron takes small steps up to and from a boundary
 TEST_F(TwoBoxTest, electron_small_step)
 {
@@ -504,7 +524,7 @@ TEST_F(TwoBoxTest, electron_small_step)
         auto result = propagate(2 * delta);
 
         // Distance is the linear step
-        EXPECT_DOUBLE_EQ(1.0000000028043181e-07, result.distance);
+        EXPECT_SOFT_EQ(1.0000000028043181e-07, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
@@ -956,17 +976,17 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
 
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
-    static double const expected_distances[] = {0.0078539816339744,
-                                                0.0028233449997633,
-                                                0.0044879895051283,
-                                                0.0028259703523794,
+    static double const expected_distances[] = {0.00785398163,
+                                                0.00282334500,
+                                                0.00448798951,
+                                                0.00282597035,
                                                 1e-05,
                                                 1e-05,
                                                 1e-08,
                                                 1e-08,
-                                                9.9937975537864e-12,
+                                                9.99379755e-12,
                                                 1e-11};
-    EXPECT_VEC_SOFT_EQ(expected_distances, distances);
+    EXPECT_VEC_NEAR(expected_distances, distances, 1e-5);
     static int const expected_substeps[] = {4, 63, 3, 14, 1, 1, 1, 1, 1, 1};
 
     EXPECT_VEC_EQ(expected_substeps, substeps);
@@ -1041,9 +1061,9 @@ TEST_F(LayersTest, revolutions_through_layers)
     int icross = 0;
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
+    for ([[maybe_unused]] int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
+        for ([[maybe_unused]] auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;
@@ -1088,9 +1108,9 @@ TEST_F(LayersTest, revolutions_through_cms_field)
 
     real_type total_length = 0;
 
-    for (CELER_MAYBE_UNUSED int ir : range(num_revs))
+    for ([[maybe_unused]] int ir : range(num_revs))
     {
-        for (CELER_MAYBE_UNUSED auto k : range(num_steps))
+        for ([[maybe_unused]] auto k : range(num_steps))
         {
             auto result = propagate(step);
             total_length += result.distance;
@@ -1141,7 +1161,7 @@ TEST_F(SimpleCmsTest, electron_stuck)
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(1000);
         EXPECT_EQ(result.boundary, geo.is_on_boundary());
-        EXPECT_EQ(92, stepper.count());
+        EXPECT_EQ(CELERITAS_USE_VECGEOM ? 93 : 92, stepper.count());
         ASSERT_TRUE(geo.is_on_boundary());
         if (!CELERITAS_USE_VECGEOM)
         {

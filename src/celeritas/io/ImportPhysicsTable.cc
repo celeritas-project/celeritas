@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ImportPhysicsTable.hh"
 
-#include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -17,43 +17,43 @@ namespace celeritas
  */
 char const* to_cstring(ImportTableType value)
 {
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportTableType> const to_cstring_impl{
+        "lambda",
+        "lambda_prim",
         "dedx",
-        "dedx_process",
-        "dedx_subsec",
-        "dedx_unrestricted",
-        "ionization",
-        "ionization_subsec",
-        "csda_range",
         "range",
+        "msc_xs",
+
+        "dedx_process",
+        "dedx_unrestricted",
+        "csda_range",
+
+        "dedx_subsec",
+        "ionization_subsec",
         "secondary_range",
         "inverse_range",
-        "lambda",
         "sublambda",
-        "lambda_prim",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the string value for units.
+ * Get a printable label for units.
  */
 char const* to_cstring(ImportUnits value)
 {
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportUnits> const to_cstring_impl{
         "unitless",
         "MeV",
         "MeV/cm",
         "cm",
         "1/cm",
         "1/cm-MeV",
+        "MeV^2/cm",
+        "cm^2",
     };
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
-    return strings[static_cast<unsigned int>(value)];
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

@@ -55,7 +55,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/AllElementReader.hh"
-#include "detail/ImportProcessConverter.hh"
+#include "detail/GeantProcessImporter.hh"
 
 using CLHEP::cm;
 using CLHEP::cm2;
@@ -138,7 +138,7 @@ ImportMaterialState to_material_state(G4State const& g4_material_state)
     switch (g4_material_state)
     {
         case G4State::kStateUndefined:
-            return ImportMaterialState::not_defined;
+            return ImportMaterialState::other;
         case G4State::kStateSolid:
             return ImportMaterialState::solid;
         case G4State::kStateLiquid:
@@ -286,6 +286,11 @@ std::vector<ImportElement> store_elements()
 //---------------------------------------------------------------------------//
 /*!
  * Return a populated \c ImportMaterial vector.
+ *
+ * TODO: there seems to be an inconsitency between "materials" (index in the
+ * global material table) and "material cut couple" (which is what we're
+ * defining here?) Maybe we need another level of indirection for material and
+ * material+cutoff values?
  */
 std::vector<ImportMaterial>
 store_materials(GeantImporter::DataSelection::Flags particle_flags)
@@ -335,19 +340,21 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
     }
 
     // Loop over material data
-    for (unsigned int i : range(g4production_cuts_table.GetTableSize()))
+    for (auto i : range(materials.size()))
     {
         // Fetch material, element, and production cuts lists
-        auto const& g4material_cuts_couple
+        auto const* g4material_cuts_couple
             = g4production_cuts_table.GetMaterialCutsCouple(i);
-        auto const& g4material = g4material_cuts_couple->GetMaterial();
-        auto const& g4elements = g4material->GetElementVector();
-        auto const& g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
+        auto const* g4material = g4material_cuts_couple->GetMaterial();
+        auto const* g4elements = g4material->GetElementVector();
+        auto const* g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
 
         CELER_ASSERT(g4material_cuts_couple);
         CELER_ASSERT(g4material);
         CELER_ASSERT(g4elements);
         CELER_ASSERT(g4prod_cuts);
+        CELER_ASSERT(
+            static_cast<std::size_t>(g4material_cuts_couple->GetIndex()) == i);
 
         // Populate material information
         ImportMaterial material;
@@ -405,10 +412,7 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
                   });
 
         // Add material to vector
-        unsigned int const material_id = g4material_cuts_couple->GetIndex();
-        CELER_ASSERT(material_id < materials.size());
-        CELER_ASSERT(material_id == i);
-        materials[material_id] = material;
+        materials[i] = material;
     }
 
     CELER_LOG(debug) << "Loaded " << materials.size() << " materials";
@@ -420,16 +424,18 @@ store_materials(GeantImporter::DataSelection::Flags particle_flags)
 /*!
  * Return a populated \c ImportProcess vector.
  */
-std::vector<ImportProcess>
-store_processes(GeantImporter::DataSelection::Flags process_flags,
-                std::vector<ImportParticle> const& particles,
-                std::vector<ImportElement> const& elements,
-                std::vector<ImportMaterial> const& materials)
+auto store_processes(GeantImporter::DataSelection::Flags process_flags,
+                     std::vector<ImportParticle> const& particles,
+                     std::vector<ImportElement> const& elements,
+                     std::vector<ImportMaterial> const& materials)
+    -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
     ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
-    detail::ImportProcessConverter load_process(
+    std::vector<ImportMscModel> msc_models;
+
+    detail::GeantProcessImporter load_process(
         detail::TableSelection::minimal, materials, elements);
 
     for (auto const& p : particles)
@@ -454,12 +460,30 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
             if (ImportProcess ip = load_process(*g4_particle_def, process))
             {
                 // Not an empty process, so it was not added in a previous loop
-                processes.push_back(std::move(ip));
+                if (ip.process_class != ImportProcessClass::msc)
+                {
+                    processes.push_back(std::move(ip));
+                }
+                else
+                {
+                    // Unfold process to MSC models
+                    CELER_ASSERT(ip.models.size() == ip.tables.size());
+                    for (auto i : range(ip.models.size()))
+                    {
+                        CELER_ASSERT(ip.tables[i].table_type
+                                     == ImportTableType::msc_xs);
+                        ImportMscModel imm;
+                        imm.particle_pdg = ip.particle_pdg;
+                        imm.model_class = ip.models[i].model_class;
+                        imm.xs_table = std::move(ip.tables[i]);
+                        msc_models.push_back(std::move(imm));
+                    }
+                }
             }
         }
     }
     CELER_LOG(debug) << "Loaded " << processes.size() << " processes";
-    return processes;
+    return {std::move(processes), std::move(msc_models)};
 }
 
 //---------------------------------------------------------------------------//
@@ -561,10 +585,13 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         import_data.particles = store_particles(selected.particles);
         import_data.elements = store_elements();
         import_data.materials = store_materials(selected.particles);
-        import_data.processes = store_processes(selected.processes,
-                                                import_data.particles,
-                                                import_data.elements,
-                                                import_data.materials);
+        // TODO: when moving to C++17, use a structured binding
+        auto processes_and_msc = store_processes(selected.processes,
+                                                 import_data.particles,
+                                                 import_data.elements,
+                                                 import_data.materials);
+        import_data.processes = std::move(processes_and_msc.first);
+        import_data.msc_models = std::move(processes_and_msc.second);
         import_data.volumes = store_volumes(world_);
         if (selected.processes & DataSelection::em)
         {

@@ -132,8 +132,8 @@ cmake_dependent_option(CELERITAS_LAUNCH_BOUNDS
 )
 
 if(NOT DEFINED CMAKE_CXX_STANDARD)
-  # Default CMake standard to C++14 for this directory and underneath
-  set(CMAKE_CXX_STANDARD 14)
+  # Default CMake standard to C++17 for this directory and underneath
+  set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
@@ -210,7 +210,8 @@ if(CELERITAS_USE_ROOT)
 endif()
 
 if(CELERITAS_USE_SWIG AND NOT SWIG_FOUND)
-  find_package(SWIG 4.0 REQUIRED)
+  # Note: 4.1 is required for C++17 parsing
+  find_package(SWIG 4.1 REQUIRED)
 endif()
 
 if(CELERITAS_USE_VecGeom)

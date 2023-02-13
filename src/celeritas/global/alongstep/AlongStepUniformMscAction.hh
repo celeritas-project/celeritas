@@ -18,7 +18,7 @@
 
 namespace celeritas
 {
-class UrbanMscModel;
+class UrbanMscParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
@@ -32,15 +32,10 @@ class AlongStepUniformMscAction final : public ExplicitActionInterface
   public:
     //!@{
     //! \name Type aliases
-    using SPConstMsc = std::shared_ptr<UrbanMscModel const>;
+    using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepUniformMscAction>
-    from_params(ActionId id,
-                PhysicsParams const& physics,
-                UniformFieldParams const& field_params);
-
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
                               UniformFieldParams const& field_params,

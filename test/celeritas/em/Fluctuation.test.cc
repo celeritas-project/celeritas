@@ -194,7 +194,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
                        value_as<EnergySq>(helper.bohr_variance()));
 
         EnergyLossGammaDistribution sample_loss(helper);
-        for (CELER_MAYBE_UNUSED int i : range(num_samples))
+        for ([[maybe_unused]] int i : range(num_samples))
         {
             auto loss = sample_loss(rng).value();
             auto bin = size_type((loss - lower) / width);
@@ -217,7 +217,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
 
         EnergyLossGaussianDistribution sample_loss(helper);
-        for (CELER_MAYBE_UNUSED int i : range(num_samples))
+        for ([[maybe_unused]] int i : range(num_samples))
         {
             auto loss = sample_loss(rng).value();
             auto bin = size_type((loss - lower) / width);
@@ -262,7 +262,7 @@ TEST_F(EnergyLossDistributionTest, urban)
     EXPECT_EQ(EnergyLossFluctuationModel::urban, helper.model());
     EnergyLossUrbanDistribution sample_loss(helper);
 
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         auto loss = sample_loss(rng).value();
         auto bin = size_type((loss - lower) / width);

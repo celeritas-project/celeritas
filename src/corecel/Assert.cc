@@ -185,7 +185,7 @@ RuntimeError RuntimeError::from_device_call(char const* error_string,
 /*!
  * Construct a message and throw an error from a runtime MPI failure.
  */
-RuntimeError RuntimeError::from_mpi_call(CELER_MAYBE_UNUSED int errorcode,
+RuntimeError RuntimeError::from_mpi_call([[maybe_unused]] int errorcode,
                                          char const* code,
                                          char const* file,
                                          int line)

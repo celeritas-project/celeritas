@@ -3,35 +3,24 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/VectorUtils.cc
+//! \file celeritas/grid/VectorUtils.hh
+//! \brief Grid creation helpers
 //---------------------------------------------------------------------------//
-#include "VectorUtils.hh"
+#pragma once
 
-#include "corecel/Assert.hh"
+#include <vector>
+
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Return evenly spaced numbers over a given interval.
- */
-std::vector<real_type> linspace(real_type start, real_type stop, size_type n)
-{
-    CELER_EXPECT(n > 1);
-    std::vector<real_type> result(n);
+// Return evenly spaced numbers over a specific interval
+std::vector<double> linspace(double start, double stop, size_type n);
 
-    // Build vector of evenly spaced numbers
-    real_type delta = (stop - start) / (n - 1);
-    for (auto i : range(n - 1))
-    {
-        result[i] = start + delta * i;
-    }
-    // Manually add last point to avoid any differences due to roundoff
-    result[n - 1] = stop;
-    return result;
-}
+//---------------------------------------------------------------------------//
+// Return logarithmically spaced numbers over a specific interval
+std::vector<double> logspace(double start, double stop, size_type n);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

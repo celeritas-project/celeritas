@@ -14,6 +14,7 @@
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "phys/MockProcess.hh"
 
@@ -75,6 +76,11 @@ auto MockTestBase::build_material() -> SPConstMaterial
          MatterState::solid,
          {{ElementId{0}, 0.1}, {ElementId{1}, 0.3}, {ElementId{2}, 0.6}},
          "celer composite"});
+    inp.materials.push_back({1.0,
+                             2.7,
+                             MatterState::gas,
+                             {{ElementId{0}, 1.0}},
+                             "the cold emptiness of space"});
     return std::make_shared<MaterialParams>(std::move(inp));
 }
 
@@ -84,8 +90,10 @@ auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
     GeoMaterialParams::Input input;
     input.geometry = this->geometry();
     input.materials = this->material();
-    input.volume_to_mat = {MaterialId{0}, MaterialId{2}, MaterialId{1}};
-    input.volume_labels = {Label{"inner"}, Label{"middle"}, Label{"outer"}};
+    input.volume_to_mat
+        = {MaterialId{0}, MaterialId{2}, MaterialId{1}, MaterialId{3}};
+    input.volume_labels
+        = {Label{"inner"}, Label{"middle"}, Label{"outer"}, Label{"world"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
 
@@ -206,13 +214,22 @@ auto MockTestBase::build_along_step() -> SPConstAction
         = AlongStepGeneralLinearAction::from_params(action_reg.next_id(),
                                                     *this->material(),
                                                     *this->particle(),
-                                                    *this->physics(),
+                                                    nullptr,
                                                     false);
     CELER_ASSERT(result);
     CELER_ASSERT(!result->has_fluct());
     CELER_ASSERT(!result->has_msc());
     action_reg.insert(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+auto MockTestBase::build_init() -> SPConstTrackInit
+{
+    TrackInitParams::Input input;
+    input.capacity = 4096;
+    input.max_events = 4096;
+    return std::make_shared<TrackInitParams>(input);
 }
 
 //---------------------------------------------------------------------------//

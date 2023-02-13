@@ -34,16 +34,9 @@ function(celeritas_swig_python_module target module_source)
   set_property(SOURCE "${module_source}"
     PROPERTY USE_TARGET_INCLUDE_DIRECTORIES ON)
 
-  if(SWIG_VERSION VERSION_GREATER_EQUAL 4.1)
-    # Without 'builtin' 4.1 and 4.1.1 have unused variables
-    set(_compile_flags "-builtin")
-  else()
-    # 4.0 builtin has missing initializers/unused variables, and we want to make
-    # sure it builds with -py3 (which is deprecated in 4.1)
-    set(_compile_flags "-py3")
-  endif()
+  # Without 'builtin' 4.1 and 4.1.1 have unused variables
   set_property(SOURCE "${module_source}" APPEND_STRING
-    PROPERTY COMPILE_OPTIONS "${_compile_flags}")
+    PROPERTY COMPILE_OPTIONS "-builtin")
 
   # Create the library
   swig_add_library(${target}

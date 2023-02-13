@@ -7,71 +7,33 @@
 //---------------------------------------------------------------------------//
 #include "ImportProcess.hh"
 
-#include <algorithm>
-#include <initializer_list>
-
-#include "corecel/Assert.hh"
-#include "corecel/cont/EnumArray.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/io/StringEnumMap.hh"
+#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StringEnumMapper.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class T>
-using ModelArray = EnumArray<ImportModelClass, T>;
-
-namespace
-{
-//---------------------------------------------------------------------------//
-// Return flags for whether microscopic cross sections are needed
-ModelArray<bool> make_microxs_flag_array()
-{
-    ModelArray<bool> result;
-    std::fill(result.begin(), result.end(), false);
-    for (ImportModelClass c : {
-             ImportModelClass::e_brems_sb,
-             ImportModelClass::e_brems_lpm,
-             ImportModelClass::mu_brems,
-             ImportModelClass::mu_pair_prod,
-             ImportModelClass::bethe_heitler_lpm,
-             ImportModelClass::livermore_rayleigh,
-             ImportModelClass::e_coulomb_scattering,
-         })
-    {
-        result[c] = true;
-    }
-    return result;
-}
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the string value for a table type.
  */
 char const* to_cstring(ImportProcessType value)
 {
-    CELER_EXPECT(value < ImportProcessType::size_);
-    static char const* const strings[] = {"",
-                                          "transportation",
-                                          "electromagnetic",
-                                          "optical",
-                                          "hadronic",
-                                          "photolepton_hadron",
-                                          "decay",
-                                          "general",
-                                          "parameterisation",
-                                          "user_defined",
-                                          "parallel",
-                                          "phonon",
-                                          "ucn"};
-    static_assert(static_cast<unsigned int>(ImportProcessType::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportProcessType> const to_cstring_impl{
+        "",
+        "transportation",
+        "electromagnetic",
+        "optical",
+        "hadronic",
+        "photolepton_hadron",
+        "decay",
+        "general",
+        "parameterisation",
+        "user_defined",
+        "parallel",
+        "phonon",
+        "ucn",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -82,69 +44,26 @@ char const* to_cstring(ImportProcessType value)
  */
 char const* to_cstring(ImportProcessClass value)
 {
-    CELER_EXPECT(value < ImportProcessClass::size_);
-    static char const* const strings[] = {"",
-                                          "ion_ioni",
-                                          "msc",
-                                          "h_ioni",
-                                          "h_brems",
-                                          "h_pair_prod",
-                                          "coulomb_scat",
-                                          "e_ioni",
-                                          "e_brems",
-                                          "photoelectric",
-                                          "compton",
-                                          "conversion",
-                                          "rayleigh",
-                                          "annihilation",
-                                          "mu_ioni",
-                                          "mu_brems",
-                                          "mu_pair_prod"};
-    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enumerator for the available physics models.
- *
- * This enum was created to safely access the many imported physics tables.
- */
-char const* to_cstring(ImportModelClass value)
-{
-    CELER_EXPECT(value < ImportModelClass::size_);
-    static char const* const strings[] = {"",
-                                          "bragg_ion",
-                                          "bethe_bloch",
-                                          "urban_msc",
-                                          "icru_73_qo",
-                                          "wentzel_VI_uni",
-                                          "h_brems",
-                                          "h_pair_prod",
-                                          "e_coulomb_scattering",
-                                          "bragg",
-                                          "moller_bhabha",
-                                          "e_brems_sb",
-                                          "e_brems_lpm",
-                                          "e_plus_to_gg",
-                                          "livermore_photoelectric",
-                                          "klein_nishina",
-                                          "bethe_heitler",
-                                          "bethe_heitler_lpm",
-                                          "livermore_rayleigh",
-                                          "mu_bethe_bloch",
-                                          "mu_brems",
-                                          "mu_pair_prod"};
-    static_assert(static_cast<unsigned int>(ImportModelClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportProcessClass> const to_cstring_impl{
+        "",
+        "ion_ioni",
+        "msc",
+        "h_ioni",
+        "h_brems",
+        "h_pair_prod",
+        "coulomb_scat",
+        "e_ioni",
+        "e_brems",
+        "photoelectric",
+        "compton",
+        "conversion",
+        "rayleigh",
+        "annihilation",
+        "mu_ioni",
+        "mu_brems",
+        "mu_pair_prod",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -153,9 +72,7 @@ char const* to_cstring(ImportModelClass value)
  */
 char const* to_geant_name(ImportProcessClass value)
 {
-    CELER_EXPECT(value != ImportProcessClass::size_);
-
-    static char const* const strings[] = {
+    static EnumStringMapper<ImportProcessClass> const to_name_impl{
         "",  // unknown,
         "ionIoni",  // ion_ioni,
         "msc",  // msc,
@@ -174,12 +91,7 @@ char const* to_geant_name(ImportProcessClass value)
         "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
     };
-    static_assert(static_cast<unsigned int>(ImportProcessClass::size_)
-                          * sizeof(char const*)
-                      == sizeof(strings),
-                  "Enum strings are incorrect");
-
-    return strings[static_cast<unsigned int>(value)];
+    return to_name_impl(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,21 +104,10 @@ char const* to_geant_name(ImportProcessClass value)
 ImportProcessClass geant_name_to_import_process_class(std::string const& s)
 {
     static auto const from_string
-        = StringEnumMap<ImportProcessClass>::from_cstring_func(
+        = StringEnumMapper<ImportProcessClass>::from_cstring_func(
             to_geant_name, "process class");
 
     return from_string(s);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the model requires microscopic xs data for sampling.
- */
-bool needs_micro_xs(ImportModelClass value)
-{
-    CELER_EXPECT(value < ImportModelClass::size_);
-    static ModelArray<bool> const needs_xs = make_microxs_flag_array();
-    return needs_xs[value];
 }
 
 //---------------------------------------------------------------------------//

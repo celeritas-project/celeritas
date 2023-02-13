@@ -9,7 +9,9 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <unordered_map>
+#include <vector>
 
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/AtomicNumber.hh"
@@ -25,6 +27,13 @@ class ParticleParams;
 struct ImportData;
 struct ImportLivermorePE;
 struct ImportSBTable;
+
+//---------------------------------------------------------------------------//
+//! Options used for constructing built-in Celeritas processes
+struct ProcessBuilderOptions
+{
+    bool brem_combined{false};
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,16 +60,12 @@ class ProcessBuilder
     //!@{
     //! \name Type aliases
     using IPC = ImportProcessClass;
+    using Options = ProcessBuilderOptions;
     using SPProcess = std::shared_ptr<Process>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
-
-    struct Options
-    {
-        bool brem_combined{false};
-    };
 
     //! Input argument for user-provided process construction
     struct UserBuildInput
@@ -77,6 +82,10 @@ class ProcessBuilder
     //!@}
 
   public:
+    // Get an ordered set of all available processes
+    static std::set<IPC>
+    get_all_process_classes(std::vector<ImportProcess> const& processes);
+
     // Construct from imported and shared data and user construction
     ProcessBuilder(ImportData const& data,
                    SPConstParticle particle,

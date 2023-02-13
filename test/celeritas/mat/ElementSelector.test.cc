@@ -136,7 +136,7 @@ TEST_F(ElementSelectorTest, single)
     EXPECT_SOFT_EQ(3.0, select_el.material_micro_xs());
 
     // Select a single element
-    for (CELER_MAYBE_UNUSED auto i : range(100))
+    for ([[maybe_unused]] auto i : range(100))
     {
         auto el_id = select_el(rng);
         EXPECT_EQ(ElementComponentId{0}, el_id);
@@ -157,7 +157,7 @@ TEST_F(ElementSelectorTest, everything_even)
 
     // Select a single element
     std::vector<int> tally(material.num_elements(), 0);
-    for (CELER_MAYBE_UNUSED auto i : range(10000))
+    for ([[maybe_unused]] auto i : range(10000))
     {
         auto el_id = select_el(rng);
         ASSERT_LT(el_id.get(), tally.size());
@@ -198,7 +198,7 @@ TEST_F(ElementSelectorTest, everything_weighted)
 
     // Select a single element
     std::vector<int> tally(material.num_elements(), 0);
-    for (CELER_MAYBE_UNUSED auto i : range(10000))
+    for ([[maybe_unused]] auto i : range(10000))
     {
         auto el_id = select_el(rng);
         ASSERT_LT(el_id.get(), tally.size());

@@ -57,7 +57,7 @@ CMSFieldMapReader::result_type CMSFieldMapReader::operator()() const
 
     result.data.reserve(ngrid);
 
-    for (CELER_MAYBE_UNUSED auto i : range(ngrid))
+    for ([[maybe_unused]] auto i : range(ngrid))
     {
         ifile_.read(reinterpret_cast<char*>(&fd), sizeof(CMSFieldMapInput));
         result.data.push_back(fd.value);
