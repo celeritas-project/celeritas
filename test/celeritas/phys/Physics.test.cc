@@ -129,9 +129,10 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_EQ(
-            R"json({"models":[{"label":"mock-model-1","process":0},{"label":"mock-model-2","process":0},{"label":"mock-model-3","process":1},{"label":"mock-model-4","process":2},{"label":"mock-model-5","process":2},{"label":"mock-model-6","process":2},{"label":"mock-model-7","process":3},{"label":"mock-model-8","process":3},{"label":"mock-model-9","process":4},{"label":"mock-model-10","process":4},{"label":"mock-model-11","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":196,"value_grid_ids":75,"value_grids":75,"value_tables":35}})json",
+            R"json({"models":[{"label":"mock-model-1","process":0},{"label":"mock-model-2","process":0},{"label":"mock-model-3","process":1},{"label":"mock-model-4","process":2},{"label":"mock-model-5","process":2},{"label":"mock-model-6","process":2},{"label":"mock-model-7","process":3},{"label":"mock-model-8","process":3},{"label":"mock-model-9","process":4},{"label":"mock-model-10","process":4},{"label":"mock-model-11","process":5}],"options":{"eloss_calc_limit":[0.001,"MeV"],"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":[{"label":"scattering"},{"label":"absorption"},{"label":"purrs"},{"label":"hisses"},{"label":"meows"},{"label":"barks"}],"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":4,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
             to_string(out))
-            << "R\"json(" << to_string(out) << ")json";
+            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
+            << ")json\"\n/******/";
     }
 }
 
@@ -419,10 +420,11 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     // Grid IDs should be unique if they exist. Gammas should have fewer
     // because there aren't any slowing down/range limiters.
     static int const expected_grid_ids[]
-        = {0,  -1, -1, 3,  -1, -1, 1,  -1, -1, 4,  -1, -1, 2,  -1, -1, 5,
-           -1, -1, 6,  -1, -1, 9,  10, 11, 18, -1, -1, 7,  -1, -1, 12, 13,
-           14, 19, -1, -1, 8,  -1, -1, 15, 16, 17, 20, -1, -1, 21, 22, 23,
-           30, -1, -1, 24, 25, 26, 31, -1, -1, 27, 28, 29, 32, -1, -1};
+        = {0,  -1, -1, 4,  -1, -1, 1,  -1, -1, 5,  -1, -1, 2,  -1, -1, 6,  -1,
+           -1, 3,  -1, -1, 7,  -1, -1, 8,  -1, -1, 12, 13, 14, 24, -1, -1, 9,
+           -1, -1, 15, 16, 17, 25, -1, -1, 10, -1, -1, 18, 19, 20, 26, -1, -1,
+           11, -1, -1, 21, 22, 23, 27, -1, -1, 28, 29, 30, 40, -1, -1, 31, 32,
+           33, 41, -1, -1, 34, 35, 36, 42, -1, -1, 37, 38, 39, 43, -1, -1};
     EXPECT_VEC_EQ(expected_grid_ids, grid_ids);
 }
 
@@ -445,7 +447,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
         }
     }
 
-    double const expected_xs[] = {0.0001, 0.001, 0.1, 0.0001, 0.001, 0.1};
+    double const expected_xs[]
+        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
