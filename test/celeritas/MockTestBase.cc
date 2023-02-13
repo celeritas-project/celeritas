@@ -74,6 +74,11 @@ auto MockTestBase::build_material() -> SPConstMaterial
          MatterState::solid,
          {{ElementId{0}, 0.1}, {ElementId{1}, 0.3}, {ElementId{2}, 0.6}},
          "celer composite"});
+    inp.materials.push_back({1.0,
+                             2.7,
+                             MatterState::gas,
+                             {{ElementId{0}, 1.0}},
+                             "the cold emptiness of space"});
     return std::make_shared<MaterialParams>(std::move(inp));
 }
 
@@ -81,10 +86,12 @@ auto MockTestBase::build_material() -> SPConstMaterial
 auto MockTestBase::build_geomaterial() -> SPConstGeoMaterial
 {
     GeoMaterialParams::Input input;
-    input.geometry      = this->geometry();
-    input.materials     = this->material();
-    input.volume_to_mat = {MaterialId{0}, MaterialId{2}, MaterialId{1}};
-    input.volume_labels = {Label{"inner"}, Label{"middle"}, Label{"outer"}};
+    input.geometry  = this->geometry();
+    input.materials = this->material();
+    input.volume_to_mat
+        = {MaterialId{0}, MaterialId{2}, MaterialId{1}, MaterialId{3}};
+    input.volume_labels
+        = {Label{"inner"}, Label{"middle"}, Label{"outer"}, Label{"world"}};
     return std::make_shared<GeoMaterialParams>(std::move(input));
 }
 

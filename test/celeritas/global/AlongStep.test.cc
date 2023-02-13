@@ -9,6 +9,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "../MockTestBase.hh"
 #include "../SimpleTestBase.hh"
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
@@ -23,7 +24,10 @@ using namespace celeritas_test;
 class KnAlongStepTest : public celeritas_test::SimpleTestBase,
                         public celeritas_test::AlongStepTestBase
 {
-  public:
+};
+
+class MockAlongStepTest : public MockTestBase, public AlongStepTestBase
+{
 };
 
 #define Em3AlongStepTest TEST_IF_CELERITAS_GEANT(Em3AlongStepTest)
@@ -76,6 +80,52 @@ TEST_F(KnAlongStepTest, basic)
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(3.3356409519815e-12, result.time);
         EXPECT_SOFT_EQ(0.1, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+}
+
+TEST_F(MockAlongStepTest, basic)
+{
+    size_type num_tracks = 10;
+    Input     inp;
+    inp.particle_id = this->particle()->find("celeriton");
+    {
+        inp.energy  = MevEnergy{1};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(0.29312, result.eloss);
+        EXPECT_SOFT_EQ(0.48853333333333, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.881667426791e-11, result.time);
+        EXPECT_SOFT_EQ(0.48853333333333, result.step);
+        EXPECT_EQ("eloss-range", result.action);
+    }
+    {
+        inp.energy  = MevEnergy{1e-6};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(1e-06, result.eloss);
+        EXPECT_SOFT_EQ(5.2704627669473e-05, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.2431209185653e-12, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-05, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        inp.energy  = MevEnergy{1e-12};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(1e-12, result.eloss);
+        EXPECT_SOFT_EQ(5.2704627669473e-08, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(1.2430647328325e-12, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-08, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
+    }
+    {
+        inp.energy  = MevEnergy{1e-18};
+        auto result = this->run(inp, num_tracks);
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(0, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
 }
