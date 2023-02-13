@@ -36,35 +36,34 @@ acceptance of all terms of the Geant4 Software license.
   <position name="posBool1"   x="0" y="125" z="0"/>
   <position name="posTetrah1" x="0" y="-125" z="0"/>
 
-  <position name="posTube100" x="-125" y=" 125" z="0"/>
+  <position name="posTube100" x="-125" y="125" z="0"/>
   <position name="posCone1"   x="-125" y="0" z="0"/>
   <position name="posTrap1"   x="-125" y="-125" z="0"/>
-  <position name="posTorus1"  x=" 125" y=" 125" z="0"/>
+  <position name="posTorus1"  x=" 125" y="125" z="0"/>
   <position name="posSphere1" x=" 125" y="0" z="0"/>
   <position name="posOrb1"    x=" 125" y="-125" z="0"/>
 
-  <position name="posPara1"      x="-250" y=" 125" z="0"/>
+  <position name="posPara1"      x="-250" y="125" z="0"/>
   <position name="posTrd1"       x="-250" y="0" z="0"/>
   <position name="posArb8a"      x="-250" y="-125" z="0"/>
-  <position name="posHype1"      x=" 250" y=" 125" z="0"/>
-  <position name="posPolycone1"  x=" 250" y="0" z="0"/>
-  <position name="posGenPocone1" x=" 250" y="-125" z="0"/>
+  <position name="posHype1"      x="250" y="125" z="0"/>
+  <position name="posPolycone1"  x="250" y="0" z="0"/>
+  <position name="posGenPocone1" x="250" y="-125" z="0"/>
 
-  <position name="posTessel1"    x=" 375" y="125" z="0"/>
-  <position name="posPolyhedr1"  x=" 375" y="0" z="0"/>
-  <position name="posGenPohedr1" x=" 375" y="-125" z="0"/>
+  <position name="posTessel1"    x="375" y="125" z="0"/>
+  <position name="posPolyhedr1"  x="375" y="0" z="0"/>
   <position name="posParab1"     x="-375" y="0" z="0"/>
   <position name="posArb8b"      x="-375" y="-125" z="0"/>
 
-  <position name="posEllcone1" x=" 500" y=" 125" z="0"/>
-  <position name="posEllipso1" x=" 500" y="0" z="0"/>
-  <position name="posEllTube1" x=" 500" y="-125" z="0"/>
+  <position name="posEllcone1" x="500" y="125" z="0"/>
+  <position name="posEllipso1" x="500" y="0" z="0"/>
+  <position name="posEllTube1" x="500" y="-125" z="0"/>
 
-  <position name="v0" unit="mm" x=" 400" y=" 400" z="-500"/>
-  <position name="v1" unit="mm" x="-400" y=" 400" z="-500"/>
-  <position name="v2" unit="mm" x="   0" y="   0" z=" 500"/>
+  <position name="v0" unit="mm" x="400" y="400" z="-500"/>
+  <position name="v1" unit="mm" x="-400" y="400" z="-500"/>
+  <position name="v2" unit="mm" x="0" y="0" z="500"/>
   <position name="v3" unit="mm" x="-400" y="-400" z="-500"/>
-  <position name="v4" unit="mm" x=" 400" y="-400" z="-500"/>
+  <position name="v4" unit="mm" x="400" y="-400" z="-500"/>
 
   <rotation name="rotatebyx" x="HALFPI" aunit="rad"/>
   <rotation name="rotatebyy" x="90" aunit="deg"/>
