@@ -458,3 +458,33 @@ TEST_F(SeltzerBergerTest, stress_test)
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
+
+TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
+{
+    using namespace celeritas;
+    // See https://github.com/celeritas-project/celeritas/issues/617
+
+    // Set up material data (only value used in this test is the atomic number)
+    MaterialParams::Input mat_inp;
+    mat_inp.elements  = {{26, units::AmuMass{55.845}, "Fe"}};
+    mat_inp.materials = {{0.128 * ::celeritas::constants::na_avogadro,
+                          293.0,
+                          MatterState::solid,
+                          {{ElementId{0}, 1.0}},
+                          "Fe"}};
+
+    auto const material_params
+        = std::make_shared<MaterialParams>(std::move(mat_inp));
+
+    units::MevMass const   positron_mass{0.51099890999999997};
+    units::MevEnergy const min_gamma_energy{0.020822442086622296};
+    units::MevEnergy const inc_energy{241.06427050865221};
+    units::MevEnergy const sampled_energy{0.020822442732819097};
+    SBPositronXsCorrector  xs_corrector(positron_mass,
+                                       material_params->get(ElementId{0}),
+                                       min_gamma_energy,
+                                       inc_energy);
+
+    auto const result = xs_corrector(sampled_energy);
+    EXPECT_EQ(1, result);
+}
