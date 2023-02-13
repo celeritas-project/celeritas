@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace test
+{
 //---------------------------------------------------------------------------//
 /*!
  * Count the number of invocations to the field stepper.
@@ -55,4 +57,5 @@ class DiagnosticStepper
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace celeritas
 }  // namespace celeritas
