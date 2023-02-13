@@ -141,7 +141,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.phys_mfp = range_limit * macro_xs * (1 - 1e-5);
 
             auto result = this->run(inp, num_tracks);
-            EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
+            EXPECT_SOFT_EQ(0.01, result.eloss);
             EXPECT_SOFT_EQ(0.00028363764374689, result.displacement);
             EXPECT_SOFT_EQ(1, result.angle);
             EXPECT_SOFT_EQ(4.8522211972805e-14, result.time);

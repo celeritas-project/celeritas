@@ -106,19 +106,21 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     if (eloss.is_applicable(track))
     {
         using Energy = ParticleTrackView::Energy;
-        ParticleTrackView::Energy deposited = [&] {
-            auto phys = track.make_physics_view();
-            if (particle.energy() < phys.scalars().eloss_calc_limit
-                && local.step_limit.action != track.boundary_action())
-            {
-                // Immediately stop low-energy tracks (as long as they're not
-                // crossing a boundary)
-                // TODO: this should happen before creating tracks from
-                // secondaries *OR* after slowing down tracks
-                return particle.energy();
-            }
-            return Energy{eloss.calc_eloss(track, local.step_limit.step)};
-        }();
+
+        Energy deposited = eloss.calc_eloss(track, local.step_limit.step);
+
+        if (local.step_limit.action != track.boundary_action()
+            && value_as<Energy>(particle.energy()) - value_as<Energy>(deposited)
+                   <= value_as<Energy>(
+                       track.make_physics_view().scalars().eloss_calc_limit))
+        {
+            // The energy after slowing down is less than the hard tracking
+            // cutoff, so stop the particle rather than leaving it a tiny
+            // amount of energy.
+            // To avoid stopping particles on boundaries (which is an
+            // artificial bias), we avoid this for geometry-limited steps.
+            deposited = particle.energy();
+        }
 
         CELER_ASSERT(deposited <= particle.energy());
         if (deposited > zero_quantity())
@@ -128,48 +130,47 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             step.deposit_energy(deposited);
             particle.subtract_energy(deposited);
         }
+    }
 
-        if (particle.energy() == zero_quantity())
+    if (particle.is_stopped())
+    {
+        // Particle lost all energy over the step
+        auto phys = track.make_physics_view();
+        if (eloss.imprecise_range()
+            && CELER_UNLIKELY(local.step_limit.action
+                              == track.boundary_action()))
         {
-            auto phys = track.make_physics_view();
-            if (eloss.imprecise_range()
-                && CELER_UNLIKELY(local.step_limit.action
-                                  == track.boundary_action()))
-            {
-                // Particle lost all energy *and* is at a geometry boundary.
-                // It therefore physically moved too far over the step, since
-                // the range is supposed to be the integral of the inverse
-                // energy loss rate. Bump particle slightly away from boundary
-                // to avoid on-surface initialization/direction change.
-                real_type backward_bump = real_type(-1e-5)
-                                          * local.step_limit.step;
-                // Force the step limiter to be "range" because energy went to
-                // zero via slowing down.
-                local.step_limit.action = phys.scalars().range_action();
-                local.step_limit.step += backward_bump;
+            // Particle lost all energy *and* is at a geometry boundary.
+            // It therefore physically moved too far over the step, since
+            // the range is supposed to be the integral of the inverse
+            // energy loss rate. Bump particle slightly away from boundary
+            // to avoid on-surface initialization/direction change.
+            real_type backward_bump = real_type(-1e-5) * local.step_limit.step;
+            // Force the step limiter to be "range" because energy went to
+            // zero via slowing down.
+            local.step_limit.action = phys.scalars().range_action();
+            local.step_limit.step += backward_bump;
 
-                auto geo = track.make_geo_view();
-                Real3 pos = geo.pos();
-                axpy(backward_bump, geo.dir(), &pos);
-                geo.move_internal(pos);
-            }
-            CELER_ASSERT(local.step_limit.action != track.boundary_action());
+            auto geo = track.make_geo_view();
+            Real3 pos = geo.pos();
+            axpy(backward_bump, geo.dir(), &pos);
+            geo.move_internal(pos);
+        }
+        CELER_ASSERT(local.step_limit.action != track.boundary_action());
 
-            // Particle lost all energy over the step: this can happen if we're
-            // range limited *or* if below the hard cutoff
-            if (!phys.has_at_rest())
-            {
-                // Immediately kill stopped particles with no at rest processes
-                sim.status(TrackStatus::killed);
-            }
-            else
-            {
-                // Particle slowed down to zero: force a discrete interaction
-                local.step_limit.action = phys.scalars().discrete_action();
-            }
+        if (!phys.has_at_rest())
+        {
+            // Immediately kill stopped particles with no at rest processes
+            sim.status(TrackStatus::killed);
+        }
+        else
+        {
+            // Particle slowed down to zero: force a discrete interaction
+            local.step_limit.action = phys.scalars().discrete_action();
         }
     }
 
+    if (sim.status() != TrackStatus::killed)
     {
         CELER_ASSERT(local.step_limit.step > 0);
         CELER_ASSERT(local.step_limit.action);
