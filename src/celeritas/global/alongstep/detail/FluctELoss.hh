@@ -31,13 +31,11 @@ class FluctELoss
     //!@}
 
   public:
-    //! Construct from reference to data
-    explicit CELER_FUNCTION FluctELoss(ParamsRef const& params)
-        : fluct_params_{params}
-    {
-    }
+    // Construct with flucutation data
+    inline explicit CELER_FUNCTION FluctELoss(ParamsRef const& params);
 
-    CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
+    // Whether energy loss can be used for this track
+    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
 
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
@@ -55,13 +53,21 @@ class FluctELoss
     //// HELPER FUNCTIONS ////
 
     template<EnergyLossFluctuationModel M>
-    CELER_FUNCTION Energy sample_energy_loss(EnergyLossHelper const& helper,
-                                             Energy max_loss,
-                                             RngEngine& rng);
+    inline CELER_FUNCTION Energy sample_energy_loss(
+        EnergyLossHelper const& helper, Energy max_loss, RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with reference to fluctuation data.
+ */
+CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
+    : fluct_params_{params}
+{
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Whether energy loss is used for this track.

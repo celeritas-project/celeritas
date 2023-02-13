@@ -19,24 +19,24 @@ namespace detail
 /*!
  * Calculate energy loss (*without* fluctuations) to a track.
  */
-struct MeanELoss
+class MeanELoss
 {
+  public:
     //!@{
     //! \name Type aliases
     using Energy = ParticleTrackView::Energy;
     //!@}
 
-    //// MEMBER FUNCTIONS ////
-
-    //! Particle will slow down to zero only if range limited
-    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
-
+  public:
     // Whether energy loss is used for this track
-    CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
+    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&) const;
 
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
                                             real_type step);
+
+    //! Particle will slow down to zero only if range limited
+    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
 
 //---------------------------------------------------------------------------//
