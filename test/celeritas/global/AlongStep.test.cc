@@ -129,7 +129,11 @@ TEST_F(MockAlongStepTest, basic)
     {
         inp.energy = MevEnergy{1e-18};
         auto result = this->run(inp, num_tracks);
-        result.print_expected();
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.displacement);
+        EXPECT_SOFT_EQ(1, result.angle);
+        EXPECT_SOFT_EQ(0, result.time);
+        EXPECT_SOFT_EQ(5.2704627669473e-11, result.step);
+        EXPECT_EQ("physics-discrete-select", result.action);
     }
 }
 
