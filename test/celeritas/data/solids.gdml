@@ -31,9 +31,9 @@ acceptance of all terms of the Geant4 Software license.
   <constant name="HALFPI" value="1.5707963267948966"/>
   <constant name="PI"     value="3.1415926535897932"/>
   <constant name="TWOPI"  value="6.2831853071795864"/>
+  <position name="center"     x="0" y="0" z="0"/>
+  <rotation name="norot"      x="0" y="0" z="0"/>
 
-  <rotation name="identity" x="0" y="0" z="0"/>
-  <position name="center"   x="0" y="0" z="0"/>
   <position name="posBool1"   x="0" y="125" z="0"/>
   <position name="posTetrah1" x="0" y="-125" z="0"/>
 
@@ -317,86 +317,86 @@ acceptance of all terms of the Geant4 Software license.
    <physvol>
      <volumeref ref="box500"/>
      <positionref ref="center"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="cone1"/>
      <positionref ref="posCone1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="para1"/>
      <positionref ref="posPara1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="sphere1"/>
      <positionref ref="posSphere1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="parabol1"/>
      <positionref ref="posParab1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="trap1"/>
      <positionref ref="posTrap1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="trd1"/>
      <positionref ref="posTrd1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="tube100"/>
      <positionref ref="posTube100"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="boolean1"/>
      <positionref ref="posBool1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="torus1"/>
      <positionref ref="posTorus1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="orb1"/>
      <positionref ref="posOrb1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="polycone1"/>
      <positionref ref="posPolycone1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
 
    <physvol>
      <volumeref ref="hype1"/>
      <positionref ref="posHype1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="polyhedr1"/>
      <positionref ref="posPolyhedr1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
@@ -408,13 +408,13 @@ acceptance of all terms of the Geant4 Software license.
    <physvol>
      <volumeref ref="arb8a"/>
      <positionref ref="posArb8a"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="arb8b"/>
      <positionref ref="posArb8b"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <!--physvol>
@@ -426,31 +426,31 @@ acceptance of all terms of the Geant4 Software license.
    <physvol>
      <volumeref ref="ellipsoid1"/>
      <positionref ref="posEllipso1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="elltube1"/>
      <positionref ref="posEllTube1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="ellcone1"/>
      <positionref ref="posEllcone1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="genPocone1"/>
      <positionref ref="posGenPocone1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
 
    <physvol>
      <volumeref ref="genPohedr1"/>
      <positionref ref="posGenPohedr1"/>
-     <rotationref ref="identity"/>
+     <rotationref ref="norot"/>
    </physvol>
   </volume>
 
