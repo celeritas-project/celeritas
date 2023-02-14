@@ -649,35 +649,39 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
 {
     CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(geom_path <= true_path);
+
     if (geom_path < params_.min_step())
     {
         // geometrical path length = true path length for a very small step
         return geom_path;
     }
 
-    // Recalculation
-    real_type length = geom_path;
-
     // NOTE: add && !insideskin if the UseDistanceToBoundary algorithm is used
-    if (geom_path > lambda_ * params_.tau_small)
+    if (geom_path <= lambda_ * params_.tau_small)
     {
-        if (alpha == MscStep::small_step_alpha())
-        {
-            // For cases that the true path is very small compared to either
-            // the mean free path or the range, assume a constant cross section
-            length = -lambda_ * std::log(1 - geom_path / lambda_);
-        }
-        else
-        {
-            CELER_ASSERT(alpha > 0);
-            real_type w = 1 + 1 / (alpha * lambda_);
-            real_type x = alpha * w * geom_path;
-            length = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha : range_;
-        }
-
-        length = clamp(length, geom_path, true_path);
+        // Very small distance to collision (less than tau_small paths)
+        return geom_path;
     }
 
+    real_type length;
+    if (alpha == MscStep::small_step_alpha())
+    {
+        // Cross section was assumed to be constant over the step:
+        // z = lambda * (1 - exp(-tau))
+        length = -lambda_ * std::log(1 - geom_path / lambda_);
+    }
+    else
+    {
+        real_type w = 1 + 1 / (alpha * lambda_);
+        // x = 1 corresponds to low-energy or range-limited step
+        real_type x = alpha * w * geom_path;
+        // TODO: is there a missing factor of range in the x<1 case?
+        // NOTE: this form won't exactly invert the varying-lambda
+        // calculation of the true path
+        length = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha : range_;
+    }
+
+    length = clamp(length, geom_path, true_path);
     return length;
 }
 

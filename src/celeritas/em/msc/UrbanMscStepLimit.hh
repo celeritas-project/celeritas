@@ -277,56 +277,51 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     {
         // Geometrical path length = true path length for a very small step
         result.geom_path = true_path;
-        return result;
     }
-
-    // tau = number of mean free paths to collision
-    real_type tau = true_path / lambda_;
-    if (tau <= params_.tau_small)
+    else if (true_path <= lambda_ * params_.tau_small)
     {
-        // Very small distance to collision
-        result.geom_path = min<real_type>(true_path, lambda_);
+        // Very small distance to collision (less than tau_small paths)
+        result.geom_path = min(true_path, lambda_);
     }
     else if (true_path < range_ * shared_.params.dtrl())
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
-        result.geom_path = -lambda_ * std::expm1(-tau);
-    }
-    else if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
-             || true_path == range_)
-    {
-        // Low energy or range-limited step
-        result.alpha = 1 / range_;
-        real_type w = 1 + 1 / (result.alpha * lambda_);
-
-        result.geom_path = 1 / (result.alpha * w);
-        if (true_path < range_)
-        {
-            result.geom_path *= (1 - fastpow(1 - true_path / range_, w));
-        }
+        result.geom_path = -lambda_ * std::expm1(-true_path / lambda_);
     }
     else
     {
-        // Calculate the energy at the end of a physics-limited step
-        real_type rfinal
-            = max<real_type>(range_ - true_path, real_type(0.01) * range_);
-        Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
-        real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
+        real_type expbase;
+        if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
+            || true_path == range_)
+        {
+            // Low energy or range-limited step
+            result.alpha = 1 / range_;
+            expbase = 1 - true_path / range_;
+        }
+        else
+        {
+            // Calculate the energy at the end of a physics-limited step
+            real_type rfinal
+                = max<real_type>(range_ - true_path, real_type(0.01) * range_);
+            Energy endpoint_energy = helper_.calc_stopping_energy(rfinal);
+            real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
 
-        // Calculate the geometric path assuming the cross section is linear
-        // between the start and end energy.
-        // Eq 8.10+1
-        result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
-        CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
+            // Calculate the geometric path assuming the cross section is
+            // linear between the start and end energy. Eq 8.10+1
+            result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
+            CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
+            expbase = lambda1 / lambda_;
+        }
+
         // Eq 8.10 with simplifications
         real_type w = 1 + 1 / (result.alpha * lambda_);
-        result.geom_path = (1 - fastpow(lambda1 / lambda_, w))
-                           / (result.alpha * w);
+        result.geom_path = (1 - fastpow(expbase, w)) / (result.alpha * w);
+
+        // Limit step to 1 MFP
+        result.geom_path = min<real_type>(result.geom_path, lambda_);
     }
 
-    // Limit step to 1 MFP (not needed for first two conditionals above)
-    result.geom_path = min<real_type>(result.geom_path, lambda_);
     return result;
 }
 
