@@ -360,6 +360,7 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
                || remaining_daughters == (int)g4logical->GetNoDaughters());
     }
 
+    std::cout<<"Remaining daughters: "<< remaining_daughters << std::endl;
     for (int i = 0; i < remaining_daughters; ++i)
     {
         auto const daughter_node = g4logical->GetDaughter(i);
@@ -371,6 +372,7 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
     }
 
     fPlacedVolumeMap.Set(node, vgvector);
+    std::cout<<" Add node <"<< node->GetName() <<">, vgvec.size="<< vgvector->size() << std::endl;
     return vgvector;
 }
 
@@ -419,6 +421,7 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
     LogicalVolume* const logical_volume
         = new LogicalVolume(volume->GetName().c_str(), unplaced);
     fLogicalVolumeMap.Set(volume, logical_volume);
+    std::cerr<<" converting logVol <"<< volume->GetName().c_str() <<">\n";
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
@@ -475,8 +478,10 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
 {
     VUnplacedVolume* unplaced_volume = nullptr;
 
-    if (fUnplacedVolumeMap.Contains(shape))
+    if (fUnplacedVolumeMap.Contains(shape)) {
+        std::cerr<<" Shape <"<< shape->GetName() <<"> already converted: "<< fUnplacedVolumeMap[shape] << std::endl;
         return const_cast<VUnplacedVolume*>(fUnplacedVolumeMap[shape]);
+    }
 
     // Check whether this is already a vecgeom::VUnplacedVolume
     if (auto existingUnplaced = dynamic_cast<VUnplacedVolume const*>(shape))
@@ -973,6 +978,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     }
 
     fUnplacedVolumeMap.Set(shape, unplaced_volume);
+    std::cerr<<" Added shape <"<< shape->GetName() <<"> type <"<< shape->GetEntityType() <<"> to fUnplVolMap\n";
     return unplaced_volume;
 }
 
