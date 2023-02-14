@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/SBEnergyDistHelper.hh"
@@ -119,7 +120,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 
     // Avoid positive delta values due to floating point inaccuracies
     // See https://github.com/celeritas-project/celeritas/issues/617
-    CELER_ASSERT(delta < 1e-15);
+    CELER_ASSERT(delta < 100 * numeric_limits<real_type>::epsilon());
     real_type result = std::exp(alpha_z_ * celeritas::min(delta, real_type{0}));
     CELER_ENSURE(result <= 1);
     return result;
