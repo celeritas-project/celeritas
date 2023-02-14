@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -20,9 +21,9 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-#include "detail/UrbanPositronCorrector.hh"
 
 #include "UrbanMscHelper.hh"
+#include "detail/UrbanPositronCorrector.hh"
 
 namespace celeritas
 {
@@ -663,24 +664,34 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
         return geom_path;
     }
 
-    real_type length;
-    if (alpha == MscStep::small_step_alpha())
-    {
-        // Cross section was assumed to be constant over the step:
-        // z = lambda * (1 - exp(-tau))
-        length = -lambda_ * std::log(1 - geom_path / lambda_);
-    }
-    else
-    {
-        real_type w = 1 + 1 / (alpha * lambda_);
-        // x = 1 corresponds to low-energy or range-limited step
-        real_type x = alpha * w * geom_path;
-        // TODO: is there a missing factor of range in the x<1 case?
-        // NOTE: this form won't exactly invert the varying-lambda
-        // calculation of the true path
-        length = (x < 1) ? (1 - fastpow(1 - x, 1 / w)) / alpha : range_;
-    }
+    real_type length = [&] {
+        if (alpha == MscStep::small_step_alpha())
+        {
+            // Cross section was assumed to be constant over the step:
+            // z = lambda * (1 - exp(-tau))
+            return -lambda_ * std::log(1 - geom_path / lambda_);
+        }
 
+        real_type w = 1 + 1 / (alpha * lambda_);
+        real_type x = alpha * w * geom_path;  // = (1 - (1 - alpha * true)^w)
+        if (CELER_UNLIKELY(x > 1))
+        {
+            // Range-limited step results in x = 1, which gives the correct
+            // result in the inverted equation below for alpha = 1/range.
+            // x >= 1 corresponds to the stopping MFP being <= 0: zero is
+            // correct when the step is the range, but the MFP will never be
+            // zero except for numerical error.
+            CELER_ASSERT(x < 1 + 100 * numeric_limits<real_type>::epsilon());
+            return range_;
+        }
+        // Invert Eq. 8.10 exactly
+        return (1 - fastpow(1 - x, 1 / w)) / alpha;
+    }();
+
+    // Prevent numerical errors from putting the new length outside of the
+    // valid range: no less than the geometry path if effectively no scattering
+    // took place; no more than the original calculated true path if the step
+    // is path-limited.
     length = clamp(length, geom_path, true_path);
     return length;
 }

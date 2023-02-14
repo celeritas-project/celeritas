@@ -291,13 +291,16 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
     }
     else
     {
-        real_type expbase;
+        // Eq 8.8: mfp_slope = (lambda_f / lambda_i) = (1 - alpha * true_path)
+        real_type mfp_slope;
         if (inc_energy_ < value_as<Mass>(shared_.electron_mass)
             || true_path == range_)
         {
             // Low energy or range-limited step
+            // (For range-limited step, the final cross section and thus MFP
+            // slope are zero).
             result.alpha = 1 / range_;
-            expbase = 1 - true_path / range_;
+            mfp_slope = 1 - result.alpha * true_path;
         }
         else
         {
@@ -311,12 +314,12 @@ auto UrbanMscStepLimit::calc_geom_path(real_type true_path) const
             // linear between the start and end energy. Eq 8.10+1
             result.alpha = (lambda_ - lambda1) / (lambda_ * true_path);
             CELER_ASSERT(result.alpha != MscStep::small_step_alpha());
-            expbase = lambda1 / lambda_;
+            mfp_slope = lambda1 / lambda_;
         }
 
         // Eq 8.10 with simplifications
         real_type w = 1 + 1 / (result.alpha * lambda_);
-        result.geom_path = (1 - fastpow(expbase, w)) / (result.alpha * w);
+        result.geom_path = (1 - fastpow(mfp_slope, w)) / (result.alpha * w);
 
         // Limit step to 1 MFP
         result.geom_path = min<real_type>(result.geom_path, lambda_);
