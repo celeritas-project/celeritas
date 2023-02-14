@@ -28,9 +28,10 @@ acceptance of all terms of the Geant4 Software license.
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
 
  <define>
-  <constant name="HALFPI" value="1.5708"/>
-  <constant name="PI" value="1.*pi"/>
-  <constant name="TWOPI" value="2.*pi"/>
+  <constant name="HALFPI" value="1.5707963267948966"/>
+  <constant name="PI"     value="3.1415926535897932"/>
+  <constant name="TWOPI"  value="6.2831853071795864"/>
+
   <rotation name="identity" x="0" y="0" z="0"/>
   <position name="center"   x="0" y="0" z="0"/>
   <position name="posBool1"   x="0" y="125" z="0"/>
@@ -69,10 +70,7 @@ acceptance of all terms of the Geant4 Software license.
   <rotation name="rotatebyy" x="90" aunit="deg"/>
   <rotation name="rotatebyall" x="HALFPI" y="PI" z="TWOPI"/>
 
-  <quantity name="ro" type="density" unit="g/cm3" value="1234.00"/>
-  <quantity name="sizeoft500" type="length" unit="mm" value="500.0"/>
-  <quantity name="wextent" type="length" value="2000.0" unit="mm"/>
-  <position name="shiftbysizeoft500" x="500.0" y="0" z="0"/>
+  <constant name="wextent" value="2000."/>
   <position name="unionidentitypos" x="25." y="0" z="0"/>
  </define>
 
