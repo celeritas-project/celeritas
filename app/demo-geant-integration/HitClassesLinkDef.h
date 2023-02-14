@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file app/demo-geant-integration/HitClassesLinkDef.h
-//! \brief Define classes added to the demo geant ROOT dictionary
+//! \brief Request ROOT for classes used in app/demo-geant-integration
 //---------------------------------------------------------------------------//
 #ifdef __ROOTCLING__
 // clang-format off
