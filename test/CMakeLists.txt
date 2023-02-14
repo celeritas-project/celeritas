@@ -108,7 +108,7 @@ endif()
 # GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(SERIAL PREFIX detail)
+celeritas_setup_tests(SERIAL PREFIX testdetail)
 
 celeritas_add_test(TestMacros.test.cc)
 
