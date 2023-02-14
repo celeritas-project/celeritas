@@ -146,7 +146,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <orb name="testorb" r="50.0"/>
 
-  <polycone lunit="mm" aunit="deg" name="testpolyc" deltaphi="270.0" startphi="0.0">
+  <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
     <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
     <zplane z="   0.0" rmin=" 80.0" rmax="100.0"/>
     <zplane z=" 500.0" rmin="180.0" rmax="200.0"/>
@@ -369,36 +369,6 @@ acceptance of all terms of the Geant4 Software license.
    </physvol>
 
    <physvol>
-     <volumeref ref="polycone1"/>
-     <positionref ref="posPolycone1"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="genPocone1"/>
-     <positionref ref="posGenPocone1"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="ellipsoid1"/>
-     <positionref ref="posEllipso1"/>
-     <rotationref ref="identity"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="tetrah1"/>
-     <positionref ref="posTetrah1"/>
-     <rotationref ref="rotatebyy"/>
-   </physvol>
-
-   <physvol>
-     <volumeref ref="tessel1"/>
-     <positionref ref="posTessel1"/>
-     <rotationref ref="rotatebyy"/>
-   </physvol>
-
-   <physvol>
      <volumeref ref="torus1"/>
      <positionref ref="posTorus1"/>
      <rotationref ref="identity"/>
@@ -410,17 +380,12 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="identity"/>
    </physvol>
 
-    <physvol>
-     <volumeref ref="polyhedr1"/>
-     <positionref ref="posPolyhedr1"/>
+   <physvol>
+     <volumeref ref="polycone1"/>
+     <positionref ref="posPolycone1"/>
      <rotationref ref="identity"/>
    </physvol>
 
-   <physvol>
-     <volumeref ref="genPohedr1"/>
-     <positionref ref="posGenPohedr1"/>
-     <rotationref ref="identity"/>
-   </physvol>
 
    <physvol>
      <volumeref ref="hype1"/>
@@ -429,23 +394,62 @@ acceptance of all terms of the Geant4 Software license.
    </physvol>
 
    <physvol>
-     <volumeref ref="elltube1"/>
-     <positionref ref="posEllTube1"/>
+     <volumeref ref="polyhedr1"/>
+     <positionref ref="posPolyhedr1"/>
      <rotationref ref="identity"/>
    </physvol>
+
    <physvol>
-     <volumeref ref="ellcone1"/>
-     <positionref ref="posEllcone1"/>
-     <rotationref ref="identity"/>
+     <volumeref ref="tetrah1"/>
+     <positionref ref="posTetrah1"/>
+     <rotationref ref="rotatebyy"/>
    </physvol>
+
    <physvol>
      <volumeref ref="arb8a"/>
      <positionref ref="posArb8a"/>
      <rotationref ref="identity"/>
    </physvol>
+
    <physvol>
      <volumeref ref="arb8b"/>
      <positionref ref="posArb8b"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <!--physvol>
+     <volumeref ref="tessel1"/>
+     <positionref ref="posTessel1"/>
+     <rotationref ref="rotatebyy"/>
+   </physvol-->
+
+   <physvol>
+     <volumeref ref="ellipsoid1"/>
+     <positionref ref="posEllipso1"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <volumeref ref="elltube1"/>
+     <positionref ref="posEllTube1"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <volumeref ref="ellcone1"/>
+     <positionref ref="posEllcone1"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <volumeref ref="genPocone1"/>
+     <positionref ref="posGenPocone1"/>
+     <rotationref ref="identity"/>
+   </physvol>
+
+   <physvol>
+     <volumeref ref="genPohedr1"/>
+     <positionref ref="posGenPohedr1"/>
      <rotationref ref="identity"/>
    </physvol>
   </volume>
