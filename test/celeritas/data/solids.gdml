@@ -107,16 +107,16 @@ acceptance of all terms of the Geant4 Software license.
   <paraboloid name="parab1" rlo="1" rhi="300" dz="400" lunit="mm"/>
 
   <arb8 name="arb81" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
-             v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-	     v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-55.0" />
+      v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
+      v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-55.0" />
 
   <arb8 name="arb82" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
       v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-	    v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-15.0" />
+      v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-15.0" />
 
   <trap name="trap1" lunit="mm" aunit="deg" theta="-10.0" phi="-30.0" z="800"
       y1="720.0" x1="600.0" x2="300.0"  alpha1="-20.0"
-	    y2="360.0" x3="300.0" x4="150.0"  alpha2="-20.0"/>
+      y2="360.0" x3="300.0" x4="150.0"  alpha2="-20.0"/>
 
   <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
 
@@ -134,13 +134,13 @@ acceptance of all terms of the Geant4 Software license.
     <rotation name="subidentityrot"/>
   </subtraction>
 
-  <tessellated name="testtessel">
+  <!--tessellated name="testtessel">
     <triangular vertex1="v0" vertex2="v1" vertex3="v2"/>
     <triangular vertex1="v1" vertex2="v3" vertex3="v2"/>
     <triangular vertex1="v3" vertex2="v4" vertex3="v2"/>
     <triangular vertex1="v4" vertex2="v0" vertex3="v2"/>
     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
-  </tessellated>
+  </tessellated-->
 
   <torus name="testtorus" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="180" deltaphi="200"/>
 
@@ -171,14 +171,14 @@ acceptance of all terms of the Geant4 Software license.
      <zplane z=" 500.0" rmin="80.0" rmax="360.0"/>
   </polyhedra>
 
-  <genericPolyhedra name="testgenph" lunit="mm" aunit="deg" deltaphi="240." numsides="4" startphi="180." >
+  <!--genericPolyhedra name="testgenph" lunit="mm" aunit="deg" deltaphi="240." numsides="4" startphi="180." >
     <rzpoint r="150.0" z="-500.0" />
     <rzpoint r="300.0" z="   0.0" />
     <rzpoint r="240.0" z=" 500.0" />
     <rzpoint r="200.0" z=" 500.0" />
     <rzpoint r=" 50.0" z="   0.0" />
     <rzpoint r="100.0" z="-500.0" />
-  </genericPolyhedra>
+  </genericPolyhedra-->
   <!--polyhedra name="testgenph" lunit="mm" aunit="deg" deltaphi="240." numsides="4" startphi="180." >
     <zplane z="-500.0" rmin="100.0" rmax="150"/>
     <zplane z="   0.0" rmin=" 50.0" rmax="300"/>
@@ -260,10 +260,10 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="testtet"/>
   </volume>
 
-  <volume name="tessel1">
+  <!--volume name="tessel1">
    <materialref ref="Water"/>
    <solidref ref="testtessel"/>
-  </volume>
+  </volume-->
 
   <volume name="torus1">
    <materialref ref="Water"/>
@@ -280,10 +280,10 @@ acceptance of all terms of the Geant4 Software license.
    <solidref ref="testph"/>
   </volume>
 
-  <volume name="genPohedr1">
+  <!--volume name="genPohedr1">
    <materialref ref="Water"/>
    <solidref ref="testgenph"/>
-   </volume>
+   </volume-->
 
   <volume name="hype1">
    <materialref ref="Water"/>
@@ -447,13 +447,12 @@ acceptance of all terms of the Geant4 Software license.
      <rotationref ref="norot"/>
    </physvol>
 
-   <physvol>
+   <!--physvol>
      <volumeref ref="genPohedr1"/>
      <positionref ref="posGenPohedr1"/>
      <rotationref ref="norot"/>
-   </physvol>
+   </physvol-->
   </volume>
-
  </structure>
 
  <setup name="Default" version="1.0">
