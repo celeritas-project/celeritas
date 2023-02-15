@@ -91,3 +91,28 @@ Random number distributions
    :members: none
 .. doxygenclass:: celeritas::UniformRealDistribution
    :members: none
+
+.. _celeritas_physics:
+
+Physics interfaces
+------------------
+
+.. doxygenclass:: celeritas::BetheHeitlerModel
+   :members: none
+.. doxygenclass:: celeritas::EPlusGGModel
+   :members: none
+.. doxygenclass:: celeritas::KleinNishinaModel
+   :members: none
+.. doxygenclass:: celeritas::MollerBhabhaModel
+   :members: none
+.. doxygenclass:: celeritas::LivermorePEModel
+   :members: none
+.. doxygenclass:: celeritas::RayleighModel
+   :members: none
+.. doxygenclass:: celeritas::RelativisticBremModel
+   :members: none
+.. doxygenclass:: celeritas::SeltzerBergerModel
+   :members: none
+
+.. doxygenclass:: celeritas::UrbanMsc
+   :members: none
