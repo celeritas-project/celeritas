@@ -111,9 +111,9 @@ class Quantity
 //---------------------------------------------------------------------------//
 //! \cond
 #define CELER_DEFINE_QUANTITY_CMP(TOKEN)                             \
-    template<class U, class T>                                       \
+    template<class U, class T, class T2>                                       \
     CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs, \
-                                                 Quantity<U, T> rhs) \
+                                                 Quantity<U, T2> rhs) \
     {                                                                \
         return lhs.value() TOKEN rhs.value();                        \
     }                                                                \

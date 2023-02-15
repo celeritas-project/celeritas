@@ -127,6 +127,8 @@ TEST(QuantityTest, comparators)
     EXPECT_TRUE(Revolution{5} > Revolution{4});
     EXPECT_TRUE(Revolution{5} >= Revolution{4});
     EXPECT_FALSE(Revolution{5} == Revolution{4});
+
+    EXPECT_TRUE((Quantity<DozenUnit, int>{5} == Quantity<DozenUnit, long>{5}));
 }
 
 TEST(QuantityTest, unitless)
