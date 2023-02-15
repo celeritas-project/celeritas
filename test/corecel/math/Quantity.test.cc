@@ -67,6 +67,16 @@ TEST(QuantityTest, usage)
     auto half_rev = native_value_to<Revolution>(constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
+
+    // Check integer division works correctly
+    using Dozen = Quantity<DozenUnit, int>;
+    auto two_dozen = native_value_to<Dozen>(24);
+    EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Dozen>));
+    EXPECT_EQ(2, value_as<Dozen>(two_dozen));
+
+    auto twentyfour = native_value_from(two_dozen);
+    EXPECT_TRUE((std::is_same_v<decltype(twentyfour), int>));
+    EXPECT_EQ(24, twentyfour);
 }
 
 TEST(QuantityTest, zeros)
@@ -80,6 +90,19 @@ TEST(QuantityTest, zeros)
     // Construct from a "zero" sentinel type
     zero_turn = zero_quantity();
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
+}
+
+TEST(QuantityTest, mixed_precision)
+{
+    using RevInt = Quantity<TwoPi, int>;
+    auto fourpi = native_value_from(RevInt{2});
+    EXPECT_TRUE((std::is_same_v<decltype(fourpi), double>));
+    EXPECT_SOFT_EQ(4 * constants::pi, fourpi);
+
+    using DozenDbl = Quantity<DozenUnit, double>;
+    auto two_dozen = native_value_to<DozenDbl>(24);
+    EXPECT_TRUE((std::is_same_v<decltype(two_dozen), DozenDbl>));
+    EXPECT_SOFT_EQ(2, two_dozen.value());
 }
 
 TEST(QuantityTest, comparators)
@@ -106,7 +129,7 @@ TEST(QuantityTest, comparators)
     EXPECT_FALSE(Revolution{5} == Revolution{4});
 }
 
-TEST(QuantityTest, infinities)
+TEST(QuantityTest, unitless)
 {
     EXPECT_TRUE(neg_max_quantity() < Revolution{-1e300});
     EXPECT_TRUE(neg_max_quantity() < zero_quantity());
