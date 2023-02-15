@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <utility>
+#include <G4Backtrace.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4VPhysicalVolume.hh>
@@ -84,6 +85,9 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
                        << "Geant4 cannot be 'run' more than once per "
                           "execution");
         ++geant_launch_count;
+
+        // Disable geant4 signal interception
+        G4Backtrace::DefaultSignals() = {};
 
 #if CELERITAS_G4_V10
         // Note: custom deleter means `make_unique` won't work
