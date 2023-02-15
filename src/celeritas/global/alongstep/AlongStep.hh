@@ -117,7 +117,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         Energy deposited
             = eloss.calc_eloss(track, local.step_limit.step, apply_cut);
         CELER_ASSERT(deposited <= particle.energy());
-        CELER_ASSERT(apply_cut || deposited < particle.energy());
+        CELER_ASSERT(apply_cut || deposited != particle.energy());
 
         if (deposited > zero_quantity())
         {

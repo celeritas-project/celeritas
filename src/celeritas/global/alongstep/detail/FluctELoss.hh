@@ -83,6 +83,15 @@ CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
 //---------------------------------------------------------------------------//
 /*!
  * Apply energy loss to the given track.
+ *
+ * - Before and after slowing down we apply a tracking cut to cull low-energy
+ *   charged particles.
+ * - If energy loss fluctuations are enabled, we apply those based on the mean
+ *   energy loss.
+ * - If the sampled energy loss is greater than or equal to the particle's
+ *   energy, we reduce it to the particle energy (if energy cuts are to be
+ *   applied) or to the mean energy loss (if cuts are prohibited due to this
+ *   being a non-physics-based step).
  */
 CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
                                            real_type step,
@@ -153,10 +162,14 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
                <= value_as<Energy>(phys.scalars().eloss_calc_limit))
     {
         // Deposit all energy when we end below the tracking cut
-        eloss = particle.energy();
+        return particle.energy();
     }
 
     CELER_ASSERT(eloss <= particle.energy());
+    CELER_ENSURE(eloss != particle.energy()
+                 || (fluct_params_ && apply_cut)
+                 || track.make_sim_view().step_limit().action
+                        == phys.scalars().range_action());
     return eloss;
 }
 

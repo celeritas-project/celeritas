@@ -80,10 +80,13 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
                <= value_as<Energy>(phys.scalars().eloss_calc_limit))
     {
         // Deposit all energy when we end below the tracking cut
-        eloss = particle.energy();
+        return particle.energy();
     }
 
-    CELER_ASSERT(eloss <= particle.energy());
+    CELER_ENSURE(eloss <= particle.energy());
+    CELER_ENSURE(eloss != particle.energy()
+                 || track.make_sim_view().step_limit().action
+                        == phys.scalars().range_action());
     return eloss;
 }
 
