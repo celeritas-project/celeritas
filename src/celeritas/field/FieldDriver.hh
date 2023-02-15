@@ -194,9 +194,6 @@ FieldDriver<StepperT>::find_next_chord(real_type step,
         }
     } while (!succeeded && --remaining_steps > 0);
 
-    // TODO: loop check and handle rare cases if happen
-    CELER_ASSERT(succeeded);
-
     // Update step, position and momentum
     output.end.step = step;
     output.end.state = result.end_state;
@@ -259,9 +256,6 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
                 end_curve_length - curve_length);
         }
     } while (!succeeded && --remaining_steps > 0);
-
-    // TODO: loop check and handle rare cases if happen
-    CELER_ASSERT(succeeded);
 
     output.end.step = curve_length;
     return output.end;
@@ -347,9 +341,6 @@ FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) cons
             succeeded = true;
         }
     } while (!succeeded && --remaining_steps > 0);
-
-    // TODO: loop check and handle rare cases if happen
-    CELER_ASSERT(succeeded);
 
     // Update state, step taken by this trial and the next predicted step
     output.end.state = result.end_state;
