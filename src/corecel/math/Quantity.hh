@@ -151,6 +151,20 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 
 #undef CELER_DEFINE_QUANTITY_CMP
 
+#define CELER_DEFINE_QUANTITY_MATH(TOKEN)                                     \
+    template<class U, class T, class T2>                                      \
+    CELER_CONSTEXPR_FUNCTION auto operator TOKEN(Quantity<U, T> lhs,          \
+                                                 Quantity<U, T2> rhs)         \
+        ->decltype(auto)                                                      \
+    {                                                                         \
+        return Quantity<U, std::common_type_t<T, T2>>{lhs.value()             \
+                                                          TOKEN rhs.value()}; \
+    }
+CELER_DEFINE_QUANTITY_MATH(+)
+CELER_DEFINE_QUANTITY_MATH(-)
+
+#undef CELER_DEFINE_QUANTITY_MATH
+
 //! \endcond
 //---------------------------------------------------------------------------//
 //! Value is C1::value() / C2::value()

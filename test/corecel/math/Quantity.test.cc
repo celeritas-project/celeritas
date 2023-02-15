@@ -139,6 +139,32 @@ TEST(QuantityTest, unitless)
     EXPECT_TRUE(max_quantity() > Revolution{1e300});
 }
 
+TEST(QuantityTest, math)
+{
+    using RevInt = Quantity<TwoPi, int>;
+    using RevFlt = Quantity<TwoPi, float>;
+    using RevDbl = Quantity<TwoPi, double>;
+
+    {
+        auto added = RevDbl{1.5} + RevDbl{2.5};
+        EXPECT_TRUE((std::is_same<decltype(added), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(4, added.value());
+    }
+
+    {
+        auto subbed = RevFlt{1.5} - RevFlt{2.5};
+        EXPECT_TRUE((std::is_same<decltype(subbed), RevFlt>::value));
+        EXPECT_FLOAT_EQ(-1.0, subbed.value());
+    }
+
+    // Test mixed precision
+    {
+        EXPECT_DOUBLE_EQ(4 * constants::pi, native_value_from(RevInt{2}));
+        auto added = RevFlt{1.5} + RevInt{1};
+        EXPECT_TRUE((std::is_same<decltype(added), RevFlt>::value));
+    }
+}
+
 TEST(QuantityTest, swappiness)
 {
     using Dozen = Quantity<DozenUnit, int>;
