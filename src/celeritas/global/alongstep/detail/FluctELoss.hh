@@ -31,7 +31,7 @@ class FluctELoss
     //!@}
 
   public:
-    // Construct with flucutation data
+    // Construct with fluctuation data
     inline explicit CELER_FUNCTION FluctELoss(ParamsRef const& params);
 
     // Whether energy loss can be used for this track
