@@ -131,7 +131,7 @@ class OrangeTrackView
     //// HELPER FUNCTIONS ////
 
     // Iterate over layers to find the next step
-    inline CELER_FUNCTION void find_next_step_impl(double max_step);
+    inline CELER_FUNCTION void find_next_step_impl(detail::Intersection isect);
 
     // Create a local tracker
     inline CELER_FUNCTION SimpleUnitTracker make_tracker(UniverseId) const;
@@ -357,7 +357,9 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
 
     if (!this->has_next_step())
     {
-        this->find_next_step_impl(no_intersection());
+        auto tracker = this->make_tracker(UniverseId{0});
+        auto isect = tracker.intersect(this->make_local_state(LevelId{0}));
+        this->find_next_step_impl(isect);
     }
 
     Propagation result;
@@ -397,7 +399,10 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type max_step)
 
     if (!this->has_next_step())
     {
-        this->find_next_step_impl(max_step);
+        auto tracker = this->make_tracker(UniverseId{0});
+        auto isect
+            = tracker.intersect(this->make_local_state(LevelId{0}), max_step);
+        this->find_next_step_impl(isect);
     }
 
     Propagation result;
@@ -565,40 +570,41 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Iterate over all levels to find the next step.
+ * Iterate over levels 1 to N to find the next step.
+ *
+ * Caller is responsible for finding the canidate next step on level 0, and
+ * passing the resultant Intersection object as an argument
  */
-CELER_FUNCTION void OrangeTrackView::find_next_step_impl(real_type max_step)
+CELER_FUNCTION void
+OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 {
-    UniverseId min_uid;
-    celeritas::detail::OnSurface min_surface_local;
-    auto min_step = max_step;
+    // Zero for top-level universe
+    UniverseId min_uid{0};
 
     // Find the nearest intersection from level 0 to current level inclusive,
     // prefering the higher level (i.e., lowest uid)
-    for (auto level : range(states_.level[thread_] + 1))
+    for (auto levelid : range(LevelId{1}, states_.level[thread_] + 1))
     {
-        auto lsa = this->make_lsa(LevelId{level});
+        auto lsa = this->make_lsa(levelid);
         auto tracker = this->make_tracker(lsa.universe());
-        auto isect = tracker.intersect(this->make_local_state(LevelId{level}),
-                                       min_step);
-
-        if (isect.distance < min_step)
+        auto local_isect = tracker.intersect(this->make_local_state(levelid),
+                                             isect.distance);
+        if (local_isect.distance < isect.distance)
         {
-            min_step = isect.distance;
-            min_surface_local = isect.surface;
+            isect = local_isect;
             min_uid = lsa.universe();
         }
     }
 
-    next_step_ = min_step;
+    next_step_ = isect.distance;
 
     // If there is a valid next surface, convert it from local to global
-    if (min_uid)
+    if (isect)
     {
         detail::UnitIndexer ui(params_.unit_indexer_data);
         next_surface_ = celeritas::detail::OnSurface(
-            ui.global_surface(min_uid, min_surface_local.id()),
-            min_surface_local.unchecked_sense());
+            ui.global_surface(min_uid, isect.surface.id()),
+            isect.surface.unchecked_sense());
     }
     else
     {
