@@ -440,10 +440,12 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
 
 if(CELERITAS_USE_Geant4)
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel
+    LINK_LIBRARIES Celeritas::accel testcel_celeritas
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
+  celeritas_add_test(accel/detail/HitProcessor.test.cc
+    ENVIRONMENT "${_geant4_test_env}")
 endif()
 
 #-----------------------------------------------------------------------------#

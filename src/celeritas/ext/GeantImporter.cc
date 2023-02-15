@@ -180,22 +180,31 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
  * duplicated.
  * Function called by \c store_volumes(...) .
  */
-void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
+void loop_volumes(std::map<int, ImportVolume>& volids_volumes,
                   G4LogicalVolume const& logical_volume)
 {
-    auto iter_inserted = volids_volumes.emplace(logical_volume.GetInstanceID(),
-                                                ImportVolume{});
-    if (!iter_inserted.second)
+    auto&& [iter, inserted] = volids_volumes.emplace(
+        logical_volume.GetInstanceID(), ImportVolume{});
+    if (!inserted)
     {
         // Logical volume is already in the map
         return;
     }
 
+    CELER_ASSERT(iter->first >= 0);
+
     // Fill volume properties
-    ImportVolume& volume = iter_inserted.first->second;
+    ImportVolume& volume = iter->second;
     volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
     volume.name = logical_volume.GetName();
     volume.solid_name = logical_volume.GetSolid()->GetName();
+
+    if (volume.name.empty())
+    {
+        CELER_LOG(warning)
+            << "No logical volume name specified for instance ID "
+            << iter->first << " (material " << volume.material_id << ")";
+    }
 
     // Recursive: repeat for every daughter volume, if there are any
     for (auto const i : range(logical_volume.GetNoDaughters()))
@@ -203,6 +212,8 @@ void loop_volumes(std::map<unsigned int, ImportVolume>& volids_volumes,
         loop_volumes(volids_volumes,
                      *logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
+
+    CELER_ENSURE(volume);
 }
 
 //---------------------------------------------------------------------------//
@@ -469,17 +480,20 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
 std::vector<ImportVolume> store_volumes(G4VPhysicalVolume const* world_volume)
 {
     std::vector<ImportVolume> volumes;
-    std::map<unsigned int, ImportVolume> volids_volumes;
+    std::map<int, ImportVolume> volids_volumes;
 
     // Recursive loop over all logical volumes to populate map<volid, volume>
     loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
 
     // Populate vector<ImportVolume>
-    volumes.reserve(volids_volumes.size());
-    for (auto const& key : volids_volumes)
+    volumes.resize(volids_volumes.size());
+    for (auto&& [volid, volume] : volids_volumes)
     {
-        CELER_ASSERT(key.first == volumes.size());
-        volumes.push_back(key.second);
+        if (static_cast<std::size_t>(volid) >= volumes.size())
+        {
+            volumes.resize(volid + 1);
+        }
+        volumes[volid] = std::move(volume);
     }
 
     CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
