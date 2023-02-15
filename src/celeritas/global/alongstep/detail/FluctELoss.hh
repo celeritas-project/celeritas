@@ -39,7 +39,8 @@ class FluctELoss
 
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
-                                            real_type step);
+                                            real_type step,
+                                            bool apply_cut);
 
     //! Indicate that we can lose all energy before hitting the dE/dx range
     static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return true; }
@@ -53,8 +54,8 @@ class FluctELoss
     //// HELPER FUNCTIONS ////
 
     template<EnergyLossFluctuationModel M>
-    inline CELER_FUNCTION Energy sample_energy_loss(
-        EnergyLossHelper const& helper, Energy max_loss, RngEngine& rng);
+    inline CELER_FUNCTION Energy
+    sample_energy_loss(EnergyLossHelper const& helper, RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -83,22 +84,26 @@ CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
 /*!
  * Apply energy loss to the given track.
  */
-CELER_FUNCTION auto
-FluctELoss::calc_eloss(CoreTrackView const& track, real_type step) -> Energy
+CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
+                                           real_type step,
+                                           bool apply_cut) -> Energy
 {
     CELER_EXPECT(step > 0);
 
     auto particle = track.make_particle_view();
+    auto phys = track.make_physics_view();
+
+    if (apply_cut && particle.energy() < phys.scalars().eloss_calc_limit)
+    {
+        // Deposit all energy immediately when we start below the tracking cut
+        return particle.energy();
+    }
 
     // Calculate mean energy loss
-    auto phys = track.make_physics_view();
     auto eloss = calc_mean_energy_loss(particle, phys, step);
+    CELER_EXPECT(eloss > zero_quantity());
 
-    // TODO: we might be able to change the last conditional so that
-    // fluctuations only apply if the endpoint energy is *greater* than the
-    // tracking cut (eloss_calc_limit). That could allows us to skip the
-    // boundary check.
-    if (fluct_params_ && eloss > zero_quantity() && eloss < particle.energy())
+    if (fluct_params_ && eloss < particle.energy())
     {
         // Apply energy loss fluctuations
         auto cutoffs = track.make_cutoff_view();
@@ -113,7 +118,7 @@ FluctELoss::calc_eloss(CoreTrackView const& track, real_type step) -> Energy
 #define ASU_SAMPLE_ELOSS(MODEL)                                              \
     case EnergyLossFluctuationModel::MODEL:                                  \
         eloss = this->sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
-            loss_helper, particle.energy(), rng);                            \
+            loss_helper, rng);                                               \
         break
             ASU_SAMPLE_ELOSS(none);
             ASU_SAMPLE_ELOSS(gamma);
@@ -121,7 +126,24 @@ FluctELoss::calc_eloss(CoreTrackView const& track, real_type step) -> Energy
             ASU_SAMPLE_ELOSS(urban);
 #undef ASU_SAMPLE_ELOSS
         }
+
+        // Sampled energy loss can be greater than actual remaining energy
+        // because the range calculation is based on the *mean* energy
+        // loss.
+        // TODO: investigate cases where sampled energy loss is greater than
+        // the track's actual energy, i.e. the range limiter failed.
+        eloss
+            = Energy{celeritas::min(eloss.value(), particle.energy().value())};
     }
+
+    if (apply_cut
+        && value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)
+               <= value_as<Energy>(phys.scalars().eloss_calc_limit))
+    {
+        // Deposit all energy when we end below the tracking cut
+        eloss = particle.energy();
+    }
+
     CELER_ASSERT(eloss <= particle.energy());
     return eloss;
 }
@@ -129,21 +151,15 @@ FluctELoss::calc_eloss(CoreTrackView const& track, real_type step) -> Energy
 //---------------------------------------------------------------------------//
 template<EnergyLossFluctuationModel M>
 CELER_FUNCTION auto
-FluctELoss::sample_energy_loss(EnergyLossHelper const& helper,
-                               Energy max_loss,
-                               RngEngine& rng) -> Energy
+FluctELoss::sample_energy_loss(EnergyLossHelper const& helper, RngEngine& rng)
+    -> Energy
 {
     CELER_EXPECT(helper.model() == M);
 
     using Distribution = typename EnergyLossTraits<M>::type;
 
     Distribution sample_eloss{helper};
-    Energy result = sample_eloss(rng);
-
-    // TODO: investigate cases where sampled energy loss is greater than
-    // the track's actual energy, i.e. the range limiter failed.
-    result = Energy{celeritas::min(result.value(), max_loss.value())};
-    return result;
+    return sample_eloss(rng);
 }
 
 //---------------------------------------------------------------------------//

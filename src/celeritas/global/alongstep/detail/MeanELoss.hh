@@ -33,7 +33,8 @@ class MeanELoss
 
     // Apply to the track
     inline CELER_FUNCTION Energy calc_eloss(CoreTrackView const& track,
-                                            real_type step);
+                                            real_type step,
+                                            bool apply_cut);
 
     //! Particle will slow down to zero only if range limited
     static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
@@ -56,15 +57,34 @@ CELER_FUNCTION bool MeanELoss::is_applicable(CoreTrackView const& track) const
 /*!
  * Apply energy loss to the given track.
  */
-CELER_FUNCTION auto
-MeanELoss::calc_eloss(CoreTrackView const& track, real_type step) -> Energy
+CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
+                                          real_type step,
+                                          bool apply_cut) -> Energy
 {
     CELER_EXPECT(step > 0);
 
-    // Calculate the true energy loss
     auto particle = track.make_particle_view();
     auto phys = track.make_physics_view();
-    return calc_mean_energy_loss(particle, phys, step);
+
+    if (apply_cut && particle.energy() < phys.scalars().eloss_calc_limit)
+    {
+        // Deposit all energy when we start below the tracking cut
+        return particle.energy();
+    }
+
+    // Calculate the mean energy loss
+    Energy eloss = calc_mean_energy_loss(particle, phys, step);
+
+    if (apply_cut
+        && value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)
+               <= value_as<Energy>(phys.scalars().eloss_calc_limit))
+    {
+        // Deposit all energy when we end below the tracking cut
+        eloss = particle.energy();
+    }
+
+    CELER_ASSERT(eloss <= particle.energy());
+    return eloss;
 }
 
 //---------------------------------------------------------------------------//

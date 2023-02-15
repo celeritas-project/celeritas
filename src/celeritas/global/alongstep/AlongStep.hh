@@ -113,22 +113,12 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     {
         using Energy = ParticleTrackView::Energy;
 
-        Energy deposited = eloss.calc_eloss(track, local.step_limit.step);
-
-        if (local.step_limit.action != track.boundary_action()
-            && value_as<Energy>(particle.energy()) - value_as<Energy>(deposited)
-                   <= value_as<Energy>(
-                       track.make_physics_view().scalars().eloss_calc_limit))
-        {
-            // The energy after slowing down is less than the hard tracking
-            // cutoff, so stop the particle rather than leaving it a tiny
-            // amount of energy.
-            // To avoid stopping particles on boundaries (which is an
-            // artificial bias), we avoid this for geometry-limited steps.
-            deposited = particle.energy();
-        }
-
+        bool apply_cut = (local.step_limit.action != track.boundary_action());
+        Energy deposited
+            = eloss.calc_eloss(track, local.step_limit.step, apply_cut);
         CELER_ASSERT(deposited <= particle.energy());
+        CELER_ASSERT(apply_cut || deposited < particle.energy());
+
         if (deposited > zero_quantity())
         {
             // Deposit energy loss
@@ -136,6 +126,10 @@ inline CELER_FUNCTION void along_step(MH&& msc,
             step.deposit_energy(deposited);
             particle.subtract_energy(deposited);
         }
+        // Energy loss helper *must* apply the tracking cutoff
+        CELER_ASSERT(particle.energy()
+                         >= track.make_physics_view().scalars().eloss_calc_limit
+                     || !apply_cut || particle.is_stopped());
     }
 
     if (particle.is_stopped())
