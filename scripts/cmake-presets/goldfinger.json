@@ -12,6 +12,8 @@
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_JSON":     {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_Geant4":   {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "13"},
@@ -39,7 +41,6 @@
       "inherits": [".base", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
       }
@@ -47,11 +48,18 @@
     {
       "name": "vecgeom",
       "displayName": "With vecgeom",
-      "inherits": ["base"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "inherits": [".base", "default"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
+      "name": "vecgeom-ndebug",
+      "displayName": "With vecgeom in optimized mode",
+      "inherits": [".ndebug", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
