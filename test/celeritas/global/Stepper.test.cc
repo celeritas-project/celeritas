@@ -215,19 +215,12 @@ TEST_F(TestEm3NoMsc, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
-        EXPECT_EQ(345, result.num_step_iters());
-        EXPECT_SOFT_EQ(61333, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(241, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({98, 1185}), result.calc_queue_hwm());
-    }
-    else if (this->is_summit_build())
-    {
-        EXPECT_EQ(323, result.num_step_iters());
-        EXPECT_SOFT_EQ(61437, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(257, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({89, 1140}), result.calc_queue_hwm());
+        EXPECT_EQ(331, result.num_step_iters());
+        EXPECT_SOFT_EQ(62216, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(256, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({95, 1182}), result.calc_queue_hwm());
     }
     else
     {
@@ -288,7 +281,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(224, result.num_step_iters());
         EXPECT_SOFT_EQ(62506, result.calc_avg_steps_per_primary());
@@ -354,7 +347,7 @@ TEST_F(TestEm3Msc, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(52, result.num_step_iters());
         EXPECT_SOFT_EQ(44, result.calc_avg_steps_per_primary());
@@ -382,7 +375,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(77, result.num_step_iters());
         EXPECT_SOFT_EQ(47, result.calc_avg_steps_per_primary());
@@ -415,7 +408,7 @@ TEST_F(TestEm3MscNofluct, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(58, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(72, result.num_step_iters());
         if (CELERITAS_USE_VECGEOM)
@@ -450,7 +443,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         if (CELERITAS_USE_VECGEOM)
         {
@@ -522,8 +515,7 @@ TEST_F(TestEm15Field, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(35, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_summit_build()
-        || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(14, result.num_step_iters());
         EXPECT_SOFT_EQ(35, result.calc_avg_steps_per_primary());
@@ -551,8 +543,7 @@ TEST_F(TestEm15Field, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build() || this->is_summit_build()
-        || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(14, result.num_step_iters());
         EXPECT_SOFT_EQ(29.75, result.calc_avg_steps_per_primary());

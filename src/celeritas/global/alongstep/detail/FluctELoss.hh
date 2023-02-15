@@ -127,13 +127,25 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
 #undef ASU_SAMPLE_ELOSS
         }
 
-        // Sampled energy loss can be greater than actual remaining energy
-        // because the range calculation is based on the *mean* energy
-        // loss.
-        // TODO: investigate cases where sampled energy loss is greater than
-        // the track's actual energy, i.e. the range limiter failed.
-        eloss
-            = Energy{celeritas::min(eloss.value(), particle.energy().value())};
+        if (eloss >= particle.energy())
+        {
+            // Sampled energy loss can be greater than actual remaining energy
+            // because the range calculation is based on the *mean* energy
+            // loss.
+            if (apply_cut)
+            {
+                // Clamp to actual particle energy so that it stops
+                eloss = particle.energy();
+            }
+            else
+            {
+                // Don't go to zero energy at geometry boundaries: just use the
+                // mean loss which should be positive because this isn't a
+                // range-limited step.
+                eloss = loss_helper.mean_loss();
+                CELER_ASSERT(eloss < particle.energy());
+            }
+        }
     }
 
     if (apply_cut

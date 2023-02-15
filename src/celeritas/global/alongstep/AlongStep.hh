@@ -135,29 +135,8 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     if (particle.is_stopped())
     {
         // Particle lost all energy over the step
-        auto phys = track.make_physics_view();
-        if (eloss.imprecise_range()
-            && CELER_UNLIKELY(local.step_limit.action
-                              == track.boundary_action()))
-        {
-            // Particle lost all energy *and* is at a geometry boundary.
-            // It therefore physically moved too far over the step, since
-            // the range is supposed to be the integral of the inverse
-            // energy loss rate. Bump particle slightly away from boundary
-            // to avoid on-surface initialization/direction change.
-            real_type backward_bump = real_type(-1e-5) * local.step_limit.step;
-            // Force the step limiter to be "range" because energy went to
-            // zero via slowing down.
-            local.step_limit.action = phys.scalars().range_action();
-            local.step_limit.step += backward_bump;
-
-            auto geo = track.make_geo_view();
-            Real3 pos = geo.pos();
-            axpy(backward_bump, geo.dir(), &pos);
-            geo.move_internal(pos);
-        }
         CELER_ASSERT(local.step_limit.action != track.boundary_action());
-
+        auto phys = track.make_physics_view();
         if (!phys.has_at_rest())
         {
             // Immediately kill stopped particles with no at rest processes
