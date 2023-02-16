@@ -266,12 +266,15 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // Only cross the boundary if the intersect point is less
             // than or exactly on the boundary, or if the crossing
             // doesn't put us past the end of the step
-            result.boundary = (linear_step.distance <= chord.length || result.distance + update_length <= step);
+            result.boundary = (linear_step.distance <= chord.length
+                               || result.distance + update_length <= step);
 
             if (!result.boundary)
             {
                 // Don't move to the boundary, but instead move to the end of
-                // the substep.
+                // the substep. This should result in basically the same effect
+                // as "!linear_step.boundary" above.
+                state_.pos = substep.state.pos;
                 geo_.move_internal(substep.state.pos);
                 cout << "moved to " << substep.state.pos;
             }
@@ -282,8 +285,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             cout << endl;
 
             // The update length can be slightly greater than the substep due
-            // to the extra delta_intersection boost when searching.
-            result.distance += celeritas::min(update_length, substep.step);
+            // to the extra delta_intersection boost when searching. The
+            // substep itself can be more than the requested step.
+            result.distance += celeritas::min(
+                celeritas::min(update_length, substep.step), remaining);
             CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
@@ -310,7 +315,6 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         cout << "- Moved to boundary " << geo_.surface_id().unchecked_get()
              << " at position " << state_.pos << endl;
     }
-    CELER_ASSERT(remaining == 0 || remaining_substeps == 0);
 
     // Even though the along-substep movement was through chord lengths,
     // conserve momentum through the field change by updating the final
