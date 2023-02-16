@@ -214,7 +214,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // on a reentrant boundary crossing below.
             state_ = substep.state;
             result.boundary = false;
-            result.distance += substep.step;
+            result.distance += celeritas::min(substep.step, remaining);
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             --remaining_substeps;
