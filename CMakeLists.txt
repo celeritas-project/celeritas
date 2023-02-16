@@ -211,8 +211,7 @@ endif()
 if(CELERITAS_USE_VecGeom)
   find_package(VecGeom 1.1.17 REQUIRED)
 
-  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-      OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
+  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND))
     message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
       "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
       "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
