@@ -178,6 +178,31 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.014285714285714284, step.step);
     }
+    {
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{10});
+        phys.interaction_mfp(1e-4);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
+        EXPECT_EQ(discrete_action, step.action);
+        EXPECT_SOFT_EQ(1.e-4 / 9.e-3, step.step);
+
+        // Increase the distance to interaction so range limits the step length
+        phys.interaction_mfp(1);
+        step = calc_physics_step_limit(material, particle, phys, pstep);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(0.48853333333333326, step.step);
+    }
+    {
+        // Test absurdly low energy (1 + E = 1)
+        PhysicsTrackView phys = this->init_track(
+            &material, MaterialId{1}, &particle, "celeriton", MevEnergy{1e-18});
+        phys.interaction_mfp(1e-10);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
+        EXPECT_EQ(range_action, step.action);
+        EXPECT_SOFT_EQ(5.2704627669473019e-12, step.step);
+    }
 }
 
 TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)

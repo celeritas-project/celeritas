@@ -173,10 +173,10 @@ TEST_F(TestEm3Test, host)
 
     if (this->is_ci_build())
     {
-        EXPECT_EQ(345, result.num_step_iters());
-        EXPECT_SOFT_EQ(61333, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(241, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({98, 1185}), result.calc_queue_hwm());
+        EXPECT_EQ(331, result.num_step_iters());
+        EXPECT_SOFT_EQ(62216, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(256, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({95, 1182}), result.calc_queue_hwm());
     }
     else
     {
@@ -207,12 +207,12 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
-        EXPECT_EQ(203, result.num_step_iters());
-        EXPECT_SOFT_EQ(62932, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(206, result.num_step_iters());
+        EXPECT_SOFT_EQ(62127.625, result.calc_avg_steps_per_primary());
         EXPECT_EQ(72, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({69, 967}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({70, 908}), result.calc_queue_hwm());
     }
     else
     {
@@ -246,7 +246,7 @@ TEST_F(TestEm3MscTest, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(45.125, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build() || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         EXPECT_EQ(52, result.num_step_iters());
         EXPECT_SOFT_EQ(44, result.calc_avg_steps_per_primary());

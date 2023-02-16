@@ -61,11 +61,25 @@ struct LinearPropagatorFactory
 
 //---------------------------------------------------------------------------//
 /*!
- * Null-op class for energy loss interface.
+ * Class that returns zero energy loss.
  */
-struct NoElossApplier
+struct NoELoss
 {
-    CELER_FUNCTION void operator()(CoreTrackView const&, StepLimit*) const {}
+    //! This calculator never returns energy loss
+    CELER_CONSTEXPR_FUNCTION bool is_applicable(CoreTrackView const&)
+    {
+        return false;
+    }
+
+    //! No energy loss
+    CELER_FUNCTION auto calc_eloss(CoreTrackView const&, real_type, bool) const
+        -> decltype(auto)
+    {
+        return zero_quantity();
+    }
+
+    //! No slowing down
+    static CELER_CONSTEXPR_FUNCTION bool imprecise_range() { return false; }
 };
 
 //---------------------------------------------------------------------------//
@@ -87,8 +101,7 @@ struct NoElossApplier
 inline CELER_FUNCTION void
 along_step_neutral(NoData, NoData, NoData, CoreTrackView const& track)
 {
-    return along_step(
-        NoMsc{}, LinearPropagatorFactory{}, NoElossApplier{}, track);
+    return along_step(NoMsc{}, LinearPropagatorFactory{}, NoELoss{}, track);
 }
 
 //---------------------------------------------------------------------------//

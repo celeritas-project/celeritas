@@ -73,6 +73,7 @@ AlongStepLauncherImpl<M, P, E, F>::operator()(ThreadId thread) const
             CELER_ASSERT(!sim.step_limit());
             return;
         }
+        CELER_ASSERT(sim.status() != TrackStatus::killed);
     }
 
     this->call_with_track(msc_data, propagator_data, eloss_data, track);
