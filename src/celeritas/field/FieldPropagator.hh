@@ -243,8 +243,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // The update length can be slightly greater than the substep due
             // to the extra delta_intersection boost when searching. The
             // substep itself can be more than the requested step.
-            result.distance += celeritas::min(
-                celeritas::min(update_length, substep.step), remaining);
+            result.distance += celeritas::min(update_length, substep.step);
             CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
@@ -286,8 +285,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         geo_.move_internal(state_.pos);
     }
 
+    // Due to accumulation errors from multiple substeps or chord-finding
+    // within the driver, the distance may be very slightly beyond the
+    // requested step.
     CELER_ENSURE(result.boundary == geo_.is_on_boundary());
-    CELER_ENSURE(result.distance > 0 && result.distance <= step);
+    CELER_ENSURE(
+        result.distance > 0
+        && (result.distance <= step || soft_equal(result.distance, step)));
     return result;
 }
 
