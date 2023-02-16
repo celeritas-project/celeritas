@@ -22,7 +22,7 @@ struct FieldDriverOptions
     //! The minimum length of the field step
     real_type minimum_step = 1.0e-5 * units::millimeter;
 
-    //! The closest miss distance
+    //! The maximum sagitta of each substep ("miss distance")
     real_type delta_chord = 0.25 * units::millimeter;
 
     //! Accuracy of intersection of the boundary crossing
