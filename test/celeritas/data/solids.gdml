@@ -34,37 +34,35 @@ acceptance of all terms of the Geant4 Software license.
   <position name="center"     x="0" y="0" z="0"/>
   <rotation name="norot"      x="0" y="0" z="0"/>
 
-  <position name="posBool1"   x="0" y="125" z="0"/>
+  <position name="posBool1"   x="0" y=" 125" z="0"/>
   <position name="posTetrah1" x="0" y="-125" z="0"/>
 
-  <position name="posTube100" x="-125" y="125" z="0"/>
-  <position name="posCone1"   x="-125" y="0" z="0"/>
-  <position name="posTrap1"   x="-125" y="-125" z="0"/>
-  <position name="posTorus1"  x=" 125" y="125" z="0"/>
-  <position name="posSphere1" x=" 125" y="0" z="0"/>
-  <position name="posOrb1"    x=" 125" y="-125" z="0"/>
+  <position name="posTube100"    x="-125" y=" 125" z="0"/>
+  <position name="posCone1"      x="-125" y="   0" z="0"/>
+  <position name="posTrap1"      x="-125" y="-125" z="0"/>
+  <position name="posTorus1"     x=" 125" y=" 125" z="0"/>
+  <position name="posSphere1"    x=" 125" y="   0" z="0"/>
+  <position name="posOrb1"       x=" 125" y="-125" z="0"/>
 
-  <position name="posPara1"      x="-250" y="125" z="0"/>
-  <position name="posTrd1"       x="-250" y="0" z="0"/>
+  <position name="posPara1"      x="-250" y=" 125" z="0"/>
+  <position name="posTrd1"       x="-250" y="   0" z="0"/>
   <position name="posArb8a"      x="-250" y="-125" z="0"/>
-  <position name="posHype1"      x="250" y="125" z="0"/>
-  <position name="posPolycone1"  x="250" y="0" z="0"/>
-  <position name="posGenPocone1" x="250" y="-125" z="0"/>
+  <position name="posPolyhedr1"  x=" 250" y=" 125" z="0"/>
+  <position name="posPolycone1"  x=" 250" y="   0" z="0"/>
+  <position name="posGenPocone1" x=" 250" y="-125" z="0"/>
 
-  <position name="posTessel1"    x="375" y="125" z="0"/>
-  <position name="posPolyhedr1"  x="375" y="0" z="0"/>
-  <position name="posParab1"     x="-375" y="0" z="0"/>
+  <position name="posEllcone1"   x=" 375" y=" 125" z="0"/>
+  <position name="posEllipso1"   x=" 375" y="   0" z="0"/>
+  <position name="posEllTube1"   x=" 375" y="-125" z="0"/>
+  <position name="posHype1"      x="-375" y=" 125" z="0"/>
+  <position name="posParab1"     x="-375" y="   0" z="0"/>
   <position name="posArb8b"      x="-375" y="-125" z="0"/>
 
-  <position name="posEllcone1" x="500" y="125" z="0"/>
-  <position name="posEllipso1" x="500" y="0" z="0"/>
-  <position name="posEllTube1" x="500" y="-125" z="0"/>
-
-  <position name="v0" unit="mm" x="400" y="400" z="-500"/>
-  <position name="v1" unit="mm" x="-400" y="400" z="-500"/>
-  <position name="v2" unit="mm" x="0" y="0" z="500"/>
-  <position name="v3" unit="mm" x="-400" y="-400" z="-500"/>
-  <position name="v4" unit="mm" x="400" y="-400" z="-500"/>
+  <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500"/>
+  <position name="v1" unit="mm"  x="-400" y=" 400" z="-500"/>
+  <position name="v2" unit="mm"  x="   0" y="   0" z=" 500"/>
+  <position name="v3" unit="mm"  x="-400" y="-400" z="-500"/>
+  <position name="v4" unit="mm"  x=" 400" y="-400" z="-500"/>
 
   <rotation name="rotatebyx" x="HALFPI" aunit="rad"/>
   <rotation name="rotatebyy" x="90" aunit="deg"/>
@@ -95,24 +93,25 @@ acceptance of all terms of the Geant4 Software license.
  <solids>
   <box name="WorldBox" x="wextent" y="wextent" z="wextent"/>
 
-  <box name="b100" x="20.0" y="20.0" z="20.0"/>
-  <box name="b500" x="50.0" y="50.0" z="50.0"/>
+  <box name="b100" lunit="mm" x="200.0" y="200.0" z="200.0"/>
+  <box name="b500" lunit="mm" x="500.0" y="500.0" z="500.0"/>
 
-  <cone name="c1" z="111.0" rmax1="22.0" rmax2="33.0" deltaphi="TWOPI" aunit="rad"/>
+  <cone name="c1" lunit="mm" aunit="rad" z="500.0" rmax1="300.0" rmax2="240.0" deltaphi="TWOPI"/>
+  <!--cone name="c1" lunit="mm" aunit="rad" z="111.0" rmax1="22.0" rmax2="33.0" startphi="-157" deltaphi="-57"/-->
 
   <para name="pa1" lunit="mm" x="600" y="700" z="800" alpha="30.0" theta="30.0" phi="30.0" aunit="deg"/>
 
-  <sphere name="s1" rmax="50.0" deltaphi="4.2" deltatheta="2.1" aunit="rad"/>
+  <sphere name="sphe1" lunit="mm" aunit="rad" rmax="500.0" startphi="-4.0" deltaphi="3.2" starttheta="0.8" deltatheta="2.1"/>
 
-  <paraboloid name="parab1" rlo="1" rhi="300" dz="400" lunit="mm"/>
+  <paraboloid name="parab1" lunit="mm" rlo="1" rhi="300" dz="400"/>
 
-  <arb8 name="arb81" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
-      v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-      v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-55.0" />
+  <arb8 name="arb81" lunit="mm" dz="500.0" v1x="-450.0" v1y="-450.0" v2x="-450.0" v2y="450.0"
+      v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
+      v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-550.0" />
 
-  <arb8 name="arb82" dz="50.0" v1x="-45.0" v1y="-45.0" v2x="-45.0" v2y="45.0"
-      v3x="45.0"  v3y="45.0" v4x="45.0" v4y="-45.0" v5x="-35.0" v5y="-35.0"
-      v6x="-35.0" v6y="35.0" v7x="35.0" v7y="35.0"  v8x="35.0"  v8y="-15.0" />
+  <arb8 name="arb82" lunit="mm" dz="500.0" v1x="-450.0" v1y="-450.0" v2x="-450.0" v2y="450.0"
+      v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
+      v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-150.0" />
 
   <trap name="trap1" lunit="mm" aunit="deg" theta="-10.0" phi="-30.0" z="800"
       y1="720.0" x1="600.0" x2="300.0"  alpha1="-20.0"
@@ -120,12 +119,13 @@ acceptance of all terms of the Geant4 Software license.
 
   <trd name="trd1" lunit="mm" x1="200.0" x2="400.0" y1="300.0" y2="600.0" z="1000.0"/>
 
-  <tube name="t100" z="100.0" rmax="30.0" rmin="20" deltaphi="TWOPI" aunit="rad"/>
+  <tube name="t100" lunit="mm" aunit="rad" z="500.0" rmax="200.0" rmin="160" startphi="HALFPI" deltaphi="PI"/>
+  <!--tube name="t100" lunit="mm" aunit="deg" z="500.0" rmax="200.0" rmin="160" startphi="-157" deltaphi="-57"/-->
 
   <union name="union1">
     <first ref="b500"/>  <second ref="b100"/>
-    <positionref ref="unionidentitypos" />
-    <rotation name="unionidentityrot"/>
+    <positionref ref="unionidentitypos"/>
+    <rotation name="norot"/>
     <firstpositionref ref="center"/>
   </union>
   <subtraction name="sub1">
@@ -142,9 +142,9 @@ acceptance of all terms of the Geant4 Software license.
     <quadrangular vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v0" />
   </tessellated-->
 
-  <torus name="testtorus" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="180" deltaphi="200"/>
+  <torus name="shTorus1" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="10" deltaphi="270"/>
 
-  <orb name="testorb" r="50.0"/>
+  <orb name="shOrb1" lunit="mm" r="500.0"/>
 
   <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
     <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
@@ -171,25 +171,13 @@ acceptance of all terms of the Geant4 Software license.
      <zplane z=" 500.0" rmin="80.0" rmax="360.0"/>
   </polyhedra>
 
-  <!--genericPolyhedra name="testgenph" lunit="mm" aunit="deg" deltaphi="240." numsides="4" startphi="180." >
-    <rzpoint r="150.0" z="-500.0" />
-    <rzpoint r="300.0" z="   0.0" />
-    <rzpoint r="240.0" z=" 500.0" />
-    <rzpoint r="200.0" z=" 500.0" />
-    <rzpoint r=" 50.0" z="   0.0" />
-    <rzpoint r="100.0" z="-500.0" />
-  </genericPolyhedra-->
-  <!--polyhedra name="testgenph" lunit="mm" aunit="deg" deltaphi="240." numsides="4" startphi="180." >
-    <zplane z="-500.0" rmin="100.0" rmax="150"/>
-    <zplane z="   0.0" rmin=" 50.0" rmax="300"/>
-    <zplane z=" 500.0" rmin="200.0" rmax="240"/>
-  </polyhedra-->
-
   <hype name="testhype" lunit="mm" aunit="deg" rmin="200.0" rmax="240.0" z="1000" inst="20.0" outst="25.0"/>
 
   <ellipsoid name="testellipsoid" lunit="mm" ax="200" by="300" cz="400" zcut2="280"/>
   <eltube    name="testelltube"   lunit="mm" dx="200" dy="300" dz="400"/>
-  <elcone    name="testellcone"   lunit="mm" dx="0.25" dy="0.40" zmax="1000" zcut="300"/>
+
+  <!-- dx,dy are slopes: dx=a/zmax and dy=b/zmax, where equation is (x/a)^2 + (y/b)^2 = (z-zmax)^2 - see Geant4 application devs manual -->
+  <elcone    name="testellcone"   lunit="mm" dx="0.25" dy="0.30" zmax="100" zcut="30"/>
 
   <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2"/>
   <!--trd name="testtet" lunit="mm" x1="400" y1="400" x2="1" y2="1" z="500"/-->
@@ -213,7 +201,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <volume name="sphere1">
    <materialref ref="Water"/>
-   <solidref ref="s1"/>
+   <solidref ref="sphe1"/>
   </volume>
 
   <volume name="parabol1">
@@ -267,12 +255,12 @@ acceptance of all terms of the Geant4 Software license.
 
   <volume name="torus1">
    <materialref ref="Water"/>
-   <solidref ref="testtorus"/>
+   <solidref ref="shTorus1"/>
   </volume>
 
   <volume name="orb1">
    <materialref ref="Water"/>
-   <solidref ref="testorb"/>
+   <solidref ref="shOrb1"/>
   </volume>
 
   <volume name="polyhedr1">
