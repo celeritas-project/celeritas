@@ -11,7 +11,7 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 
 #include "AlongStepNeutral.hh"
-#include "EnergyLossFluctApplier.hh"
+#include "FluctELoss.hh"
 #include "UrbanMsc.hh"
 
 namespace celeritas
@@ -28,10 +28,8 @@ along_step_general_linear(NativeCRef<UrbanMscData> const& msc,
                           NativeCRef<FluctuationData> const& fluct,
                           CoreTrackView const& track)
 {
-    return along_step(UrbanMsc{msc},
-                      LinearPropagatorFactory{},
-                      EnergyLossFluctApplier{fluct},
-                      track);
+    return along_step(
+        UrbanMsc{msc}, LinearPropagatorFactory{}, FluctELoss{fluct}, track);
 }
 
 //---------------------------------------------------------------------------//
