@@ -154,8 +154,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         CELER_ASSERT(result.boundary == geo_.is_on_boundary());
 
         // Advance up to (but probably less than) the remaining step length
+        // Due to roundoff this may be slightly more than remaining.
         DriverResult substep = driver_.advance(remaining, state_);
-        CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -225,20 +225,20 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // conservatively reduce the *reported* traveled distance to avoid
             // coincident boundary crossings.
 
-            if (linear_step.distance <= chord.length
-                || result.distance + update_length <= step)
+            // Only cross the boundary if the intersect point is less
+            // than or exactly on the boundary, or if the crossing
+            // doesn't put us past the end of the step
+            result.boundary = (linear_step.distance <= chord.length || result.distance + update_length <= step);
+
+            if (!result.boundary)
             {
-                // Only cross the boundary if the intersect point is less
-                // than or exactly on the boundary, or if the crossing
-                // doesn't put us past the end of the step
-                result.boundary = true;
-            }
-            else
-            {
-                // Accept the substep point
+                // Don't move to the boundary, but instead move to the end of
+                // the substep.
                 geo_.move_internal(substep.state.pos);
             }
 
+            // The update length can be slightly greater than the substep due
+            // to the extra delta_intersection boost when searching.
             result.distance += celeritas::min(update_length, substep.step);
             CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
@@ -253,16 +253,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
-    if (result.distance > 0 && result.boundary)
+    if (result.boundary && result.distance > 0)
     {
-        if (result.boundary)
-        {
-            // We moved to a new boundary. Update the position to reflect the
-            // geometry's state (and possibly "bump" the ODE state's position
-            // because of the tolerance in the intercept checks above).
-            geo_.move_to_boundary();
-            state_.pos = geo_.pos();
-        }
+        // We moved to a new boundary. Update the position to reflect the
+        // geometry's state (and possibly "bump" the ODE state's position
+        // because of the tolerance in the intercept checks above).
+        geo_.move_to_boundary();
+        state_.pos = geo_.pos();
     }
     CELER_ASSERT(remaining == 0 || remaining_substeps == 0);
 
