@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 #include "FieldDriverOptions.hh"
 #include "Types.hh"
@@ -137,6 +138,15 @@ template<class StepperT>
 CELER_FUNCTION DriverResult
 FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 {
+    if (step <= options_.minimum_step)
+    {
+        // If the input is a very tiny step, do a "quick advance".
+        DriverResult result;
+        result.state = apply_step_(step, state).end_state;
+        result.step = step;
+        return result;
+    }
+
     // Output with a step control error
     ChordSearch output = this->find_next_chord(step, state);
 
@@ -152,6 +162,8 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
+    CELER_ENSURE(output.end.step > 0 && output.end.step <= step
+                 || soft_equal(output.end.step, step));
     return output.end;
 }
 
@@ -263,6 +275,10 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
 
+    // Curve length may be slightly longer than step due to roundoff in
+    // accumulation
+    CELER_ENSURE(curve_length > 0 && curve_length <= step
+                 || soft_equal(curve_length, step));
     output.end.step = curve_length;
     return output.end;
 }

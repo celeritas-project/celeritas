@@ -496,6 +496,22 @@ TEST_F(TwoBoxTest, electron_small_step)
     constexpr real_type delta = 1e-7;
 
     {
+        SCOPED_TRACE("Small step *not quite* to boundary");
+
+        auto geo = this->init_geo({5 - delta - 1.0e-5, 0, 0}, {1, 0, 0});
+        EXPECT_FALSE(geo.is_on_boundary());
+
+        auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
+            field, driver_options, particle, &geo);
+        auto result = propagate(delta);
+
+        // Search distance doesn't hit boundary
+        EXPECT_SOFT_EQ(result.distance, delta);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_VEC_NEAR(Real3({5 - 1.0e-5, 0, 0}), geo.pos(), 1e-7);
+    }
+    {
         SCOPED_TRACE("Small step *almost* to boundary");
 
         auto geo = this->init_geo({5 - 2 * delta, 0, 0}, {1, 0, 0});
@@ -505,12 +521,12 @@ TEST_F(TwoBoxTest, electron_small_step)
             field, driver_options, particle, &geo);
         auto result = propagate(delta);
 
-        // Reported distance traveled is equal to the step, but the track is
-        // moved to the boundary
-        EXPECT_DOUBLE_EQ(delta, result.distance);
-        EXPECT_TRUE(result.boundary);
-        EXPECT_TRUE(geo.is_on_boundary());
-        EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
+        // The boundary search goes an extra driver_.delta_intersection()
+        // (1e-7) past the requested end point
+        EXPECT_SOFT_EQ(result.distance, delta);
+        EXPECT_FALSE(result.boundary);
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ(Real3({4.9999999, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, delta, 0}), geo.dir());
     }
     {
@@ -523,8 +539,8 @@ TEST_F(TwoBoxTest, electron_small_step)
             field, driver_options, particle, &geo);
         auto result = propagate(2 * delta);
 
-        // Distance is the linear step
-        EXPECT_SOFT_EQ(1.0000000028043181e-07, result.distance);
+        EXPECT_LE(result.distance, 2 * delta);
+        EXPECT_SOFT_EQ(1.0000000044408872e-07, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
@@ -831,7 +847,7 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         = {-0.098753281951459, 0.43330671122068, 0};
 
     {
-        SCOPED_TRACE("First trace ends barely closer than boundary");
+        SCOPED_TRACE("First step ends barely closer than boundary");
         /*
          * Note: this ends up being the !linear_step.boundary case:
           Propagate up to 0.448159
@@ -862,17 +878,17 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
             << geo.pos();
     }
     {
-        SCOPED_TRACE(
-            "First step ends barely closer than boundary but gets moved to "
-            "boundary");
+        SCOPED_TRACE("First step ends barely closer than boundary");
         /*
-          Propagate up to 0.448159
-          - advance(0.448159, {-4.89125,-0.433307,0})
-             -> {0.448159, {-4.99,8.24444e-08,0}}
-           + chord length 0.444418 => linear step 0.489419 (hit surface 6)
-           + intercept is sufficiently close (miss distance = 0.0450017) to
-             substep point
-          - Moved to boundary 6 at position {-5,0.0438767,0}
+         Propagate up to 0.448159
+         - advance(0.448159, {-4.89125,-0.433307,0})
+           -> {0.448159, {-4.99,8.24444e-08,0}}
+          + chord length 0.444418 => linear step 0.489419 (hit surface 6):
+           update length 0.493539
+          + next trial step exceeds driver minimum 1e-06 *OR* intercept is
+           sufficiently close (miss distance = 0.0450017) to substep point
+         - Moved remaining distance 0 without physically changing position
+         ==> distance 0.448159 (in 0 steps)
          */
 
         real_type dx = 0.1 * driver_options.delta_intersection;
@@ -886,11 +902,14 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(first_step);
 
-        EXPECT_TRUE(result.boundary);
+        EXPECT_FALSE(result.boundary);
         EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_EQ(0.40315701480314531, result.distance);
-        EXPECT_LT(result.distance, first_step);
-        EXPECT_LT(distance(Real3{-5, 0.043876682150692459, 0}, geo.pos()), 1e-8)
+        EXPECT_SOFT_EQ(0.44815869703173999, result.distance);
+        EXPECT_LE(result.distance, first_step);
+        EXPECT_LT(
+            distance(Real3{-4.9900002299216384, 8.2444433238682002e-08, 0},
+                     geo.pos()),
+            1e-8)
             << geo.pos();
     }
     {
@@ -979,9 +998,9 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
     static double const expected_distances[] = {0.00785398163,
-                                                0.00281586026,
+                                                0.00282334506,
                                                 0.00448798951,
-                                                0.00282112800,
+                                                0.00282597038,
                                                 1e-05,
                                                 1e-05,
                                                 1e-08,

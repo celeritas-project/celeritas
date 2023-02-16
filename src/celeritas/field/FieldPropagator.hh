@@ -162,8 +162,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
 
         // Advance up to (but probably less than) the remaining step length
         DriverResult substep = driver_.advance(remaining, state_);
-        CELER_ASSERT(substep.step <= remaining
-                     || soft_equal(substep.step, remaining));
+        CELER_ASSERT(substep.step > 0 && substep.step <= remaining);
 
         cout << "- advance(" << remaining << ", " << state_.pos << ") -> {"
              << substep.step << ", " << substep.state.pos << "}" << endl;
@@ -189,6 +188,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         auto linear_step
             = geo_.find_next_step(chord.length + driver_.delta_intersection());
 
+        // Scale the effective substep length to travel by the fraction along
+        // the chord to the boundary. This value can be slightly larger than 1
+        // because we search up a little past the endpoint (thanks to the delta
+        // intersection).
+        real_type const update_length = substep.step * linear_step.distance
+                                        / chord.length;
+
         cout << " + chord length " << chord.length << " => linear step "
              << linear_step.distance;
         if (linear_step.boundary)
@@ -196,7 +202,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             cout << " (hit surface " << geo_.next_surface_id().unchecked_get()
                  << ')';
         }
-        cout << '\n';
+        cout << ": update length " << update_length << '\n';
 
         if (!linear_step.boundary)
         {
@@ -208,7 +214,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // on a reentrant boundary crossing below.
             state_ = substep.state;
             result.boundary = false;
-            result.distance += celeritas::min(substep.step, remaining);
+            result.distance += substep.step;
             remaining = step - result.distance;
             geo_.move_internal(state_.pos);
             --remaining_substeps;
@@ -220,63 +226,78 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a
-            // near tangent). Reduce substep size and try again. Assume a
-            // boundary crossing if repeated bisection of the substep fails to
-            // converge.
+            // near tangent). Reduce substep size and try again.
             remaining = substep.step / 2;
             cout << " + halving substep distance" << endl;
         }
-        else if (substep.step * linear_step.distance
-                 <= driver_.minimum_step() * chord.length)
+        else if (update_length <= driver_.minimum_step()
+                 || detail::is_intercept_close(state_.pos,
+                                               chord.dir,
+                                               linear_step.distance,
+                                               substep.state.pos,
+                                               driver_.delta_intersection()))
         {
-            // i.e.: substep * (linear_step / chord_length) <= min_step
             // We're close enough to the boundary that the next trial step
-            // would be less than the driver's minimum step. Accept the
-            // momentum update, but use the position from the new boundary.
-            result.boundary = true;
-            result.distance += min(linear_step.distance, remaining);
-            state_.mom = substep.state.mom;
-            remaining = 0;
-            cout << " + next trial step exceeds driver minimum "
-                 << driver_.minimum_step() << endl;
-        }
-        else if (detail::is_intercept_close(state_.pos,
-                                            chord.dir,
-                                            linear_step.distance,
-                                            substep.state.pos,
-                                            driver_.delta_intersection()))
-        {
+            // would be less than the driver's minimum step.
+            // *OR*
             // The straight-line intersection point is a distance less than
             // `delta_intersection` from the substep's end position.
             // Commit the proposed state's momentum, use the
             // post-boundary-crossing track position for consistency, and
             // conservatively reduce the *reported* traveled distance to avoid
             // coincident boundary crossings.
-            result.boundary = true;
-            real_type miss_distance = std::sqrt(detail::calc_miss_distance_sq(
-                state_.pos, chord.dir, linear_step.distance, substep.state.pos));
-            CELER_ASSERT(miss_distance >= 0
-                         && miss_distance <= driver_.delta_intersection());
-            result.distance += substep.step - miss_distance;
+
+            if (update_length <= driver_.minimum_step())
+            {
+                cout << " + next trial step exceeds driver minimum "
+                     << driver_.minimum_step();
+            }
+            else
+            {
+                cout << " + intercept is sufficiently close (miss distance = "
+                     << std::sqrt(
+                            detail::calc_miss_distance_sq(state_.pos,
+                                                          chord.dir,
+                                                          linear_step.distance,
+                                                          substep.state.pos))
+                     << ") to substep point: ";
+            }
+
+            if (linear_step.distance <= chord.length
+                || result.distance + update_length <= step)
+            {
+                // Only cross the boundary if the intersect point is less
+                // than or exactly on the boundary, or if the crossing
+                // doesn't put us past the end of the step
+                result.boundary = true;
+                cout << "moved to boundary";
+            }
+            else
+            {
+                // Accept the substep point
+                geo_.move_internal(substep.state.pos);
+                cout << "moved to " << substep.state.pos;
+            }
+            cout << endl;
+
+            result.distance += celeritas::min(update_length, substep.step);
+            CELER_ASSERT(result.distance <= step);
             state_.mom = substep.state.mom;
             remaining = 0;
-
-            cout << " + intercept is sufficiently close (miss distance = "
-                 << miss_distance << ") to substep point" << endl;
         }
         else
         {
             // The straight-line intercept is too far from substep's end state.
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
-            remaining = substep.step * linear_step.distance / chord.length;
+            remaining = update_length;
             cout << " + Setting remaining distance to a fraction "
                  << linear_step.distance / chord.length << " of the substep"
                  << endl;
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
 
-    if (result.distance > 0)
+    if (result.distance > 0 && result.boundary)
     {
         if (result.boundary)
         {
@@ -288,17 +309,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             cout << "- Moved to boundary " << geo_.surface_id().unchecked_get()
                  << " at position " << state_.pos << endl;
         }
-        else if (remaining_substeps > 0)
-        {
-            // Bad luck with substep accumulation or possible very small
-            // initial value for "step". Return that we've moved this tiny
-            // amount (for, e.g., dE/dx purposes) but don't physically
-            // propagate the track.
-            result.distance += remaining;
-            cout << "- Moved distance " << remaining
-                 << " without physically changing position" << endl;
-        }
     }
+    CELER_ASSERT(remaining == 0 || remaining_substeps == 0);
 
     // Even though the along-substep movement was through chord lengths,
     // conserve momentum through the field change by updating the final
