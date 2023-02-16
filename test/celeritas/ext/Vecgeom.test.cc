@@ -135,7 +135,7 @@ void VecgeomTestBase::TrackingResult::print_expected()
 //---------------------------------------------------------------------------//
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
-#define FourLevelsTest DISABLED_FourLevelsTest
+#define FourLevelsTest FourLevelsTest
 
 class FourLevelsTest : public GlobalGeoTestBase,
                        public OnlyGeoTestBase,
@@ -451,20 +451,49 @@ TEST_F(SolidsTest, trace)
 {
     {
         SCOPED_TRACE("Center +x");
-        auto result = this->track({-37.5, 0, 0}, {1, 0, 0});
-        result.print_expected();
+        auto result = this->track({37.5, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"polyhedr1",
+                                                       "boolean1",
+                                                       "torus1",
+                                                       "trap1",
+                                                       "sphere1",
+                                                       "arb8a",
+                                                       "arb8b",
+                                                       "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {40.3352925792543,
+                                                       22.1647074207457,
+                                                       0.496710383926661,
+                                                       5.8237508777342,
+                                                       6.17953873833913,
+                                                       27.5,
+                                                       12.5,
+                                                       22.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
         auto result = this->track({-37.5, 12.5, 0}, {1, 0, 0});
-        result.print_expected();
+        static char const* const expected_volumes[] = {
+            "arb8a", "boolean1", "ellipsoid1", "orb1", "genPocone1", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {52.5,
+                                                       10,
+                                                       30.681186857726,
+                                                       0.12008333149575,
+                                                       6.6153036785175,
+                                                       37.583426132261};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
         auto result = this->track({-37.5, -12.5, 0}, {1, 0, 0});
-        result.print_expected();
+        static char const* const expected_volumes[]
+            = {"orb1", "genPocone1", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static const real_type expected_distances[] = {100, 7.5, 30};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
-    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//
@@ -494,7 +523,7 @@ class GeantBuilderTestBase : virtual public GeantTestBase,
 
 //---------------------------------------------------------------------------//
 
-#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(DISABLED_FourLevelsGeantTest)
+#define FourLevelsGeantTest TEST_IF_CELERITAS_GEANT(FourLevelsGeantTest)
 class FourLevelsGeantTest : public GeantBuilderTestBase
 {
   public:
@@ -639,14 +668,17 @@ TEST_F(SolidsGeantTest, accessors)
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
     EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
 
-    vecgeom::GeoManager::Instance().GetWorld()->PrintContent();
+    // vecgeom::GeoManager::Instance().GetWorld()->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
 
 TEST_F(SolidsGeantTest, geomDump)
 {
-    vecgeom::GeoManager::Instance().GetWorld()->PrintContent();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    EXPECT_TRUE(world);
+    if (world)
+        world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
@@ -655,42 +687,50 @@ TEST_F(SolidsGeantTest, trace)
 {
     {
         SCOPED_TRACE("Center +x");
-        auto result = this->track({-100, 0, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World",
-                                                       "vol1",
-                                                       "World",
-                                                       "vol2",
-                                                       "World",
-                                                       "vol0",
-                                                       "World",
-                                                       "vol3",
-                                                       "World",
-                                                       "vol4",
+        auto result = this->track({37.5, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"polyhedr1",
+                                                       "boolean1",
+                                                       "torus1",
+                                                       "trap1",
+                                                       "sphere1",
+                                                       "arb8a",
+                                                       "arb8b",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[]
-            = {72.25, 5.5, 9.25, 1, 11.5, 1, 7, 10, 7, 1, 474.5};
+        static const real_type expected_distances[] = {40.3352925792543,
+                                                       22.1647074207457,
+                                                       0.496710383926661,
+                                                       6.03590286101942,
+                                                       5.96738675505392,
+                                                       27.5,
+                                                       12.5,
+                                                       22.5};
+        // TODO: investigate elements 3,4 different from VGDML version
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-100, 12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"World", "vol11", "World", "vol21", "World", "vol31", "World"};
+        auto result = this->track({-37.5, 12.5, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {
+            "arb8a", "boolean1", "ellipsoid1", "orb1", "genPocone1", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[]
-            = {74.5, 1, 11, 2, 22.000001, 4.999999, 484.5};
+        static const real_type expected_distances[] = {52.5,
+                                                       10,
+                                                       30.681186857726,
+                                                       0.12008333149575,
+                                                       6.6153036785175,
+                                                       37.583426132261};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-100, -12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {"World"};
+        auto result = this->track({-37.5, -12.5, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"orb1", "genPocone1", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {600};
+        static const real_type expected_distances[] = {100, 7.5, 30};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
-    ADD_FAILURE() << "These are all wrong...";
 }
 
 //---------------------------------------------------------------------------//
