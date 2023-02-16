@@ -23,12 +23,12 @@ namespace celeritas
  *
  * \tparam MH MSC helper, e.g. \c detail::NoMsc
  * \tparam MP Propagator factory, e.g. \c detail::LinearPropagatorFactory
- * \tparam AE Energy loss applier, e.g. \c detail::NoElossApplier
+ * \tparam EH Energy loss helper, e.g. \c detail::TrackNoEloss
  */
-template<class MH, class MP, class AE>
+template<class MH, class MP, class EH>
 inline CELER_FUNCTION void along_step(MH&& msc,
                                       MP&& make_propagator,
-                                      AE&& apply_eloss,
+                                      EH&& eloss,
                                       CoreTrackView const& track)
 {
     // TODO: scope the 'views' so that the lifetimes don't overlap between this
@@ -48,6 +48,7 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         CELER_ASSERT(track.make_particle_view().is_stopped());
         CELER_ASSERT(local.step_limit.action
                      == track.make_physics_view().scalars().discrete_action());
+        CELER_ASSERT(track.make_physics_view().has_at_rest());
         // Increment the step counter
         sim.increment_num_steps();
         return;
@@ -94,8 +95,8 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     }
 
     // Update track's lab-frame time using the beginning-of-step speed
+    auto particle = track.make_particle_view();
     {
-        auto particle = track.make_particle_view();
         CELER_ASSERT(!particle.is_stopped());
         real_type speed = native_value_from(particle.speed());
         CELER_ASSERT(speed >= 0);
@@ -108,17 +109,56 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         }
     }
 
-    apply_eloss(track, &local.step_limit);
-    CELER_ASSERT(local.step_limit.step > 0);
-    CELER_ASSERT(local.step_limit.action);
-
+    if (eloss.is_applicable(track))
     {
+        using Energy = ParticleTrackView::Energy;
+
+        bool apply_cut = (local.step_limit.action != track.boundary_action());
+        Energy deposited
+            = eloss.calc_eloss(track, local.step_limit.step, apply_cut);
+        CELER_ASSERT(deposited <= particle.energy());
+        CELER_ASSERT(apply_cut || deposited != particle.energy());
+
+        if (deposited > zero_quantity())
+        {
+            // Deposit energy loss
+            auto step = track.make_physics_step_view();
+            step.deposit_energy(deposited);
+            particle.subtract_energy(deposited);
+        }
+        // Energy loss helper *must* apply the tracking cutoff
+        CELER_ASSERT(particle.energy()
+                         >= track.make_physics_view().scalars().eloss_calc_limit
+                     || !apply_cut || particle.is_stopped());
+    }
+
+    if (particle.is_stopped())
+    {
+        // Particle lost all energy over the step
+        CELER_ASSERT(local.step_limit.action != track.boundary_action());
+        auto phys = track.make_physics_view();
+        if (!phys.has_at_rest())
+        {
+            // Immediately kill stopped particles with no at rest processes
+            sim.status(TrackStatus::killed);
+        }
+        else
+        {
+            // Particle slowed down to zero: force a discrete interaction
+            local.step_limit.action = phys.scalars().discrete_action();
+        }
+    }
+
+    if (sim.status() != TrackStatus::killed)
+    {
+        CELER_ASSERT(local.step_limit.step > 0);
+        CELER_ASSERT(local.step_limit.action);
         auto phys = track.make_physics_view();
         if (local.step_limit.action != phys.scalars().discrete_action())
         {
             // Reduce remaining mean free paths to travel. The 'discrete
-            // action' case is launched separately and resets the interaction
-            // MFP itself.
+            // action' case is launched separately and resets the
+            // interaction MFP itself.
             auto step = track.make_physics_step_view();
             real_type mfp = phys.interaction_mfp()
                             - local.step_limit.step * step.macro_xs();
