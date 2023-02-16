@@ -436,7 +436,7 @@ TEST_F(TwoBoxTest, gamma_exit)
             = make_field_propagator(stepper, driver_options, particle, &geo);
         auto result = propagate(0.251 + 1e-7);
 
-        EXPECT_SOFT_EQ(0.251 + 1e-7, result.distance);
+        EXPECT_SOFT_EQ(0.251, result.distance);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({2, 5, 0}), geo.pos()), 1e-5);
         EXPECT_EQ(1, stepper.count());
@@ -868,12 +868,12 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
         /*
           Propagate up to 0.448159
           - advance(0.448159, {-4.89125,-0.433307,0})
-                -> {0.448159, {-4.99,8.24444e-08,0}}
-           + chord length 0.444418 => linear step 0.489419 (boundary!)
-           + intercept is sufficiently close (miss distance = 0.00202515) to
+             -> {0.448159, {-4.99,8.24444e-08,0}}
+           + chord length 0.444418 => linear step 0.489419 (hit surface 6)
+           + intercept is sufficiently close (miss distance = 0.0450017) to
              substep point
-          - Moved to boundary at position {-5,0.0438767,0}
-        */
+          - Moved to boundary 6 at position {-5,0.0438767,0}
+         */
 
         real_type dx = 0.1 * driver_options.delta_intersection;
         Real3 start_pos{-5 + dx, 0, 0};
@@ -888,7 +888,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 
         EXPECT_TRUE(result.boundary);
         EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_EQ(result.distance, 0.44613354562833657);
+        EXPECT_SOFT_EQ(0.40315701480314531, result.distance);
+        EXPECT_LT(result.distance, first_step);
         EXPECT_LT(distance(Real3{-5, 0.043876682150692459, 0}, geo.pos()), 1e-8)
             << geo.pos();
     }
@@ -908,7 +909,8 @@ TEST_F(TwoBoxTest, electron_step_endpoint)
 
         EXPECT_TRUE(result.boundary);
         EXPECT_EQ(3, stepper.count());
-        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-10);
+        EXPECT_SOFT_NEAR(result.distance, first_step, 1e-5);
+        EXPECT_LT(result.distance, first_step);
         // Y position suffers from roundoff
         EXPECT_LT(distance(Real3{-5.0, -9.26396730438483e-07, 0}, geo.pos()),
                   1e-8);
@@ -977,9 +979,9 @@ TEST_F(TwoBoxTest, electron_tangent_cross_smallradius)
     static int const expected_boundary[] = {1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
     EXPECT_VEC_EQ(expected_boundary, boundary);
     static double const expected_distances[] = {0.00785398163,
-                                                0.00282334500,
+                                                0.00281586026,
                                                 0.00448798951,
-                                                0.00282597035,
+                                                0.00282112800,
                                                 1e-05,
                                                 1e-05,
                                                 1e-08,

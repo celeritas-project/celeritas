@@ -226,9 +226,10 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             // conservatively reduce the *reported* traveled distance to avoid
             // coincident boundary crossings.
             result.boundary = true;
-            real_type miss_distance = detail::calc_miss_distance(
-                state_.pos, chord.dir, linear_step.distance, substep.state.pos);
-            CELER_ASSERT(miss_distance >= 0 && miss_distance < substep.step);
+            real_type miss_distance = std::sqrt(detail::calc_miss_distance_sq(
+                state_.pos, chord.dir, linear_step.distance, substep.state.pos));
+            CELER_ASSERT(miss_distance >= 0
+                         && miss_distance <= driver_.delta_intersection());
             result.distance += substep.step - miss_distance;
             state_.mom = substep.state.mom;
             remaining = 0;
