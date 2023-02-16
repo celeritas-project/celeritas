@@ -57,5 +57,5 @@ class DiagnosticStepper
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace celeritas
+}  // namespace test
 }  // namespace celeritas

@@ -25,14 +25,15 @@
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
 
+using celeritas::constants::sqrt_two;
+using celeritas::units::ElementaryCharge;
 using celeritas::units::MevEnergy;
 using celeritas::units::MevMass;
 using celeritas::units::MevMomentum;
-using celeritas::units::ElementaryCharge;
-using celeritas::constants::sqrt_two;
 
 template<class E>
-using DiagnosticDPStepper = celeritas::test::DiagnosticStepper<celeritas::DormandPrinceStepper<E>>;
+using DiagnosticDPStepper
+    = celeritas::test::DiagnosticStepper<celeritas::DormandPrinceStepper<E>>;
 
 namespace celeritas
 {
@@ -46,7 +47,10 @@ class FieldDriverTest : public Test
 {
   public:
     static constexpr MevMass electron_mass() { return MevMass{0.5109989461}; }
-    static constexpr ElementaryCharge electron_charge() { return ElementaryCharge{-1}; }
+    static constexpr ElementaryCharge electron_charge()
+    {
+        return ElementaryCharge{-1};
+    }
 
     // Calculate momentum assuming an electron
     MevMomentum calc_momentum(MevEnergy energy) const
@@ -116,9 +120,7 @@ TEST_F(FieldDriverTest, types)
 {
     FieldDriverOptions driver_options;
     auto driver = make_mag_field_driver<DormandPrinceStepper>(
-        UniformField({0, 0, 1}),
-        driver_options,
-        electron_charge());
+        UniformField({0, 0, 1}), driver_options, electron_charge());
 
     // Make sure object is holding things by value
     EXPECT_TRUE(
@@ -154,7 +156,7 @@ TEST_F(FieldDriverTest, step_counts)
 
         OdeState state;
         state.pos = {radius, 0, 0};
-        state.mom = this->calc_momentum(e, {0, sqrt_two/2, sqrt_two/2});
+        state.mom = this->calc_momentum(e, {0, sqrt_two / 2, sqrt_two / 2});
 
         stepper.reset_count();
         auto end = driver.advance(10 * units::centimeter, state);
