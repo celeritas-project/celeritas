@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/SoftEqual.hh"
 
 #include "FieldDriverOptions.hh"
 #include "Types.hh"
@@ -81,11 +82,11 @@ class FieldDriver
 
     //// HEPER FUNCTIONS ////
 
-    // Find the next acceptable chord of with the miss-distance
+    // Find the next acceptable chord whose sagitta is less than delta_chord
     inline CELER_FUNCTION ChordSearch
     find_next_chord(real_type step, OdeState const& state) const;
 
-    // Advance for a given step and  evaluate the next predicted step.
+    // Advance for a given step and evaluate the next predicted step.
     inline CELER_FUNCTION Integration
     integrate_step(real_type step, OdeState const& state) const;
 
@@ -127,7 +128,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  *
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
- * adaptive integration, the proposed chord of which the miss-distance (the
+ * adaptive integration, the proposed chord of which the sagitta (the
  * closest distance from the curved trajectory to the chord) is smaller than
  * a reference distance (dist_chord) will be accepted if its stepping error is
  * within a reference accuracy. Otherwise, the more accurate step integration
@@ -137,6 +138,15 @@ template<class StepperT>
 CELER_FUNCTION DriverResult
 FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 {
+    if (step <= options_.minimum_step)
+    {
+        // If the input is a very tiny step, do a "quick advance".
+        DriverResult result;
+        result.state = apply_step_(step, state).end_state;
+        result.step = step;
+        return result;
+    }
+
     // Output with a step control error
     ChordSearch output = this->find_next_chord(step, state);
 
@@ -152,12 +162,15 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
+    CELER_ENSURE(
+        output.end.step > 0
+        && (output.end.step <= step || soft_equal(output.end.step, step)));
     return output.end;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the next acceptable chord of which the miss-distance is smaller than
+ * Find the next acceptable chord of which the sagitta is smaller than
  * a given reference (delta_chord) and evaluate the associated error.
  */
 template<class StepperT>
@@ -263,6 +276,10 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
     // TODO: loop check and handle rare cases if happen
     CELER_ASSERT(succeeded);
 
+    // Curve length may be slightly longer than step due to roundoff in
+    // accumulation
+    CELER_ENSURE(curve_length > 0
+                 && (curve_length <= step || soft_equal(curve_length, step)));
     output.end.step = curve_length;
     return output.end;
 }

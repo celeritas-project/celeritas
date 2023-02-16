@@ -352,7 +352,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         // Range = 6.41578930992857482e-06
         EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
         EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
-        EXPECT_EQ("geo-boundary", result.action);
+        EXPECT_EQ("eloss-range", result.action);
     }
 }
 //---------------------------------------------------------------------------//
