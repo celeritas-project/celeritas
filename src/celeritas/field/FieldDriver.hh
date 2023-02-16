@@ -82,11 +82,11 @@ class FieldDriver
 
     //// HEPER FUNCTIONS ////
 
-    // Find the next acceptable chord of with the miss-distance
+    // Find the next acceptable chord whose sagitta is less than delta_chord
     inline CELER_FUNCTION ChordSearch
     find_next_chord(real_type step, OdeState const& state) const;
 
-    // Advance for a given step and  evaluate the next predicted step.
+    // Advance for a given step and evaluate the next predicted step.
     inline CELER_FUNCTION Integration
     integrate_step(real_type step, OdeState const& state) const;
 
@@ -128,7 +128,7 @@ FieldDriver<StepperT>::FieldDriver(FieldDriverOptions const& options,
  *
  * For a given trial step, advance by a sub-step within a required tolerance
  * and update the current state (position and momentum).  For an efficient
- * adaptive integration, the proposed chord of which the miss-distance (the
+ * adaptive integration, the proposed chord of which the sagitta (the
  * closest distance from the curved trajectory to the chord) is smaller than
  * a reference distance (dist_chord) will be accepted if its stepping error is
  * within a reference accuracy. Otherwise, the more accurate step integration
@@ -170,7 +170,7 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the next acceptable chord of which the miss-distance is smaller than
+ * Find the next acceptable chord of which the sagitta is smaller than
  * a given reference (delta_chord) and evaluate the associated error.
  */
 template<class StepperT>
