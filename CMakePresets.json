@@ -93,6 +93,15 @@
       }
     },
     {
+      "name": ".reldeb",
+      "hidden": true,
+      "description": "Enable debug with basic optimizations",
+      "cacheVariables": {
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "ON"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"}
+      }
+    },
+    {
       "name": ".spack-base",
       "description": "Setup for using spack environment",
       "hidden": true,
