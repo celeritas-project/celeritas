@@ -162,8 +162,9 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state) const
         output.end = this->accurate_advance(output.end.step, state, next_step);
     }
 
-    CELER_ENSURE(output.end.step > 0 && output.end.step <= step
-                 || soft_equal(output.end.step, step));
+    CELER_ENSURE(
+        output.end.step > 0
+        && (output.end.step <= step || soft_equal(output.end.step, step)));
     return output.end;
 }
 
@@ -277,8 +278,8 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
 
     // Curve length may be slightly longer than step due to roundoff in
     // accumulation
-    CELER_ENSURE(curve_length > 0 && curve_length <= step
-                 || soft_equal(curve_length, step));
+    CELER_ENSURE(curve_length > 0
+                 && (curve_length <= step || soft_equal(curve_length, step)));
     output.end.step = curve_length;
     return output.end;
 }
