@@ -24,6 +24,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -31,6 +32,28 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<>
+struct ReprTraits<G4ThreeVector>
+{
+    using value_type = std::decay_t<G4ThreeVector>;
+
+    static void print_type(std::ostream& os, char const* name = nullptr)
+    {
+        os << "G4ThreeVector";
+        if (name)
+        {
+            os << ' ' << name;
+        }
+    }
+    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
+
+    static void print_value(std::ostream& os, G4ThreeVector const& vec)
+    {
+        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
+    }
+};
+
 namespace detail
 {
 namespace
@@ -53,6 +76,35 @@ inline double convert_to_geant(units::MevEnergy const& energy, double units)
 {
     CELER_EXPECT(units == CLHEP::MeV);
     return energy.value() * CLHEP::MeV;
+}
+
+//---------------------------------------------------------------------------//
+struct PrintableNavHistory
+{
+    G4VTouchable* touch{nullptr};
+};
+
+std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
+{
+    CELER_EXPECT(pnh.touch);
+    os << '{';
+
+    G4VTouchable& touch = *pnh.touch;
+    for (int depth : range(touch.GetHistoryDepth()))
+    {
+        G4VPhysicalVolume* vol = touch.GetVolume(depth);
+        CELER_ASSERT(vol);
+        G4LogicalVolume* lv = vol->GetLogicalVolume();
+        CELER_ASSERT(lv);
+        if (depth != 0)
+        {
+            os << " -> ";
+        }
+        os << "{pv='" << vol->GetName() << "', lv=" << lv->GetInstanceID()
+           << "='" << lv->GetName() << "'}";
+    }
+    os << '}';
+    return os;
 }
 
 //---------------------------------------------------------------------------//
@@ -125,6 +177,8 @@ HitProcessor::~HitProcessor() = default;
 void HitProcessor::operator()(DetectorStepOutput const& out) const
 {
     CELER_EXPECT(!out.detector.empty());
+    CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].pos.empty());
+    CELER_ASSERT(!navi_ || !out.points[StepPoint::pre].dir.empty());
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
@@ -173,13 +227,16 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
 
         if (navi_)
         {
-            // Locate pre-step point
-            navi_->LocateGlobalPointAndUpdateTouchable(
-                points[StepPoint::pre]->GetPosition(),
-                touch_handle_(),
-                /* relative_search = */ false);
-            // TODO: can we be sure we're in the right volume on the first step
-            // inside?
+            CELER_ASSERT(out.detector[i] < detector_volumes_.size());
+            bool success = this->update_touchable(
+                out.points[StepPoint::pre].pos[i],
+                out.points[StepPoint::pre].dir[i],
+                detector_volumes_[out.detector[i].unchecked_get()]);
+            if (CELER_UNLIKELY(!success))
+            {
+                // Inconsistent touchable: skip this energy deposition
+                continue;
+            }
         }
 
         // Hit sensitive detector (NOTE: GetSensitiveDetector returns a
@@ -191,6 +248,86 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
         CELER_ASSERT(sd);
         sd->Hit(step_.get());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the temporary navigation state based on the position and direction.
+ */
+bool HitProcessor::update_touchable(Real3 const& pos,
+                                    Real3 const& dir,
+                                    G4LogicalVolume* lv) const
+{
+    auto g4pos = convert_to_geant(pos, CLHEP::cm);
+    auto g4dir = convert_to_geant(dir, 1);
+    G4VTouchable* touchable = touch_handle_();
+
+    // Locate pre-step point
+    navi_->LocateGlobalPointAndUpdateTouchable(g4pos,
+                                               g4dir,
+                                               touchable,
+                                               /* relative_search = */ false);
+
+    // Check that physical and logical volumes are consistent
+    G4VPhysicalVolume* pv = touchable->GetVolume(0);
+    CELER_ASSERT(pv);
+    if (!CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
+    {
+        return true;
+    }
+
+    // We may be accidentally in the old volume and crossing into
+    // the new one: try crossing the edge. Use a fairly loose tolerance since
+    // there may be small differences between the Geant4 and VecGeom
+    // representations of the geometry.
+    double safety_distance{-1};
+    constexpr double max_step = 1 * CLHEP::mm;
+    double step = navi_->ComputeStep(g4pos, g4dir, max_step, safety_distance);
+    if (step < max_step)
+    {
+        // Found a nearby volume
+        if (step > 0)
+        {
+            // Warn only if the step is nontrivial
+            CELER_LOG(warning)
+                << "Bumping navigation state by " << repr(step / CLHEP::mm)
+                << " [mm] because the pre-step point at " << repr(g4pos)
+                << " [mm] along " << repr(dir)
+                << " is expected to be in logical volume '" << lv->GetName()
+                << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
+                << PrintableNavHistory{touchable};
+        }
+
+        navi_->SetGeometricallyLimitedStep();
+        navi_->LocateGlobalPointAndUpdateTouchable(
+            g4pos,
+            g4dir,
+            touchable,
+            /* relative_search = */ true);
+
+        pv = touchable->GetVolume(0);
+        CELER_ASSERT(pv);
+    }
+    else
+    {
+        // No nearby crossing found
+        CELER_LOG(warning)
+            << "Failed to bump navigation state up to a distance of "
+            << max_step / CLHEP::mm << " [mm]";
+    }
+
+    if (CELER_UNLIKELY(pv->GetLogicalVolume() != lv))
+    {
+        CELER_LOG(error)
+            << "expected step point at " << repr(g4pos) << " [mm] along "
+            << repr(dir) << " to be in logical volume '" << lv->GetName()
+            << "' (ID " << lv->GetInstanceID() << ") but navigation gives "
+            << PrintableNavHistory{touchable}
+            << ": omitting energy deposition of "
+            << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
+        return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//

@@ -79,6 +79,10 @@ class HitProcessor
     std::unique_ptr<G4Navigator> navi_;
     //! Geant4 reference-counted pointer to a G4VTouchable
     G4TouchableHandle touch_handle_;
+
+    bool update_touchable(Real3 const& pos,
+                          Real3 const& dir,
+                          G4LogicalVolume* lv) const;
 };
 
 //---------------------------------------------------------------------------//
