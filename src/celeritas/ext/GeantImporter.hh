@@ -84,6 +84,19 @@ class GeantImporter
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
+inline bool operator==(GeantImporter::DataSelection const& lhs,
+                       GeantImporter::DataSelection const& rhs)
+{
+    return lhs.particles == rhs.particles && lhs.processes == rhs.processes
+           && lhs.reader_data == rhs.reader_data;
+}
+
+inline bool operator!=(GeantImporter::DataSelection const& lhs,
+                       GeantImporter::DataSelection const& rhs)
+{
+    return !(lhs == rhs);
+}
+
 #if !CELERITAS_USE_GEANT4
 inline G4VPhysicalVolume const* GeantImporter::get_world_volume()
 {

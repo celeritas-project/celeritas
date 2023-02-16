@@ -156,7 +156,7 @@ TEST_F(EPlusGGInteractorTest, at_rest)
                                this->secondary_allocator());
     RandomEngine& rng_engine = this->rng();
 
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         Interaction result = interact(rng_engine);
         SCOPED_TRACE(result);

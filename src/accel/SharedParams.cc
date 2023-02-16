@@ -9,7 +9,6 @@
 
 #include <fstream>
 #include <memory>
-#include <set>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -87,16 +86,9 @@ build_processes(ImportData const& imported,
     ProcessBuilder::Options opts;
     ProcessBuilder build_process(imported, particle, material, ignore, opts);
 
-    // Get the set of all user-input processes
-    std::set<ImportProcessClass> all_process_classes;
-    for (auto const& p : imported.processes)
-    {
-        all_process_classes.insert(p.process_class);
-    }
-
     // Build proceses
     std::vector<std::shared_ptr<Process const>> result;
-    for (auto p : all_process_classes)
+    for (auto p : ProcessBuilder::get_all_process_classes(imported.processes))
     {
         result.push_back(build_process(p));
         if (!result.back())

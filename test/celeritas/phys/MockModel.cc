@@ -68,13 +68,13 @@ void MockModel::execute(CoreDeviceRef const&) const
 
 std::string MockModel::label() const
 {
-    return std::string("mock-model-") + std::to_string(data_.id.get());
+    return std::string("mock-model-") + std::to_string(data_.id.get() - 4);
 }
 
 std::string MockModel::description() const
 {
     std::ostringstream os;
-    os << "MockModel(" << data_.id.get()
+    os << "MockModel(" << (data_.id.get() - 4)
        << ", p=" << data_.applic.particle.get()
        << ", emin=" << data_.applic.lower.value()
        << ", emax=" << data_.applic.upper.value() << ")";

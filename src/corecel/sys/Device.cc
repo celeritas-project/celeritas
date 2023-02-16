@@ -72,7 +72,7 @@ int determine_num_devices()
  */
 bool determine_debug()
 {
-    if (CELERITAS_DEBUG)
+    if constexpr (CELERITAS_DEBUG)
     {
         return true;
     }
@@ -307,7 +307,7 @@ void set_cuda_stack_size(int limit)
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitStackSize, limit));
-    if (CELERITAS_USE_CUDA)
+    if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Set CUDA stack size to " << limit << "B";
     }
@@ -326,7 +326,7 @@ void set_cuda_heap_size(int limit)
     CELER_EXPECT(limit > 0);
     CELER_EXPECT(celeritas::device());
     CELER_CUDA_CALL(cudaDeviceSetLimit(cudaLimitMallocHeapSize, limit));
-    if (CELERITAS_USE_CUDA)
+    if constexpr (CELERITAS_USE_CUDA)
     {
         CELER_LOG(debug) << "Set CUDA heap size to " << limit << "B";
     }

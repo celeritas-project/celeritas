@@ -8,6 +8,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "corecel/cont/Span.hh"
+#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -72,18 +73,18 @@ class KnCaloTest : public KnStepCollectorTestBase, public CaloTestBase
 class TestEm3CollectorTestBase : public TestEm3Base,
                                  virtual public StepCollectorTestBase
 {
-    //! Use MSC
-    bool enable_msc() const override { return true; }
-
     SPConstAction build_along_step() override
     {
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1 * units::tesla};
-        auto result = AlongStepUniformMscAction::from_params(
-            action_reg.next_id(), *this->physics(), field_params);
+        auto msc = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+
+        auto result = std::make_shared<AlongStepUniformMscAction>(
+            action_reg.next_id(), field_params, msc);
         CELER_ASSERT(result);
-        CELER_ASSERT(result->has_msc() == this->enable_msc());
+        CELER_ASSERT(result->has_msc());
         action_reg.insert(result);
         return result;
     }

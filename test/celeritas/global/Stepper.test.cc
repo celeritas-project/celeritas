@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -38,21 +40,9 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-#define TestEm3Test TEST_IF_CELERITAS_GEANT(TestEm3Test)
-class TestEm3Test : public TestEm3Base, public StepperTestBase
+class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
 {
   public:
-    //! Make 10GeV electrons along +x
-    std::vector<Primary> make_primaries(size_type count) const override
-    {
-        return this->make_primaries_with_energy(count, MevEnergy{10000});
-    }
-
-    size_type max_average_steps() const override
-    {
-        return 100000;  // 8 primaries -> ~500k steps, be conservative
-    }
-
     std::vector<Primary>
     make_primaries_with_energy(size_type count, MevEnergy energy) const
     {
@@ -75,13 +65,34 @@ class TestEm3Test : public TestEm3Base, public StepperTestBase
 };
 
 //---------------------------------------------------------------------------//
-#define TestEm3MscTest TEST_IF_CELERITAS_GEANT(TestEm3MscTest)
-class TestEm3MscTest : public TestEm3Test
+#define TestEm3NoMsc TEST_IF_CELERITAS_GEANT(TestEm3NoMsc)
+class TestEm3NoMsc : public TestEm3StepperTestBase
 {
   public:
-    //! Use MSC
-    bool enable_msc() const override { return true; }
+    //! Make 10GeV electrons along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        return this->make_primaries_with_energy(count, MevEnergy{10000});
+    }
 
+    size_type max_average_steps() const override
+    {
+        return 100000;  // 8 primaries -> ~500k steps, be conservative
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.msc = MscModelSelection::none;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+#define TestEm3Msc TEST_IF_CELERITAS_GEANT(TestEm3Msc)
+class TestEm3Msc : public TestEm3StepperTestBase
+{
+  public:
     //! Make 10MeV electrons along +x
     std::vector<Primary> make_primaries(size_type count) const override
     {
@@ -92,41 +103,41 @@ class TestEm3MscTest : public TestEm3Test
 };
 
 //---------------------------------------------------------------------------//
-#define TestEm3MscNofluctTest TEST_IF_CELERITAS_GEANT(TestEm3MscNofluctTest)
-class TestEm3MscNofluctTest : public TestEm3Test
+#define TestEm3MscNofluct TEST_IF_CELERITAS_GEANT(TestEm3MscNofluct)
+class TestEm3MscNofluct : public TestEm3Msc
 {
   public:
-    //! Use MSC
-    bool enable_msc() const override { return true; }
-    //! Disable energy loss fluctuation
-    bool enable_fluctuation() const override { return false; }
-
-    //! Make 10MeV electrons along +x
-    std::vector<Primary> make_primaries(size_type count) const override
+    GeantPhysicsOptions build_geant_options() const override
     {
-        return this->make_primaries_with_energy(count, MevEnergy{10});
+        auto opts = TestEm3Base::build_geant_options();
+        opts.eloss_fluctuation = false;
+        return opts;
     }
-
-    size_type max_average_steps() const override { return 100; }
 };
 
 //---------------------------------------------------------------------------//
-#define TestEm15Test TEST_IF_CELERITAS_GEANT(TestEm15Test)
-class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
+#define TestEm15Field TEST_IF_CELERITAS_GEANT(TestEm15Field)
+class TestEm15Field : public TestEm15Base, public StepperTestBase
 {
-    bool enable_fluctuation() const override { return false; }
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm15Base::build_geant_options();
+        opts.eloss_fluctuation = false;
+        return opts;
+    }
 
     SPConstAction build_along_step() override
     {
-        CELER_EXPECT(!this->enable_fluctuation());
-
         auto& action_reg = *this->action_reg();
         UniformFieldParams field_params;
         field_params.field = {0, 0, 1e-3 * units::tesla};
-        auto result = AlongStepUniformMscAction::from_params(
-            action_reg.next_id(), *this->physics(), field_params);
-        CELER_ASSERT(result);
-        CELER_ASSERT(result->has_msc() == this->enable_msc());
+
+        auto msc = UrbanMscParams::from_import(
+            *this->particle(), *this->material(), this->imported_data());
+        CELER_ASSERT(msc);
+
+        auto result = std::make_shared<AlongStepUniformMscAction>(
+            action_reg.next_id(), field_params, msc);
         action_reg.insert(result);
         return result;
     }
@@ -166,7 +177,7 @@ class TestEm15FieldTest : public TestEm15Base, public StepperTestBase
 // TESTEM3
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3Test, setup)
+TEST_F(TestEm3NoMsc, setup)
 {
     auto result = this->check_setup();
 
@@ -195,7 +206,7 @@ TEST_F(TestEm3Test, setup)
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(TestEm3Test, host)
+TEST_F(TestEm3NoMsc, host)
 {
     size_type num_primaries = 1;
     size_type num_tracks = 256;
@@ -235,7 +246,7 @@ TEST_F(TestEm3Test, host)
     EXPECT_EQ(0, this->dummy_action().num_execute_device());
 }
 
-TEST_F(TestEm3Test, host_multi)
+TEST_F(TestEm3NoMsc, host_multi)
 {
     // Run and inject multiple sets of primaries during transport
 
@@ -267,7 +278,7 @@ TEST_F(TestEm3Test, host_multi)
     EXPECT_EQ(44, counts.alive);
 }
 
-TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
+TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
     // Num tracks is low enough to hit capacity
@@ -305,7 +316,7 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 // TESTEM3_MSC
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3MscTest, setup)
+TEST_F(TestEm3Msc, setup)
 {
     auto result = this->check_setup();
 
@@ -316,7 +327,6 @@ TEST_F(TestEm3MscTest, setup)
         "Positron annihiliation",
         "Electron/positron ionization",
         "Bremsstrahlung",
-        "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
@@ -329,14 +339,13 @@ TEST_F(TestEm3MscTest, setup)
         "annihil-2-gamma",
         "ioni-moller-bhabha",
         "brems-combined",
-        "msc-urban",
         "geo-boundary",
         "dummy-action",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(TestEm3MscTest, host)
+TEST_F(TestEm3Msc, host)
 {
     size_type num_primaries = 8;
     size_type num_tracks = 2048;
@@ -365,7 +374,7 @@ TEST_F(TestEm3MscTest, host)
     }
 }
 
-TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
+TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
     size_type num_tracks = 1024;
@@ -397,7 +406,7 @@ TEST_F(TestEm3MscTest, TEST_IF_CELER_DEVICE(device))
 // TESTEM3_MSC_NOFLUCT
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm3MscNofluctTest, host)
+TEST_F(TestEm3MscNofluct, host)
 {
     size_type num_primaries = 8;
     size_type num_tracks = 2048;
@@ -433,7 +442,7 @@ TEST_F(TestEm3MscNofluctTest, host)
     }
 }
 
-TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
+TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
     size_type num_tracks = 1024;
@@ -474,7 +483,7 @@ TEST_F(TestEm3MscNofluctTest, TEST_IF_CELER_DEVICE(device))
 // TESTEM15_MSC_FIELD
 //---------------------------------------------------------------------------//
 
-TEST_F(TestEm15FieldTest, setup)
+TEST_F(TestEm15Field, setup)
 {
     auto result = this->check_setup();
 
@@ -485,7 +494,6 @@ TEST_F(TestEm15FieldTest, setup)
         "Positron annihiliation",
         "Electron/positron ionization",
         "Bremsstrahlung",
-        "Multiple scattering",
     };
     EXPECT_VEC_EQ(expected_processes, result.processes);
     static char const* const expected_actions[] = {
@@ -499,14 +507,13 @@ TEST_F(TestEm15FieldTest, setup)
         "ioni-moller-bhabha",
         "brems-sb",
         "brems-rel",
-        "msc-urban",
         "geo-boundary",
         "dummy-action",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
 }
 
-TEST_F(TestEm15FieldTest, host)
+TEST_F(TestEm15Field, host)
 {
     size_type num_primaries = 4;
     size_type num_tracks = 1024;
@@ -536,7 +543,7 @@ TEST_F(TestEm15FieldTest, host)
     }
 }
 
-TEST_F(TestEm15FieldTest, TEST_IF_CELER_DEVICE(device))
+TEST_F(TestEm15Field, TEST_IF_CELER_DEVICE(device))
 {
     size_type num_primaries = 8;
     size_type num_tracks = 1024;

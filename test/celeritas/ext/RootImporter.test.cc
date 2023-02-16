@@ -43,27 +43,41 @@ namespace test
 class RootImporterTest : public Test
 {
   protected:
-    void SetUp() override
-    {
-        root_filename_
-            = this->test_data_path("celeritas", "four-steel-slabs.root");
+    char const* geometry_basename() const { return "four-steel-slabs"; }
 
-        RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root();
-    }
-
-    std::string root_filename_;
-    ImportData data_;
-
-    ScopedRootErrorHandler scoped_root_error_;
+    ImportData const& imported_data() const;
 };
+
+//---------------------------------------------------------------------------//
+auto RootImporterTest::imported_data() const -> ImportData const&
+{
+    static struct
+    {
+        std::string geometry_basename;
+        ImportData imported;
+    } i;
+    std::string geo_basename = this->geometry_basename();
+    if (i.geometry_basename != geo_basename)
+    {
+        ScopedRootErrorHandler scoped_root_error;
+
+        i.geometry_basename = geo_basename;
+        std::string root_inp = this->test_data_path(
+            "celeritas", (i.geometry_basename + ".root").c_str());
+
+        RootImporter import(root_inp.c_str());
+        i.imported = import();
+    }
+    CELER_ENSURE(i.imported);
+    return i.imported;
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, particles)
 {
-    auto const& particles = data_.particles;
+    auto const& particles = this->imported_data().particles;
     EXPECT_EQ(3, particles.size());
 
     // Check all names/PDG codes
@@ -89,7 +103,7 @@ TEST_F(RootImporterTest, particles)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, elements)
 {
-    auto const& elements = data_.elements;
+    auto const& elements = this->imported_data().elements;
     EXPECT_EQ(4, elements.size());
 
     std::vector<std::string> names;
@@ -105,7 +119,7 @@ TEST_F(RootImporterTest, elements)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, materials)
 {
-    auto const& materials = data_.materials;
+    auto const& materials = this->imported_data().materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
@@ -121,8 +135,8 @@ TEST_F(RootImporterTest, materials)
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, processes)
 {
-    auto const& processes = data_.processes;
-    EXPECT_EQ(11, processes.size());
+    auto const& processes = this->imported_data().processes;
+    EXPECT_EQ(9, processes.size());
 
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),
@@ -138,13 +152,14 @@ TEST_F(RootImporterTest, processes)
 
     EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
     ASSERT_EQ(1, ioni->models.size());
-    EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
+    EXPECT_EQ(ImportModelClass::moller_bhabha,
+              ioni->models.front().model_class);
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(RootImporterTest, volumes)
 {
-    auto const& volumes = data_.volumes;
+    auto const& volumes = this->imported_data().volumes;
     EXPECT_EQ(5, volumes.size());
 
     std::vector<unsigned int> material_ids;

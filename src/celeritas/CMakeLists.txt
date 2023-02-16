@@ -29,6 +29,7 @@ list(APPEND SOURCES
   Types.cc
   em/AtomicRelaxationParams.cc
   em/FluctuationParams.cc
+  em/UrbanMscParams.cc
   em/detail/Utils.cc
   em/model/BetheHeitlerModel.cc
   em/model/CombinedBremModel.cc
@@ -40,13 +41,11 @@ list(APPEND SOURCES
   em/model/RayleighModel.cc
   em/model/RelativisticBremModel.cc
   em/model/SeltzerBergerModel.cc
-  em/model/UrbanMscModel.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/EIonizationProcess.cc
   em/process/EPlusAnnihilationProcess.cc
   em/process/GammaConversionProcess.cc
-  em/process/MultipleScatteringProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   geo/GeoMaterialParams.cc
@@ -60,7 +59,9 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridData.cc
   grid/ValueGridInserter.cc
+  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
+  io/ImportModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -104,7 +105,9 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
-    ext/detail/ImportProcessConverter.cc
+    ext/detail/GeantModelImporter.cc
+    ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantMicroXsCalculator.cc
   )
   if(CELERITAS_USE_VecGeom)
     list(APPEND _cg4_sources
@@ -181,7 +184,7 @@ if(CELERITAS_USE_ROOT)
     ext/RootExporter.cc
     ext/RootImporter.cc
     ext/ScopedRootErrorHandler.cc
-    ext/detail/RootUniquePtr.root.cc
+    ext/RootUniquePtr.root.cc
     io/RootFileManager.cc
     io/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"

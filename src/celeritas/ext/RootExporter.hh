@@ -10,7 +10,10 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 
-#include "detail/RootUniquePtr.hh"
+#include "RootUniquePtr.hh"
+
+// Forward declare ROOT
+class TFile;
 
 namespace celeritas
 {
@@ -35,9 +38,9 @@ class RootExporter
     void operator()(ImportData const& data);
 
   private:
-    // ROOT file
-    detail::RootUniquePtr<TFile> root_output_;
+    UPRootWritable<TFile> root_output_;
 
+  private:
     // ROOT TTree name
     static char const* tree_name();
     // ROOT TBranch name

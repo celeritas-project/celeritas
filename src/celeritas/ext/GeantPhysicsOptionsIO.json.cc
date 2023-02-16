@@ -46,6 +46,7 @@ char const* to_cstring(MscModelSelection value)
         "none",
         "urban",
         "wentzel_vi",
+        "all",
     };
     return to_cstring_impl(value);
 }
@@ -134,6 +135,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(min_energy);
     GPO_LOAD_OPTION(max_energy);
     GPO_LOAD_OPTION(linear_loss_limit);
+    GPO_LOAD_OPTION(verbose);
 #undef GPO_LOAD_OPTION
 }
 
@@ -157,6 +159,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(min_energy);
     GPO_SAVE_OPTION(max_energy);
     GPO_SAVE_OPTION(linear_loss_limit);
+    GPO_SAVE_OPTION(verbose);
 #undef GPO_SAVE_OPTION
 }
 

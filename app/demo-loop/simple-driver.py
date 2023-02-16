@@ -81,7 +81,6 @@ inp = {
     'geant_options': geant_options,
 }
 
-
 with open(f'{run_name}.inp.json', 'w') as f:
     json.dump(inp, f, indent=1)
 

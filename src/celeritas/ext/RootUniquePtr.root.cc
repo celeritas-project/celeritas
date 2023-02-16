@@ -3,32 +3,46 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/RootUniquePtr.root.cc
+//! \file celeritas/ext/RootUniquePtr.root.cc
 //---------------------------------------------------------------------------//
 #include "RootUniquePtr.hh"
 
-#include <TBranch.h>
 #include <TFile.h>
 #include <TTree.h>
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
+/*!
+ * Call `TObject->Write()` before deletion. Used by TFile and TTree writer
+ * classes.
+ */
 template<class T>
-void RootDeleter<T>::operator()(T* ptr) const
+void RootWritableDeleter<T>::operator()(T* ptr)
+{
+    ptr->Write();
+    delete ptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Custom deleter to avoid propagating any dependency-specific implementation
+ * downstream.
+ */
+template<class T>
+void ExternDeleter<T>::operator()(T* ptr)
 {
     delete ptr;
 }
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
+// EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
-template struct RootDeleter<TFile>;
-template struct RootDeleter<TTree>;
-template struct RootDeleter<TBranch>;
+template struct RootWritableDeleter<TFile>;
+template struct RootWritableDeleter<TTree>;
+
+template struct ExternDeleter<TFile>;
+template struct ExternDeleter<TTree>;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ImportProcessConverter.cc
+//! \file celeritas/ext/detail/GeantProcessImporter.cc
 //---------------------------------------------------------------------------//
-#include "ImportProcessConverter.hh"
+#include "GeantProcessImporter.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -16,23 +16,15 @@
 #include <type_traits>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
-#include <G4Element.hh>
-#include <G4EmParameters.hh>
-#include <G4Material.hh>
-#include <G4MaterialCutsCouple.hh>
-#include <G4NistManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4PhysicsTable.hh>
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
-#include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
-#include <G4VEmModel.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
-#include <G4VMscModel.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VProcess.hh>
 
@@ -40,10 +32,10 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "../GeantConfig.hh"
+#include "GeantModelImporter.hh"
 
 using CLHEP::cm;
 using CLHEP::cm2;
@@ -115,96 +107,6 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Safely retrieve the correct model enum from a given string.
- */
-ImportModelClass to_import_model(G4VEmModel const& model)
-{
-    static const std::unordered_map<std::string, ImportModelClass> model_map = {
-        // clang-format off
-        {"BraggIon",            ImportModelClass::bragg_ion},
-        {"BetheBloch",          ImportModelClass::bethe_bloch},
-        {"UrbanMsc",            ImportModelClass::urban_msc},
-        {"ICRU73QO",            ImportModelClass::icru_73_qo},
-        {"WentzelVIUni",        ImportModelClass::wentzel_VI_uni},
-        {"hBrem",               ImportModelClass::h_brems},
-        {"hPairProd",           ImportModelClass::h_pair_prod},
-        {"eCoulombScattering",  ImportModelClass::e_coulomb_scattering},
-        {"Bragg",               ImportModelClass::bragg},
-        {"MollerBhabha",        ImportModelClass::moller_bhabha},
-        {"eBremSB",             ImportModelClass::e_brems_sb},
-        {"eBremLPM",            ImportModelClass::e_brems_lpm},
-        {"eplus2gg",            ImportModelClass::e_plus_to_gg},
-        {"LivermorePhElectric", ImportModelClass::livermore_photoelectric},
-        {"Klein-Nishina",       ImportModelClass::klein_nishina},
-        {"BetheHeitler",        ImportModelClass::bethe_heitler},
-        {"BetheHeitlerLPM",     ImportModelClass::bethe_heitler_lpm},
-        {"LivermoreRayleigh",   ImportModelClass::livermore_rayleigh},
-        {"MuBetheBloch",        ImportModelClass::mu_bethe_bloch},
-        {"MuBrem",              ImportModelClass::mu_brems},
-        {"muPairProd",          ImportModelClass::mu_pair_prod},
-        // clang-format on
-    };
-    std::string const& name = model.GetName();
-    auto iter = model_map.find(name);
-    if (iter == model_map.end())
-    {
-        static celeritas::TypeDemangler<G4VEmModel> demangle_model;
-        CELER_LOG(warning) << "Encountered unknown model '" << name
-                           << "' (RTTI: " << demangle_model(model) << ")";
-        return ImportModelClass::other;
-    }
-    return iter->second;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the energy cutoff for secondary production (in ImportMaterial units!).
- */
-double get_cutoff(PDGNumber pdg, ImportMaterial const& mat)
-{
-    if (!pdg)
-    {
-        return 0;
-    }
-
-    auto cutoffs = mat.pdg_cutoffs.find(pdg.get());
-    if (cutoffs == mat.pdg_cutoffs.end())
-    {
-        // Particle unavailable: use infinite cutoff
-        return std::numeric_limits<double>::infinity();
-    }
-    return cutoffs->second.energy;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a G4Material from a material index.
- */
-G4Material const& get_g4material(unsigned int mat_idx)
-{
-    auto const* g4_cuts_table = G4ProductionCutsTable::GetProductionCutsTable();
-    CELER_EXPECT(mat_idx < g4_cuts_table->GetTableSize());
-    auto const* g4_material
-        = g4_cuts_table->GetMaterialCutsCouple(mat_idx)->GetMaterial();
-    CELER_ENSURE(g4_material);
-    return *g4_material;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a G4Material from a material index.
- */
-G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
-{
-    CELER_EXPECT(pdg);
-    auto* particle
-        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
-    CELER_ENSURE(particle);
-    return *particle;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a multiplicative geant4-natural-units constant to convert the units.
  */
 double units_to_scaling(ImportUnits units)
@@ -213,19 +115,24 @@ double units_to_scaling(ImportUnits units)
     {
         case ImportUnits::none:
             return 1;
-        case ImportUnits::cm_inv:
-            return cm;
-        case ImportUnits::cm_mev_inv:
-            return cm * MeV;
         case ImportUnits::mev:
             return 1 / MeV;
         case ImportUnits::mev_per_cm:
             return cm / MeV;
         case ImportUnits::cm:
             return 1 / cm;
-        default:
+        case ImportUnits::cm_inv:
+            return cm;
+        case ImportUnits::cm_mev_inv:
+            return cm * MeV;
+        case ImportUnits::mev_2_per_cm:
+            return cm / (MeV * MeV);
+        case ImportUnits::cm_2:
+            return 1 / (cm * cm);
+        case ImportUnits::size_:
             CELER_ASSERT_UNREACHABLE();
     }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -299,6 +206,10 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_mev_inv;
             break;
+        case ImportTableType::msc_xs:
+            table.x_units = ImportUnits::mev;
+            table.y_units = ImportUnits::mev_2_per_cm;
+            break;
         default:
             CELER_ASSERT_UNREACHABLE();
     };
@@ -336,7 +247,7 @@ import_table(G4PhysicsTable const& g4table, ImportTableType table_type)
 /*!
  * Construct with a selected list of tables.
  */
-ImportProcessConverter::ImportProcessConverter(
+GeantProcessImporter::GeantProcessImporter(
     TableSelection which_tables,
     std::vector<ImportMaterial> const& materials,
     std::vector<ImportElement> const& elements)
@@ -350,30 +261,30 @@ ImportProcessConverter::ImportProcessConverter(
 /*!
  * Default destructor.
  */
-ImportProcessConverter::~ImportProcessConverter() = default;
+GeantProcessImporter::~GeantProcessImporter() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Add physics tables to this->process_ from a given particle and process and
- * return it. If the process was already returned, \c operator() will return an
+ * Load and return physics tables from a given particle and process.
+ *
+ * If the process was already returned, \c operator() will return an
  * empty object.
  */
 ImportProcess
-ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
-                                   G4VProcess const& process)
+GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
+                                 G4VProcess const& process)
 {
     // Check for duplicate processes
-    auto iter_inserted = written_processes_.insert({&process, {&particle}});
+    auto [prev, inserted] = written_processes_.insert({&process, {&particle}});
 
-    if (!iter_inserted.second)
+    if (!inserted)
     {
         static const celeritas::TypeDemangler<G4VProcess> demangle_process;
-        PrevProcess const& prev = iter_inserted.first->second;
         CELER_LOG(debug) << "Skipping process '" << process.GetProcessName()
                          << "' (RTTI: " << demangle_process(process)
                          << ") for particle " << particle.GetParticleName()
                          << ": duplicate of particle "
-                         << prev.particle->GetParticleName();
+                         << prev->second.particle->GetParticleName();
         return {};
     }
     CELER_LOG(debug) << "Saving process '" << process.GetProcessName()
@@ -381,7 +292,7 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
                      << particle.GetPDGEncoding() << ')';
 
     // Save process and particle info
-    process_ = ImportProcess();
+    process_ = {};
     process_.process_type = to_import_process_type(process.GetProcessType());
     process_.process_class = to_import_process_class(process);
     process_.particle_pdg = particle.GetPDGEncoding();
@@ -409,7 +320,11 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
     }
 
     CELER_ENSURE(process_);
-    return process_;
+    CELER_ENSURE(std::all_of(
+        process_.models.begin(),
+        process_.models.end(),
+        [](ImportModel const& m) { return static_cast<bool>(m); }));
+    return std::move(process_);
 }
 
 //---------------------------------------------------------------------------//
@@ -422,7 +337,7 @@ ImportProcessConverter::operator()(G4ParticleDefinition const& particle,
  * classes that have the same interface.
  */
 template<class T>
-void ImportProcessConverter::store_common_process(T const& process)
+void GeantProcessImporter::store_common_process(T const& process)
 {
     static_assert(std::is_base_of<G4VProcess, T>::value,
                   "process must be a G4VProcess");
@@ -437,30 +352,25 @@ void ImportProcessConverter::store_common_process(T const& process)
 //---------------------------------------------------------------------------//
 /*!
  * Store EM cross section tables for the current process.
+ *
+ * Cross sections are calculated in G4EmModelManager::FillLambdaVector by
+ * calling G4VEmModel::CrossSection .
  */
-void ImportProcessConverter::store_em_process(G4VEmProcess const& process)
+void GeantProcessImporter::store_em_process(G4VEmProcess const& process)
 {
     this->store_common_process(process);
 
+    GeantModelImporter convert_model(materials_,
+                                     PDGNumber{process_.particle_pdg},
+                                     PDGNumber{process_.secondary_pdg});
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(process.GetNumberOfModels()))
 #else
     for (auto i : celeritas::range(process.NumberOfModels()))
 #endif
     {
-        G4VEmModel& model = *process.GetModelByIndex(i);
-        auto model_class_id = to_import_model(model);
-
-        // Save model list
-        process_.models.push_back(model_class_id);
-
-        // Save microscopic cross sections for models that need to sample a
-        // random element from a material in an interaction
-        if (needs_micro_xs(model_class_id))
-        {
-            process_.micro_xs.insert(
-                {model_class_id, this->add_micro_xs(model)});
-        }
+        process_.models.push_back(convert_model(*process.GetModelByIndex(i)));
+        CELER_ASSERT(process_.models.back());
     }
 
     // Save cross section tables if available
@@ -477,7 +387,7 @@ void ImportProcessConverter::store_em_process(G4VEmProcess const& process)
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-void ImportProcessConverter::store_eloss_process(
+void GeantProcessImporter::store_eloss_process(
     G4VEnergyLossProcess const& process)
 {
     this->store_common_process(process);
@@ -487,21 +397,13 @@ void ImportProcessConverter::store_eloss_process(
     // store_em_process .
     // TODO: when we drop support for Geant4 10 we can use a template to
     // move this into store_common_process...
+
+    GeantModelImporter convert_model(materials_,
+                                     PDGNumber{process_.particle_pdg},
+                                     PDGNumber{process_.secondary_pdg});
     for (auto i : celeritas::range(process.NumberOfModels()))
     {
-        G4VEmModel& model = *process.GetModelByIndex(i);
-        auto model_class_id = to_import_model(model);
-
-        // Save model list
-        process_.models.push_back(model_class_id);
-
-        // Save microscopic cross sections for models that need to sample a
-        // random element from a material in an interaction
-        if (needs_micro_xs(model_class_id))
-        {
-            process_.micro_xs.insert(
-                {model_class_id, this->add_micro_xs(model)});
-        }
+        process_.models.push_back(convert_model(*process.GetModelByIndex(i)));
     }
 
     if (process.IsIonisationProcess())
@@ -555,16 +457,22 @@ void ImportProcessConverter::store_eloss_process(
 
 //---------------------------------------------------------------------------//
 /*!
- * Store multiple scattering XS tables to this->process_.
+ * Store multiple scattering XS tables to the process data.
  *
  * Whereas other EM processes combine the model tables into a single process
  * table, MSC keeps them independent.
  *
  * Starting on Geant4 v11, G4MultipleScattering provides \c NumberOfModels() .
+ *
+ * The cross sections are stored with an extra factor of E^2 multiplied in.
+ * They're calculated in G4LossTableBuilder::BuildTableForModel which calls
+ * G4VEmModel::Value.
  */
-void ImportProcessConverter::store_msc_process(
-    G4VMultipleScattering const& process)
+void GeantProcessImporter::store_msc_process(G4VMultipleScattering const& process)
 {
+    GeantModelImporter convert_model(
+        materials_, PDGNumber{process_.particle_pdg}, PDGNumber{});
+
 #if CELERITAS_G4_V10
     for (auto i : celeritas::range(4))
 #else
@@ -573,20 +481,9 @@ void ImportProcessConverter::store_msc_process(
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
-            if (i > 0)
-            {
-                // Index is beyond the code scope, which only includes one msc
-                // model. Skipping any further model for now
-                CELER_LOG(warning)
-                    << "Cannot store multiple scattering table for process "
-                    << process.GetProcessName() << ": skipping model "
-                    << process.GetModelByIndex(i)->GetName();
-                continue;
-            }
-
-            process_.models.push_back(to_import_model(*model));
+            process_.models.push_back(convert_model(*model));
             this->add_table(model->GetCrossSectionTable(),
-                            ImportTableType::lambda);
+                            ImportTableType::msc_xs);
         }
     }
 }
@@ -595,8 +492,8 @@ void ImportProcessConverter::store_msc_process(
 /*!
  * Write data from a Geant4 physics table if available.
  */
-void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
-                                       ImportTableType table_type)
+void GeantProcessImporter::add_table(G4PhysicsTable const* g4table,
+                                     ImportTableType table_type)
 {
     if (!g4table)
     {
@@ -605,179 +502,23 @@ void ImportProcessConverter::add_table(G4PhysicsTable const* g4table,
     }
 
     // Check for duplicate tables
-    auto iter_inserted = written_tables_.insert(
+    auto [prev, inserted] = written_tables_.insert(
         {g4table, {process_.particle_pdg, process_.process_class, table_type}});
 
-    CELER_LOG(debug)
-        << (iter_inserted.second ? "Saving" : "Skipping duplicate")
-        << " physics table " << process_.particle_pdg << '.'
-        << to_cstring(process_.process_class) << '.' << to_cstring(table_type);
-    if (!iter_inserted.second)
+    CELER_LOG(debug) << (inserted ? "Saving" : "Skipping duplicate")
+                     << " physics table " << process_.particle_pdg << '.'
+                     << to_cstring(process_.process_class) << '.'
+                     << to_cstring(table_type);
+    if (!inserted)
     {
+        CELER_LOG(debug) << "PreviousExisting table was at"
+                         << prev->second.particle_pdg << '.'
+                         << to_cstring(prev->second.process_class) << '.'
+                         << to_cstring(prev->second.table_type);
         return;
     }
 
     process_.tables.push_back(import_table(*g4table, table_type));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Store element cross-section data into a physics vector for a given model.
- * Unlike material cross-section tables, which are process dependent, these are
- * model dependent.
- * This function replicates \c G4EmElementSelector::Initialise(...) .
- *
- * The microscopic cross-section data is stored directly as grid values (in
- * cm^2), and thus need to be converted into CDFs when imported into Celeritas.
- */
-ImportProcess::ModelMicroXS
-ImportProcessConverter::add_micro_xs(G4VEmModel& model) const
-{
-    CELER_ASSERT(!materials_.empty());
-
-    // G4 particle def is needed for model.ComputeCrossSectionPerAtom(...)
-    G4ParticleDefinition const& g4_particle
-        = get_g4particle(PDGNumber{process_.particle_pdg});
-    ImportProcess::ModelMicroXS model_micro_xs;
-
-    for (auto mat_idx : celeritas::range(materials_.size()))
-    {
-        ImportMaterial const& material = materials_[mat_idx];
-        G4Material const& g4_material = get_g4material(mat_idx);
-
-        ImportProcess::ElementPhysicsVectors elem_phys_vectors;
-        elem_phys_vectors.resize(material.elements.size());
-
-        // Set up all element physics vectors for this material and model
-        for (auto i : celeritas::range(material.elements.size()))
-        {
-            elem_phys_vectors[i]
-                = this->initialize_micro_xs_physics_vector(model, mat_idx);
-        }
-
-        auto const& g4_nist_manager = *G4NistManager::Instance();
-
-        // All physics vectors have the same energy grid for the same material
-        auto const& energy_grid = elem_phys_vectors.front().x;
-
-        for (auto elem_comp_idx : celeritas::range(material.elements.size()))
-        {
-            auto const& elem_comp = material.elements.at(elem_comp_idx);
-            G4Element const* g4_element
-                = g4_nist_manager.GetElement(elem_comp.element_id);
-            CELER_ASSERT(g4_element);
-            auto& physics_vector = elem_phys_vectors.at(elem_comp_idx);
-
-            // Get the secondary production cut (MeV)
-            double secondary_cutoff
-                = get_cutoff(PDGNumber{process_.secondary_pdg}, material);
-
-            for (auto bin_idx : celeritas::range(energy_grid.size()))
-            {
-                double const energy_bin_value = energy_grid[bin_idx];
-
-                // Set kinematic and material-dependent quantities
-                model.SetupForMaterial(
-                    &g4_particle, &g4_material, energy_bin_value);
-
-                // Calculate microscopic cross-section
-                double const xs_per_atom
-                    = std::max(
-                          0.0,
-                          model.ComputeCrossSectionPerAtom(&g4_particle,
-                                                           g4_element,
-                                                           energy_bin_value,
-                                                           secondary_cutoff,
-                                                           energy_bin_value))
-                      / cm2;
-
-                // Store only the microscopic cross-section grid value [cm^2]
-                physics_vector.y[bin_idx] = xs_per_atom;
-            }
-        }
-
-        // Avoid cross-section vectors starting or ending with zero values.
-        // Geant4 simply uses the next/previous bin value when the vector's
-        // front/back are zero. This feels like a trap.
-        for (auto& physics_vector : elem_phys_vectors)
-        {
-            if (physics_vector.y.front() == 0.0)
-            {
-                // Cross-section starts with zero, use next bin value
-                physics_vector.y.front() = physics_vector.y[1];
-            }
-
-            unsigned int const last_bin = physics_vector.y.size() - 1;
-            if (physics_vector.y.back() == 0.0)
-            {
-                // Cross-section ends with zero, use previous bin value
-                physics_vector.y.back() = physics_vector.y[last_bin - 1];
-            }
-        }
-
-        // Store element cross-section map for this material
-        model_micro_xs.push_back(std::move(elem_phys_vectors));
-    }
-
-    return model_micro_xs;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set up \c ImportPhysicsVector type and energy grid, while leaving
- * cross-section data empty. This method is used to initialize physics vectors
- * in \c this->add_micro_xs(...) .
- *
- * The energy grid is calculated in the same way as in
- * \c G4VEmModel::InitialiseElementSelectors(...) .
- */
-ImportPhysicsVector ImportProcessConverter::initialize_micro_xs_physics_vector(
-    G4VEmModel& model, unsigned int mat_idx) const
-{
-    auto const& material = materials_[mat_idx];
-    CELER_ASSERT(!material.elements.empty());
-
-    ImportPhysicsVector physics_vector;
-    physics_vector.vector_type = ImportPhysicsVectorType::log;
-
-    double min_energy = model.LowEnergyLimit() / MeV;
-    {
-        double secondary_cutoff
-            = get_cutoff(PDGNumber{process_.secondary_pdg}, material);
-        double min_primary_energy
-            = model.MinPrimaryEnergy(
-                  &get_g4material(mat_idx),
-                  &get_g4particle(PDGNumber{process_.particle_pdg}),
-                  secondary_cutoff)
-              / MeV;
-        min_energy = std::max(min_primary_energy, min_energy);
-    }
-    double const max_energy = model.HighEnergyLimit() / MeV;
-
-    int const bins_per_decade
-        = G4EmParameters::Instance()->NumberOfBinsPerDecade();
-
-    double const inv_log_10_6 = 1.0 / (6.0 * std::log(10.0));
-    int const num_energy_bins = std::max<int>(
-        3, bins_per_decade * std::log(max_energy / min_energy) * inv_log_10_6);
-    double const delta = std::log(max_energy / min_energy)
-                         / (num_energy_bins - 1.0);
-    double const log_min_e = std::log(min_energy);
-
-    // Fill energy bins
-    physics_vector.x.push_back(min_energy);
-    for (int i = 1; i < num_energy_bins - 1; i++)
-    {
-        physics_vector.x.push_back(std::exp(log_min_e + i * delta));
-    }
-    physics_vector.x.push_back(max_energy);
-
-    // Resize cross-section vector to match the number of energy bins
-    physics_vector.y.resize(physics_vector.x.size());
-
-    CELER_ENSURE(physics_vector.vector_type == ImportPhysicsVectorType::log
-                 && !physics_vector.x.empty() && !physics_vector.y.empty());
-    return physics_vector;
 }
 
 //---------------------------------------------------------------------------//

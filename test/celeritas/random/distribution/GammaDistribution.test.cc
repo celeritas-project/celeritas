@@ -33,7 +33,7 @@ TEST_F(GammaDistributionTest, bin_large_alpha)
     GammaDistribution<double> sample_gamma{alpha, beta};
 
     std::vector<int> counters(7);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double x = sample_gamma(rng);
         if (x < 2.0)
@@ -67,7 +67,7 @@ TEST_F(GammaDistributionTest, bin_small_alpha)
     GammaDistribution<double> sample_gamma{alpha, beta};
 
     std::vector<int> counters(5);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double x = sample_gamma(rng);
         if (x < 1.0)

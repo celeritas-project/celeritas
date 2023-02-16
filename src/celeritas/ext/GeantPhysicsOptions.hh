@@ -28,6 +28,7 @@ enum class MscModelSelection
     none,
     urban,
     wentzel_vi,
+    all,
     size_
 };
 
@@ -59,6 +60,7 @@ enum class RelaxationSelection
  * - \c min_energy: lowest energy of any EM physics process
  * - \c max_energy: highest energy of any EM physics process
  * - \c linear_loss_limit: see \c PhysicsParamsOptions::linear_loss_limit
+ * - \c verbose: print detailed Geant4 output
  */
 struct GeantPhysicsOptions
 {
@@ -76,7 +78,25 @@ struct GeantPhysicsOptions
     units::MevEnergy min_energy{0.1 * 1e-3};  // 0.1 keV
     units::MevEnergy max_energy{100 * 1e6};  // 100 TeV
     real_type linear_loss_limit{0.01};
+
+    bool verbose{false};
 };
+
+//! Equality operator, mainly for test harness
+// TODO: when we require C++20, use `friend bool operator==(...) = default;`
+constexpr bool
+operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
+{
+    return a.coulomb_scattering == b.coulomb_scattering
+           && a.rayleigh_scattering == b.rayleigh_scattering
+           && a.eloss_fluctuation == b.eloss_fluctuation && a.lpm == b.lpm
+           && a.integral_approach == b.integral_approach && a.brems == b.brems
+           && a.msc == b.msc && a.relaxation == b.relaxation
+           && a.em_bins_per_decade == b.em_bins_per_decade
+           && a.min_energy == b.min_energy && a.max_energy == b.max_energy
+           && a.linear_loss_limit == b.linear_loss_limit
+           && a.verbose == b.verbose;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

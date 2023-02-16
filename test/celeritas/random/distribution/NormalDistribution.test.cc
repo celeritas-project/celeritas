@@ -29,7 +29,7 @@ TEST(NormalDistributionTest, bin)
     NormalDistribution<double> sample_normal{mean, stddev};
 
     std::vector<int> counters(6);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         double x = sample_normal(rng);
         if (x < -2.0)

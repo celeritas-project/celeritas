@@ -30,19 +30,24 @@ namespace celeritas
  */
 enum class ImportTableType
 {
+    lambda,  //!< Macroscopic cross section
+    lambda_prim,  //!< Cross section scaled by energy
     dedx,  //!< Energy loss summed over processes
+    range,  //!< Integrated inverse energy loss
+    msc_xs,  //!< Scaled transport cross section
+
+    //// DEPRECATED (remove in v0.4): Unused by celeritas ////
     dedx_process,  //!< Energy loss table for a process
-    dedx_subsec,
     dedx_unrestricted,
-    ionization,
-    ionization_subsec,
     csda_range,  //!< Continuous slowing down approximation
-    range,
+
+    //// DEPRECATED (remove in v0.4): Removed in Geant4@11 ////
+    dedx_subsec,
+    ionization_subsec,
     secondary_range,
     inverse_range,  //!< Inverse mapping of range: (range -> energy)
-    lambda,  //!< Macroscopic cross section
     sublambda,  //!< For subcutoff regions
-    lambda_prim,  //!< Cross section scaled by energy
+
     size_
 };
 
@@ -58,6 +63,8 @@ enum class ImportUnits
     cm,  //!< Range [cm]
     cm_inv,  //!< Macroscopic xs [1/cm]
     cm_mev_inv,  //!< Macroscopic xs divided by energy [1/cm-MeV]
+    mev_2_per_cm,  //!< Macroscopic xs with energy^2 factored in [MeV^2/cm]
+    cm_2,  //!< Microscopic cross section [cm^2]
     size_
 };
 

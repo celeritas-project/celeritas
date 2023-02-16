@@ -46,8 +46,7 @@ void RootExporter::operator()(ImportData const& import_data)
 
     // Write data to disk
     tree_data.Fill();
-    int err_code = root_output_->Write();
-    CELER_ENSURE(err_code >= 0);
+    tree_data.Write();
 }
 
 //---------------------------------------------------------------------------//
