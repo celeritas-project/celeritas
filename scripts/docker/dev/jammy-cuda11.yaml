@@ -3,7 +3,7 @@ spack:
   - cmake
   - cuda
   - doxygen
-  - geant4@11 cxxstd=17
+  - geant4@11.0.3 cxxstd=17
   - git
   - googletest
   - hepmc3
@@ -12,7 +12,7 @@ spack:
   - openmpi
   - python
   - root
-  - swig
+  - "swig@4.1:"
   concretizer:
     unify: true
   packages:

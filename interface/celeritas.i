@@ -101,6 +101,10 @@ namespace celeritas
 %include "celeritas/io/ImportPhysicsTable.hh"
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
 
+%include "celeritas/io/ImportModel.hh"
+%template(VecImportModel) std::vector<celeritas::ImportModel>;
+%template(VecImportMscModel) std::vector<celeritas::ImportMscModel>;
+
 %include "celeritas/io/ImportProcess.hh"
 %template(VecImportProcess) std::vector<celeritas::ImportProcess>;
 
