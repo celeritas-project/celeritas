@@ -97,8 +97,9 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
     }
 
     CELER_LOG_LOCAL(info) << "Read " << gen_event.particles().size()
-                          << " primaries from event "
-                          << gen_event.event_number();
+                          << " primaries from HepMC event ID "
+                          << gen_event.event_number()
+                          << " for Geant4 event " << g4_event->GetEventID();
 
     gen_event.set_units(HepMC3::Units::MEV, HepMC3::Units::MM);  // Geant4
                                                                  // units

@@ -16,7 +16,7 @@ spack:
     - py-sphinx-rtd-theme
     - py-sphinxcontrib-bibtex
     - root cxxstd=17
-    - swig
+    - "swig@4.1:"
     - "vecgeom@1.2: +gdml cxxstd=17"
   view: true
   concretizer:
