@@ -13,6 +13,7 @@
 #include "celeritas_config.h"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/Ref.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -263,8 +264,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     CELER_EXPECT(num_tracks > 0);
     StateHostValue result;
     resize(&result, this->params().host_ref(), num_tracks);
-    auto pos_view = result.pos[AllItems<Real3>{}];
-    auto dir_view = result.dir[AllItems<Real3>{}];
+    auto result_ref = make_ref(result);
 
     std::mt19937 rng;
 
@@ -274,13 +274,15 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        pos_view[i] = sample_box(rng);
-        dir_view[i] = sample_isotropic(rng);
+        auto lsa = LevelStateAccessor(&result_ref, ThreadId{i}, LevelId{0});
+        lsa.pos() = sample_box(rng);
+        lsa.dir() = sample_isotropic(rng);
     }
 
     // Clear other data
     fill(VolumeId{}, &result.vol);
     fill(SurfaceId{}, &result.surf);
+    fill(LevelId{}, &result.level);
 
     CELER_ENSURE(result);
     return result;
@@ -299,8 +301,13 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     std::vector<size_type> counts(this->num_volumes());
     size_type error_count{};
 
-    for (auto vol : host.vol[AllItems<VolumeId>{}])
+    for (auto i : range(host.size()))
     {
+        auto thread_id = ThreadId{i};
+        // TODO Update for multiple universes
+        LevelStateAccessor lsa(&host, thread_id, LevelId{0});
+        auto vol = lsa.vol();
+
         if (vol < counts.size())
         {
             ++counts[vol.unchecked_get()];

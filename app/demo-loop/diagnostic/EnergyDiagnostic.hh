@@ -20,6 +20,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/math/Atomics.hh"
 #include "orange/Types.hh"
+#include "orange/detail/LevelStateAccessor.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/grid/NonuniformGrid.hh"
@@ -220,7 +221,13 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
     // Create grid from EnergyBinPointers
     celeritas::NonuniformGrid<real_type> grid(pointers_.bounds);
 
+#if CELERITAS_USE_VECGEOM
     real_type pos = states_.geometry.pos[tid][static_cast<int>(pointers_.axis)];
+#else
+    celeritas::LevelStateAccessor lsa(
+        &states_.geometry, tid, states_.geometry.level[tid]);
+    real_type pos = lsa.pos()[static_cast<int>(pointers_.axis)];
+#endif
     {
         // Bump particle to mid-step point to avoid grid edges coincident with
         // geometry boundaries
@@ -232,9 +239,13 @@ CELER_FUNCTION void EnergyDiagnosticLauncher<M>::operator()(ThreadId tid) const
         // Until then, this heuristic will have to do.
         // XXX at the time being the "step" we've hacked into here may not be
         // the same as the geometry step or the true step.
+
+#if CELERITAS_USE_VECGEOM
         real_type dir
             = states_.geometry.dir[tid][static_cast<int>(pointers_.axis)];
-
+#else
+        real_type dir = lsa.dir()[static_cast<int>(pointers_.axis)];
+#endif
         pos -= real_type(0.5) * states_.sim.state[tid].step_limit.step * dir;
     }
 

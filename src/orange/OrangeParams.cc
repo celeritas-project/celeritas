@@ -114,6 +114,8 @@ OrangeParams::OrangeParams(OrangeInput input)
 
     HostVal<OrangeParamsData> host_data;
 
+    host_data.scalars.max_level = input.max_level;
+
     // Calculate offsets for UnitIndexerData
     auto ui_surf = make_builder(&host_data.unit_indexer_data.surfaces);
     auto ui_vol = make_builder(&host_data.unit_indexer_data.volumes);
