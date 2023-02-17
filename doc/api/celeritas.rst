@@ -94,29 +94,35 @@ Random number distributions
 
 .. _celeritas_physics:
 
-Physics interfaces
-------------------
+Physics implementations
+-----------------------
 
-.. doxygenclass:: celeritas::BetheHeitlerModel
+Each "interactor" applies the discrete interaction of a model when sampled. It
+is equivalent to the "post-step doit" of Geant4, including sampling of
+secondaries.
+
+.. doxygenclass:: celeritas::BetheHeitlerInteractor
    :members: none
-.. doxygenclass:: celeritas::EPlusGGModel
+.. doxygenclass:: celeritas::EPlusGGInteractor
    :members: none
-.. doxygenclass:: celeritas::KleinNishinaModel
+.. doxygenclass:: celeritas::KleinNishinaInteractor
    :members: none
-.. doxygenclass:: celeritas::MollerBhabhaModel
+.. doxygenclass:: celeritas::MollerBhabhaInteractor
    :members: none
-.. doxygenclass:: celeritas::LivermorePEModel
+.. doxygenclass:: celeritas::LivermorePEInteractor
    :members: none
-.. doxygenclass:: celeritas::RayleighModel
+.. doxygenclass:: celeritas::RayleighInteractor
    :members: none
-.. doxygenclass:: celeritas::RelativisticBremModel
+.. doxygenclass:: celeritas::RelativisticBremInteractor
    :members: none
-.. doxygenclass:: celeritas::SeltzerBergerModel
+.. doxygenclass:: celeritas::SeltzerBergerInteractor
    :members: none
 
-.. doxygenclass:: celeritas::AtomicRelaxationParams
+.. doxygenclass:: celeritas::AtomicRelaxation
    :members: none
-.. doxygenclass:: celeritas::FluctuationParams
+.. doxygenclass:: celeritas::EnergyLossHelper
    :members: none
-.. doxygenclass:: celeritas::UrbanMscParams
+.. doxygenclass:: celeritas::UrbanMscStepLimit
+   :members: none
+.. doxygenclass:: celeritas::UrbanMscScatter
    :members: none
