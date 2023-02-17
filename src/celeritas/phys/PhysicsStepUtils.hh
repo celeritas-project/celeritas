@@ -178,16 +178,16 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
                   "Incompatible energy types");
 
     auto ppid = physics.eloss_ppid();
-    const real_type pre_step_energy = value_as<Energy>(particle.energy());
+    Energy const pre_step_energy = particle.energy();
 
     // Calculate the sum of energy loss rate over all processes.
-    real_type eloss;
+    Energy eloss;
     {
         auto grid_id = physics.value_grid(VGT::energy_loss, ppid);
         CELER_ASSERT(grid_id);
         auto calc_eloss_rate
             = physics.make_calculator<EnergyLossCalculator>(grid_id);
-        eloss = step * calc_eloss_rate(Energy{pre_step_energy});
+        eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
     }
 
     if (eloss >= pre_step_energy * physics.scalars().linear_loss_limit)
@@ -206,7 +206,7 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
             // TODO: eloss should be pre_step_energy at this point only if the
             // range was the step limiter (step == range), and if the
             // range-to-step conversion was 1.
-            return Energy{pre_step_energy};
+            return pre_step_energy;
         }
         CELER_ASSERT(range > step);
 
@@ -217,10 +217,10 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         // without going through the condition above.
         auto calc_energy
             = physics.make_calculator<InverseRangeCalculator>(grid_id);
-        eloss = pre_step_energy - value_as<Energy>(calc_energy(range - step));
+        eloss = pre_step_energy - calc_energy(range - step);
     }
 
-    return Energy{eloss};
+    return eloss;
 }
 
 //---------------------------------------------------------------------------//
