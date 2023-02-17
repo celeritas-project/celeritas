@@ -114,5 +114,9 @@ Physics interfaces
 .. doxygenclass:: celeritas::SeltzerBergerModel
    :members: none
 
-.. doxygenclass:: celeritas::UrbanMsc
+.. doxygenclass:: celeritas::AtomicRelaxationParams
+   :members: none
+.. doxygenclass:: celeritas::FluctuationParams
+   :members: none
+.. doxygenclass:: celeritas::UrbanMscParams
    :members: none
