@@ -263,6 +263,17 @@ if(CELERITAS_BUILD_DOCS)
   endif()
 endif()
 
+if(CELERITAS_USE_CUDA AND NOT CELERITAS_USE_VecGeom
+    AND CELERITAS_DEBUG AND DEFINED CMAKE_BUILD_TYPE)
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" _bt)
+  if(_bt STREQUAL "relwithdebinfo")
+    message(WARNING "The current configuration (CUDA + ORANGE + DEBUG + "
+      "RelWithDebInfo) is known to fail on GPU in some cases. See "
+      "https://github.com/celeritas-project/celeritas/issues/639 for more "
+      "details.")
+  endif()
+endif()
+
 #----------------------------------------------------------------------------#
 # LIBRARY
 #----------------------------------------------------------------------------#
