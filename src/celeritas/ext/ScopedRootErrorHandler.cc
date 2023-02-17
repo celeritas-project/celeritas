@@ -71,11 +71,10 @@ ScopedRootErrorHandler::ScopedRootErrorHandler()
     : previous_(SetErrorHandler(RootErrorHandler))
 {
     // Disable ROOT interception of system signals the first time we run
-    static bool const disabled_root_backtrace = [] {
+    [[maybe_unused]] static bool const disabled_root_backtrace = [] {
         gSystem->ResetSignals();
         return true;
     }();
-    (void)sizeof(disabled_root_backtrace);
 }
 
 //---------------------------------------------------------------------------//
