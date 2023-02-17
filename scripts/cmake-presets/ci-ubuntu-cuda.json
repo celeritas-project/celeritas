@@ -60,6 +60,11 @@
       "inherits": [".ndebug", "full-novg"]
     },
     {
+      "name": "full-novg-reldeb",
+      "description": "Build everything but VecGeom with RelDebInfo + assertions",
+      "inherits": [".reldeb", "full-novg"]
+    },
+    {
       "name": "vecgeom-tests",
       "description": "Build tests in debug with vecgeom",
       "inherits": [".vecgeom", "base"],
@@ -88,6 +93,7 @@
     },
     {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base", "targets": ["all", "install"]},
+    {"name": "full-novg-reldeb", "configurePreset": "full-novg-reldeb", "inherits": "base", "targets": ["all", "install"]},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
     {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
@@ -109,6 +115,7 @@
     },
     {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
     {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
+    {"name": "full-novg-reldeb", "configurePreset": "full-novg-reldeb", "inherits": "base"},
     {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base"},
     {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base",
       "filter": {
