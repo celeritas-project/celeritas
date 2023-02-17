@@ -140,7 +140,7 @@ class Quantity
     }
 
 //!@{
-//! Comparisons for Quantity
+//! Comparison for Quantity
 CELER_DEFINE_QUANTITY_CMP(==)
 CELER_DEFINE_QUANTITY_CMP(!=)
 CELER_DEFINE_QUANTITY_CMP(<)
@@ -151,19 +151,49 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 
 #undef CELER_DEFINE_QUANTITY_CMP
 
-#define CELER_DEFINE_QUANTITY_MATH(TOKEN)                                     \
-    template<class U, class T, class T2>                                      \
-    CELER_CONSTEXPR_FUNCTION auto operator TOKEN(Quantity<U, T> lhs,          \
-                                                 Quantity<U, T2> rhs)         \
-        ->decltype(auto)                                                      \
-    {                                                                         \
-        return Quantity<U, std::common_type_t<T, T2>>{lhs.value()             \
-                                                          TOKEN rhs.value()}; \
-    }
-CELER_DEFINE_QUANTITY_MATH(+)
-CELER_DEFINE_QUANTITY_MATH(-)
+//!@{
+//! Math operator for Quantity
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto
+operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() + rhs.value()};
+}
 
-#undef CELER_DEFINE_QUANTITY_MATH
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto
+operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() - rhs.value()};
+}
+
+template<class U, class T>
+CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) -> Quantity<U, T>
+{
+    return Quantity<U, T>{-q.value()};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() * rhs};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T> lhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{rhs * lhs.value()};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() / rhs};
+}
+//!@!}
 
 //! \endcond
 //---------------------------------------------------------------------------//

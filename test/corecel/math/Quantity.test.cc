@@ -157,11 +157,34 @@ TEST(QuantityTest, math)
         EXPECT_FLOAT_EQ(-1.0, subbed.value());
     }
 
+    {
+        auto negated = -RevDbl{1.5};
+        EXPECT_TRUE((std::is_same<decltype(negated), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(-1.5, negated.value());
+    }
+
+    {
+        auto muld = RevDbl{3} * 4;
+        EXPECT_TRUE((std::is_same<decltype(muld), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(12, muld.value());
+    }
+
+    {
+        auto divd = RevDbl{12} / 4;
+        EXPECT_TRUE((std::is_same<decltype(divd), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(3, divd.value());
+    }
+
     // Test mixed precision
     {
         EXPECT_DOUBLE_EQ(4 * constants::pi, native_value_from(RevInt{2}));
         auto added = RevFlt{1.5} + RevInt{1};
         EXPECT_TRUE((std::is_same<decltype(added), RevFlt>::value));
+    }
+    {
+        auto muld = RevInt{3} * 1.5;
+        EXPECT_TRUE((std::is_same<decltype(muld), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(4.5, muld.value());
     }
 }
 
