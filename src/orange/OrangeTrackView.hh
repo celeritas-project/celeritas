@@ -204,7 +204,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Initialize logical state
     UniverseId next_uid = top_universe_id();
 
-    VolumeId global_vol_id{};
     detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
 
     size_type level = 0;
@@ -218,11 +217,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
         // TODO: error correction/graceful failure if initialiation failed
         CELER_ASSERT(tinit.volume && !tinit.surface);
 
-        global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
-
         auto lsa = this->make_lsa(LevelId{level});
-
-        lsa.vol() = global_vol_id;
+        lsa.vol() = tinit.volume;
         lsa.pos() = init.pos;
         lsa.dir() = init.dir;
         lsa.universe() = uid;
@@ -230,6 +226,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
+        auto global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
         next_uid = params_.volume_records[global_vol_id].daughter;
         ++level;
 
@@ -275,7 +272,7 @@ OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
  */
 CELER_FUNCTION Real3 const& OrangeTrackView::pos() const
 {
-    return this->make_lsa().pos();
+    return this->make_lsa(LevelId{0}).pos();
 }
 
 //---------------------------------------------------------------------------//
@@ -284,7 +281,7 @@ CELER_FUNCTION Real3 const& OrangeTrackView::pos() const
  */
 CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
 {
-    return this->make_lsa().dir();
+    return this->make_lsa(LevelId{0}).dir();
 }
 
 //---------------------------------------------------------------------------//
@@ -293,7 +290,9 @@ CELER_FUNCTION Real3 const& OrangeTrackView::dir() const
  */
 CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
 {
-    return this->make_lsa().vol();
+    auto lsa = this->make_lsa();
+    detail::UnitIndexer ui(params_.unit_indexer_data);
+    return ui.global_volume(lsa.universe(), lsa.vol());
 }
 
 //---------------------------------------------------------------------------//
@@ -302,7 +301,17 @@ CELER_FUNCTION VolumeId OrangeTrackView::volume_id() const
  */
 CELER_FUNCTION SurfaceId OrangeTrackView::surface_id() const
 {
-    return this->make_lsa().surf();
+    auto lsa = this->make_lsa();
+
+    if (lsa.surf())
+    {
+        detail::UnitIndexer ui(params_.unit_indexer_data);
+        return ui.global_surface(lsa.universe(), lsa.surf());
+    }
+    else
+    {
+        return SurfaceId{};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -429,7 +438,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     axpy(next_step_, lsa.dir(), &lsa.pos());
 
     // Move to the inside of the surface
-    lsa.surf() = next_surface_.id();
+    detail::UnitIndexer ui(params_.unit_indexer_data);
+    lsa.surf() = ui.local_surface(next_surface_.id()).surface;
     lsa.sense() = next_surface_.unchecked_sense();
 
     this->clear_next_step();
