@@ -414,6 +414,17 @@ class SolidsTest : public VecgeomTestBase,
 
 //---------------------------------------------------------------------------//
 
+TEST_F(SolidsTest, geomDump)
+{
+    this->geometry();
+    auto const& geomgr = vecgeom::GeoManager::Instance();
+    auto const* world = geomgr.GetWorld();
+    CELER_ASSERT(world);
+    world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(SolidsTest, accessors)
 {
     if (starts_with(celeritas_vecgeom_version, "1.1"))
@@ -433,16 +444,6 @@ TEST_F(SolidsTest, accessors)
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{4}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{5}).name);
     EXPECT_EQ("trap1", geom.id_to_label(VolumeId{9}).name);
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsTest, geomDump)
-{
-    auto const& geomgr = vecgeom::GeoManager::Instance();
-    auto const* world = geomgr.GetWorld();
-    CELER_ASSERT(world);
-    world -> PrintContent();
 }
 
 //---------------------------------------------------------------------------//
@@ -639,6 +640,15 @@ class SolidsGeantTest : public GeantBuilderTestBase
 
 //---------------------------------------------------------------------------//
 
+TEST_F(SolidsGeantTest, geomDump)
+{
+    this->geometry();
+    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
+    world->PrintContent();
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(SolidsGeantTest, accessors)
 {
     if (starts_with(celeritas_vecgeom_version, "1.1"))
@@ -651,10 +661,6 @@ TEST_F(SolidsGeantTest, accessors)
     }
 
     auto const& geom = *this->geometry();
-    // TODO: there are 27 actual solids, but there are a few "unused" volumes
-    // created during construction, and different versions of VecGeom are
-    // missing different solids (and thus are missing volumes!)
-    // 25 is the "expected" number from VecGeom 1.2.1 (used by CI)
     EXPECT_EQ(26, geom.num_volumes());
     EXPECT_EQ(2, geom.max_depth());
 
@@ -662,18 +668,6 @@ TEST_F(SolidsGeantTest, accessors)
     EXPECT_EQ("box500", geom.id_to_label(VolumeId{1}).name);
     EXPECT_EQ("cone1", geom.id_to_label(VolumeId{2}).name);
     EXPECT_EQ("b500_bool_left", geom.id_to_label(VolumeId{9}).name);
-
-    // vecgeom::GeoManager::Instance().GetWorld()->PrintContent();
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(SolidsGeantTest, geomDump)
-{
-    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
-    EXPECT_TRUE(world);
-    if (world)
-        world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
