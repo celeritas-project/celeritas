@@ -97,6 +97,7 @@
       "hidden": true,
       "description": "Enable debug with basic optimizations",
       "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
         "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "ON"},
         "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"}
       }
