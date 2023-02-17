@@ -108,7 +108,7 @@ endif()
 # GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(SERIAL PREFIX detail)
+celeritas_setup_tests(SERIAL PREFIX testdetail)
 
 celeritas_add_test(TestMacros.test.cc)
 
@@ -441,10 +441,11 @@ celeritas_add_test(celeritas/user/StepCollector.test.cc ${_optional_geant4_env})
 
 if(CELERITAS_USE_Geant4)
   celeritas_setup_tests(SERIAL PREFIX accel
-    LINK_LIBRARIES Celeritas::accel
+    LINK_LIBRARIES Celeritas::accel testcel_celeritas
   )
 
   celeritas_add_test(accel/ExceptionConverter.test.cc)
+  celeritas_add_test(accel/detail/HitProcessor.test.cc)
 endif()
 
 #-----------------------------------------------------------------------------#
