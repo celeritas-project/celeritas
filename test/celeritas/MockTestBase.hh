@@ -74,7 +74,7 @@ class MockTestBase : virtual public GlobalGeoTestBase
     SPConstCutoff build_cutoff() override;
     SPConstPhysics build_physics() override;
     SPConstAction build_along_step() override;
-    SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
+    SPConstTrackInit build_init() override;
 
     virtual PhysicsOptions build_physics_options() const;
 

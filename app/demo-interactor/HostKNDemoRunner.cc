@@ -113,7 +113,7 @@ auto HostKNDemoRunner::operator()(demo_interactor::KNDemoRunArgs args)
     state.detector = detector_states;
 
     // Loop over particle tracks and events per track
-    for (CELER_MAYBE_UNUSED auto n : range(args.num_tracks))
+    for ([[maybe_unused]] auto n : range(args.num_tracks))
     {
         // Storage for track state
         Real3 position = {0, 0, 0};

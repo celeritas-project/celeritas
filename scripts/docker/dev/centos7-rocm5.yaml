@@ -3,7 +3,7 @@ spack:
   - cmake
   - hepmc3
   - hip
-  - geant4@11 cxxstd=17
+  - geant4@11.0.3 cxxstd=17
   - git
   - googletest
   - ninja

@@ -28,7 +28,7 @@ TEST(IsotropicDistributionTest, bin)
     test::DiagnosticRngEngine<std::mt19937> rng;
 
     std::vector<int> octant_tally(8, 0);
-    for (CELER_MAYBE_UNUSED int i : range(num_samples))
+    for ([[maybe_unused]] int i : range(num_samples))
     {
         auto u = sample_isotropic(rng);
 

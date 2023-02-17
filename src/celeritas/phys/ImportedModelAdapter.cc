@@ -17,6 +17,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/io/ImportModel.hh"
 #include "celeritas/phys/Applicability.hh"
 
 #include "PDGNumber.hh"
@@ -83,18 +84,23 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
     ImportProcess const& import_process = imported_->get(proc->second);
 
     // Get the micro xs grids for the given model, particle, and material
-    auto xs = import_process.micro_xs.find(model_class_);
-    CELER_ASSERT(xs != import_process.micro_xs.end());
-    CELER_ASSERT(applic.material < xs->second.size());
-    auto const& elem_phys_vectors = xs->second[applic.material.get()];
+    auto mod_iter = std::find_if(import_process.models.begin(),
+                                 import_process.models.end(),
+                                 [this](ImportModel const& m) {
+                                     return m.model_class == this->model_class_;
+                                 });
+    CELER_VALIDATE(mod_iter != import_process.models.end(),
+                   << "missing microscopic cross sections for "
+                   << to_cstring(model_class_));
+    CELER_ASSERT(applic.material < mod_iter->materials.size());
+    ImportModelMaterial const& imm
+        = mod_iter->materials[applic.material.unchecked_get()];
 
-    MicroXsBuilders builders(elem_phys_vectors.size());
-    for (size_type elcomp_idx : range(elem_phys_vectors.size()))
+    MicroXsBuilders builders(imm.micro_xs.size());
+    for (size_type elcomp_idx : range(builders.size()))
     {
-        auto const& vec = elem_phys_vectors[elcomp_idx];
-        CELER_ASSERT(vec.vector_type == ImportPhysicsVectorType::log);
         builders[elcomp_idx] = ValueGridLogBuilder::from_geant(
-            make_span(vec.x), make_span(vec.y));
+            make_span(imm.energy), make_span(imm.micro_xs[elcomp_idx]));
     }
     return builders;
 }

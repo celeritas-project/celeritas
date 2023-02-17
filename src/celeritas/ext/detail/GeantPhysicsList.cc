@@ -8,6 +8,7 @@
 #include "GeantPhysicsList.hh"
 
 #include <memory>
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
 #include <G4Electron.hh>
@@ -23,7 +24,6 @@
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
 #include <G4RayleighScattering.hh>
-#include <G4SystemOfUnits.hh>
 #include <G4UrbanMscModel.hh>
 #include <G4WentzelVIModel.hh>
 #include <G4eCoulombScatteringModel.hh>
@@ -48,11 +48,11 @@ namespace detail
  */
 GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
 {
-    // Set EM options
+    // Set EM options using limits from G4EmParameters
     auto& em_parameters = *G4EmParameters::Instance();
-    CELER_VALIDATE(options_.em_bins_per_decade > 0,
+    CELER_VALIDATE(options_.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
-                   << options.em_bins_per_decade << " (must be positive)");
+                   << options.em_bins_per_decade << " (must be at least 5)");
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
@@ -65,6 +65,10 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+
+    int verb = options_.verbose ? 1 : 0;
+    this->SetVerboseLevel(verb);
+    em_parameters.SetVerbose(verb);
 }
 
 //---------------------------------------------------------------------------//
@@ -256,7 +260,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
         auto process = std::make_unique<G4eMultipleScattering>();
 
-        if (options_.msc == MscModelSelection::urban)
+        if (options_.msc == MscModelSelection::urban
+            || options_.msc == MscModelSelection::all)
         {
             auto model = std::make_unique<G4UrbanMscModel>();
             model->SetHighEnergyLimit(msc_energy_limit);
@@ -266,7 +271,8 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
                                 "G4UrbanMscModel";
         }
 
-        if (options_.msc == MscModelSelection::wentzel_vi)
+        if (options_.msc == MscModelSelection::wentzel_vi
+            || options_.msc == MscModelSelection::all)
         {
             auto model = std::make_unique<G4WentzelVIModel>();
             model->SetLowEnergyLimit(msc_energy_limit);

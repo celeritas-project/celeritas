@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/ImportProcessConverter.hh
+//! \file celeritas/ext/detail/GeantProcessImporter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -55,7 +55,7 @@ enum class TableSelection
  *
  * \code
  *  std::vector<ImportProcess> processes;
- *  ImportProcessConverter import(TableSelection::all, materials, elements);
+ *  GeantProcessImporter import(TableSelection::all, materials, elements);
  *
  *  G4ParticleTable::G4PTblDicIterator& particle_iterator
  *      = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -79,16 +79,16 @@ enum class TableSelection
  *  }
  * \endcode
  */
-class ImportProcessConverter
+class GeantProcessImporter
 {
   public:
     // Construct with selected list of tables
-    ImportProcessConverter(TableSelection which_tables,
-                           std::vector<ImportMaterial> const& materials,
-                           std::vector<ImportElement> const& elements);
+    GeantProcessImporter(TableSelection which_tables,
+                         std::vector<ImportMaterial> const& materials,
+                         std::vector<ImportElement> const& elements);
 
     // Default destructor
-    ~ImportProcessConverter();
+    ~GeantProcessImporter();
 
     // Return ImportProcess for a given particle and physics process
     ImportProcess operator()(G4ParticleDefinition const& particle,
@@ -109,17 +109,10 @@ class ImportProcessConverter
     void add_table(G4PhysicsTable const* table,
                    celeritas::ImportTableType table_type);
 
-    // Store element cross section data into physics vectors
-    ImportProcess::ModelMicroXS add_micro_xs(G4VEmModel& model);
-
-    // Set up the physics vector energy grid for add_micro_xs(...)
-    ImportPhysicsVector
-    initialize_micro_xs_physics_vector(G4VEmModel& model, unsigned int mat_idx);
-
   private:
     // Store material and element information for the element selector tables
-    std::vector<ImportMaterial> materials_;
-    std::vector<ImportElement> elements_;
+    std::vector<ImportMaterial> const& materials_;
+    std::vector<ImportElement> const& elements_;
 
     // Whether to write tables that aren't used by physics
     TableSelection which_tables_;

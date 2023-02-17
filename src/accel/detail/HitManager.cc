@@ -56,6 +56,7 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
     if (setup.locate_touchable)
     {
         selection_.points[StepPoint::pre].pos = true;
+        selection_.points[StepPoint::pre].dir = true;
     }
 
     // Logical volumes to pass to hit processor

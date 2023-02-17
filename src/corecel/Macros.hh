@@ -75,29 +75,6 @@
 #endif
 
 /*!
- * \def CELER_MAYBE_UNUSED
- *
- * Mark a function, type, or variable as being potentially unused. This is
- * especially useful for debug-only variables and \c celeritas::range loop
- * variables where the index is left unused.
- *
- * \code
-   for (CELER_MAYBE_UNUSED int x : range(100))
-   {
-       do_noop();
-   }
- * \endcode
- */
-#if __cplusplus >= 201710L
-#    define CELER_MAYBE_UNUSED [[maybe_unused]]
-#elif defined(__GNUC__)
-// Valid for GCC 4.8+ and Clang
-#    define CELER_MAYBE_UNUSED [[gnu::unused]]
-#else
-#    define CELER_MAYBE_UNUSED
-#endif
-
-/*!
  * \def CELER_UNREACHABLE
  *
  * Mark a point in code as being impossible to reach in normal execution.

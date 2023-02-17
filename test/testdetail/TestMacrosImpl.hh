@@ -413,8 +413,8 @@ void print_expected(Container const& data, std::string label)
     using RT = ReprTraits<Container>;
     using VRT = ReprTraits<typename RT::value_type>;
 
-    std::cout << "static const ";
-    label.insert(0, "expected_");
+    std::cout << "static ";
+    label.insert(0, "const expected_");
     VRT::print_type(std::cout, label.c_str());
     std::cout << "[] = ";
 

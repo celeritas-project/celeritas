@@ -10,14 +10,14 @@
 #include "corecel/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
+#include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformField.hh"
 
 #include "AlongStepNeutral.hh"
-#include "EnergyLossApplier.hh"
-#include "UrbanMsc.hh"
+#include "MeanELoss.hh"
 
 namespace celeritas
 {
@@ -40,7 +40,7 @@ along_step_uniform_msc(NativeCRef<UrbanMscData> const& msc,
             return make_mag_field_propagator<DormandPrinceStepper>(
                 UniformField(field.field), field.options, particle, geo);
         },
-        EnergyLossApplier{},
+        MeanELoss{},
         track);
 }
 

@@ -93,6 +93,8 @@ int main(int argc, char* argv[])
     if (option_filename.empty())
     {
         CELER_LOG(info) << "Using default Celeritas Geant4 options";
+        // ... but add verbosity
+        options.verbose = true;
     }
 #if CELERITAS_USE_JSON
     else if (option_filename == "-")

@@ -6,15 +6,15 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('valgrind') {
+        stage('clang-minitest') {
           agent {
             docker {
-              image 'celeritas/ci-bionic-minimal:2021-12-17'
-              // Note: this image does not require CUDA
+              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
+              // Note: this image does not require CUDA or HIP
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-minimal valgrind'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minitest'
           }
           post {
             always {
@@ -22,12 +22,10 @@ pipeline {
             }
           }
         }
-        stage('hip-asan') {
+        stage('clang-asan') {
           agent {
             docker {
               image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
-              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
             }
           }
           steps {

@@ -100,7 +100,7 @@ CutoffParams::CutoffParams(Input const& input)
             {
                 // Particle was defined in the problem but does not have
                 // cutoffs assigned -- set cutoffs to zero
-                for (CELER_MAYBE_UNUSED auto i : range(host_data.num_materials))
+                for ([[maybe_unused]] auto i : range(host_data.num_materials))
                 {
                     cutoffs.push_back({zero_quantity(), 0});
                 }

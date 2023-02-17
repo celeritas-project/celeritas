@@ -36,11 +36,11 @@ namespace
  * Safely switch between MatterState [MaterialParams.hh] and
  * ImportMaterialState [ImportMaterial.hh].
  */
-MatterState to_matter_state(const ImportMaterialState state)
+MatterState to_matter_state(ImportMaterialState state)
 {
     switch (state)
     {
-        case ImportMaterialState::not_defined:
+        case ImportMaterialState::other:
             return MatterState::unspecified;
         case ImportMaterialState::solid:
             return MatterState::solid;
@@ -48,8 +48,9 @@ MatterState to_matter_state(const ImportMaterialState state)
             return MatterState::liquid;
         case ImportMaterialState::gas:
             return MatterState::gas;
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
-    CELER_ASSERT_UNREACHABLE();
 }
 }  // namespace
 

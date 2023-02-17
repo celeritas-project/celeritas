@@ -185,6 +185,7 @@ class PhysicsParams
 
     // Kernels/actions
     SPAction pre_step_action_;
+    SPAction msc_action_;
     SPAction range_action_;
     SPAction discrete_action_;
     SPAction integral_rejection_action_;

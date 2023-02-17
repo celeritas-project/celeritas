@@ -62,37 +62,11 @@ inline CELER_FUNCTION Chord make_chord(Real3 const& src, Real3 const& dst)
         result.dir[i] = dst[i] - src[i];
     }
     result.length = norm(result.dir);
-    const real_type norm = 1 / result.length;
     for (int i = 0; i < 3; ++i)
     {
-        result.dir[i] *= norm;
+        result.dir[i] /= result.length;
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the distance between a target point and a line segment's endpoint.
- *
- * This is equivalent to:
- * \code
-     Real3 temp = pos;
-     axpy(distance, dir, &pos);
-
-     return ipow<2>(distance(pos, target));
- * \endcode
- */
-inline CELER_FUNCTION real_type calc_miss_distance(Real3 const& pos,
-                                                   Real3 const& dir,
-                                                   real_type distance,
-                                                   Real3 const& target)
-{
-    real_type delta_sq = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
-    }
-    return delta_sq;
 }
 
 //---------------------------------------------------------------------------//
@@ -113,7 +87,12 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
                                               Real3 const& target,
                                               real_type tolerance)
 {
-    return calc_miss_distance(pos, dir, distance, target) <= ipow<2>(tolerance);
+    real_type delta_sq = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
+    }
+    return delta_sq <= ipow<2>(tolerance);
 }
 
 //---------------------------------------------------------------------------//

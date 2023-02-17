@@ -11,23 +11,24 @@
 #include <string>
 #include <vector>
 
-#include "corecel/Types.hh"
-
-#include "ImportElement.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Enum for storing G4State enumerators.
- * [See G4Material.hh]
+ *
+ * See G4Material.hh.
  */
 enum class ImportMaterialState
 {
-    not_defined,
+    other,
+    not_defined [[deprecated]] = other,
     solid,
     liquid,
-    gas
+    gas,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -36,8 +37,8 @@ enum class ImportMaterialState
  */
 struct ImportProductionCut
 {
-    double energy;  //!< [MeV]
-    double range;  //!< [cm]
+    double energy{};  //!< [MeV]
+    double range{};  //!< [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -46,9 +47,9 @@ struct ImportProductionCut
  */
 struct ImportMatElemComponent
 {
-    unsigned int element_id;  //!< Index of element in ImportElement
-    double mass_fraction;  //!< [g/cm^3]
-    double number_fraction;
+    unsigned int element_id{};  //!< Index of element in ImportElement
+    double mass_fraction{};  //!< [g/cm^3]
+    double number_fraction{};
 };
 
 //---------------------------------------------------------------------------//
@@ -65,8 +66,8 @@ struct ImportMaterial
     using VecComponent = std::vector<ImportMatElemComponent>;
     //!@}
 
-    std::string name;
-    ImportMaterialState state;
+    std::string name{};
+    ImportMaterialState state{ImportMaterialState::size_};
     double temperature;  //!< [K]
     double density;  //!< [g/cm^3]
     double electron_density;  //!< [1/cm^3]

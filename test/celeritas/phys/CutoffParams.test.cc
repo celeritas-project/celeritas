@@ -176,9 +176,9 @@ TEST_F(CutoffParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_cutoffs))
         }
     }
 
-    double const expected_energies[]
-        = {0.00099, 1.31345289979559, 0.00099, 0.0209231725658313};
-    double const expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
+    static double const expected_energies[]
+        = {0.00099, 1.3082781553076, 0.00099, 0.020822442086622};
+    static double const expected_ranges[] = {0.1, 0.1, 0.1, 0.1};
 
     EXPECT_VEC_SOFT_EQ(expected_energies, energies);
     EXPECT_VEC_SOFT_EQ(expected_ranges, ranges);

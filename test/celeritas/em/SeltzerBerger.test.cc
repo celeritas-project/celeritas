@@ -63,24 +63,18 @@ class SeltzerBergerTest : public InteractorHostTestBase
         std::string data_path = this->test_data_path("celeritas", "");
         SeltzerBergerReader read_element_data(data_path.c_str());
 
-        // Imported process data needed to construct the model (with empty
-        // physics tables, which are not needed for the interactor)
-        std::vector<ImportProcess> imported{
-            {11,
-             22,
-             ImportProcessType::electromagnetic,
-             ImportProcessClass::e_brems,
-             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
-             {},
-             {}},
-            {-11,
-             22,
-             ImportProcessType::electromagnetic,
-             ImportProcessClass::e_brems,
-             {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm},
-             {},
-             {}}};
-        this->set_imported_processes(imported);
+        // Create mock import data
+        {
+            ImportProcess ip_electron = this->make_import_process(
+                pdg::electron(),
+                pdg::gamma(),
+                ImportProcessClass::e_brems,
+                {ImportModelClass::e_brems_sb, ImportModelClass::e_brems_lpm});
+            ImportProcess ip_positron = ip_electron;
+            ip_positron.particle_pdg = pdg::positron().get();
+            this->set_imported_processes(
+                {std::move(ip_electron), std::move(ip_positron)});
+        }
 
         // Construct SeltzerBergerModel and set host data
         model_
@@ -434,6 +428,35 @@ TEST_F(SeltzerBergerTest, stress_test)
                                                          12.4888};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
+{
+    // See https://github.com/celeritas-project/celeritas/issues/617
+
+    // Set up material data (only value used in this test is the atomic number)
+    MaterialParams::Input mat_inp;
+    mat_inp.elements = {{AtomicNumber{26}, units::AmuMass{55.845}, "Fe"}};
+    mat_inp.materials = {{0.128 * constants::na_avogadro,
+                          293.0,
+                          MatterState::solid,
+                          {{ElementId{0}, 1.0}},
+                          "Fe"}};
+
+    auto const material_params
+        = std::make_shared<MaterialParams>(std::move(mat_inp));
+
+    units::MevMass const positron_mass{0.51099890999999997};
+    units::MevEnergy const min_gamma_energy{0.020822442086622296};
+    units::MevEnergy const inc_energy{241.06427050865221};
+    units::MevEnergy const sampled_energy{0.020822442732819097};
+    SBPositronXsCorrector xs_corrector(positron_mass,
+                                       material_params->get(ElementId{0}),
+                                       min_gamma_energy,
+                                       inc_energy);
+
+    auto const result = xs_corrector(sampled_energy);
+    EXPECT_EQ(1, result);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

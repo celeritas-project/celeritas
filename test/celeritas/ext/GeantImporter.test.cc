@@ -54,6 +54,7 @@ class GeantImporterTest : public Test
 {
   protected:
     using DataSelection = GeantImporter::DataSelection;
+    using VecModelMaterial = std::vector<ImportModelMaterial>;
 
     struct ImportSummary
     {
@@ -66,27 +67,68 @@ class GeantImporterTest : public Test
 
     struct ImportXsSummary
     {
-        std::vector<size_type> size;
-        std::vector<real_type> x_bounds;
-        std::vector<real_type> y_bounds;
+        std::vector<size_type> size;  //!< Number of micro XS in each material
+        std::vector<real_type> energy;
+        std::vector<real_type> xs;
 
         void print_expected() const;
     };
 
-    ImportData import_geant(DataSelection const& selection)
+    ImportData const& import_geant(DataSelection const& selection)
     {
         // Only allow a single importer per global execution, because of Geant4
         // limitations.
         static GeantImporter import_geant(this->setup_geant());
 
-        return import_geant(selection);
+        // Reuse import data to reduce verbosity
+        static DataSelection imported_sel;
+        ImportData& imported = this->imported_data();
+
+        if (imported_sel != selection || !imported)
+        {
+            imported = import_geant(selection);
+            imported_sel = selection;
+        }
+
+        return imported;
     }
 
     ImportSummary summarize(ImportData const& data) const;
-    ImportXsSummary
-    summarize(ImportProcess::ElementPhysicsVectors const& xs) const;
+    ImportXsSummary summarize(VecModelMaterial const& xs) const;
 
     virtual GeantSetup setup_geant() = 0;
+
+    ImportProcess const&
+    find_process(PDGNumber pdg, ImportProcessClass ipc) const
+    {
+        CELER_EXPECT(this->imported_data());
+        auto const& processes = this->imported_data().processes;
+        auto result = std::find_if(processes.begin(),
+                                   processes.end(),
+                                   [&pdg, &ipc](ImportProcess const& proc) {
+                                       return PDGNumber{proc.particle_pdg}
+                                                  == pdg
+                                              && proc.process_class == ipc;
+                                   });
+        CELER_ENSURE(result != processes.end());
+        return *result;
+    }
+
+    real_type comparison_tolerance() const
+    {
+        // Some values change substantially between geant versions
+        static real_type const tol
+            = (celeritas_geant4_version == std::string("11.0.3")) ? 1e-12
+                                                                  : 5e-3;
+        return tol;
+    }
+
+  private:
+    static ImportData& imported_data()
+    {
+        static ImportData imported;
+        return imported;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -104,7 +146,14 @@ auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
     for (auto const& p : data.processes)
     {
         pclass.insert(p.process_class);
-        mclass.insert(p.models.begin(), p.models.end());
+        for (auto const& m : p.models)
+        {
+            mclass.insert(m.model_class);
+        }
+    }
+    for (auto const& m : data.msc_models)
+    {
+        mclass.insert(m.model_class);
     }
     s.processes = to_vec_string(pclass.begin(), pclass.end());
     s.models = to_vec_string(mclass.begin(), mclass.end());
@@ -126,19 +175,33 @@ void GeantImporterTest::ImportSummary::print_expected() const
             "/*** END CODE ***/\n";
 }
 
-auto GeantImporterTest::summarize(
-    ImportProcess::ElementPhysicsVectors const& xs) const -> ImportXsSummary
+auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
+    -> ImportXsSummary
 {
     ImportXsSummary result;
-    for (auto const& vec : xs)
+    for (auto const& mat : materials)
     {
-        EXPECT_FALSE(vec.x.empty());
-        EXPECT_EQ(vec.x.size(), vec.y.size());
-        result.size.push_back(vec.x.size());
-        result.x_bounds.push_back(vec.x.front());
-        result.x_bounds.push_back(vec.x.back());
-        result.y_bounds.push_back(vec.y.front() / units::barn);
-        result.y_bounds.push_back(vec.y.back() / units::barn);
+        result.size.push_back(mat.energy.size());
+        result.energy.push_back(mat.energy.front());
+        result.energy.push_back(mat.energy.back());
+    }
+
+    // Skip export of first material, which is usually vacuum
+    auto mat_iter = materials.begin();
+    for (auto const& xs_vec : mat_iter->micro_xs)
+    {
+        EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
+    }
+    ++mat_iter;
+
+    for (; mat_iter != materials.end(); ++mat_iter)
+    {
+        for (auto const& xs_vec : mat_iter->micro_xs)
+        {
+            EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
+            result.xs.push_back(xs_vec.front() / units::barn);
+            result.xs.push_back(xs_vec.back() / units::barn);
+        }
     }
     return result;
 }
@@ -149,12 +212,12 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
          << "static const real_type expected_size[] = " << repr(this->size)
          << ";\n"
          << "EXPECT_VEC_EQ(expected_size, result.size);\n"
-         << "static const real_type expected_x_bounds[] = "
-         << repr(this->x_bounds) << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);\n"
-         << "static const real_type expected_y_bounds[] = "
-         << repr(this->y_bounds) << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);\n"
+         << "static const real_type expected_e[] = " << repr(this->energy)
+         << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_e, result.energy);\n"
+         << "static const real_type expected_xs[] = " << repr(this->xs)
+         << ";\n"
+         << "EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);\n"
          << "/*** END CODE ***/\n";
 }
 
@@ -165,11 +228,12 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
     {
         GeantSetup::Options opts;
         opts.relaxation = RelaxationSelection::all;
+        opts.verbose = true;
 #if CELERITAS_USE_JSON
         {
             nlohmann::json out = opts;
             static char const expected[]
-                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all"})json";
+                = R"json({"brems":"all","coulomb_scattering":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"integral_approach":true,"linear_loss_limit":0.01,"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","rayleigh_scattering":true,"relaxation":"all","verbose":true})json";
             EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
 #endif
@@ -187,23 +251,24 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     DataSelection options;
     options.particles = DataSelection::em;
 
-    auto imported = this->import_geant(options);
+    auto&& imported = this->import_geant(options);
     auto summary = this->summarize(imported);
 
     static char const* expected_particles[] = {"e+", "e-", "gamma"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"msc",
-                                               "e_ioni",
+    static char const* expected_processes[] = {"e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh"};
+                                               "rayleigh",
+                                               "annihilation"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
@@ -218,23 +283,24 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     options.particles = DataSelection::em | DataSelection::hadron;
     options.processes = DataSelection::em;
 
-    auto imported = this->import_geant(options);
+    auto&& imported = this->import_geant(options);
     auto summary = this->summarize(imported);
 
     static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"msc",
-                                               "e_ioni",
+    static char const* expected_processes[] = {"e_ioni",
                                                "e_brems",
                                                "photoelectric",
                                                "compton",
                                                "conversion",
-                                               "rayleigh"};
+                                               "rayleigh",
+                                               "annihilation"};
     EXPECT_VEC_EQ(expected_processes, summary.processes);
     static char const* expected_models[] = {"urban_msc",
                                             "moller_bhabha",
                                             "e_brems_sb",
                                             "e_brems_lpm",
+                                            "e_plus_to_gg",
                                             "livermore_photoelectric",
                                             "klein_nishina",
                                             "bethe_heitler_lpm",
@@ -245,10 +311,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, elements)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& elements = import_data.elements;
     EXPECT_EQ(4, elements.size());
@@ -291,10 +354,7 @@ TEST_F(FourSteelSlabsEmStandard, elements)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, materials)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& materials = import_data.materials;
     EXPECT_EQ(2, materials.size());
@@ -377,39 +437,28 @@ TEST_F(FourSteelSlabsEmStandard, materials)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(FourSteelSlabsEmStandard, processes)
+TEST_F(FourSteelSlabsEmStandard, eioni)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    real_type const tol = this->comparison_tolerance();
 
-    auto const& processes = import_data.processes;
-    auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
-        return std::find_if(processes.begin(),
-                            processes.end(),
-                            [&pdg, &ipc](const ImportProcess& proc) {
-                                return PDGNumber{proc.particle_pdg} == pdg
-                                       && proc.process_class == ipc;
-                            });
-    };
+    ImportProcess const& proc = this->find_process(celeritas::pdg::electron(),
+                                                   ImportProcessClass::e_ioni);
+    EXPECT_EQ(ImportProcessType::electromagnetic, proc.process_type);
+    EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
 
-    // Some values change substantially between v10 and v11.
-    const real_type tol = geant4_is_v10() ? 1e-12 : 5e-3;
+    // Test model
+    ASSERT_EQ(1, proc.models.size());
+    {
+        auto const& model = proc.models[0];
+        EXPECT_EQ(ImportModelClass::moller_bhabha, model.model_class);
+        for (auto const& m : model.materials)
+        {
+            EXPECT_EQ(2, m.energy.size());
+            EXPECT_EQ(0, m.micro_xs.size());
+        }
+    }
 
-    auto ioni
-        = find_process(celeritas::pdg::electron(), ImportProcessClass::e_ioni);
-    ASSERT_NE(processes.end(), ioni);
-
-    EXPECT_EQ(ImportProcessType::electromagnetic, ioni->process_type);
-    ASSERT_EQ(1, ioni->models.size());
-    EXPECT_EQ(ImportModelClass::moller_bhabha, ioni->models.front());
-    EXPECT_EQ(celeritas::pdg::electron().get(), ioni->secondary_pdg);
-
-    // No ionization micro xs
-    EXPECT_EQ(0, ioni->micro_xs.size());
-
-    auto const& tables = ioni->tables;
+    auto const& tables = proc.tables;
     ASSERT_EQ(3, tables.size());
     {
         // Test energy loss table
@@ -426,7 +475,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_NEAR(839.66835335480653, steel.y.front(), tol);
-        EXPECT_SOFT_NEAR(11.380485677836065, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(11.378226755591747, steel.y.back(), tol);
     }
     {
         // Test range table
@@ -443,7 +492,7 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_NEAR(2.3818927937550707e-07, steel.y.front(), tol);
-        EXPECT_SOFT_NEAR(8786971.3079055995, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(8788715.7877501156, steel.y.back(), tol);
     }
     {
         // Test cross-section table
@@ -457,112 +506,99 @@ TEST_F(FourSteelSlabsEmStandard, processes)
         EXPECT_EQ(ImportPhysicsVectorType::log, steel.vector_type);
         ASSERT_EQ(steel.x.size(), steel.y.size());
         ASSERT_EQ(54, steel.x.size());
-        EXPECT_SOFT_NEAR(2.6269057995911775, steel.x.front(), tol);
+        EXPECT_SOFT_NEAR(2.616556310615175, steel.x.front(), tol);
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_NEAR(0.18987862452122845, steel.y[1], tol);
-        EXPECT_SOFT_NEAR(0.43566778103861714, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(0.1905939505829807, steel.y[1], tol);
+        EXPECT_SOFT_NEAR(0.4373910150880348, steel.y.back(), tol);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, ebrems)
+{
+    ImportProcess const& proc = this->find_process(
+        celeritas::pdg::electron(), ImportProcessClass::e_brems);
+    EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
+    ASSERT_EQ(2, proc.models.size());
+    {
+        // Check Seltzer-Berger electron micro xs
+        auto const& model = proc.models[0];
+        EXPECT_EQ(ImportModelClass::e_brems_sb, model.model_class);
+        EXPECT_EQ(2, model.materials.size());
+
+        auto result = summarize(model.materials);
+        static const real_type expected_size[] = {7ul, 5ul};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static const real_type expected_e[]
+            = {0.001, 1000, 0.020822442086622, 1000};
+        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
+        static const real_type expected_xs[] = {19.90859573288,
+                                                77.272184544415,
+                                                16.869369978465,
+                                                66.694254412524,
+                                                23.221614672926,
+                                                88.397283181803};
+        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
     }
     {
-        // Test model microscopic cross sections
-        auto brem = find_process(celeritas::pdg::electron(),
-                                 ImportProcessClass::e_brems);
-        ASSERT_NE(processes.end(), brem);
-        EXPECT_EQ(celeritas::pdg::gamma().get(), brem->secondary_pdg);
-        EXPECT_EQ(2, brem->micro_xs.size());
-        EXPECT_EQ(brem->models.size(), brem->micro_xs.size());
-        {
-            // Check Seltzer-Berger electron micro xs
-            auto const& sb = brem->micro_xs.find(brem->models[0]);
-            EXPECT_EQ(ImportModelClass::e_brems_sb, sb->first);
+        // Check relativistic brems electron micro xs
+        auto const& model = proc.models[1];
+        EXPECT_EQ(ImportModelClass::e_brems_lpm, model.model_class);
+        EXPECT_EQ(2, model.materials.size());
 
-            // 2 materials; second material is stainless steel with 3
-            // elements
-            EXPECT_EQ(2, sb->second.size());
-            EXPECT_EQ(3, sb->second.back().size());
+        auto result = summarize(model.materials);
+        static const real_type expected_size[] = {6ul, 6ul};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static const real_type expected_e[]
+            = {1000, 100000000, 1000, 100000000};
+        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
+        static const real_type expected_xs[] = {77.086886023111,
+                                                14.346968386977,
+                                                66.448046061979,
+                                                12.347652116819,
+                                                88.449439286966,
+                                                16.486040161073};
+        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+    }
+}
 
-            auto result = summarize(sb->second.back());
+TEST_F(FourSteelSlabsEmStandard, conv)
+{
+    // Check Bethe-Heitler micro xs
+    ImportProcess const& proc = this->find_process(
+        celeritas::pdg::gamma(), ImportProcessClass::conversion);
+    EXPECT_EQ(celeritas::pdg::electron().get(), proc.secondary_pdg);
+    ASSERT_EQ(1, proc.models.size());
 
-            static const real_type expected_size[] = {5ul, 5ul, 5ul};
-            static const real_type expected_x_bounds[] = {0.020923172565831,
-                                                          1000,
-                                                          0.020923172565831,
-                                                          1000,
-                                                          0.020923172565831,
-                                                          1000};
-            static const real_type expected_y_bounds[] = {19.855602934384,
-                                                          77.270585225307,
-                                                          16.824420929076,
-                                                          66.692872575545,
-                                                          23.159721368813,
-                                                          88.395455128585};
-            EXPECT_VEC_EQ(expected_size, result.size);
-            EXPECT_VEC_NEAR(expected_x_bounds, result.x_bounds, tol);
-            EXPECT_VEC_NEAR(expected_y_bounds, result.y_bounds, tol);
-        }
-        {
-            // Check relativistic brems electron micro xs
-            auto const& rb = brem->micro_xs.find(brem->models[1]);
-            EXPECT_EQ(ImportModelClass::e_brems_lpm, rb->first);
+    {
+        // Check Seltzer-Berger electron micro xs
+        auto const& model = proc.models[0];
+        EXPECT_EQ(ImportModelClass::bethe_heitler_lpm, model.model_class);
 
-            auto result = summarize(rb->second.back());
+        EXPECT_EQ(2, model.materials.size());
 
-            static const real_type expected_size[] = {5ul, 5ul, 5ul};
-            static const real_type expected_x_bounds[]
-                = {1000, 100000000, 1000, 100000000, 1000, 100000000};
-            static const real_type expected_y_bounds[] = {77.085320789881,
-                                                          14.346956760121,
-                                                          66.446696755766,
-                                                          12.347642615031,
-                                                          88.447643447573,
-                                                          16.486026316006};
+        auto result = summarize(model.materials);
 
-            EXPECT_VEC_EQ(expected_size, result.size);
-            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
-            EXPECT_VEC_NEAR(expected_y_bounds, result.y_bounds, tol);
-        }
-        {
-            // Check Bethe-Heitler micro xs
-            auto conv = find_process(celeritas::pdg::gamma(),
-                                     ImportProcessClass::conversion);
-            ASSERT_NE(processes.end(), conv);
-            EXPECT_EQ(celeritas::pdg::electron().get(), conv->secondary_pdg);
-            EXPECT_EQ(1, conv->micro_xs.size());
-            EXPECT_EQ(conv->models.size(), conv->micro_xs.size());
-
-            auto const& bh = conv->micro_xs.find(conv->models[0]);
-            EXPECT_EQ(ImportModelClass::bethe_heitler_lpm, bh->first);
-
-            auto result = summarize(bh->second.back());
-
-            static unsigned int const expected_size[] = {9u, 9u, 9u};
-            static double const expected_x_bounds[] = {1.02199782,
-                                                       100000000,
-                                                       1.02199782,
-                                                       100000000,
-                                                       1.02199782,
-                                                       100000000};
-            static double const expected_y_bounds[] = {1.4603666285612,
-                                                       4.4976609946794,
-                                                       1.250617083013,
-                                                       3.8760336885145,
-                                                       1.6856988385825,
-                                                       5.1617257552977};
-
-            EXPECT_VEC_EQ(expected_size, result.size);
-            EXPECT_VEC_SOFT_EQ(expected_x_bounds, result.x_bounds);
-            EXPECT_VEC_SOFT_EQ(expected_y_bounds, result.y_bounds);
-        }
+        static const real_type expected_size[] = {9ul, 9ul};
+        EXPECT_VEC_EQ(expected_size, result.size);
+        static const real_type expected_e[]
+            = {1.02199782, 100000000, 1.02199782, 100000000};
+        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
+        static const real_type expected_xs[] = {1.4603666285612,
+                                                4.4976609946794,
+                                                1.250617083013,
+                                                3.8760336885145,
+                                                1.6856988385825,
+                                                5.1617257552977};
+        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
     }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, volumes)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& volumes = import_data.volumes;
     EXPECT_EQ(5, volumes.size());
@@ -599,10 +635,7 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, em_parameters)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& em_params = import_data.em_params;
     EXPECT_EQ(true, em_params.energy_loss_fluct);
@@ -615,10 +648,7 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, sb_data)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& sb_map = import_data.sb_data;
     EXPECT_EQ(4, sb_map.size());
@@ -664,10 +694,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& lpe_map = import_data.livermore_pe_data;
     EXPECT_EQ(4, lpe_map.size());
@@ -771,10 +798,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
-    options.processes = DataSelection::em;
-    auto import_data = this->import_geant(options);
+    auto&& import_data = this->import_geant({});
 
     auto const& ar_map = import_data.atomic_relaxation_data;
     EXPECT_EQ(4, ar_map.size());
@@ -888,6 +912,7 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
     EXPECT_VEC_SOFT_EQ(expected_fluor_probability, fluor_probability);
     EXPECT_VEC_SOFT_EQ(expected_fluor_energy, fluor_energy);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

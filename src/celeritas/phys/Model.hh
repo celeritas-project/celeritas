@@ -24,7 +24,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Abstract base class representing a physics model.
+ * Abstract base class representing a physics model with a discrete action.
  *
  * A Model is a representation (often an approximation) to a physics process
  * such as Compton scattering that is valid for one or more particle types in a
@@ -41,8 +41,8 @@ namespace celeritas
  * - It precalculates macroscopic cross sections for each range of
  *   applicability.
  * - It precalculates energy loss rates and range limiters for each range.
- * - If it has an interaction cross section, it provides an "interact" method
- *   for undergoing an interaction and possibly emitting secondaries.
+ * - If it has an interaction cross section, it provides an "execute" method
+ *   for applying the interaction and possibly emitting secondaries.
  *
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.

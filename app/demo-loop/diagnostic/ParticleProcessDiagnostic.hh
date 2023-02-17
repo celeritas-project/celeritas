@@ -152,6 +152,7 @@ ParticleProcessDiagnostic<M>::ParticleProcessDiagnostic(
     // interactions (indexed as model_id * num_particles + particle_id)
     size_type size = particles_->size() * physics_->num_models();
     resize(&counts_, size);
+    celeritas::fill(size_type(0), &counts_);
 }
 
 //---------------------------------------------------------------------------//

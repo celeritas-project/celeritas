@@ -39,19 +39,9 @@ class GlobalGeoTestBase : virtual public GlobalTestBase
   private:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP FOR VECGEOM ////
 
-    struct LazyGeo
-    {
-        std::string basename{};
-        SPConstGeo geo{};
-    };
-
+    struct LazyGeo;
+    class CleanupGeoEnvironment;
     static LazyGeo& lazy_geo();
-
-    class CleanupGeoEnvironment : public ::testing::Environment
-    {
-        void SetUp() override {}
-        void TearDown() override { GlobalGeoTestBase::reset_geometry(); }
-    };
 };
 
 //---------------------------------------------------------------------------//

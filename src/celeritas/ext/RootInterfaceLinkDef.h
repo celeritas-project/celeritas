@@ -6,11 +6,14 @@
 //! \file celeritas/ext/RootInterfaceLinkDef.h
 //! \brief Define the classes added to the ROOT dictionary
 //---------------------------------------------------------------------------//
-#ifdef __CINT__
+#ifdef __ROOTCLING__
 
 // clang-format off
 #pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportProcess+;
+#pragma link C++ class celeritas::ImportModelMaterial+;
+#pragma link C++ class celeritas::ImportModel+;
+#pragma link C++ class celeritas::ImportMscModel+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::ImportMaterial+;

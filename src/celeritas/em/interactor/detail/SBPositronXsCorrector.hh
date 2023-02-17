@@ -116,7 +116,11 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
     real_type delta = cutoff_invbeta_ - this->calc_invbeta(energy.value());
-    real_type result = std::exp(alpha_z_ * delta);
+
+    // Avoid positive delta values due to floating point inaccuracies
+    // See https://github.com/celeritas-project/celeritas/issues/617
+    CELER_ASSERT(delta < 1e-15);
+    real_type result = std::exp(alpha_z_ * celeritas::min(delta, real_type{0}));
     CELER_ENSURE(result <= 1);
     return result;
 }

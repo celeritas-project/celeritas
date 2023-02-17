@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include "corecel/Types.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -21,9 +19,12 @@ namespace celeritas
  */
 struct ImportVolume
 {
-    unsigned int material_id;
+    int material_id{-1};
     std::string name;
     std::string solid_name;
+
+    //! Whether this represents a physical volume or is just a placeholder
+    explicit operator bool() const { return material_id >= 0; }
 };
 
 //---------------------------------------------------------------------------//
