@@ -50,10 +50,10 @@ TEST(PrintExpected, example)
     }
     out_result.push_back('\n');
     EXPECT_EQ(R"(
-static const int expected_values[] = {1, 2, 3};
-static const double expected_more[] = {0.5, 0.001, inf, nan};
-static const const char* expected_cstrings[] = {"one", "three", "five"};
-static const std::string expected_strings[] = {"a", "", "special\nchars\t"};
+static int const expected_values[] = {1, 2, 3};
+static double const expected_more[] = {0.5, 0.001, inf, nan};
+static char const* const expected_cstrings[] = {"one", "three", "five"};
+static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
