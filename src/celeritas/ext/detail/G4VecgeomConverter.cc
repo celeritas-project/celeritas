@@ -13,9 +13,6 @@
 //---------------------------------------------------------------------------//
 #include "G4VecgeomConverter.hh"
 
-#include <cassert>
-#include <iostream>
-#include <list>
 #include <G4AffineTransform.hh>
 #include <G4BooleanSolid.hh>
 #include <G4Box.hh>
@@ -25,7 +22,6 @@
 #include <G4Ellipsoid.hh>
 #include <G4EllipticalCone.hh>
 #include <G4EllipticalTube.hh>
-//#include <G4ExtrudedSolid.hh>
 #include <G4GenericPolycone.hh>
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
@@ -46,7 +42,6 @@
 #include <G4Tet.hh>
 #include <G4Torus.hh>
 #include <G4Transform3D.hh>
-#include <G4TransportationManager.hh>
 #include <G4Trap.hh>
 #include <G4Trd.hh>
 #include <G4Tubs.hh>
@@ -58,10 +53,7 @@
 #include <VecGeom/management/FlatVoxelManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/management/HybridManager2.h>
-#include <VecGeom/navigation/HybridLevelLocator.h>
 #include <VecGeom/navigation/HybridNavigator2.h>
-#include <VecGeom/navigation/HybridSafetyEstimator.h>
-#include <VecGeom/navigation/NavigationState.h>
 #include <VecGeom/navigation/NewSimpleNavigator.h>
 #include <VecGeom/navigation/SimpleABBoxLevelLocator.h>
 #include <VecGeom/navigation/SimpleABBoxNavigator.h>
@@ -70,7 +62,6 @@
 #include <VecGeom/navigation/VoxelSafetyEstimator.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
-#include <VecGeom/volumes/PlanarPolygon.h>
 #include <VecGeom/volumes/UnplacedAssembly.h>
 #include <VecGeom/volumes/UnplacedBooleanVolume.h>
 #include <VecGeom/volumes/UnplacedBox.h>
@@ -98,6 +89,7 @@
 #include <VecGeom/volumes/UnplacedTrd.h>
 #include <VecGeom/volumes/UnplacedTube.h>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
 using namespace vecgeom;
@@ -193,8 +185,8 @@ void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
     timer.Stop();
     if (fVerbose)
     {
-        std::cout << "*** Conversion of G4 -> VecGeom finished ("
-                  << timer.Elapsed() << " s) ***\n";
+        CELER_LOG(info) << "*** Conversion of G4 -> VecGeom finished ("
+            << timer.Elapsed() << " s) ***";
     }
     GeoManager::Instance().SetWorld(fWorld);
     timer.Start();
@@ -202,57 +194,10 @@ void G4VecGeomConverter::ConvertG4Geometry(G4VPhysicalVolume const* worldg4)
     timer.Stop();
     if (fVerbose)
     {
-        std::cout << "*** Closing VecGeom geometry finished ("
-                  << timer.Elapsed() << " s) ***\n";
+        CELER_LOG(info) << "*** Closing VecGeom geometry finished ("
+            << timer.Elapsed() << " s) ***";
     }
     fWorld = GeoManager::Instance().GetWorld();
-
-    //
-    // setup navigator; by
-    //
-    /*
-    timer.Start();
-    fFastG4VGLookup.InitSize(VPlacedVolume::GetIdCount());
-    auto iter = fPlacedVolumeMap.begin();
-    for (; iter != fPlacedVolumeMap.end(); ++iter) {
-      auto placedvols = iter->first;
-      auto g4pl       = iter->second;
-      fFastG4VGLookup.Insert(placedvols, g4pl);
-    }
-    timer.Stop();
-    std::cout << "*** Setup of syncing lookup structure finished (" <<
-  timer.Elapsed() << " s) ***\n";
-
-    // making the navigator
-    auto nav =
-  #ifdef REPLACE_FULL_NAVIGATOR
-        new TG4VecGeomIncNavigator(fFastG4VGLookup); // new G4Navigator();
-  #else
-        new G4Navigator();
-    nav->SetVoxelNavigation(new TG4VecGeomVoxelNavigation(fFastG4VGLookup));
-  #endif
-
-    // hooking the navigator
-    G4TransportationManager *trMgr =
-  G4TransportationManager::GetTransportationManager(); assert(trMgr);
-    trMgr->SetNavigatorForTracking(nav);
-    G4FieldManager *fieldMgr =
-  trMgr->GetPropagatorInField()->GetCurrentFieldManager(); delete
-  trMgr->GetPropagatorInField(); trMgr->SetPropagatorInField(new
-  G4PropagatorInField(nav, fieldMgr)); trMgr->ActivateNavigator(nav);
-    G4EventManager *evtMgr = G4EventManager::GetEventManager();
-    if (evtMgr) {
-      evtMgr->GetTrackingManager()->GetSteppingManager()->SetNavigator(nav);
-    }
-    std::cout << "TG4VecGeomNavigator created and registered to
-  G4TransportationManager\n";
-    // attaching special VecGeom navigators
-    timer.Start();
-    InitVecGeomNavigators();
-    timer.Stop();
-    std::cout << "*** Setup of VecGeom navigators finished (" <<
-  timer.Elapsed() << " s) ***\n";
-    */
 }
 
 void G4VecGeomConverter::ExtractReplicatedTransformations(
@@ -266,8 +211,8 @@ void G4VecGeomConverter::ExtractReplicatedTransformations(
     double offset;
     bool   consuming;
     replica.GetReplicationData(axis, nReplicas, width, offset, consuming);
-    std::cout << axis << " " << nReplicas << " " << width << " " << offset
-              << " " << consuming << "\n";
+    CELER_LOG(debug) << axis << " " << nReplicas << " " << width << " " << offset
+              << " " << consuming;
     assert(offset == 0.);
     // for the moment only replication along x,y,z get translation
     Vector3D<double> direction;
@@ -286,7 +231,7 @@ void G4VecGeomConverter::ExtractReplicatedTransformations(
             break;
         }
         default: {
-            std::cerr << "UNSUPPORTED REPLICATION\n";
+            CELER_LOG(warning) << "UNSUPPORTED REPLICATION\n";
         }
     }
     for (int r = 0; r < nReplicas; ++r)
@@ -305,27 +250,24 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
     // WARN POTENTIALLY UNSUPPORTED CASE
     if (dynamic_cast<G4PVParameterised const*>(node))
     {
-        std::cout << "WARNING: PARAMETRIZED VOLUME FOUND " << node->GetName()
-                  << "\n";
+        CELER_LOG(warning) << "PARAMETRIZED VOLUME FOUND " << node->GetName();
     }
     fReplicaTransformations.clear();
     if (auto replica = dynamic_cast<G4PVReplica const*>(node))
     {
-        std::cout << "INFO: REPLICA VOLUME FOUND " << replica->GetName()
-                  << "\n";
+        CELER_LOG(info) << "REPLICA VOLUME FOUND " << replica->GetName();
 #ifdef ACTIVATEREPLICATION
         ExtractReplicatedTransformations(*replica, fReplicaTransformations);
 #endif
     }
     if (dynamic_cast<G4PVDivision const*>(node))
     {
-        std::cout << "WARNING: DIVISION VOLUME FOUND " << node->GetName()
-                  << "\n";
+        CELER_LOG(warning) << "DIVISION VOLUME FOUND " << node->GetName();
     }
 
     if (fPlacedVolumeMap.Contains(node))
     {
-        assert(false); // for the moment unsupported
+        CELER_ASSERT(false); // for the moment unsupported
         return GetPlacedVolume(node);
     }
 
@@ -360,7 +302,6 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
                || remaining_daughters == (int)g4logical->GetNoDaughters());
     }
 
-    std::cout<<"Remaining daughters: "<< remaining_daughters << std::endl;
     for (int i = 0; i < remaining_daughters; ++i)
     {
         auto const daughter_node = g4logical->GetDaughter(i);
@@ -372,7 +313,6 @@ G4VecGeomConverter::Convert(G4VPhysicalVolume const* node)
     }
 
     fPlacedVolumeMap.Set(node, vgvector);
-    std::cout<<" Add node <"<< node->GetName() <<">, vgvec.size="<< vgvector->size() << std::endl;
     return vgvector;
 }
 
@@ -421,7 +361,6 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
     LogicalVolume* const logical_volume
         = new LogicalVolume(volume->GetName().c_str(), unplaced);
     fLogicalVolumeMap.Set(volume, logical_volume);
-    std::cerr<<" converting logVol <"<< volume->GetName().c_str() <<">\n";
 
     // can be used to make a cross check for dimensions and other properties
     // make a cross check using cubic volume property
@@ -432,19 +371,9 @@ LogicalVolume* G4VecGeomConverter::Convert(G4LogicalVolume const* volume)
         auto const v1 = logical_volume->GetUnplacedVolume()->Capacity()
                         / ipow<3>(scale);
         auto const v2 = volume->GetSolid()->GetCubicVolume();
-        if (fabs((v1 / v2) - 1.0) > 0.05)
-        {
-            std::cerr << volume->GetName() << " capacities: VG=" << v1
-                      << "  G4=" << v2;
-            // std::cerr << "\n VG Volume: ";
-            // logical_volume->GetUnplacedVolume()->Print();
-            // std::cerr <<"G4 volume: ";
-            // volume->GetSolid()->StreamInfo(std::cerr);
-            std::cerr << std::endl;
-        }
-        //
-        //    assert(v1 > 0.);
-        //    assert(std::abs(v1 - v2) / v1 < 0.05);
+
+        CELER_ASSERT(v1 > 0.);
+        CELER_ASSERT(std::fabs((v1 / v2) - 1.0) < 0.01);
     }
     return logical_volume;
 }
@@ -479,7 +408,6 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     VUnplacedVolume* unplaced_volume = nullptr;
 
     if (fUnplacedVolumeMap.Contains(shape)) {
-        std::cerr<<" Shape <"<< shape->GetName() <<"> already converted: "<< fUnplacedVolumeMap[shape] << std::endl;
         return const_cast<VUnplacedVolume*>(fUnplacedVolumeMap[shape]);
     }
 
@@ -878,18 +806,19 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
     else if (auto p = dynamic_cast<G4ReflectedSolid const*>(shape))
     {
         G4VSolid* underlyingSolid = p->GetConstituentMovedSolid();
-        std::cerr << " Reflected solid found: "
-                  << " volume: " << shape->GetName()
-                  << " type = " << shape->GetEntityType()
-                  << "   -- underlying solid: " << underlyingSolid->GetName()
-                  << " type = " << underlyingSolid->GetEntityType() << "\n";
+        CELER_LOG(info) << " Reflected solid found: "
+            << " volume: " << shape->GetName()
+            << " type = " << shape->GetEntityType()
+            << "   -- underlying solid: " << underlyingSolid->GetName()
+            << " type = " << underlyingSolid->GetEntityType() << "\n";
 // #define USE_VG_SCALE_FOR_REFLECTION 1
 #ifdef USE_VG_SCALE_FOR_REFLECTION
         auto t = p->GetDirectTransform3D();
         if (t.getTranslation().mag2() == 0.
             && (t.xx() == -1. || t.yy() == -1. || t.zz() == -1.))
         {
-            std::cerr << "SIMPLE REFLECTION --> CONVERT TO SCALED SHAPE  \n";
+            CELER_LOG(info)
+                << "SIMPLE REFLECTION -> CONVERT TO SCALED SHAPE\n";
             VUnplacedVolume* referenced_shape
                 = Convert(p->GetConstituentMovedSolid());
 
@@ -900,13 +829,13 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         }
         else
         {
-            std::cerr << "NONSIMPLE REFLECTION in solid" << shape->GetName()
-                      << "\n";
+            CLER_LOG(info)
+                << "NONSIMPLE REFLECTION in solid" << shape->GetName() << "\n";
             unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
         }
 #else
-        std::cerr << "Reflection G4 solid " << shape->GetName()
-                  << " -- wrapping G4 implementation.\n";
+        CELER_LOG(info) << "Reflection G4 solid " << shape->GetName()
+            << " -- wrapping G4 implementation.\n";
         unplaced_volume = new celeritas::GenericSolid<G4ReflectedSolid>(p);
 #endif
     }
@@ -920,7 +849,7 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         double capacityVg = unplaced_volume->Capacity() / ipow<3>(scale));
         if (capacityVg < 0)
         {
-            std::cerr << "Warning> Capacity given by VecGeom is negative = "
+            CELER_LOG(warning) << "Capacity given by VecGeom is negative = "
                       << capacityVg << " for shape" << shape << " of type "
                       << shape->GetEntityType() << "\n";
             capacityVg *= -1.0;
@@ -931,32 +860,32 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
         {
             if (std::fabs(relativeDiff) > 0.03)
             {
-                std::cerr << " ERROR> Capacities of Geant4 solid and VecGeom "
-                             "solid DIFFER ";
+                CELER_LOG(error)
+                    << "Capacities of Geant4 solid and VecGeom solid DIFFER.";
             }
             else
             {
-                std::cerr << " WARNING> Difference in capacities seen ";
+                CELER_LOG(warning) << "Minor difference in capacities detected.";
             }
-            int oldPrec = std::cerr.precision(12);
-            std::cerr << " for volume " << shape->GetName() << " of type "
-                      << shape->GetEntityType() << " : "
-                      << " G4 gives " << capacityG4 << " VG gives "
-                      << capacityVg << " a relative difference of "
-                      << relativeDiff << "\n";
-            std::cerr.precision(oldPrec);
+            // TODO: adapt CELER_LOG's precision as in std::cout
+            //int oldPrec = std::cout.precision(12);
+            CELER_LOG(info) << "for volume " << shape->GetName() << " of type "
+                << shape->GetEntityType() << ": G4 gives " << capacityG4
+                << " VG gives "<< capacityVg
+                << ", a relative difference of "<< relativeDiff;
+            //std::cout.precision(oldPrec);
         }
         else
         {
             if (std::fabs(relativeDiff) > 1.0e-6)
             {
-                int oldPrec2 = std::cout.precision(12);
-                std::cout << "  Info: Check for volume " << shape->GetName()
-                          << " of type " << shape->GetEntityType() << " : "
-                          << " G4 gives " << capacityG4 << " VG gives "
-                          << capacityVg << " a relative difference of "
-                          << relativeDiff << "\n";
-                std::cout.precision(oldPrec2);
+                //int oldPrec2 = std::cout.precision(12);
+                CELER_LOG(info) << "Check for volume " << shape->GetName()
+                    << " of type " << shape->GetEntityType()
+                    << ": G4 gives " << capacityG4
+                    << " VG gives " << capacityVg
+                    << ", a relative difference of "<< relativeDiff;
+                //std::cout.precision(oldPrec2);
             }
         }
     }
@@ -972,13 +901,11 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
                    shape->GetEntityType().c_str());
         }
         unplaced_volume = new celeritas::GenericSolid<G4VSolid>(shape);
-        std::cout
-            << " capacity = " << unplaced_volume->Capacity() / ipow<3>(scale)
-            << "\n";
+        CELER_LOG(debug)
+            << " capacity = " << unplaced_volume->Capacity() / ipow<3>(scale);
     }
 
     fUnplacedVolumeMap.Set(shape, unplaced_volume);
-    std::cerr<<" Added shape <"<< shape->GetName() <<"> type <"<< shape->GetEntityType() <<"> to fUnplVolMap\n";
     return unplaced_volume;
 }
 
