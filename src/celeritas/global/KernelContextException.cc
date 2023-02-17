@@ -64,7 +64,7 @@ KernelContextException::KernelContextException(CoreHostRef const& data,
         if (!thread)
         {
             // Make sure the thread is valid before trying to construct
-            // detailed debug informatino
+            // detailed debug information
             throw std::exception();
         }
         CoreTrackView core(data.params, data.states, thread);
@@ -128,25 +128,26 @@ void KernelContextException::output(JsonPimpl* json) const
  */
 void KernelContextException::initialize(CoreTrackView const& core)
 {
+    auto const&& sim = core.make_sim_view();
+    if (sim.status() == TrackStatus::alive)
     {
-        auto const&& sim = core.make_sim_view();
         event_ = sim.event_id();
         track_ = sim.track_id();
         parent_ = sim.parent_id();
         num_steps_ = sim.num_steps();
-    }
-    {
-        auto const&& par = core.make_particle_view();
-        particle_ = par.particle_id();
-        energy_ = par.energy();
-    }
-    {
-        auto const&& geo = core.make_geo_view();
-        pos_ = geo.pos();
-        dir_ = geo.dir();
-        volume_ = geo.volume_id();
-        surface_ = geo.surface_id();
-        next_surface_ = geo.next_surface_id();
+        {
+            auto const&& par = core.make_particle_view();
+            particle_ = par.particle_id();
+            energy_ = par.energy();
+        }
+        {
+            auto const&& geo = core.make_geo_view();
+            pos_ = geo.pos();
+            dir_ = geo.dir();
+            volume_ = geo.volume_id();
+            surface_ = geo.surface_id();
+            next_surface_ = geo.next_surface_id();
+        }
     }
     {
         // Construct std::exception message
