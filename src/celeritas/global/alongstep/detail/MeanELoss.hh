@@ -76,8 +76,7 @@ CELER_FUNCTION auto MeanELoss::calc_eloss(CoreTrackView const& track,
     Energy eloss = calc_mean_energy_loss(particle, phys, step);
 
     if (apply_cut
-        && value_as<Energy>(particle.energy()) - value_as<Energy>(eloss)
-               <= value_as<Energy>(phys.scalars().eloss_calc_limit))
+        && (particle.energy() - eloss <= phys.scalars().eloss_calc_limit))
     {
         // Deposit all energy when we end below the tracking cut
         return particle.energy();

@@ -237,8 +237,7 @@ struct PhysicsParamsScalars
     {
         return max_particle_processes > 0 && model_to_action >= 4
                && num_models > 0 && min_range > 0 && max_step_over_range > 0
-               && min_eprime_over_e > 0
-               && value_as<Energy>(eloss_calc_limit) > 0
+               && min_eprime_over_e > 0 && eloss_calc_limit > zero_quantity()
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action));
