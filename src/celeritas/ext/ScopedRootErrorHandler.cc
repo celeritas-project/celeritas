@@ -8,6 +8,7 @@
 #include "ScopedRootErrorHandler.hh"
 
 #include <TError.h>
+#include <TSystem.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
@@ -69,6 +70,11 @@ void RootErrorHandler(Int_t rootlevel,
 ScopedRootErrorHandler::ScopedRootErrorHandler()
     : previous_(SetErrorHandler(RootErrorHandler))
 {
+    // Disable ROOT interception of system signals the first time we run
+    [[maybe_unused]] static bool const disabled_root_backtrace = [] {
+        gSystem->ResetSignals();
+        return true;
+    }();
 }
 
 //---------------------------------------------------------------------------//
