@@ -124,7 +124,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
           \hline
           \textbf{Particle}         & \textbf{Processes}              & \textbf{Models}      & \textbf{Celeritas Implementation}                     & \textbf{Applicability} \\
           \hline
-          \multirow{4}{*}{$e^-$}    & Ionisation                      & Moller               & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0 - 100 TeV \\
+          \multirow{4}{*}{$e^-$}    & Ionisation                      & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung} & Seltzer-Berger       & \texttt{\scriptsize celeritas::SeltzerBergerModel}    & 0 - 1 GeV \\
                                                                       \cline{3-5}
