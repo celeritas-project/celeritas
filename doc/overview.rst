@@ -81,35 +81,35 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
 
    .. table:: Electromagnetic physics processes and models available in Celeritas.
 
-      +----------------+---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      | **Particle**   | **Processes**       | **Models**                | **Celeritas Implementation**                  | **Applicability**        |
-      +----------------+---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |:math:`e^-`     | Ionisation          | Møller                    | :cpp:class:`celeritas::MollerBhabhaModel`     |       0--100 TeV         |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Bremsstrahlung      | Seltzer--Berger           | :cpp:class:`celeritas::SeltzerBergerModel`    |       0--1 GeV           |
-      |                |                     +---------------------------+-----------------------------------------------+--------------------------+
-      |                |                     | Relativistic              | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV -- 100 TeV       |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Coulomb scattering  | Urban                     | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV -- 100 MeV       |
-      +----------------+---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |:math:`e^+`     | Ionisation          | Bhabha                    | :cpp:class:`celeritas::MollerBhabhaModel`     |       0--100 TeV         |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Bremsstrahlung      | Seltzer-Berger            | :cpp:class:`celeritas::SeltzerBergerModel`    |       0--1 GeV           |
-      |                |                     +---------------------------+-----------------------------------------------+--------------------------+
-      |                |                     | Relativistic              | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV -- 100 TeV       |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Coulomb scattering  | Urban                     | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV -- 100 MeV       |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Annihilation        |:math:`e^+-e^- \to 2\gamma`| :cpp:class:`celeritas::EPlusGGModel`          |       0--100 TeV         |
-      +----------------+---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |:math:`\gamma`  | Photoelectric       | Livermore                 | :cpp:class:`celeritas::LivermorePEModel`      |       0--100 TeV         |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Compton scattering  | Klein--Nishina            | :cpp:class:`celeritas::KleinNishinaModel`     |       0--100 TeV         |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Pair production     | Bethe--Heitler            | :cpp:class:`celeritas::BetheHeitlerModel`     |       0--100 TeV         |
-      |                +---------------------+---------------------------+-----------------------------------------------+--------------------------+
-      |                | Rayleigh scattering | Livermore                 | :cpp:class:`celeritas::RayleighModel`         |       0--100 TeV         |
-      +----------------+---------------------+---------------------------+-----------------------------------------------+--------------------------+
+      +----------------+---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      | **Particle**   | **Processes**       | **Models**                | **Celeritas Implementation**                       | **Applicability**        |
+      +----------------+---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |:math:`e^-`     | Ionisation          | Møller                    | :cpp:class:`celeritas::MollerBhabhaInteractor`     |       0--100 TeV         |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      | Seltzer--Berger           | :cpp:class:`celeritas::SeltzerBergerInteractor`    |       0--1 GeV           |
+      |                |                     +---------------------------+----------------------------------------------------+--------------------------+
+      |                |                     | Relativistic              | :cpp:class:`celeritas::RelativisticBremInteractor` |   1 GeV -- 100 TeV       |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Coulomb scattering  | Urban                     | :cpp:class:`celeritas::UrbanMscScatter` [1]_       |   10 eV -- 100 MeV       |
+      +----------------+---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |:math:`e^+`     | Ionisation          | Bhabha                    | :cpp:class:`celeritas::MollerBhabhaInteractor`     |       0--100 TeV         |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      | Seltzer-Berger            | :cpp:class:`celeritas::SeltzerBergerInteractor`    |       0--1 GeV           |
+      |                |                     +---------------------------+----------------------------------------------------+--------------------------+
+      |                |                     | Relativistic              | :cpp:class:`celeritas::RelativisticBremInteractor` |   1 GeV -- 100 TeV       |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Coulomb scattering  | Urban                     | :cpp:class:`celeritas::UrbanMscScatter` [1]_       |   10 eV -- 100 MeV       |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Annihilation        |:math:`e^+-e^- \to 2\gamma`| :cpp:class:`celeritas::EPlusGGInteractor`          |       0--100 TeV         |
+      +----------------+---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |:math:`\gamma`  | Photoelectric       | Livermore                 | :cpp:class:`celeritas::LivermorePEInteractor`      |       0--100 TeV         |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Compton scattering  | Klein--Nishina            | :cpp:class:`celeritas::KleinNishinaInteractor`     |       0--100 TeV         |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Pair production     | Bethe--Heitler            | :cpp:class:`celeritas::BetheHeitlerInteractor`     |       0--100 TeV         |
+      |                +---------------------+---------------------------+----------------------------------------------------+--------------------------+
+      |                | Rayleigh scattering | Livermore                 | :cpp:class:`celeritas::RayleighInteractor`         |       0--100 TeV         |
+      +----------------+---------------------+---------------------------+----------------------------------------------------+--------------------------+
 
   .. [1] Multiple Scattering using the Urban Model is only applied up to 100MeV in Celeritas, with no model used above this energy.  
 
@@ -122,33 +122,33 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
         \begin{threeparttable}
         \begin{tabular} {|l | l | l | l | r |}
           \hline
-          \textbf{Particle}         & \textbf{Processes}              & \textbf{Models}      & \textbf{Celeritas Implementation}                     & \textbf{Applicability} \\
+          \textbf{Particle}         & \textbf{Processes}              & \textbf{Models}      & \textbf{Celeritas Implementation}                          & \textbf{Applicability} \\
           \hline
-          \multirow{4}{*}{$e^-$}    & Ionisation                      & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0--100 TeV \\
+          \multirow{4}{*}{$e^-$}    & Ionisation                      & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}     & 0--100 TeV \\
                                     \cline{2-5}
-                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerModel}    & 0--1 GeV \\
+                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}    & 0--1 GeV \\
                                                                       \cline{3-5}
-                                    &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremModel} & 1 GeV -- 100 TeV \\
+                                    &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor} & 1 GeV -- 100 TeV \\
                                     \cline{2-5}
-                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMsc} \tnote{1}    & 10 eV -- 100 MeV \\
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter} \tnote{1}  & 10 eV -- 100 MeV \\
           \hline
-          \multirow{5}{*}{$e^+$}    & Ionisation                      & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0--100 TeV \\
+          \multirow{5}{*}{$e^+$}    & Ionisation                      & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}     & 0--100 TeV \\
                                     \cline{2-5}
-                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerModel}    & 0--1 GeV \\
+                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}    & 0--1 GeV \\
                                                                       \cline{3-5}
-                                    &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremModel} & 1 GeV -- 100 TeV \\
+                                    &                                 & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor} & 1 GeV -- 100 TeV \\
                                     \cline{2-5}
-                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMsc} \tnote{1}    & 10 eV -- 100 MeV \\
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter} \tnote{1}  & 10 eV -- 100 MeV \\
                                     \cline{2-5}
-                                    & Annihilation                    & $e^+-e^-\to 2\gamma$ & \texttt{\scriptsize celeritas::EPlusGGModel}          & 0--100 TeV \\
+                                    & Annihilation                    & $e^+-e^-\to 2\gamma$ & \texttt{\scriptsize celeritas::EPlusGGInteractor}          & 0--100 TeV \\
           \hline
-          \multirow{4}{*}{$\gamma$} & Photoelectric                   & Livermore            & \texttt{\scriptsize celeritas::LivermorePEModel}      & 0--100 TeV \\
+          \multirow{4}{*}{$\gamma$} & Photoelectric                   & Livermore            & \texttt{\scriptsize celeritas::LivermorePEInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
-                                    & Compton scattering              & Klein--Nishina       & \texttt{\scriptsize celeritas::KleinNishinaModel}     & 0--100 TeV \\
+                                    & Compton scattering              & Klein--Nishina       & \texttt{\scriptsize celeritas::KleinNishinaInteractor}     & 0--100 TeV \\
                                     \cline{2-5}
-                                    & Pair production                 & Bethe--Heitler       & \texttt{\scriptsize celeritas::BetheHeitlerModel}     & 0--100 TeV \\
+                                    & Pair production                 & Bethe--Heitler       & \texttt{\scriptsize celeritas::BetheHeitlerInteractor}     & 0--100 TeV \\
                                     \cline{2-5}
-                                    & Rayleigh scattering             & Livermore            & \texttt{\scriptsize celeritas::RayleighModel}         & 0--100 TeV \\
+                                    & Rayleigh scattering             & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}         & 0--100 TeV \\
           \hline
         \end{tabular}
         \begin{tablenotes}
