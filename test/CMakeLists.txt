@@ -337,11 +337,13 @@ celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 if(CELERITAS_USE_Geant4)
   set(_filter
     FILTER
-      "-Em3*"
+      "-Em3*:SimpleCms*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
       "Em3AlongStepTest.msc_nofluct_finegrid"
       "Em3AlongStepTest.fluct_nomsc"
+      "SimpleCmsAlongStepTest.msc_field"
+      "SimpleCmsAlongStepTest.msc_field_finegrid"
   )
 else()
   set(_filter)

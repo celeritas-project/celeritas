@@ -97,6 +97,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         auto sim = track.make_sim_view();
         auto particle = track.make_particle_view();
         auto geo = track.make_geo_view();
+        auto phys = track.make_physics_view();
 
         result.eloss += value_as<MevEnergy>(inp.energy)
                         - value_as<MevEnergy>(particle.energy());
@@ -104,6 +105,8 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         result.angle += dot_product(geo.dir(), inp.direction);
         result.time += sim.time();
         result.step += sim.step_limit().step;
+        result.mfp += inp.phys_mfp - phys.interaction_mfp();
+        result.alive += sim.status() == TrackStatus::alive ? 1 : 0;
         actions[sim.step_limit().action] += 1;
     }
 
@@ -113,6 +116,8 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
     result.angle *= norm;
     result.time *= norm;
     result.step *= norm;
+    result.mfp *= norm;
+    result.alive *= norm;
 
     if (actions.size() == 1)
     {
@@ -154,7 +159,13 @@ void AlongStepTestBase::RunResult::print_expected() const
          << repr(this->time)
          << ", result.time);\n"
             "EXPECT_SOFT_EQ("
-         << repr(this->step) << ", result.step);\n";
+         << repr(this->step)
+         << ", result.step);\n"
+            "EXPECT_SOFT_EQ("
+         << repr(this->alive)
+         << ", result.alive);\n"
+            "EXPECT_SOFT_EQ("
+         << repr(this->mfp) << ", result.mfp);\n";
     if (!this->action.empty() && this->action.front() == '{')
         cout << "// ";
     cout << "EXPECT_EQ(" << repr(this->action)
