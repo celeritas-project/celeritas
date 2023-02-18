@@ -79,6 +79,12 @@ if celer_config['options']['breathe']:
         breathe_default_project: build_dir / 'xml'
     }
     breathe_default_members = ('members',)
+    breathe_domain_by_extension = {
+        "h": "cpp",
+        "hh": "cpp",
+        "cc": "cpp",
+        "cu": "cpp",
+    }
 
 if celer_config['options']['sphinxbib']:
     import pybtex
@@ -148,6 +154,8 @@ latex_elements = {
 \usepackage{sphinxcustom}
 \usepackage{microtype}
 \usepackage{pdfpages}
+\usepackage{multirow}
+\usepackage{threeparttable}
 \input{./macros.tex}
 """,
 

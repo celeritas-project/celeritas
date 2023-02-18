@@ -91,3 +91,38 @@ Random number distributions
    :members: none
 .. doxygenclass:: celeritas::UniformRealDistribution
    :members: none
+
+.. _celeritas_physics:
+
+Physics implementations
+-----------------------
+
+Each "interactor" applies the discrete interaction of a model when sampled. It
+is equivalent to the "post-step doit" of Geant4, including sampling of
+secondaries.
+
+.. doxygenclass:: celeritas::BetheHeitlerInteractor
+   :members: none
+.. doxygenclass:: celeritas::EPlusGGInteractor
+   :members: none
+.. doxygenclass:: celeritas::KleinNishinaInteractor
+   :members: none
+.. doxygenclass:: celeritas::MollerBhabhaInteractor
+   :members: none
+.. doxygenclass:: celeritas::LivermorePEInteractor
+   :members: none
+.. doxygenclass:: celeritas::RayleighInteractor
+   :members: none
+.. doxygenclass:: celeritas::RelativisticBremInteractor
+   :members: none
+.. doxygenclass:: celeritas::SeltzerBergerInteractor
+   :members: none
+
+.. doxygenclass:: celeritas::AtomicRelaxation
+   :members: none
+.. doxygenclass:: celeritas::EnergyLossHelper
+   :members: none
+.. doxygenclass:: celeritas::UrbanMscStepLimit
+   :members: none
+.. doxygenclass:: celeritas::UrbanMscScatter
+   :members: none
