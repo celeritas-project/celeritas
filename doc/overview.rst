@@ -73,39 +73,86 @@ produced.
 Physics
 =======
 
-.. table:: Electromagnetic physics processes and models available in Celeritas and their equivalents in Geant4.
+.. only:: html
 
-   +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   | **Particle**   | **Processes**       | **Models**                | **Geant4 (EM-Opt0 Physics List)**  | **Celeritas**                                 | **Applicability**        |
-   +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |:math:`e^-`     | Ionisation          | Moller                    | ``G4MollerBhabhaModel``            | :cpp:class:`celeritas::MollerBhabhaModel`     |       0 - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Bremsstrahlung      | Seltzer-Berger            | ``G4SeltzerBergerModel``           | :cpp:class:`celeritas::SeltzerBergerModel`    |       0 -   1 GeV        |
-   |                |                     +---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                |                     | Relativistic              | ``G4eBremsstrahlungRelModel``      | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Coulomb scattering  | Urban                     | ``G4UrbanMscModel``                | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV - 100 MeV        |
-   +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |:math:`e^+`     | Ionisation          | Bhabha                    | ``G4MollerBhabhaModel``            | :cpp:class:`celeritas::MollerBhabhaModel`     |       0 - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Bremsstrahlung      | Seltzer-Berger            | ``G4SeltzerBergerModel``           | :cpp:class:`celeritas::SeltzerBergerModel`    |       0 -   1 GeV        |
-   |                |                     +---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                |                     | Relativistic              | ``G4eBremsstrahlungRelModel``      | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Coulomb scattering  | Urban                     | ``G4UrbanMscModel``                | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV - 100 MeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Annihilation        |:math:`e^+-e^- \to 2\gamma`| ``G4eplusAnnihilation``            | :cpp:class:`celeritas::EPlusGGModel`          |       0 - 100 TeV        |
-   +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |:math:`\gamma`  | Photoelectric       | Livermore                 | ``G4LivermorePhotoElectricModel``  | :cpp:class:`celeritas::LivermorePEModel`      |       0 - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Compton scattering  | Klein - Nishina           | ``G4KleinNishinaCompton``          | :cpp:class:`celeritas::KleinNishinaModel`     |       0 - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Pair production     | Bethe - Heitler           | ``G4PairProductionRelModel``       | :cpp:class:`celeritas::BetheHeitlerModel`     |       0 - 100 TeV        |
-   |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
-   |                | Rayleigh scattering | Livermore                 | ``G4LivermoreRayleighModel``       | :cpp:class:`celeritas::RayleighModel`         |       0 - 100 TeV        |
-   +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+   .. table:: Electromagnetic physics processes and models available in Celeritas and their equivalents in Geant4.
 
-.. [1] Multiple Scattering using the Urban Model is only applied up to 100MeV in Celeritas, with no model used above this energy.  
+      +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      | **Particle**   | **Processes**       | **Models**                | **Geant4 (EM-Opt0 Physics List)**  | **Celeritas**                                 | **Applicability**        |
+      +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |:math:`e^-`     | Ionisation          | Moller                    | ``G4MollerBhabhaModel``            | :cpp:class:`celeritas::MollerBhabhaModel`     |       0 - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      | Seltzer-Berger            | ``G4SeltzerBergerModel``           | :cpp:class:`celeritas::SeltzerBergerModel`    |       0 -   1 GeV        |
+      |                |                     +---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                |                     | Relativistic              | ``G4eBremsstrahlungRelModel``      | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Coulomb scattering  | Urban                     | ``G4UrbanMscModel``                | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV - 100 MeV        |
+      +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |:math:`e^+`     | Ionisation          | Bhabha                    | ``G4MollerBhabhaModel``            | :cpp:class:`celeritas::MollerBhabhaModel`     |       0 - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      | Seltzer-Berger            | ``G4SeltzerBergerModel``           | :cpp:class:`celeritas::SeltzerBergerModel`    |       0 -   1 GeV        |
+      |                |                     +---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                |                     | Relativistic              | ``G4eBremsstrahlungRelModel``      | :cpp:class:`celeritas::RelativisticBremModel` |   1 GeV - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Coulomb scattering  | Urban                     | ``G4UrbanMscModel``                | :cpp:class:`celeritas::UrbanMsc` [1]_         |   10 eV - 100 MeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Annihilation        |:math:`e^+-e^- \to 2\gamma`| ``G4eplusAnnihilation``            | :cpp:class:`celeritas::EPlusGGModel`          |       0 - 100 TeV        |
+      +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |:math:`\gamma`  | Photoelectric       | Livermore                 | ``G4LivermorePhotoElectricModel``  | :cpp:class:`celeritas::LivermorePEModel`      |       0 - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Compton scattering  | Klein - Nishina           | ``G4KleinNishinaCompton``          | :cpp:class:`celeritas::KleinNishinaModel`     |       0 - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Pair production     | Bethe - Heitler           | ``G4PairProductionRelModel``       | :cpp:class:`celeritas::BetheHeitlerModel`     |       0 - 100 TeV        |
+      |                +---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+      |                | Rayleigh scattering | Livermore                 | ``G4LivermoreRayleighModel``       | :cpp:class:`celeritas::RayleighModel`         |       0 - 100 TeV        |
+      +----------------+---------------------+---------------------------+------------------------------------+-----------------------------------------------+--------------------------+
+
+  .. [1] Multiple Scattering using the Urban Model is only applied up to 100MeV in Celeritas, with no model used above this energy.  
+
+.. only:: latex
+
+   .. raw:: latex
+      
+      \begin{table}[h]
+        \caption{Electromagnetic physics processes and models available in Celeritas and their equivalents in Geant4.}
+        \begin{threeparttable}
+        \begin{tabular} {|l | l | l | l | l | r |}
+          \hline
+          \textbf{Particle}         & \textbf{Processes}              & \textbf{Models}      &  \textbf{Geant4 (EM-Opt0 Physics List)}            & \textbf{Celeritas}                                    & \textbf{Applicability} \\
+          \hline
+          \multirow{4}{*}{$e^-$}    & Ionisation                      & Moller               & \texttt{\scriptsize G4MollerBhabhaModel}           & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0 - 100 TeV \\
+                                    \cline{2-6}
+                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer-Berger       & \texttt{\scriptsize G4SeltzerBergerModel}          & \texttt{\scriptsize celeritas::SeltzerBergerModel}    & 0 - 1 GeV \\
+                                                                      \cline{3-6}
+                                    &                                 & Relativistic         & \texttt{\scriptsize G4eBremsstrahlungRelModel}     & \texttt{\scriptsize celeritas::RelativisticBremModel} & 1 GeV - 100 TeV \\
+                                    \cline{2-6}
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize G4UrbanMscModel}               & \texttt{\scriptsize celeritas::UrbanMsc} \tnote{1}    & 10 eV - 100 MeV \\
+          \hline
+          \multirow{5}{*}{$e^+$}    & Ionisation                      & Bhabha               & \texttt{\scriptsize G4MollerBhabhaModel}           & \texttt{\scriptsize celeritas::MollerBhabhaModel}     & 0 - 100 TeV \\
+                                    \cline{2-6}
+                                    & \multirow{2}{*}{Bremsstrahlung} & Seltzer-Berger       & \texttt{\scriptsize G4SeltzerBergerModel}          & \texttt{\scriptsize celeritas::SeltzerBergerModel}    & 0 - 1 GeV \\
+                                                                      \cline{3-6}
+                                    &                                 & Relativistic         & \texttt{\scriptsize G4eBremsstrahlungRelModel}     & \texttt{\scriptsize celeritas::RelativisticBremModel} & 1 GeV - 100 TeV \\
+                                    \cline{2-6}
+                                    & Coulomb scattering              & Urban                & \texttt{\scriptsize G4UrbanMscModel}               & \texttt{\scriptsize celeritas::UrbanMsc} \tnote{1}    & 10 eV - 100 MeV \\
+                                    \cline{2-6}
+                                    & Annihilation                    & $e^+-e^-\to 2\gamma$ & \texttt{\scriptsize G4eplusAnnihilation}           & \texttt{\scriptsize celeritas::EPlusGGModel}          & 0 - 100 TeV \\
+          \hline
+          \multirow{4}{*}{$\gamma$} & Photoelectric                   & Livermore            & \texttt{\scriptsize G4LivermorePhotoElectricModel} & \texttt{\scriptsize celeritas::LivermorePEModel}      & 0 - 100 TeV \\
+                                    \cline{2-6}
+                                    & Compton scat.                   & Klein - Nishina      & \texttt{\scriptsize G4KleinNishinaCompton}         & \texttt{\scriptsize celeritas::KleinNishinaModel}     & 0 - 100 TeV \\
+                                    \cline{2-6}
+                                    & Pair production                 & Bethe - Heitler      & \texttt{\scriptsize G4PairProductionRelModel}      & \texttt{\scriptsize celeritas::BetheHeitlerModel}     & 0 - 100 TeV \\
+                                    \cline{2-6}
+                                    & Rayleigh scat.                  & Livermore            & \texttt{\scriptsize G4LivermoreRayleighModel}      & \texttt{\scriptsize celeritas::RayleighModel}         & 0 - 100 TeV \\
+          \hline
+        \end{tabular}
+        \begin{tablenotes}
+          \item[1] Multiple Scattering using the Urban Model is only applied up to 100MeV in Celeritas, with no model used above this energy. 
+        \end{tablenotes}
+        \end{threeparttable}
+      \end{table}
+
 
 Geometry
 ========

@@ -148,6 +148,8 @@ latex_elements = {
 \usepackage{sphinxcustom}
 \usepackage{microtype}
 \usepackage{pdfpages}
+\usepackage{multirow}
+\usepackage{threeparttable}
 \input{./macros.tex}
 """,
 
