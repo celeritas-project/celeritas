@@ -141,8 +141,14 @@ set(CELERITAS_USE_BREATHE ${CELERITAS_USE_Breathe})
 set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
+message("Celeritas_SHORT_VERSION: ${Celeritas_SHORT_VERSION}")
+message("Celeritas_VERSION_STRING: ${Celeritas_VERSION_STRING}")
 if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
-  math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+  set(_patch "${PROJECT_VERSION_PATCH}")
+  if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
+    # Before the next release
+    math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+  endif()
   set(Celeritas_SHORT_VERSION
     "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
   )
