@@ -32,9 +32,6 @@ set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/scripts/README.md"
-  "${PROJECT_BINARY_DIR}/include/celeritas_config.h"
-  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
-  "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
 )
 
 # Documentation usage
@@ -143,7 +140,14 @@ set(CELERITAS_USE_SPHINXBIBTEX ${CELERITAS_USE_SphinxBibtex})
 set(CELERITAS_USE_SPHINXRTDTHEME ${CELERITAS_USE_SphinxRtdTheme})
 set(Celeritas_SHORT_VERSION ${Celeritas_VERSION})
 if(NOT "v${Celeritas_SHORT_VERSION}" STREQUAL Celeritas_VERSION_STRING)
-  set(Celeritas_SHORT_VERSION "${Celeritas_VERSION}-dev")
+  set(_patch "${PROJECT_VERSION_PATCH}")
+  if(NOT Celeritas_VERSION_STRING MATCHES "-dev")
+    # Before the next release
+    math(EXPR _patch "${PROJECT_VERSION_PATCH} + 1")
+  endif()
+  set(Celeritas_SHORT_VERSION
+    "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${_patch}-dev"
+  )
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
@@ -153,7 +157,7 @@ set(DOXYGEN_XML_PROGRAMLISTING NO)
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
-  CELER_MAYBE_UNUSED CFIF_)
+  [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 # Only process top two levels (no detail, generated)
@@ -162,6 +166,17 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.cc"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.hh"
   "${PROJECT_SOURCE_DIR}/src/*/*/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/interactor/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/model/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/msc/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
