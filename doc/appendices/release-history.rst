@@ -110,6 +110,55 @@ Minor internal changes
 
 Reviewers: @amandalund *(8)*, @stognini *(2)*, @sethrj *(2)*, @elliottbiondo *(1)*, @paulromano *(1)*
 
+Version 0.1.5
+=============
+
+Version 0.1.5 corrects several major tracking and physics bugs
+in the 0.1.x series. Notably:
+
+- Positron annihilation is no longer ignored.
+- The 1 keV standard EM physics cutoff applies to electrons and positrons
+  *after* slowing down in addition to before, reducing the number of
+  low-energy particles being tracked.
+- Field propagation no longer advances particles to boundaries slightly
+  past their physics path length. This previously produced numerous
+  instances of a coincident boundary crossing plus physics interaction.
+- In high-Z materials, Geant4 produces MSC cross sections for positrons
+  that are not monotonically decreasing with increasing energy (there is
+  a discontinuity around 10 MeV). This behavior previously caused a
+  miscalculation of the step length when slowing down near 10 MeV.
+
+Bug fixes
+---------
+
+* Fix build documentation and issues with newer toolchains *(@sethrj, #571)*
+* Fix missing positron annihilation process and process diagnostic *(@amandalund, #625)*
+* Fix NaN/assertion when taking extremely small steps in a field *(@sethrj, #628)*
+* Fix ORANGE intersection along cylinder axis *(@sethrj, #627)*
+* Fix incorrect Urban MSC path length correction due to discontinuity in positron cross section *(@amandalund, #642)*
+* Check for unlikely "zero speed" condition *(@sethrj, #646)*
+* Avoid XS scaling factor > 1 in `SBPositronXSCorrector` *(@stognini, #649)*
+* Fix coincident boundary/step created by field propagator *(@sethrj, #654)*
+* VecGeom/Cuda: set the stack limit to 16K when CELERITAS_DEBUG=ON *(@pcanal, #638)*
+* Apply electron tracking cut *after* slowing down in addition to before *(@sethrj, #648)*
+
+Reviewers: @sethrj *(4)*, @whokion *(4)*, @amandalund *(2)*, @paulromano *(1)*, @elliottbiondo *(1)*
+
+Documentation improvements
+--------------------------
+
+* Characterize and remove field driver convergence assertions *(@sethrj, #650)*
+
+Reviewers: @whokion *(1)*
+
+Minor internal changes
+----------------------
+
+* CI: use Geant4 11, C++17, VecGeom 1.2, CUDA 11.8, GCC 11 *(@sethrj, #566)*
+* CI: add no-debug HIP (ROCM 5.4) build *(@sethrj, #569)*
+
+Reviewers: @pcanal *(1)*
+
 Version 0.1.4
 =============
 
