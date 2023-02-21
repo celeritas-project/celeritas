@@ -117,13 +117,14 @@ void print_materials(std::vector<ImportMaterial>& materials,
 
         cout << "| " << setw(11) << material_id << " | " << setw(31)
              << material.name << " | " << setw(31)
-             << to_string(
-                    join(material.elements.begin(),
-                         material.elements.end(),
-                         ", ",
-                         [&](auto const& mat_el_comp) {
-                             return elements.at(mat_el_comp.element_id).name;
-                         }))
+             << to_string(join(
+                    material.elements.begin(),
+                    material.elements.end(),
+                    ", ",
+                    [&](auto const& mat_el_comp) {
+                        CELER_ASSERT(mat_el_comp.element_id < elements.size());
+                        return elements[mat_el_comp.element_id].name;
+                    }))
              << " |\n";
     }
     cout << endl;
@@ -380,14 +381,19 @@ void print_volumes(std::vector<ImportVolume> const& volumes,
     for (unsigned int volume_id : range(volumes.size()))
     {
         auto const& volume = volumes[volume_id];
-        auto const& material = materials.at(volume.material_id);
+        if (!volume)
+        {
+            continue;
+        }
+        CELER_ASSERT(static_cast<std::size_t>(volume.material_id)
+                     < materials.size());
 
         // clang-format off
         cout << "| "
              << setw(9) << std::left << volume_id << " | "
              << setw(36) << volume.name << " | "
              << setw(11) << volume.material_id << " | "
-             << setw(27) << material.name << " |\n";
+             << setw(27) << materials[volume.material_id].name << " |\n";
         // clang-format on
     }
     cout << endl;
