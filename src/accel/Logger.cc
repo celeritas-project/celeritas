@@ -13,6 +13,7 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4ios.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
