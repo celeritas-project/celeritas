@@ -110,7 +110,11 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 Logger make_mt_logger(G4RunManager const& runman)
 {
     return Logger(MpiCommunicator{},
+#if G4VERSION_NUMBER < 1070
+                  MtLogger{2},
+#else
                   MtLogger{runman.GetNumberOfThreads()},
+#endif
                   "CELER_LOG_LOCAL");
 }
 
