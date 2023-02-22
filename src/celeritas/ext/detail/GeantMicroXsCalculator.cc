@@ -11,6 +11,7 @@
 #include <G4Material.hh>
 #include <G4VEmModel.hh>
 
+#include "celeritas/ext/GeantConfig.hh"
 #include "corecel/cont/Range.hh"
 
 namespace celeritas
@@ -44,8 +45,11 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
                                         VecVecDouble* result_xs) const
 {
     CELER_EXPECT(result_xs);
-
+#if CELERITAS_G4_V10
+    std::vector<G4Element*> const& elements
+#else
     std::vector<G4Element const*> const& elements
+#endif
         = *material_.GetElementVector();
 
     // Resize microscopic cross sections for all elements

@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <regex>
+#include <G4Version.hh>
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
@@ -170,7 +171,11 @@ void HitRootIO::Close()
  */
 void HitRootIO::Merge()
 {
+#if G4VERSION_NUMBER >= 1070
     auto nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
+#else
+    auto nthreads = 1;
+#endif
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);
