@@ -110,37 +110,37 @@ class Quantity
 
 //---------------------------------------------------------------------------//
 //! \cond
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                             \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs, \
-                                                 Quantity<U, T> rhs) \
-    {                                                                \
-        return lhs.value() TOKEN rhs.value();                        \
-    }                                                                \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                    \
-        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs)         \
-    {                                                                \
-        return lhs.value() TOKEN rhs.value_;                         \
-    }                                                                \
-    template<class U, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                    \
-        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs)         \
-    {                                                                \
-        return lhs.value_ TOKEN rhs.value();                         \
-    }                                                                \
-    namespace detail                                                 \
-    {                                                                \
-    template<class T>                                                \
-    CELER_CONSTEXPR_FUNCTION bool                                    \
-    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs) \
-    {                                                                \
-        return lhs.value_ TOKEN rhs.value_;                          \
-    }                                                                \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                              \
+    template<class U, class T, class T2>                              \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(Quantity<U, T> lhs,  \
+                                                 Quantity<U, T2> rhs) \
+    {                                                                 \
+        return lhs.value() TOKEN rhs.value();                         \
+    }                                                                 \
+    template<class U, class T>                                        \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                     \
+        Quantity<U, T> lhs, detail::UnitlessQuantity<T> rhs)          \
+    {                                                                 \
+        return lhs.value() TOKEN rhs.value_;                          \
+    }                                                                 \
+    template<class U, class T>                                        \
+    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(                     \
+        detail::UnitlessQuantity<T> lhs, Quantity<U, T> rhs)          \
+    {                                                                 \
+        return lhs.value_ TOKEN rhs.value();                          \
+    }                                                                 \
+    namespace detail                                                  \
+    {                                                                 \
+    template<class T>                                                 \
+    CELER_CONSTEXPR_FUNCTION bool                                     \
+    operator TOKEN(UnitlessQuantity<T> lhs, UnitlessQuantity<T> rhs)  \
+    {                                                                 \
+        return lhs.value_ TOKEN rhs.value_;                           \
+    }                                                                 \
     }
 
 //!@{
-//! Comparisons for Quantity
+//! Comparison for Quantity
 CELER_DEFINE_QUANTITY_CMP(==)
 CELER_DEFINE_QUANTITY_CMP(!=)
 CELER_DEFINE_QUANTITY_CMP(<)
@@ -150,6 +150,50 @@ CELER_DEFINE_QUANTITY_CMP(>=)
 //!@}
 
 #undef CELER_DEFINE_QUANTITY_CMP
+
+//!@{
+//! Math operator for Quantity
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto
+operator+(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() + rhs.value()};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto
+operator-(Quantity<U, T> lhs, Quantity<U, T2> rhs) -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() - rhs.value()};
+}
+
+template<class U, class T>
+CELER_CONSTEXPR_FUNCTION auto operator-(Quantity<U, T> q) -> Quantity<U, T>
+{
+    return Quantity<U, T>{-q.value()};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() * rhs};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T> lhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{rhs * lhs.value()};
+}
+
+template<class U, class T, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs)
+    -> decltype(auto)
+{
+    return Quantity<U, std::common_type_t<T, T2>>{lhs.value() / rhs};
+}
+//!@!}
 
 //! \endcond
 //---------------------------------------------------------------------------//
@@ -248,10 +292,7 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(Quantity<UnitT, ValueT> quant)
 template<class Q>
 CELER_CONSTEXPR_FUNCTION Q native_value_to(typename Q::value_type value)
 {
-    using value_type = typename Q::value_type;
-    using unit_type = typename Q::unit_type;
-
-    return Q{value * (value_type{1} / unit_type::value())};
+    return Q{value / Q::unit_type::value()};
 }
 
 //---------------------------------------------------------------------------//

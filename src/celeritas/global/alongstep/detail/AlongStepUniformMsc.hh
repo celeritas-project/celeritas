@@ -17,7 +17,7 @@
 #include "celeritas/field/UniformField.hh"
 
 #include "AlongStepNeutral.hh"
-#include "EnergyLossApplier.hh"
+#include "MeanELoss.hh"
 
 namespace celeritas
 {
@@ -40,7 +40,7 @@ along_step_uniform_msc(NativeCRef<UrbanMscData> const& msc,
             return make_mag_field_propagator<DormandPrinceStepper>(
                 UniformField(field.field), field.options, particle, geo);
         },
-        EnergyLossApplier{},
+        MeanELoss{},
         track);
 }
 

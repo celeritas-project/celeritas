@@ -240,7 +240,7 @@ struct ReprTraits<char*>
 {
     static void print_type(std::ostream& os, char const* name = nullptr)
     {
-        detail::print_simple_type(os, "const char*", name);
+        detail::print_simple_type(os, "char const*", name);
     }
 
     static void init(std::ostream&) {}

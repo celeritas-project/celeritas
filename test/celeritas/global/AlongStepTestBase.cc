@@ -61,12 +61,16 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         initialize_tracks(core_ref);
     }
 
-    // Set remaining MFP
+    // Set remaining MFP and cached MSC range properties
     for (auto tid : range(ThreadId{num_tracks}))
     {
         CoreTrackView track{core_ref.params, core_ref.states, tid};
         auto phys = track.make_physics_view();
         phys.interaction_mfp(inp.phys_mfp);
+        if (inp.msc_range)
+        {
+            phys.msc_range(inp.msc_range);
+        }
     }
 
     auto const& am = *this->action_reg();

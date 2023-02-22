@@ -67,6 +67,16 @@ TEST(QuantityTest, usage)
     auto half_rev = native_value_to<Revolution>(constants::pi);
     EXPECT_TRUE((std::is_same<decltype(half_rev), Revolution>::value));
     EXPECT_DOUBLE_EQ(0.5, value_as<Revolution>(half_rev));
+
+    // Check integer division works correctly
+    using Dozen = Quantity<DozenUnit, int>;
+    auto two_dozen = native_value_to<Dozen>(24);
+    EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Dozen>));
+    EXPECT_EQ(2, value_as<Dozen>(two_dozen));
+
+    auto twentyfour = native_value_from(two_dozen);
+    EXPECT_TRUE((std::is_same_v<decltype(twentyfour), int>));
+    EXPECT_EQ(24, twentyfour);
 }
 
 TEST(QuantityTest, zeros)
@@ -80,6 +90,19 @@ TEST(QuantityTest, zeros)
     // Construct from a "zero" sentinel type
     zero_turn = zero_quantity();
     EXPECT_EQ(0, value_as<Revolution>(zero_turn));
+}
+
+TEST(QuantityTest, mixed_precision)
+{
+    using RevInt = Quantity<TwoPi, int>;
+    auto fourpi = native_value_from(RevInt{2});
+    EXPECT_TRUE((std::is_same_v<decltype(fourpi), double>));
+    EXPECT_SOFT_EQ(4 * constants::pi, fourpi);
+
+    using DozenDbl = Quantity<DozenUnit, double>;
+    auto two_dozen = native_value_to<DozenDbl>(24);
+    EXPECT_TRUE((std::is_same_v<decltype(two_dozen), DozenDbl>));
+    EXPECT_SOFT_EQ(2, two_dozen.value());
 }
 
 TEST(QuantityTest, comparators)
@@ -104,14 +127,65 @@ TEST(QuantityTest, comparators)
     EXPECT_TRUE(Revolution{5} > Revolution{4});
     EXPECT_TRUE(Revolution{5} >= Revolution{4});
     EXPECT_FALSE(Revolution{5} == Revolution{4});
+
+    EXPECT_TRUE((Quantity<DozenUnit, int>{5} == Quantity<DozenUnit, long>{5}));
 }
 
-TEST(QuantityTest, infinities)
+TEST(QuantityTest, unitless)
 {
     EXPECT_TRUE(neg_max_quantity() < Revolution{-1e300});
     EXPECT_TRUE(neg_max_quantity() < zero_quantity());
     EXPECT_TRUE(zero_quantity() < max_quantity());
     EXPECT_TRUE(max_quantity() > Revolution{1e300});
+}
+
+TEST(QuantityTest, math)
+{
+    using RevInt = Quantity<TwoPi, int>;
+    using RevFlt = Quantity<TwoPi, float>;
+    using RevDbl = Quantity<TwoPi, double>;
+
+    {
+        auto added = RevDbl{1.5} + RevDbl{2.5};
+        EXPECT_TRUE((std::is_same<decltype(added), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(4, added.value());
+    }
+
+    {
+        auto subbed = RevFlt{1.5} - RevFlt{2.5};
+        EXPECT_TRUE((std::is_same<decltype(subbed), RevFlt>::value));
+        EXPECT_FLOAT_EQ(-1.0, subbed.value());
+    }
+
+    {
+        auto negated = -RevDbl{1.5};
+        EXPECT_TRUE((std::is_same<decltype(negated), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(-1.5, negated.value());
+    }
+
+    {
+        auto muld = RevDbl{3} * 4;
+        EXPECT_TRUE((std::is_same<decltype(muld), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(12, muld.value());
+    }
+
+    {
+        auto divd = RevDbl{12} / 4;
+        EXPECT_TRUE((std::is_same<decltype(divd), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(3, divd.value());
+    }
+
+    // Test mixed precision
+    {
+        EXPECT_DOUBLE_EQ(4 * constants::pi, native_value_from(RevInt{2}));
+        auto added = RevFlt{1.5} + RevInt{1};
+        EXPECT_TRUE((std::is_same<decltype(added), RevFlt>::value));
+    }
+    {
+        auto muld = RevInt{3} * 1.5;
+        EXPECT_TRUE((std::is_same<decltype(muld), RevDbl>::value));
+        EXPECT_DOUBLE_EQ(4.5, muld.value());
+    }
 }
 
 TEST(QuantityTest, swappiness)

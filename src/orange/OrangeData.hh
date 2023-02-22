@@ -26,8 +26,7 @@ namespace celeritas
  */
 struct OrangeParamsScalars
 {
-    static constexpr size_type max_level{1};
-
+    size_type max_level{};
     size_type max_faces{};
     size_type max_intersections{};
     size_type max_logic_depth{};
@@ -282,15 +281,25 @@ struct OrangeStateData
 
     //// DATA ////
 
-    // For each track, one per max_level
-    StateItems<Real3> pos;
-    StateItems<Real3> dir;
-    StateItems<VolumeId> vol;
+    // Dimensions {num_tracks}
+    StateItems<LevelId> level;
+    StateItems<LevelId> next_level;
 
-    // Surface crossing
-    StateItems<SurfaceId> surf;
-    StateItems<Sense> sense;
-    StateItems<BoundaryResult> boundary;
+    // Dimensions {num_tracks, max_level}
+    Items<Real3> pos;
+    Items<Real3> dir;
+    Items<VolumeId> vol;
+    Items<UniverseId> universe;
+
+    // Surface crossing, dimensions {num_tracks, max_level}
+    Items<SurfaceId> surf;
+    Items<Sense> sense;
+    Items<BoundaryResult> boundary;
+
+    // TODO: this is problem-dependent data and should eventually be removed
+    // max_level defines the stride into the preceding pseudo-2D Collections
+    // (pos, dir, ..., etc.)
+    size_type max_level{0};
 
     // Scratch space
     Items<Sense> temp_sense;  // [track][max_faces]
@@ -304,12 +313,16 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !pos.empty()
+        return !level.empty()
+            && next_level.size() == level.size()
+            && !pos.empty()
             && dir.size() == pos.size()
             && vol.size() == pos.size()
+            && universe.size() == pos.size()
             && surf.size() == pos.size()
             && sense.size() == pos.size()
             && boundary.size() == pos.size()
+            && max_level > 0
             && !temp_sense.empty()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
@@ -318,20 +331,23 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION ThreadId::size_type size() const { return pos.size(); }
+    CELER_FUNCTION ThreadId::size_type size() const { return level.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     OrangeStateData& operator=(OrangeStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
-
+        level = other.level;
+        next_level = other.next_level;
         pos = other.pos;
         dir = other.dir;
         vol = other.vol;
+        universe = other.universe;
         surf = other.surf;
         sense = other.sense;
         boundary = other.boundary;
+        max_level = other.max_level;
 
         temp_sense = other.temp_sense;
         temp_face = other.temp_face;
@@ -350,21 +366,29 @@ struct OrangeStateData
 template<MemSpace M>
 inline void resize(OrangeStateData<Ownership::value, M>* data,
                    HostCRef<OrangeParamsData> const& params,
-                   size_type size)
+                   size_type num_tracks)
 {
     CELER_EXPECT(data);
-    CELER_EXPECT(size > 0);
+    CELER_EXPECT(num_tracks > 0);
+
+    resize(&data->level, num_tracks);
+    resize(&data->next_level, num_tracks);
+
+    data->max_level = params.scalars.max_level;
+    auto const size = data->max_level * num_tracks;
+
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->vol, size);
+    resize(&data->universe, size);
     resize(&data->surf, size);
     resize(&data->sense, size);
     resize(&data->boundary, size);
 
-    size_type face_states = params.scalars.max_faces * size;
+    size_type face_states = params.scalars.max_faces * num_tracks;
     resize(&data->temp_sense, face_states);
 
-    size_type isect_states = params.scalars.max_intersections * size;
+    size_type isect_states = params.scalars.max_intersections * num_tracks;
     resize(&data->temp_face, isect_states);
     resize(&data->temp_distance, isect_states);
     resize(&data->temp_isect, isect_states);
