@@ -449,11 +449,11 @@ VUnplacedVolume* G4VecGeomConverter::Convert(G4VSolid const* shape)
             scale * p->GetYHalfLength1(),
             scale * p->GetXHalfLength1(),
             scale * p->GetXHalfLength2(),
-            p->GetTanAlpha1(),
+            p->GetAlpha1(),
             scale * p->GetYHalfLength2(),
             scale * p->GetXHalfLength3(),
             scale * p->GetXHalfLength4(),
-            p->GetTanAlpha2());
+            p->GetAlpha2());
     }
 
     // Tube section
