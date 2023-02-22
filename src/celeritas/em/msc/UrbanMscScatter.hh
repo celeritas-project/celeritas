@@ -671,6 +671,7 @@ real_type UrbanMscScatter::calc_true_path(real_type true_path,
             // z = lambda * (1 - exp(-tau))
             return -lambda_ * std::log(1 - geom_path / lambda_);
         }
+        CELER_ASSERT(alpha != 0);
 
         real_type w = 1 + 1 / (alpha * lambda_);
         real_type x = alpha * w * geom_path;  // = (1 - (1 - alpha * true)^w)
