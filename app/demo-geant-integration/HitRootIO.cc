@@ -9,10 +9,10 @@
 
 #include <cstdio>
 #include <regex>
-#include <G4Version.hh>
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
+#include <G4Version.hh>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TObject.h>
@@ -113,10 +113,11 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 {
     if (!event_branch_)
     {
-        event_branch_ =tree_->Branch("event.",
-                          &hit_event,
-                          GlobalSetup::Instance()->GetRootBufferSize(),
-                          this->SplitLevel());
+        event_branch_
+            = tree_->Branch("event.",
+                            &hit_event,
+                            GlobalSetup::Instance()->GetRootBufferSize(),
+                            this->SplitLevel());
     }
     else
     {
@@ -181,7 +182,7 @@ void HitRootIO::Merge()
     std::unique_ptr<TList> list(new TList);
 
     CELER_LOG_LOCAL(info) << "Merging hit root files from " << nthreads
-                    << " threads into \"" << file_name_ << "\"";
+                          << " threads into \"" << file_name_ << "\"";
 
     for (int i = 0; i < nthreads; ++i)
     {

@@ -9,8 +9,8 @@
 
 #include <G4GDMLParser.hh>
 #include <G4Threading.hh>
-#include <G4Version.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"

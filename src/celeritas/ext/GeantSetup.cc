@@ -12,7 +12,7 @@
 #include <G4Version.hh>
 
 #if G4VERSION_NUMBER > 1070
-#include <G4Backtrace.hh>
+#    include <G4Backtrace.hh>
 #endif
 
 #include <G4ParticleTable.hh>

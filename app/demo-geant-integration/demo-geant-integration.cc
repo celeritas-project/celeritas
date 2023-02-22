@@ -47,12 +47,12 @@ void run(std::string const& macro_filename)
 
     std::unique_ptr<G4RunManager> run_manager;
 #if !CELERITAS_G4_V10
-        run_manager.reset(G4RunManagerFactory::CreateRunManager(
-            CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
+    run_manager.reset(G4RunManagerFactory::CreateRunManager(
+        CELERITAS_G4_MT ? G4RunManagerType::MT : G4RunManagerType::Serial));
 #elif CELERITAS_G4_MT
-        run_manager = std::make_unique<G4MTRunManager>();
+    run_manager = std::make_unique<G4MTRunManager>();
 #else
-        run_manager = std::make_unique<G4RunManager>();
+    run_manager = std::make_unique<G4RunManager>();
 #endif
     CELER_ASSERT(run_manager);
     celeritas::self_logger() = celeritas::make_mt_logger(*run_manager);
