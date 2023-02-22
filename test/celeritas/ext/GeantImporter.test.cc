@@ -16,6 +16,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
+#include "../GeantTestBase.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
@@ -50,10 +51,10 @@ bool geant4_is_v10()
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GeantImporterTest : public Test
+class GeantImporterTest : public GeantTestBase
 {
   protected:
-    using DataSelection = GeantImporter::DataSelection;
+    using DataSelection = GeantImportDataSelection;
     using VecModelMaterial = std::vector<ImportModelMaterial>;
 
     struct ImportSummary
@@ -74,29 +75,15 @@ class GeantImporterTest : public Test
         void print_expected() const;
     };
 
-    ImportData const& import_geant(DataSelection const& selection)
-    {
-        // Only allow a single importer per global execution, because of Geant4
-        // limitations.
-        static GeantImporter import_geant(this->setup_geant());
-
-        // Reuse import data to reduce verbosity
-        static DataSelection imported_sel;
-        ImportData& imported = this->imported_data();
-
-        if (imported_sel != selection || !imported)
-        {
-            imported = import_geant(selection);
-            imported_sel = selection;
-        }
-
-        return imported;
-    }
 
     ImportSummary summarize(ImportData const& data) const;
     ImportXsSummary summarize(VecModelMaterial const& xs) const;
 
-    virtual GeantSetup setup_geant() = 0;
+    // Import data potentially with different selection options
+    GeantImportDataSelection build_import_data_selection() const final
+    {
+        return selection_;
+    }
 
     ImportProcess const&
     find_process(PDGNumber pdg, ImportProcessClass ipc) const
@@ -123,12 +110,8 @@ class GeantImporterTest : public Test
         return tol;
     }
 
-  private:
-    static ImportData& imported_data()
-    {
-        static ImportData imported;
-        return imported;
-    }
+  protected:
+    GeantImportDataSelection selection_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -224,9 +207,11 @@ void GeantImporterTest::ImportXsSummary::print_expected() const
 //---------------------------------------------------------------------------//
 class FourSteelSlabsEmStandard : public GeantImporterTest
 {
-    GeantSetup setup_geant() override
+    char const* geometry_basename() const final { return "four-steel-slabs"; }
+
+    GeantPhysicsOptions build_geant_options() const override
     {
-        GeantSetup::Options opts;
+        GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
         opts.verbose = true;
 #if CELERITAS_USE_JSON
@@ -237,8 +222,22 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             EXPECT_EQ(std::string(expected), std::string(out.dump()));
         }
 #endif
-        return GeantSetup(
-            this->test_data_path("celeritas", "four-steel-slabs.gdml"), opts);
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class TestEm3 : public GeantImporterTest
+{
+    char const* geometry_basename() const final { return "testem3-flat"; }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions opts;
+        opts.relaxation = RelaxationSelection::none;
+        opts.rayleigh_scattering = false;
+        opts.verbose = false;
+        return opts;
     }
 };
 
@@ -248,10 +247,9 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
 
 TEST_F(FourSteelSlabsEmStandard, em_particles)
 {
-    DataSelection options;
-    options.particles = DataSelection::em;
+    selection_.particles = DataSelection::em;
 
-    auto&& imported = this->import_geant(options);
+    auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
     static char const* expected_particles[] = {"e+", "e-", "gamma"};
@@ -279,11 +277,10 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 {
-    DataSelection options;
-    options.particles = DataSelection::em | DataSelection::hadron;
-    options.processes = DataSelection::em;
+    selection_.particles = DataSelection::em | DataSelection::hadron;
+    selection_.processes = DataSelection::em;
 
-    auto&& imported = this->import_geant(options);
+    auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
     static char const* expected_particles[] = {"e+", "e-", "gamma", "proton"};
@@ -311,7 +308,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, elements)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& elements = import_data.elements;
     EXPECT_EQ(4, elements.size());
@@ -354,7 +351,7 @@ TEST_F(FourSteelSlabsEmStandard, elements)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, materials)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& materials = import_data.materials;
     EXPECT_EQ(2, materials.size());
@@ -598,7 +595,7 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, volumes)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& volumes = import_data.volumes;
     EXPECT_EQ(5, volumes.size());
@@ -635,7 +632,7 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, em_parameters)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& em_params = import_data.em_params;
     EXPECT_EQ(true, em_params.energy_loss_fluct);
@@ -648,7 +645,7 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, sb_data)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& sb_map = import_data.sb_data;
     EXPECT_EQ(4, sb_map.size());
@@ -694,7 +691,7 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& lpe_map = import_data.livermore_pe_data;
     EXPECT_EQ(4, lpe_map.size());
@@ -798,7 +795,7 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 {
-    auto&& import_data = this->import_geant({});
+    auto&& import_data = this->imported_data();
 
     auto const& ar_map = import_data.atomic_relaxation_data;
     EXPECT_EQ(4, ar_map.size());
@@ -911,6 +908,27 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
     EXPECT_VEC_SOFT_EQ(expected_auger_energy, auger_energy);
     EXPECT_VEC_SOFT_EQ(expected_fluor_probability, fluor_probability);
     EXPECT_VEC_SOFT_EQ(expected_fluor_energy, fluor_energy);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3, volume_names)
+{
+    selection_.reader_data = false;
+    auto&& import_data = this->imported_data();
+
+    auto const& volumes = import_data.volumes;
+    std::vector<std::string> names;
+
+    for (auto const& volume : volumes)
+    {
+        names.push_back(volume.name);
+    }
+
+    // clang-format off
+    static std::string const expected_names[] = {"gap_lv_0", "absorber_lv_0", "gap_lv_1", "absorber_lv_1", "gap_lv_2", "absorber_lv_2", "gap_lv_3", "absorber_lv_3", "gap_lv_4", "absorber_lv_4", "gap_lv_5", "absorber_lv_5", "gap_lv_6", "absorber_lv_6", "gap_lv_7", "absorber_lv_7", "gap_lv_8", "absorber_lv_8", "gap_lv_9", "absorber_lv_9", "gap_lv_10", "absorber_lv_10", "gap_lv_11", "absorber_lv_11", "gap_lv_12", "absorber_lv_12", "gap_lv_13", "absorber_lv_13", "gap_lv_14", "absorber_lv_14", "gap_lv_15", "absorber_lv_15", "gap_lv_16", "absorber_lv_16", "gap_lv_17", "absorber_lv_17", "gap_lv_18", "absorber_lv_18", "gap_lv_19", "absorber_lv_19", "gap_lv_20", "absorber_lv_20", "gap_lv_21", "absorber_lv_21", "gap_lv_22", "absorber_lv_22", "gap_lv_23", "absorber_lv_23", "gap_lv_24", "absorber_lv_24", "gap_lv_25", "absorber_lv_25", "gap_lv_26", "absorber_lv_26", "gap_lv_27", "absorber_lv_27", "gap_lv_28", "absorber_lv_28", "gap_lv_29", "absorber_lv_29", "gap_lv_30", "absorber_lv_30", "gap_lv_31", "absorber_lv_31", "gap_lv_32", "absorber_lv_32", "gap_lv_33", "absorber_lv_33", "gap_lv_34", "absorber_lv_34", "gap_lv_35", "absorber_lv_35", "gap_lv_36", "absorber_lv_36", "gap_lv_37", "absorber_lv_37", "gap_lv_38", "absorber_lv_38", "gap_lv_39", "absorber_lv_39", "gap_lv_40", "absorber_lv_40", "gap_lv_41", "absorber_lv_41", "gap_lv_42", "absorber_lv_42", "gap_lv_43", "absorber_lv_43", "gap_lv_44", "absorber_lv_44", "gap_lv_45", "absorber_lv_45", "gap_lv_46", "absorber_lv_46", "gap_lv_47", "absorber_lv_47", "gap_lv_48", "absorber_lv_48", "gap_lv_49", "absorber_lv_49", "world_lv"};
+    // clang-format on
+    EXPECT_VEC_EQ(expected_names, names);
 }
 
 //---------------------------------------------------------------------------//

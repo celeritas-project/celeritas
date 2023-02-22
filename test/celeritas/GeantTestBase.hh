@@ -19,6 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct GeantPhysicsOptions;
+struct GeantImportDataSelection;
 
 namespace test
 {
@@ -50,6 +51,9 @@ class GeantTestBase : public ImportedDataTestBase
 
     // Access lazily loaded static geant4 data
     ImportData const& imported_data() const final;
+
+    // Import data potentially with different selection options
+    virtual GeantImportDataSelection build_import_data_selection() const;
 
   private:
     struct ImportHelper;
