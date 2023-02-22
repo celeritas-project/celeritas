@@ -11,7 +11,6 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <regex>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -21,8 +20,6 @@
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
-#include <G4GDMLWriteStructure.hh>
-#include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
@@ -43,7 +40,6 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
-#include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -58,6 +54,7 @@
 
 #include "detail/AllElementReader.hh"
 #include "detail/GeantProcessImporter.hh"
+#include "detail/GeantVolumeVisitor.hh"
 
 using CLHEP::cm;
 using CLHEP::cm2;
@@ -132,26 +129,6 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
-class VolumeVisitor
-{
-  public:
-    explicit VolumeVisitor(bool unique_volumes)
-        : unique_volumes_(unique_volumes)
-    {
-    }
-
-    // Recurse into the given logical volume
-    void visit(G4LogicalVolume const& logical_volume);
-
-    // Convert volume map to a vector
-    std::vector<ImportVolume> build_volume_vector() const;
-
-  private:
-    bool unique_volumes_;
-    std::map<int, ImportVolume> volids_volumes_;
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -192,85 +169,6 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
             CELER_ASSERT_UNREACHABLE();
     }
     CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Store all logical volumes by recursively looping over them.
- *
- * Using a map ensures that volumes are both ordered by volume id and not
- * duplicated.
- * Function called by \c store_volumes(...) .
- */
-void VolumeVisitor::visit(G4LogicalVolume const& logical_volume)
-{
-    auto&& [iter, inserted] = volids_volumes_.emplace(
-        logical_volume.GetInstanceID(), ImportVolume{});
-    if (!inserted)
-    {
-        // Logical volume is already in the map
-        return;
-    }
-
-    CELER_ASSERT(iter->first >= 0);
-
-    // Fill volume properties
-    ImportVolume& volume = iter->second;
-    volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
-    volume.name = logical_volume.GetName();
-    volume.solid_name = logical_volume.GetSolid()->GetName();
-
-    if (volume.name.empty())
-    {
-        CELER_LOG(warning)
-            << "No logical volume name specified for instance ID "
-            << iter->first << " (material " << volume.material_id << ")";
-    }
-    else if (unique_volumes_)
-    {
-        // See if the name already has a uniquifying address (e.g., we loaded
-        // it through our GdmlLoader with `SetStripFlag(false)`)
-        // static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
-        static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
-        std::smatch ptr_match;
-        if (!std::regex_search(volume.name, ptr_match, final_ptr_regex))
-        {
-            // No unique extension: run the LV through the GDML export name
-            // generator so that the volume is uniquely identifiable in
-            // VecGeom.
-            // Reuse the same instance to reduce overhead: note that the method
-            // isn't const correct.
-            static G4GDMLWriteStructure temp_writer;
-            volume.name
-                = temp_writer.GenerateName(volume.name, &logical_volume);
-        }
-    }
-
-    // Recursive: repeat for every daughter volume, if there are any
-    for (auto const i : range(logical_volume.GetNoDaughters()))
-    {
-        this->visit(*logical_volume.GetDaughter(i)->GetLogicalVolume());
-    }
-
-    CELER_ENSURE(volume);
-}
-
-std::vector<ImportVolume> VolumeVisitor::build_volume_vector() const
-{
-    std::vector<ImportVolume> volumes;
-
-    // Populate vector<ImportVolume>
-    volumes.resize(volids_volumes_.size());
-    for (auto&& [volid, volume] : volids_volumes_)
-    {
-        if (static_cast<std::size_t>(volid) >= volumes.size())
-        {
-            volumes.resize(volid + 1);
-        }
-        volumes[volid] = volume;
-    }
-
-    return volumes;
 }
 
 //---------------------------------------------------------------------------//
@@ -689,7 +587,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
  */
 std::vector<ImportVolume> GeantImporter::load_volumes(bool unique_volumes) const
 {
-    VolumeVisitor visitor(unique_volumes);
+    detail::GeantVolumeVisitor visitor(unique_volumes);
     // Recursive loop over all logical volumes to populate map
     visitor.visit(*world_->GetLogicalVolume());
 
