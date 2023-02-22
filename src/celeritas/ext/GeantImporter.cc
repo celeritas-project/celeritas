@@ -11,6 +11,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <regex>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -20,6 +21,7 @@
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
+#include <G4GDMLWriteStructure.hh>
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
@@ -130,6 +132,20 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
+class VolumeVisitor
+{
+  public:
+    // Recurse into the given logical volume
+    void visit(G4LogicalVolume const& logical_volume);
+
+    // Convert volume map to a vector
+    std::vector<ImportVolume> build_volume_vector() const;
+
+  private:
+    std::map<int, ImportVolume> volids_volumes_;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -180,10 +196,9 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
  * duplicated.
  * Function called by \c store_volumes(...) .
  */
-void loop_volumes(std::map<int, ImportVolume>& volids_volumes,
-                  G4LogicalVolume const& logical_volume)
+void VolumeVisitor::visit(G4LogicalVolume const& logical_volume)
 {
-    auto&& [iter, inserted] = volids_volumes.emplace(
+    auto&& [iter, inserted] = volids_volumes_.emplace(
         logical_volume.GetInstanceID(), ImportVolume{});
     if (!inserted)
     {
@@ -205,15 +220,51 @@ void loop_volumes(std::map<int, ImportVolume>& volids_volumes,
             << "No logical volume name specified for instance ID "
             << iter->first << " (material " << volume.material_id << ")";
     }
+    else
+    {
+        // See if the name already has a uniquifying address (e.g., we loaded
+        // it through our GdmlLoader with `SetStripFlag(false)`)
+        // static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
+        static std::regex const final_ptr_regex{"0x[0-9a-f]{4,16}$"};
+        std::smatch ptr_match;
+        if (!std::regex_search(volume.name, ptr_match, final_ptr_regex))
+        {
+            // No unique extension: run the LV through the GDML export name
+            // generator so that the volume is uniquely identifiable in
+            // VecGeom.
+            // Reuse the same instance to reduce overhead: note that the method
+            // isn't const correct.
+            static G4GDMLWriteStructure temp_writer;
+            volume.name
+                = temp_writer.GenerateName(volume.name, &logical_volume);
+        }
+    }
 
     // Recursive: repeat for every daughter volume, if there are any
     for (auto const i : range(logical_volume.GetNoDaughters()))
     {
-        loop_volumes(volids_volumes,
-                     *logical_volume.GetDaughter(i)->GetLogicalVolume());
+        this->visit(*logical_volume.GetDaughter(i)->GetLogicalVolume());
     }
 
     CELER_ENSURE(volume);
+}
+
+std::vector<ImportVolume> VolumeVisitor::build_volume_vector() const
+{
+    std::vector<ImportVolume> volumes;
+
+    // Populate vector<ImportVolume>
+    volumes.resize(volids_volumes_.size());
+    for (auto&& [volid, volume] : volids_volumes_)
+    {
+        if (static_cast<std::size_t>(volid) >= volumes.size())
+        {
+            volumes.resize(volid + 1);
+        }
+        volumes[volid] = volume;
+    }
+
+    return volumes;
 }
 
 //---------------------------------------------------------------------------//
@@ -499,33 +550,6 @@ auto store_processes(GeantImporter::DataSelection::Flags process_flags,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportVolume vector.
- */
-std::vector<ImportVolume> store_volumes(G4VPhysicalVolume const* world_volume)
-{
-    std::vector<ImportVolume> volumes;
-    std::map<int, ImportVolume> volids_volumes;
-
-    // Recursive loop over all logical volumes to populate map<volid, volume>
-    loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
-
-    // Populate vector<ImportVolume>
-    volumes.resize(volids_volumes.size());
-    for (auto&& [volid, volume] : volids_volumes)
-    {
-        if (static_cast<std::size_t>(volid) >= volumes.size())
-        {
-            volumes.resize(volid + 1);
-        }
-        volumes[volid] = std::move(volume);
-    }
-
-    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
-    return volumes;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters store_em_parameters()
@@ -606,7 +630,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                                  import_data.materials);
         import_data.processes = std::move(processes_and_msc.first);
         import_data.msc_models = std::move(processes_and_msc.second);
-        import_data.volumes = store_volumes(world_);
+        import_data.volumes = this->load_volumes();
         if (selected.processes & DataSelection::em)
         {
             import_data.em_params = store_em_parameters();
@@ -651,6 +675,21 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
     CELER_ENSURE(import_data);
     return import_data;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c ImportVolume vector.
+ */
+std::vector<ImportVolume> GeantImporter::load_volumes() const
+{
+    VolumeVisitor visitor;
+    // Recursive loop over all logical volumes to populate map
+    visitor.visit(*world_->GetLogicalVolume());
+
+    auto volumes = visitor.build_volume_vector();
+    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
+    return volumes;
 }
 
 //---------------------------------------------------------------------------//

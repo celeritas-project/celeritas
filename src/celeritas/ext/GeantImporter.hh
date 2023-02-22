@@ -85,6 +85,10 @@ class GeantImporter
     GeantSetup setup_;
     // World physical volume
     G4VPhysicalVolume const* world_{nullptr};
+
+    //// HELPER FUNCTIONS ////
+
+    std::vector<ImportVolume> load_volumes() const;
 };
 
 //---------------------------------------------------------------------------//
