@@ -135,6 +135,11 @@ struct ProcessFilter
 class VolumeVisitor
 {
   public:
+    explicit VolumeVisitor(bool unique_volumes)
+        : unique_volumes_(unique_volumes)
+    {
+    }
+
     // Recurse into the given logical volume
     void visit(G4LogicalVolume const& logical_volume);
 
@@ -142,6 +147,7 @@ class VolumeVisitor
     std::vector<ImportVolume> build_volume_vector() const;
 
   private:
+    bool unique_volumes_;
     std::map<int, ImportVolume> volids_volumes_;
 };
 
@@ -220,7 +226,7 @@ void VolumeVisitor::visit(G4LogicalVolume const& logical_volume)
             << "No logical volume name specified for instance ID "
             << iter->first << " (material " << volume.material_id << ")";
     }
-    else
+    else if (unique_volumes_)
     {
         // See if the name already has a uniquifying address (e.g., we loaded
         // it through our GdmlLoader with `SetStripFlag(false)`)
@@ -630,7 +636,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                                  import_data.materials);
         import_data.processes = std::move(processes_and_msc.first);
         import_data.msc_models = std::move(processes_and_msc.second);
-        import_data.volumes = this->load_volumes();
+        import_data.volumes = this->load_volumes(selected.unique_volumes);
         if (selected.processes & DataSelection::em)
         {
             import_data.em_params = store_em_parameters();
@@ -681,9 +687,9 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 /*!
  * Return a populated \c ImportVolume vector.
  */
-std::vector<ImportVolume> GeantImporter::load_volumes() const
+std::vector<ImportVolume> GeantImporter::load_volumes(bool unique_volumes) const
 {
-    VolumeVisitor visitor;
+    VolumeVisitor visitor(unique_volumes);
     // Recursive loop over all logical volumes to populate map
     visitor.visit(*world_->GetLogicalVolume());
 

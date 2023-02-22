@@ -915,11 +915,9 @@ TEST_F(FourSteelSlabsEmStandard, atomic_relaxation_data)
 TEST_F(TestEm3, volume_names)
 {
     selection_.reader_data = false;
-    auto&& import_data = this->imported_data();
+    auto const& volumes = this->imported_data().volumes;
 
-    auto const& volumes = import_data.volumes;
     std::vector<std::string> names;
-
     for (auto const& volume : volumes)
     {
         names.push_back(volume.name);
@@ -929,6 +927,19 @@ TEST_F(TestEm3, volume_names)
     static std::string const expected_names[] = {"gap_lv_0", "absorber_lv_0", "gap_lv_1", "absorber_lv_1", "gap_lv_2", "absorber_lv_2", "gap_lv_3", "absorber_lv_3", "gap_lv_4", "absorber_lv_4", "gap_lv_5", "absorber_lv_5", "gap_lv_6", "absorber_lv_6", "gap_lv_7", "absorber_lv_7", "gap_lv_8", "absorber_lv_8", "gap_lv_9", "absorber_lv_9", "gap_lv_10", "absorber_lv_10", "gap_lv_11", "absorber_lv_11", "gap_lv_12", "absorber_lv_12", "gap_lv_13", "absorber_lv_13", "gap_lv_14", "absorber_lv_14", "gap_lv_15", "absorber_lv_15", "gap_lv_16", "absorber_lv_16", "gap_lv_17", "absorber_lv_17", "gap_lv_18", "absorber_lv_18", "gap_lv_19", "absorber_lv_19", "gap_lv_20", "absorber_lv_20", "gap_lv_21", "absorber_lv_21", "gap_lv_22", "absorber_lv_22", "gap_lv_23", "absorber_lv_23", "gap_lv_24", "absorber_lv_24", "gap_lv_25", "absorber_lv_25", "gap_lv_26", "absorber_lv_26", "gap_lv_27", "absorber_lv_27", "gap_lv_28", "absorber_lv_28", "gap_lv_29", "absorber_lv_29", "gap_lv_30", "absorber_lv_30", "gap_lv_31", "absorber_lv_31", "gap_lv_32", "absorber_lv_32", "gap_lv_33", "absorber_lv_33", "gap_lv_34", "absorber_lv_34", "gap_lv_35", "absorber_lv_35", "gap_lv_36", "absorber_lv_36", "gap_lv_37", "absorber_lv_37", "gap_lv_38", "absorber_lv_38", "gap_lv_39", "absorber_lv_39", "gap_lv_40", "absorber_lv_40", "gap_lv_41", "absorber_lv_41", "gap_lv_42", "absorber_lv_42", "gap_lv_43", "absorber_lv_43", "gap_lv_44", "absorber_lv_44", "gap_lv_45", "absorber_lv_45", "gap_lv_46", "absorber_lv_46", "gap_lv_47", "absorber_lv_47", "gap_lv_48", "absorber_lv_48", "gap_lv_49", "absorber_lv_49", "world_lv"};
     // clang-format on
     EXPECT_VEC_EQ(expected_names, names);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3, unique_volumes)
+{
+    selection_.reader_data = false;
+    selection_.unique_volumes = true;
+
+    auto const& volumes = this->imported_data().volumes;
+
+    EXPECT_EQ(101, volumes.size());
+    EXPECT_TRUE(starts_with(volumes.front().name, "gap_lv_00x"));
 }
 
 //---------------------------------------------------------------------------//
