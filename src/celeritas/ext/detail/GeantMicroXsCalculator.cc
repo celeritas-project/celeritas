@@ -12,7 +12,6 @@
 #include <G4VEmModel.hh>
 
 #include "corecel/cont/Range.hh"
-#include "celeritas/ext/GeantConfig.hh"
 
 namespace celeritas
 {
