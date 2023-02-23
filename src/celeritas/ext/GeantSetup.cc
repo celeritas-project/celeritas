@@ -11,7 +11,7 @@
 #include <utility>
 #include <G4Version.hh>
 
-#if G4VERSION_NUMBER > 1070
+#if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
 #endif
 
@@ -92,7 +92,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         ++geant_launch_count;
 
         // Disable geant4 signal interception
-#if G4VERSION_NUMBER > 1070
+#if G4VERSION_NUMBER >= 1070
         G4Backtrace::DefaultSignals() = {};
 #endif
 
