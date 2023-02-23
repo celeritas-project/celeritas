@@ -12,9 +12,7 @@
 #include <G4Event.hh>
 
 #if G4VERSION_NUMBER < 1070
-#    include <exception>
-#    include <functional>
-#    include <G4MTRunManager.hh>
+#    include <celeritas/ext/GeantSetup.hh>
 #endif
 
 #include <G4RunManager.hh>
@@ -182,19 +180,8 @@ void HitRootIO::Merge()
 #if G4VERSION_NUMBER >= 1070
     auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
 #else
-    auto const nthreads = std::invoke([]() {
-        auto const runman{
-            dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())};
-        if (runman != nullptr)
-        {
-            return runman->GetNumberOfThreads();
-        }
-        else
-        {
-            return 1;
-        }
-    });
-
+    auto const nthreads
+        = celeritas::GetNumberOfThreads(*G4RunManager::GetRunManager());
 #endif
     std::vector<TFile*> files;
     std::vector<TTree*> trees;

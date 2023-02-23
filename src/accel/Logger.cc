@@ -12,11 +12,7 @@
 #include <string>
 
 #if G4VERSION_NUMBER < 1070
-#    include <exception>
-#    include <functional>
-#    include <G4MTRunManager.hh>
-
-#    include "corecel/Macros.hh"
+#    include <celeritas/ext/GeantSetup.hh>
 #endif
 
 #include <G4RunManager.hh>
@@ -123,16 +119,7 @@ Logger make_mt_logger(G4RunManager const& runman)
     // cast it to G4MtRunManager
 #if G4VERSION_NUMBER < 1070
     return Logger(MpiCommunicator{},
-                  MtLogger{std::invoke([&]() {
-                      CELER_TRY_HANDLE(
-                          return dynamic_cast<G4MTRunManager const&>(runman)
-                                     .GetNumberOfThreads(),
-                                 [](std::exception_ptr) {
-                                     // cast failed but we have nothing to do
-                                     // here
-                                 });
-                      return 1;
-                  })},
+                  MtLogger{GetNumberOfThreads(runman)},
                   "CELER_LOG_LOCAL");
 #else
     return Logger(MpiCommunicator{},

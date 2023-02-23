@@ -13,10 +13,11 @@
 
 #if G4VERSION_NUMBER >= 1070
 #    include <G4Backtrace.hh>
+#else
+#    include <G4MTRunManager.hh>
 #endif
 
 #include <G4ParticleTable.hh>
-#include <G4RunManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VUserDetectorConstruction.hh>
 
@@ -66,6 +67,22 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * G4RunManager::GetNumberOfThreads isn't virtual before Geant4 v10.7.0 so we
+ * need to explicitely try dynamic cast to G4MTRunManager to get the number of
+ * threads. If the dynamic cast fails, return 1
+ */
+int GetNumberOfThreads(G4RunManager const& runman)
+{
+    auto const* runman_mt = dynamic_cast<G4MTRunManager const*>(&runman);
+    if (runman_mt != nullptr)
+    {
+        return runman_mt->GetNumberOfThreads();
+    }
+    return 1;
+}
 
 //---------------------------------------------------------------------------//
 /*!
