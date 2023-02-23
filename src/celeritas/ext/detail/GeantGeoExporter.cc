@@ -58,7 +58,7 @@ void GeantGeoExporter::operator()(std::string const& filename) const
     parser.SetEnergyCutsExport(true);
     parser.SetSDExport(true);
     parser.SetOverlapCheck(true);
-#if G4VERSION_NUMBER > 1070
+#if G4VERSION_NUMBER >= 1070
     parser.SetOutputFileOverwrite(true);
 #endif
     constexpr bool append_pointers = true;
