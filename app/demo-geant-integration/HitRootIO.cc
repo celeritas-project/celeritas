@@ -10,6 +10,13 @@
 #include <cstdio>
 #include <regex>
 #include <G4Event.hh>
+
+#if G4VERSION_NUMBER < 1070
+#   include <exception>
+#   include <functional>
+#   include <G4MTRunManager.hh>
+#endif
+
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
@@ -173,9 +180,17 @@ void HitRootIO::Close()
 void HitRootIO::Merge()
 {
 #if G4VERSION_NUMBER >= 1070
-    auto nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
+    auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
 #else
-    auto nthreads = 1;
+    auto const nthreads = std::invoke([](){
+        CELER_TRY_HANDLE(
+            return dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())->GetNumberOfThreads(),
+            [](std::exception_ptr){
+                CELER_LOG_LOCAL(warning) << "Using a single thread to merge output root files";
+        });
+        return 1;
+    });
+
 #endif
     std::vector<TFile*> files;
     std::vector<TTree*> trees;

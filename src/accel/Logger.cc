@@ -10,6 +10,14 @@
 #include <algorithm>
 #include <functional>
 #include <string>
+
+#if G4VERSION_NUMBER < 1070
+#   include <exception>
+#   include <functional>
+#   include <G4MTRunManager.hh>
+#   include "corecel/Macros.hh"
+#endif
+
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
@@ -110,13 +118,20 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger make_mt_logger(G4RunManager const& runman)
 {
-    return Logger(MpiCommunicator{},
+    //G4RunManager::GetNumberOfThreads isn't virtual before v10.7.0  try to cast it to G4MtRunManager
 #if G4VERSION_NUMBER < 1070
-                  MtLogger{2},
+    auto const number_of_threads = std::invoke([&](){
+        CELER_TRY_HANDLE(
+            return dynamic_cast<G4MTRunManager const&>(runman).GetNumberOfThreads(),
+            [](std::exception_ptr){
+                //cast failed but we have nothing to do here
+        });
+        return 1;
+    });
+    return Logger(MpiCommunicator{}, MtLogger{number_of_threads}, "CELER_LOG_LOCAL");
 #else
-                  MtLogger{runman.GetNumberOfThreads()},
+    return Logger(MpiCommunicator{}, MtLogger{runman.GetNumberOfThreads()}, "CELER_LOG_LOCAL");
 #endif
-                  "CELER_LOG_LOCAL");
 }
 
 //---------------------------------------------------------------------------//
