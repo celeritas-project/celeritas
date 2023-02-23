@@ -16,6 +16,7 @@
 #include <G4StepPoint.hh>
 #include <G4ThreeVector.hh>
 #include <G4TouchableHistory.hh>
+#include <G4Track.hh>
 #include <G4TransportationManager.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VSensitiveDetector.hh>
@@ -165,6 +166,8 @@ HitProcessor::HitProcessor(VecLV detector_volumes,
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }
+    track_ = std::make_unique<G4Track>();
+    step_->SetTrack(track_.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -194,8 +197,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     } while (0)
 
         HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
-        // TODO: how to handle these attributes?
-        // step_->SetTrack(primary_track);
+        // TODO: how to handle track attributes?
+        // track_->SetTrackID(...);
 
         // TODO: assert that event ID is consistent with active
         // LocalTransporter event?
