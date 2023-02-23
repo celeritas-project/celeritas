@@ -12,10 +12,11 @@
 #include <string>
 
 #if G4VERSION_NUMBER < 1070
-#   include <exception>
-#   include <functional>
-#   include <G4MTRunManager.hh>
-#   include "corecel/Macros.hh"
+#    include <exception>
+#    include <functional>
+#    include <G4MTRunManager.hh>
+
+#    include "corecel/Macros.hh"
 #endif
 
 #include <G4RunManager.hh>
@@ -118,19 +119,25 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger make_mt_logger(G4RunManager const& runman)
 {
-    //G4RunManager::GetNumberOfThreads isn't virtual before v10.7.0  try to cast it to G4MtRunManager
+    // G4RunManager::GetNumberOfThreads isn't virtual before v10.7.0  try to
+    // cast it to G4MtRunManager
 #if G4VERSION_NUMBER < 1070
-    auto const number_of_threads = std::invoke([&](){
-        CELER_TRY_HANDLE(
-            return dynamic_cast<G4MTRunManager const&>(runman).GetNumberOfThreads(),
-            [](std::exception_ptr){
-                //cast failed but we have nothing to do here
-        });
-        return 1;
-    });
-    return Logger(MpiCommunicator{}, MtLogger{number_of_threads}, "CELER_LOG_LOCAL");
+    return Logger(MpiCommunicator{},
+                  MtLogger{std::invoke([&]() {
+                      CELER_TRY_HANDLE(
+                          return dynamic_cast<G4MTRunManager const&>(runman)
+                                     .GetNumberOfThreads(),
+                                 [](std::exception_ptr) {
+                                     // cast failed but we have nothing to do
+                                     // here
+                                 });
+                      return 1;
+                  })},
+                  "CELER_LOG_LOCAL");
 #else
-    return Logger(MpiCommunicator{}, MtLogger{runman.GetNumberOfThreads()}, "CELER_LOG_LOCAL");
+    return Logger(MpiCommunicator{},
+                  MtLogger{runman.GetNumberOfThreads()},
+                  "CELER_LOG_LOCAL");
 #endif
 }
 

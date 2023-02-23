@@ -12,9 +12,9 @@
 #include <G4Event.hh>
 
 #if G4VERSION_NUMBER < 1070
-#   include <exception>
-#   include <functional>
-#   include <G4MTRunManager.hh>
+#    include <exception>
+#    include <functional>
+#    include <G4MTRunManager.hh>
 #endif
 
 #include <G4RunManager.hh>
@@ -182,12 +182,14 @@ void HitRootIO::Merge()
 #if G4VERSION_NUMBER >= 1070
     auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
 #else
-    auto const nthreads = std::invoke([](){
+    auto const nthreads = std::invoke([]() {
         CELER_TRY_HANDLE(
-            return dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())->GetNumberOfThreads(),
-            [](std::exception_ptr){
-                CELER_LOG_LOCAL(warning) << "Using a single thread to merge output root files";
-        });
+            return dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())
+                       ->GetNumberOfThreads(),
+                   [](std::exception_ptr) {
+                       CELER_LOG_LOCAL(warning) << "Using a single thread to "
+                                                   "merge output root files";
+                   });
         return 1;
     });
 
