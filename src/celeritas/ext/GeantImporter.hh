@@ -28,8 +28,10 @@ struct GeantImportDataSelection
     enum : unsigned int
     {
         dummy = 0x1,  //!< Dummy particles+processes
-        em = 0x2,  //!< EM particles and fundamental proceses
-        hadron = 0x4,  //!< Hadronic particles and processes
+        em_basic = 0x2,  //!< Electron, positron, gamma
+        em_ex = 0x4,  //!< Extended/exotic EM particles
+        em = em_basic | em_ex, //!< Any EM
+        hadron = 0x8,  //!< Hadronic particles and processes
     };
 
     Flags particles = em;

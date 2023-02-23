@@ -69,8 +69,7 @@ void run(std::string const& macro_filename)
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
     run_manager->SetUserInitialization(new demo_geant::ActionInitialization());
 
-    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses(
-        {"CoulombScat", "muIoni", "muBrems", "muPairProd"});
+    demo_geant::GlobalSetup::Instance()->SetIgnoreProcesses({"CoulombScat"});
 
     G4UImanager* ui = G4UImanager::GetUIpointer();
     CELER_ASSERT(ui);
