@@ -115,8 +115,6 @@ void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
  */
 Logger make_mt_logger(G4RunManager const& runman)
 {
-    // G4RunManager::GetNumberOfThreads isn't virtual before v10.7.0  try to
-    // cast it to G4MtRunManager
 #if G4VERSION_NUMBER < 1070
     return Logger(MpiCommunicator{},
                   MtLogger{GetNumberOfThreads(runman)},
