@@ -183,14 +183,16 @@ void HitRootIO::Merge()
     auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
 #else
     auto const nthreads = std::invoke([]() {
-        CELER_TRY_HANDLE(
-            return dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())
-                       ->GetNumberOfThreads(),
-                   [](std::exception_ptr) {
-                       CELER_LOG_LOCAL(warning) << "Using a single thread to "
-                                                   "merge output root files";
-                   });
-        return 1;
+        auto const runman{
+            dynamic_cast<G4MTRunManager*>(G4RunManager::GetRunManager())};
+        if (runman != nullptr)
+        {
+            return runman->GetNumberOfThreads();
+        }
+        else
+        {
+            return 1;
+        }
     });
 
 #endif
