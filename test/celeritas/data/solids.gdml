@@ -34,39 +34,41 @@ acceptance of all terms of the Geant4 Software license.
   <position name="center"     x="0" y="0" z="0"/>
   <rotation name="norot"      x="0" y="0" z="0"/>
 
-  <position name="posBool1"   x="0" y=" 125" z="0"/>
-  <position name="posTetrah1" x="0" y="-125" z="0"/>
+  <position name="posBool1"   x="0" y=" 1250" z="0" unit="mm" />
+  <position name="posTetrah1" x="0" y="-1250" z="0" unit="mm" />
 
-  <position name="posTube100"    x="-125" y=" 125" z="0"/>
-  <position name="posCone1"      x="-125" y="   0" z="0"/>
-  <position name="posTrap1"      x="-125" y="-125" z="0"/>
-  <position name="posTorus1"     x=" 125" y=" 125" z="0"/>
-  <position name="posSphere1"    x=" 125" y="   0" z="0"/>
-  <position name="posOrb1"       x=" 125" y="-125" z="0"/>
+  <position name="posTube100"    x="-1250" y=" 1250" z="0" unit="mm" />
+  <position name="posCone1"      x="-1250" y="    0" z="0" unit="mm" />
+  <position name="posTrap1"      x="-1250" y="-1250" z="0" unit="mm" />
+  <position name="posTorus1"     x=" 1250" y=" 1250" z="0" unit="mm" />
+  <position name="posSphere1"    x=" 1250" y="    0" z="0" unit="mm" />
+  <position name="posOrb1"       x=" 1250" y="-1250" z="0" unit="mm" />
 
-  <position name="posPara1"      x="-250" y=" 125" z="0"/>
-  <position name="posTrd1"       x="-250" y="   0" z="0"/>
-  <position name="posArb8a"      x="-250" y="-125" z="0"/>
-  <position name="posPolyhedr1"  x=" 250" y=" 125" z="0"/>
-  <position name="posPolycone1"  x=" 250" y="   0" z="0"/>
-  <position name="posGenPocone1" x=" 250" y="-125" z="0"/>
+  <position name="posPara1"      x="-2500" y=" 1250" z="0" unit="mm" />
+  <position name="posTrd1"       x="-2500" y="    0" z="0" unit="mm" />
+  <position name="posArb8a"      x="-2500" y="-1250" z="0" unit="mm" />
+  <position name="posPolyhedr1"  x=" 2500" y=" 1250" z="0" unit="mm" />
+  <position name="posPolycone1"  x=" 2500" y="    0" z="0" unit="mm" />
+  <position name="posGenPocone1" x=" 2500" y="-1250" z="0" unit="mm" />
 
-  <position name="posEllcone1"   x=" 375" y=" 125" z="0"/>
-  <position name="posEllipso1"   x=" 375" y="   0" z="0"/>
-  <position name="posEllTube1"   x=" 375" y="-125" z="0"/>
-  <position name="posHype1"      x="-375" y=" 125" z="0"/>
-  <position name="posParab1"     x="-375" y="   0" z="0"/>
-  <position name="posArb8b"      x="-375" y="-125" z="0"/>
+  <position name="posEllcone1"   x=" 3750" y=" 1250" z="0" unit="mm" />
+  <position name="posEllipso1"   x=" 3750" y="    0" z="0" unit="mm" />
+  <position name="posEllTube1"   x=" 3750" y="-1250" z="0" unit="mm" />
+  <position name="posHype1"      x="-3750" y=" 1250" z="0" unit="mm" />
+  <position name="posParab1"     x="-3750" y="    0" z="0" unit="mm" />
+  <position name="posArb8b"      x="-3750" y="-1250" z="0" unit="mm" />
 
-  <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500"/>
-  <position name="v1" unit="mm"  x="-400" y=" 400" z="-500"/>
-  <position name="v2" unit="mm"  x="   0" y="   0" z=" 500"/>
-  <position name="v3" unit="mm"  x="-400" y="-400" z="-500"/>
-  <position name="v4" unit="mm"  x=" 400" y="-400" z="-500"/>
+  <position name="posTessel1"    x=" 5000" y="    0" z="0" unit="mm" />
+
+  <position name="v0" unit="mm"  x=" 400" y=" 400" z="-500" />
+  <position name="v1" unit="mm"  x="-400" y=" 400" z="-500" />
+  <position name="v2" unit="mm"  x="   0" y="   0" z=" 500" />
+  <position name="v3" unit="mm"  x="-400" y="-400" z="-500" />
+  <position name="v4" unit="mm"  x=" 400" y="-400" z="-500" />
 
   <rotation name="rotatebyx" x="HALFPI" aunit="rad"/>
-  <rotation name="rotatebyy" x="90" aunit="deg"/>
-  <rotation name="rotatebyall" x="HALFPI" y="PI" z="TWOPI"/>
+  <rotation name="rotatebyy" y="90"     aunit="deg"/>
+  <rotation name="rotatebyall" x="HALFPI" y="HALFPI" z="HALFPI"/>
 
   <constant name="wextent" value="2000."/>
   <position name="unionidentitypos" x="25." y="0" z="0"/>
@@ -91,7 +93,7 @@ acceptance of all terms of the Geant4 Software license.
  </materials>
 
  <solids>
-  <box name="WorldBox" x="wextent" y="wextent" z="wextent"/>
+  <box name="WorldBox" lunit="mm" x="10000" y="6000" z="1500"/>
 
   <box name="b100" lunit="mm" x="200.0" y="200.0" z="200.0"/>
   <box name="b500" lunit="mm" x="500.0" y="500.0" z="500.0"/>
@@ -101,7 +103,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <para name="pa1" lunit="mm" x="600" y="700" z="800" alpha="30.0" theta="30.0" phi="30.0" aunit="deg"/>
 
-  <sphere name="sphe1" lunit="mm" aunit="rad" rmax="500.0" startphi="-4.0" deltaphi="3.2" starttheta="0.8" deltatheta="2.1"/>
+  <sphere name="sphe1" lunit="mm" aunit="rad" rmax="400.0" startphi="-4.0" deltaphi="3.2" starttheta="0.8" deltatheta="2.1"/>
 
   <paraboloid name="parab1" lunit="mm" rlo="1" rhi="300" dz="400"/>
 
@@ -113,7 +115,7 @@ acceptance of all terms of the Geant4 Software license.
       v3x="450.0"  v3y="450.0" v4x="450.0" v4y="-450.0" v5x="-350.0" v5y="-350.0"
       v6x="-350.0" v6y="350.0" v7x="350.0" v7y="350.0"  v8x="350.0"  v8y="-150.0" />
 
-  <trap name="trap1" lunit="mm" aunit="deg" theta="-10.0" phi="-30.0" z="800"
+  <trap name="trap1" lunit="mm" aunit="deg" theta="-10.0" phi="30.0" z="800"
       y1="720.0" x1="600.0" x2="300.0"  alpha1="-20.0"
       y2="360.0" x3="300.0" x4="150.0"  alpha2="-20.0"/>
 
@@ -144,7 +146,7 @@ acceptance of all terms of the Geant4 Software license.
 
   <torus name="shTorus1" lunit="mm" aunit="deg" rmin="80.0" rmax="100.0" rtor="300.0" startphi="10" deltaphi="270"/>
 
-  <orb name="shOrb1" lunit="mm" r="500.0"/>
+  <orb name="shOrb1" lunit="mm" r="400.0"/>
 
   <polycone name="testpolyc" lunit="mm" aunit="deg" deltaphi="270.0" startphi="0.0">
     <zplane z="-500.0" rmin="160.0" rmax="250.0"/>
@@ -176,8 +178,10 @@ acceptance of all terms of the Geant4 Software license.
   <ellipsoid name="testellipsoid" lunit="mm" ax="200" by="300" cz="400" zcut2="280"/>
   <eltube    name="testelltube"   lunit="mm" dx="200" dy="300" dz="400"/>
 
-  <!-- dx,dy are slopes: dx=a/zmax and dy=b/zmax, where equation is (x/a)^2 + (y/b)^2 = (z-zmax)^2 - see Geant4 application devs manual -->
-  <elcone    name="testellcone"   lunit="mm" dx="0.25" dy="0.30" zmax="100" zcut="30"/>
+  <!-- ellipCone:  dx,dy are slopes: dx = a/zmax and dy = b/zmax, where ellipCone equation is:
+       (x/a)^2 + (y/b)^2 = (z-zmax)^2
+     - see Geant4 application developers manual  -->
+  <elcone    name="testellcone"   lunit="mm" dx="0.10" dy="0.15" zmax="500" zcut="200"/>
 
   <tet name="testtet" vertex1="v4" vertex2="v3" vertex3="v1" vertex4="v2"/>
   <!--trd name="testtet" lunit="mm" x1="400" y1="400" x2="1" y2="1" z="500"/-->

@@ -451,48 +451,103 @@ TEST_F(SolidsTest, accessors)
 TEST_F(SolidsTest, trace)
 {
     {
-        SCOPED_TRACE("Center +x");
-        auto result = this->track({37.5, 0, 0}, {-1, 0, 0});
-        static char const* const expected_volumes[] = {"polyhedr1",
-                                                       "boolean1",
-                                                       "torus1",
-                                                       "trap1",
+        SCOPED_TRACE("Center -x");
+        auto result = this->track({375, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"ellipsoid1",
+                                                       "World",
+                                                       "polycone1",
+                                                       "World",
                                                        "sphere1",
-                                                       "arb8a",
-                                                       "arb8b",
+                                                       "World",
+                                                       "box500",
+                                                       "World",
+                                                       "cone1",
+                                                       "World",
+                                                       "trd1",
+                                                       "World",
+                                                       "parabol1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {40.3352925792543,
-                                                       22.1647074207457,
-                                                       0.496710383926661,
-                                                       5.8237508777342,
-                                                       6.17953873833913,
-                                                       27.5,
-                                                       12.5,
-                                                       22.5};
+        static const real_type expected_distances[] = {20,
+                                                       95,
+                                                       20,
+                                                       115,
+                                                       40,
+                                                       60,
+                                                       50,
+                                                       73,
+                                                       54,
+                                                       83,
+                                                       30,
+                                                       88.786678713601,
+                                                       42.426642572799,
+                                                       103.7866787136};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-37.5, 12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
-            "arb8a", "boolean1", "ellipsoid1", "orb1", "genPocone1", "World"};
+        auto result = this->track({-375, 125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"World", "hype1",    "World", "para1",     "World", "tube100",
+               "World", "boolean1", "World", "boolean1",  "World", "torus1",
+               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
+               "World", "ellcone1", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {52.5,
-                                                       10,
-                                                       30.681186857726,
-                                                       0.12008333149575,
-                                                       6.6153036785175,
-                                                       37.583426132261};
+        static const real_type expected_distances[] = {20,
+                                                       4,
+                                                       71,
+                                                       60,
+                                                       75,
+                                                       4,
+                                                       116.000001,
+                                                       12.499999,
+                                                       20.000001,
+                                                       17.499999,
+                                                       60,
+                                                       2,
+                                                       16,
+                                                       2,
+                                                       111.98703789108,
+                                                       1e-08,
+                                                       40.048511400819,
+                                                       25.977412807017,
+                                                       66.987037891082,
+                                                       50,
+                                                       100};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-37.5, -12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"orb1", "genPocone1", "World"};
+        auto result = this->track({-375, -125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"arb8b",
+                                                       "World",
+                                                       "arb8a",
+                                                       "World",
+                                                       "trap1",
+                                                       "World",
+                                                       "tetrah1",
+                                                       "World",
+                                                       "orb1",
+                                                       "World",
+                                                       "genPocone1",
+                                                       "World",
+                                                       "elltube1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {100, 7.5, 30};
+        static const real_type expected_distances[] = {40,
+                                                       45,
+                                                       80,
+                                                       68.125,
+                                                       33.75,
+                                                       108.125,
+                                                       55.928620358185,
+                                                       29.071379641815,
+                                                       80,
+                                                       40,
+                                                       45,
+                                                       105,
+                                                       40,
+                                                       105};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
@@ -675,49 +730,103 @@ TEST_F(SolidsGeantTest, accessors)
 TEST_F(SolidsGeantTest, trace)
 {
     {
-        SCOPED_TRACE("Center +x");
-        auto result = this->track({37.5, 0, 0}, {-1, 0, 0});
-        static char const* const expected_volumes[] = {"polyhedr1",
-                                                       "boolean1",
-                                                       "torus1",
-                                                       "trap1",
+        SCOPED_TRACE("Center -x");
+        auto result = this->track({375, 0, 0}, {-1, 0, 0});
+        static char const* const expected_volumes[] = {"ellipsoid1",
+                                                       "World",
+                                                       "polycone1",
+                                                       "World",
                                                        "sphere1",
-                                                       "arb8a",
-                                                       "arb8b",
+                                                       "World",
+                                                       "box500",
+                                                       "World",
+                                                       "cone1",
+                                                       "World",
+                                                       "trd1",
+                                                       "World",
+                                                       "parabol1",
                                                        "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {40.3352925792543,
-                                                       22.1647074207457,
-                                                       0.496710383926661,
-                                                       5.8237508777342,
-                                                       6.17953873833913,
-                                                       27.5,
-                                                       12.5,
-                                                       22.5};
-        // TODO: investigate elements 3,4 different from VGDML version
+        static const real_type expected_distances[] = {20,
+                                                       95,
+                                                       20,
+                                                       115,
+                                                       40,
+                                                       60,
+                                                       50,
+                                                       73,
+                                                       54,
+                                                       83,
+                                                       30,
+                                                       88.786678713601,
+                                                       42.426642572799,
+                                                       103.7866787136};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Upper +x");
-        auto result = this->track({-37.5, 12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[] = {
-            "arb8a", "boolean1", "ellipsoid1", "orb1", "genPocone1", "World"};
+        auto result = this->track({-375, 125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"World", "hype1",    "World", "para1",     "World", "tube100",
+               "World", "boolean1", "World", "boolean1",  "World", "torus1",
+               "World", "torus1",   "World", "polyhedr1", "World", "polyhedr1",
+               "World", "ellcone1", "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {52.5,
+        static const real_type expected_distances[] = {20,
+                                                       4,
+                                                       71,
+                                                       60,
+                                                       75,
+                                                       4,
+                                                       116.000001,
+                                                       12.499999,
+                                                       20.000001,
+                                                       17.499999,
+                                                       60,
+                                                       2,
+                                                       16,
+                                                       2,
+                                                       111.98703789108,
+                                                       1e-08,
+                                                       40.048511400819,
+                                                       25.977412807017,
+                                                       86.987037891082,
                                                        10,
-                                                       30.681186857726,
-                                                       0.12008333149575,
-                                                       6.6153036785175,
-                                                       37.583426132261};
+                                                       120};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
         SCOPED_TRACE("Lower +x");
-        auto result = this->track({-37.5, -12.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"orb1", "genPocone1", "World"};
+        auto result = this->track({-375, -125, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"arb8b",
+                                                       "World",
+                                                       "arb8a",
+                                                       "World",
+                                                       "trap1",
+                                                       "World",
+                                                       "tetrah1",
+                                                       "World",
+                                                       "orb1",
+                                                       "World",
+                                                       "genPocone1",
+                                                       "World",
+                                                       "elltube1",
+                                                       "World"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static const real_type expected_distances[] = {100, 7.5, 30};
+        static const real_type expected_distances[] = {40,
+                                                       45,
+                                                       80,
+                                                       68.125,
+                                                       33.75,
+                                                       108.125,
+                                                       55.928620358185,
+                                                       29.071379641815,
+                                                       80,
+                                                       40,
+                                                       45,
+                                                       105,
+                                                       40,
+                                                       105};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
