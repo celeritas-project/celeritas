@@ -20,7 +20,6 @@
 #include <G4ElementTable.hh>
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
-#include <G4LogicalVolume.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
@@ -41,7 +40,6 @@
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
-#include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -55,6 +53,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/AllElementReader.hh"
+#include "detail/GeantVolumeVisitor.hh"
 #include "detail/ImportProcessConverter.hh"
 
 using CLHEP::cm;
@@ -170,50 +169,6 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
             CELER_ASSERT_UNREACHABLE();
     }
     CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Store all logical volumes by recursively looping over them.
- *
- * Using a map ensures that volumes are both ordered by volume id and not
- * duplicated.
- * Function called by \c store_volumes(...) .
- */
-void loop_volumes(std::map<int, ImportVolume>& volids_volumes,
-                  G4LogicalVolume const& logical_volume)
-{
-    auto&& [iter, inserted] = volids_volumes.emplace(
-        logical_volume.GetInstanceID(), ImportVolume{});
-    if (!inserted)
-    {
-        // Logical volume is already in the map
-        return;
-    }
-
-    CELER_ASSERT(iter->first >= 0);
-
-    // Fill volume properties
-    ImportVolume& volume = iter->second;
-    volume.material_id = logical_volume.GetMaterialCutsCouple()->GetIndex();
-    volume.name = logical_volume.GetName();
-    volume.solid_name = logical_volume.GetSolid()->GetName();
-
-    if (volume.name.empty())
-    {
-        CELER_LOG(warning)
-            << "No logical volume name specified for instance ID "
-            << iter->first << " (material " << volume.material_id << ")";
-    }
-
-    // Recursive: repeat for every daughter volume, if there are any
-    for (auto const i : range(logical_volume.GetNoDaughters()))
-    {
-        loop_volumes(volids_volumes,
-                     *logical_volume.GetDaughter(i)->GetLogicalVolume());
-    }
-
-    CELER_ENSURE(volume);
 }
 
 //---------------------------------------------------------------------------//
@@ -475,33 +430,6 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportVolume vector.
- */
-std::vector<ImportVolume> store_volumes(G4VPhysicalVolume const* world_volume)
-{
-    std::vector<ImportVolume> volumes;
-    std::map<int, ImportVolume> volids_volumes;
-
-    // Recursive loop over all logical volumes to populate map<volid, volume>
-    loop_volumes(volids_volumes, *world_volume->GetLogicalVolume());
-
-    // Populate vector<ImportVolume>
-    volumes.resize(volids_volumes.size());
-    for (auto&& [volid, volume] : volids_volumes)
-    {
-        if (static_cast<std::size_t>(volid) >= volumes.size())
-        {
-            volumes.resize(volid + 1);
-        }
-        volumes[volid] = std::move(volume);
-    }
-
-    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
-    return volumes;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Return a \c ImportData::ImportEmParamsMap .
  */
 ImportEmParameters store_em_parameters()
@@ -579,7 +507,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                                 import_data.particles,
                                                 import_data.elements,
                                                 import_data.materials);
-        import_data.volumes = store_volumes(world_);
+        import_data.volumes = this->load_volumes(selected.unique_volumes);
         if (selected.processes & DataSelection::em)
         {
             import_data.em_params = store_em_parameters();
@@ -624,6 +552,21 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 
     CELER_ENSURE(import_data);
     return import_data;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c ImportVolume vector.
+ */
+std::vector<ImportVolume> GeantImporter::load_volumes(bool unique_volumes) const
+{
+    detail::GeantVolumeVisitor visitor(unique_volumes);
+    // Recursive loop over all logical volumes to populate map
+    visitor.visit(*world_->GetLogicalVolume());
+
+    auto volumes = visitor.build_volume_vector();
+    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes";
+    return volumes;
 }
 
 //---------------------------------------------------------------------------//

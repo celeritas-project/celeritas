@@ -287,7 +287,11 @@ endif()
 
 celeritas_add_test(celeritas/ext/EventReader.test.cc ${_needs_hepmc})
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
-  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_link})
+  ${_needs_geant4} LINK_LIBRARIES ${_optional_json_link}
+  FILTER
+    "FourSteelSlabs*"
+    "TestEm3*"
+  )
 celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 
 #-------------------------------------#

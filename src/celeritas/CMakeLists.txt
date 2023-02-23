@@ -103,6 +103,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantGeoExporter.cc
     ext/detail/GeantLoggerAdapter.cc
     ext/detail/GeantPhysicsList.cc
+    ext/detail/GeantVolumeVisitor.cc
     ext/detail/ImportProcessConverter.cc
   )
   target_link_libraries(celeritas_geant4

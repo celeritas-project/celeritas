@@ -24,6 +24,7 @@
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -255,8 +256,20 @@ void SharedParams::initialize_core(SetupOptions const& options)
                       "defined in the celeritas::SetupOptions");
 
     celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
-    auto imported = std::make_shared<ImportData>(load_geant_data());
+    // Convert ImportVolume names to GDML versions if we're exporting
+    GeantImportDataSelection import_opts;
+    import_opts.unique_volumes = options.geometry_file.empty();
+    auto imported = std::make_shared<ImportData>(load_geant_data(import_opts));
     CELER_ASSERT(imported && *imported);
+
+    if (CELERITAS_USE_ROOT && options.output_file.size() > 5)
+    {
+        std::string root_out{options.output_file.begin(),
+                             options.output_file.end() - 5};
+        root_out += ".root";
+        RootExporter export_root(root_out.c_str());
+        export_root(*imported);
+    }
 
     CoreParams::Input params;
 
