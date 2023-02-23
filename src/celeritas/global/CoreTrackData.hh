@@ -49,6 +49,7 @@ struct CoreParamsData
     CutoffParamsData<W, M> cutoffs;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;
 
     CoreScalars scalars;
@@ -57,7 +58,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && init && scalars;
+               && physics && sim && init && scalars;
     }
 
     //! Assign from another set of data
@@ -72,6 +73,7 @@ struct CoreParamsData
         cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         init = other.init;
         scalars = other.scalars;
         return *this;

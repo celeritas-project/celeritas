@@ -62,7 +62,7 @@ class FieldPropagator
     inline CELER_FUNCTION result_type operator()(real_type dist);
 
     //! Limit on substeps
-    static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 128; }
+    static CELER_CONSTEXPR_FUNCTION short int max_substeps() { return 1000; }
 
     // Distance to bump or to consider a "zero" movement
     inline CELER_FUNCTION real_type bump_distance() const;
@@ -256,6 +256,13 @@ CELER_FUNCTION auto FieldPropagator<DriverT>::operator()(real_type step)
             remaining = update_length;
         }
     } while (remaining >= driver_.minimum_step() && remaining_substeps > 0);
+
+    // Flag track as looping if the max number of substeps was reached without
+    // hitting a boundary or moving a distance equal to the requested step
+    if (remaining_substeps == 0 && (!result.boundary || result.distance < step))
+    {
+        result.looping = true;
+    }
 
     if (result.boundary && result.distance > 0)
     {

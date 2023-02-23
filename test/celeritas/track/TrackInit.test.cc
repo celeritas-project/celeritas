@@ -73,7 +73,7 @@ class InteractAction final : public ExplicitActionInterface
 
     void execute(CoreDeviceRef const& core) const final
     {
-        interact(core.states, input_.device_ref());
+        interact(core, input_.device_ref());
     }
 
     ActionId action_id() const final { return id_; }
@@ -265,7 +265,7 @@ TEST_F(TrackInitTest, run)
     ITTestInput input(alloc, alive);
 
     // Launch kernel to process interactions
-    interact(core_data.states, input.device_ref());
+    interact(core_data, input.device_ref());
 
     // Launch a kernel to create track initializers from secondaries
     extend_from_secondaries(core_data);
@@ -346,7 +346,7 @@ TEST_F(TrackInitTest, primaries)
         initialize_tracks(core_data);
 
         // Launch kernel that will kill half the tracks
-        interact(core_data.states, input.device_ref());
+        interact(core_data, input.device_ref());
 
         // Find vacancies and create track initializers from secondaries
         extend_from_secondaries(core_data);
@@ -412,7 +412,7 @@ TEST_F(TrackInitSecondaryTest, secondaries)
         ASSERT_EQ(0, core_data.states.init.initializers.size());
 
         // Launch kernel to process interactions
-        interact(core_data.states, input.device_ref());
+        interact(core_data, input.device_ref());
 
         // Launch a kernel to create track initializers from secondaries
         extend_from_secondaries(core_data);

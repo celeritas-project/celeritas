@@ -24,6 +24,7 @@
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
+#include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
@@ -53,6 +54,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars scalars)
     ref.cutoffs = get_ref<M>(*p.cutoff);
     ref.physics = get_ref<M>(*p.physics);
     ref.rng = get_ref<M>(*p.rng);
+    ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
 
     CELER_ENSURE(ref);
@@ -85,6 +87,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(cutoff);
     CP_VALIDATE_INPUT(physics);
     CP_VALIDATE_INPUT(rng);
+    CP_VALIDATE_INPUT(sim);
     CP_VALIDATE_INPUT(init);
     CP_VALIDATE_INPUT(action_reg);
 #undef CP_VALIDATE_INPUT

@@ -107,7 +107,7 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  */
 CELER_FUNCTION SimTrackView CoreTrackView::make_sim_view() const
 {
-    return SimTrackView{states_.sim, this->track_slot_id()};
+    return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

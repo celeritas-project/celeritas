@@ -76,7 +76,7 @@ CELER_FUNCTION void LocateAliveLauncher<M>::operator()(TrackSlotId tid) const
 {
     // Count the number of secondaries produced by each track
     size_type num_secondaries{0};
-    SimTrackView sim(states_.sim, tid);
+    SimTrackView sim(params_.sim, states_.sim, tid);
 
     if (sim.status() != TrackStatus::inactive)
     {

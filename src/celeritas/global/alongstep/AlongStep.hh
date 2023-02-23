@@ -53,35 +53,51 @@ inline CELER_FUNCTION void along_step(MH&& msc,
         return;
     }
 
-    bool use_msc = msc.is_applicable(track, step_limit.step);
-    if (use_msc)
+    if (msc.is_applicable(track, step_limit.step))
     {
         // Apply MSC step limiters and transform "physical" step (with MSC) to
         // "geometrical" step (smooth curve)
         msc.limit_step(track, &step_limit);
     }
 
+    auto particle = track.make_particle_view();
     {
         auto geo = track.make_geo_view();
-        auto propagate = make_propagator(track.make_particle_view(), &geo);
+        auto propagate = make_propagator(particle, &geo);
         Propagation p = propagate(step_limit.step);
-        if (p.boundary)
+        if (p.looping)
         {
-            // Stopped at a geometry boundary: this is the new step action.
-            CELER_ASSERT(p.distance <= step_limit.step);
-            step_limit.step = p.distance;
-            step_limit.action = track.boundary_action();
-        }
-        else if (p.distance < step_limit.step)
-        {
-            // Some other internal non-boundary geometry limit has been reached
-            // (e.g. too many substeps)
+            // The track is looping, i.e. progressing little over many
+            // integration steps in the field propagator (likely a low energy
+            // particle in a low density material/strong magnetic field). If
+            // its energy is below the looping threshold or it has taken more
+            // than the allowed number of steps while looping, kill it.
+            // TODO: only stable particles should be killed
             step_limit.step = p.distance;
             step_limit.action = track.propagation_limit_action();
+            sim.increment_looping_steps();
+
+            auto pid = particle.particle_id();
+            if (particle.energy() < sim.looping_threshold(pid)
+                || sim.num_looping_steps() >= sim.max_looping_steps(pid))
+            {
+                sim.status(TrackStatus::killed);
+            }
+        }
+        else
+        {
+            if (p.boundary)
+            {
+                // Stopped at a geometry boundary: this is the new step action.
+                CELER_ASSERT(p.distance <= step_limit.step);
+                step_limit.step = p.distance;
+                step_limit.action = track.boundary_action();
+            }
+            sim.reset_looping_steps();
         }
     }
 
-    if (use_msc)
+    if (msc.is_applicable(track, step_limit.step))
     {
         // Scatter the track and transform the "geometrical" step back to
         // "physical" step
@@ -89,7 +105,6 @@ inline CELER_FUNCTION void along_step(MH&& msc,
     }
 
     // Update track's lab-frame time using the beginning-of-step speed
-    auto particle = track.make_particle_view();
     {
         CELER_ASSERT(!particle.is_stopped());
         real_type speed = native_value_from(particle.speed());

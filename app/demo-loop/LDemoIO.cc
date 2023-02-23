@@ -37,6 +37,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 using namespace celeritas;
@@ -342,6 +343,13 @@ TransporterInput load_input(LDemoArgs const& args)
     // Construct RNG params
     {
         params.rng = std::make_shared<RngParams>(args.seed);
+    }
+
+    // Construct simulation params
+    {
+        SimParams::Input input;
+        input.particles = params.particle;
+        params.sim = std::make_shared<SimParams>(input);
     }
 
     // Construct track initialization params

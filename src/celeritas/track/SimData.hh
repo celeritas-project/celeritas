@@ -14,11 +14,62 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/phys/Secondary.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Particle-dependent parameters for killing looping tracks.
+ *
+ * Tracks that are flagged as looping (taking a large number of substeps in the
+ * field propagator) will be killed immediately if their energy is below \c
+ * threshold_energy or after \c max_steps step iterations if their energy is
+ * above the threshold. The \c threshold_energy is equivalent to the "important
+ * energy" in Geant4.
+ */
+struct LoopingThreshold
+{
+    using Energy = units::MevEnergy;
+
+    size_type max_steps{10};
+    Energy threshold_energy{250};
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const { return max_steps > 0; }
+};
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent simulation data.
+ */
+template<Ownership W, MemSpace M>
+struct SimParamsData
+{
+    //// TYPES ////
+
+    template<class T>
+    using ParticleItems = Collection<T, W, M, ParticleId>;
+
+    //// DATA ////
+
+    ParticleItems<LoopingThreshold> looping;
+
+    //// METHODS ////
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const { return !looping.empty(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    SimParamsData& operator=(SimParamsData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        looping = other.looping;
+        return *this;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Simulation state of a track.
@@ -31,6 +82,8 @@ struct SimTrackState
     TrackId parent_id;  //!< ID of parent that created it
     EventId event_id;  //!< ID of originating event
     size_type num_steps{0};  //!< Total number of steps taken
+    size_type num_looping_steps{0};  //!< Number of steps taken since the
+                                     //!< track was flagged as looping
     real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
 
     TrackStatus status{TrackStatus::inactive};

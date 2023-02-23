@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/phys/Secondary.hh"
 
 #include "SimData.hh"
@@ -26,14 +27,17 @@ class SimTrackView
   public:
     //!@{
     //! \name Type aliases
+    using SimParamsRef = NativeCRef<SimParamsData>;
     using SimStateRef = NativeRef<SimStateData>;
     using Initializer_t = SimTrackInitializer;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
     // Construct with view to state and persistent data
-    inline CELER_FUNCTION
-    SimTrackView(SimStateRef const& states, TrackSlotId tid);
+    inline CELER_FUNCTION SimTrackView(SimParamsRef const& params,
+                                       SimStateRef const& states,
+                                       TrackSlotId tid);
 
     // Initialize the sim state
     inline CELER_FUNCTION SimTrackView& operator=(Initializer_t const& other);
@@ -43,6 +47,12 @@ class SimTrackView
 
     // Increment the total number of steps
     CELER_FORCEINLINE_FUNCTION void increment_num_steps();
+
+    // Increment the number of steps this track has been looping
+    CELER_FORCEINLINE_FUNCTION void increment_looping_steps();
+
+    // Reset the number of looping steps to zero
+    CELER_FORCEINLINE_FUNCTION void reset_looping_steps();
 
     // Set whether the track is alive
     inline CELER_FUNCTION void status(TrackStatus);
@@ -76,6 +86,9 @@ class SimTrackView
     // Total number of steps taken by the track
     CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
 
+    // Number of steps taken by a track after it was flagged as looping
+    CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
+
     // Time elapsed in the lab frame since the start of the event [s]
     CELER_FORCEINLINE_FUNCTION real_type time() const;
 
@@ -85,7 +98,16 @@ class SimTrackView
     // Limiting step and action to take
     CELER_FORCEINLINE_FUNCTION StepLimit const& step_limit() const;
 
+    //// PARAMETER DATA ////
+
+    // Energy below which looping tracks will be killed immediately
+    CELER_FORCEINLINE_FUNCTION Energy looping_threshold(ParticleId) const;
+
+    // Number of steps a looping track below \c looping_threshold will live
+    CELER_FORCEINLINE_FUNCTION size_type max_looping_steps(ParticleId) const;
+
   private:
+    SimParamsRef const& params_;
     SimStateRef const& states_;
     const TrackSlotId track_slot_;
 };
@@ -97,8 +119,10 @@ class SimTrackView
  * Construct from persistent and local data.
  */
 CELER_FUNCTION
-SimTrackView::SimTrackView(SimStateRef const& states, TrackSlotId tid)
-    : states_(states), track_slot_(tid)
+SimTrackView::SimTrackView(SimParamsRef const& params,
+                           SimStateRef const& states,
+                           TrackSlotId tid)
+    : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(track_slot_ < states_.size());
 }
@@ -130,6 +154,24 @@ CELER_FUNCTION void SimTrackView::add_time(real_type delta)
 CELER_FUNCTION void SimTrackView::increment_num_steps()
 {
     ++states_.state[track_slot_].num_steps;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increment the number of steps this track has been looping.
+ */
+CELER_FUNCTION void SimTrackView::increment_looping_steps()
+{
+    ++states_.state[track_slot_].num_looping_steps;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the number of looping steps to zero.
+ */
+CELER_FUNCTION void SimTrackView::reset_looping_steps()
+{
+    states_.state[track_slot_].num_looping_steps = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -257,6 +299,15 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Number of steps taken by a track after it was flagged as looping.
+ */
+CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
+{
+    return states_.state[track_slot_].num_looping_steps;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Time elapsed in the lab frame since the start of the event [s].
  */
 CELER_FUNCTION real_type SimTrackView::time() const
@@ -282,5 +333,28 @@ CELER_FUNCTION StepLimit const& SimTrackView::step_limit() const
     return states_.state[track_slot_].step_limit;
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Energy below which looping tracks will be killed immediately.
+ *
+ * Looping tracks above this energy will only be killed if they are still
+ * looping after \c max_looping_steps step iterations. This is equivalent to
+ * the "important energy" in Geant4.
+ */
+CELER_FORCEINLINE_FUNCTION auto
+SimTrackView::looping_threshold(ParticleId pid) const -> Energy
+{
+    return params_.looping[pid].threshold_energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of steps a looping track below \c looping_threshold will live.
+ */
+CELER_FORCEINLINE_FUNCTION size_type
+SimTrackView::max_looping_steps(ParticleId pid) const
+{
+    return params_.looping[pid].max_steps;
+}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
