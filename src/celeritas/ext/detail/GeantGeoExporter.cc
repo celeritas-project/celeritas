@@ -10,6 +10,7 @@
 #include <G4GDMLParser.hh>
 #include <G4Threading.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -57,7 +58,9 @@ void GeantGeoExporter::operator()(std::string const& filename) const
     parser.SetEnergyCutsExport(true);
     parser.SetSDExport(true);
     parser.SetOverlapCheck(true);
+#if G4VERSION_NUMBER >= 1070
     parser.SetOutputFileOverwrite(true);
+#endif
     constexpr bool append_pointers = true;
     parser.Write(filename, world_, append_pointers);
 }
