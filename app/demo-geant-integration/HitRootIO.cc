@@ -181,7 +181,7 @@ void HitRootIO::Merge()
     auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
 #else
     auto const nthreads
-        = celeritas::GetNumberOfThreads(*G4RunManager::GetRunManager());
+        = celeritas::get_num_threads(*G4RunManager::GetRunManager());
 #endif
     std::vector<TFile*> files;
     std::vector<TTree*> trees;

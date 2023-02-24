@@ -74,10 +74,9 @@ class DetectorConstruction : public G4VUserDetectorConstruction
  * need to explicitely try dynamic cast to G4MTRunManager to get the number of
  * threads. If the dynamic cast fails, return 1
  */
-int GetNumberOfThreads(G4RunManager const& runman)
+int get_num_threads(G4RunManager const& runman)
 {
-    auto const* runman_mt = dynamic_cast<G4MTRunManager const*>(&runman);
-    if (runman_mt != nullptr)
+    if (auto const* runman_mt = dynamic_cast<G4MTRunManager const*>(&runman))
     {
         return runman_mt->GetNumberOfThreads();
     }

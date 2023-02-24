@@ -24,7 +24,7 @@ namespace celeritas
 
 //---------------------------------------------------------------------------//
 // Retrieve the number of threads of G4RunManager for Geant4 versions <= 10.7.0
-int GetNumberOfThreads(G4RunManager const&);
+int get_num_threads(G4RunManager const&);
 
 //---------------------------------------------------------------------------//
 /*!

@@ -117,7 +117,7 @@ Logger make_mt_logger(G4RunManager const& runman)
 {
 #if G4VERSION_NUMBER < 1070
     return Logger(MpiCommunicator{},
-                  MtLogger{GetNumberOfThreads(runman)},
+                  MtLogger{get_num_threads(runman)},
                   "CELER_LOG_LOCAL");
 #else
     return Logger(MpiCommunicator{},
