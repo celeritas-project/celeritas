@@ -2,6 +2,87 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _release_v0.2.1:
+
+Version 0.2.1
+=============
+
+*Released 2023/02/24*
+
+Version 0.2.1 corrects several major tracking and physics bugs
+in the 0.2.x series. Notably:
+
+- Positron annihilation is no longer ignored.
+- The 1 keV standard EM physics cutoff applies to electrons and positrons
+  *after* slowing down in addition to before, reducing the number of
+  low-energy particles being tracked.
+- Field propagation no longer advances particles to boundaries slightly
+  past their physics path length. This previously produced numerous
+  instances of a coincident boundary crossing plus physics interaction.
+- In high-Z materials, Geant4 produces MSC cross sections for positrons
+  that are not monotonically decreasing with increasing energy (there is
+  a discontinuity around 10 MeV). This behavior previously caused a
+  miscalculation of the step length when slowing down near 10 MeV.
+
+This is also the first release to support Geant4 version 10.6.
+
+Note that many of the changes are the same as those in :ref:`release_v0.1.5`.
+
+
+New features
+------------
+
+* Add an example of I/O writing sensitive hits to a ROOT file *(@whokion, #606)*
+* Write particle params to diagnostic output *(@sethrj, #612)*
+* Provide detailed track and kernel information when CPU exceptions are thrown *(@sethrj, #611)*
+* Add enum string mapper *(@sethrj, #626)*
+* Support for geant4 v10.6.3 and Cmake preset for Zeus *(@esseivaju, #665)*
+
+Reviewers: @amandalund *(2)*, @pcanal *(1)*, @sethrj *(1)*
+
+Bug fixes
+---------
+
+* Allow invalid volume IDs in ROOT MC truth output *(@amandalund, #603)*
+* Fix missing Geant4 environment in unit test *(@drbenmorgan, #602)*
+* Fix missing positron annihilation process and process diagnostic *(@amandalund, #625)*
+* Fix NaN/assertion when taking extremely small steps in a field *(@sethrj, #628)*
+* Fix ORANGE intersection along cylinder axis *(@sethrj, #627)*
+* Fix incorrect Urban MSC path length correction due to discontinuity in positron cross section *(@amandalund, #642)*
+* Check for unlikely "zero speed" condition *(@sethrj, #646)*
+* Avoid XS scaling factor > 1 in `SBPositronXSCorrector` *(@stognini, #649)*
+* Fix volume mapping and navigation issues found with HGCal prototype *(@sethrj, #637)*
+* Fix coincident boundary/step created by field propagator *(@sethrj, #654)*
+* VecGeom/Cuda: set the stack limit to 16K when CELERITAS_DEBUG=ON *(@pcanal, #638)*
+* Apply electron tracking cut *after* slowing down in addition to before *(@sethrj, #648)*
+* Fix Geant4/GDML volume names to get TileCal running *(@sethrj, #666)*
+* Ignore Geant4 muons and muon processes by default in accel *(@sethrj, #667)*
+
+Reviewers: @sethrj *(6)*, @whokion *(4)*, @amandalund *(3)*, @stognini *(2)*, @elliottbiondo *(1)*, @mrguilima *(1)*
+
+Documentation improvements
+--------------------------
+
+* Add new examples and flesh out user documentation *(@sethrj, #605)*
+* Minor documentation updates *(@sethrj, #622)*
+* Characterize and remove field driver convergence assertions *(@sethrj, #650)*
+* Document available physics processes and models *(@drbenmorgan, #653)*
+* Release v0.1.5 *(@sethrj, #663)*
+
+Reviewers: @amandalund *(3)*, @whokion *(1)*, @sethrj *(1)*
+
+Minor internal changes
+----------------------
+
+* Remove MSC data from core physics class *(@sethrj, #604)*
+* Update crusher environment to use AMD LLVM compilers *(@sethrj, #609)*
+* Support linking to Geant4 static libraries *(@drbenmorgan, #623)*
+* Refine ImportProcess enums and importing code *(@sethrj, #624)*
+* Use ProcessBuilder for ROOT and Geant4 tests *(@sethrj, #629)*
+* Activate fine-grid MSC test and make GeantImporter less verbose *(@sethrj, #645)*
+
+Reviewers: @amandalund *(3)*, @whokion *(1)*, @sethrj *(1)*, @stognini *(1)*
+
 .. _release_v0.2.0:
 
 Version 0.2.0
