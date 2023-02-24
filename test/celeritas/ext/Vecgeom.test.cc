@@ -511,9 +511,9 @@ TEST_F(SolidsTest, trace)
                                                        1e-08,
                                                        40.048511400819,
                                                        25.977412807017,
-                                                       66.987037891082,
-                                                       50,
-                                                       100};
+                                                       86.987037891082,
+                                                       10,
+                                                       120};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
     {
