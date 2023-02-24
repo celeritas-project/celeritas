@@ -10,11 +10,6 @@
 #include <cstdio>
 #include <regex>
 #include <G4Event.hh>
-
-#if G4VERSION_NUMBER < 1070
-#    include <celeritas/ext/GeantSetup.hh>
-#endif
-
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
@@ -24,6 +19,9 @@
 #include <TROOT.h>
 #include <TTree.h>
 
+#if G4VERSION_NUMBER < 1070
+#    include <celeritas/ext/GeantSetup.hh>
+#endif
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "accel/ExceptionConverter.hh"

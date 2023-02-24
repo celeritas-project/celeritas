@@ -10,16 +10,14 @@
 #include <algorithm>
 #include <functional>
 #include <string>
-
-#if G4VERSION_NUMBER < 1070
-#    include <celeritas/ext/GeantSetup.hh>
-#endif
-
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4Version.hh>
 #include <G4ios.hh>
 
+#if G4VERSION_NUMBER < 1070
+#    include <celeritas/ext/GeantSetup.hh>
+#endif
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
