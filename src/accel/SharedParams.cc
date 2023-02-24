@@ -258,6 +258,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     celeritas::GeantImporter load_geant_data(GeantImporter::get_world_volume());
     // Convert ImportVolume names to GDML versions if we're exporting
     GeantImportDataSelection import_opts;
+    import_opts.particles = GeantImportDataSelection::em_basic;
+    import_opts.processes = import_opts.particles;
     import_opts.unique_volumes = options.geometry_file.empty();
     auto imported = std::make_shared<ImportData>(load_geant_data(import_opts));
     CELER_ASSERT(imported && *imported);
