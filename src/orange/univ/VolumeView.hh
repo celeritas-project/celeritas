@@ -43,7 +43,7 @@ class VolumeView
     // Construct with reference to persistent data
     inline CELER_FUNCTION VolumeView(ParamsRef const& params,
                                      SimpleUnitRecord const& unit_record,
-                                     VolumeId id);
+                                     LocalVolumeId id);
 
     //// ACCESSORS ////
 
@@ -84,7 +84,7 @@ class VolumeView
     static inline CELER_FUNCTION VolumeRecord const&
     volume_record(ParamsRef const&,
                   SimpleUnitRecord const& unit_record,
-                  VolumeId id);
+                  LocalVolumeId id);
 };
 
 //---------------------------------------------------------------------------//
@@ -94,7 +94,7 @@ class VolumeView
 CELER_FUNCTION
 VolumeView::VolumeView(ParamsRef const& params,
                        SimpleUnitRecord const& unit_record,
-                       VolumeId id)
+                       LocalVolumeId id)
     : params_(params), def_(VolumeView::volume_record(params, unit_record, id))
 {
 }
@@ -223,13 +223,10 @@ CELER_FUNCTION bool VolumeView::simple_intersection() const
 inline CELER_FUNCTION VolumeRecord const&
 VolumeView::volume_record(ParamsRef const& params,
                           SimpleUnitRecord const& unit,
-                          VolumeId local_vol_id)
+                          LocalVolumeId local_vol_id)
 {
     CELER_EXPECT(local_vol_id < unit.volumes.size());
-
-    VolumeId global_vol_id = unit.volumes[local_vol_id.unchecked_get()];
-
-    return params.volume_records[global_vol_id];
+    return params.volume_records[unit.volumes[local_vol_id]];
 }
 
 //---------------------------------------------------------------------------//

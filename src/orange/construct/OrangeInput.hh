@@ -83,7 +83,7 @@ struct UnitInput
         UniverseId universe_id;
         Translation translation;
     };
-    using MapVolumeDaughter = std::unordered_map<VolumeId, Daughter>;
+    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, Daughter>;
 
     SurfaceInput surfaces;
     std::vector<VolumeInput> volumes;

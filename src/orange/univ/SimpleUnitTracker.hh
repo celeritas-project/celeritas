@@ -50,7 +50,7 @@ class SimpleUnitTracker
     //// ACCESSORS ////
 
     //! Number of local volumes
-    CELER_FUNCTION VolumeId::size_type num_volumes() const
+    CELER_FUNCTION LocalVolumeId::size_type num_volumes() const
     {
         return unit_record_.volumes.size();
     }
@@ -59,6 +59,12 @@ class SimpleUnitTracker
     CELER_FUNCTION SurfaceId::size_type num_surfaces() const
     {
         return unit_record_.surfaces.size();
+    }
+
+    //! SimpleUnitRecord for this tracker
+    CELER_FUNCTION SimpleUnitRecord const& unit_record() const
+    {
+        return unit_record_;
     }
 
     //// OPERATIONS ////
@@ -80,7 +86,7 @@ class SimpleUnitTracker
 
     // Calculate closest distance to a surface in any direction
     inline CELER_FUNCTION real_type safety(Real3 const& pos,
-                                           VolumeId vol) const;
+                                           LocalVolumeId vol) const;
 
     // Calculate the local surface normal
     inline CELER_FUNCTION Real3 normal(Real3 const& pos, SurfaceId surf) const;
@@ -93,7 +99,8 @@ class SimpleUnitTracker
     //// METHODS ////
 
     // Get volumes that have the given surface as a "face" (connectivity)
-    inline CELER_FUNCTION Span<VolumeId const> get_neighbors(SurfaceId) const;
+    inline CELER_FUNCTION Span<LocalVolumeId const>
+        get_neighbors(SurfaceId) const;
 
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
@@ -112,7 +119,7 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Surfaces make_local_surfaces() const;
 
     // Create a Volumes object from the params
-    inline CELER_FUNCTION VolumeView make_local_volume(VolumeId vid) const;
+    inline CELER_FUNCTION VolumeView make_local_volume(LocalVolumeId vid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,9 +128,9 @@ class SimpleUnitTracker
 /*!
  * Construct with reference to persistent parameter data.
  *
- * \todo When adding multiple universes, this will calculate range of VolumeIds
- * that belong to this unit. For now we assume all volumes and surfaces belong
- * to us.
+ * \todo When adding multiple universes, this will calculate range of
+ * LocalVolumeIds that belong to this unit. For now we assume all volumes and
+ * surfaces belong to us.
  */
 CELER_FUNCTION
 SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
@@ -149,7 +156,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
     // Loop over all volumes (TODO: use BVH)
-    for (VolumeId volid : range(VolumeId{this->num_volumes()}))
+    for (LocalVolumeId volid : range(LocalVolumeId{this->num_volumes()}))
     {
         VolumeView vol = this->make_local_volume(volid);
 
@@ -192,7 +199,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         this->make_local_surfaces(), state.pos, state.temp_sense);
 
     // Loop over all connected surfaces (TODO: intersect with BVH)
-    for (VolumeId volid : this->get_neighbors(state.surface.id()))
+    for (LocalVolumeId volid : this->get_neighbors(state.surface.id()))
     {
         if (volid == state.volume)
         {
@@ -267,7 +274,7 @@ SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
  * necessarily slow down the simulation.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   VolumeId volid) const
+                                                   LocalVolumeId volid) const
 {
     CELER_EXPECT(volid);
 
@@ -314,7 +321,7 @@ SimpleUnitTracker::normal(Real3 const& pos, SurfaceId surf) const -> Real3
  * Get volumes that have the given surface as a "face" (connectivity).
  */
 CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
-    -> Span<VolumeId const>
+    -> Span<LocalVolumeId const>
 {
     CELER_EXPECT(surf < this->num_surfaces());
 
@@ -323,7 +330,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
     Connectivity const& conn = params_.connectivities[conn_id];
 
     CELER_ENSURE(!conn.neighbors.empty());
-    return params_.volume_ids[conn.neighbors];
+    return params_.connectivity_volume_ids[conn.neighbors];
 }
 
 //---------------------------------------------------------------------------//
@@ -581,7 +588,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 
         // Loop over volumes connected to this surface.
         // TODO: intersection of this with BVH/acceleration grid
-        for (VolumeId vid : this->get_neighbors(surface))
+        for (LocalVolumeId vid : this->get_neighbors(surface))
         {
             CELER_ASSERT(vid != state.volume);
             VolumeView vol = this->make_local_volume(vid);
@@ -623,7 +630,7 @@ CELER_FORCEINLINE_FUNCTION Surfaces SimpleUnitTracker::make_local_surfaces() con
  * Create a Volume view object from the params for this unit.
  */
 CELER_FORCEINLINE_FUNCTION VolumeView
-SimpleUnitTracker::make_local_volume(VolumeId vid) const
+SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
 {
     return VolumeView{params_, unit_record_, vid};
 }

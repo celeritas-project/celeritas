@@ -204,8 +204,6 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Initialize logical state
     UniverseId next_uid = top_universe_id();
 
-    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
-
     size_type level = 0;
 
     // Recurse into daughter universes starting with the outermost universe
@@ -226,8 +224,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
-        auto global_vol_id = unit_indexer.global_volume(uid, tinit.volume);
-        next_uid = params_.volume_records[global_vol_id].daughter;
+        auto const& vol_rec = tracker.unit_record().volumes[tinit.volume];
+        next_uid = params_.volume_records[vol_rec].daughter;
         ++level;
 
     } while (next_uid);
@@ -332,7 +330,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     auto lsa = this->make_lsa(LevelId{0});
-    return lsa.vol() == VolumeId{0};
+    return lsa.vol() == LocalVolumeId{0};
 }
 
 //---------------------------------------------------------------------------//
@@ -521,7 +519,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // Initialization failure on release mode: set to exterior volume
         // rather than segfaulting
         // TODO: error correction or more graceful failure than losing energy
-        init.volume = VolumeId{0};
+        init.volume = LocalVolumeId{0};
         init.surface = {};
     }
 
@@ -704,10 +702,7 @@ OrangeTrackView::make_local_state(LevelId level) const
 
     local.pos = lsa.pos();
     local.dir = lsa.dir();
-
-    detail::UnitIndexer unit_indexer(params_.unit_indexer_data);
-    local.volume = unit_indexer.local_volume(lsa.vol()).volume;
-
+    local.volume = lsa.vol();
     local.surface = {lsa.surf(), lsa.sense()};
     local.temp_sense = this->make_temp_sense();
     local.temp_next = this->make_temp_next();

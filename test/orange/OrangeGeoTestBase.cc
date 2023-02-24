@@ -264,12 +264,14 @@ std::string OrangeGeoTestBase::id_to_label(SurfaceId surf) const
 /*!
  * Volume name (or sentinel if no volume).
  */
-std::string OrangeGeoTestBase::id_to_label(VolumeId vol) const
+std::string
+OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
 {
-    if (!vol)
+    if (!volid)
         return "[none]";
 
-    return params_->id_to_label(vol).name;
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    return params_->id_to_label(ui.global_volume(uid, volid)).name;
 }
 
 //---------------------------------------------------------------------------//

@@ -50,7 +50,7 @@ TEST(Types, OnFace)
 class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
-    VolumeView make_volume_view(VolumeId v) const
+    VolumeView make_volume_view(LocalVolumeId v) const
     {
         CELER_EXPECT(v);
         auto const& host_ref = this->params().host_ref();
@@ -86,7 +86,7 @@ TEST_F(SenseCalculatorTest, one_volume)
     SenseCalculator calc_senses(
         this->make_surfaces(), Real3{123, 345, 567}, this->sense_storage());
 
-    auto result = calc_senses(this->make_volume_view(VolumeId{0}));
+    auto result = calc_senses(this->make_volume_view(LocalVolumeId{0}));
     EXPECT_EQ(0, result.senses.size());
     EXPECT_FALSE(result.face);
 }
@@ -101,8 +101,8 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
     // Note that since these have the same faces, the results should be the
     // same for both.
-    VolumeView outer = this->make_volume_view(VolumeId{0});
-    VolumeView inner = this->make_volume_view(VolumeId{1});
+    VolumeView outer = this->make_volume_view(LocalVolumeId{0});
+    VolumeView inner = this->make_volume_view(LocalVolumeId{1});
 
     {
         // Point is in the inner sphere
@@ -166,9 +166,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
     // this->describe(std::cout);
 
     // Volume definitions
-    VolumeView vol_b = this->make_volume_view(VolumeId{2});
-    VolumeView vol_c = this->make_volume_view(VolumeId{3});
-    VolumeView vol_e = this->make_volume_view(VolumeId{5});
+    VolumeView vol_b = this->make_volume_view(LocalVolumeId{2});
+    VolumeView vol_c = this->make_volume_view(LocalVolumeId{3});
+    VolumeView vol_e = this->make_volume_view(LocalVolumeId{5});
 
     {
         // Point is in the inner sphere

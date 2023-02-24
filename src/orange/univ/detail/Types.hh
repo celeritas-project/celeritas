@@ -131,7 +131,7 @@ struct Intersection
  */
 struct Initialization
 {
-    VolumeId volume;
+    LocalVolumeId volume;
     OnSurface surface;
 
     //! Whether initialization succeeded
@@ -182,7 +182,7 @@ struct LocalState
 {
     Real3 pos;
     Real3 dir;
-    VolumeId volume;
+    LocalVolumeId volume;
     OnSurface surface;
     Span<Sense> temp_sense;
     TempNextFace temp_next;

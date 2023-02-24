@@ -21,6 +21,9 @@ namespace celeritas
 //! Identifier for a geometry volume
 using VolumeId = OpaqueId<struct Volume>;
 
+//! Lacal identifier for a geometry volume in a single universe
+using LocalVolumeId = OpaqueId<struct LocalVolume>;
+
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface>;
 

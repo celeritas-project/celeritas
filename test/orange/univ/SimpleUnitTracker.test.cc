@@ -159,7 +159,8 @@ LocalState
 SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
-    state.volume = this->find_volume(vol);
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    state.volume = ui.local_volume(this->find_volume(vol)).volume;
     return state;
 }
 
@@ -187,7 +188,8 @@ LocalState SimpleUnitTrackerTest::make_state(
     }
 
     LocalState state = this->make_state(pos, dir);
-    state.volume = this->find_volume(vol);
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    state.volume = ui.local_volume(this->find_volume(vol)).volume;
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
     // TrackingGeometry.
@@ -280,7 +282,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     }
 
     // Clear other data
-    fill(VolumeId{}, &result.vol);
+    fill(LocalVolumeId{}, &result.vol);
     fill(SurfaceId{}, &result.surf);
     fill(LevelId{}, &result.level);
 
@@ -367,7 +369,7 @@ TEST_F(OneVolumeTest, initialize)
         // Anywhere is valid
         auto init = tracker.initialize(this->make_state({1, 2, 3}, {0, 0, 1}));
         EXPECT_TRUE(init);
-        EXPECT_EQ(VolumeId{0}, init.volume);
+        EXPECT_EQ(LocalVolumeId{0}, init.volume);
         EXPECT_FALSE(init.surface);
     }
 }
@@ -391,9 +393,12 @@ TEST_F(OneVolumeTest, intersect)
 TEST_F(OneVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
 
-    EXPECT_SOFT_EQ(inf,
-                   tracker.safety({1, 2, 3}, this->find_volume("infinite")));
+    EXPECT_SOFT_EQ(
+        inf,
+        tracker.safety({1, 2, 3},
+                       ui.local_volume(this->find_volume("infinite")).volume));
 }
 
 TEST_F(OneVolumeTest, heuristic_init)
@@ -428,7 +433,7 @@ TEST_F(TwoVolumeTest, initialize)
         SCOPED_TRACE("In the inner sphere");
         auto init
             = tracker.initialize(this->make_state({0.5, 0, 0}, {0, 0, 1}));
-        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("inside", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
@@ -442,7 +447,7 @@ TEST_F(TwoVolumeTest, initialize)
         SCOPED_TRACE("Outside the sphere");
         auto init
             = tracker.initialize(this->make_state({3.0, 0, 0}, {0, 0, 1}));
-        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("outside", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
 }
@@ -455,7 +460,7 @@ TEST_F(TwoVolumeTest, cross_boundary)
         SCOPED_TRACE("Crossing the boundary from the inside");
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "inside", "sphere", '-'));
-        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("outside", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
@@ -463,7 +468,7 @@ TEST_F(TwoVolumeTest, cross_boundary)
         SCOPED_TRACE("Crossing the boundary from the outside");
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "outside", "sphere", '+'));
-        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("inside", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
@@ -579,8 +584,10 @@ TEST_F(TwoVolumeTest, intersect)
 TEST_F(TwoVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-    VolumeId outside = this->find_volume("outside");
-    VolumeId inside = this->find_volume("inside");
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    LocalVolumeId outside
+        = ui.local_volume(this->find_volume("outside")).volume;
+    LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
 
     EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
     EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside));
@@ -652,18 +659,18 @@ TEST_F(FieldLayersTest, initialize)
         SCOPED_TRACE("Exterior");
         auto init
             = tracker.initialize(this->make_state({0, 50, 0}, {0, -1, 0}));
-        EXPECT_EQ("[EXTERIOR]", this->id_to_label(init.volume));
+        EXPECT_EQ("[EXTERIOR]", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         auto init = tracker.initialize(this->make_state({0, -3, 0}, {0, 0, 1}));
-        EXPECT_EQ("world", this->id_to_label(init.volume));
+        EXPECT_EQ("world", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         auto init
             = tracker.initialize(this->make_state({0, -2.4, 0}, {0, 0, 1}));
-        EXPECT_EQ("layer1", this->id_to_label(init.volume));
+        EXPECT_EQ("layer1", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
 }
@@ -681,7 +688,7 @@ TEST_F(FieldLayersTest, cross_boundary)
             // From background to volume
             auto init = tracker.cross_boundary(this->make_state_crossing(
                 {0, -1.5 + eps, 0}, {0, -1, 0}, "world", "layerbox1.py", '+'));
-            EXPECT_EQ("layer1", this->id_to_label(init.volume));
+            EXPECT_EQ("layer1", this->id_to_label(UniverseId{0}, init.volume));
             EXPECT_EQ("layerbox1.py", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
@@ -689,7 +696,7 @@ TEST_F(FieldLayersTest, cross_boundary)
             // From volume to background
             auto init = tracker.cross_boundary(this->make_state_crossing(
                 {0, -2.5 - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
-            EXPECT_EQ("world", this->id_to_label(init.volume));
+            EXPECT_EQ("world", this->id_to_label(UniverseId{0}, init.volume));
             EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
@@ -760,33 +767,32 @@ TEST_F(FiveVolumesTest, properties)
 TEST_F(FiveVolumesTest, initialize)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-
     {
         SCOPED_TRACE("Exterior");
         auto init = tracker.initialize(
             this->make_state({1000, 1000, -1000}, {1, 0, 0}));
-        EXPECT_EQ("[EXTERIOR]", this->id_to_label(init.volume));
+        EXPECT_EQ("[EXTERIOR]", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         SCOPED_TRACE("Single sphere 'e'");
         auto init
             = tracker.initialize(this->make_state({-.25, -.25, 0}, {0, 0, 1}));
-        EXPECT_EQ("e", this->id_to_label(init.volume));
+        EXPECT_EQ("e", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         SCOPED_TRACE("Trimmed square 'a'");
         auto init
             = tracker.initialize(this->make_state({-.7, .7, 0}, {0, 0, 1}));
-        EXPECT_EQ("a", this->id_to_label(init.volume));
+        EXPECT_EQ("a", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         SCOPED_TRACE("Complicated fill volume 'd'");
         auto init
             = tracker.initialize(this->make_state({.75, 0.2, 0}, {0, 0, 1}));
-        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("d", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
@@ -806,7 +812,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
         SCOPED_TRACE("Crossing the boundary from the inside of 'e'");
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {-0.5, -0.25, 0}, {-1, 0, 0}, "e", "epsilon.s", '-'));
-        EXPECT_EQ("c", this->id_to_label(init.volume));
+        EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
@@ -817,7 +823,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
         real_type eps = 1e-10;
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));
-        EXPECT_EQ("c", this->id_to_label(init.volume));
+        EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
@@ -829,7 +835,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
                                       "c",
                                       "gamma.s",
                                       '-'));
-        EXPECT_EQ("a", this->id_to_label(init.volume));
+        EXPECT_EQ("a", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
@@ -841,7 +847,7 @@ TEST_F(FiveVolumesTest, cross_boundary)
                                       "a",
                                       "gamma.s",
                                       '+'));
-        EXPECT_EQ("c", this->id_to_label(init.volume));
+        EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
@@ -852,20 +858,20 @@ TEST_F(FiveVolumesTest, cross_boundary)
         SCOPED_TRACE("Crossing at triple point");
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
-        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("d", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
 
         init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "gamma.s", '+'));
-        EXPECT_EQ("c", this->id_to_label(init.volume));
+        EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
 
         // Near triple point, on sphere but crossing plane edge
         init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "alpha.px", '+'));
-        EXPECT_EQ("a", this->id_to_label(init.volume));
+        EXPECT_EQ("a", this->id_to_label(UniverseId{0}, init.volume));
         EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
@@ -912,9 +918,9 @@ TEST_F(FiveVolumesTest, intersect)
 TEST_F(FiveVolumesTest, safety)
 {
     SimpleUnitTracker tracker(this->params().host_ref(), SimpleUnitId{0});
-
-    VolumeId a = this->find_volume("a");
-    VolumeId d = this->find_volume("d");
+    detail::UnitIndexer ui(this->params().host_ref().unit_indexer_data);
+    LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
+    LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 
     EXPECT_SOFT_EQ(0.15138781886599728, tracker.safety({-0.75, 0.5, 0}, a));
 

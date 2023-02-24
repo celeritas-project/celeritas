@@ -188,7 +188,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         UnitInput::MapVolumeDaughter daughter_map;
         for (auto i : range(parent_cells.size()))
         {
-            daughter_map[VolumeId{parent_cells[i]}]
+            daughter_map[LocalVolumeId{parent_cells[i]}]
                 = {UniverseId{daughters[i]}, {0, 0, 0}};
         }
 

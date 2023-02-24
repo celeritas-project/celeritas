@@ -37,9 +37,9 @@ class LevelStateAccessor
 
     //// ACCESSORS ////
 
-    CELER_FUNCTION VolumeId& vol()
+    CELER_FUNCTION LocalVolumeId& vol()
     {
-        return states_->vol[OpaqueId<VolumeId>{index_}];
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
     }
 
     CELER_FUNCTION Real3& pos()
@@ -74,9 +74,9 @@ class LevelStateAccessor
 
     //// CONST ACCESSORS ////
 
-    CELER_FUNCTION VolumeId const& vol() const
+    CELER_FUNCTION LocalVolumeId const& vol() const
     {
-        return states_->vol[OpaqueId<VolumeId>{index_}];
+        return states_->vol[OpaqueId<LocalVolumeId>{index_}];
     }
 
     CELER_FUNCTION Real3 const& pos() const
