@@ -12,18 +12,15 @@
 #include <G4Event.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
-#include <G4Version.hh>
 #include <TBranch.h>
 #include <TFile.h>
 #include <TObject.h>
 #include <TROOT.h>
 #include <TTree.h>
 
-#if G4VERSION_NUMBER < 1070
-#    include <celeritas/ext/GeantSetup.hh>
-#endif
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
@@ -175,12 +172,8 @@ void HitRootIO::Close()
  */
 void HitRootIO::Merge()
 {
-#if G4VERSION_NUMBER >= 1070
-    auto const nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
-#else
     auto const nthreads
         = celeritas::get_num_threads(*G4RunManager::GetRunManager());
-#endif
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);

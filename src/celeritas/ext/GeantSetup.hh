@@ -23,10 +23,6 @@ namespace celeritas
 {
 
 //---------------------------------------------------------------------------//
-// Retrieve the number of threads of G4RunManager for Geant4 versions <= 10.7.0
-int get_num_threads(G4RunManager const&);
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct a Geant 4 run manager and populate internal Geant4 physics.
  *
@@ -78,6 +74,12 @@ class GeantSetup
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Get the number of threads in a version-portable way
+int get_num_threads(G4RunManager const&);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -98,6 +100,11 @@ inline GeantSetup::GeantSetup(std::string const&, Options)
 inline GeantSetup::~GeantSetup() = default;
 
 inline void GeantSetup::RMDeleter::operator()(G4RunManager*) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline int get_num_threads(G4RunManager const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }

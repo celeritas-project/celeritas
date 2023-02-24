@@ -70,17 +70,24 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the number of threads in a version-portable way.
+ *
  * G4RunManager::GetNumberOfThreads isn't virtual before Geant4 v10.7.0 so we
  * need to explicitely try dynamic cast to G4MTRunManager to get the number of
- * threads. If the dynamic cast fails, return 1
+ * threads.
  */
 int get_num_threads(G4RunManager const& runman)
 {
+#if G4VERSION_NUMBER >= 1070
+    return runman.GetNumberOfThreads();
+#else
     if (auto const* runman_mt = dynamic_cast<G4MTRunManager const*>(&runman))
     {
         return runman_mt->GetNumberOfThreads();
     }
+    // Not multithreaded
     return 1;
+#endif
 }
 
 //---------------------------------------------------------------------------//
