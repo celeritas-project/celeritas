@@ -1,0 +1,93 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wno-psabi -pedantic -pedantic-errors",
+        "CMAKE_CUDA_FLAGS": "-Xcompiler -Wno-psabi",
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "80"},
+        "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
+        "CMAKE_PREFIX_PATH": "/bld3/build/celeritas/geant4/geant4-v10.6.0-install/lib64;/bld3/build/celeritas/VecGeom/install-v1.1.20/lib64/cmake;/cvmfs/atlas-nightlies.cern.ch/repo/sw/master_Athena_x86_64-centos7-gcc11-opt/2023-02-13T2101/AthenaExternals/23.0.17/InstallArea/x86_64-centos7-gcc11-opt/lib/cmake;/cvmfs/sft.cern.ch/lcg/views/LCG_102b_ATLAS_11/x86_64-centos7-gcc11-opt/lib64/cmake;/cvmfs/sft.cern.ch/lcg/views/LCG_102b_ATLAS_11/x86_64-centos7-gcc11-opt/cmake",
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=cascadelake -mtune=cascadelake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "Zeus default options (GCC, debug)",
+      "inherits": [".base"],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "reldeb-novg",
+      "displayName": "Zeus release mode",
+      "inherits": [".reldeb", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "reldeb",
+      "displayName": "Zeus release mode",
+      "inherits": [".reldeb", ".base"]
+    },
+    {
+      "name": "ndebug-novg",
+      "displayName": "Zeus release mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Zeus release mode",
+      "inherits": [".ndebug", ".base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 8,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+  ]
+}
