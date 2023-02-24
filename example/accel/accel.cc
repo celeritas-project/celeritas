@@ -243,8 +243,7 @@ int main()
     setup_options.max_num_events = 1024;
     setup_options.initializer_capacity = 1024 * 128;
     setup_options.secondary_stack_factor = 3.0;
-    setup_options.ignore_processes
-        = {"CoulombScat", "muIoni", "muBrems", "muPairProd"};
+    setup_options.ignore_processes = {"CoulombScat"};
 
     run_manager->Initialize();
     run_manager->BeamOn(1);

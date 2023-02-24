@@ -70,13 +70,18 @@ namespace
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
-decltype(auto) em_particles()
+decltype(auto) em_basic_particles()
 {
-    static const std::unordered_set<PDGNumber> particles = {pdg::electron(),
-                                                            pdg::positron(),
-                                                            pdg::gamma(),
-                                                            pdg::mu_minus(),
-                                                            pdg::mu_plus()};
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::electron(), pdg::positron(), pdg::gamma()};
+    return particles;
+}
+
+//---------------------------------------------------------------------------//
+decltype(auto) em_ex_particles()
+{
+    static const std::unordered_set<PDGNumber> particles
+        = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
 
@@ -94,9 +99,13 @@ struct ParticleFilter
         {
             return (which & DataSelection::dummy);
         }
-        else if (em_particles().count(pdgnum))
+        else if (em_basic_particles().count(pdgnum))
         {
-            return (which & DataSelection::em);
+            return (which & DataSelection::em_basic);
+        }
+        else if (em_ex_particles().count(pdgnum))
+        {
+            return (which & DataSelection::em_ex);
         }
         else
         {
@@ -392,6 +401,7 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
                 std::vector<ImportElement> const& elements,
                 std::vector<ImportMaterial> const& materials)
 {
+    ParticleFilter include_particle{process_flags};
     ProcessFilter include_process{process_flags};
 
     std::vector<ImportProcess> processes;
@@ -403,6 +413,13 @@ store_processes(GeantImporter::DataSelection::Flags process_flags,
         G4ParticleDefinition const* g4_particle_def
             = G4ParticleTable::GetParticleTable()->FindParticle(p.pdg);
         CELER_ASSERT(g4_particle_def);
+
+        if (!include_particle(PDGNumber{g4_particle_def->GetPDGEncoding()}))
+        {
+            CELER_LOG(debug) << "Filtered all processes from particle '"
+                             << g4_particle_def->GetParticleName() << "'";
+            continue;
+        }
 
         G4ProcessVector const& process_list
             = *g4_particle_def->GetProcessManager()->GetProcessList();
