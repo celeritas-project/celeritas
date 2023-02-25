@@ -100,7 +100,16 @@ TEST_F(OneVolumeTest, track_view)
     OrangeTrackView geo = this->make_track_view();
 
     // Initialize
-    geo = Initializer_t{{3, 4, 5}, {1, 0, 0}};
+    geo = Initializer_t{{3, 4, 5}, {0, 1, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
+    EXPECT_EQ(VolumeId{0}, geo.volume_id());
+    EXPECT_EQ(SurfaceId{}, geo.surface_id());
+    EXPECT_TRUE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Initialize from a pre-existing OrangeTrackView object
+    geo = OrangeTrackView::DetailedInitializer{geo, Real3({1, 0, 0})};
     EXPECT_VEC_SOFT_EQ(Real3({3, 4, 5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ(VolumeId{0}, geo.volume_id());
@@ -553,6 +562,27 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Initialize in daughter universe using DetailedInitializer
+    geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
+    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_FALSE(geo.is_outside());
+    EXPECT_FALSE(geo.is_on_boundary());
+}
+
+TEST_F(UniversesTest, boundary_crossing_multiple_universes)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize in outermost universe
+    geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
+    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 }

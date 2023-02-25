@@ -29,7 +29,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample cos(theta) of the Urban multiple scattering model.
+ * Sample angular change and lateral displacement with the Urban multiple
+ * scattering model.
+
+ * \note This code performs the same method as in
+ * G4VMultipleScattering::AlongStepDoIt and G4UrbanMscModel::SampleScattering
+ * of the Geant4 10.7 release.
  */
 class UrbanMscScatter
 {
@@ -138,6 +143,9 @@ class UrbanMscScatter
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
+ *
+ * This function also precalculates distribution-independent quantities, e.g.
+ * converting the geometrical path length to the true path.
  */
 CELER_FUNCTION
 UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
@@ -274,9 +282,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 //---------------------------------------------------------------------------//
 /*!
  * Sample the angular distribution and the lateral displacement by multiple
- * scattering as well as convert the geometrical path length to the true path
- * length based on G4VMultipleScattering::AlongStepDoIt and
- * G4UrbanMscModel::SampleScattering of the Geant4 10.7 release.
+ * scattering.
  */
 template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction

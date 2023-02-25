@@ -20,6 +20,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
@@ -112,10 +113,11 @@ void HitRootIO::WriteObject(HitRootEvent* hit_event)
 {
     if (!event_branch_)
     {
-        event_branch_ =tree_->Branch("event.",
-                          &hit_event,
-                          GlobalSetup::Instance()->GetRootBufferSize(),
-                          this->SplitLevel());
+        event_branch_
+            = tree_->Branch("event.",
+                            &hit_event,
+                            GlobalSetup::Instance()->GetRootBufferSize(),
+                            this->SplitLevel());
     }
     else
     {
@@ -170,13 +172,14 @@ void HitRootIO::Close()
  */
 void HitRootIO::Merge()
 {
-    auto nthreads = G4RunManager::GetRunManager()->GetNumberOfThreads();
+    auto const nthreads
+        = celeritas::get_num_threads(*G4RunManager::GetRunManager());
     std::vector<TFile*> files;
     std::vector<TTree*> trees;
     std::unique_ptr<TList> list(new TList);
 
     CELER_LOG_LOCAL(info) << "Merging hit root files from " << nthreads
-                    << " threads into \"" << file_name_ << "\"";
+                          << " threads into \"" << file_name_ << "\"";
 
     for (int i = 0; i < nthreads; ++i)
     {

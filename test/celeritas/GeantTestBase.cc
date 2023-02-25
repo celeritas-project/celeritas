@@ -44,6 +44,7 @@ struct GeantTestBase::ImportHelper
     std::unique_ptr<GeantImporter> import;
     std::string geometry_basename{};
     GeantPhysicsOptions options{};
+    GeantImportDataSelection selection{};
     ImportData imported;
 };
 
@@ -150,6 +151,8 @@ auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions
 auto GeantTestBase::imported_data() const -> ImportData const&
 {
     GeantPhysicsOptions opts = this->build_geant_options();
+    GeantImportDataSelection sel = this->build_import_data_selection();
+
     ImportHelper& i = GeantTestBase::import_helper();
     if (!i.import)
     {
@@ -159,7 +162,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
             "celeritas", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
-        i.imported = (*i.import)();
+        i.imported = (*i.import)(sel);
         i.options.verbose = false;
     }
     else
@@ -178,9 +181,22 @@ auto GeantTestBase::imported_data() const -> ImportData const&
         CELER_VALIDATE(opts == i.options,
                        << "cannot change physics options after "
                        << explanation);
+
+        if (sel != i.selection)
+        {
+            // Reload with new selection
+            i.imported = (*i.import)(sel);
+            i.selection = sel;
+        }
     }
     CELER_ENSURE(i.imported);
     return i.imported;
+}
+
+//---------------------------------------------------------------------------//
+GeantImportDataSelection GeantTestBase::build_import_data_selection() const
+{
+    return {};
 }
 
 //---------------------------------------------------------------------------//

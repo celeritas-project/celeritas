@@ -25,9 +25,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * This is a model for the Rayleigh scattering process for photons.
+ * Apply the Livermore model of Rayleigh scattering to photons.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4LivermoreRayleighModel class, as documented in section 6.2.2 of the

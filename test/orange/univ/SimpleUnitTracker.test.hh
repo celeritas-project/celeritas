@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "orange/OrangeData.hh"
+#include "orange/detail/LevelStateAccessor.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
 
 namespace celeritas
@@ -43,10 +44,13 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 {
     // Create local state from global memory
     LocalState lstate;
-    lstate.pos = states.pos[tid];
-    lstate.dir = states.dir[tid];
-    lstate.volume = states.vol[tid];
-    lstate.surface = {states.surf[tid], states.sense[tid]};
+
+    LevelStateAccessor lsa(&states, tid, LevelId{0});
+    lstate.pos = lsa.pos();
+    lstate.dir = lsa.dir();
+    lstate.volume = lsa.vol();
+
+    lstate.surface = {lsa.surf(), lsa.sense()};
 
     const size_type max_faces = params.scalars.max_faces;
     lstate.temp_sense = states.temp_sense[build_range<Sense>(max_faces, tid)];
@@ -77,16 +81,21 @@ struct InitializingLauncher
         auto init = tracker.initialize(lstate);
 
         // Update state with post-initialization result
-        states.vol[tid] = init.volume;
-        states.surf[tid] = init.surface.id();
-        states.sense[tid] = init.surface.unchecked_sense();
+
+        // TODO: for multiuniverses tests, we actually have to iterate
+        // through daughter universes to assign the level and volume
+        LevelStateAccessor lsa(&states, tid, LevelId{0});
+        lsa.vol() = init.volume;
+
+        lsa.surf() = init.surface.id();
+        lsa.sense() = init.surface.unchecked_sense();
 
         lstate.volume = init.volume;
         auto isect = tracker.intersect(lstate);
 
         // BOGUS
-        states.surf[tid] = isect.surface.id();
-        states.sense[tid] = flip_sense(isect.surface.unchecked_sense());
+        lsa.surf() = isect.surface.id();
+        lsa.sense() = flip_sense(isect.surface.unchecked_sense());
     }
 };
 

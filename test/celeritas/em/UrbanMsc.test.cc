@@ -68,9 +68,8 @@ TEST(UrbanPositronCorrectorTest, all)
 }
 
 //---------------------------------------------------------------------------//
-}
-}
-
+}  // namespace test
+}  // namespace detail
 
 namespace test
 {
@@ -187,6 +186,24 @@ TEST_F(UrbanMscTest, coeff_data)
     EXPECT_SOFT_EQ(msc.d_over_r_mh, 1.1248191999999999);
 }
 
+TEST_F(UrbanMscTest, helper)
+{
+    ParticleTrackView par{
+        this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+    auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
+    PhysicsTrackView phys
+        = this->make_track_view(pdg::electron(), mid, MevEnergy{10.01});
+    UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
+
+    EXPECT_SOFT_EQ(0.90681578657668238, phys.dedx_range());
+    EXPECT_SOFT_EQ(1.0897296072933604, helper.calc_msc_mfp(MevEnergy{10.01}));
+    EXPECT_SOFT_EQ(0.90820266262324023, helper.calc_msc_mfp(MevEnergy{9.01}));
+    EXPECT_SOFT_EQ(11.039692548085707,
+                   value_as<MevEnergy>(helper.calc_stopping_energy(1.0)));
+    EXPECT_SOFT_EQ(4.5491422239586035,
+                   value_as<MevEnergy>(helper.calc_end_energy(0.5)));
+}
+
 TEST_F(UrbanMscTest, msc_scattering)
 {
     auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
@@ -214,60 +231,77 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
     step.resize(nsamples, step_is_range);
 
-    for (unsigned int i : range(nsamples))
+    ASSERT_EQ(nsamples, step.size());
+
     {
-        if (step[i] == step_is_range)
-        {
-            PhysicsTrackView phys = this->make_track_view(
-                pdg::electron(), mid, MevEnergy{energy[i]});
-            step[i] = phys.dedx_range();
-        }
+        SimTrackView sim_track_view(sim_state_.ref(), ThreadId{0});
+        sim_track_view = {};
+        EXPECT_EQ(0, sim_track_view.num_steps());
     }
 
-    SimTrackView sim_track_view(sim_state_.ref(), ThreadId{0});
-    sim_track_view = {};
-    ParticleTrackView par_track_view{
-        this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
-    GeoTrackView geo_view(
-        this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
-    MaterialView material_view = this->material()->get(mid);
-
-    ASSERT_EQ(nsamples, step.size());
-    EXPECT_EQ(0, sim_track_view.num_steps());
-
     RandomEngine rng;
+    // Input and helper data
+    std::vector<double> pstep;
+    std::vector<double> range;
+    std::vector<double> lambda;
+
+    // Step limit
+    std::vector<double> tstep;
+    std::vector<double> gstep;
+    std::vector<double> alpha;
+
+    // Scatter
     std::vector<double> fstep;
     std::vector<double> angle;
     std::vector<double> displace;
     std::vector<char> action;
-    Real3 direction{0, 0, 1};
 
-    for (auto i : range(nsamples))
-    {
+    auto sample_one = [&](PDGNumber ptype, int i) {
+        ParticleTrackView par{
+            this->particle()->host_ref(), particle_state_.ref(), ThreadId{0}};
+        GeoTrackView geo_view(
+            this->geometry()->host_ref(), geo_state_.ref(), ThreadId{0});
+        MaterialView material_view = this->material()->get(mid);
+
         real_type r = i * 2 - real_type(1e-4);
-        geo_view = {{r, r, r}, direction};
+        geo_view = {{r, r, r}, Real3{0, 0, 1}};
 
         MevEnergy inc_energy = MevEnergy{energy[i]};
-        PhysicsTrackView phys = this->make_track_view(
-            pdg::electron(), mid, inc_energy);
+        PhysicsTrackView phys = this->make_track_view(ptype, mid, inc_energy);
+
+        UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
+        range.push_back(phys.dedx_range());
+        lambda.push_back(helper.calc_msc_mfp(inc_energy));
+
+        real_type this_pstep = step[i];
+        if (this_pstep == step_is_range)
+        {
+            PhysicsTrackView phys = this->make_track_view(
+                pdg::electron(), mid, MevEnergy{energy[i]});
+            this_pstep = phys.dedx_range();
+        }
+        pstep.push_back(this_pstep);
 
         UrbanMscStepLimit calc_limit(msc_params_->host_ref(),
-                                     par_track_view,
+                                     par,
                                      &phys,
                                      material_view.material_id(),
                                      geo_view.is_on_boundary(),
                                      geo_view.find_safety(),
-                                     step[i]);
+                                     this_pstep);
 
         step_result = calc_limit(rng);
+        tstep.push_back(step_result.true_path);
+        gstep.push_back(step_result.geom_path);
+        alpha.push_back(step_result.alpha);
 
         UrbanMscScatter scatter(msc_params_->host_ref(),
-                                par_track_view,
+                                par,
                                 &geo_view,
                                 phys,
                                 material_view,
                                 step_result,
-                                step[i],
+                                this_pstep,
                                 /* geo_limited = */ false);
 
         sample_result = scatter(rng);
@@ -282,37 +316,75 @@ TEST_F(UrbanMscTest, msc_scattering)
         action.push_back(sample_result.action == Action::displaced   ? 'd'
                          : sample_result.action == Action::scattered ? 's'
                                                                      : 'u');
+    };
+
+    for (auto ptype : {pdg::electron(), pdg::positron()})
+    {
+        for (auto i : celeritas::range(nsamples))
+        {
+            sample_one(ptype, i);
+        }
     }
 
-    static double const expected_fstep[] = {0.00279169,
-                                            0.15497550035228,
-                                            0.0376414,
-                                            0.078163867310103,
-                                            0.0013704878213315,
-                                            9.659931080008e-05,
-                                            0.00074215629579835,
-                                            3.1163160035577e-05};
-    EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
+    // clang-format off
+    static double const expected_pstep[] = {0.00279169, 0.412343, 0.0376414,
+        0.078163867310103, 0.031624623231734, 0.0027792890018718,
+        0.00074215629579836, 3.1163160035578e-05, 0.00279169, 0.412343,
+        0.0376414, 0.078163867310103, 0.031624623231734, 0.0027792890018718,
+        0.00074215629579836, 3.1163160035578e-05};
+    static double const expected_range[] = {4.5639217207134, 0.91101485309501,
+        0.45387592051985, 0.078163867310103, 0.031624623231734,
+        0.0027792890018718, 0.00074215629579836, 3.1163160035578e-05,
+        4.6052228038495, 0.93344757374292, 0.46823131621808, 0.078778123985786,
+        0.031303585134373, 0.0026015196566029, 0.00067599187250339,
+        2.6048655048005e-05};
+    static double const expected_lambda[] = {20.538835907703, 1.0971140774006,
+        0.33351871980427, 0.025445778924487, 0.0087509389402756,
+        0.00066694512451, 0.00017137575823624, 6.8484179743242e-06,
+        20.538835907703, 1.2024899663097, 0.36938283004206, 0.028834889384336,
+        0.0099285992018056, 0.00075519594407854, 0.0001990403696419,
+        9.8568978271595e-06};
+    static double const expected_tstep[] = {0.00279169, 0.15497550035228,
+        0.0376414, 0.078163867310103, 0.0013704878213315, 9.659931080008e-05,
+        0.00074215629579836, 3.1163160035578e-05, 0.00279169, 0.19292164062171,
+        0.028493079924889, 0.078163867310103, 0.0011947604596077,
+        0.00011764872501678, 0.00074215629579836, 3.1163160035578e-05};
+    static double const expected_gstep[] = {0.0027915002818486,
+        0.14348626259532, 0.035504762192774, 0.019196479862044,
+        0.0012685611493895, 8.9929525199044e-05, 0.00013922620159908,
+        5.6145615756546e-06, 0.0027915002818486, 0.17644490740217,
+        0.027387302420092, 0.019196479862044, 0.001116788962412,
+        0.00010785629825093, 0.00013922620159908, 5.6145615756546e-06};
+    static double const expected_alpha[] = {0, 1.7708716862049,
+        3.4500251375335, 0, 0, 0, 0, 0, 0, 1.7061753085921, 3.3439279763905, 0,
+        0, 0, 0, 0};
+    static double const expected_fstep[] = {0.00279169, 0.15497550035228,
+        0.0376414, 0.078163867310103, 0.0013704878213315, 9.659931080008e-05,
+        0.00074215629579836, 3.1163160035578e-05, 0.00279169, 0.19292164062171,
+        0.028493079924889, 0.078163867310103, 0.0011947604596077,
+        0.00011764872501678, 0.00074215629579836, 3.1163160035578e-05};
     static double const expected_angle[] = {0.00031474130607916,
-                                            0.79003683103898,
-                                            -0.14560882721751,
-                                            0,
-                                            -0.32650640360665,
-                                            0.013072020086723,
-                                            0,
-                                            0};
-    EXPECT_VEC_NEAR(expected_angle, angle, 1e-10);
-    static double const expected_displace[] = {8.19862035150528e-06,
-                                               9.7530617641316e-05,
-                                               -7.1670542039709e-05,
-                                               0,
-                                               -9.11378237130022e-05,
-                                               9.78783890322556e-06,
-                                               0,
-                                               0};
-    EXPECT_VEC_NEAR(expected_displace, displace, 1e-10);
-    static char const expected_action[]
-        = {'d', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
+        0.79003683103898, -0.14560882721751, 0, -0.32650640360665,
+        0.013072020086723, 0, 0, 0.003112817663327, 0.055689200859297,
+        0.17523769034715, 0, -0.31960646979209, 0.43993660373907, 0, 0};
+    static double const expected_displace[] = {8.1986203515053e-06,
+        9.7530617641316e-05, -7.1670542039709e-05, 0, -9.1137823713002e-05,
+        9.7878389032256e-06, 0, 0, 5.3169211357544e-06, 7.9159745553753e-05,
+        9.8992726876372e-05, 0, -9.0024133671603e-05, 3.4290490728607e-05, 0,
+        0};
+    static char const expected_action[] = {'d', 'd', 'd', 'u', 'd', 'd', 'u',
+        'u', 'd', 'd', 'd', 'u', 'd', 'd', 'u', 'u'};
+    // clang-format on
+
+    EXPECT_VEC_SOFT_EQ(expected_pstep, pstep);
+    EXPECT_VEC_SOFT_EQ(expected_range, range);
+    EXPECT_VEC_SOFT_EQ(expected_lambda, lambda);
+    EXPECT_VEC_SOFT_EQ(expected_tstep, tstep);
+    EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
+    EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
+    EXPECT_VEC_SOFT_EQ(expected_fstep, fstep);
+    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
+    EXPECT_VEC_SOFT_EQ(expected_displace, displace);
     EXPECT_VEC_EQ(expected_action, action);
 }
 

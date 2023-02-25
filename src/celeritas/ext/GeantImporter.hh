@@ -20,6 +20,31 @@ class G4VPhysicalVolume;  // IWYU pragma: keep
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Only import a subset of available Geant4 data
+struct GeantImportDataSelection
+{
+    //! Bit flags for selecting particles and process types
+    using Flags = unsigned int;
+    enum : unsigned int
+    {
+        dummy = 0x1,  //!< Dummy particles+processes
+        em_basic = 0x2,  //!< Electron, positron, gamma
+        em_ex = 0x4,  //!< Extended EM particles
+        em = em_basic | em_ex,  //!< Any EM
+        hadron = 0x8,  //!< Hadronic particles and processes
+    };
+
+    Flags particles = em;
+    Flags processes = em;
+
+    //! Change volume names to match exported GDML file
+    bool unique_volumes = false;
+
+    // TODO expand/set reader flags automatically based on loaded processes
+    bool reader_data = true;
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Load problem data directly from Geant4.
  *
@@ -39,24 +64,10 @@ namespace celeritas
 class GeantImporter
 {
   public:
-    //! Only import a subset of available Geant4 data
-    struct DataSelection
-    {
-        //! Bit flags for selecting particles and process types
-        using Flags = unsigned int;
-        enum : unsigned int
-        {
-            dummy = 0x1,  //!< Dummy particles+processes
-            em = 0x2,  //!< EM particles and fundamental proceses
-            hadron = 0x4,  //!< Hadronic particles and processes
-        };
-
-        Flags particles = em;
-        Flags processes = em;
-
-        // TODO expand/set reader flags automatically based on loaded processes
-        bool reader_data = true;
-    };
+    //!@{
+    //! \name Type aliases
+    using DataSelection = GeantImportDataSelection;
+    //!@}
 
   public:
     // Get an externally loaded Geant4 top-level geometry element
@@ -79,6 +90,10 @@ class GeantImporter
     GeantSetup setup_;
     // World physical volume
     G4VPhysicalVolume const* world_{nullptr};
+
+    //// HELPER FUNCTIONS ////
+
+    std::vector<ImportVolume> load_volumes(bool unique_volumes) const;
 };
 
 //---------------------------------------------------------------------------//
