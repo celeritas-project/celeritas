@@ -265,12 +265,12 @@ celeritas_add_test(celeritas/em/Fluctuation.test.cc)
 celeritas_add_test(celeritas/em/KleinNishina.test.cc)
 celeritas_add_test(celeritas/em/LivermorePE.test.cc)
 celeritas_add_test(celeritas/em/MollerBhabha.test.cc)
+celeritas_add_test(celeritas/em/MscStep.test.cc)
 celeritas_add_test(celeritas/em/MuBremsstrahlung.test.cc)
 celeritas_add_test(celeritas/em/Rayleigh.test.cc)
 celeritas_add_test(celeritas/em/RelativisticBrem.test.cc)
 celeritas_add_test(celeritas/em/SeltzerBerger.test.cc)
 celeritas_add_test(celeritas/em/TsaiUrbanDistribution.test.cc)
-
 celeritas_add_test(celeritas/em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 

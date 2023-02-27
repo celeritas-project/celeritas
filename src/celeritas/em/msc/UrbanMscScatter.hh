@@ -9,7 +9,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
@@ -22,6 +21,7 @@
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "MscStepUpdater.hh"
 #include "UrbanMscHelper.hh"
 #include "detail/UrbanPositronCorrector.hh"
 
@@ -70,7 +70,6 @@ class UrbanMscScatter
     Real3 inc_direction_;
     bool is_positron_;
     real_type rad_length_;
-    real_type range_;
     real_type mass_;
 
     // Urban MSC parameters
@@ -112,11 +111,6 @@ class UrbanMscScatter
     }
 
     //// HELPER FUNCTIONS ////
-
-    // Calculate the true path length from the geom path length
-    inline CELER_FUNCTION real_type calc_true_path(real_type true_path,
-                                                   real_type geom_path,
-                                                   real_type alpha) const;
 
     // Sample the angle, cos(theta), of the multiple scattering
     template<class Engine>
@@ -160,7 +154,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , inc_direction_(geometry->dir())
     , is_positron_(particle.particle_id() == shared.ids.positron)
     , rad_length_(material.radiation_length())
-    , range_(physics.dedx_range())
     , mass_(value_as<Mass>(shared.electron_mass))
     , params_(shared.params)
     , msc_(shared.material_data[material.material_id()])
@@ -175,9 +168,10 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                  || particle.particle_id() == shared.ids.positron);
     CELER_EXPECT(input.true_path >= geom_path_);
     CELER_EXPECT(geom_path_ > 0);
-    CELER_EXPECT(true_path_ <= range_);
     CELER_EXPECT(limit_min_ >= UrbanMscParameters::limit_min_fix()
                  || !is_displaced_);
+
+    real_type range = physics.dedx_range();
 
     // MFP must be calculated before calc_true_path
     UrbanMscHelper helper(shared, particle, physics);
@@ -186,17 +180,15 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 
     if (geo_limited)
     {
-        // Reduce the true path length from the physics-based value to one
+        // Update the true path length from the physics-based value to one
         // based on the (shorter) geometry path
-        true_path_
-            = this->calc_true_path(input.true_path, geom_path_, input.alpha);
-        // Protect against a wrong true -> geom -> true transformation
-        true_path_ = min<real_type>(true_path_, phys_step);
+        MscStepUpdater geo_to_true(params_, input, range, lambda_);
+        true_path_ = geo_to_true(geom_path_);
     }
-    CELER_ASSERT(true_path_ >= geom_path_);
+    CELER_ASSERT(true_path_ >= geom_path_ && true_path_ <= phys_step);
 
-    skip_sampling_ = [this, &helper] {
-        if (true_path_ == range_)
+    skip_sampling_ = [this, &helper, range] {
+        if (true_path_ == range)
         {
             // Range-limited step (particle stops)
             // TODO: probably redundant with low 'end energy'
@@ -630,75 +622,6 @@ UrbanMscScatter::calc_displacement_length(real_type rmax2)
     }
 
     return rho;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Compute the true path length for a given geom path (the z -> t conversion).
- *
- * The transformation can be written as
- * \f[
- *     t(z) = \langle t \rangle = -\lambda_{1} \log(1 - \frac{z}{\lambda_{1}})
- * \f]
- * or \f$ t(z) = \frac{1}{\alpha} [ 1 - (1-\alpha w z)^{1/w}] \f$ if the
- * geom path is small, where \f$ w = 1 + \frac{1}{\alpha \lambda_{10}}\f$.
- *
- * \param true_path the proposed step before transportation.
- * \param geom_path the proposed step after transportation.
- * \param alpha variable from UrbanMscStepLimit.
- */
-CELER_FUNCTION
-real_type UrbanMscScatter::calc_true_path(real_type true_path,
-                                          real_type geom_path,
-                                          real_type alpha) const
-{
-    CELER_EXPECT(lambda_ > 0);
-    CELER_EXPECT(geom_path <= true_path);
-
-    if (geom_path < params_.min_step())
-    {
-        // geometrical path length = true path length for a very small step
-        return geom_path;
-    }
-
-    // NOTE: add && !insideskin if the UseDistanceToBoundary algorithm is used
-    if (geom_path <= lambda_ * params_.tau_small)
-    {
-        // Very small distance to collision (less than tau_small paths)
-        return geom_path;
-    }
-
-    real_type length = [&] {
-        if (alpha == MscStep::small_step_alpha())
-        {
-            // Cross section was assumed to be constant over the step:
-            // z = lambda * (1 - exp(-tau))
-            return -lambda_ * std::log(1 - geom_path / lambda_);
-        }
-        CELER_ASSERT(alpha != 0);
-
-        real_type w = 1 + 1 / (alpha * lambda_);
-        real_type x = alpha * w * geom_path;  // = (1 - (1 - alpha * true)^w)
-        if (CELER_UNLIKELY(x > 1))
-        {
-            // Range-limited step results in x = 1, which gives the correct
-            // result in the inverted equation below for alpha = 1/range.
-            // x >= 1 corresponds to the stopping MFP being <= 0: zero is
-            // correct when the step is the range, but the MFP will never be
-            // zero except for numerical error.
-            CELER_ASSERT(x < 1 + 100 * numeric_limits<real_type>::epsilon());
-            return range_;
-        }
-        // Invert Eq. 8.10 exactly
-        return (1 - fastpow(1 - x, 1 / w)) / alpha;
-    }();
-
-    // Prevent numerical errors from putting the new length outside of the
-    // valid range: no less than the geometry path if effectively no scattering
-    // took place; no more than the original calculated true path if the step
-    // is path-limited.
-    length = clamp(length, geom_path, true_path);
-    return length;
 }
 
 //---------------------------------------------------------------------------//
