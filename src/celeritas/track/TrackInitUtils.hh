@@ -42,9 +42,8 @@ inline void extend_from_primaries(CoreRef<M> const& core_data,
     CELER_ASSERT(host_primaries.size() + data.size() <= data.capacity());
 
     // Resizing the initializers is a non-const operation, but the only one.
-    using NonConstT
-        = std::remove_const_t<std::remove_reference_t<decltype(data)>>;
-    const_cast<NonConstT&>(data).resize(data.size() + host_primaries.size());
+    using Initializers = ResizableData<TrackInitializer, Ownership::reference, M>;
+    const_cast<Initializers&>(data).resize(data.size() + host_primaries.size());
 
     // Allocate memory and copy primaries
     Collection<Primary, Ownership::value, M> primaries;
