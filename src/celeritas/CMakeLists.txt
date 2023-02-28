@@ -81,6 +81,8 @@ list(APPEND SOURCES
   random/CuHipRngData.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
+  track/ExtendFromSecondariesAction.cc
+  track/InitializeTracksAction.cc
   track/TrackInitParams.cc
   user/DetectorSteps.cc
   user/StepCollector.cc

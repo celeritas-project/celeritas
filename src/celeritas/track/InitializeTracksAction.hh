@@ -7,10 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 
 namespace celeritas
 {
@@ -32,10 +29,7 @@ class InitializeTracksAction final : public ExplicitActionInterface
     ~InitializeTracksAction() = default;
 
     //! Execute the action with host data
-    void execute(CoreHostRef const& core) const final
-    {
-        initialize_tracks(core);
-    }
+    void execute(CoreHostRef const& core) const final;
 
     //! Execute the action with device data
     void execute(CoreDeviceRef const& core) const final;
@@ -55,20 +49,6 @@ class InitializeTracksAction final : public ExplicitActionInterface
   private:
     ActionId id_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-inline void
-InitializeTracksAction::execute([[maybe_unused]] CoreDeviceRef const& core) const
-{
-#if !CELER_USE_DEVICE
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-#else
-    initialize_tracks(core);
-#endif
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

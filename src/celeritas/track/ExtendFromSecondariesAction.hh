@@ -7,10 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/track/TrackInitUtils.hh"
 
 namespace celeritas
 {
@@ -30,10 +27,7 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
     ~ExtendFromSecondariesAction() = default;
 
     //! Execute the action with host data
-    void execute(CoreHostRef const& core) const final
-    {
-        extend_from_secondaries(core);
-    }
+    void execute(CoreHostRef const& core) const final;
 
     //! Execute the action with device data
     void execute(CoreDeviceRef const& core) const final;
@@ -56,20 +50,6 @@ class ExtendFromSecondariesAction final : public ExplicitActionInterface
   private:
     ActionId id_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
-inline void ExtendFromSecondariesAction::execute(
-    [[maybe_unused]] CoreDeviceRef const& core) const
-{
-#if !CELER_USE_DEVICE
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-#else
-    extend_from_secondaries(core);
-#endif
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
