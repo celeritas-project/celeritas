@@ -80,8 +80,14 @@ HitManager::HitManager(GeoParams const& geo, SDSetupOptions const& setup)
         }
 
         // Convert volume name to GPU geometry ID
-        auto label
-            = Label::from_geant(temp_writer.GenerateName(lv->GetName(), lv));
+        auto label = Label::from_geant(lv->GetName());
+        if (label.ext.empty())
+        {
+            // Label doesn't have a pointer address attached: we probably need
+            // to regenerate to match the exported GDML file
+            label = Label::from_geant(temp_writer.GenerateName(label.name, lv));
+        }
+
         auto id = geo.find_volume(label);
         if (!id)
         {

@@ -84,7 +84,9 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
 
     // Get the micro xs grids for the given model, particle, and material
     auto xs = import_process.micro_xs.find(model_class_);
-    CELER_ASSERT(xs != import_process.micro_xs.end());
+    CELER_VALIDATE(xs != import_process.micro_xs.end(),
+                   << "missing microscopic cross sections for "
+                   << to_cstring(model_class_));
     CELER_ASSERT(applic.material < xs->second.size());
     auto const& elem_phys_vectors = xs->second[applic.material.get()];
 
