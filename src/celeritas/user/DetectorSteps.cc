@@ -107,6 +107,13 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(particle);
     DS_ASSIGN(energy_deposition);
 #undef DS_ASSIGN
+    for (ThreadId tid : range(ThreadId{state.energy_deposition.size()}))
+    {
+        if (state.detector[tid])
+        {
+            CELER_ASSERT(state.energy_deposition[tid] >= zero_quantity());
+        }
+    }
 
     CELER_ENSURE(output->detector.size() == size);
     CELER_ENSURE(output->track_id.size() == size);
