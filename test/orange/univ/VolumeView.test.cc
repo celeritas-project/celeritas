@@ -38,7 +38,7 @@ class VolumeViewTest : public OrangeGeoTestBase
 
         for (auto face_id : range(FaceId{volumes.num_faces()}))
         {
-            SurfaceId surf_id = faces[face_id.get()];
+            LocalSurfaceId surf_id = faces[face_id.get()];
             EXPECT_EQ(surf_id, volumes.get_surface(face_id));
             EXPECT_EQ(face_id, volumes.find_face(surf_id));
         }
@@ -60,12 +60,12 @@ TEST_F(VolumeViewTest, one_volume)
     this->test_face_accessors(vol);
 
     // Test that nonexistent face returns "false" id
-    EXPECT_EQ(FaceId{}, vol.find_face(SurfaceId{123}));
+    EXPECT_EQ(FaceId{}, vol.find_face(LocalSurfaceId{123}));
     if (CELERITAS_DEBUG)
     {
         // Disallow empty surfaces (burden is on the caller to check for null)
         EXPECT_THROW(vol.get_surface(FaceId{}), DebugError);
-        EXPECT_THROW(vol.find_face(SurfaceId{}), DebugError);
+        EXPECT_THROW(vol.find_face(LocalSurfaceId{}), DebugError);
     }
 }
 

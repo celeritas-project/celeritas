@@ -193,7 +193,8 @@ LocalState SimpleUnitTrackerTest::make_state(
     // *Intentionally* flip the sense because we're looking for the
     // post-crossing volume. This is normally done by the multi-level
     // TrackingGeometry.
-    state.surface = {this->find_surface(surf), before_crossing_sense};
+    state.surface = {ui.local_surface(this->find_surface(surf)).surface,
+                     before_crossing_sense};
     return state;
 }
 
@@ -283,7 +284,7 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 
     // Clear other data
     fill(LocalVolumeId{}, &result.vol);
-    fill(SurfaceId{}, &result.surf);
+    fill(LocalSurfaceId{}, &result.surf);
     fill(LevelId{}, &result.level);
 
     CELER_ENSURE(result);
@@ -461,7 +462,8 @@ TEST_F(TwoVolumeTest, cross_boundary)
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "inside", "sphere", '-'));
         EXPECT_EQ("outside", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("sphere",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
@@ -469,7 +471,8 @@ TEST_F(TwoVolumeTest, cross_boundary)
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {1.5, 0, 0}, {0, 0, 1}, "outside", "sphere", '+'));
         EXPECT_EQ("inside", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("sphere",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
 }
@@ -483,28 +486,28 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state({0.5, 0, 0}, {0, 0, 1}, "inside");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(sqrt_two, isect.distance);
 
         state = this->make_state({0.5, 0, 0}, {1, 0, 0}, "inside");
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
         // Range limit: further than surface
         isect = tracker.intersect(state, 10.0);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
         // Coincident
         isect = tracker.intersect(state, 1.0);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.0, isect.distance);
 
@@ -522,7 +525,7 @@ TEST_F(TwoVolumeTest, intersect)
         state = this->make_state({0, 0, 2.0}, {0, 0, -1}, "inside");
         isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.5, isect.distance);
     }
@@ -538,7 +541,7 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state(
             {0, 0, 1.5}, {0, 0, -1}, "outside", "sphere", '+');
         auto isect = tracker.intersect(state);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         // NOTE: being on a surface with opposite sense and direction means
         // we should get a "zero distance" movement plus sense change, but
@@ -559,7 +562,7 @@ TEST_F(TwoVolumeTest, intersect)
         auto state = this->make_state(
             {0, 0, 1.5}, {0, 0, -1}, "inside", "sphere", '-');
         auto isect = tracker.intersect(state);
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(3.0, isect.distance);
     }
@@ -571,7 +574,7 @@ TEST_F(TwoVolumeTest, intersect)
 #if 0
         // "Correct" result when accounting for sense in distance-to-boundary
         // calculation
-        EXPECT_EQ(SurfaceId{0}, isect.surface.id());
+        EXPECT_EQ(LocalSurfaceId{0}, isect.surface.id());
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.0, isect.distance);
 #else
@@ -610,7 +613,8 @@ TEST_F(TwoVolumeTest, normal)
     if (CELERITAS_DEBUG)
     {
         SCOPED_TRACE("Not on a surface");
-        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, SurfaceId{}), DebugError);
+        EXPECT_THROW(tracker.normal(Real3{0, 0, 1.6}, LocalSurfaceId{}),
+                     DebugError);
     }
     {
         Real3 pos{3, -2, 1};
@@ -622,7 +626,7 @@ TEST_F(TwoVolumeTest, normal)
             pos[i] = expected_normal[i] * real_type(1.5);  // radius
         }
 
-        auto actual_normal = tracker.normal(pos, SurfaceId{0});
+        auto actual_normal = tracker.normal(pos, LocalSurfaceId{0});
         EXPECT_VEC_SOFT_EQ(expected_normal, actual_normal);
     }
 }
@@ -689,7 +693,8 @@ TEST_F(FieldLayersTest, cross_boundary)
             auto init = tracker.cross_boundary(this->make_state_crossing(
                 {0, -1.5 + eps, 0}, {0, -1, 0}, "world", "layerbox1.py", '+'));
             EXPECT_EQ("layer1", this->id_to_label(UniverseId{0}, init.volume));
-            EXPECT_EQ("layerbox1.py", this->id_to_label(init.surface.id()));
+            EXPECT_EQ("layerbox1.py",
+                      this->id_to_label(UniverseId{0}, init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
         {
@@ -697,7 +702,8 @@ TEST_F(FieldLayersTest, cross_boundary)
             auto init = tracker.cross_boundary(this->make_state_crossing(
                 {0, -2.5 - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
             EXPECT_EQ("world", this->id_to_label(UniverseId{0}, init.volume));
-            EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
+            EXPECT_EQ("layerbox1.my",
+                      this->id_to_label(UniverseId{0}, init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
         }
     }
@@ -712,7 +718,8 @@ TEST_F(FieldLayersTest, intersect)
         auto state = this->make_state({0, -1, 0}, {0, 1, 0}, "world");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ("layerbox2.my", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ("layerbox2.my",
+                  this->id_to_label(UniverseId{0}, isect.surface.id()));
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.5, isect.distance);
     }
@@ -721,7 +728,8 @@ TEST_F(FieldLayersTest, intersect)
         auto state = this->make_state({9.6, 4, 9.7}, {-1, -1, -1}, "world");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ("layerbox3.py", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ("layerbox3.py",
+                  this->id_to_label(UniverseId{0}, isect.surface.id()));
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(1.5 * sqrt_three, isect.distance);
     }
@@ -813,7 +821,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {-0.5, -0.25, 0}, {-1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("epsilon.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
@@ -824,7 +833,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));
         EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("epsilon.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("epsilon.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
@@ -836,7 +846,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
                                       "gamma.s",
                                       '-'));
         EXPECT_EQ("a", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("gamma.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
@@ -848,7 +859,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
                                       "gamma.s",
                                       '+'));
         EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("gamma.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
     {
@@ -859,20 +871,23 @@ TEST_F(FiveVolumesTest, cross_boundary)
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {0, 1, 0}, "c", "gamma.s", '-'));
         EXPECT_EQ("d", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("gamma.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
 
         init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "gamma.s", '+'));
         EXPECT_EQ("c", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("gamma.s", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("gamma.s",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
 
         // Near triple point, on sphere but crossing plane edge
         init = tracker.cross_boundary(this->make_state_crossing(
             {0, 0.75, 0}, {-1, 0, 0}, "d", "alpha.px", '+'));
         EXPECT_EQ("a", this->id_to_label(UniverseId{0}, init.volume));
-        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ("alpha.px",
+                  this->id_to_label(UniverseId{0}, init.surface.id()));
         EXPECT_EQ(Sense::inside, init.surface.sense());
     }
 }
@@ -886,7 +901,8 @@ TEST_F(FiveVolumesTest, intersect)
         auto state = this->make_state({-0.75, 0.5, 0}, {1, 0, 0}, "a");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ("gamma.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ("gamma.s",
+                  this->id_to_label(UniverseId{0}, isect.surface.id()));
         EXPECT_EQ(Sense::outside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(0.19098300562505255, isect.distance);
     }
@@ -895,13 +911,15 @@ TEST_F(FiveVolumesTest, intersect)
         auto state = this->make_state({-2, 0.5, 0}, {1, 1, 0}, "d");
         auto isect = tracker.intersect(state);
         EXPECT_TRUE(isect);
-        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ("outer.s",
+                  this->id_to_label(UniverseId{0}, isect.surface.id()));
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
 
         isect = tracker.intersect(state, 105.0);
         EXPECT_TRUE(isect);
-        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ("outer.s",
+                  this->id_to_label(UniverseId{0}, isect.surface.id()));
         EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
         EXPECT_SOFT_EQ(101.04503395088592, isect.distance);
 

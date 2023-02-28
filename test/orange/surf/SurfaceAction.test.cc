@@ -73,7 +73,7 @@ class SurfaceActionTest : public OrangeGeoTestBase
                 {
                     v.logic.push_back(logic::lor);
                 }
-                v.faces.push_back(SurfaceId{i});
+                v.faces.push_back(LocalSurfaceId{i});
             }
             v.logic.insert(v.logic.end(), {logic::ltrue, logic::lor});
             unit.volumes = {std::move(v)};
@@ -163,7 +163,7 @@ TEST_F(SurfaceActionTest, string)
 
     // Loop over all surfaces and apply
     std::vector<std::string> strings;
-    for (auto id : range(SurfaceId{surfaces.num_surfaces()}))
+    for (auto id : range(LocalSurfaceId{surfaces.num_surfaces()}))
     {
         strings.push_back(surf_to_string(id));
     }

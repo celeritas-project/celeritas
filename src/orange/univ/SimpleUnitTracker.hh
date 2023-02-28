@@ -56,7 +56,7 @@ class SimpleUnitTracker
     }
 
     //! Number of local surfaces
-    CELER_FUNCTION SurfaceId::size_type num_surfaces() const
+    CELER_FUNCTION LocalSurfaceId::size_type num_surfaces() const
     {
         return unit_record_.surfaces.size();
     }
@@ -89,7 +89,8 @@ class SimpleUnitTracker
                                            LocalVolumeId vol) const;
 
     // Calculate the local surface normal
-    inline CELER_FUNCTION Real3 normal(Real3 const& pos, SurfaceId surf) const;
+    inline CELER_FUNCTION Real3 normal(Real3 const& pos,
+                                       LocalSurfaceId surf) const;
 
   private:
     //// DATA ////
@@ -100,7 +101,7 @@ class SimpleUnitTracker
 
     // Get volumes that have the given surface as a "face" (connectivity)
     inline CELER_FUNCTION Span<LocalVolumeId const>
-        get_neighbors(SurfaceId) const;
+        get_neighbors(LocalSurfaceId) const;
 
     template<class F>
     inline CELER_FUNCTION Intersection intersect_impl(LocalState const&,
@@ -290,7 +291,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
     real_type result = numeric_limits<real_type>::infinity();
     auto calc_safety = make_surface_action(this->make_local_surfaces(),
                                            detail::CalcSafetyDistance{pos});
-    for (SurfaceId surface : vol.faces())
+    for (LocalSurfaceId surface : vol.faces())
     {
         result = celeritas::min(result, calc_safety(surface));
     }
@@ -304,7 +305,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
  * Calculate the local surface normal.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::normal(Real3 const& pos, SurfaceId surf) const -> Real3
+SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
@@ -320,7 +321,7 @@ SimpleUnitTracker::normal(Real3 const& pos, SurfaceId surf) const -> Real3
 /*!
  * Get volumes that have the given surface as a "face" (connectivity).
  */
-CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
+CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
     -> Span<LocalVolumeId const>
 {
     CELER_EXPECT(surf < this->num_surfaces());
@@ -330,7 +331,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(SurfaceId surf) const
     Connectivity const& conn = params_.connectivities[conn_id];
 
     CELER_ENSURE(!conn.neighbors.empty());
-    return params_.connectivity_volume_ids[conn.neighbors];
+    return params_.local_volume_ids[conn.neighbors];
 }
 
 //---------------------------------------------------------------------------//
@@ -378,7 +379,7 @@ SimpleUnitTracker::intersect_impl(LocalState const& state, F is_valid) const
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
             vol.simple_intersection(),
             state.temp_next});
-    for (SurfaceId surface : vol.faces())
+    for (LocalSurfaceId surface : vol.faces())
     {
         calc_intersections(surface);
     }
@@ -444,7 +445,7 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
     CELER_ASSERT(distance_idx < num_isect);
 
     // Determine the crossing surface
-    SurfaceId surface;
+    LocalSurfaceId surface;
     {
         FaceId face = state.temp_next.face[distance_idx];
         CELER_ASSERT(face);
@@ -559,7 +560,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  * ascending distance.
  * \pre The "faces" for the background volume are *all* the surfaces in the
  * volume (alternatively we could introduce a mapping between Face and
- * SurfaceId).
+ * LocalSurfaceId).
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
@@ -577,7 +578,8 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         // Index into the distance/face arrays
         const size_type isect = state.temp_next.isect[isect_idx];
         // Inside the "background" volume, Face and Surface are the same
-        const SurfaceId surface{state.temp_next.face[isect].unchecked_get()};
+        const LocalSurfaceId surface{
+            state.temp_next.face[isect].unchecked_get()};
 
         // Calculate position just past the surface in order to evaluate
         // senses, since we can't know the change in sense of the
@@ -604,7 +606,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
 
                 Intersection result;
                 result.distance = state.temp_next.distance[isect];
-                result.surface = detail::OnSurface{
+                result.surface = detail::OnLocalSurface{
                     surface,
                     flip_sense(logic_state.senses[face.unchecked_get()])};
                 return result;

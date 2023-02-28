@@ -48,10 +48,11 @@ class SurfaceInputBuilder
 
     // Add a new surface
     template<class T>
-    inline SurfaceId operator()(T const& surface, Label const& label);
+    inline LocalSurfaceId operator()(T const& surface, Label const& label);
 
     // Append a generic surface view to the vector
-    SurfaceId operator()(GenericSurfaceRef generic_surf, Label const& label);
+    LocalSurfaceId
+    operator()(GenericSurfaceRef generic_surf, Label const& label);
 
   private:
     SurfaceInput* input_;
@@ -73,7 +74,8 @@ SurfaceInputBuilder::GenericSurfaceRef::operator bool() const
  * Add a surface (type-deleted) with the given coefficients
  */
 template<class T>
-SurfaceId SurfaceInputBuilder::operator()(T const& surface, Label const& label)
+LocalSurfaceId
+SurfaceInputBuilder::operator()(T const& surface, Label const& label)
 {
     static_assert(sizeof(typename T::Intersections) > 0,
                   "Template parameter must be a surface class");

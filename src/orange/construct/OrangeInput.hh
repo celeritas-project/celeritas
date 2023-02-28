@@ -54,7 +54,7 @@ struct VolumeInput
     Label label{};
 
     //! Sorted list of surface IDs in this volume
-    std::vector<SurfaceId> faces{};
+    std::vector<LocalSurfaceId> faces{};
     //! RPN region definition for this volume, using local surface index
     std::vector<logic_int> logic{};
     //! Axis-aligned bounding box (TODO: currently unused)

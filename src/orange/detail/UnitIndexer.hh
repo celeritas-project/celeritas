@@ -35,7 +35,7 @@ class UnitIndexer
     struct LocalSurface
     {
         UniverseId universe;
-        SurfaceId surface;
+        LocalSurfaceId surface;
     };
 
     struct LocalVolume
@@ -51,7 +51,7 @@ class UnitIndexer
 
     // Local-to-global
     inline CELER_FUNCTION SurfaceId global_surface(UniverseId uni,
-                                                   SurfaceId surface) const;
+                                                   LocalSurfaceId surface) const;
     inline CELER_FUNCTION VolumeId global_volume(UniverseId uni,
                                                  LocalVolumeId volume) const;
 
@@ -111,7 +111,7 @@ CELER_FUNCTION UnitIndexer::UnitIndexer(UnitIndexerDataRef const& data)
  * Transform local to global surface ID.
  */
 CELER_FUNCTION SurfaceId UnitIndexer::global_surface(UniverseId uni,
-                                                     SurfaceId surf) const
+                                                     LocalSurfaceId surf) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
@@ -145,7 +145,7 @@ UnitIndexer::local_surface(SurfaceId id) const
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
 
     UniverseId uni(iter - data_.surfaces[AllVals{}].begin());
-    SurfaceId surface(id - *iter);
+    LocalSurfaceId surface((id - *iter).unchecked_get());
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }

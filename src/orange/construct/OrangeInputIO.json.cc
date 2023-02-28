@@ -122,12 +122,12 @@ void from_json(nlohmann::json const& j, SurfaceInput& value)
 void from_json(nlohmann::json const& j, VolumeInput& value)
 {
     // Convert faces to OpaqueId
-    std::vector<SurfaceId::size_type> temp_faces;
+    std::vector<LocalSurfaceId::size_type> temp_faces;
     j.at("faces").get_to(temp_faces);
     value.faces.reserve(temp_faces.size());
     for (auto surfid : temp_faces)
     {
-        CELER_ASSERT(surfid != SurfaceId{}.unchecked_get());
+        CELER_ASSERT(surfid != LocalSurfaceId{}.unchecked_get());
         value.faces.emplace_back(surfid);
     }
 

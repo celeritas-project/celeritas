@@ -51,13 +51,13 @@ class VolumeView
     CELER_FORCEINLINE_FUNCTION FaceId::size_type num_faces() const;
 
     // Get surface ID for a single face
-    inline CELER_FUNCTION SurfaceId get_surface(FaceId id) const;
+    inline CELER_FUNCTION LocalSurfaceId get_surface(FaceId id) const;
 
     // Get the face ID of a surface if present
-    inline CELER_FUNCTION FaceId find_face(SurfaceId id) const;
+    inline CELER_FUNCTION FaceId find_face(LocalSurfaceId id) const;
 
     // Get all surface IDs for the volume
-    CELER_FORCEINLINE_FUNCTION Span<SurfaceId const> faces() const;
+    CELER_FORCEINLINE_FUNCTION Span<LocalSurfaceId const> faces() const;
 
     // Get logic definition
     CELER_FORCEINLINE_FUNCTION Span<logic_int const> logic() const;
@@ -114,12 +114,12 @@ CELER_FUNCTION FaceId::size_type VolumeView::num_faces() const
  *
  * This is an O(1) operation.
  */
-CELER_FUNCTION SurfaceId VolumeView::get_surface(FaceId id) const
+CELER_FUNCTION LocalSurfaceId VolumeView::get_surface(FaceId id) const
 {
     CELER_EXPECT(id < this->num_faces());
     auto offset = def_.faces.begin()->unchecked_get();
     offset += id.unchecked_get();
-    return params_.surface_ids[ItemId<SurfaceId>(offset)];
+    return params_.local_surface_ids[ItemId<LocalSurfaceId>(offset)];
 }
 
 //---------------------------------------------------------------------------//
@@ -134,7 +134,7 @@ CELER_FUNCTION SurfaceId VolumeView::get_surface(FaceId id) const
  *
  * This is an O(log(num_faces)) operation.
  */
-CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
+CELER_FUNCTION FaceId VolumeView::find_face(LocalSurfaceId surface) const
 {
     CELER_EXPECT(surface);
     auto surface_list = this->faces();
@@ -154,9 +154,9 @@ CELER_FUNCTION FaceId VolumeView::find_face(SurfaceId surface) const
 /*!
  * Get all the surface IDs corresponding to the faces of this volume.
  */
-CELER_FUNCTION Span<SurfaceId const> VolumeView::faces() const
+CELER_FUNCTION Span<LocalSurfaceId const> VolumeView::faces() const
 {
-    return params_.surface_ids[def_.faces];
+    return params_.local_surface_ids[def_.faces];
 }
 
 //---------------------------------------------------------------------------//

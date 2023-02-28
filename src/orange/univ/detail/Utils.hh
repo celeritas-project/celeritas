@@ -88,20 +88,22 @@ class BumpCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Convert an OnSurface (may be null) to an OnFace using a volume view.
+ * Convert an OnLocalSurface (may be null) to an OnFace using a volume view.
  */
-inline CELER_FUNCTION OnFace find_face(VolumeView const& vol, OnSurface surf)
+inline CELER_FUNCTION OnFace find_face(VolumeView const& vol,
+                                       OnLocalSurface surf)
 {
     return {surf ? vol.find_face(surf.id()) : FaceId{}, surf.unchecked_sense()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert an OnFace (may be null) to an OnSurface using a volume view.
+ * Convert an OnFace (may be null) to an OnLocalSurface using a volume view.
  */
-inline CELER_FUNCTION OnSurface get_surface(VolumeView const& vol, OnFace face)
+inline CELER_FUNCTION OnLocalSurface get_surface(VolumeView const& vol,
+                                                 OnFace face)
 {
-    return {face ? vol.get_surface(face.id()) : SurfaceId{},
+    return {face ? vol.get_surface(face.id()) : LocalSurfaceId{},
             face.unchecked_sense()};
 }
 

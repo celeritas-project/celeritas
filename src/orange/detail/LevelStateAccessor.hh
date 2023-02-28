@@ -57,9 +57,9 @@ class LevelStateAccessor
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION SurfaceId& surf()
+    CELER_FUNCTION LocalSurfaceId& surf()
     {
-        return states_->surf[OpaqueId<SurfaceId>{index_}];
+        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
     }
 
     CELER_FUNCTION Sense& sense()
@@ -94,9 +94,9 @@ class LevelStateAccessor
         return states_->universe[OpaqueId<UniverseId>{index_}];
     }
 
-    CELER_FUNCTION SurfaceId const& surf() const
+    CELER_FUNCTION LocalSurfaceId const& surf() const
     {
-        return states_->surf[OpaqueId<SurfaceId>{index_}];
+        return states_->surf[OpaqueId<LocalSurfaceId>{index_}];
     }
 
     CELER_FUNCTION Sense const& sense() const

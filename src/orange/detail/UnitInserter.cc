@@ -176,7 +176,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
         // Add connectivity for explicitly connected volumes
         if (!(vol_records[i].flags & VolumeRecord::implicit_vol))
         {
-            for (SurfaceId f : inp.volumes[i].faces)
+            for (LocalSurfaceId f : inp.volumes[i].faces)
             {
                 CELER_ASSERT(f < connectivity.size());
                 connectivity[f.unchecked_get()].insert(LocalVolumeId(i));
@@ -198,7 +198,7 @@ SimpleUnitId UnitInserter::operator()(UnitInput const& inp)
     {
         std::vector<Connectivity> conn(connectivity.size());
         CELER_ASSERT(conn.size() == unit.surfaces.types.size());
-        auto vol_ids = make_builder(&orange_data_->connectivity_volume_ids);
+        auto vol_ids = make_builder(&orange_data_->local_volume_ids);
         for (auto i : range(connectivity.size()))
         {
             Connectivity c;
@@ -308,7 +308,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     auto get_num_intersections
         = make_surface_action(surfaces, NumIntersectionGetter{});
 
-    for (SurfaceId sid : v.faces)
+    for (LocalSurfaceId sid : v.faces)
     {
         CELER_ASSERT(sid < surfaces.num_surfaces());
         simple_safety = simple_safety && get_simple_safety(sid);
@@ -329,12 +329,11 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         input_logic = make_span(nowhere_logic);
     }
 
-    auto faces = make_builder(&orange_data_->surface_ids);
-    auto logic = make_builder(&orange_data_->logic_ints);
-
     VolumeRecord output;
-    output.faces = faces.insert_back(v.faces.begin(), v.faces.end());
-    output.logic = logic.insert_back(input_logic.begin(), input_logic.end());
+    output.faces = make_builder(&orange_data_->local_surface_ids)
+                       .insert_back(v.faces.begin(), v.faces.end());
+    output.logic = make_builder(&orange_data_->logic_ints)
+                       .insert_back(input_logic.begin(), input_logic.end());
     output.max_intersections = max_intersections;
     output.flags = v.flags;
     if (simple_safety)

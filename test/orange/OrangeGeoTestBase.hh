@@ -98,7 +98,7 @@ class OrangeGeoTestBase : public Test
     SurfaceId find_surface(char const* label) const;
 
     // Surface name (or sentinel if no surface);
-    std::string id_to_label(SurfaceId) const;
+    std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;
 
     // Cell name (or sentinel if no surface);
     std::string id_to_label(UniverseId uid, LocalVolumeId volid) const;

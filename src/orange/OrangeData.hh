@@ -53,7 +53,7 @@ struct OrangeParamsScalars
  */
 struct VolumeRecord
 {
-    ItemRange<SurfaceId> faces;
+    ItemRange<LocalSurfaceId> faces;
     ItemRange<logic_int> logic;
 
     logic_int max_intersections{0};
@@ -127,7 +127,7 @@ struct SimpleUnitRecord
 
     // Surface data
     SurfacesRecord surfaces;
-    ItemRange<Connectivity> connectivity;  // Index by SurfaceId
+    ItemRange<Connectivity> connectivity;  // Index by LocalSurfaceId
 
     // Volume data [index by LocalVolumeId]
     ItemMap<LocalVolumeId, VolumeRecordId> volumes;
@@ -211,13 +211,13 @@ struct OrangeParamsData
     Items<SimpleUnitRecord> simple_unit;
 
     // Low-level storage
-    Items<SurfaceId> surface_ids;
-    Items<LocalVolumeId> connectivity_volume_ids;
+    Items<LocalSurfaceId> local_surface_ids;
     Items<RealId> real_ids;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
     Items<SurfaceType> surface_types;
     Items<Connectivity> connectivities;
+    Items<LocalVolumeId> local_volume_ids;
     Items<VolumeRecord> volume_records;
 
     Items<Translation> translations;
@@ -231,7 +231,7 @@ struct OrangeParamsData
     {
         return scalars && !universe_type.empty()
                && universe_index.size() == universe_type.size()
-               && ((!connectivity_volume_ids.empty() && !logic_ints.empty()
+               && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
                && !volume_records.empty() && unit_indexer_data;
@@ -247,8 +247,8 @@ struct OrangeParamsData
         universe_index = other.universe_index;
         simple_unit = other.simple_unit;
 
-        surface_ids = other.surface_ids;
-        connectivity_volume_ids = other.connectivity_volume_ids;
+        local_surface_ids = other.local_surface_ids;
+        local_volume_ids = other.local_volume_ids;
         real_ids = other.real_ids;
         logic_ints = other.logic_ints;
         reals = other.reals;
@@ -292,7 +292,7 @@ struct OrangeStateData
     Items<UniverseId> universe;
 
     // Surface crossing, dimensions {num_tracks, max_level}
-    Items<SurfaceId> surf;
+    Items<LocalSurfaceId> surf;
     Items<Sense> sense;
     Items<BoundaryResult> boundary;
 

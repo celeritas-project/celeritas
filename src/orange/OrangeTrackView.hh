@@ -220,7 +220,7 @@ OrangeTrackView::operator=(Initializer_t const& init)
         lsa.pos() = init.pos;
         lsa.dir() = init.dir;
         lsa.universe() = uid;
-        lsa.surf() = SurfaceId{};
+        lsa.surf() = LocalSurfaceId{};
         lsa.sense() = Sense{};
         lsa.boundary() = BoundaryResult::exiting;
 
@@ -461,7 +461,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     axpy(dist, lsa.dir(), &lsa.pos());
 
     next_step_ -= dist;
-    lsa.surf() = SurfaceId{};
+    lsa.surf() = LocalSurfaceId{};
 }
 
 //---------------------------------------------------------------------------//
@@ -475,7 +475,7 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
     auto lsa = this->make_lsa();
     lsa.pos() = pos;
-    lsa.surf() = SurfaceId{};
+    lsa.surf() = LocalSurfaceId{};
     this->clear_next_step();
 }
 
@@ -557,7 +557,9 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         // dotted with the surface normal changes (i.e. heading from inside to
         // outside or vice versa).
         auto tracker = this->make_tracker(UniverseId{0});
-        const Real3 normal = tracker.normal(this->pos(), this->surface_id());
+        detail::UnitIndexer ui(params_.unit_indexer_data);
+        const Real3 normal = tracker.normal(
+            this->pos(), ui.local_surface(this->surface_id()).surface);
 
         if ((dot_product(normal, newdir) >= 0)
             != (dot_product(normal, this->dir()) >= 0))
